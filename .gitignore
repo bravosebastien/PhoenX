@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+# Logs
+*.log
+
+# Android Studio / IntelliJ
+.idea/
