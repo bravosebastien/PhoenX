@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
-    <style name="Theme.PhoenX" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- On utilise un thème AppCompat pour éviter le crash au démarrage -->
+    <style name="Theme.PhoenX" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Couleurs de base -->
+        <item name="colorPrimary">#6200EE</item>
+        <item name="colorPrimaryDark">#3700B3</item>
+        <item name="colorAccent">#03DAC5</item>
+    </style>
 </resources>

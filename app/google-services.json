@@ -12,7 +12,20 @@
           "package_name": "com.example.phoenx"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "962448590786-orivcpa4ghg9drgrltrb9s5f663838ni.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.phoenx",
+            "certificate_hash": "811e941f17d97c87013b3387856ae2328facd8b8"
+          }
+        },
+        {
+          "client_id": "962448590786-1acj9gek2a362ml254n2kkjn68u0ntpl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCSzKcxZfVZ4ietkgNJZROu8Y36jQMHuH4"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "962448590786-1acj9gek2a362ml254n2kkjn68u0ntpl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

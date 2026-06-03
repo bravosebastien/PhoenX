@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center"
+    android:background="@color/cockpit_black_absolute">
+
+    <TextView
+        android:id="@+id/mainTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="PHOEN-X"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="30dp"
+        android:textColor="@color/cockpit_white_pure"/>
+
+    <LinearLayout
+        android:id="@+id/hubCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:layout_marginBottom="20dp">
+
+        <EditText
+            android:id="@+id/emailInput"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Adresse email"
+            android:textColorHint="#88FFFFFF"
+            android:textColor="@color/cockpit_white_pure"
+            android:inputType="textEmailAddress"
+            android:layout_marginBottom="16dp"/>
+
+        <EditText
+            android:id="@+id/passwordInput"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Mot de passe"
+            android:textColorHint="#88FFFFFF"
+            android:textColor="@color/cockpit_white_pure"
+            android:inputType="textPassword"
+            android:layout_marginBottom="8dp"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/loginButton"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="Se connecter"
+        android:textStyle="bold"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/registerButton"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="Créer un compte"
+        android:textSize="16sp"
+        style="?android:attr/borderlessButtonStyle"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/aiTestButton"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="Tester l'IA Phoen-X"
+        android:backgroundTint="#6200EE"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:layout_marginBottom="20dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CHANGER LA COULEUR DE FOND"
+        android:textSize="10sp"
+        android:textColor="@color/cockpit_white_pure"
+        android:layout_marginBottom="8dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
+        <Button android:id="@+id/btnBgNeon" android:layout_width="80dp" android:layout_height="40dp" android:text="Néon" android:textSize="10sp" android:backgroundTint="@color/theme_neon" android:textColor="@color/cockpit_black_absolute"/>
+        <Button android:id="@+id/btnBgMagma" android:layout_width="80dp" android:layout_height="40dp" android:text="Magma" android:textSize="10sp" android:backgroundTint="@color/theme_magma" android:textColor="@color/cockpit_black_absolute" android:layout_marginLeft="8dp"/>
+        <Button android:id="@+id/btnBgSolaire" android:layout_width="80dp" android:layout_height="40dp" android:text="Solaire" android:textSize="10sp" android:backgroundTint="@color/theme_solaire" android:textColor="@color/cockpit_black_absolute" android:layout_marginLeft="8dp"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CHANGER LA COULEUR DU TEXTE / BORDURES"
+        android:textSize="10sp"
+        android:textColor="@color/cockpit_white_pure"
+        android:layout_marginBottom="8dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <Button android:id="@+id/btnTextArgent" android:layout_width="80dp" android:layout_height="40dp" android:text="Argent" android:textSize="10sp" android:backgroundTint="@color/theme_argent" android:textColor="@color/cockpit_black_absolute"/>
+        <Button android:id="@+id/btnTextMagenta" android:layout_width="80dp" android:layout_height="40dp" android:text="Elite" android:textSize="10sp" android:backgroundTint="@color/theme_magenta_elite" android:textColor="@color/cockpit_black_absolute" android:layout_marginLeft="8dp"/>
+        <Button android:id="@+id/btnTextSolaire" android:layout_width="80dp" android:layout_height="40dp" android:text="Solaire" android:textSize="10sp" android:backgroundTint="@color/theme_solaire" android:textColor="@color/cockpit_black_absolute" android:layout_marginLeft="8dp"/>
+    </LinearLayout>
+
+</LinearLayout>
