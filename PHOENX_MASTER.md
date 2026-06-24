@@ -651,6 +651,9 @@ Inter (famille interface — navigation, boutons) :
 
 - Un seul accent chaud (#C97B3A) — jamais deux accents sur un même écran
 - Verre dépoli réservé aux écrans de transmission rares — pas sur l'interface quotidienne
+- **Ritualisation du dépôt** : Les actions ne sont pas des clics, mais des gestes (glisser, estomper). Le dépôt d'un souvenir doit ressembler à une lettre postée (animation lente 600ms).
+- **Le Sceau de l'Âge** : L'âge exact (signature) n'est pas un simple texte, c'est un sceau visuel élégant, presque un tampon de cire moderne sur chaque contenu.
+- **Matière et Profondeur** : Utilisation de textures légères (grain) et de dégradés profonds pour éviter le côté "plat" du numérique.
 - Animations lentes et organiques : fondu 400-600ms — jamais de rebond ni de confettis
 - Espace blanc généreux sur les écrans à charge émotionnelle forte
 - Une seule action primaire par écran — règle absolue

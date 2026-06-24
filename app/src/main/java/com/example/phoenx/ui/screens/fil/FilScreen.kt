@@ -1,9 +1,11 @@
 package com.example.phoenx.ui.screens.fil
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.HistoryEdu
@@ -14,6 +16,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,7 +36,7 @@ fun FilScreen(
     Scaffold(
         containerColor = BackgroundPrimary,
         topBar = {
-            Column(modifier = Modifier.padding(24.dp)) {
+            Column(modifier = Modifier.padding(top = 32.dp, start = 24.dp, end = 24.dp, bottom = 16.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -43,32 +47,51 @@ fun FilScreen(
                         style = MaterialTheme.typography.displayMedium,
                         color = TextPrimary
                     )
-                    IconButton(onClick = { /* Filtres */ }) {
-                        Icon(Icons.Default.FilterList, contentDescription = null, tint = AccentPrimary)
+                    Surface(
+                        onClick = { /* Filtres */ },
+                        color = SurfaceCard,
+                        shape = CircleShape,
+                        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.2f))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FilterList, 
+                            contentDescription = null, 
+                            tint = AccentPrimary,
+                            modifier = Modifier.padding(12.dp)
+                        )
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "${uiState.totalCount} pensées • de ${uiState.minAge} à ${uiState.maxAge} ans",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    text = "${uiState.totalCount} fragments de vie • de ${uiState.minAge} à ${uiState.maxAge} ans",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextSecondary,
+                    letterSpacing = 1.sp
                 )
             }
         }
     ) { padding ->
         val groupedEntries = uiState.entries.groupBy { it.ageAtCreation.years }
         
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(bottom = 24.dp)
-        ) {
-            groupedEntries.keys.sortedDescending().forEach { year ->
-                item {
-                    YearSeparator(year, groupedEntries[year]?.size ?: 0)
-                }
-                items(groupedEntries[year] ?: emptyList()) { entry ->
-                    TimelineEntryItem(entry)
+        Box(modifier = Modifier.fillMaxSize().background(
+            Brush.radialGradient(
+                colors = listOf(BackgroundSecondary, BackgroundPrimary),
+                radius = 2000f
+            )
+        )) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentPadding = PaddingValues(bottom = 40.dp)
+            ) {
+                groupedEntries.keys.sortedDescending().forEach { year ->
+                    item {
+                        YearSeparator(year, groupedEntries[year]?.size ?: 0)
+                    }
+                    items(groupedEntries[year] ?: emptyList()) { entry ->
+                        TimelineEntryItem(entry)
+                    }
                 }
             }
         }
@@ -80,19 +103,22 @@ fun YearSeparator(year: Int, count: Int) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp),
+            .padding(vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Box(modifier = Modifier.width(1.dp).height(20.dp).background(TextTertiary.copy(alpha = 0.3f)))
         Text(
-            text = "• $year ans •",
-            style = MaterialTheme.typography.labelLarge,
+            text = "$year ANS",
+            style = MaterialTheme.typography.labelSmall,
             color = AccentPrimary,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 4.sp
         )
         Text(
-            text = "$count pensées à cet âge-là",
+            text = "$count pensées",
             style = MaterialTheme.typography.labelSmall,
-            color = TextTertiary
+            color = TextTertiary,
+            fontSize = 10.sp
         )
     }
 }
@@ -102,44 +128,70 @@ fun TimelineEntryItem(entry: PhoenXEntry) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 8.dp),
-        color = SurfaceCard,
-        shape = MaterialTheme.shapes.large
+            .padding(horizontal = 24.dp, vertical = 10.dp),
+        color = SurfaceCard.copy(alpha = 0.5f),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                val icon = if (entry.type == EntryType.THOUGHT) Icons.Default.Psychology else Icons.Default.HistoryEdu
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = TextTertiary,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "À ${entry.ageAtCreation.years} ans, ${entry.ageAtCreation.months} mois et ${entry.ageAtCreation.days} jours",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AccentPrimary
-                )
+        Column(modifier = Modifier.padding(24.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val icon = if (entry.type == EntryType.THOUGHT) Icons.Default.Psychology else Icons.Default.HistoryEdu
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = TextTertiary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = entry.type.name,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextSecondary,
+                        letterSpacing = 1.sp
+                    )
+                }
+                
+                // Le Sceau de l'Âge (version réduite pour la liste)
+                Surface(
+                    color = BackgroundPrimary,
+                    shape = CircleShape,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
+                ) {
+                    Text(
+                        text = "${entry.ageAtCreation.months}m ${entry.ageAtCreation.days}j",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AccentPrimary,
+                        fontSize = 10.sp
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = String(entry.encryptedContent), // Démo (normalement déchiffré)
-                style = MaterialTheme.typography.displaySmall,
-                color = TextPrimary,
-                fontSize = 16.sp
-            )
             
             Spacer(modifier = Modifier.height(16.dp))
-            SuggestionChip(
-                onClick = { },
-                label = { Text(entry.type.name, style = MaterialTheme.typography.labelSmall) },
-                colors = SuggestionChipDefaults.suggestionChipColors(
-                    labelColor = TextSecondary,
-                    containerColor = BackgroundPrimary.copy(alpha = 0.5f)
-                ),
-                border = null
+            
+            Text(
+                text = String(entry.encryptedContent),
+                style = MaterialTheme.typography.bodyLarge,
+                color = TextPrimary,
+                lineHeight = 26.sp
             )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Interaction discrète
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                Text(
+                    text = "Modifier",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextTertiary,
+                    modifier = Modifier.clickable { /* TODO */ }
+                )
+            }
         }
     }
 }
