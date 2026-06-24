@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/dashboardLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="top|center_horizontal">
+
+    <TextView
+        android:id="@+id/dashboardTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="COCKPIT PRINCIPAL"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="30dp"/>
+
+    <LinearLayout
+        android:id="@+id/statusCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:layout_marginBottom="24dp">
+
+        <TextView
+            android:id="@+id/txtWelcome"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Statut : Connecté au Réseau Phoen-X"
+            android:textColor="@color/cockpit_white_pure"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/txtCapsuleCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vos Tiroirs Sécurisés : 0 chargés"
+            android:textColor="#88FFFFFF"
+            android:textSize="12sp"/>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnCreateCapsule"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="Créer un Souvenir Temporel"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/btnConsultIA"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="Consulter l'IA Intégrée"
+        android:layout_marginBottom="40dp"/>
+
+    <Button
+        android:id="@+id/btnLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Quitter le Cockpit"
+        style="?android:attr/borderlessButtonStyle"/>
+
+</LinearLayout>

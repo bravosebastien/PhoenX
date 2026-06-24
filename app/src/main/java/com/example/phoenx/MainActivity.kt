@@ -1,6 +1,7 @@
 package com.example.phoenx
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -27,19 +28,24 @@ class MainActivity : AppCompatActivity() {
     private lateinit var db: FirebaseFirestore
     private val activityScope = MainScope()
 
-    // Variables pour stocker les couleurs sélectionnées (Valeurs par défaut)
-    private var currentBgColorHex = "#00FFFF"   // Néon par défaut
-    private var currentTextColorHex = "#FFD700" // Solaire par défaut
+    private var currentBgColorHex = "#00FFFF"
+    private var currentTextColorHex = "#FFD700"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        // Initialisation de Firebase Auth et Firestore
+        
+        // Initialisation Firebase
         auth = Firebase.auth
         db = Firebase.firestore
 
-        // Récupération des composants majeurs de l'écran
+        // Vérification automatique : si déjà connecté, on saute l'identification
+        if (auth.currentUser != null) {
+            startActivity(Intent(this, DashboardActivity::class.java))
+            finish()
+        }
+
+        setContentView(R.layout.activity_main)
+
         val mainLayout = findViewById<LinearLayout>(R.id.mainLayout)
         val hubCard = findViewById<LinearLayout>(R.id.hubCard)
         val mainTitle = findViewById<TextView>(R.id.mainTitle)
@@ -49,15 +55,13 @@ class MainActivity : AppCompatActivity() {
         val emailInput = findViewById<EditText>(R.id.emailInput)
         val passwordInput = findViewById<EditText>(R.id.passwordInput)
 
-        // Chargement des préférences enregistrées
         val prefs = getSharedPreferences("CockpitPrefs", Context.MODE_PRIVATE)
         currentBgColorHex = prefs.getString("bgColor", "#00FFFF") ?: "#00FFFF"
         currentTextColorHex = prefs.getString("textColor", "#FFD700") ?: "#FFD700"
 
-        // Application immédiate du design sauvegardé
         appliquerDesignCockpit(mainLayout, hubCard, mainTitle, loginButton, registerButton, aiTestButton, emailInput, passwordInput)
 
-        // --- COMMANDES DE MODIFICATION DU FOND ---
+        // Boutons de changement de thème
         findViewById<Button>(R.id.btnBgNeon).setOnClickListener {
             currentBgColorHex = "#00FFFF"
             prefs.edit().putString("bgColor", currentBgColorHex).apply()
@@ -74,7 +78,6 @@ class MainActivity : AppCompatActivity() {
             appliquerDesignCockpit(mainLayout, hubCard, mainTitle, loginButton, registerButton, aiTestButton, emailInput, passwordInput)
         }
 
-        // --- COMMANDES DE MODIFICATION DES TEXTES / BORDURES ---
         findViewById<Button>(R.id.btnTextArgent).setOnClickListener {
             currentTextColorHex = "#C0C0C0"
             prefs.edit().putString("textColor", currentTextColorHex).apply()
@@ -93,7 +96,6 @@ class MainActivity : AppCompatActivity() {
 
         // --- LOGIQUE FIREBASE ---
 
-        // Inscription
         registerButton.setOnClickListener {
             val email = emailInput.text.toString().trim()
             val password = passwordInput.text.toString().trim()
@@ -113,6 +115,9 @@ class MainActivity : AppCompatActivity() {
                                 db.collection("users").document(userId).set(userProfile)
                                     .addOnSuccessListener {
                                         Toast.makeText(this, "Compte et profil créés !", Toast.LENGTH_SHORT).show()
+                                        // Redirection vers le Dashboard
+                                        startActivity(Intent(this, DashboardActivity::class.java))
+                                        finish()
                                     }
                             }
                         } else {
@@ -122,7 +127,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Connexion
         loginButton.setOnClickListener {
             val email = emailInput.text.toString().trim()
             val password = passwordInput.text.toString().trim()
@@ -132,6 +136,9 @@ class MainActivity : AppCompatActivity() {
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
                             Toast.makeText(this, "Connexion réussie !", Toast.LENGTH_SHORT).show()
+                            // Redirection vers le Dashboard
+                            startActivity(Intent(this, DashboardActivity::class.java))
+                            finish()
                         } else {
                             Toast.makeText(this, "Erreur : ${task.exception?.message}", Toast.LENGTH_LONG).show()
                         }
@@ -139,11 +146,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Déclenchement de l'IA Gemini
         aiTestButton.setOnClickListener {
             val currentUser = auth.currentUser
             if (currentUser == null) {
-                Toast.makeText(this, "Connectez-vous d'abord pour activer l'IA", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Connectez-vous d'abord", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -152,16 +158,11 @@ class MainActivity : AppCompatActivity() {
             activityScope.launch {
                 try {
                     val model = Firebase.vertexAI.generativeModel("gemini-1.5-flash")
-                    val response = model.generateContent(
-                        content {
-                            text("Rédige une phrase de bienvenue futuriste et poétique pour un utilisateur de l'application Phoen-X, une capsule temporelle numérique.")
-                        }
-                    )
-
-                    val iaResponseText = response.text ?: "L'IA n'a pas pu répondre."
+                    val response = model.generateContent(content { text("Phrase de bienvenue futuriste.") })
+                    val iaResponseText = response.text ?: "Erreur IA"
 
                     val aiLog = hashMapOf(
-                        "prompt" to "Phrase de bienvenue futuriste",
+                        "prompt" to "Phrase de bienvenue",
                         "response" to iaResponseText,
                         "timestamp" to com.google.firebase.Timestamp.now()
                     )
@@ -171,7 +172,6 @@ class MainActivity : AppCompatActivity() {
                         .addOnSuccessListener {
                             Toast.makeText(applicationContext, "IA : $iaResponseText", Toast.LENGTH_LONG).show()
                         }
-
                 } catch (e: Exception) {
                     Toast.makeText(applicationContext, "Erreur IA : ${e.message}", Toast.LENGTH_LONG).show()
                 }
@@ -179,12 +179,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Fonction qui redessine l'écran à la volée
     private fun appliquerDesignCockpit(
         layout: LinearLayout, card: LinearLayout, title: TextView, 
         btnLogin: Button, btnReg: Button, btnAi: Button, email: EditText, pass: EditText
     ) {
-        // 1. Génération du dégradé à 3 couches pour le fond
         val colorInt = Color.parseColor(currentBgColorHex)
         val alphaColor = Color.argb(102, Color.red(colorInt), Color.green(colorInt), Color.blue(colorInt))
         
@@ -194,7 +192,6 @@ class MainActivity : AppCompatActivity() {
         )
         layout.background = backgroundGradient
 
-        // 2. Application de la couleur d'accentuation
         val textAccentColorInt = Color.parseColor(currentTextColorHex)
         val accentColorStateList = ColorStateList.valueOf(textAccentColorInt)
         
@@ -202,19 +199,16 @@ class MainActivity : AppCompatActivity() {
         email.backgroundTintList = accentColorStateList
         pass.backgroundTintList = accentColorStateList
 
-        // 3. Redessiner la Hub Card
-        val cardStyle = GradientDrawable()
-        cardStyle.setColor(Color.parseColor("#151515"))
-        cardStyle.setStroke(4, textAccentColorInt)
-        cardStyle.cornerRadius = 36f
+        val cardStyle = GradientDrawable().apply {
+            setColor(Color.parseColor("#151515"))
+            setStroke(4, textAccentColorInt)
+            cornerRadius = 36f
+        }
         card.background = cardStyle
 
-        // 4. Style des boutons
         btnLogin.backgroundTintList = accentColorStateList
         btnLogin.setTextColor(Color.BLACK)
-        
         btnReg.setTextColor(textAccentColorInt)
-        
         btnAi.backgroundTintList = accentColorStateList
         btnAi.setTextColor(Color.BLACK)
     }
