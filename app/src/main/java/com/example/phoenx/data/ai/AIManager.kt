@@ -13,21 +13,30 @@ class AIManager @Inject constructor(
     /**
      * RÈGLE ABSOLUE : Ne JAMAIS envoyer de contenu chiffré à l'IA.
      * On envoie uniquement des résumés ou tags non sensibles.
+     * Utilisation de gemini-3.1-flash-lite (juin 2026).
      */
 
     suspend fun analyzeEntrySummary(summary: String): Map<String, Any> {
-        val data = hashMapOf("summary" to summary)
+        val data = hashMapOf(
+            "summary" to summary,
+            "model" to "gemini-3.1-flash-lite"
+        )
         val result: HttpsCallableResult = functions.getHttpsCallable("analyzeEntry").call(data).await()
+        @Suppress("UNCHECKED_CAST")
         return result.data as Map<String, Any>
     }
 
     suspend fun getBiographerQuestion(): String {
-        val result: HttpsCallableResult = functions.getHttpsCallable("generateBiographerQuestion").call().await()
+        val data = hashMapOf("model" to "gemini-3.1-flash-lite")
+        val result: HttpsCallableResult = functions.getHttpsCallable("generateBiographerQuestion").call(data).await()
         return result.data as String
     }
 
     suspend fun generateEssencePortrait(summaries: List<String>): String {
-        val data = hashMapOf("summaries" to summaries)
+        val data = hashMapOf(
+            "summaries" to summaries,
+            "model" to "gemini-3.1-flash-lite"
+        )
         val result: HttpsCallableResult = functions.getHttpsCallable("generateEssencePortrait").call(data).await()
         return result.data as String
     }

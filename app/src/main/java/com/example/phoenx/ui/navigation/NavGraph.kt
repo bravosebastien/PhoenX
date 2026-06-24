@@ -12,20 +12,29 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.phoenx.ui.screens.auth.AuthScreen
 import com.example.phoenx.ui.screens.capture.CaptureScreen
+import com.example.phoenx.ui.screens.depositary.DepositaryScreen
 import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.home.HomeScreen
 import com.example.phoenx.ui.screens.onboarding.OnboardingScreen
-import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
-import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
-import com.example.phoenx.ui.screens.depositary.DepositaryScreen
+import com.example.phoenx.ui.screens.portraits.PortraitScreen
+import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
 import com.example.phoenx.ui.theme.TextPrimary
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun PhoenXNavGraph(navController: NavHostController) {
+    // Vérification de la session utilisateur pour le point de départ
+    val currentUser = FirebaseAuth.getInstance().currentUser
+    val startScreen = if (currentUser != null) {
+        Screen.Home.route
+    } else {
+        Screen.Onboarding.route
+    }
+
     NavHost(
         navController = navController,
-        startDestination = Screen.Onboarding.route
+        startDestination = startScreen
     ) {
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
@@ -82,7 +91,7 @@ fun PhoenXNavGraph(navController: NavHostController) {
         }
         
         composable(Screen.Capture.route) { backStackEntry ->
-            val type = backStackEntry.arguments?.getString("type") ?: "TEXT"
+            val type = backStackEntry.arguments?.getString("type") ?: Screen.Capture.TYPE_TEXT
             CaptureScreen(
                 initialType = type,
                 onNavigateBack = { navController.popBackStack() }
