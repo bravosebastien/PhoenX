@@ -50,6 +50,15 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = com.example.phoenx.ui.theme.BackgroundPrimary
                 ) {
+                    val startRoute = intent.getStringExtra("START_ROUTE")
+                    val navController = rememberNavController()
+                    
+                    LaunchedEffect(startRoute) {
+                        if (startRoute != null) {
+                            navController.navigate(startRoute)
+                        }
+                    }
+
                     PhoenXNavGraph(
                         navController = navController,
                         mainViewModel = mainViewModel

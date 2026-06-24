@@ -28,6 +28,16 @@
             android:name=".DashboardActivity"
             android:exported="false" />
             
+        <service
+            android:name=".services.NightCaptureTileService"
+            android:icon="@drawable/ic_launcher_foreground"
+            android:label="Phoen-X Nuit"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

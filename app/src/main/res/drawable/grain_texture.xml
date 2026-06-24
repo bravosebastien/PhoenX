@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <!-- Texture de grain organique simulée par des points aléatoires -->
+    <path
+        android:fillColor="#11FFFFFF"
+        android:pathData="M1,1h1v1h-1z M10,5h1v1h-1z M30,15h1v1h-1z M50,8h1v1h-1z M80,40h1v1h-1z M120,60h1v1h-1z M150,20h1v1h-1z M180,90h1v1h-1z" />
+</vector>
