@@ -19,6 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -58,6 +61,17 @@ fun CaptureScreen(
 
     Scaffold(
         containerColor = backgroundColor,
+        modifier = Modifier.onKeyEvent { event ->
+            // OPTIMISATION HARDWARE : On intercepte les touches Volume pour stopper l'enregistrement à l'aveugle
+            if (uiState is CaptureUiState.RecordingAudio) {
+                if (event.key == Key.VolumeUp || event.key == Key.VolumeDown) {
+                    viewModel.stopAudioRecording()
+                    viewModel.saveEntry(null, null, initialType, "Sagesse", "Privé")
+                    return@onKeyEvent true
+                }
+            }
+            false
+        },
         topBar = {
             if (!isNightMode) {
                 TopAppBar(
@@ -114,23 +128,24 @@ fun CaptureScreen(
             exit = slideOutVertically(tween(800)) { -it } + fadeOut(tween(600)),
             modifier = Modifier.fillMaxSize()
         ) {
-            val modifier = if (isNightMode) {
-                Modifier.fillMaxSize().background(Color.Black)
+            val boxModifier = if (isNightMode) {
+                Modifier.fillMaxSize().background(Color.Black).clickable {
+                    if (uiState is CaptureUiState.RecordingAudio) {
+                        viewModel.stopAudioRecording()
+                        viewModel.saveEntry(null, null, Screen.Capture.TYPE_NIGHT, "Sagesse", "Privé")
+                    }
+                }
             } else {
                 Modifier.fillMaxSize().background(
                     Brush.radialGradient(listOf(BackgroundSecondary, BackgroundPrimary), radius = 2000f)
                 )
             }
 
-            Box(modifier = modifier) {
+            Box(modifier = boxModifier) {
                 if (isNightMode) {
                     NightCaptureContent(
-                        onStop = { 
-                            viewModel.stopAudioRecording()
-                            viewModel.saveEntry(null, null, Screen.Capture.TYPE_NIGHT, "Sagesse", "Privé")
-                        },
-                        onStart = { viewModel.startAudioRecording(context.cacheDir) },
-                        isRecording = uiState is CaptureUiState.RecordingAudio
+                        isRecording = uiState is CaptureUiState.RecordingAudio,
+                        onStart = { viewModel.startAudioRecording(context.cacheDir) }
                     )
                 } else if (initialType == Screen.Capture.TYPE_AUDIO) {
                     AudioCaptureContent(
@@ -278,20 +293,19 @@ fun AudioCaptureContent(
 @Composable
 fun NightCaptureContent(
     isRecording: Boolean,
-    onStart: () -> Unit,
-    onStop: () -> Unit
+    onStart: () -> Unit
 ) {
     LaunchedEffect(Unit) {
         if (!isRecording) onStart()
     }
 
     Box(
-        modifier = Modifier.fillMaxSize().clickable { onStop() },
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                "3h du matin",
+                "CAPTURE INVISIBLE",
                 style = MaterialTheme.typography.labelSmall,
                 color = TextTertiary,
                 letterSpacing = 4.sp
@@ -304,9 +318,10 @@ fun NightCaptureContent(
             ) {}
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                "Parle doucement. On garde tout.",
+                "Parle. On garde tout.\nTouches VOLUME pour arrêter.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
+                color = TextSecondary,
+                textAlign = TextAlign.Center
             )
         }
     }

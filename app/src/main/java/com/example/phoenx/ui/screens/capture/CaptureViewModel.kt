@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.ai.AIManager
 import com.example.phoenx.data.audio.PhoenXAudioRecorder
 import com.example.phoenx.data.encryption.EncryptionManager
+import com.example.phoenx.data.haptic.HapticManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.domain.util.AgeUtils
@@ -27,7 +28,8 @@ class CaptureViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
     private val aiManager: AIManager,
-    private val audioRecorder: PhoenXAudioRecorder
+    private val audioRecorder: PhoenXAudioRecorder,
+    private val hapticManager: HapticManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<CaptureUiState>(CaptureUiState.Idle)
@@ -39,6 +41,7 @@ class CaptureViewModel @Inject constructor(
         val file = File(cacheDir, "temp_capture_${System.currentTimeMillis()}.mp4")
         currentAudioFile = file
         audioRecorder.start(file)
+        hapticManager.signalStartRecording()
         _uiState.value = CaptureUiState.RecordingAudio
     }
 
@@ -61,18 +64,15 @@ class CaptureViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // 1. Calcul de l'âge (Signature)
                 val userDoc = db.collection("users").document(user.uid).get().await()
                 val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: Date()
                 val age = AgeUtils.calculateAge(birthDate)
                 
-                // 2. Chiffrement E2EE
                 val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
                 
                 val payloadText = content ?: "Audio message"
                 val encrypted = encryptionManager.encryptText(payloadText, tempKey)
                 
-                // 3. Sauvegarde locale
                 val entry = OfflineEntry(
                     encryptedPayload = encrypted,
                     entryType = type,
@@ -84,14 +84,8 @@ class CaptureViewModel @Inject constructor(
                     createdAt = System.currentTimeMillis()
                 )
                 offlineEntryDao.insertEntry(entry)
-
-                // 4. Analyse IA
-                if (type == Screen.Capture.TYPE_TEXT && content != null) {
-                    viewModelScope.launch {
-                        try { aiManager.analyzeEntrySummary(content.take(100)) } catch (e: Exception) { }
-                    }
-                }
                 
+                hapticManager.signalSaveSuccess()
                 _uiState.value = CaptureUiState.Success
             } catch (e: Exception) {
                 _uiState.value = CaptureUiState.Error(e.message ?: "Erreur lors du dépôt")
