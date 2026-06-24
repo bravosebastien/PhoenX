@@ -1,9 +1,6 @@
 package com.example.phoenx.data.local
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -22,4 +19,15 @@ interface OfflineEntryDao {
 
     @Query("DELETE FROM offline_entries WHERE id = :id")
     suspend fun deleteEntry(id: String)
+
+    // Amendments
+    @Query("SELECT * FROM amendments WHERE entryId = :entryId ORDER BY createdAt ASC")
+    fun getAmendmentsForEntry(entryId: String): Flow<List<AmendmentEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAmendment(amendment: AmendmentEntity)
+
+    // Portraits
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPortrait(portrait: PortraitEntity)
 }

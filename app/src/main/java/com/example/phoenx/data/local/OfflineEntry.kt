@@ -12,6 +12,8 @@ data class OfflineEntry(
     val ageAtCreation: String, // Stocké en JSON
     val emotionalCategory: String,
     val visibility: String,
+    val isYoungSelfLetter: Boolean = false,
+    val targetAge: Int? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val syncStatus: String = "pending" // "pending" | "synced" | "failed"
 )

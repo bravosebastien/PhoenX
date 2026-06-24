@@ -166,6 +166,21 @@ fun TimelineEntryItem(entry: PhoenXEntry) {
                         color = TextSecondary,
                         letterSpacing = 1.sp
                     )
+                    if (entry.isYoungSelfLetter) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            color = AccentSecondary.copy(alpha = 0.2f),
+                            shape = CircleShape
+                        ) {
+                            Text(
+                                text = "LETTRE À MES ${entry.targetAge} ANS",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = AccentSecondary,
+                                fontSize = 9.sp
+                            )
+                        }
+                    }
                 }
                 
                 // Le Sceau de l'Âge

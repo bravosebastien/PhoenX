@@ -6,17 +6,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PortraitScreen(
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: PortraitViewModel = hiltViewModel()
 ) {
     var step by remember { mutableStateOf(0) }
     val questions = listOf(
@@ -27,6 +30,14 @@ fun PortraitScreen(
         "Qu'est-ce que tu veux qu'il/elle sache de la façon dont tu le/la vois ?"
     )
     val answers = remember { mutableStateListOf("", "", "", "", "") }
+    
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState) {
+        if (uiState is PortraitUiState.Success) {
+            onNavigateBack()
+        }
+    }
 
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -105,14 +116,29 @@ fun PortraitScreen(
                 Button(
                     onClick = { 
                         if (step < 4) step++ 
-                        else { /* Finish */ }
+                        else { 
+                            viewModel.savePortrait("friend_id", answers.toList())
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
-                    enabled = answers[step].isNotEmpty()
+                    enabled = answers[step].isNotEmpty() && uiState !is PortraitUiState.Loading
                 ) {
-                    Text(if (step < 4) "Suivant" else "Finaliser", color = BackgroundPrimary)
+                    if (uiState is PortraitUiState.Loading) {
+                        CircularProgressIndicator(size = 20.dp, color = BackgroundPrimary)
+                    } else {
+                        Text(if (step < 4) "Suivant" else "Finaliser", color = BackgroundPrimary)
+                    }
                 }
             }
         }
     }
+}
+
+@Composable
+fun CircularProgressIndicator(size: androidx.compose.ui.unit.Dp, color: Color) {
+    androidx.compose.material3.CircularProgressIndicator(
+        modifier = Modifier.size(size),
+        color = color,
+        strokeWidth = 2.dp
+    )
 }
