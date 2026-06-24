@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.data.ai.AIManager
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -18,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val auth: FirebaseAuth,
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val aiManager: AIManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState())
@@ -26,6 +28,7 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadUserData()
+        loadBiographerQuestion()
     }
 
     private fun loadUserData() {
@@ -53,6 +56,17 @@ class HomeViewModel @Inject constructor(
                     }
             } catch (e: Exception) {
                 // Gérer l'erreur
+            }
+        }
+    }
+
+    private fun loadBiographerQuestion() {
+        viewModelScope.launch {
+            try {
+                val question = aiManager.getBiographerQuestion()
+                _uiState.value = _uiState.value.copy(biographerQuestion = question)
+            } catch (e: Exception) {
+                // Garder la question par défaut si erreur (ex: pas de connexion)
             }
         }
     }
