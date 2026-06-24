@@ -11,6 +11,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.screens.auth.AuthScreen
 import com.example.phoenx.ui.screens.capture.CaptureScreen
 import com.example.phoenx.ui.screens.depositary.DepositaryScreen
@@ -20,11 +21,17 @@ import com.example.phoenx.ui.screens.onboarding.OnboardingScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
+import com.example.phoenx.ui.screens.settings.SettingsScreen
+import com.example.phoenx.ui.screens.settings.ProtocolSettingsScreen
+import com.example.phoenx.ui.screens.settings.AccessibilitySettingsScreen
 import com.example.phoenx.ui.theme.TextPrimary
 import com.google.firebase.auth.FirebaseAuth
 
 @Composable
-fun PhoenXNavGraph(navController: NavHostController) {
+fun PhoenXNavGraph(
+    navController: NavHostController,
+    mainViewModel: MainViewModel
+) {
     val currentUser = FirebaseAuth.getInstance().currentUser
     val startScreen = if (currentUser != null) Screen.Home.route else Screen.Onboarding.route
 
@@ -57,7 +64,8 @@ fun PhoenXNavGraph(navController: NavHostController) {
             HomeScreen(
                 onNavigateToCapture = { type -> navController.navigate(Screen.Capture.createRoute(type)) },
                 onNavigateToFil = { navController.navigate(Screen.Fil.route) },
-                onNavigateToLetters = { navController.navigate(Screen.YoungSelfLetters.route) }
+                onNavigateToLetters = { navController.navigate(Screen.YoungSelfLetters.route) },
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
             )
         }
 
@@ -83,6 +91,25 @@ fun PhoenXNavGraph(navController: NavHostController) {
 
         composable(Screen.Pact.route) {
             PactScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
+                onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) }
+            )
+        }
+
+        composable(Screen.ProtocolSettings.route) {
+            ProtocolSettingsScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.AccessibilitySettings.route) {
+            AccessibilitySettingsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                mainViewModel = mainViewModel
+            )
         }
 
         composable(Screen.Depositary.route) {

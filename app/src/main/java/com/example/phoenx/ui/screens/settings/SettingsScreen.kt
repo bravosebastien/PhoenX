@@ -1,0 +1,96 @@
+package com.example.phoenx.ui.screens.settings
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.example.phoenx.ui.theme.*
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    onNavigateBack: () -> Unit,
+    onNavigateToProtocol: () -> Unit,
+    onNavigateToAccessibility: () -> Unit
+) {
+    Scaffold(
+        containerColor = BackgroundPrimary,
+        topBar = {
+            TopAppBar(
+                title = { Text("Réglages", style = MaterialTheme.typography.labelLarge) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = TextPrimary)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary, titleContentColor = TextPrimary)
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp)
+        ) {
+            Text("SÉCURITÉ ET TRANSMISSION", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            SettingsItem(
+                title = "Protocole d'activation",
+                subtitle = "Gère ton dépositaire et tes délais",
+                icon = Icons.Default.Lock,
+                onClick = onNavigateToProtocol
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text("ACCESSIBILITÉ", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(
+                title = "Mode Vocal Total",
+                subtitle = "Navigation par la voix",
+                icon = Icons.Default.RecordVoiceOver,
+                onClick = onNavigateToAccessibility
+            )
+        }
+    }
+}
+
+@Composable
+fun SettingsItem(
+    title: String,
+    subtitle: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        color = SurfaceCard,
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = icon, contentDescription = null, tint = AccentPrimary)
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            }
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = TextTertiary)
+        }
+    }
+}

@@ -37,6 +37,7 @@ fun HomeScreen(
     onNavigateToCapture: (String) -> Unit,
     onNavigateToFil: () -> Unit,
     onNavigateToLetters: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -66,7 +67,7 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 // Section 1: En-tête (Aéré)
-                HomeHeader(uiState.userName, uiState.currentDate)
+                HomeHeader(uiState.userName, uiState.currentDate, onNavigateToSettings)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -96,14 +97,16 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(40.dp))
 
                 // Section 7: Preuve de Vie
-                ProofOfLifeBadge(uiState.lastProofOfLifeDays)
+                ProofOfLifeBadge(uiState.lastProofOfLifeDays) {
+                    viewModel.updateProofOfLife()
+                }
             }
         }
     }
 }
 
 @Composable
-fun HomeHeader(name: String, date: String) {
+fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,7 +130,8 @@ fun HomeHeader(name: String, date: String) {
             modifier = Modifier.size(52.dp),
             shape = CircleShape,
             color = SurfaceCard,
-            border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.3f))
+            border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.3f)),
+            onClick = onProfileClick
         ) {
             Icon(
                 imageVector = Icons.Default.Person,
@@ -363,13 +367,13 @@ fun MemoryCard() {
 }
 
 @Composable
-fun ProofOfLifeBadge(days: Int) {
+fun ProofOfLifeBadge(days: Int, onClick: () -> Unit) {
     val color = if (days < 5) Success else if (days < 10) Warning else Error
     Surface(
         modifier = Modifier
             .padding(horizontal = 24.dp)
             .fillMaxWidth()
-            .clickable { /* logic update */ },
+            .clickable(onClick = onClick),
         color = color.copy(alpha = 0.05f),
         shape = CircleShape,
         border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.2f))

@@ -3,8 +3,8 @@ package com.example.phoenx.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.ai.AIManager
+import com.example.phoenx.domain.usecase.ActivationProtocolManager
 import com.example.phoenx.domain.util.AgeUtils
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,13 +14,15 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val aiManager: AIManager
+    private val aiManager: AIManager,
+    private val protocolManager: ActivationProtocolManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState())
@@ -39,6 +41,7 @@ class HomeViewModel @Inject constructor(
                     .addOnSuccessListener { doc ->
                         val name = doc.getString("displayName") ?: user.email?.substringBefore("@") ?: "Ami"
                         val birthTimestamp = doc.getTimestamp("dateOfBirth")
+                        val lastAlive = doc.getTimestamp("lastAliveConfirmedAt")
                         
                         var currentAge = 0
                         if (birthTimestamp != null) {
@@ -47,16 +50,21 @@ class HomeViewModel @Inject constructor(
                             currentAge = ageSnapshot.years
                         }
 
+                        var daysSinceLastProof = 0
+                        if (lastAlive != null) {
+                            val diff = System.currentTimeMillis() - lastAlive.toDate().time
+                            daysSinceLastProof = TimeUnit.MILLISECONDS.toDays(diff).toInt()
+                        }
+
                         _uiState.value = _uiState.value.copy(
                             userName = name,
                             currentAge = currentAge,
+                            lastProofOfLifeDays = daysSinceLastProof,
                             currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH))
                                 .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
                         )
                     }
-            } catch (e: Exception) {
-                // Gérer l'erreur
-            }
+            } catch (e: Exception) { }
         }
     }
 
@@ -65,16 +73,18 @@ class HomeViewModel @Inject constructor(
             try {
                 val question = aiManager.getBiographerQuestion()
                 _uiState.value = _uiState.value.copy(biographerQuestion = question)
-            } catch (e: Exception) {
-                // Garder la question par défaut si erreur (ex: pas de connexion)
-            }
+            } catch (e: Exception) { }
         }
     }
 
     fun updateProofOfLife() {
-        val user = auth.currentUser ?: return
-        db.collection("users").document(user.uid).update("lastAliveConfirmedAt", Timestamp.now())
-        _uiState.value = _uiState.value.copy(lastProofOfLifeDays = 0)
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                protocolManager.confirmProofOfLife(userId)
+                _uiState.value = _uiState.value.copy(lastProofOfLifeDays = 0)
+            } catch (e: Exception) { }
+        }
     }
 }
 
