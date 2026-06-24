@@ -3,6 +3,7 @@ package com.example.phoenx.ui.screens.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,8 +29,29 @@ class AuthViewModel @Inject constructor(
     private val _recoveryPhrase = MutableStateFlow<List<String>>(emptyList())
     val recoveryPhrase: StateFlow<List<String>> = _recoveryPhrase
 
+    // Clé de session en mémoire vive uniquement
+    var sessionKey: ByteArray? = null
+        private set
+
     fun generateRecoveryPhrase() {
         _recoveryPhrase.value = encryptionManager.generateRecoveryPhrase()
+    }
+
+    fun login(email: String, password: String) {
+        _uiState.value = AuthState.Loading
+        viewModelScope.launch {
+            try {
+                auth.signInWithEmailAndPassword(email, password).await()
+                
+                // Dérivation de la clé de session
+                val salt = "phoenx_permanent_salt".toByteArray() // TODO: Sel par utilisateur
+                sessionKey = encryptionManager.deriveKeyFromPassword(password, salt)
+                
+                _uiState.value = AuthState.Success
+            } catch (e: Exception) {
+                _uiState.value = AuthState.Error(e.message ?: "Erreur de connexion")
+            }
+        }
     }
 
     fun signUp(email: String, password: String, birthDate: LocalDate, depositaryName: String?) {
@@ -40,18 +62,18 @@ class AuthViewModel @Inject constructor(
                 val user = result.user
                 if (user != null) {
                     val salt = "phoenx_permanent_salt".toByteArray()
-                    // Simulation de dérivation pour le commit
-                    encryptionManager.deriveKeyFromPassword(password, salt)
+                    sessionKey = encryptionManager.deriveKeyFromPassword(password, salt)
                     
                     val birthDateInstant = birthDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
                     
                     val userProfile = hashMapOf(
                         "uid" to user.uid,
                         "email" to email,
-                        "dateOfBirth" to com.google.firebase.Timestamp(Date.from(birthDateInstant)),
-                        "createdAt" to com.google.firebase.Timestamp.now(),
+                        "dateOfBirth" to Timestamp(Date.from(birthDateInstant)),
+                        "createdAt" to Timestamp.now(),
                         "depositaryName" to depositaryName,
-                        "onboardingCompleted" to true
+                        "onboardingCompleted" to true,
+                        "lastAliveConfirmedAt" to Timestamp.now()
                     )
                     
                     db.collection("users").document(user.uid).set(userProfile).await()
