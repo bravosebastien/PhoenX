@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.fil
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -7,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material.icons.filled.Psychology
@@ -16,7 +18,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -26,6 +27,7 @@ import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.theme.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilScreen(
     onNavigateBack: () -> Unit,
@@ -36,61 +38,71 @@ fun FilScreen(
     Scaffold(
         containerColor = BackgroundPrimary,
         topBar = {
-            Column(modifier = Modifier.padding(top = 32.dp, start = 24.dp, end = 24.dp, bottom = 16.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Mon Fil de Pensée",
-                        style = MaterialTheme.typography.displayMedium,
-                        color = TextPrimary
-                    )
-                    Surface(
-                        onClick = { /* Filtres */ },
-                        color = SurfaceCard,
-                        shape = CircleShape,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.2f))
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FilterList, 
-                            contentDescription = null, 
-                            tint = AccentPrimary,
-                            modifier = Modifier.padding(12.dp)
+            TopAppBar(
+                title = {
+                    Column {
+                        Text(
+                            text = "Mon Fil de Pensée",
+                            style = MaterialTheme.typography.displaySmall,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "${uiState.totalCount} fragments de vie",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary,
+                            letterSpacing = 1.sp
                         )
                     }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "${uiState.totalCount} fragments de vie • de ${uiState.minAge} à ${uiState.maxAge} ans",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondary,
-                    letterSpacing = 1.sp
-                )
-            }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = TextPrimary)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { /* Filtres */ }) {
+                        Icon(Icons.Default.FilterList, contentDescription = null, tint = AccentPrimary)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+            )
         }
     ) { padding ->
-        val groupedEntries = uiState.entries.groupBy { it.ageAtCreation.years }
-        
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.radialGradient(
-                colors = listOf(BackgroundSecondary, BackgroundPrimary),
-                radius = 2000f
-            )
-        )) {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(bottom = 40.dp)
-            ) {
-                groupedEntries.keys.sortedDescending().forEach { year ->
-                    item {
-                        YearSeparator(year, groupedEntries[year]?.size ?: 0)
-                    }
-                    items(groupedEntries[year] ?: emptyList()) { entry ->
-                        TimelineEntryItem(entry)
+        if (uiState.isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = AccentPrimary)
+            }
+        } else if (uiState.entries.isEmpty()) {
+            Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Text(
+                    text = "Aucun souvenir pour le moment.\nCapture ta première pensée.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextTertiary,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+        } else {
+            val groupedEntries = uiState.entries.groupBy { it.ageAtCreation.years }
+            
+            Box(modifier = Modifier.fillMaxSize().background(
+                Brush.radialGradient(
+                    colors = listOf(BackgroundSecondary, BackgroundPrimary),
+                    radius = 2000f
+                )
+            )) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentPadding = PaddingValues(bottom = 40.dp)
+                ) {
+                    groupedEntries.keys.sortedDescending().forEach { year ->
+                        item {
+                            YearSeparator(year, groupedEntries[year]?.size ?: 0)
+                        }
+                        items(groupedEntries[year] ?: emptyList()) { entry ->
+                            TimelineEntryItem(entry)
+                        }
                     }
                 }
             }
@@ -156,7 +168,7 @@ fun TimelineEntryItem(entry: PhoenXEntry) {
                     )
                 }
                 
-                // Le Sceau de l'Âge (version réduite pour la liste)
+                // Le Sceau de l'Âge
                 Surface(
                     color = BackgroundPrimary,
                     shape = CircleShape,
@@ -175,23 +187,11 @@ fun TimelineEntryItem(entry: PhoenXEntry) {
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = String(entry.encryptedContent),
+                text = String(entry.encryptedContent), // Contenu déchiffré
                 style = MaterialTheme.typography.bodyLarge,
                 color = TextPrimary,
                 lineHeight = 26.sp
             )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Interaction discrète
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Text(
-                    text = "Modifier",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary,
-                    modifier = Modifier.clickable { /* TODO */ }
-                )
-            }
         }
     }
 }

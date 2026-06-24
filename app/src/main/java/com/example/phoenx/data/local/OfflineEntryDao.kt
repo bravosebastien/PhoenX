@@ -8,6 +8,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface OfflineEntryDao {
+    @Query("SELECT * FROM offline_entries ORDER BY createdAt DESC")
+    fun getAllEntries(): Flow<List<OfflineEntry>>
+
     @Query("SELECT * FROM offline_entries WHERE syncStatus = 'pending'")
     fun getPendingEntries(): Flow<List<OfflineEntry>>
 

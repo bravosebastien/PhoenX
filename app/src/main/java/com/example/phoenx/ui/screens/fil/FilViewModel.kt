@@ -2,59 +2,71 @@ package com.example.phoenx.ui.screens.fil
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.data.encryption.EncryptionManager
+import com.example.phoenx.data.local.OfflineEntry
+import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.domain.model.AgeSnapshot
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.Instant
 import javax.inject.Inject
+import org.json.JSONObject
 
 @HiltViewModel
-class FilViewModel @Inject constructor() : ViewModel() {
+class FilViewModel @Inject constructor(
+    private val offlineEntryDao: OfflineEntryDao,
+    private val encryptionManager: EncryptionManager
+) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<FilUiState>(FilUiState())
+    private val _uiState = MutableStateFlow<FilUiState>(FilUiState(isLoading = true))
     val uiState: StateFlow<FilUiState> = _uiState
 
     init {
-        loadEntries()
+        observeEntries()
     }
 
-    private fun loadEntries() {
+    private fun observeEntries() {
         viewModelScope.launch {
-            // Simulation de chargement de données
-            val mockEntries = listOf(
-                PhoenXEntry(
-                    id = "1",
-                    ageAtCreation = AgeSnapshot(43, 4, 12),
-                    encryptedContent = "L'importance de transmettre ce qui ne peut s'écrire...".toByteArray(),
-                    type = EntryType.THOUGHT,
-                    timestamp = Instant.now()
-                ),
-                PhoenXEntry(
-                    id = "2",
-                    ageAtCreation = AgeSnapshot(43, 0, 5),
-                    encryptedContent = "Aujourd'hui, j'ai réalisé que...".toByteArray(),
-                    type = EntryType.EMOTION,
-                    timestamp = Instant.now()
-                ),
-                PhoenXEntry(
-                    id = "3",
-                    ageAtCreation = AgeSnapshot(40, 11, 28),
-                    encryptedContent = "Une pensée de mes 40 ans.".toByteArray(),
-                    type = EntryType.THOUGHT,
-                    timestamp = Instant.now()
+            // On observe la base de données locale en temps réel
+            offlineEntryDao.getAllEntries().collectLatest { offlineEntries ->
+                val decodedEntries = offlineEntries.map { it.toDomain(encryptionManager) }
+                
+                _uiState.value = FilUiState(
+                    entries = decodedEntries.sortedByDescending { it.timestamp },
+                    totalCount = decodedEntries.size,
+                    minAge = decodedEntries.minOfOrNull { it.ageAtCreation.years } ?: 0,
+                    maxAge = decodedEntries.maxOfOrNull { it.ageAtCreation.years } ?: 0,
+                    isLoading = false
                 )
-            )
-            _uiState.value = FilUiState(
-                entries = mockEntries,
-                totalCount = mockEntries.size,
-                minAge = 40,
-                maxAge = 43
-            )
+            }
         }
+    }
+
+    private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager): PhoenXEntry {
+        // 1. Déchiffrer le contenu (on utilise la clé temporaire du MVP)
+        val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
+        val decryptedText = encryptionManager.decryptText(encryptedPayload, tempKey)
+        
+        // 2. Parser l'âge stocké en JSON
+        val ageJson = JSONObject(ageAtCreation)
+        val age = AgeSnapshot(
+            years = ageJson.getInt("years"),
+            months = ageJson.getInt("months"),
+            days = ageJson.getInt("days")
+        )
+
+        return PhoenXEntry(
+            id = id,
+            ageAtCreation = age,
+            encryptedContent = decryptedText.toByteArray(), // On garde le format ByteArray pour le modèle
+            type = try { EntryType.valueOf(entryType) } catch(e: Exception) { EntryType.THOUGHT },
+            timestamp = Instant.ofEpochMilli(createdAt)
+        )
     }
 }
 
