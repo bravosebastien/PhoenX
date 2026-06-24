@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui.google.fonts)
 
     // Navigation
@@ -68,8 +69,10 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
     implementation(libs.firebase.vertexai)
+    implementation(libs.firebase.functions)
     implementation(libs.firebase.messaging)
     implementation(libs.play.services.auth)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     // Hilt
     implementation(libs.hilt.android)
