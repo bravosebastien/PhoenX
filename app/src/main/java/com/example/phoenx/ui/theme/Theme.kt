@@ -1,7 +1,6 @@
 package com.example.phoenx.ui.theme
 
 import android.app.Activity
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
@@ -27,7 +26,6 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun PhoenXTheme(
-    darkTheme: Boolean = true, // On force le thème sombre par défaut pour l'identité PHOEN-X
     content: @Composable () -> Unit
 ) {
     val colorScheme = DarkColorScheme
@@ -36,9 +34,13 @@ fun PhoenXTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
+            // Configuration moderne des barres système pour 2026
             window.statusBarColor = colorScheme.background.toArgb()
             window.navigationBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            
+            val controller = WindowCompat.getInsetsController(window, view)
+            controller.isAppearanceLightStatusBars = false
+            controller.isAppearanceLightNavigationBars = false
         }
     }
 

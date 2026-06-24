@@ -44,12 +44,13 @@ fun OnboardingScreen(
 
         // Indicateurs de page
         Row(
-            Modifier
+            modifier = Modifier
                 .height(50.dp)
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 32.dp),
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(3) { iteration ->
                 val color = if (pagerState.currentPage == iteration) AccentPrimary else TextTertiary
@@ -81,12 +82,11 @@ fun StepFounderStory() {
             enter = fadeIn(animationSpec = tween(800))
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                // Placeholder pour le Phénix SVG
                 Surface(
                     modifier = Modifier.size(120.dp),
                     color = Color.Transparent
                 ) {
-                    Text(text = "🦋", fontSize = 80.sp) // Temporaire en attendant SVG
+                    Text(text = "🦋", fontSize = 80.sp)
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
