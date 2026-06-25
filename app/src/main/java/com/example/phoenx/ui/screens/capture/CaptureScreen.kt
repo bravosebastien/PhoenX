@@ -28,6 +28,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
+import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
@@ -52,7 +54,7 @@ fun CaptureScreen(
     LaunchedEffect(uiState) {
         if (uiState is CaptureUiState.Success) {
             isDepositing = true
-            delay(1000)
+            delay(3000) // Augmenté pour laisser l'animation Rive se jouer
             onNavigateBack()
         }
     }
@@ -169,13 +171,20 @@ fun CaptureScreen(
         }
 
         if (isDepositing) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = if (isNightMode) "Capturé. Dors bien." else "Souvenir déposé.",
-                    style = MaterialTheme.typography.displayMedium,
-                    color = AccentPrimary,
-                    textAlign = TextAlign.Center
-                )
+            Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary), contentAlignment = Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    PhoenXRiveAnimation(
+                        resId = R.raw.depot,
+                        modifier = Modifier.size(300.dp)
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = if (isNightMode) "Capturé. Dors bien." else "Souvenir déposé.",
+                        style = MaterialTheme.typography.displaySmall,
+                        color = AccentPrimary,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }

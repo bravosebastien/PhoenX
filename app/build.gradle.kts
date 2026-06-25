@@ -94,6 +94,9 @@ dependencies {
     // IA On-Device (Gemini Nano)
     implementation(libs.google.aicore)
 
+    // Rive (Animations)
+    implementation(libs.rive.android)
+
     // Images
     implementation(libs.coil.compose)
 

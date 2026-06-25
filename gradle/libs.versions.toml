@@ -22,6 +22,7 @@ datastore = "1.1.1"
 workManager = "2.9.1"
 room = "2.7.0-alpha11"
 ksp = "2.1.10-1.0.29"
+rive = "0.13.0"
 argon2 = "2.11"
 googleAiEdge = "0.0.1-exp02"
 googleFonts = "1.8.0"
@@ -73,6 +74,9 @@ tink-android = { group = "com.google.crypto.tink", name = "tink-android", versio
 
 # Gemini Nano (On-Device AI)
 google-aicore = { group = "com.google.ai.edge.aicore", name = "aicore", version.ref = "googleAiEdge" }
+
+# Rive (Animations interactives)
+rive-android = "app.rive:rive-android:11.7.0"
 
 # Coil (Images)
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
