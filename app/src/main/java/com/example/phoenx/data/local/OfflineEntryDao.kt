@@ -43,4 +43,24 @@ interface OfflineEntryDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFavorite(favorite: FavoriteEntity)
+
+    // Recipients
+    @Query("SELECT * FROM recipients ORDER BY name ASC")
+    fun getAllRecipients(): Flow<List<RecipientEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRecipient(recipient: RecipientEntity)
+
+    @Delete
+    suspend fun deleteRecipient(recipient: RecipientEntity)
+
+    // Depositaries
+    @Query("SELECT * FROM depositaries LIMIT 1")
+    fun getDepositary(): Flow<DepositaryEntity?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertDepositary(depositary: DepositaryEntity)
+
+    @Query("DELETE FROM depositaries")
+    suspend fun clearDepositaries()
 }

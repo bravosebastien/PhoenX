@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -21,7 +22,8 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToProtocol: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
-    onNavigateToReconciliation: () -> Unit
+    onNavigateToReconciliation: () -> Unit,
+    onNavigateToRecipients: () -> Unit
 ) {
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -51,6 +53,15 @@ fun SettingsScreen(
                 subtitle = "Gère ton dépositaire et tes délais",
                 icon = Icons.Default.Lock,
                 onClick = onNavigateToProtocol
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(
+                title = "Mon Cercle de Confiance",
+                subtitle = "Gère tes destinataires",
+                icon = Icons.Default.Person,
+                onClick = onNavigateToRecipients
             )
 
             Spacer(modifier = Modifier.height(16.dp))

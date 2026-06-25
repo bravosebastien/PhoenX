@@ -23,6 +23,7 @@ import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
+import com.example.phoenx.ui.screens.recipient.RecipientScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.worlds.WorldsScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
@@ -130,6 +131,10 @@ fun PhoenXNavGraph(
             PactScreen(onNavigateBack = { navController.popBackStack() })
         }
 
+        composable("recipients") { // New route for circle management
+            RecipientScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
         composable(Screen.Essence.route) {
             EssencePortraitScreen(onNavigateBack = { navController.popBackStack() })
         }
@@ -139,7 +144,8 @@ fun PhoenXNavGraph(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
                 onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
-                onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) }
+                onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) },
+                onNavigateToRecipients = { navController.navigate("recipients") }
             )
         }
 
