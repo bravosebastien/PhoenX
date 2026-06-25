@@ -39,13 +39,14 @@ fun HomeScreen(
     onNavigateToFil: () -> Unit,
     onNavigateToLetters: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToEssence: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         containerColor = BackgroundPrimary,
-        bottomBar = { PhoenXBottomBar() }
+        bottomBar = { PhoenXBottomBar(onNavigateToEssence) }
     ) { padding ->
         Box(
             modifier = Modifier
@@ -388,7 +389,7 @@ fun ProofOfLifeBadge(days: Int, onClick: () -> Unit) {
 }
 
 @Composable
-fun PhoenXBottomBar() {
+fun PhoenXBottomBar(onIAClick: () -> Unit = {}) {
     NavigationBar(
         containerColor = BackgroundPrimary.copy(alpha = 0.95f),
         tonalElevation = 0.dp,
@@ -421,7 +422,7 @@ fun PhoenXBottomBar() {
         )
         NavigationBarItem(
             selected = false,
-            onClick = { },
+            onClick = onIAClick,
             icon = { Icon(Icons.Default.AutoAwesome, null) },
             label = { Text("L'IA", style = MaterialTheme.typography.labelSmall) }
         )

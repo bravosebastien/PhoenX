@@ -27,6 +27,9 @@ interface OfflineEntryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAmendment(amendment: AmendmentEntity)
 
+    @Query("SELECT aiSummary FROM offline_entries WHERE aiSummary != ''")
+    suspend fun getAllAiSummaries(): List<String>
+
     // Portraits
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPortrait(portrait: PortraitEntity)

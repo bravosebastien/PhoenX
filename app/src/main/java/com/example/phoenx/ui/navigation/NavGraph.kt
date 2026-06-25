@@ -18,6 +18,7 @@ import com.example.phoenx.ui.screens.depositary.DepositaryScreen
 import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.home.HomeScreen
 import com.example.phoenx.ui.screens.onboarding.OnboardingScreen
+import com.example.phoenx.ui.screens.portrait.EssencePortraitScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
@@ -65,7 +66,8 @@ fun PhoenXNavGraph(
                 onNavigateToCapture = { type -> navController.navigate(Screen.Capture.createRoute(type)) },
                 onNavigateToFil = { navController.navigate(Screen.Fil.route) },
                 onNavigateToLetters = { navController.navigate(Screen.YoungSelfLetters.route) },
-                onNavigateToSettings = { navController.navigate(Screen.Settings.route) }
+                onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
+                onNavigateToEssence = { navController.navigate(Screen.Essence.route) }
             )
         }
 
@@ -91,6 +93,10 @@ fun PhoenXNavGraph(
 
         composable(Screen.Pact.route) {
             PactScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Essence.route) {
+            EssencePortraitScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Settings.route) {
