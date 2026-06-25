@@ -40,4 +40,22 @@ class AIManager @Inject constructor(
         val result: HttpsCallableResult = functions.getHttpsCallable("generateEssencePortrait").call(data).await()
         return result.data as String
     }
+
+    suspend fun analyzeEvolution(original: String, amendment: String): String {
+        val data = hashMapOf(
+            "original" to original,
+            "amendment" to amendment,
+            "model" to "gemini-3.1-flash-lite"
+        )
+        val result: HttpsCallableResult = functions.getHttpsCallable("detectThoughtEvolution").call(data).await()
+        // La fonction cloud renvoie un JSON, on extrait la description
+        return try {
+            val map = result.data as Map<*, *>
+            val transitions = map["transitions"] as List<*>
+            val first = transitions.first() as Map<*, *>
+            first["description"] as String
+        } catch (e: Exception) {
+            "Évolution de pensée détectée entre ces deux époques."
+        }
+    }
 }

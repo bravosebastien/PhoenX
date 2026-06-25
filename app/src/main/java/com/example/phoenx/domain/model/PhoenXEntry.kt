@@ -19,7 +19,8 @@ data class PhoenXEntry(
     
     // IA SIGNATURE 5.0
     val aiSummary: String = "",
-    val aiTags: List<String> = emptyList()
+    val aiTags: List<String> = emptyList(),
+    val temporalEvolution: String? = null
 )
 
 data class PhoenXAmendment(

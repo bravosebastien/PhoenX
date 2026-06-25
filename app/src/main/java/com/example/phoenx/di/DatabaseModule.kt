@@ -22,7 +22,8 @@ object DatabaseModule {
             context,
             PhoenXDatabase::class.java,
             "phoenx_db"
-        ).build()
+        ).fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides

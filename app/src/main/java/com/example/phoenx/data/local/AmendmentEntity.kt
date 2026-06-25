@@ -10,5 +10,6 @@ data class AmendmentEntity(
     val entryId: String,
     val encryptedContent: ByteArray,
     val ageAtAmendment: String, // JSON
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val aiEvolution: String? = null
 )

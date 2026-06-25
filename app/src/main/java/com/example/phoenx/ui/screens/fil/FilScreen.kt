@@ -162,7 +162,7 @@ fun DialogueTemporelItem(entry: PhoenXEntry) {
                     Icon(Icons.Default.Psychology, null, tint = TextTertiary, modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Évolution : Ton apaisement est visible à ${latestAmendment.ageAtAmendment.years - entry.ageAtCreation.years} ans d'intervalle.",
+                        text = entry.temporalEvolution ?: "Évolution : Ton apaisement est visible à ${latestAmendment.ageAtAmendment.years - entry.ageAtCreation.years} ans d'intervalle.",
                         style = MaterialTheme.typography.labelSmall,
                         color = TextSecondary,
                         fontSize = 10.sp

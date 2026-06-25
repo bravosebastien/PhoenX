@@ -24,6 +24,9 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM amendments WHERE entryId = :entryId ORDER BY createdAt ASC")
     fun getAmendmentsForEntry(entryId: String): Flow<List<AmendmentEntity>>
 
+    @Query("SELECT * FROM amendments WHERE entryId = :entryId ORDER BY createdAt ASC")
+    suspend fun getAmendmentsForEntrySync(entryId: String): List<AmendmentEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAmendment(amendment: AmendmentEntity)
 
