@@ -45,6 +45,7 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToEssence: () -> Unit,
     onNavigateToPortraits: () -> Unit,
+    onNavigateToWorlds: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -87,6 +88,10 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(48.dp))
 
                 TimelinePreviewCard(uiState.entryCount, uiState.minAge, uiState.currentAge, onNavigateToFil)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                CommodeCard(onNavigateToWorlds)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -283,6 +288,30 @@ fun TimelinePreviewCard(count: Int, minAge: Int, maxAge: Int, onClick: () -> Uni
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun CommodeCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clickable(onClick = onClick)
+            .phoenXMatiere(isPaper = false),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
+    ) {
+        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Inbox, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(20.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("MA COMMODE", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                Text("Tes souvenirs rangés par l'IA", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+            }
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
         }
     }
 }

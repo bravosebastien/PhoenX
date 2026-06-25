@@ -22,6 +22,7 @@ import com.example.phoenx.ui.screens.portrait.EssencePortraitScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
+import com.example.phoenx.ui.screens.worlds.WorldsScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
 import com.example.phoenx.ui.screens.settings.SettingsScreen
 import com.example.phoenx.ui.screens.settings.ProtocolSettingsScreen
@@ -71,7 +72,8 @@ fun PhoenXNavGraph(
                 onNavigateToLetters = { navController.navigate(Screen.YoungSelfLetters.route) },
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                 onNavigateToEssence = { navController.navigate(Screen.Essence.route) },
-                onNavigateToPortraits = { navController.navigate(Screen.Portraits.route) }
+                onNavigateToPortraits = { navController.navigate(Screen.Portraits.route) },
+                onNavigateToWorlds = { navController.navigate(Screen.Worlds.route) }
             )
         }
 
@@ -97,6 +99,15 @@ fun PhoenXNavGraph(
         
         composable(Screen.YoungSelfLetters.route) {
             YoungSelfLetterScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Worlds.route) {
+            WorldsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToWorld = { category ->
+                    // Pour le moment on reste sur l'écran
+                }
+            )
         }
 
         composable(Screen.Portraits.route) {
