@@ -46,6 +46,8 @@ fun HomeScreen(
     onNavigateToEssence: () -> Unit,
     onNavigateToPortraits: () -> Unit,
     onNavigateToWorlds: () -> Unit,
+    onNavigateToFavorites: () -> Unit,
+    onNavigateToQuestions: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -83,6 +85,10 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                TransmissionStatusRow(uiState.entryCount)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 ImpulseSection(onNavigateToCapture)
 
                 Spacer(modifier = Modifier.height(48.dp))
@@ -91,7 +97,15 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                QuestionsCard(onNavigateToQuestions)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 CommodeCard(onNavigateToWorlds)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                FavoritesCard(onNavigateToFavorites)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -116,6 +130,39 @@ fun HomeScreen(
                 ProofOfLifeBadge(uiState.lastProofOfLifeDays) {
                     viewModel.updateProofOfLife()
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun TransmissionStatusRow(count: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Surface(
+            modifier = Modifier.weight(1f),
+            color = SurfaceCard.copy(alpha = 0.4f),
+            shape = MaterialTheme.shapes.medium,
+            border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("FRAGMENTS", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                Text("$count", style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+            }
+        }
+        Surface(
+            modifier = Modifier.weight(1f),
+            color = Success.copy(alpha = 0.05f),
+            shape = MaterialTheme.shapes.medium,
+            border = androidx.compose.foundation.BorderStroke(1.dp, Success.copy(alpha = 0.2f))
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text("SÉCURITÉ", style = MaterialTheme.typography.labelSmall, color = Success)
+                Text("ACTIVE", style = MaterialTheme.typography.headlineSmall, color = Success, fontSize = 20.sp)
             }
         }
     }
@@ -334,6 +381,54 @@ fun YoungSelfLetterCard(onClick: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 Text("LETTRE À MON JEUNE MOI", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
                 Text("Écris à celui que tu étais à 20 ans", style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Normal)
+            }
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+@Composable
+fun QuestionsCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clickable(onClick = onClick)
+            .phoenXMatiere(isPaper = false),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
+    ) {
+        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.HelpCenter, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(20.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("100 QUESTIONS", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                Text("Raconte ta vie pas à pas", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+            }
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+@Composable
+fun FavoritesCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clickable(onClick = onClick)
+            .phoenXMatiere(isPaper = false),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
+    ) {
+        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.AutoStories, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(20.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("MES MEILLEURS", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                Text("Livres, films et musiques essentiels", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
             }
             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
         }

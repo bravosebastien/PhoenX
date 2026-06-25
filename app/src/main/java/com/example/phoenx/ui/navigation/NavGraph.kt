@@ -20,7 +20,9 @@ import com.example.phoenx.ui.screens.home.HomeScreen
 import com.example.phoenx.ui.screens.onboarding.OnboardingScreen
 import com.example.phoenx.ui.screens.portrait.EssencePortraitScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
+import com.example.phoenx.ui.screens.favorites.FavoritesScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
+import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.worlds.WorldsScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
@@ -73,7 +75,9 @@ fun PhoenXNavGraph(
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                 onNavigateToEssence = { navController.navigate(Screen.Essence.route) },
                 onNavigateToPortraits = { navController.navigate(Screen.Portraits.route) },
-                onNavigateToWorlds = { navController.navigate(Screen.Worlds.route) }
+                onNavigateToWorlds = { navController.navigate(Screen.Worlds.route) },
+                onNavigateToFavorites = { navController.navigate(Screen.Favorites.route) },
+                onNavigateToQuestions = { navController.navigate(Screen.Questions.route) }
             )
         }
 
@@ -99,6 +103,14 @@ fun PhoenXNavGraph(
         
         composable(Screen.YoungSelfLetters.route) {
             YoungSelfLetterScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Favorites.route) {
+            FavoritesScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Questions.route) {
+            QuestionsScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Worlds.route) {

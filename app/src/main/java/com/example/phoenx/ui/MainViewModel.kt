@@ -3,6 +3,7 @@ package com.example.phoenx.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.accessibility.VoiceAccessibilityManager
+import com.example.phoenx.domain.liveness.LivenessManager
 import com.example.phoenx.domain.usecase.ActivationProtocolManager
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +16,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val protocolManager: ActivationProtocolManager,
-    private val voiceManager: VoiceAccessibilityManager
+    private val voiceManager: VoiceAccessibilityManager,
+    private val livenessManager: LivenessManager
 ) : ViewModel() {
 
     private val _isVoiceModeActive = MutableStateFlow(false)
@@ -38,12 +40,7 @@ class MainViewModel @Inject constructor(
      * PREUVE DE VIE PASSIVE : Confirme la présence du créateur silencieusement.
      */
     fun confirmPresence() {
-        val userId = auth.currentUser?.uid ?: return
-        viewModelScope.launch {
-            try {
-                protocolManager.confirmProofOfLife(userId)
-            } catch (e: Exception) { /* Silencieux pour l'utilisateur */ }
-        }
+        livenessManager.confirmPassivePresence()
     }
 
     fun toggleVoiceMode() {

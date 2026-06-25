@@ -36,4 +36,11 @@ interface OfflineEntryDao {
     // Portraits
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPortrait(portrait: PortraitEntity)
+
+    // Favorites
+    @Query("SELECT * FROM favorites ORDER BY createdAt DESC")
+    fun getAllFavorites(): Flow<List<FavoriteEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertFavorite(favorite: FavoriteEntity)
 }
