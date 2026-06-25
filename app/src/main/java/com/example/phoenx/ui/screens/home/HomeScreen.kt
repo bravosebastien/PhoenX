@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,11 +32,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.data.local.OfflineEntry
+import com.example.phoenx.domain.util.AgeUtils
+import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 
 @Composable
 fun HomeScreen(
-    onNavigateToCapture: (String) -> Unit,
+    onNavigateToCapture: (String, String?) -> Unit,
     onNavigateToFil: () -> Unit,
     onNavigateToLetters: () -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -46,7 +50,13 @@ fun HomeScreen(
 
     Scaffold(
         containerColor = BackgroundPrimary,
-        bottomBar = { PhoenXBottomBar(onNavigateToEssence) }
+        bottomBar = { 
+            PhoenXBottomBar(
+                onCaptureClick = { onNavigateToCapture(Screen.Capture.TYPE_TEXT, null) },
+                onFilClick = onNavigateToFil,
+                onIAClick = onNavigateToEssence
+            ) 
+        }
     ) { padding ->
         Box(
             modifier = Modifier
@@ -83,11 +93,13 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(48.dp))
 
-                BiographerQuestionSection(uiState.biographerQuestion)
+                BiographerQuestionSection(uiState.biographerQuestion) {
+                    onNavigateToCapture(Screen.Capture.TYPE_TEXT, uiState.biographerQuestion)
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                LatestMemoriesSection()
+                LatestMemoriesSection(uiState.latestEntries)
 
                 Spacer(modifier = Modifier.height(40.dp))
 
@@ -138,7 +150,7 @@ fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit) {
 }
 
 @Composable
-fun ImpulseSection(onNavigate: (String) -> Unit) {
+fun ImpulseSection(onNavigate: (String, String?) -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale = PhoenXAnimations.pressScale(isPressed)
@@ -155,11 +167,11 @@ fun ImpulseSection(onNavigate: (String) -> Unit) {
                         colors = listOf(AccentPrimary, Color(0xFF8B4A1A))
                     )
                 )
-                .phoenXMatiere() // Application de la texture cuir/matière
+                .phoenXMatiere()
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,
-                    onClick = { onNavigate("TEXT") }
+                    onClick = { onNavigate(Screen.Capture.TYPE_TEXT, null) }
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -181,10 +193,10 @@ fun ImpulseSection(onNavigate: (String) -> Unit) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            QuickActionIcon(Icons.Default.Edit, "Texte") { onNavigate("TEXT") }
-            QuickActionIcon(Icons.Default.Mic, "Voix") { onNavigate("AUDIO") }
-            QuickActionIcon(Icons.Default.CameraAlt, "Photo") { onNavigate("PHOTO") }
-            QuickActionIcon(Icons.Default.NightsStay, "3h du matin") { onNavigate("NIGHT") }
+            QuickActionIcon(Icons.Default.Edit, "Texte") { onNavigate(Screen.Capture.TYPE_TEXT, null) }
+            QuickActionIcon(Icons.Default.Mic, "Voix") { onNavigate(Screen.Capture.TYPE_AUDIO, null) }
+            QuickActionIcon(Icons.Default.CameraAlt, "Photo") { onNavigate(Screen.Capture.TYPE_PHOTO, null) }
+            QuickActionIcon(Icons.Default.NightsStay, "3h du matin") { onNavigate(Screen.Capture.TYPE_NIGHT, null) }
         }
     }
 }
@@ -231,7 +243,6 @@ fun TimelinePreviewCard(count: Int, minAge: Int, maxAge: Int, onClick: () -> Uni
                     Text("$count moments capturés", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
                 }
                 
-                // Le Sceau de l'Âge (Signature 4.1)
                 Surface(
                     color = AccentPrimary,
                     shape = CircleShape,
@@ -296,7 +307,7 @@ fun YoungSelfLetterCard(onClick: () -> Unit) {
 }
 
 @Composable
-fun BiographerQuestionSection(question: String) {
+fun BiographerQuestionSection(question: String, onAnswerClick: () -> Unit) {
     Column(modifier = Modifier.padding(horizontal = 24.dp)) {
         Text("LA QUESTION DU BIOGRAPHE", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 1.sp)
         Spacer(modifier = Modifier.height(16.dp))
@@ -308,7 +319,7 @@ fun BiographerQuestionSection(question: String) {
         )
         Spacer(modifier = Modifier.height(24.dp))
         Button(
-            onClick = { /* TODO */ },
+            onClick = onAnswerClick,
             colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard),
             shape = MaterialTheme.shapes.medium,
             modifier = Modifier.height(48.dp).phoenXMatiere()
@@ -319,7 +330,7 @@ fun BiographerQuestionSection(question: String) {
 }
 
 @Composable
-fun LatestMemoriesSection() {
+fun LatestMemoriesSection(entries: List<OfflineEntry>) {
     Column {
         Text(
             "Derniers souvenirs", 
@@ -328,19 +339,29 @@ fun LatestMemoriesSection() {
             modifier = Modifier.padding(horizontal = 24.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(5) { i ->
-                MemoryCard()
+        if (entries.isEmpty()) {
+            Text(
+                "Aucun souvenir capturé.",
+                modifier = Modifier.padding(horizontal = 24.dp),
+                color = TextTertiary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        } else {
+            LazyRow(
+                contentPadding = PaddingValues(horizontal = 24.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(entries) { entry ->
+                    MemoryCard(entry)
+                }
             }
         }
     }
 }
 
 @Composable
-fun MemoryCard() {
+fun MemoryCard(entry: OfflineEntry) {
+    val age = AgeUtils.parseAgeJson(entry.ageAtCreation)
     Surface(
         modifier = Modifier.size(160.dp, 200.dp).phoenXMatiere(),
         color = SurfaceCard.copy(alpha = 0.4f),
@@ -350,10 +371,10 @@ fun MemoryCard() {
         Column(modifier = Modifier.padding(20.dp)) {
             Icon(Icons.Default.AutoStories, contentDescription = null, tint = TextTertiary, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.height(16.dp))
-            Text("À 43 ans", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Text("À ${age.years} ans", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "Le silence n'est pas un oubli, c'est une attente...",
+                entry.aiSummary.ifEmpty { "Moment capturé..." },
                 style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
                 color = TextSecondary,
                 maxLines = 4
@@ -389,7 +410,11 @@ fun ProofOfLifeBadge(days: Int, onClick: () -> Unit) {
 }
 
 @Composable
-fun PhoenXBottomBar(onIAClick: () -> Unit = {}) {
+fun PhoenXBottomBar(
+    onCaptureClick: () -> Unit = {},
+    onFilClick: () -> Unit = {},
+    onIAClick: () -> Unit = {}
+) {
     NavigationBar(
         containerColor = BackgroundPrimary.copy(alpha = 0.95f),
         tonalElevation = 0.dp,
@@ -410,13 +435,13 @@ fun PhoenXBottomBar(onIAClick: () -> Unit = {}) {
         )
         NavigationBarItem(
             selected = false,
-            onClick = { },
+            onClick = onCaptureClick,
             icon = { Icon(Icons.Default.AddCircleOutline, null) },
             label = { Text("Capturer", style = MaterialTheme.typography.labelSmall) }
         )
         NavigationBarItem(
             selected = false,
-            onClick = { },
+            onClick = onFilClick,
             icon = { Icon(Icons.Default.Timeline, null) },
             label = { Text("Mon Fil", style = MaterialTheme.typography.labelSmall) }
         )

@@ -39,22 +39,23 @@ import java.io.File
 @Composable
 fun CaptureScreen(
     initialType: String = Screen.Capture.TYPE_TEXT,
+    initialText: String = "",
     onNavigateBack: () -> Unit,
     viewModel: CaptureViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    var text by remember { mutableStateOf("") }
+    var text by remember { mutableStateOf(initialText) }
     var selectedCategory by remember { mutableStateOf("Sagesse") }
     var visibility by remember { mutableStateOf("Privé") }
     val isNightMode = initialType == Screen.Capture.TYPE_NIGHT
     
-    var isDepositing by remember { mutableStateOf(false) }
+    var isRitualPlaying by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(uiState) {
         if (uiState is CaptureUiState.Success) {
-            isDepositing = true
-            delay(3000) // Augmenté pour laisser l'animation Rive se jouer
+            isRitualPlaying = true
+            delay(3500)
             onNavigateBack()
         }
     }
@@ -64,7 +65,6 @@ fun CaptureScreen(
     Scaffold(
         containerColor = backgroundColor,
         modifier = Modifier.onKeyEvent { event ->
-            // OPTIMISATION HARDWARE : On intercepte les touches Volume pour stopper l'enregistrement à l'aveugle
             if (uiState is CaptureUiState.RecordingAudio) {
                 if (event.key == Key.VolumeUp || event.key == Key.VolumeDown) {
                     viewModel.stopAudioRecording()
@@ -110,7 +110,7 @@ fun CaptureScreen(
                             onClick = { 
                                 viewModel.saveEntry(text, null, initialType, selectedCategory, visibility) 
                             },
-                            enabled = text.isNotEmpty() && uiState !is CaptureUiState.Loading && !isDepositing,
+                            enabled = text.isNotEmpty() && uiState !is CaptureUiState.Loading && !isRitualPlaying,
                             colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
                             shape = MaterialTheme.shapes.medium
                         ) {
@@ -126,7 +126,7 @@ fun CaptureScreen(
         }
     ) { padding ->
         AnimatedVisibility(
-            visible = !isDepositing,
+            visible = !isRitualPlaying,
             exit = slideOutVertically(tween(800)) { -it } + fadeOut(tween(600)),
             modifier = Modifier.fillMaxSize()
         ) {
@@ -170,7 +170,7 @@ fun CaptureScreen(
             }
         }
 
-        if (isDepositing) {
+        if (isRitualPlaying) {
             Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     PhoenXRiveAnimation(

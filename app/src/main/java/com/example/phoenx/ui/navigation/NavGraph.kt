@@ -63,7 +63,9 @@ fun PhoenXNavGraph(
 
         composable(Screen.Home.route) {
             HomeScreen(
-                onNavigateToCapture = { type -> navController.navigate(Screen.Capture.createRoute(type)) },
+                onNavigateToCapture = { type, prompt -> 
+                    navController.navigate(Screen.Capture.createRoute(type, prompt)) 
+                },
                 onNavigateToFil = { navController.navigate(Screen.Fil.route) },
                 onNavigateToLetters = { navController.navigate(Screen.YoungSelfLetters.route) },
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
@@ -77,10 +79,18 @@ fun PhoenXNavGraph(
         
         composable(
             route = Screen.Capture.route,
-            arguments = listOf(navArgument("type") { defaultValue = Screen.Capture.TYPE_TEXT })
+            arguments = listOf(
+                navArgument("type") { defaultValue = Screen.Capture.TYPE_TEXT },
+                navArgument("prompt") { nullable = true }
+            )
         ) { backStackEntry ->
             val type = backStackEntry.arguments?.getString("type") ?: Screen.Capture.TYPE_TEXT
-            CaptureScreen(initialType = type, onNavigateBack = { navController.popBackStack() })
+            val prompt = backStackEntry.arguments?.getString("prompt")
+            CaptureScreen(
+                initialType = type, 
+                initialText = prompt ?: "",
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         
         composable(Screen.YoungSelfLetters.route) {

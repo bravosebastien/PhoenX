@@ -36,6 +36,8 @@ fun FilScreen(
     viewModel: FilViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var showFilters by remember { mutableStateOf(false) }
+    val sheetState = rememberModalBottomSheetState()
 
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -53,7 +55,7 @@ fun FilScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Filtres */ }) {
+                    IconButton(onClick = { showFilters = true }) {
                         Icon(Icons.Default.FilterList, contentDescription = null, tint = AccentPrimary)
                     }
                 },
@@ -94,6 +96,39 @@ fun FilScreen(
                 }
             }
         }
+
+        if (showFilters) {
+            ModalBottomSheet(
+                onDismissRequest = { showFilters = false },
+                sheetState = sheetState,
+                containerColor = BackgroundSecondary,
+                contentColor = TextPrimary
+            ) {
+                Column(modifier = Modifier.padding(24.dp).fillMaxWidth().padding(bottom = 32.dp)) {
+                    Text("FILTRER LE FIL", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    Text("Par année d'âge", style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Liste simple des années disponibles
+                    val years = uiState.entries.map { it.ageAtCreation.years }.distinct().sortedDescending()
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        years.forEach { year ->
+                            FilterChip(
+                                selected = false, // TODO: Link to state
+                                onClick = { /* TODO: Filter logic in VM */ },
+                                label = { Text("$year ans") },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    labelColor = TextSecondary,
+                                    selectedLabelColor = AccentPrimary
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -117,7 +152,6 @@ fun DialogueTemporelItem(entry: PhoenXEntry) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("DIALOGUE TEMPOREL", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
                 }
-                // Le Sceau de l'Âge Actuel
                 Surface(color = BackgroundPrimary, shape = CircleShape, border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))) {
                     Text(text = "${latestAmendment.ageAtAmendment.years}a ${latestAmendment.ageAtAmendment.months}m", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = AccentPrimary, fontSize = 9.sp)
                 }
@@ -214,7 +248,6 @@ fun TimelineEntryItem(entry: PhoenXEntry) {
                         }
                     }
                 }
-                // Le Sceau de l'Âge
                 Surface(color = BackgroundPrimary, shape = CircleShape, border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))) {
                     Text(text = "${entry.ageAtCreation.months}m ${entry.ageAtCreation.days}j", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = AccentPrimary, fontSize = 10.sp)
                 }

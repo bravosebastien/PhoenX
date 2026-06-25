@@ -1,5 +1,8 @@
 package com.example.phoenx.ui.navigation
 
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+
 sealed class Screen(val route: String) {
     // GRAPHE CRÉATEUR
     object Onboarding : Screen("onboarding/{step}") {
@@ -13,8 +16,11 @@ sealed class Screen(val route: String) {
     
     object Home : Screen("home")
     
-    object Capture : Screen("capture/{type}") {
-        fun createRoute(type: String) = "capture/$type"
+    object Capture : Screen("capture/{type}?prompt={prompt}") {
+        fun createRoute(type: String, prompt: String? = null): String {
+            val encodedPrompt = prompt?.let { URLEncoder.encode(it, StandardCharsets.UTF_8.toString()) }
+            return if (encodedPrompt != null) "capture/$type?prompt=$encodedPrompt" else "capture/$type"
+        }
         const val TYPE_TEXT = "TEXT"
         const val TYPE_AUDIO = "AUDIO"
         const val TYPE_PHOTO = "PHOTO"

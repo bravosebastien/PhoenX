@@ -3,6 +3,8 @@ package com.example.phoenx.ui.screens.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.ai.AIManager
+import com.example.phoenx.data.local.OfflineEntry
+import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.domain.usecase.ActivationProtocolManager
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
@@ -10,6 +12,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -22,7 +25,8 @@ class HomeViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val aiManager: AIManager,
-    private val protocolManager: ActivationProtocolManager
+    private val protocolManager: ActivationProtocolManager,
+    private val offlineEntryDao: OfflineEntryDao
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState())
@@ -31,6 +35,7 @@ class HomeViewModel @Inject constructor(
     init {
         loadUserData()
         loadBiographerQuestion()
+        observeLatestEntries()
     }
 
     private fun loadUserData() {
@@ -68,6 +73,20 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    private fun observeLatestEntries() {
+        viewModelScope.launch {
+            offlineEntryDao.getAllEntries().collectLatest { entries ->
+                val minAgeVal = if (entries.isEmpty()) 0 else entries.minOf { AgeUtils.parseAgeJson(it.ageAtCreation).years }
+                
+                _uiState.value = _uiState.value.copy(
+                    latestEntries = entries.take(5),
+                    entryCount = entries.size,
+                    minAge = minAgeVal
+                )
+            }
+        }
+    }
+
     private fun loadBiographerQuestion() {
         viewModelScope.launch {
             try {
@@ -95,5 +114,6 @@ data class HomeUiState(
     val minAge: Int = 0,
     val currentAge: Int = 0,
     val biographerQuestion: String = "Quelle décision as-tu prise dont tu es le plus fier ?",
-    val lastProofOfLifeDays: Int = 0
+    val lastProofOfLifeDays: Int = 0,
+    val latestEntries: List<OfflineEntry> = emptyList()
 )
