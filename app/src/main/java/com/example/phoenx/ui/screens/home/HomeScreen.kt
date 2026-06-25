@@ -44,6 +44,7 @@ fun HomeScreen(
     onNavigateToLetters: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToEssence: () -> Unit,
+    onNavigateToPortraits: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -90,6 +91,10 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 YoungSelfLetterCard(onNavigateToLetters)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                PortraitsOfLovedOnesCard(onNavigateToPortraits)
 
                 Spacer(modifier = Modifier.height(48.dp))
 
@@ -302,6 +307,30 @@ fun YoungSelfLetterCard(onClick: () -> Unit) {
                 Text("Écris à celui que tu étais à 20 ans", style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Normal)
             }
             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+@Composable
+fun PortraitsOfLovedOnesCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clickable(onClick = onClick)
+            .phoenXMatiere(isPaper = false),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, AccentSecondary.copy(alpha = 0.3f))
+    ) {
+        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Favorite, contentDescription = null, tint = AccentSecondary, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(20.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("CEUX QUE J'AIME", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                Text("Composer le portrait d'un proche", style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Normal)
+            }
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentSecondary, modifier = Modifier.size(20.dp))
         }
     }
 }

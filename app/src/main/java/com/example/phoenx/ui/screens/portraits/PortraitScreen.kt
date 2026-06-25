@@ -1,7 +1,10 @@
 package com.example.phoenx.ui.screens.portraits
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -9,7 +12,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -21,15 +27,32 @@ fun PortraitScreen(
     onNavigateBack: () -> Unit,
     viewModel: PortraitViewModel = hiltViewModel()
 ) {
-    var step by remember { mutableStateOf(0) }
-    val questions = listOf(
-        "Quel trait de caractère admires-tu le plus chez [Prénom] ?",
-        "Quel souvenir vous lie le plus fortement ?",
-        "Qu'est-ce que [Prénom] ne sait peut-être pas sur lui/elle-même ?",
-        "Comment [Prénom] a-t-il/elle changé depuis que tu le/la connais ?",
-        "Qu'est-ce que tu veux qu'il/elle sache de la façon dont tu le/la vois ?"
-    )
-    val answers = remember { mutableStateListOf("", "", "", "", "") }
+    var step by remember { mutableIntStateOf(0) }
+    val questions = remember {
+        listOf(
+            "Quel trait de caractère admires-tu le plus chez cette personne ?",
+            "Quel souvenir vous lie le plus fortement ?",
+            "Qu'est-ce qu'elle ne sait peut-être pas sur elle-même ?",
+            "Comment a-t-elle changé depuis que tu la connais ?",
+            "Qu'est-ce que tu veux qu'elle sache de la façon dont tu la vois ?",
+            "Quelle est la première chose qui te vient à l'esprit quand tu penses à elle ?",
+            "Quel défi majeur avez-vous surmonté ensemble ?",
+            "Quelle est la qualité que tu aimerais lui emprunter ?",
+            "Quel lieu symbolise le mieux votre relation ?",
+            "Quelle chanson ou quel film te fait instantanément penser à elle ?",
+            "Quel conseil de sa part a marqué ta trajectoire ?",
+            "Comment décrirais-tu son rire ou sa joie ?",
+            "Quelle est la plus grande preuve d'attachement qu'elle t'ait donnée ?",
+            "S'il ne devait rester qu'une image d'elle, laquelle serait-ce ?",
+            "Qu'est-ce qui la rend unique au milieu de mille personnes ?",
+            "Quel est son talent caché que peu de gens voient ?",
+            "Comment a-t-elle influencé ta vision de la vie ?",
+            "Quel secret ou quelle confidence partagée vous a rapprochés ?",
+            "Qu'est-ce que tu aimerais lui dire si vous aviez 100 ans tous les deux ?",
+            "Quelle trace penses-tu qu'elle laissera dans le cœur des gens ?"
+        )
+    }
+    val answers = remember { mutableStateListOf(*Array(questions.size) { "" }) }
     
     val uiState by viewModel.uiState.collectAsState()
 
@@ -43,102 +66,124 @@ fun PortraitScreen(
         containerColor = BackgroundPrimary,
         topBar = {
             TopAppBar(
-                title = { Text("Portrait d'un proche", style = MaterialTheme.typography.labelLarge) },
+                title = { Text("Portrait d'un proche", style = MaterialTheme.typography.displaySmall) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = TextPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary, titleContentColor = TextPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(24.dp)
-        ) {
-            LinearProgressIndicator(
-                progress = { (step + 1) / 5f },
-                modifier = Modifier.fillMaxWidth().clip(CircleShape),
-                color = AccentPrimary,
-                trackColor = SurfaceCard
-            )
-            
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            Text(
-                text = "Question ${step + 1} sur 5",
-                style = MaterialTheme.typography.labelSmall,
-                color = AccentPrimary
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Text(
-                text = questions[step],
-                style = MaterialTheme.typography.displaySmall,
-                color = TextPrimary,
-                fontSize = 22.sp
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            TextField(
-                value = answers[step],
-                onValueChange = { answers[step] = it },
-                modifier = Modifier.fillMaxWidth().weight(1f),
-                placeholder = { Text("Écris ici...", color = TextTertiary) },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextPrimary
-                ),
-                textStyle = MaterialTheme.typography.bodyLarge
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+        Box(modifier = Modifier.fillMaxSize().background(
+            Brush.radialGradient(listOf(BackgroundSecondary, BackgroundPrimary), radius = 2000f)
+        )) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(24.dp)
             ) {
-                if (step > 0) {
-                    TextButton(onClick = { step-- }) {
-                        Text("Précédent", color = TextSecondary)
+                // Barre de progression
+                LinearProgressIndicator(
+                    progress = { (step + 1) / questions.size.toFloat() },
+                    modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
+                    color = AccentPrimary,
+                    trackColor = TextTertiary.copy(alpha = 0.2f)
+                )
+                
+                Spacer(modifier = Modifier.height(32.dp))
+                
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "QUESTION ${step + 1} SUR ${questions.size}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AccentPrimary,
+                        letterSpacing = 2.sp
+                    )
+                    
+                    if (answers.any { it.isNotEmpty() }) {
+                        TextButton(onClick = { viewModel.savePortrait("friend_id", answers.toList()) }) {
+                            Text("Terminer maintenant", color = AccentSecondary, style = MaterialTheme.typography.labelSmall)
+                        }
                     }
-                } else {
-                    Spacer(modifier = Modifier.width(1.dp))
+                }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Text(
+                    text = questions[step],
+                    style = MaterialTheme.typography.displaySmall.copy(lineHeight = 34.sp),
+                    color = TextPrimary
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth().weight(1f).phoenXMatiere(isPaper = true),
+                    colors = CardDefaults.cardColors(containerColor = MateriauPapier.copy(alpha = 0.05f)),
+                    shape = MaterialTheme.shapes.large,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.1f))
+                ) {
+                    TextField(
+                        value = answers[step],
+                        onValueChange = { answers[step] = it },
+                        modifier = Modifier.fillMaxSize().padding(8.dp),
+                        placeholder = { Text("Écris tes pensées ici... (Optionnel)", style = MaterialTheme.typography.bodyLarge, color = TextTertiary) },
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = TextPrimary,
+                            unfocusedTextColor = TextPrimary
+                        ),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                    )
                 }
 
-                Button(
-                    onClick = { 
-                        if (step < 4) step++ 
-                        else { 
-                            viewModel.savePortrait("friend_id", answers.toList())
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
-                    enabled = answers[step].isNotEmpty() && uiState !is PortraitUiState.Loading
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (uiState is PortraitUiState.Loading) {
-                        CircularProgressIndicator(size = 20.dp, color = BackgroundPrimary)
+                    if (step > 0) {
+                        TextButton(onClick = { step-- }) {
+                            Text("Précédent", color = TextSecondary)
+                        }
                     } else {
-                        Text(if (step < 4) "Suivant" else "Finaliser", color = BackgroundPrimary)
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    Button(
+                        onClick = { 
+                            if (step < questions.size - 1) step++ 
+                            else { 
+                                viewModel.savePortrait("friend_id", answers.toList())
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.height(48.dp)
+                    ) {
+                        if (uiState is PortraitUiState.Loading) {
+                            androidx.compose.material3.CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = BackgroundPrimary,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            val buttonText = if (step < questions.size - 1) {
+                                if (answers[step].isEmpty()) "Passer" else "Suivant"
+                            } else "Finaliser"
+                            Text(buttonText, color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-fun CircularProgressIndicator(size: androidx.compose.ui.unit.Dp, color: Color) {
-    androidx.compose.material3.CircularProgressIndicator(
-        modifier = Modifier.size(size),
-        color = color,
-        strokeWidth = 2.dp
-    )
 }

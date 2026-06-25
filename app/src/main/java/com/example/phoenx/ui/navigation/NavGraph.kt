@@ -70,7 +70,8 @@ fun PhoenXNavGraph(
                 onNavigateToFil = { navController.navigate(Screen.Fil.route) },
                 onNavigateToLetters = { navController.navigate(Screen.YoungSelfLetters.route) },
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
-                onNavigateToEssence = { navController.navigate(Screen.Essence.route) }
+                onNavigateToEssence = { navController.navigate(Screen.Essence.route) },
+                onNavigateToPortraits = { navController.navigate(Screen.Portraits.route) }
             )
         }
 

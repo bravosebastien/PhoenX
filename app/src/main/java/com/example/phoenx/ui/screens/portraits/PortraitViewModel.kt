@@ -24,7 +24,14 @@ class PortraitViewModel @Inject constructor(
         _uiState.value = PortraitUiState.Loading
         viewModelScope.launch {
             try {
-                val fullContent = answers.joinToString("\n\n")
+                // Filtrer les réponses vides pour ne garder que la substance
+                val filteredAnswers = answers.filter { it.isNotBlank() }
+                if (filteredAnswers.isEmpty()) {
+                    _uiState.value = PortraitUiState.Error("Le portrait est vide. Écris au moins une pensée.")
+                    return@launch
+                }
+
+                val fullContent = filteredAnswers.joinToString("\n\n")
                 val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
                 val encrypted = encryptionManager.encryptText(fullContent, tempKey)
 
