@@ -1,0 +1,221 @@
+package com.example.phoenx.ui.screens.reconciliation
+
+import androidx.compose.animation.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.LockClock
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
+import com.example.phoenx.ui.components.PhoenXRiveAnimation
+import com.example.phoenx.ui.theme.*
+import kotlinx.coroutines.delay
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReconciliationScreen(
+    onNavigateBack: () -> Unit,
+    viewModel: ReconciliationViewModel = hiltViewModel()
+) {
+    var text by remember { mutableStateOf("") }
+    var recipientName by remember { mutableStateOf("") }
+    var intent by remember { mutableStateOf("") }
+    var isRitualPlaying by remember { mutableStateOf(false) }
+    
+    val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            isRitualPlaying = true
+            delay(3500)
+            onNavigateBack()
+        }
+    }
+
+    Scaffold(
+        containerColor = BackgroundPrimary,
+        topBar = {
+            TopAppBar(
+                title = { Text("Protocole de Réconciliation", style = MaterialTheme.typography.labelLarge) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+            )
+        }
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().background(
+            Brush.radialGradient(listOf(BackgroundSecondary, BackgroundPrimary), radius = 2000f)
+        )) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
+            ) {
+                Text(
+                    "Y a-t-il quelqu'un à qui tu n'as jamais dit ce que tu aurais dû dire ?",
+                    style = MaterialTheme.typography.displaySmall,
+                    color = TextPrimary,
+                    lineHeight = 34.sp
+                )
+                
+                Spacer(modifier = Modifier.height(32.dp))
+
+                OutlinedTextField(
+                    value = recipientName,
+                    onValueChange = { recipientName = it },
+                    label = { Text("Prénom du destinataire") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AccentPrimary,
+                        unfocusedBorderColor = TextTertiary
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
+                    value = intent,
+                    onValueChange = { intent = it },
+                    label = { Text("Ton intention (ex: demander pardon, dire merci...)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AccentPrimary,
+                        unfocusedBorderColor = TextTertiary
+                    )
+                )
+
+                if (uiState.aiHelp == null) {
+                    TextButton(
+                        onClick = { viewModel.getAIHelp(recipientName, intent) },
+                        enabled = recipientName.isNotEmpty() && intent.isNotEmpty() && !uiState.isLoadingHelp
+                    ) {
+                        if (uiState.isLoadingHelp) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Demander l'aide de l'IA pour formuler")
+                        }
+                    }
+                } else {
+                    Surface(
+                        color = AccentPrimary.copy(alpha = 0.05f),
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.padding(vertical = 16.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.AutoAwesome, null, tint = AccentPrimary, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("SUGGESTIONS DE L'IA", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(uiState.aiHelp!!, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    modifier = Modifier.fillMaxWidth().phoenXMatiere(isPaper = true),
+                    colors = CardDefaults.cardColors(containerColor = MateriauPapier.copy(alpha = 0.05f)),
+                    shape = MaterialTheme.shapes.large,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
+                ) {
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        TextField(
+                            value = text,
+                            onValueChange = { text = it },
+                            placeholder = { Text("Écris tes mots ici...", color = TextTertiary) },
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
+                            )
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Surface(
+                    color = Warning.copy(alpha = 0.1f),
+                    shape = MaterialTheme.shapes.medium,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Warning.copy(alpha = 0.3f))
+                ) {
+                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.LockClock, null, tint = Warning, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            "RÈGLE D'OR : Ce message sera verrouillé pendant 30 jours après l'activation de ton héritage. Pour laisser le temps au deuil de s'apaiser.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Warning,
+                            lineHeight = 16.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(48.dp))
+
+                Button(
+                    onClick = { viewModel.saveReconciliationMessage(text, recipientName) },
+                    enabled = text.isNotEmpty() && recipientName.isNotEmpty() && !uiState.isSaving && !isRitualPlaying,
+                    modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    if (uiState.isSaving) {
+                        CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Confier au secret", color = BackgroundPrimary, style = MaterialTheme.typography.labelLarge)
+                    }
+                }
+            }
+
+            if (isRitualPlaying) {
+                Box(
+                    modifier = Modifier.fillMaxSize().background(BackgroundPrimary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        PhoenXRiveAnimation(
+                            resId = R.raw.depot,
+                            modifier = Modifier.size(320.dp)
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            "Message scellé pour 30 jours.",
+                            style = MaterialTheme.typography.displaySmall,
+                            color = AccentPrimary,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

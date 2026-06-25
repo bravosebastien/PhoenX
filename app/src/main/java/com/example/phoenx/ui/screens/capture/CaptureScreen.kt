@@ -28,6 +28,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.camera.view.PreviewView
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.phoenx.R
 import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.navigation.Screen
@@ -44,11 +49,13 @@ fun CaptureScreen(
     viewModel: CaptureViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
     var text by remember { mutableStateOf(initialText) }
     var selectedCategory by remember { mutableStateOf("Sagesse") }
     var visibility by remember { mutableStateOf("Privé") }
     val isNightMode = initialType == Screen.Capture.TYPE_NIGHT
     
+    var capturedPhotoFile by remember { mutableStateOf<File?>(null) }
     var isRitualPlaying by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
 
@@ -96,7 +103,7 @@ fun CaptureScreen(
             }
         },
         bottomBar = {
-            if (!isNightMode && initialType == Screen.Capture.TYPE_TEXT) {
+            if (!isNightMode && (initialType == Screen.Capture.TYPE_TEXT || initialType == Screen.Capture.TYPE_PHOTO)) {
                 BottomAppBar(containerColor = backgroundColor, tonalElevation = 0.dp) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
@@ -108,9 +115,9 @@ fun CaptureScreen(
                         }
                         Button(
                             onClick = { 
-                                viewModel.saveEntry(text, null, initialType, selectedCategory, visibility) 
+                                viewModel.saveEntry(text, capturedPhotoFile, initialType, selectedCategory, visibility) 
                             },
-                            enabled = text.isNotEmpty() && uiState !is CaptureUiState.Loading && !isRitualPlaying,
+                            enabled = (text.isNotEmpty() || capturedPhotoFile != null) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
                             colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
                             shape = MaterialTheme.shapes.medium
                         ) {
@@ -158,6 +165,14 @@ fun CaptureScreen(
                             viewModel.saveEntry(null, null, Screen.Capture.TYPE_AUDIO, "Sagesse", "Privé")
                         }
                     )
+                } else if (initialType == Screen.Capture.TYPE_PHOTO) {
+                    PhotoCaptureContent(
+                        padding = padding,
+                        capturedPhoto = capturedPhotoFile,
+                        caption = text,
+                        onCaptionChange = { text = it },
+                        onPhotoCaptured = { capturedPhotoFile = it }
+                    )
                 } else {
                     TextCaptureContent(
                         padding = padding,
@@ -183,6 +198,53 @@ fun CaptureScreen(
                         style = MaterialTheme.typography.displaySmall,
                         color = AccentPrimary,
                         textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PhotoCaptureContent(
+    padding: PaddingValues,
+    capturedPhoto: File?,
+    caption: String,
+    onCaptionChange: (String) -> Unit,
+    onPhotoCaptured: (File) -> Unit
+) {
+    Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        if (capturedPhoto == null) {
+            // Camera Preview (Simplified)
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+                Text("Caméra active", color = Color.White)
+                // In a real implementation, we would use PreviewView here
+                IconButton(
+                    onClick = { /* Simulate capture */ },
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 40.dp).size(80.dp).background(Color.White, CircleShape)
+                ) {
+                    Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.Black)
+                }
+            }
+        } else {
+            // Photo Preview with Caption overlay
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color.DarkGray)) {
+                    // Display photo
+                    Text("Photo capturée", modifier = Modifier.align(Alignment.Center), color = Color.White)
+                    
+                    TextField(
+                        value = caption,
+                        onValueChange = onCaptionChange,
+                        placeholder = { Text("Ajoute une légende...", style = MaterialTheme.typography.bodyLarge, color = Color.White.copy(alpha = 0.6f)) },
+                        modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(24.dp),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic, color = Color.White),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Black.copy(alpha = 0.4f),
+                            unfocusedContainerColor = Color.Black.copy(alpha = 0.4f),
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        )
                     )
                 }
             }

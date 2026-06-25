@@ -58,4 +58,15 @@ class AIManager @Inject constructor(
             "Évolution de pensée détectée entre ces deux époques."
         }
     }
+
+    suspend fun generateReconciliationHelp(recipient: String, intent: String): String {
+        val data = hashMapOf(
+            "recipient" to recipient,
+            "intent" to intent,
+            "model" to "gemini-3.1-flash-lite"
+        )
+        // Note: Cette fonction doit être ajoutée côté Cloud (index.ts) également
+        val result: HttpsCallableResult = functions.getHttpsCallable("generateReconciliationHelp").call(data).await()
+        return result.data as String
+    }
 }

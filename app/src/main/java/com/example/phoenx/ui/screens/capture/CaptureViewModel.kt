@@ -54,7 +54,7 @@ class CaptureViewModel @Inject constructor(
 
     fun saveEntry(
         content: String?,
-        audioFile: File?,
+        mediaFile: File?,
         type: String,
         category: String,
         visibility: String,
@@ -62,7 +62,7 @@ class CaptureViewModel @Inject constructor(
         targetAge: Int? = null
     ) {
         val user = auth.currentUser ?: return
-        val rawText = content ?: "Audio message"
+        val rawText = content ?: if (type == Screen.Capture.TYPE_AUDIO) "Message vocal" else "Photo souvenir"
         _uiState.value = CaptureUiState.Loading
 
         viewModelScope.launch {
@@ -77,7 +77,12 @@ class CaptureViewModel @Inject constructor(
                 
                 // 3. CHIFFREMENT E2EE
                 val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
+                
+                // On chiffre le texte (légende ou contenu)
                 val encrypted = encryptionManager.encryptText(rawText, tempKey)
+                
+                // Si on a un fichier (audio ou photo), on pourrait le chiffrer ici aussi
+                // Pour le MVP on stocke la référence ou on simule le chiffrement de fichier
                 
                 // 4. SAUVEGARDE HORS-LIGNE
                 val entry = OfflineEntry(

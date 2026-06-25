@@ -100,6 +100,12 @@ dependencies {
     // IA On-Device (Gemini Nano)
     implementation(libs.google.aicore)
 
+    // CameraX
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+
     // Rive (Animations)
     implementation(libs.rive.android)
 

@@ -21,6 +21,7 @@ import com.example.phoenx.ui.screens.onboarding.OnboardingScreen
 import com.example.phoenx.ui.screens.portrait.EssencePortraitScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
+import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
 import com.example.phoenx.ui.screens.settings.SettingsScreen
 import com.example.phoenx.ui.screens.settings.ProtocolSettingsScreen
@@ -113,8 +114,13 @@ fun PhoenXNavGraph(
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
-                onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) }
+                onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
+                onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) }
             )
+        }
+
+        composable(Screen.Reconciliation.route) {
+            ReconciliationScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.ProtocolSettings.route) {

@@ -78,6 +78,20 @@ export const generateEssencePortrait = onCall(async (request) => {
     return result.response.candidates[0].content.parts[0].text || "";
 });
 
+// 7. Aide à la Réconciliation
+export const generateReconciliationHelp = onCall(async (request) => {
+    const { recipient, intent } = request.data;
+
+    const prompt = `${AI_RULES}
+    L'utilisateur veut se réconcilier avec ${recipient}.
+    Son intention est : ${intent}.
+    Propose 3 façons différentes de formuler ce message (1 courte, 1 profonde, 1 explicative).
+    Reste dans la bienveillance et le conditionnel.`;
+
+    const result = await generativeModel.generateContent(prompt);
+    return result.response.candidates[0].content.parts[0].text || "";
+});
+
 // 4. Détection d'Évolution (Dialogue Temporel)
 export const detectThoughtEvolution = onCall(async (request) => {
     const { entriesByAge } = request.data;
@@ -105,6 +119,20 @@ export const generateYoungSelfSuggestions = onCall(async (request) => {
     return result.response.candidates[0].content.parts[0].text || "";
 });
 
+// 7. Aide à la Réconciliation
+export const generateReconciliationHelp = onCall(async (request) => {
+    const { recipient, intent } = request.data;
+
+    const prompt = `${AI_RULES}
+    L'utilisateur veut se réconcilier avec ${recipient}.
+    Son intention est : ${intent}.
+    Propose 3 façons différentes de formuler ce message (1 courte, 1 profonde, 1 explicative).
+    Reste dans la bienveillance et le conditionnel.`;
+
+    const result = await generativeModel.generateContent(prompt);
+    return result.response.candidates[0].content.parts[0].text || "";
+});
+
 // 6. Synthèse Narrative d'un Portrait de Proche
 export const generatePortraitNarrative = onCall(async (request) => {
     const { answers } = request.data;
@@ -113,6 +141,20 @@ export const generatePortraitNarrative = onCall(async (request) => {
     Rédige une synthèse narrative chaleureuse (3-5 phrases) du regard de l'utilisateur sur son proche.
     Utilise le conditionnel et la 1ère personne de l'utilisateur.
     Réponses aux questions : ${answers.join(" | ")}`;
+
+    const result = await generativeModel.generateContent(prompt);
+    return result.response.candidates[0].content.parts[0].text || "";
+});
+
+// 7. Aide à la Réconciliation
+export const generateReconciliationHelp = onCall(async (request) => {
+    const { recipient, intent } = request.data;
+
+    const prompt = `${AI_RULES}
+    L'utilisateur veut se réconcilier avec ${recipient}.
+    Son intention est : ${intent}.
+    Propose 3 façons différentes de formuler ce message (1 courte, 1 profonde, 1 explicative).
+    Reste dans la bienveillance et le conditionnel.`;
 
     const result = await generativeModel.generateContent(prompt);
     return result.response.candidates[0].content.parts[0].text || "";

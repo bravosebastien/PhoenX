@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -19,7 +20,8 @@ import com.example.phoenx.ui.theme.*
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToProtocol: () -> Unit,
-    onNavigateToAccessibility: () -> Unit
+    onNavigateToAccessibility: () -> Unit,
+    onNavigateToReconciliation: () -> Unit
 ) {
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -49,6 +51,15 @@ fun SettingsScreen(
                 subtitle = "Gère ton dépositaire et tes délais",
                 icon = Icons.Default.Lock,
                 onClick = onNavigateToProtocol
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(
+                title = "Protocole de Réconciliation",
+                subtitle = "Mots secrets à ouverture différée",
+                icon = Icons.Default.Mail,
+                onClick = onNavigateToReconciliation
             )
 
             Spacer(modifier = Modifier.height(32.dp))
