@@ -15,5 +15,9 @@ data class OfflineEntry(
     val isYoungSelfLetter: Boolean = false,
     val targetAge: Int? = null,
     val createdAt: Long = System.currentTimeMillis(),
-    val syncStatus: String = "pending" // "pending" | "synced" | "failed"
+    val syncStatus: String = "pending", // "pending" | "synced" | "failed"
+    
+    // CHAMPS IA LOCALE (Signature 5.0)
+    val aiSummary: String = "",
+    val aiTags: String = "" // Tags séparés par des virgules pour Room
 )

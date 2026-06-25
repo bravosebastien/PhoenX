@@ -97,7 +97,9 @@ class FilViewModel @Inject constructor(
             type = try { EntryType.valueOf(entryType) } catch(e: Exception) { EntryType.THOUGHT },
             isYoungSelfLetter = isYoungSelfLetter,
             targetAge = targetAge,
-            timestamp = Instant.ofEpochMilli(createdAt)
+            timestamp = Instant.ofEpochMilli(createdAt),
+            aiSummary = aiSummary,
+            aiTags = aiTags.split(",").filter { it.isNotEmpty() }
         )
     }
 }

@@ -1,19 +1,19 @@
-# PHOEN-X — Document Maître Absolu
-## Version 4.1 — Document unique et définitif
-### Intègre les optimisations de Haute Valeur Ajoutée (Juin 2026)
+# PHOEN-X — Document Maître Définitif
+## Version 5.0 — Document unique, complet et corrigé
+### Prêt à transmettre · Remplace tous les documents précédents
 
 ---
 
 > Ce document contient absolument tout : la vision fondatrice, les 24 fonctionnalités,
-> l'architecture technique complète, la base de données, le design system, la roadmap,
-> le modèle économique, et les 13 prompts exacts pour Android Studio avec Gemini.
+> l'architecture technique complète, la base de données Firestore, le design system,
+> la roadmap, le modèle économique, et les 13 prompts exacts pour Android Studio avec Gemini.
 > Il se lit une première fois du début à la fin, puis s'utilise section par section pendant le build.
 
 ---
 
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════
 # CHAPITRE 1 — L'HISTOIRE QUI FONDE TOUT
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════
 
 ## Pourquoi PHOEN-X existe
 
@@ -33,7 +33,8 @@ C'est de cette expérience que naît PHOEN-X. Pas une idée de startup imaginée
 
 PHOEN-X est une plateforme de mémoire vivante augmentée par IA qui permet à une personne de capturer, organiser et transmettre son héritage émotionnel, sa trajectoire de pensée et ses messages — de son vivant et au-delà.
 
-## Ce que PHOEN-X n'est pas (à afficher dans l'app, pas seulement en CGU)
+## Ce que PHOEN-X n'est pas
+*(À afficher dans l'application elle-même, pas seulement dans les CGU)*
 
 - Ce n'est pas un testament. Aucune valeur légale par défaut.
 - Ce n'est pas un service de deuil thérapeutique.
@@ -46,44 +47,44 @@ Le concurrent le plus proche en France — In-Memory — est né d'une observati
 
 ---
 
-# ════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════
 # CHAPITRE 2 — LE MARCHÉ ET LA CONCURRENCE
-# ════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════
 
 | Acteur | Mécanique | Limite |
 |---|---|---|
-| **In-Memory** (FR) | Confiants déclenchent l'envoi, chiffrement E2EE, 1,99€ à 349€ à vie | Pas d'IA, pas d'usage vivant quotidien, pas de Fil de Pensée |
+| **In-Memory** (FR) | Confiants déclenchent l'envoi, chiffrement E2EE, 1,99 € à 349 € à vie | Pas d'IA, pas d'usage quotidien vivant, pas de Fil de Pensée |
 | **Past Post** (MX) | Stockage en NFT | Niche crypto, pas émotionnel |
 | **Postumo** (FR) | Complément du testament | Froid, administratif |
 | **Apple Digital Legacy** | Natif, gratuit | Zéro narration, zéro IA, zéro ritualisation |
 
-**Où PHOEN-X gagne** : aucun concurrent ne propose de boucle d'usage vivante quotidienne, ni de Fil de Pensée par âge, ni de couche IA narrative. C'est l'angle à marteler dans tout le discours produit.
+**Où PHOEN-X gagne** : aucun concurrent ne propose de boucle d'usage vivante quotidienne, ni de Fil de Pensée par âge, ni de couche IA narrative embarquée. Ce sont les trois angles à marteler dans tout le discours produit et marketing.
 
 ---
 
-# ══════════════════════════════════════════════
-# CHAPITRE 3 — LES ACTEURS
-# ══════════════════════════════════════════════
+# ═══════════════════════════════════════════════
+# CHAPITRE 3 — LES QUATRE ACTEURS
+# ═══════════════════════════════════════════════
 
-**Le Créateur** — le propriétaire du compte. Il écrit, enregistre, filme, organise, programme, transmet. C'est lui qui construit l'héritage de son vivant.
+**Le Créateur** — le propriétaire du compte. Il écrit, enregistre, filme, organise, programme, transmet. C'est lui qui construit l'héritage de son vivant, semaine après semaine.
 
-**Le Dépositaire** — la personne de confiance. Elle confirme le décès, valide le protocole, administre l'accès. Son rôle est symbolique (pas légal en France sans certification CNIL) mais essentiel humainement.
+**Le Dépositaire** — la personne de confiance située par le Créateur. Elle confirme le décès, valide le protocole, administre l'accès. Son rôle est symbolique — pas légal en France sans certification CNIL — mais irremplaçable humainement.
 
-**Le Destinataire** — le proche qui reçoit. Il consulte, explore, conserve à son rythme.
+**Le Destinataire** — le proche qui reçoit. Il consulte, explore, conserve, à son propre rythme.
 
-**La Famille** — accès collectif possible. Peut contribuer des souvenirs communs après activation.
+**La Famille** — accès collectif possible après activation. Peut contribuer des souvenirs communs à l'archive partagée.
 
 ---
 
-# ════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════
 # CHAPITRE 4 — LES 24 FONCTIONNALITÉS COMPLÈTES
-# ════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════
 
 ---
 
 ## 4.1 — LA COMMODE : l'architecture mentale fondatrice
 
-L'image centrale de l'application est une **commode** — un meuble intime, personnel, du quotidien. Pas un coffre-fort froid. Chaque tiroir est sécurisé, individualisé. Certains sont ouverts à tous. D'autres n'ont qu'une seule clé. Cette métaphore gouverne toute l'interface : côté Créateur (qui remplit ses tiroirs) et côté Destinataire (qui les découvre sous forme de Cube navigable).
+L'image centrale de l'application est une **commode** — un meuble intime, personnel, du quotidien. Pas un coffre-fort froid, pas un serveur distant abstrait. Chaque tiroir est sécurisé et individualisé. Certains sont ouverts à tous. D'autres n'ont qu'une seule clé. Cette métaphore gouverne toute l'interface : côté Créateur qui remplit ses tiroirs de son vivant, et côté Destinataire qui les découvre sous forme de Cube navigable.
 
 ---
 
@@ -95,29 +96,32 @@ Une chronologie de pensées liée à l'**âge exact** du Créateur au moment du 
 
 ### Pourquoi c'est la fonctionnalité la plus puissante du produit
 
-Tous les concurrents prennent des instantanés. PHOEN-X capture le **mouvement**. Un proche voit comment quelqu'un a évolué — ses convictions qui changent, ses peurs qui disparaissent, ses priorités qui se déplacent. La transmission d'une trajectoire, pas d'une photographie. C'est deux lignes de code pour un impact humain sans équivalent sur le marché.
+Tous les concurrents prennent des instantanés. PHOEN-X capture le **mouvement**. Un proche voit comment quelqu'un a évolué — ses convictions qui changent, ses peurs qui disparaissent, ses priorités qui se déplacent. La transmission d'une trajectoire, pas d'une photographie. Techniquement simple — deux lignes de code supplémentaires. Impact humain sans équivalent sur le marché.
 
 ### Côté Créateur
+
 - Chaque entrée affiche l'âge exact calculé automatiquement : "À 43 ans et 4 mois"
+- L'âge est présenté comme un **Sceau visuel** — pas un simple label texte, mais un objet visuel élégant, presque un tampon de cire moderne, apposé sur chaque contenu
 - Vue "Mon Fil" : frise verticale groupée par année d'âge
 - Filtres : par année d'âge, par catégorie émotionnelle, par mot-clé
-- L'IA détecte les évolutions : "Tu as commencé à parler de transmission à 41 ans"
-- **Les Amendements** : note datée apposable sur n'importe quelle entrée ancienne — "J'avais tort" ou "Je pense autrement aujourd'hui". L'entrée originale reste intacte. L'Amendement s'y ajoute comme une couche temporelle.
-- **Dialogue Temporel** : L'interface scénarise la confrontation (ex: vue côte à côte d'une pensée à 30 ans et son amendement à 50 ans). L'IA souligne l'évolution stylistique : "Tu utilisais des mots plus durs à 30 ans, voici ton apaisement à 50 ans".
+- L'IA détecte les évolutions : "Tu as commencé à parler de transmission à 41 ans — c'est devenu ton thème dominant à 44 ans"
+- **Les Amendements** : note datée apposable sur n'importe quelle entrée ancienne — "J'avais tort" ou "Je pense autrement aujourd'hui". L'entrée originale reste intacte à jamais.
+- **Le Dialogue Temporel** : l'interface scénarise la confrontation entre une pensée et son amendement en vue côte à côte. L'IA souligne l'évolution stylistique : "Tu utilisais des mots plus durs à 30 ans. Voici ce qui a changé à 50 ans."
 
 ### Côté Destinataire
-- "Son Fil de Pensée" : une des 3 portes d'entrée principales
-- Curseur d'âge interactif : faire glisser de 30 à 60 ans, voir les pensées évoluer
-- Synthèse IA : "Entre 40 et 50 ans, voici comment sa vision de [thème] a changé"
-- Les Amendements affichés comme un dialogue d'une personne avec elle-même dans le temps
+
+- "Son Fil de Pensée" : une des trois portes d'entrée principales de l'interface Cube
+- Curseur d'âge interactif : faire glisser de 30 à 60 ans et voir les pensées évoluer en temps réel
+- Synthèse IA : "Entre 40 et 50 ans, voici comment sa vision de [thème] a évolué"
+- Les Amendements sont affichés comme un dialogue d'une personne avec elle-même dans le temps
 
 ---
 
 ## 4.3 — LES CATÉGORIES ÉMOTIONNELLES
 
-Chaque contenu appartient à une catégorie émotionnelle :
+Chaque contenu déposé appartient à une catégorie émotionnelle, choisie au moment du dépôt :
 
-| Catégorie | Distinction |
+| Catégorie | Distinction possible |
 |---|---|
 | Espoir | Assouvi / Non assouvi |
 | Poésie | — |
@@ -130,21 +134,23 @@ Chaque contenu appartient à une catégorie émotionnelle :
 | Amour | — |
 | Valeurs | — |
 
-La distinction **Assouvi / Non assouvi** est unique sur le marché. Les destinataires voient la résolution — ou l'absence de résolution — de ce que portait le Créateur.
+La distinction **Assouvi / Non assouvi** est unique sur le marché. Les destinataires voient la résolution — ou l'absence de résolution — de ce que portait le Créateur. Un regret assouvi et un regret non assouvi sont deux objets émotionnels radicalement différents.
 
 ### Règle d'attribution individuelle
-Chaque item peut être : visible par tous / destiné à une seule personne / destiné à plusieurs / entièrement privé / public. Cette attribution se fait **au moment du dépôt**, immédiatement, comme décider à qui on envoie un message.
+
+Chaque item peut être : visible par tous les destinataires / destiné à une seule personne sans que les autres le sachent / destiné à plusieurs personnes choisies / entièrement privé à vie / public et visible par le monde entier. Cette attribution se fait **au moment du dépôt**, immédiatement, comme décider à qui on envoie un message. Elle ne peut pas être modifiée sans action explicite du Créateur.
 
 ---
 
 ## 4.4 — LE TIROIR À CLÉ UNIQUE
 
 Une seule utilisation par compte. Le contenu le plus intime de toute l'application.
+
 - Un unique destinataire désigné
-- Contenu créé (texte, audio, vidéo, photos)
-- Une "clé" générée — remise physiquement à la personne choisie par le Créateur
-- Sans cette clé : inaccessible même après activation complète
-- Avec la clé : accès immédiat, sans délai
+- Contenu créé librement (texte, audio, vidéo, photos)
+- Une "clé" numérique générée — remise physiquement ou par un autre canal choisi par le Créateur à la personne concernée
+- Sans cette clé : inaccessible même après activation complète du protocole de transmission
+- Avec la clé : accès immédiat, sans délai, sans condition supplémentaire
 
 C'est le cadeau personnel — peut-être la dernière chose qu'on dira jamais à quelqu'un.
 
@@ -152,26 +158,30 @@ C'est le cadeau personnel — peut-être la dernière chose qu'on dira jamais à
 
 ## 4.5 — MES MEILLEURS
 
-La bibliothèque des goûts personnels :
-- Mes meilleurs livres (avec pourquoi)
-- Mes meilleurs films / séries
-- Mes meilleures chansons / albums (classables par style, période, émotion, date)
-- Mes meilleurs voyages / restaurants / souvenirs de fête
+La bibliothèque personnelle des goûts et des découvertes :
+
+- Mes meilleurs livres (avec la raison)
+- Mes meilleurs films et séries
+- Mes meilleures chansons et albums (classables par style, période de vie, émotion, date de découverte)
+- Mes meilleurs voyages et restaurants
+- Mes meilleurs souvenirs de fête
 - Ce que j'aurais voulu découvrir
 
-L'IA génère une "Carte des Goûts" — révélation pour le Créateur lui-même autant que transmission pour ses proches.
+L'IA génère une "Carte des Goûts" — les thèmes récurrents dans les choix culturels. Révélation pour le Créateur lui-même, transmission concrète pour ses proches.
 
 ---
 
 ## 4.6 — LES 100 QUESTIONS
 
-Une banque de questions guidées pour raconter sa vie. Exemples :
+Une banque de questions guidées pour raconter sa vie, organisées par thème, répondables dans n'importe quel ordre :
+
 - "Quel est le repas que tu aimerais pouvoir manger une dernière fois ?"
 - "Quelle décision as-tu prise dont tu es le plus fier ?"
 - "Qu'est-ce que tu aurais voulu qu'on te dise à 20 ans ?"
 - "Qui t'a le plus appris sans jamais te faire cours ?"
 - "Si tu pouvais revivre une journée, laquelle ?"
 - "Quelle est la chose dont tu parles le moins mais qui compte le plus ?"
+- "Qu'est-ce que tu aurais voulu faire et que tu n'as jamais fait ?"
 
 Les réponses alimentent automatiquement le Livre de Ma Vie et le Portrait d'Essence.
 
@@ -179,87 +189,90 @@ Les réponses alimentent automatiquement le Livre de Ma Vie et le Portrait d'Ess
 
 ## 4.7 — DATES D'OUVERTURE PROGRAMMÉES
 
-Le Créateur programme des "cadeaux à ouvrir" à des moments précis :
+Le Créateur programme des "cadeaux à ouvrir" à des moments précis, de son vivant ou après :
+
 - Un message pour le 18e anniversaire d'un enfant
 - "À ouvrir le jour de ton mariage"
-- "À ouvrir quand tu seras perdu"
-- "À ouvrir dans 10 ans"
+- "À ouvrir quand tu seras perdu et que tu ne sauras plus quoi faire"
+- "À ouvrir dans 10 ans, jour pour jour"
 
-Côté Destinataire : une **Boîte aux Lettres** avec des enveloppes scellées visibles. Leur existence n'est pas cachée — leur contenu est verrouillé jusqu'à la date.
+Côté Destinataire : une **Boîte aux Lettres** avec des enveloppes scellées visibles. Leur existence n'est pas cachée — leur contenu est verrouillé jusqu'à la date. L'attente fait partie de l'expérience.
 
 ---
 
 ## 4.8 — MES REGRETS
 
-Section dédiée, accessible uniquement depuis un chemin spécifique (jamais en premier) :
+Section dédiée, accessible uniquement depuis un chemin spécifique — jamais depuis l'accueil principal :
+
 - Regrets en texte : ce qu'on n'a jamais dit
 - Regrets en audio : ce qu'on aurait voulu dire à voix haute
-- Regrets en "évocation visuelle" : photos + textes superposés représentant ce qu'on aurait voulu vivre
+- Regrets en évocation visuelle : photos et textes superposés représentant ce qu'on aurait voulu vivre
 
-**Règle d'affichage** : les Destinataires n'y accèdent qu'après avoir consulté la Bibliothèque et le Fil de Pensée. Le deuil d'abord, les regrets ensuite.
+**Règle d'affichage côté Destinataire** : cette section n'est accessible qu'après avoir consulté la Bibliothèque et le Fil de Pensée. Le deuil d'abord, les regrets ensuite. Cette règle est gravée dans le code, pas dans une recommandation.
 
 ---
 
 ## 4.9 — LE MODE DÉTECTIVE
 
-Le Créateur verrouille certains contenus derrière des énigmes personnelles :
-- "Quel était le nom du chien qu'on a trouvé sur la plage ?"
+Le Créateur peut verrouiller certains contenus derrière de petites énigmes personnelles, que seul le destinataire concerné peut résoudre :
+
+- "Quel était le nom du chien qu'on a trouvé sur la plage cet été-là ?"
 - "Dans quelle ville s'est-on perdus pour la première fois ?"
 - "Quel surnom je t'avais donné que tu détestais ?"
 
-Quand l'énigme est résolue : animation d'ouverture spéciale, révélation d'un contenu destiné uniquement à cette personne. Le deuil transformé en exploration active.
+Quand l'énigme est résolue : animation d'ouverture spéciale, révélation d'un contenu destiné uniquement à cette personne. Le deuil transformé en exploration active. Le destinataire ne consomme pas passivement — il cherche, il se souvient, il participe.
 
 ---
 
 ## 4.10 — LE LIVRE DE MA VIE, LE LIVRE AUDIO, LE FILM
 
-**Le Livre de Ma Vie** : l'IA assemble les réponses aux 100 questions, le Fil de Pensée et les items émotionnels en un récit littéraire de 20 à 100 pages, dans le style de l'utilisateur. Téléchargeable en PDF, imprimable.
+**Le Livre de Ma Vie** : l'IA assemble les réponses aux 100 questions, les entrées du Fil de Pensée et les items émotionnels en un récit littéraire de 20 à 100 pages, dans le style naturel de l'utilisateur. Téléchargeable en PDF, imprimable, transmissible physiquement.
 
-**Le Livre Audio** : le même récit lu par une voix reconstruite par IA à partir des enregistrements déposés. La voix synthétique ne dit jamais rien que le Créateur n'a pas écrit ou validé.
+**Le Livre Audio** : le même récit lu par la voix originale du Créateur, reconstituée par IA à partir des enregistrements déposés dans l'application. **Règle absolue** : la voix synthétique ne dit jamais rien que le Créateur n'a pas écrit ou explicitement validé. Elle ne fait que lire. Le brut prime toujours sur le synthétique.
 
-**Le Film de Vie** : vidéo de quelques minutes construite à partir des photos (visages reconnus et nommés par l'utilisateur), des fragments audio et vidéo. En V3 quand la technologie de génération vidéo est mature.
+**Le Film de Vie** : vidéo de quelques minutes construite à partir des photos (visages reconnus et nommés par l'utilisateur lors de l'import), des fragments audio et vidéo déposés. Disponible en V3 lorsque la technologie de génération vidéo est suffisamment mature.
 
 ---
 
 ## 4.11 — LE PROFIL PUBLIC ET LA MÉMOIRE COLLECTIVE
 
-Certains contenus peuvent être rendus publics — visibles par le monde entier.
+Certains contenus peuvent être rendus publics — visibles par n'importe qui dans le monde.
 
-**Mode Legs Universel** : pensées, poèmes, coups de gueule ou sagesses destinés à l'humanité.
-**Mode Mémoire Collective** : bibliothèque universelle de vies humaines accessibles à tous.
+**Mode Legs Universel** : pensées, poèmes, coups de gueule ou sagesses que le Créateur choisit de destiner à l'humanité entière.
 
-Règle absolue : rien n'est public sans choix explicite. Le défaut est toujours privé.
+**Mode Mémoire Collective** : bibliothèque universelle de vies humaines, accessible à tous, constituée uniquement de contenus explicitement rendus publics.
+
+**Règle absolue** : rien n'est public sans un choix explicite, case à cocher distincte au moment du dépôt. Le défaut est toujours privé.
 
 ---
 
 ## 4.12 — L'ADAPTATION DU STYLE D'ÉCRITURE
 
-L'IA apprend comment le Créateur écrit naturellement — différemment selon chaque destinataire.
+L'IA apprend comment le Créateur écrit naturellement — et différemment selon chaque personne à qui il s'adresse.
 
-**V1** : copier-coller une conversation → analyse du style → conversation effacée → seule la "signature stylistique" est retenue (longueur moyenne des phrases, registre par type de destinataire, formules caractéristiques).
-**V2** : accès direct aux données de messagerie si accord explicite de l'utilisateur.
+**V1 — Copier-coller** : l'utilisateur colle une conversation existante dans un champ dédié. L'IA analyse le style, efface immédiatement la conversation, et retient uniquement la "signature stylistique" : longueur moyenne des phrases, registre de langue par type de destinataire, formules d'ouverture et de clôture caractéristiques. Les conversations elles-mêmes ne sont jamais stockées.
 
-Jamais les conversations elles-mêmes ne sont stockées.
+**V2 — Accès direct** : intégration avec les services de messagerie si l'utilisateur le demande explicitement et donne son accord formel.
 
 ---
 
-## 4.13 — LA PREUVE DE VIE (inversion du protocole)
+## 4.13 — LA PREUVE DE VIE (inversion complète du protocole)
 
-Au lieu de "comment confirme-t-on que je suis mort", le système demande "comment je prouve chaque semaine que je suis vivant". 
+Au lieu de demander "comment confirme-t-on que je suis mort", le système demande "comment je prouve chaque semaine que je suis vivant".
 
-**Optimisation "Zéro Anxiété"** : La preuve de vie est **passive**. Si l'utilisateur ouvre l'app, enregistre un mémo, ou si l'API Health Connect détecte une activité (pas de marche), la vie est confirmée automatiquement. Le "Tap manuel" ne doit être demandé que si l'activité numérique globale de l'appareil est à l'arrêt depuis 15 jours.
+**Fonctionnement passif — Zéro Anxiété** : la Preuve de Vie est **automatique et silencieuse**. Si l'utilisateur ouvre l'app, dépose un souvenir, ou si l'API Health Connect Android détecte une activité physique (pas de marche, fréquence cardiaque), la vie est confirmée sans aucune action. Le tap manuel de confirmation n'est demandé que si l'activité numérique globale de l'appareil est à l'arrêt depuis plus de 15 jours.
 
-Ce n'est plus le Dépositaire qui active la mort. C'est le Créateur qui maintient la vie. Le silence devient le signal. Philosophiquement cohérent avec l'histoire des 3 arrêts cardiaques.
+Ce n'est plus le Dépositaire qui active la mort. C'est le Créateur qui maintient la vie. Le silence devient le signal. Cette philosophie est directement cohérente avec l'histoire des trois arrêts cardiaques — le moment de crise, c'est précisément le moment où on ne peut plus tapoter une application.
 
 ---
 
 ## 4.14 — LE PROTOCOLE DE RÉCONCILIATION
 
-Un flux complètement séparé, accessible uniquement depuis les Réglages. Une seule question :
+Un flux complètement séparé du reste de l'application, accessible uniquement depuis les Réglages — jamais depuis l'accueil. Une seule question s'affiche :
 
 *"Y a-t-il quelqu'un à qui tu n'as jamais dit ce que tu aurais dû dire ?"*
 
-L'IA aide à formuler — pas à réécrire. Règle gravée dans le code : ce message ne peut être ouvert par son destinataire qu'un minimum de 30 jours après l'activation du protocole. Le deuil d'abord, la réconciliation ensuite.
+L'IA aide à formuler — pas à réécrire. Elle propose des mots pour ce qu'on n'a jamais su dire. **Règle gravée dans le code** : ce message ne peut être ouvert par son destinataire qu'un minimum de 30 jours après l'activation du protocole de transmission. Le deuil d'abord. La réconciliation ensuite, quand on est prêt.
 
 C'est peut-être la fonctionnalité qui sauvera des familles brisées. Aucun concurrent n'y a pensé.
 
@@ -267,96 +280,99 @@ C'est peut-être la fonctionnalité qui sauvera des familles brisées. Aucun con
 
 ## 4.15 — LE TÉMOIN (mémoire à 360°)
 
-Le Créateur invite silencieusement quelques proches à répondre à une question sur lui :
+Le Créateur invite silencieusement quelques proches à répondre à une seule question sur lui :
+
 *"Raconte un moment où [Prénom] t'a surpris."*
 
-Ces réponses sont stockées **sans que le Créateur ne les voie jamais** (sauf option explicite). Transmises aux destinataires après activation — non seulement ce qu'il a voulu transmettre de lui-même, mais ce que ceux qui l'aimaient ont voulu garder de lui.
+Ces réponses sont stockées **sans que le Créateur ne les voie jamais** — sauf s'il active une option explicite distincte. Elles sont transmises aux destinataires après activation. Résultat : non seulement ce que le Créateur a voulu transmettre de lui-même, mais ce que ceux qui l'aimaient ont voulu garder de lui.
 
 ---
 
 ## 4.16 — LA SALLE DES QUESTIONS
 
-Après activation, les Destinataires posent des questions :
-*"Est-ce qu'il était fier de moi ?"*
-*"Qu'est-ce qu'il pensait du mariage ?"*
+Après activation du protocole, les Destinataires peuvent poser des questions :
 
-L'IA ne répond pas — elle remonte les extraits **réels** les plus pertinents. Les vrais mots du Créateur, avec leur date et leur contexte. Pas un clone. Pas une hallucination. Une archive intelligente qui répond à des questions humaines avec des mots humains réels.
+*"Est-ce qu'il était fier de moi ?"*
+*"Qu'est-ce qu'il pensait vraiment du mariage ?"*
+*"Comment il se sentait dans les dernières années ?"*
+
+L'IA ne répond pas — elle remonte les extraits **réels** les plus pertinents parmi tout ce que le Créateur a déposé. Les vrais mots, avec leur date et leur contexte. Pas un clone. Pas une hallucination. Une archive intelligente qui répond à des questions humaines avec des mots humains réels.
 
 ---
 
-## 4.17 — LA LETTRE À MON JEUNE MOI ⭐ Fonctionnalité signature
+## 4.17 — LA LETTRE À MON JEUNE MOI ⭐
 
 ### Ce que c'est
 
-Le Créateur écrit une lettre adressée à lui-même à un âge précis — 20 ans, 30 ans, l'âge qu'il avait quand tout a basculé. Ce n'est pas un souvenir. Ce n'est pas un regret. C'est un dialogue entre soi et soi-même dans le temps.
+Le Créateur écrit une lettre adressée à lui-même à un âge précis — 20 ans, 30 ans, l'âge qu'il avait quand tout a basculé. Ce n'est pas un souvenir. Ce n'est pas un regret. C'est un dialogue entre soi et soi-même à travers le temps.
 
 ### Connexion avec le Fil de Pensée
 
-On voit ce qu'on pensait *à* cet âge dans le Fil, et ce qu'on lui dirait *depuis* aujourd'hui dans la Lettre. Les deux se répondent. C'est une couche de profondeur unique.
+On voit dans le Fil ce qu'on pensait *à* cet âge. On dit dans la Lettre ce qu'on lui dirait *depuis* aujourd'hui. Les deux se répondent. C'est une couche de profondeur qu'aucun concurrent ne propose.
 
 ### Potentiel viral
 
-C'est le format le plus facile à partager publiquement — les lettres à son jeune soi sont universellement compréhensibles et touchantes. Fort potentiel de bouche-à-oreille pour le lancement.
+Les lettres à son jeune soi sont universellement compréhensibles et émotionnellement accessibles. C'est le format le plus facile à partager publiquement. Fort potentiel de bouche-à-oreille naturel pour le lancement.
 
 ### Fonctionnement
-- Sélecteur d'âge destinataire (curseur : 10 à l'âge actuel - 5)
-- Format éditorial dédié : fond légèrement différent, police en italique, en-tête automatique "À toi, à [âge] ans —"
-- Peut être gardée privée, transmise à ses enfants, ou rendue publique
-- L'IA peut suggérer des thèmes basés sur le Fil de Pensée de cette période
+
+- Sélecteur d'âge destinataire (curseur de 10 ans à l'âge actuel moins 5)
+- En-tête automatique en Playfair Display italic AccentPrimary : "À toi, à [âge] ans —"
+- Zone d'écriture avec fond légèrement distinct pour matérialiser le changement de registre
+- L'IA suggère des thèmes basés sur les entrées du Fil de cette période d'âge
+- Peut être gardée entièrement privée, transmise à des proches spécifiques, ou rendue publique
 
 ---
 
-## 4.18 — LE MODE 3H DU MATIN ⭐ Fonctionnalité signature
+## 4.18 — LE MODE 3H DU MATIN ⭐
 
 ### Le problème résolu
 
-Les pensées les plus importantes arrivent la nuit, à 3h, quand on n'arrive pas à dormir. PHOEN-X doit pouvoir les capturer sans aucune friction, sans même déverrouiller le téléphone normalement.
+Les pensées les plus importantes arrivent la nuit, à 3h, quand on n'arrive pas à dormir. PHOEN-X doit pouvoir les capturer sans aucune friction — idéalement sans même regarder l'écran.
 
 ### Fonctionnement
 
-- **Friction Zéro** : L'utilisateur doit pouvoir enregistrer les yeux fermés, dans le noir total.
-- **Intégration Hardware** : Utilisation des **Quick Settings Tiles** (volet de notification) et raccourci par double-clic sur le bouton d'alimentation (via Accessibility API).
-- Accessible depuis l'**écran de verrouillage** en une seule pression longue (widget Android)
-- Fond noir complet — aucun menu visible
-- Micro qui s'active immédiatement, sans confirmation
-- On parle. L'app enregistre.
-- La capture se chiffre et se synchronise automatiquement
-- Le lendemain matin : notification discrète "Tu as déposé quelque chose cette nuit. Veux-tu le classer ?"
-- Classement automatique IA en arrière-plan
+**Friction Zéro : l'utilisateur peut enregistrer les yeux fermés, dans le noir total.**
 
-### Pourquoi c'est essentiel
+- Accessible depuis l'écran de verrouillage via un **widget Android** (pression longue)
+- Accessible depuis le volet de notification via une **Quick Settings Tile** dédiée — la solution la plus fiable sur Android 12 et supérieur
+- Fond noir complet à l'activation — aucun menu visible, aucune navigation
+- Le micro s'active immédiatement, sans confirmation, sans délai
+- Seul élément visible pendant l'enregistrement : forme d'onde blanche sur fond noir + chronomètre discret
+- Pression courte = stop et sauvegarde automatique
+- La capture est chiffrée et stockée localement (OfflineManager) sans connexion réseau requise
+- Le lendemain à 8h : notification douce — "Tu as déposé quelque chose cette nuit. Veux-tu le classer ?" — qui ouvre directement cette entrée dans le Fil de Pensée
+- Classement IA automatique en arrière-plan pendant la nuit
 
-Ce n'est pas une fonctionnalité esthétique. C'est une réponse à un moment humain réel et récurrent — le moment où on pense aux choses essentielles et où on n'a pas les moyens habituels de les capturer. Personne n'a résolu ça proprement.
+*Note technique* : ne pas utiliser le double-clic sur le bouton d'alimentation. Depuis Android 12, ce geste est réservé par Google à ses propres services (Gemini, Assistant) et ne peut plus être intercepté de façon fiable par des applications tierces. S'en tenir aux Quick Settings Tiles et au widget écran de verrouillage.
 
 ---
 
-## 4.19 — LE MODE HORS-LIGNE ⭐ Fonctionnalité signature
+## 4.19 — LE MODE HORS-LIGNE ⭐
 
 ### Le problème résolu
 
-Un hôpital. Un avion. Un tunnel. Les moments où on veut capturer quelque chose d'important sont souvent les moments où on n'a pas de connexion. C'est particulièrement cohérent avec l'histoire des 3 arrêts cardiaques — les moments de crise ne sont pas des moments connectés.
+Un hôpital. Un avion. Un tunnel. Une zone blanche. Les moments où on veut capturer quelque chose d'important sont souvent précisément les moments où on n'a pas de connexion. C'est particulièrement cohérent avec l'histoire des trois arrêts cardiaques — les moments de crise ne sont pas des moments connectés.
 
 ### Fonctionnement
 
-- PHOEN-X fonctionne entièrement hors-ligne
-- Les captures s'accumulent dans une **file locale chiffrée** (Room database + Tink)
-- Synchronisation automatique silencieuse dès que la connexion revient
+- PHOEN-X fonctionne entièrement hors-ligne pour toutes les opérations de capture
+- Les contenus s'accumulent dans une **file locale chiffrée** (Room Database + Tink)
+- Synchronisation automatique et silencieuse dès que la connexion revient, en arrière-plan
 - L'utilisateur ne voit jamais la différence entre une capture en ligne et hors-ligne
-- Indicateur discret dans les Réglages : "X éléments en attente de synchronisation"
-- Fonctions disponibles hors-ligne : capture texte, audio, photo, lecture des entrées déjà téléchargées
-- Fonctions indisponibles hors-ligne : IA, envoi de legs, Preuve de Vie (mise en file)
+- Indicateur discret dans les Réglages uniquement : "X éléments en attente de synchronisation"
 
-### Implémentation technique
+**Fonctions disponibles hors-ligne** : capture texte, audio, photo — lecture des entrées déjà téléchargées — Mode 3h du Matin — Lettre à Mon Jeune Moi.
 
-Room Database locale + WorkManager pour la sync différée + Tink pour le chiffrement local.
+**Fonctions indisponibles hors-ligne** : analyse IA, envoi de legs, Preuve de Vie (mise en file pour envoi dès reconnexion).
 
 ---
 
-## 4.20 — LE PORTRAIT D'UN PROCHE ⭐ Fonctionnalité signature
+## 4.20 — LE PORTRAIT D'UN PROCHE ⭐
 
 ### Ce que c'est
 
-Toutes les fonctionnalités actuelles sont du Créateur sur lui-même. Cette fonctionnalité ouvre une couche nouvelle : **écrire sur quelqu'un d'autre**.
+Toutes les fonctionnalités existantes parlent du Créateur sur lui-même. Le Portrait d'un Proche ouvre une couche entièrement nouvelle : **écrire sur quelqu'un d'autre**.
 
 Le Créateur compose le portrait de quelqu'un qu'il aime — son père, son enfant, son meilleur ami. "Voici comment je t'ai vu. Voici ce que j'ai vu en toi que tu n'as peut-être jamais su."
 
@@ -366,75 +382,76 @@ Non seulement ce qu'on laisse de soi, mais ce qu'on laisse de ceux qu'on a aimé
 
 ### Fonctionnement
 
-- Section dédiée "Ceux que j'aime"
-- Le Créateur choisit une personne parmi ses destinataires
-- Il répond à des questions guidées spécifiques : "Quel trait de caractère admires-tu le plus chez [prénom] ?" / "Quel souvenir vous lie le plus fortement ?" / "Qu'est-ce que [prénom] ne sait peut-être pas sur lui/elle-même ?"
-- L'IA propose une synthèse narrative du portrait
-- Transmissible à la personne concernée de son vivant ou après activation
-- Peut aussi être transmis à ses descendants — le regard d'un aïeul sur quelqu'un qui sera peut-être devenu vieux quand il lira
+- Section dédiée "Ceux que j'aime" accessible depuis le menu principal
+- 5 questions guidées, une à la fois, pour composer le portrait :
+  Q1 : "Quel trait de caractère admires-tu le plus chez [Prénom] ?"
+  Q2 : "Quel souvenir vous lie le plus fortement ?"
+  Q3 : "Qu'est-ce que [Prénom] ne sait peut-être pas sur lui/elle-même ?"
+  Q4 : "Comment [Prénom] a-t-il/elle changé depuis que tu le/la connais ?"
+  Q5 : "Qu'est-ce que tu veux qu'il/elle sache de la façon dont tu le/la vois ?"
+- L'IA propose une synthèse narrative — présentée comme suggestion, modifiable librement
+- Transmissible de son vivant ou intégré aux legs pour après l'activation
 
 ---
 
-## 4.21 — LE PACTE ⭐ Fonctionnalité signature
+## 4.21 — LE PACTE ⭐
 
 ### Ce que c'est
 
-Deux personnes — un couple, un parent et un enfant adulte, deux amis — créent chacun leur compte PHOEN-X et s'engagent à raconter les mêmes événements de leur vie commune, chacun de son propre point de vue.
+Deux personnes — un couple, un parent et un enfant adulte, deux amis de toujours — s'engagent mutuellement à raconter les mêmes événements de leur vie commune, chacun de son propre point de vue, sur PHOEN-X.
 
 ### La différence avec le Cercle de Mémoire
 
-Le Cercle de Mémoire, c'est des proches qui ajoutent des souvenirs *sur* le Créateur. Le Pacte, c'est deux personnes qui racontent *ensemble* leur histoire commune, en parallèle, délibérément.
+Le Cercle de Mémoire, c'est des proches qui ajoutent des souvenirs *sur* le Créateur. Le Pacte, c'est deux personnes qui racontent *ensemble* leur histoire commune — en parallèle, délibérément, symétriquement.
 
 ### Fonctionnement
 
-- Le Créateur envoie une invitation Pacte à une personne spécifique
-- Les deux acceptent mutuellement — engagement symétrique
-- Ils peuvent voir quels événements l'autre a racontés (mais pas le contenu avant activation)
-- Après activation des deux protocoles : les proches qui y ont accès reçoivent les deux versions en miroir — le même événement raconté par deux personnes différentes
-- Un outil de navigation "côte à côte" permet de lire les deux versions simultanément
+- Invitation envoyée à une personne spécifique — engagement mutuel requis des deux côtés
+- Chacun peut voir *quels* événements l'autre a racontés, mais jamais le *contenu* avant activation
+- Après activation des deux protocoles : les proches reçoivent les deux versions en miroir
+- Navigation "côte à côte" pour lire les deux versions simultanément
 
 ### Impact humain
 
-C'est humainement bouleversant et techniquement simple. Une séparation racontée par les deux ex-partenaires. Une enfance racontée par le parent et par l'enfant. Un combat partagé raconté par les deux combattants. Aucune application n'offre ça.
+Une séparation racontée par les deux ex-partenaires. Une enfance racontée par le parent et par l'enfant. Un combat partagé raconté par les deux combattants. Aucune application dans le monde n'offre ça.
 
 ---
 
-## 4.22 — L'ACCESSIBILITÉ VOCALE TOTALE ⭐ Fonctionnalité signature
+## 4.22 — L'ACCESSIBILITÉ VOCALE TOTALE ⭐
 
 ### Le problème résolu
 
-Les documents précédents supposaient implicitement un utilisateur qui tape facilement sur un téléphone. Mais les personnes âgées, les personnes avec des troubles moteurs, les personnes en situation de maladie grave — une partie significative de la cible — ne peuvent pas utiliser facilement un clavier.
+Les personnes âgées, les personnes avec des troubles moteurs, les personnes en situation de maladie grave ne peuvent pas toujours utiliser facilement un clavier. C'est une partie significative de la cible naturelle de PHOEN-X. L'app doit fonctionner entièrement à la voix pour ceux qui en ont besoin.
 
 ### Fonctionnement
 
-PHOEN-X fonctionne entièrement à la voix pour ceux qui en ont besoin :
-- Navigation vocale complète ("Ouvre mon Fil de Pensée" / "Dépose une pensée" / "Réponds à la question du jour")
-- Questions du Biographe lues à voix haute automatiquement
-- Réponses dictées, transcrites et chiffrées
-- Les menus se lisent à voix haute si l'option est activée
-- Compatible TalkBack (service d'accessibilité Android natif)
+- Navigation vocale complète via commandes naturelles
+- Questions du Biographe et des 100 Questions lues à voix haute automatiquement
+- Réponses dictées, transcrites et chiffrées sans manipulation manuelle
+- Compatible TalkBack (service d'accessibilité natif Android)
+- Vitesse de lecture et volume réglables dans les Réglages
 
-### Implémentation technique
-
-Speech-to-Text API Google + Text-to-Speech API Google + Navigation vocale via AccessibilityService Android.
+Commandes vocales reconnues : "Dépose une pensée" / "Ouvre mon fil" / "Mode nuit" / "Réponds à la question" / "Mes transmissions" / "Retour"
 
 ### Impact stratégique
 
-Ça ouvre un segment de marché énorme et très peu servi par les concurrents. C'est aussi une décision éthique cohérente avec la mission de PHOEN-X : permettre à *tout le monde* de transmettre, pas seulement à ceux qui maîtrisent bien les interfaces numériques.
+Segment de marché énorme et très peu servi par les concurrents. Décision éthique cohérente avec la mission : permettre à *tout le monde* de transmettre, pas seulement à ceux qui maîtrisent bien les interfaces numériques.
 
 ---
 
 ## 4.23 — POSTMORTEM STORY : l'interface Cube des Destinataires
 
+L'interface d'accueil des Destinataires est organisée en Cube — l'expression numérique de la Commode :
+
 | Face / Tiroir | Contenu |
 |---|---|
 | Grande Bibliothèque | Textes, lettres, écrits |
 | Grande Discothèque | Musiques préférées, playlists de vie |
-| Grande Vidéothèque | Vidéos, film de vie |
+| Grande Vidéothèque | Vidéos déposées, film de vie |
 | Grande Archive | Photos organisées par période |
 | Coffre-fort (derrière tableau) | Contenu secret + jeu de piste |
 | Coffre aux Trésors | Cadeaux à dates d'ouverture |
-| Armoire à "Armes" | Valeurs, convictions, combats |
+| Armoire à "Armes" | Valeurs, convictions, combats du Créateur |
 | Vue par Date | Le Fil de Pensée chronologique |
 | Mode Détective | Énigmes pour contenus verrouillés |
 | Boîte aux Lettres | Messages personnalisés programmés |
@@ -445,17 +462,17 @@ Speech-to-Text API Google + Text-to-Speech API Google + Navigation vocale via Ac
 
 ## 4.24 — CLASSEMENT AUTO + TRADUCTION + ANALYSE IA
 
-**Classement automatique** : chaque dépôt est classé instantanément dans la bonne catégorie, le bon monde, la bonne période — sans action de l'utilisateur.
+**Classement automatique** : chaque dépôt est classé instantanément dans la bonne catégorie émotionnelle, le bon monde thématique, la bonne période de vie — sans aucune action de l'utilisateur. Il peut corriger, mais le défaut est automatique.
 
-**Traduction** : tous les contenus peuvent être traduits pour des Destinataires allophones. Toujours présenté comme une traduction, jamais comme le texte original.
+**Traduction** : tous les contenus peuvent être traduits pour des Destinataires allophones. Toujours présenté explicitement comme une traduction, jamais comme le texte original du Créateur.
 
-**Analyse comportementale** : "Ces 3 derniers mois, tu as beaucoup écrit sur la solitude — est-ce que tu veux en faire une capsule ?"
+**Analyse comportementale intelligente** : "Ces 3 derniers mois, tu as beaucoup écrit sur la solitude — est-ce que tu veux en faire une capsule pour quelqu'un ?"
 
 ---
 
-# ════════════════════════════════════════════
+# ═══════════════════════════════════════════════
 # CHAPITRE 5 — ARCHITECTURE TECHNIQUE
-# ════════════════════════════════════════════
+# ═══════════════════════════════════════════════
 
 ## Stack technologique
 
@@ -465,68 +482,83 @@ Speech-to-Text API Google + Text-to-Speech API Google + Navigation vocale via Ac
 | Authentification | Firebase Authentication |
 | Base de données cloud | Firestore |
 | Stockage fichiers | Firebase Storage |
-| Automatisations | Cloud Functions (Node.js / TypeScript) |
-| Notifications | Firebase Cloud Messaging |
-| Chiffrement | Google Tink (E2EE côté client) |
-| Intelligence artificielle | Vertex AI / Gemini Nano (On-device) |
-| Hors-ligne | Room Database + WorkManager |
-| Accessibilité vocale | Speech-to-Text + Text-to-Speech API Google |
+| Automatisations arrière-plan | Cloud Functions (Node.js / TypeScript) |
+| Notifications push | Firebase Cloud Messaging (FCM) |
+| Chiffrement | Google Tink — E2EE côté client |
+| IA embarquée (on-device) | Gemini Nano via Android AI Edge SDK |
+| IA cloud (fonctions complexes) | Vertex AI — Gemini Pro |
+| Base de données locale (hors-ligne) | Room Database + WorkManager |
+| Accessibilité vocale | Speech-to-Text API + Text-to-Speech API Google |
+| Activité physique (Preuve de Vie) | Android Health Connect API |
 
-## Décision de chiffrement — à trancher avant tout code
+## Architecture IA — Le paradoxe résolu
 
-Firestore et Storage ne sont pas chiffrés de bout en bout par défaut. Pour un produit qui héberge voix intimes, secrets et regrets, la décision est :
+Le défi central de PHOEN-X : comment analyser des contenus intimes avec l'IA si tout est chiffré avant d'être envoyé ?
 
-**Chiffrement E2EE via Tink + Argon2** :
+**Solution : traitement local avant chiffrement via Gemini Nano.**
+
+1. L'utilisateur dépose un contenu.
+2. **Gemini Nano** (embarqué sur l'appareil) analyse le contenu *localement* et génère les métadonnées non sensibles : résumé court, tags thématiques, tonalité émotionnelle. Ces métadonnées ne contiennent jamais de données personnelles directement identifiables.
+3. **Tink** chiffre le contenu original complet avant tout envoi.
+4. Firestore reçoit : le contenu chiffré (illisible par quiconque sauf l'utilisateur) + les métadonnées en clair (lisibles par l'IA cloud pour les analyses complexes).
+5. Les fonctions complexes (Portrait d'Essence, Biographe, Évolution du Fil) utilisent **Vertex AI** sur les métadonnées uniquement — jamais sur le contenu chiffré.
+
+**Contrainte matérielle de Gemini Nano** : disponible uniquement sur Android 12+ avec certains processeurs récents (gammes Pixel 8+, Samsung S24+, etc.). Sur les appareils non compatibles, fallback automatique vers **ML Kit On-Device** (Google, plus léger, compatible Android 8+). L'utilisateur ne voit jamais la différence de niveau.
+
+## Chiffrement — Décisions techniques
+
+**Algorithme** : Tink + Argon2id pour la dérivation de clé.
 - Toutes les données sensibles chiffrées côté client avant tout upload
-- **Paradoxe IA résolu** : L'analyse des textes et la génération des résumés (`aiSummary`) se font **localement** sur l'appareil via **Gemini Nano** (SDK AI Edge). Les métadonnées sont chiffrées avec Tink *avant* l'envoi. Zéro fuite en clair.
-- La clé est dérivée du mot de passe utilisateur (Argon2id)
-- Elle ne quitte jamais l'appareil
-- Effacée de la mémoire dès que l'app passe en arrière-plan
-- Conséquence : mot de passe perdu = données irrécupérables
-- Solution : phrase de récupération à 12 mots (BIP-39) générée à l'inscription
+- La clé dérivée du mot de passe utilisateur ne quitte jamais l'appareil
+- La clé est effacée de la mémoire dès que l'app passe en arrière-plan
+- Redemande du mot de passe à chaque réouverture après mise en veille
+- **Conséquence assumée** : mot de passe perdu = données irrécupérables
+- **Solution** : phrase de récupération à 12 mots (standard BIP-39) générée obligatoirement à l'inscription
 
 ## Multi-plateforme
 
-Build Android-first pour le Créateur. Portail web responsive obligatoire pour les Destinataires — un proche sous iPhone doit pouvoir accéder à son héritage.
+Build Android natif (Kotlin/Compose) pour le Créateur — expérience complète.
+Portail web responsive obligatoire pour les Destinataires — un proche sous iPhone doit pouvoir accéder à son héritage sans friction.
 
 ---
 
-# ═══════════════════════════════════════════════
+# ═══════════════════════════════════════════════════
 # CHAPITRE 6 — BASE DE DONNÉES FIRESTORE COMPLÈTE
-# ═══════════════════════════════════════════════
+# ═══════════════════════════════════════════════════
 
-## Structure complète
+## Structure complète des collections
 
 ```
 users/{userId}
   displayName: String
   email: String
-  dateOfBirth: Timestamp          ← OBLIGATOIRE pour le Fil de Pensée
+  dateOfBirth: Timestamp           ← OBLIGATOIRE — sert à calculer l'âge pour le Fil de Pensée
   createdAt: Timestamp
   lastActiveAt: Timestamp
-  lastAliveConfirmedAt: Timestamp  ← Preuve de Vie
-  inactivityThresholdDays: Int     (défaut: 21)
-  planTier: String                 ("memo"|"legacy"|"immersion")
+  lastAliveConfirmedAt: Timestamp  ← Preuve de Vie passive
+  inactivityThresholdDays: Int     défaut : 21 jours
+  planTier: String                 "memo" | "legacy" | "immersion"
   onboardingCompleted: Boolean
-  styleProfile: Map                (signature stylistique IA)
-  accessibilityVoiceMode: Boolean  ← Mode vocal total
+  styleProfile: Map                signature stylistique IA (non chiffrée)
+  accessibilityVoiceMode: Boolean  Mode vocal total
+  geminiNanoAvailable: Boolean     ← selon le matériel de l'appareil
 
 users/{userId}/entries/{entryId}
-  type: String                     ("text"|"audio"|"photo"|"video")
-  encryptedContent: Bytes
-  encryptedMetadata: Bytes
-  ageAtCreation: Map               {years, months, days, displayLabel}
-  emotionalCategory: String
-  isFulfilled: Boolean?            (null si non applicable)
-  aiTags: Array<String>            (non chiffré — pour recherche)
-  aiSummary: String                (non chiffré)
-  worldId: String
-  visibility: String               ("private"|"recipients"|"specific"|"public")
+  type: String                     "text" | "audio" | "photo" | "video"
+  encryptedContent: Bytes          ← contenu chiffré Tink, illisible côté serveur
+  encryptedMetadata: Bytes         ← métadonnées chiffrées (titre, contexte)
+  ageAtCreation: Map               {years, months, days, displayLabel}  ← LE FIL DE PENSÉE
+  emotionalCategory: String        catégorie émotionnelle choisie
+  isFulfilled: Boolean?            null si non applicable à la catégorie
+  aiTags: Array<String>            générés par Gemini Nano — non chiffrés
+  aiSummary: String                généré par Gemini Nano — non chiffré — max 20 mots
+  worldId: String                  référence vers worlds/
+  visibility: String               "private" | "recipients" | "specific" | "public"
   specificRecipientIds: Array<String>
   isYoungSelfLetter: Boolean       ← Lettre à Mon Jeune Moi
-  targetAge: Int?                  (âge destinataire si lettre)
+  targetAge: Int?                  âge destinataire si lettre
   createdAt: Timestamp
-  isOfflinePending: Boolean        ← Hors-ligne
+  isOfflinePending: Boolean        ← en attente de sync hors-ligne
 
 users/{userId}/entries/{entryId}/amendments/{amendmentId}
   encryptedContent: Bytes
@@ -534,30 +566,32 @@ users/{userId}/entries/{entryId}/amendments/{amendmentId}
   createdAt: Timestamp
 
 users/{userId}/worlds/{worldId}
-  name: String
-  color: String
+  name: String                     Espoir | Poésie | Coups de gueule | Angoisses | etc.
+  color: String                    couleur hex personnalisable
   entryCount: Int
 
 users/{userId}/favorites/{favoriteId}
-  category: String                 ("book"|"film"|"series"|"music"|"travel")
+  category: String                 "book" | "film" | "series" | "music" | "travel"
   encryptedTitle: Bytes
-  encryptedWhy: Bytes
-  period: String
+  encryptedWhy: Bytes              raison chiffrée
+  period: String                   période de vie associée
   createdAt: Timestamp
 
 users/{userId}/legacies/{legacyId}
   encryptedTitle: Bytes
   entryIds: Array<String>
   recipientId: String
-  triggerType: String              ("date"|"activation"|"event"|"unique_key")
+  triggerType: String              "date" | "activation" | "event" | "unique_key"
   triggerDate: Timestamp?
+  triggerEvent: String?
   isRevealed: Boolean
   isUniqueKey: Boolean             ← Tiroir à Clé Unique
-  uniqueKeyHash: String?
+  uniqueKeyHash: String?           hash de la clé — jamais la clé elle-même
 
 users/{userId}/portraits/{portraitId}
   recipientId: String              ← Portrait d'un Proche
   encryptedContent: Bytes
+  questions: Array<String>         questions auxquelles le Créateur a répondu
   isTransmitted: Boolean
   transmittedAt: Timestamp?
 
@@ -565,29 +599,34 @@ users/{userId}/depositaries/{depositaryId}
   name: String
   email: String
   phone: String
-  status: String                   ("invited"|"confirmed"|"active")
-  inviteToken: String
+  status: String                   "invited" | "confirmed" | "active"
+  confirmedAt: Timestamp?
+  inviteToken: String              token unique, expire après 7 jours
 
 users/{userId}/recipients/{recipientId}
   name: String
   email: String
   relationship: String
-  accessLevel: String              ("partial"|"full")
+  accessLevel: String              "partial" | "full"
   hasAccessed: Boolean
+  firstAccessAt: Timestamp?
 
 pacts/{pactId}
   creatorAId: String               ← Le Pacte
   creatorBId: String
-  status: String                   ("pending"|"active"|"revealed")
+  status: String                   "pending" | "active" | "revealed"
   createdAt: Timestamp
+  sharedEventIds: Map<String, List<String>>
+  // clé = eventId, valeur = [entryId_A, entryId_B]
 
 activationProtocols/{protocolId}
   creatorId: String
   depositaryId: String
-  status: String                   ("dormant"|"pending_confirmation"|"contested"|"activated")
+  status: String                   "dormant" | "pending_confirmation" | "contested" | "activated"
   initiatedAt: Timestamp
-  contestDeadline: Timestamp       (72h après pending_confirmation)
+  contestDeadline: Timestamp       72h après pending_confirmation
   activatedAt: Timestamp?
+  confirmationNote: String?        note optionnelle du Dépositaire
 ```
 
 ## Règles de sécurité Firestore
@@ -596,15 +635,21 @@ activationProtocols/{protocolId}
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // Chaque utilisateur accède uniquement à ses propres données
     match /users/{userId}/{document=**} {
       allow read, write: if request.auth != null
         && request.auth.uid == userId;
     }
+
+    // Protocoles d'activation : accès au Créateur et au Dépositaire uniquement
     match /activationProtocols/{protocolId} {
       allow read, write: if request.auth != null
         && (resource.data.creatorId == request.auth.uid
          || resource.data.depositaryId == request.auth.uid);
     }
+
+    // Pactes : accès aux deux signataires uniquement
     match /pacts/{pactId} {
       allow read, write: if request.auth != null
         && (resource.data.creatorAId == request.auth.uid
@@ -616,204 +661,254 @@ service cloud.firestore {
 
 ---
 
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════
 # CHAPITRE 7 — DESIGN SYSTEM COMPLET
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════
 
-## Couleurs
+## Palette de couleurs
 
 ```kotlin
-BackgroundPrimary   = Color(0xFF1A1A1F)  // anthracite profond — jamais noir pur
-BackgroundSecondary = Color(0xFF242429)
-SurfaceCard         = Color(0xFF2E2E35)  // + 40% opacité = effet verre dépoli
-AccentPrimary       = Color(0xFFC97B3A)  // braise/doré — LA couleur du phénix
-AccentSecondary     = Color(0xFFE8A85F)  // version claire pour hover/focus
-TextPrimary         = Color(0xFFF2EDE8)  // blanc chaud — jamais blanc pur
-TextSecondary       = Color(0xFF9B9590)
-TextTertiary        = Color(0xFF5C5855)
-Success             = Color(0xFF4CAF50)
-Error               = Color(0xFFE57373)
-Warning             = Color(0xFFFFB74D)
+// Fonds — jamais de noir pur #000000 sauf Mode 3h du Matin
+val BackgroundPrimary   = Color(0xFF1A1A1F)  // anthracite profond
+val BackgroundSecondary = Color(0xFF242429)  // légèrement plus clair
+val SurfaceCard         = Color(0xFF2E2E35)  // + 40% opacité = effet verre dépoli
+
+// Accent unique — LA couleur du phénix — jamais deux accents simultanément
+val AccentPrimary       = Color(0xFFC97B3A)  // braise / doré
+val AccentSecondary     = Color(0xFFE8A85F)  // version claire pour hover et focus
+
+// Textes — jamais de blanc pur #FFFFFF
+val TextPrimary         = Color(0xFFF2EDE8)  // blanc chaud
+val TextSecondary       = Color(0xFF9B9590)
+val TextTertiary        = Color(0xFF5C5855)
+
+// États fonctionnels
+val Success             = Color(0xFF4CAF50)
+val Error               = Color(0xFFE57373)
+val Warning             = Color(0xFFFFB74D)
 ```
 
 ## Typographie
 
 ```
-Playfair Display (famille éditoriale — contenu du Créateur) :
-  HeadingLarge   32sp  weight 700
-  HeadingMedium  24sp  weight 600
-  HeadingSmall   20sp  weight 600
-  CaptureText    18sp  weight 400  lineHeight 1.6
-  YoungSelfLetter 18sp weight 400  fontStyle Italic  ← Lettre à Mon Jeune Moi
+Playfair Display — famille éditoriale
+Usage : tout ce que le Créateur écrit, tous les moments émotionnels forts
+  HeadingLarge    32sp  weight 700
+  HeadingMedium   24sp  weight 600
+  HeadingSmall    20sp  weight 600
+  CaptureText     18sp  weight 400  lineHeight 1.6
+  YoungSelfLetter 18sp  weight 400  fontStyle Italic  ← Lettre à Mon Jeune Moi
 
-Inter (famille interface — navigation, boutons) :
-  BodyLarge   16sp  weight 400
-  BodyMedium  14sp  weight 400
-  BodySmall   12sp  weight 400
-  Label       11sp  weight 500  letterSpacing 0.08em
+Inter — famille interface
+Usage : navigation, boutons, labels, menus
+  BodyLarge    16sp  weight 400
+  BodyMedium   14sp  weight 400
+  BodySmall    12sp  weight 400
+  Label        11sp  weight 500  letterSpacing 0.08em  ← labels en majuscules
 ```
 
-## Principes absolus
+## Le Sceau de l'Âge
 
-- Un seul accent chaud (#C97B3A) — jamais deux accents sur un même écran
-- Verre dépoli réservé aux écrans de transmission rares — pas sur l'interface quotidienne
-- **Ritualisation du dépôt** : Les actions ne sont pas des clics, mais des gestes (glisser, estomper). Le dépôt d'un souvenir doit ressembler à une lettre postée (animation lente 600ms).
-- **Le Sceau de l'Âge** : L'âge exact (signature) n'est pas un simple texte, c'est un sceau visuel élégant, presque un tampon de cire moderne sur chaque contenu.
-- **Matière et Profondeur** : Utilisation de textures (grain rappelant le bois, le papier, le cuir) et de dégradés profonds pour éviter le côté "plat" du numérique. L'interface matérialise la **Commode**.
-- Animations lentes et organiques : fondu 400-600ms — jamais de rebond ni de confettis
-- Espace blanc généreux sur les écrans à charge émotionnelle forte
-- Une seule action primaire par écran — règle absolue
+L'âge exact au moment du dépôt n'est **pas** un simple label texte. C'est un **sceau visuel** — un objet graphique distinct, presque un tampon de cire moderne, apposé sur chaque contenu du Fil de Pensée. Il matérialise que ce contenu a été créé à un moment précis d'une vie. Design : petite capsule arrondie, fond AccentPrimary à 20% d'opacité, texte AccentPrimary, Inter Label.
 
-## Ce qui est interdit
+## Matière et profondeur
 
-- Jamais de noir pur (#000000) comme fond
+L'interface doit évoquer la Commode — un objet physique, avec de la matière. Utiliser :
+- Textures légères (grain papier, grain bois) en overlay très subtil (5-8% opacité) sur les cartes de contenu
+- Dégradés profonds plutôt que surfaces plates
+- Effets de verre dépoli (SurfaceCard à 40% d'opacité) **uniquement** sur les écrans de transmission et de révélation — pas sur l'interface quotidienne pour ne pas alourdir les performances
+
+## Ritualisation du dépôt
+
+Les actions ne sont pas des clics — ce sont des gestes. Déposer un souvenir doit ressembler à poster une lettre : quelque chose de lent, de délibéré, d'irréversible au sens positif. Animation de validation : 600ms minimum, jamais moins.
+
+## Spécifications d'animation
+
+```
+FadeIn       600ms  EaseOut           — apparitions d'écrans et de cartes
+SlideUp      400ms  EaseOut  32dp→0   — entrées d'éléments dans les listes
+Breathe      4s     infini   1.0↔1.03 — mode audio actif
+PressDown    100ms           0.97     — feedback au tap sur boutons
+SealReveal   800ms           scale+fade — révélation d'un contenu déverrouillé
+NightPulse   2s     infini   fade blanc subtil — mode 3h du Matin actif
+```
+
+## Règles absolues — ce qui est interdit
+
+- Jamais de noir pur (#000000) comme fond — sauf Mode 3h du Matin (volontaire)
+- Jamais deux accents sur le même écran simultanément
 - Jamais d'esthétique funéraire (croix, bougies, gris-deuil)
-- Jamais d'animations ludiques ou gamifiées
+- Jamais d'animations ludiques ou gamifiées (confettis, rebonds)
 - Jamais plus d'une action primaire visible par écran
 - Jamais l'IA qui parle au nom du défunt à la première personne du présent
+- Jamais une voix synthétique pour remplacer un enregistrement réel — le synthétique ne fait que compléter les lacunes
 
 ---
 
-# ═══════════════════════════════════
+# ═══════════════════════════════════════════════
 # CHAPITRE 8 — ROADMAP COMPLÈTE
-# ═══════════════════════════════════
+# ═══════════════════════════════════════════════
 
 ## MVP technique — Semaines 1 à 4
-Objectif unique : prouver que la boucle fonctionne.
-- Capture texte avec âge calculé automatiquement (le Fil de Pensée — 2 lignes de code)
-- Mode Hors-ligne dès le début (Room + WorkManager)
-- Un destinataire, un message transmis
-- Chiffrement Tink en place dès le départ
+Objectif unique et non négociable : prouver que la boucle de base fonctionne.
+- Capture texte avec **âge calculé automatiquement** — le Fil de Pensée dès le départ
+- Mode Hors-ligne dès le premier jour (Room + WorkManager)
+- Chiffrement Tink en place avant tout le reste
+- Un destinataire, un message transmis de bout en bout
 
 ## V1 Produit — Mois 2 à 4
 - Capture audio et photo
-- Le Fil de Pensée complet (filtres, vue par âge, Amendements)
-- Catégories émotionnelles + distinction assouvi/non assouvi
+- Le Fil de Pensée complet (filtres, vue par âge, Amendements, Dialogue Temporel)
+- Catégories émotionnelles avec distinction Assouvi / Non assouvi
 - La Lettre à Mon Jeune Moi
-- Le Mode 3h du Matin
-- "Mes Meilleurs"
+- Le Mode 3h du Matin (widget + Quick Settings Tile)
+- Mes Meilleurs (livres, films, musique)
 - Les 100 Questions
-- Dates d'ouverture programmées
-- Protocole Dépositaire + Preuve de Vie
-- Onboarding avec histoire fondatrice
-- Design final + Accessibilité vocale basique
+- Dates d'ouverture programmées (Boîte aux Lettres)
+- Protocole Dépositaire + Preuve de Vie passive (Health Connect)
+- Onboarding avec histoire fondatrice obligatoire
+- Design final avec Sceau de l'Âge et textures
+- Accessibilité vocale basique (navigation + capture)
 
 ## V2 — Intelligence et profondeur — Mois 5 à 8
 - Portrait d'Essence
 - Adaptation du style d'écriture
-- Mode Détective + énigmes
+- Mode Détective et énigmes personnelles
 - Tiroir à Clé Unique
-- Mes Regrets
+- Mes Regrets (section dédiée)
 - Protocole de Réconciliation
 - Le Témoin (mémoire 360°)
 - Portrait d'un Proche
 - Le Pacte
-- Classement auto + traduction
+- Classement automatique + traduction
 - Accessibilité vocale totale
 
 ## V3 — Signature et universalité — Mois 9 à 12
-- Livre de Ma Vie (IA)
-- Livre Audio (voix reconstituée)
-- Film de Vie
-- Profil Public / Mémoire Collective
+- Livre de Ma Vie (IA narrative)
+- Livre Audio (voix originale reconstituée)
+- Film de Vie (si technologie disponible)
+- Profil Public et Mémoire Collective
 - Interface Cube complète côté Destinataire
-- La Salle des Questions
+- La Salle des Questions (recherche sémantique)
 
 ---
 
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════
 # CHAPITRE 9 — MODÈLE ÉCONOMIQUE
-# ═══════════════════════════════════════
+# ═══════════════════════════════════════════════
 
-| Offre | Contenu | Prix |
+| Offre | Contenu inclus | Modèle |
 |---|---|---|
-| **Memo** | Capture limitée, Fil de Pensée basique, 1-2 destinataires, Mode Hors-ligne | Gratuit |
-| **Legacy** | Tout illimité, audio, IA complète, dépositaires, Lettre à Mon Jeune Moi, Pacte, Portrait d'un Proche | Abonnement annuel |
-| **Immersion** | Livre audio, film de vie, Cube complet, accessibilité vocale totale, expériences premium | Add-on ou palier prestige |
+| **Memo** | Capture limitée, Fil de Pensée basique, 1-2 destinataires, Mode Hors-ligne, Mode 3h du Matin | Gratuit |
+| **Legacy** | Tout illimité, audio, IA complète, dépositaires, Lettre à Mon Jeune Moi, Pacte, Portrait d'un Proche, Protocole de Réconciliation | Abonnement annuel |
+| **Immersion** | Livre audio, Film de vie, Interface Cube complète, Accessibilité vocale totale, expériences premium | Add-on ou palier prestige |
 
-**Pourquoi abonnement et non paiement à vie** (contrairement à In-Memory à 349€ à vie) : le stockage s'accumule indéfiniment. Un paiement unique devient structurellement déficitaire. Un abonnement est plus soutenable et justifiable à mesure que l'IA s'enrichit — la valeur perçue augmente dans le temps.
-
----
-
-# ══════════════════════════════════════════════════════════════
-# CHAPITRE 10 — TOUS LES PROMPTS ANDROID STUDIO / GEMINI
-# ══════════════════════════════════════════════════════════════
-
-## Comment utiliser ces prompts
-
-Ouvrir Android Studio. Ouvrir Gemini (icône étoile bleue en haut à droite, ou menu View > Tool Windows > Gemini). Coller le **Prompt Maître** au début de chaque session, puis les prompts numérotés dans l'ordre.
+**Pourquoi abonnement et non paiement à vie** (contrairement à In-Memory à 349 € à vie) : le stockage audio et vidéo s'accumule indéfiniment dans le temps. Un paiement unique devient structurellement déficitaire à mesure que la base d'utilisateurs grandit. L'abonnement est plus soutenable, et la valeur perçue augmente à chaque enrichissement de l'IA — la justification du renouvellement est continue.
 
 ---
 
-## PROMPT MAÎTRE — À coller au début de CHAQUE session de travail
+# ═══════════════════════════════════════════════════════════
+# CHAPITRE 10 — LES 13 PROMPTS ANDROID STUDIO / GEMINI
+# ═══════════════════════════════════════════════════════════
+
+## Mode d'emploi
+
+1. Ouvrir Android Studio
+2. Ouvrir Gemini : icône étoile bleue en haut à droite, ou menu View > Tool Windows > Gemini
+3. **Coller le Prompt Maître au tout début de chaque session de travail** — sans exception
+4. Coller ensuite les prompts numérotés dans l'ordre du tableau de bord (fin de chapitre)
+5. Ne jamais sauter un prompt ou changer l'ordre
+
+---
+
+## ▶ PROMPT MAÎTRE — À coller au début de CHAQUE session
 
 ```
 Je développe une application Android appelée PHOEN-X.
 
 CONTEXTE FONDATEUR : l'application est née de l'expérience du
-fondateur qui a survécu à trois arrêts cardiaques. Cela donne
-une profondeur émotionnelle particulière à chaque décision —
-jamais clinique, jamais morbide, toujours dans un registre de
-chaleur, de présence et de transmission.
+fondateur qui a survécu à trois arrêts cardiaques. Chaque
+décision produit porte cette profondeur — jamais clinique,
+jamais morbide, toujours dans un registre de chaleur, de
+présence et de transmission vivante.
 
-QU'EST-CE QUE PHOEN-X : une plateforme de mémoire vivante
-augmentée par IA. Elle permet à une personne (le Créateur) de
-capturer ses souvenirs, sa voix, ses valeurs et sa trajectoire
-de pensée par âge, puis de les transmettre à ses proches
-(Destinataires) soit de son vivant, soit après son décès via
-une personne de confiance (le Dépositaire).
+QU'EST-CE QUE PHOEN-X :
+Une plateforme de mémoire vivante augmentée par IA. Elle
+permet à une personne (le Créateur) de capturer ses souvenirs,
+sa voix, ses valeurs et sa trajectoire de pensée par âge, puis
+de les transmettre à ses proches (Destinataires) soit de son
+vivant, soit après son décès via une personne de confiance
+(le Dépositaire).
 
-FONCTIONNALITÉ SIGNATURE : Le Fil de Pensée — chaque entrée
-stocke l'âge exact du Créateur au moment du dépôt. Les
-destinataires naviguent dans l'évolution de la pensée d'une
-personne par âge : 40 ans, 41 ans, 47 ans. Unique sur le
-marché.
+FONCTIONNALITÉ SIGNATURE — LE FIL DE PENSÉE :
+Chaque entrée stocke l'âge EXACT du Créateur au moment du
+dépôt (years/months/days calculés depuis dateOfBirth).
+Les destinataires naviguent dans l'évolution de la pensée
+d'une personne par âge : 40 ans, 41 ans, 47 ans.
+Unique sur le marché mondial.
 
-NOUVELLES FONCTIONNALITÉS V1 :
-- La Lettre à Mon Jeune Moi : lettre adressée à soi à un âge
-  passé, connectée au Fil de Pensée
-- Le Mode 3h du Matin : capture vocale depuis l'écran de
-  verrouillage, en une seule pression, sans menu
-- Le Mode Hors-Ligne : Room database locale, sync automatique
-  à la reconnexion
+FONCTIONNALITÉS V1 SUPPLÉMENTAIRES :
+- Lettre à Mon Jeune Moi : lettre adressée à soi à un âge
+  passé, connectée visuellement au Fil de Pensée
+- Mode 3h du Matin : capture vocale depuis l'écran de
+  verrouillage via widget et Quick Settings Tile, fond
+  noir total, friction zéro
+- Mode Hors-Ligne : Room Database locale + WorkManager,
+  sync automatique à la reconnexion, transparent pour
+  l'utilisateur
 
-NOUVELLES FONCTIONNALITÉS V2 :
+FONCTIONNALITÉS V2 :
 - Portrait d'un Proche : écrire sur quelqu'un qu'on aime
-- Le Pacte : deux personnes racontent les mêmes événements
-  de leur vie commune, chacun de son propre point de vue
+- Le Pacte : deux personnes racontent les mêmes événements,
+  chacun de son point de vue, révélation en miroir
 - Accessibilité vocale totale : navigation et capture
   entièrement à la voix
 
-STACK TECHNIQUE :
+STACK TECHNIQUE COMPLET :
 - Android Studio, Kotlin, Jetpack Compose
 - Firebase Auth, Firestore, Storage, Cloud Functions, FCM
-- Google Tink (chiffrement E2EE côté client — OBLIGATOIRE)
-- Vertex AI / Gemini pour l'IA
-- Room Database + WorkManager (hors-ligne)
-- Speech-to-Text + Text-to-Speech API Google (accessibilité)
+- Google Tink : chiffrement E2EE côté client OBLIGATOIRE
+  avant tout upload
+- Gemini Nano (Android AI Edge SDK) : analyse IA locale
+  ON-DEVICE avant chiffrement — fallback ML Kit si
+  appareil non compatible
+- Vertex AI Gemini Pro : fonctions IA complexes sur
+  métadonnées non chiffrées uniquement (jamais sur contenu)
+- Room Database + WorkManager : mode hors-ligne
+- Health Connect API : Preuve de Vie passive
+- Speech-to-Text + Text-to-Speech API : accessibilité
 - Navigation Compose, Hilt, Coroutines, ViewModel
 
 DESIGN :
-- Fond : #1A1A1F (anthracite profond, jamais noir pur)
-- Accent unique : #C97B3A (braise/doré — la couleur du phénix)
-- Texte principal : #F2EDE8 (blanc chaud, jamais blanc pur)
-- Police éditoriale : Playfair Display (contenu du Créateur)
-- Police interface : Inter (navigation, boutons)
-- Animations lentes et organiques (600ms fondu), jamais ludiques
+- Fond : #1A1A1F (anthracite profond — jamais #000000 sauf
+  Mode 3h du Matin)
+- Accent UNIQUE : #C97B3A (braise/doré — jamais deux accents
+  simultanés sur un même écran)
+- Texte : #F2EDE8 (blanc chaud — jamais #FFFFFF)
+- Police éditoriale : Playfair Display (tout contenu du
+  Créateur)
+- Police interface : Inter (navigation, boutons, labels)
+- Animations lentes 400-600ms, jamais ludiques
 
-RÈGLES ABSOLUES :
+RÈGLES ABSOLUES — violations = refaire depuis zéro :
 1. TOUJOURS chiffrer avec Tink avant tout upload Firebase
-2. TOUJOURS stocker l'âge exact (years/months/days) avec
-   chaque entrée
-3. TOUJOURS prévoir mode hors-ligne (Room locale + WorkManager)
-4. Jamais plus d'une action primaire par écran
-5. Jamais d'esthétique funéraire
-6. L'IA ne parle jamais au nom du défunt à la 1ère personne
-7. TOUJOURS prévoir état chargement + état erreur
+2. TOUJOURS stocker ageAtCreation (years/months/days) avec
+   chaque entrée — c'est la fonctionnalité signature
+3. TOUJOURS prévoir mode hors-ligne (Room + WorkManager)
+4. Gemini Nano analyse AVANT le chiffrement — jamais après
+5. Vertex AI reçoit UNIQUEMENT aiSummary et aiTags
+   (non chiffrés) — jamais le contenu original
+6. Jamais plus d'une action primaire visible par écran
+7. Jamais d'esthétique funéraire dans aucun composant
+8. L'IA ne parle jamais au nom du défunt à la 1ère
+   personne du présent
+9. TOUJOURS prévoir état chargement + état erreur
+10. La voix synthétique ne remplace jamais une voix réelle
+    — elle complète uniquement les lacunes
 
-Je vais donner des instructions étape par étape.
-Réponds en Kotlin avec Jetpack Compose.
-Commentaires en français.
+Je construis l'app étape par étape.
+Réponds en Kotlin + Jetpack Compose.
+Commentaires en français sur chaque choix technique.
 ```
 
 ---
@@ -821,56 +916,61 @@ Commentaires en français.
 ## PROMPT 1 — Structure du projet et dépendances
 
 ```
-Crée la structure de packages de PHOEN-X et le fichier
-build.gradle.kts complet.
+Crée la structure de packages complète de PHOEN-X
+et le fichier build.gradle.kts avec toutes les dépendances.
 
-Structure :
+STRUCTURE DE PACKAGES :
 com.phoenx.app/
 ├── ui/
-│   ├── theme/
+│   ├── theme/              ← couleurs, typo, formes, animations
 │   ├── screens/
 │   │   ├── onboarding/
 │   │   ├── auth/
 │   │   ├── home/
 │   │   ├── capture/
-│   │   ├── fil/              ← Fil de Pensée
-│   │   ├── youngselfletters/ ← Lettres à Mon Jeune Moi
-│   │   ├── nightmode/        ← Mode 3h du Matin
+│   │   ├── fil/            ← Fil de Pensée (signature)
+│   │   ├── youngselfletters/ ← Lettre à Mon Jeune Moi
+│   │   ├── nightmode/      ← Mode 3h du Matin
 │   │   ├── worlds/
-│   │   ├── favorites/        ← Mes Meilleurs
-│   │   ├── questions/        ← 100 Questions
-│   │   ├── portraits/        ← Portrait d'un Proche
-│   │   ├── pact/             ← Le Pacte
+│   │   ├── favorites/      ← Mes Meilleurs
+│   │   ├── questions/      ← 100 Questions
+│   │   ├── portraits/      ← Portrait d'un Proche
+│   │   ├── pact/           ← Le Pacte
 │   │   ├── legacy/
 │   │   ├── depositary/
 │   │   ├── recipient/
 │   │   └── settings/
-│   └── components/
+│   └── components/         ← composants réutilisables
 ├── data/
-│   ├── model/
-│   ├── local/                ← Room database (hors-ligne)
-│   ├── repository/
-│   └── encryption/           ← Module Tink obligatoire
+│   ├── model/              ← data classes
+│   ├── local/              ← Room Database hors-ligne
+│   ├── repository/         ← couche d'accès aux données
+│   └── encryption/         ← Tink + SessionManager
 ├── domain/
-│   └── usecase/
-├── accessibility/            ← Mode vocal total
-└── di/
+│   └── usecase/            ← logique métier
+├── ai/                     ← Gemini Nano + Vertex AI
+├── accessibility/          ← Mode vocal total
+└── di/                     ← injection Hilt
 
-Dépendances build.gradle.kts :
-- Jetpack Compose BOM (dernière version stable)
+DÉPENDANCES build.gradle.kts (avec commentaires français) :
+- Jetpack Compose BOM (dernière stable)
 - Firebase BOM : Auth, Firestore, Storage, Functions, FCM
-- Hilt
+- Hilt (injection de dépendances)
 - Google Tink : com.google.crypto.tink:tink-android
-- Room + Room KTX (hors-ligne)
-- WorkManager (sync hors-ligne + Preuve de Vie)
-- Coil (images)
+- Google AI Edge (Gemini Nano) :
+  com.google.ai.edge.aicore:aicore
+- Room + Room KTX
+- WorkManager + WorkManager KTX
+- Health Connect KTX
+- Coil (chargement d'images)
 - Navigation Compose
-- ViewModel + Lifecycle
+- ViewModel + Lifecycle KTX
 - Coroutines + Flow
-- Google Fonts (Playfair Display + Inter)
+- Google Fonts : Playfair Display + Inter
 - DataStore Preferences
 
 Commenter chaque dépendance en français.
+Inclure proguard-rules.pro pour protéger les classes Tink.
 ```
 
 ---
@@ -880,7 +980,7 @@ Commenter chaque dépendance en français.
 ```
 Crée le système de design complet dans ui/theme/.
 
-Color.kt :
+Color.kt — palette complète :
 BackgroundPrimary = 0xFF1A1A1F
 BackgroundSecondary = 0xFF242429
 SurfaceCard = 0xFF2E2E35
@@ -892,78 +992,102 @@ TextTertiary = 0xFF5C5855
 Success = 0xFF4CAF50
 Error = 0xFFE57373
 Warning = 0xFFFFB74D
+NightBackground = 0xFF000000  ← UNIQUEMENT pour Mode 3h
 
-Type.kt :
-- Importer Playfair Display et Inter via Google Fonts
-- Définir les styles HeadingLarge, HeadingMedium, HeadingSmall,
-  CaptureText, YoungSelfLetter (italic), BodyLarge, BodyMedium,
-  BodySmall, Label
+Type.kt — typographie :
+- Importer Playfair Display et Inter depuis Google Fonts
+- Styles : HeadingLarge (32/700), HeadingMedium (24/600),
+  HeadingSmall (20/600), CaptureText (18/400/lh1.6),
+  YoungSelfLetter (18/400/italic), BodyLarge (16/400),
+  BodyMedium (14/400), BodySmall (12/400),
+  Label (11/500/ls0.08em)
 
 Shape.kt :
-- Coins 16dp cartes, 12dp boutons, 24dp chips
-- Élévation 0dp partout
+- Coins : 16dp cartes, 12dp boutons, 24dp chips
+- Élévation : 0dp partout (dégradés et opacité uniquement)
+
+AgeSeal.kt — composable Sceau de l'Âge :
+Un composable réutilisable pour afficher l'âge d'une entrée.
+- Fond : AccentPrimary à 20% opacité
+- Texte : AccentPrimary, Inter Label
+- Forme : capsule arrondie, 24dp height
+- Usage : AgeSeal(ageSnapshot = entry.ageAtCreation)
+
+Animations.kt — specs complètes :
+- FadeIn : 600ms EaseOut
+- SlideUp : 400ms EaseOut, 32dp→0dp
+- Breathe : 4s infini, scale 1.0↔1.03
+- PressDown : 100ms, scale 0.97
+- SealReveal : 800ms, scale+fade pour révélations
+- NightPulse : 2s infini, fade blanc très subtil
 
 Theme.kt :
 - Dark mode uniquement V1
-- Mapper sur Material3 ColorScheme
-
-Animations.kt :
-- FadeIn : 600ms EaseOut
-- SlideUp : 400ms, offset 32dp→0dp
-- Breathe : infinie, scale 1.0↔1.03, 4 secondes
-- PressDown : scale 0.97 pendant 100ms
-- NightPulse : pour Mode 3h du Matin (fond noir, pulse blanc
-  très subtil à l'activation du micro)
+- Material3 ColorScheme mappé sur la palette complète
 ```
 
 ---
 
-## PROMPT 3 — Chiffrement et mode hors-ligne (obligatoire avant tout)
+## PROMPT 3 — Chiffrement E2EE et mode hors-ligne
 
 ```
-Crée deux modules fondamentaux dans data/ :
+Crée les deux modules fondamentaux de sécurité.
+Ces modules DOIVENT être créés avant tout autre code
+touchant à des données utilisateur.
 
 MODULE 1 — EncryptionManager.kt (data/encryption/) :
 
-Fonctions requises :
 1. deriveKeyFromPassword(password: String): ByteArray
-   Argon2id, la clé ne quitte JAMAIS l'appareil
+   Argon2id — la clé ne quitte JAMAIS la mémoire de l'appareil
+
 2. encryptText(plaintext: String, key: ByteArray): ByteArray
    AES-256-GCM via Tink
+
 3. decryptText(ciphertext: ByteArray, key: ByteArray): String
+
 4. encryptFile(inputPath: String, key: ByteArray): ByteArray
-   Chunking 512KB pour fichiers > 1MB
-5. decryptFile(encrypted: ByteArray, key: ByteArray, outputPath: String)
+   Chunking 512KB automatique pour fichiers > 1MB
+
+5. decryptFile(encrypted: ByteArray, key: ByteArray,
+               outputPath: String)
+
 6. generateRecoveryPhrase(): List<String>
-   12 mots BIP-39
+   12 mots standard BIP-39
+
 7. deriveKeyFromPhrase(phrase: List<String>): ByteArray
 
-SessionManager :
-- Clé en mémoire uniquement (jamais sur disque)
-- Effacement automatique quand app passe en arrière-plan
-- Redemande le mot de passe à la réouverture
+SessionManager (dans le même fichier) :
+- Clé maintenue en mémoire uniquement, jamais persistée
+- Effacement automatique dès que l'app passe en arrière-plan
+  (cycle de vie AppLifecycleObserver)
+- Vérification de session active avant chaque opération
 
-MODULE 2 — OfflineManager.kt (data/local/) :
+MODULE 2 — OfflineManager.kt + Room (data/local/) :
 
-Room Database avec table OfflineEntry :
-  id: String (UUID)
-  encryptedPayload: ByteArray (contenu chiffré)
+Entity OfflineEntry :
+  id: String (UUID auto)
+  encryptedPayload: ByteArray
   entryType: String
-  ageAtCreation: String (JSON)
+  ageAtCreationJson: String  ← AgeSnapshot sérialisé
   emotionalCategory: String
   visibility: String
-  createdAt: Long
-  syncStatus: String ("pending"|"synced"|"failed")
+  createdAt: Long (epoch ms)
+  syncStatus: String  "pending" | "synced" | "failed"
+  retryCount: Int
 
-WorkManager SyncWorker :
-- Déclenché dès que connexion réseau disponible
-- Upload les entrées "pending" vers Firestore
-- Marque "synced" après succès
-- Retry automatique si échec (backoff exponentiel)
-- Fonctionne en arrière-plan même si l'app est fermée
+OfflineEntryDao : insert, updateStatus, getPending, getAll
 
-Indicateur dans l'UI : badge discret si entrées en attente.
-Tester les deux modules avec des tests unitaires.
+SyncWorker (WorkManager) :
+- Contrainte : réseau disponible uniquement
+- Récupère les entrées "pending"
+- Upload vers Firestore avec chiffrement déjà appliqué
+- Met à jour syncStatus → "synced"
+- Retry avec backoff exponentiel si échec
+- Fonctionne même si l'app est fermée
+
+Badge discret dans HomeScreen si entrées en attente.
+Tests unitaires pour EncryptionManager.
+Tests d'intégration pour SyncWorker.
 ```
 
 ---
@@ -972,47 +1096,58 @@ Tester les deux modules avec des tests unitaires.
 
 ```
 Crée tous les data classes dans data/model/ avec
-sérialisation Firestore.
+annotations Firestore (@DocumentId, @ServerTimestamp).
 
-Entry.kt (inclure) :
-- ageAtCreation: AgeSnapshot  ← Fil de Pensée
-- isYoungSelfLetter: Boolean  ← Lettre à Mon Jeune Moi
-- targetAge: Int?
-- isOfflinePending: Boolean   ← Hors-ligne
+FICHIERS À CRÉER :
 
-AgeSnapshot :
-  years: Int
-  months: Int
-  days: Int
-  displayLabel: String  // "À 43 ans et 4 mois"
+AgeUtils.kt (fichier utilitaire partagé) :
+  data class AgeSnapshot(
+    val years: Int,
+    val months: Int,
+    val days: Int,
+    val displayLabel: String  // "À 43 ans et 4 mois"
+  )
+  fun calculateAge(dateOfBirth: Date, at: Date): AgeSnapshot
 
-Amendment.kt (sous-collection Entry) :
-  encryptedContent: Bytes
-  ageAtAmendment: AgeSnapshot
+Entry.kt :
+  id, type (EntryType enum), encryptedContent,
+  encryptedMetadata, ageAtCreation: AgeSnapshot,
+  emotionalCategory (EmotionalCategory enum),
+  isFulfilled: Boolean?, aiTags: List<String>,
+  aiSummary: String, worldId: String,
+  visibility (VisibilityType enum),
+  specificRecipientIds: List<String>,
+  isYoungSelfLetter: Boolean, targetAge: Int?,
+  createdAt: Timestamp, isOfflinePending: Boolean
+
+Amendment.kt (sous-collection d'Entry) :
+  id, encryptedContent, ageAtAmendment: AgeSnapshot,
   createdAt: Timestamp
 
-Portrait.kt (Portrait d'un Proche) :
-  recipientId: String
-  encryptedContent: Bytes
-  questions: List<String>  // questions auxquelles il a répondu
-  isTransmitted: Boolean
+Legacy.kt :
+  id, encryptedTitle, entryIds: List<String>,
+  recipientId, triggerType (TriggerType enum),
+  triggerDate: Timestamp?, triggerEvent: String?,
+  isRevealed: Boolean, isUniqueKey: Boolean,
+  uniqueKeyHash: String?
 
-Pact.kt (Le Pacte) :
-  creatorAId: String
-  creatorBId: String
-  status: String ("pending"|"active"|"revealed")
+Portrait.kt :
+  id, recipientId, encryptedContent,
+  questions: List<String>, isTransmitted: Boolean,
+  transmittedAt: Timestamp?
+
+Pact.kt :
+  id, creatorAId, creatorBId,
+  status: String, createdAt: Timestamp,
   sharedEventIds: Map<String, List<String>>
-  // clé = eventId, valeur = [entryId_A, entryId_B]
 
-Créer aussi : Legacy.kt, Depositary.kt, Recipient.kt,
-ActivationProtocol.kt, Favorite.kt, QuestionAnswer.kt,
-UserProfile.kt (avec dateOfBirth obligatoire).
+Depositary.kt, Recipient.kt, ActivationProtocol.kt,
+Favorite.kt, QuestionAnswer.kt, UserProfile.kt
+(avec dateOfBirth: Date obligatoire)
 
-Enums : EntryType, EmotionalCategory, VisibilityType,
-TriggerType, SyncStatus.
-
-Fonction d'extension importante :
-fun calculateAge(dateOfBirth: Date, at: Date): AgeSnapshot
+ENUMS : EntryType, EmotionalCategory (Espoir/Poésie/
+CoupDeGueule/Angoisse/Bonheur/Plaisir/Regret/Sagesse/
+Amour/Valeurs), VisibilityType, TriggerType, SyncStatus
 ```
 
 ---
@@ -1020,96 +1155,103 @@ fun calculateAge(dateOfBirth: Date, at: Date): AgeSnapshot
 ## PROMPT 5 — Navigation complète
 
 ```
-Crée NavGraph.kt avec toutes les routes.
+Crée NavGraph.kt avec tous les graphes de navigation.
 
 GRAPHE CRÉATEUR :
-onboarding/{step}         (0, 1, 2)
-auth/signup / auth/login
+onboarding/{step}             0, 1, 2 — non passable
+auth/signup
+auth/login
 home
-capture/{type}            (TEXT, AUDIO, PHOTO)
-capture/night             ← Mode 3h du Matin
-fil                       ← Fil de Pensée
-fil/{ageYear}             ← Fil filtré par âge
-youngselfletters          ← Lettres à Mon Jeune Moi
+capture/{type}                TEXT | AUDIO | PHOTO
+capture/night                 ← Mode 3h du Matin
+fil                           ← Fil de Pensée
+fil/{ageYear}                 ← Fil filtré sur une année
+youngselfletters
 youngselfletters/new/{targetAge}
 worlds
-favorites                 ← Mes Meilleurs
-questions                 ← 100 Questions
-portraits                 ← Portrait d'un Proche
+favorites
+questions
+portraits
 portraits/new/{recipientId}
-pact                      ← Le Pacte
+pact
 pact/invite
 pact/{pactId}
-legacy/new / legacy/{id}
+legacy/new
+legacy/{legacyId}
 depositary
-essence                   ← Portrait d'Essence
+essence                       ← Portrait d'Essence
 settings
 settings/protocol
-settings/accessibility    ← Mode vocal total
+settings/accessibility
 
 GRAPHE DESTINATAIRE :
 recipient/welcome
-recipient/cube
-recipient/fil
+recipient/cube                ← interface Cube principale
+recipient/fil                 ← Fil de Pensée du Créateur
 recipient/library
 recipient/favorites
 recipient/detective
-recipient/message/{id}
-recipient/mailbox
-recipient/portraits       ← Portraits de Proches reçus
-recipient/pact/{pactId}   ← Version miroir du Pacte
+recipient/message/{messageId}
+recipient/mailbox             ← Boîte aux Lettres
+recipient/portraits
+recipient/pact/{pactId}       ← version miroir
 
-BOTTOM BAR CRÉATEUR (4 onglets) :
-Accueil (Home) → home
-Capturer (Add) → capture/TEXT
-Mon Fil (Timeline) → fil       ← signature de l'app
-Transmettre (Send) → legacy/new
+BOTTOM NAVIGATION BAR (Créateur, 4 onglets) :
+Accueil   → home           icône : Home
+Capturer  → capture/TEXT   icône : Add
+Mon Fil   → fil            icône : Timeline  ← signature
+Transmettre → legacy/new   icône : Send
 
-Active : AccentPrimary #C97B3A
-Inactive : TextTertiary #5C5855
+Couleur active : AccentPrimary #C97B3A
+Couleur inactive : TextTertiary #5C5855
+Fond barre : BackgroundPrimary
+Pas d'élévation, séparateur 1dp SurfaceCard
 ```
 
 ---
 
-## PROMPT 6 — Onboarding
+## PROMPT 6 — Onboarding (3 étapes)
 
 ```
-Crée OnboardingScreen.kt, 3 étapes.
+Crée OnboardingScreen.kt — 3 étapes non passables.
 
 ÉTAPE 1 — L'histoire fondatrice :
-Fond BackgroundPrimary. Au centre verticalement :
-- SVG phénix géométrique simple, couleur AccentPrimary, 120dp
-- Animation FadeIn 800ms au chargement
-- Playfair Display 28sp TextPrimary :
+Fond BackgroundPrimary, centré verticalement.
+- SVG phénix géométrique (lignes simples), 120dp,
+  couleur AccentPrimary, animation FadeIn 800ms
+- Playfair Display HeadingMedium TextPrimary, centré :
   "J'ai survécu trois fois."
-- Inter 16sp TextSecondary centré :
+- Inter BodyLarge TextSecondary, centré, max 2 lignes :
   "Chaque retour m'a appris que l'urgence
    n'était pas médicale."
-- Inter 16sp AccentPrimary :
+- Inter BodyLarge AccentPrimary, centré :
   "C'était ce que je n'avais jamais encore transmis."
-- Bouton outline "Continuer"
-- Ne peut pas être sautée
+- Bouton outline AccentPrimary en bas : "Continuer"
+- Cette étape ne peut PAS être sautée
 
 ÉTAPE 2 — Les 3 promesses :
-3 cartes SurfaceCard en cascade (délais 0/300/600ms,
-animation FadeIn + SlideUp) :
-Carte 1 : ❤ "Pour toi, maintenant"
-  "Un espace intime pour capturer ce qui compte."
-Carte 2 : 🦋 "Pour eux, plus tard"
-  "Une transmission réfléchie, au bon moment."
-Carte 3 : ✦ "Avec dignité, toujours"
-  "Ton histoire, racontée comme tu l'as voulue."
+3 cartes SurfaceCard, apparition en cascade :
+délais d'animation : 0ms / 300ms / 600ms (FadeIn + SlideUp)
+Carte 1 : icône cœur · "Pour toi, maintenant"
+          "Un espace intime pour capturer ce qui compte."
+Carte 2 : icône papillon · "Pour eux, plus tard"
+          "Une transmission réfléchie, au bon moment."
+Carte 3 : icône étoile · "Avec dignité, toujours"
+          "Ton histoire, racontée comme tu l'as voulue."
 
 ÉTAPE 3 — Démarrage :
-- Playfair Display 24sp : "Comment veux-tu commencer ?"
-- Bouton primaire fond AccentPrimary : "Créer mon espace"
-- Bouton outline : "J'ai déjà un compte"
-- Inter 11sp TextTertiary :
+- Playfair Display HeadingSmall : "Comment veux-tu commencer ?"
+- Bouton primaire (fond AccentPrimary) : "Créer mon espace"
+- Bouton secondaire (outline) : "J'ai déjà un compte"
+- Inter Label TextTertiary centré en bas :
   "Chiffrement de bout en bout.
    Tes données ne nous appartiennent pas."
 
-Navigation : swipe horizontal. 3 points indicateurs.
-Impossible de sauter.
+NAVIGATION :
+- Swipe horizontal entre les étapes
+- 3 points indicateurs (actif = AccentPrimary, 8dp)
+- Bouton retour système : étape précédente, pas de sortie
+- Impossible de sauter l'étape 1 en aucun cas
 ```
 
 ---
@@ -1119,41 +1261,52 @@ Impossible de sauter.
 ```
 Crée AuthScreen.kt et AuthViewModel.kt.
 
-INSCRIPTION — 3 étapes :
+INSCRIPTION — 3 étapes enchaînées :
 
-Étape A :
-- Titre Playfair Display : "Ton espace commence ici"
-- Champ email (ligne de soulignement AccentPrimary au focus)
-- Champ date de naissance DatePicker :
-  OBLIGATOIRE — label "Pour personnaliser ton Fil de Pensée"
-- Champ mot de passe (min 12 car, 1 maj, 1 chiffre, 1 spécial)
-- Barre de force en temps réel
-- Warning : "Avec le chiffrement E2EE, le mot de passe
-  perdu = données irrécupérables."
+ÉTAPE A — Identifiants :
+- Titre Playfair Display HeadingSmall :
+  "Ton espace commence ici"
+- Champ email : soulignement AccentPrimary au focus,
+  pas de boîte visible
+- Champ date de naissance (DatePicker Material3) :
+  OBLIGATOIRE, label : "Pour personnaliser ton Fil de Pensée"
+- Champ mot de passe : min 12 car, 1 maj, 1 chiffre, 1 spécial
+  + confirmation mot de passe
+- Barre de force en temps réel (4 niveaux, couleur progressive)
+- Note warning Inter BodySmall TextSecondary :
+  "Avec le chiffrement E2EE, un mot de passe perdu
+   = données définitivement irrécupérables."
+- Bouton "Créer mon compte"
 
-Étape B — Phrase de récupération (PLEIN ÉCRAN, non passable) :
-- "Ta phrase de récupération"
-- Grille 3x4 de 12 mots générés
-- Bouton copier
-- Checkbox OBLIGATOIRE : "J'ai noté ma phrase"
-- Bouton "Continuer" grisé jusqu'à la checkbox
+ÉTAPE B — Phrase de récupération (PLEIN ÉCRAN, non passable) :
+- Fond BackgroundPrimary plein écran
+- "Ta phrase de récupération" HeadingSmall
+- Explication Inter BodyMedium TextSecondary :
+  "Ces 12 mots permettent de récupérer ton espace.
+   Note-les sur papier. Nous n'y aurons jamais accès."
+- Grille 3 colonnes × 4 rangées, numérotée, mots générés
+- Bouton "Copier dans le presse-papier"
+- Checkbox OBLIGATOIRE : "J'ai noté ma phrase de récupération"
+- Bouton "Continuer" grisé tant que checkbox non cochée
 
-Étape C :
-- Playfair Display 24sp : "Avant de commencer..."
+ÉTAPE C — Première question émotionnelle :
+- Playfair Display HeadingSmall :
+  "Avant de commencer..."
 - "Quel est le nom de quelqu'un à qui tu veux
-  transmettre quelque chose ?"
-- Lien "Je préfère découvrir d'abord"
+   transmettre quelque chose ?"
+- Champ texte simple, Playfair Display CaptureText
+- Lien Inter TextSecondary : "Je préfère découvrir d'abord"
 
 CONNEXION :
-- "Content de te revoir"
+- Titre : "Content de te revoir"
 - Email + mot de passe
-- Récupération par phrase de 12 mots
-- Google Sign-In
+- "Mot de passe oublié ?" → récupération via phrase 12 mots
+- Bouton Google Sign-In (style Google officiel)
+- Toutes erreurs Firebase traduites en français
 
-Intégrer Firebase Auth.
-Intégrer EncryptionManager (dérivation de clé au login).
-Stocker dateOfBirth dans Firestore.
-Erreurs en français.
+Intégrer avec Firebase Auth.
+Stocker dateOfBirth dans users/{userId} après inscription.
+Appeler EncryptionManager.deriveKeyFromPassword() au login.
 ```
 
 ---
@@ -1163,125 +1316,146 @@ Erreurs en français.
 ```
 Crée HomeScreen.kt et HomeViewModel.kt.
 
-SCROLL VERTICAL :
+LAYOUT : LazyColumn plein écran, fond BackgroundPrimary.
 
-Section 1 — En-tête :
-- "Bonjour, [prénom]" Playfair Display 26sp
-- Date Inter 14sp TextSecondary
-- Avatar + notification
+SECTION 1 — En-tête (120dp) :
+- Gauche : "Bonjour, [prénom]" Playfair HeadingMedium TextPrimary
+  + date du jour Inter BodyMedium TextSecondary
+- Droite : avatar circulaire (initiales si pas de photo)
+  + badge notification FCM
 
-Section 2 — Bouton d'Impulsion :
-- 80dp, pleine largeur, marges 24dp
-- Dégradé #C97B3A → #8B4A1A
-- "+ Déposer un souvenir" Inter 18sp blanc
+SECTION 2 — Bouton d'Impulsion (cœur de l'app) :
+- Hauteur 80dp, pleine largeur, marges 24dp
+- Fond dégradé linéaire : #C97B3A → #8B4A1A
+- Texte Inter BodyLarge blanc : "+ Déposer un souvenir"
 - Animation PressDown au tap
-- 3 icônes rapides dessous : 📝 Texte | 🎤 Voix | 📷 Photo
-- 4e icône : 🌙 Mode nuit (→ capture/night)
+- Rangée de 4 icônes rapides dessous :
+  📝 Texte → capture/TEXT
+  🎤 Voix → capture/AUDIO
+  📷 Photo → capture/PHOTO
+  🌙 Mode nuit → capture/night
 
-Section 3 — Aperçu Fil de Pensée (SIGNATURE) :
-Carte SurfaceCard.
-- Label : "TON FIL DE PENSÉE"
-- "[X] pensées · de [âge min] à [âge actuel] ans"
-- Sparkline horizontal : barres par année d'âge
-- Bouton "Voir mon fil" → fil
+SECTION 3 — Fil de Pensée (SIGNATURE VISIBLE) :
+Carte SurfaceCard, coins 16dp.
+- Label Inter Label AccentPrimary majuscules :
+  "TON FIL DE PENSÉE"
+- Inter BodyMedium TextSecondary :
+  "[X] pensées · de [âge min] ans à [âge actuel] ans"
+- Sparkline horizontal : mini barres par année d'âge,
+  couleur AccentPrimary opacité variable selon volume
+- Bouton "Voir mon fil →" Inter BodySmall AccentPrimary
 
-Section 4 — Lettre à Mon Jeune Moi :
-Carte SurfaceCard, style légèrement différent (bordure
-gauche AccentPrimary 3dp).
+SECTION 4 — Lettre à Mon Jeune Moi :
+Carte SurfaceCard + bordure gauche 3dp AccentPrimary.
 - Label : "LETTRE À MON JEUNE MOI"
 - Si aucune lettre : "Que dirais-tu à toi-même à 20 ans ?"
-- Si lettres existantes : dernière lettre + bouton "Écrire"
+  Bouton "Écrire ma première lettre"
+- Si lettres existantes : aperçu dernière lettre + "Écrire"
 
-Section 5 — Question du Biographe :
+SECTION 5 — Question du Biographe :
+Carte SurfaceCard.
 - Label AccentPrimary : "QUESTION DU JOUR"
-- Question Playfair Display 18sp
-- Bouton "Répondre"
+- Question Playfair Display CaptureText TextPrimary
+- Bouton outline "Répondre" → capture/TEXT avec question pré-remplie
 
-Section 6 — Derniers souvenirs :
-- Liste horizontale scrollable, cartes 140x180dp
-- Chaque carte : type, âge au dépôt, extrait, cadenas
+SECTION 6 — Derniers souvenirs :
+Label "Récemment déposé" Inter BodyMedium TextSecondary
+LazyRow horizontal, cartes 140×180dp :
+- Type (icône) + AgeSeal + extrait (30 char max) + cadenas
 
-Section 7 — Preuve de Vie :
-Badge en bas : vert (<5j) / orange (5-10j) / rouge (>10j)
-- "Preuve de vie · il y a [X] jours"
-- Tap → confirmation instantanée
+SECTION 7 — Preuve de Vie (Zéro Anxiété) :
+Badge très discret, tout en bas :
+- Vert si activité < 5 jours
+- Orange si 5-10 jours
+- Rouge si > 10 jours (rare grâce à Health Connect)
+Texte : "Présence confirmée · il y a [X] jours"
+Tap → confirmation manuelle instantanée
+N'affiche pas de message anxiogène, juste l'état
 ```
 
 ---
 
-## PROMPT 9 — Le Fil de Pensée et la Lettre à Mon Jeune Moi
+## PROMPT 9 — Fil de Pensée + Lettre à Mon Jeune Moi
 
 ```
-Crée FilScreen.kt, YoungSelfLetterScreen.kt et
-FilViewModel.kt.
+Crée FilScreen.kt, FilRecipientScreen.kt,
+YoungSelfLetterScreen.kt et FilViewModel.kt.
 
 FIL DE PENSÉE — FilScreen.kt :
 
-En-tête :
-- "Mon Fil de Pensée" Playfair Display 28sp
+EN-TÊTE :
+- "Mon Fil de Pensée" Playfair HeadingLarge
 - "[Total] pensées · de [âge min] à [âge actuel] ans"
-- Bouton filtres
+  Inter BodyMedium TextSecondary
+- Bouton filtre (entonnoir)
 
-LazyColumn groupée par année d'âge :
-Séparateur : "· 43 ans ·" AccentPrimary centré
-Sous le séparateur : "[X] pensées cet âge-là" TextTertiary
-Entrées :
-  - Icône type
-  - "À 43 ans et 4 mois" Inter 12sp AccentPrimary
-  - Extrait Playfair Display 16sp
-  - Chip catégorie émotionnelle
-  - Badge "Amendé" orange si amendement existe
-  - Badge "Lettre" si c'est une Lettre à Mon Jeune Moi
+CORPS — LazyColumn groupée par ageAtCreation.years :
+Pour chaque groupe d'âge :
+  Séparateur : "· [X] ans ·" AccentPrimary centré
+  Inter BodySmall TextTertiary : "[N] pensées"
+  Liste des entrées :
+    - Icône type à gauche
+    - AgeSeal (composant Sceau de l'Âge)
+    - Extrait Playfair CaptureText TextPrimary
+    - Chip catégorie EmotionalCategory
+    - Badge "Amendé" orange si amendments/ non vide
+    - Badge "Lettre" AccentSecondary si isYoungSelfLetter
 
-Filtres :
-- Par catégorie émotionnelle (chips)
-- Par plage d'âge (double slider)
-- Par mot-clé (recherche dans aiSummary non chiffrés)
+FILTRES (bottom sheet) :
+- Chips catégorie émotionnelle (multi-sélection)
+- Double slider plage d'âge (RangeSlider)
+- Barre de recherche (fulltext sur aiSummary non chiffré)
 
-Sheet IA déployable (pull-up) :
-- Graphe barres par année d'âge
-- "Thèmes dominants par période"
-- "Évolutions détectées par l'IA"
+SHEET IA DÉPLOYABLE (pull-up) :
+- "Évolutions détectées"
+- Graphe barres par année (bar chart simple)
+- 3 insights de l'IA (Cloud Function detectThoughtEvolution)
+  → chacun affiché avec délimiteur temporel fromAge→toAge
 
-Détail d'une entrée avec Amendements :
-- Entrée originale complète
-- Séparateur temporel
-- "● Amendement à [âge] — [date]"
-- Texte amendement en Playfair italic
-- Bouton "+" pour ajouter un Amendement
+DÉTAIL D'UNE ENTRÉE :
+- Contenu déchiffré en Playfair CaptureText
+- AgeSeal prominent
+- Catégorie + fulfilled status
+- Section Amendements :
+  Pour chaque amendment :
+    Séparateur "● Amendement · [âge] — [date]"
+    Texte en Playfair italic TextSecondary
+- FAB "+" pour ajouter un Amendement
 
-FIL DESTINATAIRE — FilRecipientScreen.kt :
-- "Son Fil de Pensée"
-- Slider d'âge interactif en haut
+VUE DESTINATAIRE — FilRecipientScreen.kt :
+- Titre : "Son Fil de Pensée"
+- Slider d'âge interactif pleine largeur en haut
 - Même structure mais lecture seule
-- Synthèse IA en avant
+- Sheet IA en avant avec synthèse d'évolution
 
 LETTRE À MON JEUNE MOI — YoungSelfLetterScreen.kt :
 
-Entrée : sélecteur d'âge destinataire (curseur 10 → âge-5)
-"Que veux-tu dire à toi-même à [âge] ans ?"
+SÉLECTION D'ÂGE :
+- Titre Playfair : "À quel âge t'écris-tu ?"
+- Slider horizontal 10 → (âge actuel - 5)
+- Preview en temps réel : "À toi, à [âge] ans —"
 
-Écran d'écriture :
-- En-tête automatique en Playfair italic AccentPrimary :
+ÉCRAN D'ÉCRITURE :
+- Fond BackgroundSecondary (légèrement différent)
+- Bordure gauche 3dp AccentPrimary pleine hauteur
+- En-tête auto Playfair italic AccentPrimary :
   "À toi, à [âge] ans —"
-- Zone d'écriture Playfair italic 18sp, fond légèrement
-  différent (BackgroundSecondary + bordure gauche AccentPrimary)
-- Compteur de mots discret
-- Catégorie émotionnelle optionnelle
-- Sélecteur visibilité
+- Zone saisie Playfair YoungSelfLetter (italic 18sp)
+- Compteur mots discret bas-droite
+- Catégorie émotionnelle optionnelle (chips)
+- Visibilité (Privé / Transmis / Public)
 
-Suggestions IA (pull-up optionnel) :
-"Basé sur ton Fil de Pensée à cet âge-là, tu parlais
-souvent de [thème]. Veux-tu aborder ça ?"
-→ Utilise les entrées du Fil pour cette période
+SUGGESTIONS IA (pull-up optionnel) :
+"À cet âge, tu parlais souvent de [thème].
+ Tu pourrais aborder ça dans ta lettre."
+→ Source : aiSummary des entrées du Fil à cet âge
 
-Animation de validation :
-Une enveloppe qui se ferme et "part" vers le bas de l'écran
-avec le label "À moi, à [âge] ans"
+VALIDATION :
+Animation enveloppe qui se ferme (SealReveal 800ms)
+puis disparaît vers le bas avec le label :
+"À moi, à [âge] ans · Déposée"
 
-Générer FilScreen.kt, FilRecipientScreen.kt,
-YoungSelfLetterScreen.kt, FilViewModel.kt.
-Inclure calculateAge() dans un fichier AgeUtils.kt réutilisable.
+Inclure AgeUtils.kt avec calculateAge() réutilisable.
 ```
 
 ---
@@ -1289,70 +1463,82 @@ Inclure calculateAge() dans un fichier AgeUtils.kt réutilisable.
 ## PROMPT 10 — Capture, Mode 3h du Matin, Hors-ligne
 
 ```
-Crée CaptureScreen.kt, NightCaptureWidget.kt et
-CaptureViewModel.kt.
+Crée CaptureScreen.kt, NightCaptureWidget.kt,
+NightCaptureTile.kt et CaptureViewModel.kt.
 
 CAPTURE NORMALE — CaptureScreen.kt :
 
-3 modes (onglets icônes) :
+3 MODES (onglets icônes, pas de texte) :
 
 MODE TEXTE :
-- Fond BackgroundPrimary plein écran
-- Placeholder Playfair Display 20sp TextTertiary :
+- Fond BackgroundPrimary plein écran — pas de boîte visible
+- Placeholder Playfair CaptureText TextTertiary :
   "Écris ce qui ne doit pas se perdre..."
-- Saisie Playfair Display 20sp TextPrimary lineHeight 1.6
-- Compteur mots discret
-- Chips catégorie : Espoir · Poésie · Coup de gueule ·
-  Angoisse · Bonheur · Plaisir · Regret · Sagesse ·
-  Amour · Valeur
-- Si Regret/Angoisse/Espoir : toggle Assouvi/Non assouvi
-- Toggle "Lettre à mon jeune moi" → affiche sélecteur d'âge
+- Saisie Playfair CaptureText TextPrimary, lineHeight 1.6
+- Compteur mots Inter Label TextTertiary bas-droite
+- CHIPS CATÉGORIE (LazyRow horizontal) :
+  Espoir · Poésie · Coup de gueule · Angoisse ·
+  Bonheur · Plaisir · Regret · Sagesse · Amour · Valeur
+- Si Regret / Angoisse / Espoir sélectionné :
+  Toggle "Assouvi / Non assouvi" apparaît
+- Toggle "Lettre à mon jeune moi" → sélecteur d'âge (slider)
 
 MODE AUDIO :
-- Cercle 160dp dégradé radial AccentPrimary, animation Breathe
-- Visualisation forme d'onde AudioRecord API
-- Chronomètre
-- STOP → lecture → recommencer → valider
+- Cercle 160dp centré, dégradé radial AccentPrimary
+- Animation Breathe pendant enregistrement actif
+- Visualisation forme d'onde (AudioRecord API Android)
+- Chronomètre Inter Label TextSecondary
+- Boutons : STOP → lecture → recommencer → valider
 
 MODE PHOTO :
-- CameraX
-- Champ légende Playfair italic en superposition
+- CameraX (capture)
+- Ou sélection galerie
+- Champ légende Playfair italic en superposition sur la photo :
+  "Ajoute le contexte que cette photo ne montre pas..."
 
-VISIBILITÉ (commun) :
-"Privé" | "Tous" | "Choisir" | "Public"
+SÉLECTEUR VISIBILITÉ (commun) :
+4 chips : "Privé" | "Tous" | "Choisir" | "Public"
 
-BARRE BAS :
-Annuler | "🔒 Chiffré avant envoi" | Déposer (AccentPrimary)
+BARRE ACTIONS EN BAS :
+Gauche : "Annuler" Inter TextSecondary
+Centre : "🔒 Chiffré avant envoi" Inter Label TextTertiary
+Droite : "Déposer" bouton fond AccentPrimary
 
-APRÈS DÉPÔT :
-1. calculateAge() → AgeSnapshot
-2. Chiffrement Tink
-3. Si hors-ligne : OfflineManager.saveLocal() + toast
-   "Sauvegardé localement · Sera synchronisé à la reconnexion"
-4. Si en ligne : upload Firebase + analyse IA en arrière-plan
-5. Animation chiffrement 500ms
-6. Pulse AccentPrimary
-7. Toast : "Souvenir déposé. À [âge exact]. Il t'appartient."
-8. Retour accueil 1.5s
+APRÈS TAP SUR "DÉPOSER" :
+1. calculateAge(user.dateOfBirth, now) → AgeSnapshot
+2. EncryptionManager.encryptText/File(content, sessionKey)
+3. Si hors-ligne → OfflineManager.saveLocal() :
+   Toast : "Sauvegardé · synchronisation dès reconnexion"
+4. Si en ligne → upload Firestore + Storage
+5. Gemini Nano analyzeEntry() en arrière-plan sur contenu
+   NON chiffré (avant envoi, sur l'appareil)
+6. Animation chiffrement 500ms (points → cadenas AccentPrimary)
+7. Pulse fond AccentPrimary 300ms
+8. Toast Snackbar : "Souvenir déposé. À [âge exact].
+   Il t'appartient."
+9. Retour home après 1.5s
 
-MODE 3H DU MATIN — NightCaptureWidget.kt :
+MODE 3H DU MATIN — NightCaptureWidget.kt + NightCaptureTile.kt :
 
-Widget Android pour écran de verrouillage :
-- Une seule pression longue → activation
-- Fond #000000 (exception : seul cas où le noir pur est
-  utilisé — volontaire, c'est la nuit)
-- Aucun menu. Aucune navigation visible.
-- Micro qui s'active IMMÉDIATEMENT avec animation NightPulse
-- Enregistrement en cours : seul élément visible = forme
-  d'onde blanche sur fond noir + chronomètre discret
-- Appui court = stop et sauvegarde
-- Sauvegarde automatique chiffrée dans OfflineManager
-- Notification le lendemain 8h :
+Widget écran de verrouillage (AppWidgetProvider) :
+- Pression longue → activation
+- Fond #000000 (exception unique dans tout le design)
+- Aucun menu visible — friction absolument nulle
+- Micro s'active IMMÉDIATEMENT (pas de confirmation)
+- Seuls éléments visibles : forme d'onde blanche + chrono
+- Animation NightPulse pendant enregistrement
+- Pression courte → stop + sauvegarde auto OfflineManager
+
+Quick Settings Tile (TileService) :
+- Même comportement, accessible depuis volet notification
+- Priorité sur le widget car plus accessible sur Android 12+
+
+Les deux déclenchent le même flux :
+- Sauvegarde locale chiffrée immédiate
+- Notification lendemain 8h :
   "Tu as déposé quelque chose cette nuit.
-   Veux-tu le classer ?" → ouvre FilScreen à cette entrée
-
-Générer CaptureScreen.kt, NightCaptureWidget.kt,
-CaptureViewModel.kt.
+   Veux-tu le classer ?"
+  → deeplink vers FilScreen à cette entrée
 ```
 
 ---
@@ -1360,71 +1546,70 @@ CaptureViewModel.kt.
 ## PROMPT 11 — Portrait d'un Proche et Le Pacte
 
 ```
-Crée PortraitScreen.kt, PactScreen.kt et leurs ViewModels.
+Crée PortraitScreen.kt, PactScreen.kt,
+PortraitViewModel.kt, PactViewModel.kt.
 
 PORTRAIT D'UN PROCHE — PortraitScreen.kt :
 
-Sélection du proche :
-- Liste des Destinataires configurés
-- "Pour qui veux-tu composer un portrait ?"
+SÉLECTION :
+LazyColumn des Destinataires configurés.
+"Pour qui veux-tu composer un portrait ?"
+Tap → écran composition pour ce destinataire
 
-Écran de composition :
-- En-tête : "Ton regard sur [Prénom]"
-- 5 questions guidées, une à la fois (navigation paginée) :
-  Q1 : "Quel trait de caractère admires-tu le plus
-        chez [Prénom] ?"
+COMPOSITION (5 questions paginées) :
+- Indicateur de progression 1/5 → 2/5 → etc.
+- En-tête : "Ton regard sur [Prénom]" HeadingSmall
+- Une question à la fois, Playfair HeadingSmall TextPrimary
+  Q1 : "Quel trait de caractère admires-tu le plus ?"
   Q2 : "Quel souvenir vous lie le plus fortement ?"
-  Q3 : "Qu'est-ce que [Prénom] ne sait peut-être
-        pas sur lui/elle-même ?"
-  Q4 : "Comment [Prénom] a-t-il/elle changé
-        depuis que tu le/la connais ?"
+  Q3 : "Qu'est-ce qu'il/elle ne sait peut-être pas sur
+        lui/elle-même ?"
+  Q4 : "Comment a-t-il/elle changé depuis que tu
+        le/la connais ?"
   Q5 : "Qu'est-ce que tu veux qu'il/elle sache
         de la façon dont tu le/la vois ?"
-- Chaque réponse en Playfair Display 18sp
-- Chiffrement Tink sur chaque réponse
+- Zone de réponse Playfair CaptureText
+- Chiffrement Tink immédiat de chaque réponse
+- Bouton "Suivant" / "Générer le portrait" à Q5
 
-Synthèse IA :
-- Après les 5 questions, l'IA propose une synthèse narrative
-- Affichée en Playfair italic, présentée comme "suggestion"
-- Le Créateur peut modifier avant de valider
-
-Options de transmission :
-- "De son vivant" → envoi immédiat ou programmé
-- "Après activation" → fait partie des legs
+SYNTHÈSE IA (après Q5) :
+- Playfair italic TextPrimary
+- Label : "Synthèse proposée — modifiable librement"
+- Zone d'édition ouverte
+- Options de transmission :
+  "De son vivant" (envoi immédiat ou programmé)
+  "Après activation" (intégré aux legs)
 
 LE PACTE — PactScreen.kt :
 
-Invitation :
-- Sélection d'un contact (email)
-- Message d'invitation pré-rédigé (modifiable) :
+INVITATION :
+- Champ email ou sélection contact
+- Message pré-rédigé modifiable :
   "Je t'invite à raconter notre histoire commune avec moi.
    Chacun de son côté. Pour ceux qui viendront après nous."
 - Statut : En attente · Accepté · Actif
 
-Écran actif (Pacte accepté) :
+ÉCRAN ACTIF :
 - Titre : "Notre Pacte avec [Prénom]"
-- Liste des événements communs à raconter (créés par l'un
-  ou l'autre)
-- Badge sur chaque événement :
-  ✓ Toi / ✓ [Prénom] / En attente des deux
-- Bouton "+ Ajouter un événement commun"
-- Note : "Tu ne peux pas voir la version de [Prénom]
-  avant l'activation"
+- LazyColumn des événements :
+  Chaque événement : titre partagé + badges
+  ✓ Toi (AccentPrimary) / ✓ [Prénom] (AccentSecondary) /
+  ⏳ En attente (TextTertiary)
+- FAB "+ Ajouter un événement commun"
+- Note permanente : "Tu ne verras la version de [Prénom]
+  qu'après activation de son protocole"
 
-Création d'événement dans le Pacte :
-- Titre de l'événement (partagé entre les deux)
-- Capture normale (texte/audio/photo) mais taggé comme
-  "ma version" de cet événement
-- L'autre personne est notifiée : "Un événement a été ajouté
-  au Pacte. À toi d'y répondre."
+CRÉATION ÉVÉNEMENT :
+- Titre de l'événement (partagé et visible des deux)
+- Capture normale (texte / audio / photo)
+  taggée automatiquement comme version du Pacte
+- Notification à l'autre personne :
+  "Un événement a été ajouté au Pacte. À toi."
 
-Vue Destinataire après activation (version miroir) :
-- Deux colonnes ou alternance couleur pour chaque événement
-- La version de chacun affichée côte à côte
-- Navigation "← [Prénom A] | [Prénom B] →"
-
-Générer PortraitScreen.kt, PactScreen.kt,
-PortraitViewModel.kt, PactViewModel.kt.
+VUE DESTINATAIRE — vue miroir après activation :
+- Deux panneaux : [Prénom A] | [Prénom B]
+- Navigation swipe gauche/droite ou split-screen
+- Même événement, deux vérités côte à côte
 ```
 
 ---
@@ -1432,104 +1617,97 @@ PortraitViewModel.kt, PactViewModel.kt.
 ## PROMPT 12 — Intelligence artificielle complète
 
 ```
-Crée AIManager.kt et toutes les Cloud Functions.
+Crée AIManager.kt, OnDeviceAIManager.kt
+et les 7 Cloud Functions TypeScript.
 
 RÈGLE ABSOLUE dans tous les prompts Vertex AI :
-"Tu traites des contenus personnels et intimes.
-Tu ne génères JAMAIS de contenu parlant au nom de la
-personne à la première personne du présent comme si
-elle était vivante. Tu utilises toujours le conditionnel.
-Tu n'es jamais diagnostique ou clinique.
-Tu ne dis jamais 'tes blessures fondatrices' →
-tu dis 'les thèmes qui reviennent souvent'."
+"Tu traites des contenus personnels et intimes. Tu ne génères
+JAMAIS de contenu à la première personne du présent comme si
+la personne était vivante. Tu utilises TOUJOURS le
+conditionnel. Tu n'es jamais diagnostique ou clinique.
+Tu dis 'les thèmes qui reviennent souvent', jamais
+'tes blessures fondatrices'."
 
 RÈGLE TECHNIQUE ABSOLUE :
-Ne JAMAIS envoyer le contenu chiffré à Vertex AI.
-Envoyer UNIQUEMENT les aiSummary et aiTags (non chiffrés).
+Vertex AI reçoit UNIQUEMENT aiSummary et aiTags.
+Jamais le contenu chiffré. Jamais le contenu original.
 
-CLOUD FUNCTION 1 — analyzeEntry :
-Déclenché à chaque dépôt (Firestore trigger).
-Input : aiSummary (résumé non chiffré)
+ONDEVICE — OnDeviceAIManager.kt (Gemini Nano / ML Kit) :
+S'exécute sur l'appareil AVANT le chiffrement.
+Fallback automatique ML Kit si Gemini Nano indisponible.
+
+fun analyzeLocally(rawContent: String): LocalAnalysis {
+  // Génère : summary (20 mots max), tags (max 3),
+  // lifePeriod, emotionalTone
+  // NE STOCKE JAMAIS rawContent — utilise uniquement l'output
+}
+
+CLOUD FUNCTION 1 — analyzeEntry (Firestore trigger) :
+Input : aiSummary généré localement
 Prompt :
 "Analyse et réponds UNIQUEMENT en JSON valide :
 {
- themes: [max 3 parmi Famille/Amour/Travail/Santé/Peur/
-          Joie/Regret/Sagesse/Enfance/Voyage/Amitié/Foi],
- persons: [prénoms mentionnés],
- lifePeriod: Enfance|Adolescence|JeuneAdulte|Adulte|Actuel,
- emotionalTone: Nostalgique|Joyeux|Mélancolique|
-                Reconnaissant|Inquiet|Apaisé,
- summary: résumé 20 mots max, 3e personne
+  themes: [max 3 parmi Famille/Amour/Travail/Santé/Peur/
+           Joie/Regret/Sagesse/Enfance/Voyage/Amitié/Foi],
+  persons: [prénoms uniquement],
+  lifePeriod: Enfance|Adolescence|JeuneAdulte|Adulte|Actuel,
+  emotionalTone: Nostalgique|Joyeux|Mélancolique|
+                 Reconnaissant|Inquiet|Apaisé
 }
-Résumé : [SUMMARY]"
+Résumé : [AI_SUMMARY]"
 
-CLOUD FUNCTION 2 — generateBiographerQuestion :
-Déclenchée chaque lundi 10h (locale utilisateur).
+CLOUD FUNCTION 2 — generateBiographerQuestion (lundi 10h) :
 Input : thèmes des 10 dernières entrées.
 Prompt :
-"Tu es le Biographe de PHOEN-X. Génère UNE question
-(moins de 15 mots) basée sur ces thèmes : [THEMES].
-Ouverte, jamais morbide, jamais clinique, transformatrice.
-Ne répète pas les 12 dernières semaines.
-Exemples bons : 'Quel moment t'a surpris dans ce que
-tu es capable de faire ?' / 'Qui t'a appris quelque
-chose sans le savoir cette année ?'"
+"Biographe PHOEN-X. UNE question max 15 mots sur [THEMES].
+Ouverte. Jamais morbide. Jamais clinique. Transformatrice.
+Pas de répétition sur 12 semaines.
+Exemples : 'Quel moment t'a surpris dans ce que tu es
+capable de faire ?' / 'Qui t'a appris quelque chose
+sans le savoir cette année ?'"
 
-CLOUD FUNCTION 3 — generateEssencePortrait :
-Max 1x/mois, à la demande.
-Input : agrégat des aiSummary et aiTags.
+CLOUD FUNCTION 3 — generateEssencePortrait (max 1x/mois) :
+Input : agrégat aiSummary + aiTags de toutes les entrées.
 Prompt :
-"Portrait d'Essence en 5 sections (CONDITIONNEL PARTOUT) :
-1. CE QUI REVIENT SOUVENT (3 thèmes dominants)
-2. LES PERSONNES AU CŒUR (plus mentionnées)
-3. CE QUI SEMBLE COMPTER (valeurs déduites, conditionnel)
+"Portrait d'Essence — 5 sections, CONDITIONNEL OBLIGATOIRE :
+1. CE QUI REVIENT SOUVENT (3 thèmes max)
+2. LES PERSONNES AU CŒUR (les plus mentionnées)
+3. CE QUI SEMBLE COMPTER (valeurs, conditionnel absolu)
 4. LES PÉRIODES RICHES (décennies les plus nourries)
-5. UNE PHRASE SYNTHÈSE (poétique, non analytique)
-DONNÉES : [RESUME_AGREGE]"
+5. UNE PHRASE SYNTHÈSE (poétique, non analytique, 1 phrase)"
 
-CLOUD FUNCTION 4 — detectThoughtEvolution :
-Hebdomadaire. Analyse du Fil de Pensée.
+CLOUD FUNCTION 4 — detectThoughtEvolution (hebdomadaire) :
 Input : entrées groupées par ageAtCreation.years.
 Prompt :
-"Analyse l'évolution des thèmes par tranche d'âge.
-Identifie les transitions majeures.
-Réponds en JSON :
-{
- transitions: [
-   {fromAge: Int, toAge: Int,
-    description: String (conditionnel, 15 mots max)}
- ]
-}"
+"Identifie les transitions thématiques majeures par âge.
+JSON : {transitions: [{fromAge, toAge, description (15 mots,
+conditionnel)}]}"
 
 CLOUD FUNCTION 5 — semanticSearch (Salle des Questions) :
-Input : question posée par Destinataire + liste aiSummary.
+Input : question Destinataire + liste aiSummary.
 Prompt :
-"Question : [QUESTION]
-Résumés disponibles : [LISTE]
-Identifie les 3-5 entrées les plus pertinentes.
-Réponds UNIQUEMENT : {relevantEntryIds: ['id1', 'id2']}
-Ne génère aucune réponse inventée."
+"Question : [QUESTION]. Parmi ces résumés : [LISTE].
+Identifie 3-5 entrées les plus pertinentes.
+JSON UNIQUEMENT : {relevantEntryIds: ['id1', 'id2', ...]}
+Ne génère AUCUNE réponse inventée."
 
 CLOUD FUNCTION 6 — generateYoungSelfSuggestions :
-Nouvelle — pour la Lettre à Mon Jeune Moi.
-Input : âge cible + entrées du Fil de cette période.
+Input : âge cible + aiSummary des entrées du Fil à cet âge.
 Prompt :
 "Le Créateur écrit à lui-même à [AGE] ans.
-Basé sur ses pensées de cette période : [SUMMARIES_PERIODE]
-Suggère 3 thèmes qu'il pourrait aborder.
-Conditionnel. Non diagnostique. 10 mots max par thème."
+Ses pensées de cette période : [SUMMARIES]
+Suggère 3 thèmes à aborder. Conditionnel. 10 mots max chacun."
 
 CLOUD FUNCTION 7 — generatePortraitNarrative :
-Nouvelle — pour Portrait d'un Proche.
-Input : 5 réponses résumées (non chiffrées) aux questions.
+Input : résumés non chiffrés des 5 réponses.
 Prompt :
-"Génère une synthèse narrative du regard de quelqu'un
-sur un proche qu'il aime. Beau, précis, chaleureux.
-Conditionnel et interprétatif. Jamais clinique.
-3-5 phrases. À la 1ère personne du Créateur.
-DONNÉES : [REPONSES_RESUMEES]"
+"Synthèse narrative du regard de quelqu'un sur un proche.
+Chaleureux. Conditionnel et interprétatif. Jamais clinique.
+3-5 phrases. 1ère personne du Créateur.
+Données : [REPONSES_RESUMEES]"
 
-Générer AIManager.kt + les 7 Cloud Functions TypeScript.
+Générer AIManager.kt, OnDeviceAIManager.kt
++ les 7 Cloud Functions en TypeScript.
 ```
 
 ---
@@ -1538,79 +1716,94 @@ Générer AIManager.kt + les 7 Cloud Functions TypeScript.
 
 ```
 Crée ActivationProtocolManager.kt, DepositaryScreen.kt,
-et VoiceAccessibilityManager.kt.
+ProtocolSettingsScreen.kt, LivenessManager.kt,
+VoiceAccessibilityManager.kt, AccessibilitySettingsScreen.kt.
 
-PREUVE DE VIE (WorkManager, lundi 10h) :
-- Vérifier si lastAliveConfirmedAt > 21 jours
-- Si oui → notification Dépositaire :
-  "Aucun signe de vie de [Créateur] depuis 3 semaines.
+PREUVE DE VIE PASSIVE — LivenessManager.kt :
+Stratégie Zéro Anxiété — 3 niveaux de détection :
+
+Niveau 1 (automatique, silencieux) :
+- Toute ouverture de l'app met à jour lastAliveConfirmedAt
+- Toute capture déposée met à jour lastAliveConfirmedAt
+- Health Connect KTX : si pas.de.marche > 500/jour détectés
+  → mise à jour automatique (avec permission opt-in)
+
+Niveau 2 (si aucune activité depuis 15 jours) :
+Notification push discrète au Créateur uniquement :
+"Tu n'as rien déposé depuis un moment.
+ Tout va bien ?" + bouton "Oui, je suis là"
+→ Tap = confirmation
+
+Niveau 3 (si aucune réponse depuis 21 jours) :
+- Notification au Dépositaire :
+  "Aucun signe de [Créateur] depuis 3 semaines.
    Pouvez-vous confirmer sa situation ?"
 - Notification simultanée Créateur :
-  "Ton Dépositaire va être alerté.
-   Si tout va bien, confirme ta présence ici."
-- Tap notification Créateur = Preuve de Vie immédiate
+  "Ton Dépositaire va être alerté sous 24h.
+   Si tu vas bien, confirme ici."
 
-DÉPOSITAIRE (via lien email tokenisé) :
-- Fond BackgroundPrimary, sobre, centré
-- "Une décision importante" Playfair Display 28sp
-- "Tu as été désigné(e) comme gardien(ne) de confiance
-  par [Prénom]. Cette confirmation est irréversible.
-  Elle donnera accès aux souvenirs préparés pour ses proches."
+DÉPOSITAIRE — DepositaryScreen.kt :
+(Accessible via lien email tokenisé, expire 7 jours)
+- Fond BackgroundPrimary, centré
+- "Une décision importante" Playfair HeadingMedium
+- Texte Inter BodyLarge TextSecondary :
+  "Tu as été désigné(e) comme gardien(ne) de confiance
+   par [Prénom]. Cette confirmation est irréversible.
+   Elle donnera accès aux souvenirs préparés pour ses proches."
 - Champ note optionnel
-- Bouton AccentPrimary :
+- Bouton primaire AccentPrimary :
   "Je confirme, [Prénom] est décédé(e)"
 - Bouton outline : "Annuler"
 
-APRÈS CONFIRMATION :
-1. status → "pending_confirmation"
-2. contestDeadline = now + 72h
-3. Notification push + email Créateur avec lien d'annulation
+APRÈS CONFIRMATION DÉPOSITAIRE :
+1. activationProtocols/{id}/status → "pending_confirmation"
+2. contestDeadline = now + 72h (configurable 24/48/72h)
+3. Notification push + email au Créateur :
+   "Ton protocole vient d'être activé.
+    Si c'est une erreur, tu as [délai]h pour l'annuler."
+   + lien d'annulation tokenisé (même durée que contestDeadline)
 
-APRÈS 72H SANS CONTESTATION (Cloud Function) :
+APRÈS DÉLAI SANS CONTESTATION (Cloud Function) :
 1. status → "activated"
 2. Email à chaque Destinataire :
    Objet : "Quelque chose a été préparé pour toi"
    Corps : "[Prénom] avait préparé quelque chose pour toi.
             Ce n'est pas une archive. C'est une présence."
-3. Legs "activation" deviennent lisibles
+3. Déverrouillage des legs "activation"
+4. Accès recipient/ activé pour tous les Destinataires
 
-PARAMÈTRES PROTOCOLE (ProtocolSettingsScreen) :
-- Statut (Dormant|En attente|Activé)
-- Nom Dépositaire + modifier
-- Toggle délai : 24h | 48h | 72h
-- Bouton "Tester" (notification test, sans déclencher)
-- Avertissement obligatoire :
-  "Ce protocole ne remplace pas un testament.
-   Il n'a aucune valeur légale."
+PARAMÈTRES PROTOCOLE — ProtocolSettingsScreen.kt :
+- Statut avec pastille : Dormant (gris) / En attente (orange) /
+  Activé (AccentPrimary)
+- Nom + email Dépositaire + bouton modifier
+- Toggle délai contestation : 24h | 48h | 72h
+- Bouton "Tester le protocole" (notif test, pas de déclenchement)
+- Avertissement obligatoire Inter BodySmall TextTertiary :
+  "Ce protocole ne remplace pas un testament légal.
+   Il n'a aucune valeur juridique par défaut."
 
 ACCESSIBILITÉ VOCALE — VoiceAccessibilityManager.kt :
 Activable depuis Réglages > Accessibilité.
 
-Navigation vocale (SpeechRecognizer Android) :
-Commandes reconnues :
-  "Dépose une pensée" → navigate to capture/TEXT
-  "Mode nuit" → navigate to capture/night
-  "Ouvre mon fil" → navigate to fil
-  "Réponds à la question" → ouvre capture avec question
-  "Mes transmissions" → navigate to legacy
-  "Retour" → popBackStack
+Commandes vocales (SpeechRecognizer) :
+"Dépose une pensée" → capture/TEXT
+"Mode nuit" → capture/night
+"Ouvre mon fil" → fil
+"Réponds à la question" → capture avec question active
+"Mes transmissions" → legacy
+"Retour" → popBackStack
+"Mes meilleurs" → favorites
+"Écrire une lettre" → youngselfletters
 
 Lecture automatique (TextToSpeech) :
-- Si mode vocal actif : chaque écran se lit à voix haute
-  (titres, questions, labels importants)
+- Titres d'écrans, questions, labels importants lus à voix haute
 - Vitesse et volume réglables
+- Désactivable par écran individuel
 
-Capture entièrement vocale :
-- Le mode audio de capture est le mode par défaut
-- Les questions des 100 Questions sont lues à voix haute
-- Les réponses sont enregistrées et transcrites
-- Confirmation vocale après dépôt :
-  "Souvenir déposé. À [âge]. Il t'appartient."
-
-Générer ActivationProtocolManager.kt,
-DepositaryScreen.kt, ProtocolSettingsScreen.kt,
-VoiceAccessibilityManager.kt, AccessibilitySettingsScreen.kt,
-+ les Cloud Functions.
+Capture vocale complète :
+- Mode audio par défaut si accessibilité active
+- Questions 100 Questions lues, réponses dictées + transcrites
+- Confirmation vocale : "Souvenir déposé. À [âge]. Il t'appartient."
 ```
 
 ---
@@ -1619,38 +1812,43 @@ VoiceAccessibilityManager.kt, AccessibilitySettingsScreen.kt,
 
 | Ordre | Prompt | Ce que ça produit | Quand |
 |---|---|---|---|
-| 0 | Prompt Maître | Contexte de session | À chaque session |
-| 1 | Structure + dépendances | Squelette du projet | Sem 1 Jour 1 |
-| 2 | Thème visuel | Couleurs, polices, animations | Sem 1 Jour 1 |
-| 3 | Chiffrement + hors-ligne | EncryptionManager + OfflineManager | Sem 1 Jour 2 |
-| 4 | Modèles de données | Toutes les data classes | Sem 1 Jour 2 |
-| 5 | Navigation | Routes entre écrans | Sem 1 Jour 3 |
-| 6 | Onboarding | Histoire fondatrice | Sem 1 Jour 4 |
-| 7 | Authentification | Inscription + login | Sem 2 |
-| 8 | Cockpit | Écran principal + Fil + Mode nuit | Sem 2 |
-| 9 | Fil de Pensée + Lettre | Fonctionnalités signature | Sem 2-3 |
-| 10 | Capture + Mode 3h | Dépôt toutes formes + hors-ligne | Sem 3 |
-| 11 | Portrait + Pacte | Mémoire relationnelle | Sem 4 |
-| 12 | Intelligence IA | 7 Cloud Functions Vertex AI | Sem 4 |
-| 13 | Protocole + Voix | Dépositaire + accessibilité | Sem 4 |
-
-**MVP complet opérationnel : fin de la semaine 4.**
+| 0 | **Prompt Maître** | Contexte de session (obligatoire) | Début de CHAQUE session |
+| 1 | Structure + dépendances | Squelette complet du projet | Semaine 1 · Jour 1 matin |
+| 2 | Thème visuel | Couleurs, polices, Sceau de l'Âge, animations | Semaine 1 · Jour 1 après-midi |
+| 3 | Chiffrement + hors-ligne | EncryptionManager + OfflineManager | Semaine 1 · Jour 2 — AVANT TOUT LE RESTE |
+| 4 | Modèles de données | Toutes les data classes + AgeUtils | Semaine 1 · Jour 2 |
+| 5 | Navigation | Routes Créateur + Destinataire + BottomBar | Semaine 1 · Jour 3 |
+| 6 | Onboarding | 3 étapes avec histoire fondatrice | Semaine 1 · Jour 4 |
+| 7 | Authentification | Inscription + phrase récupération + login | Semaine 2 |
+| 8 | Cockpit | Accueil + Fil aperçu + Preuve de Vie | Semaine 2 |
+| 9 | Fil de Pensée + Lettre | Fonctionnalités signature V1 | Semaines 2-3 |
+| 10 | Capture + Mode 3h | Dépôt toutes formes + widget nuit | Semaine 3 |
+| 11 | Portrait + Pacte | Mémoire relationnelle | Semaine 4 |
+| 12 | Intelligence IA | Gemini Nano + 7 Cloud Functions | Semaine 4 |
+| 13 | Protocole + Accessibilité | Dépositaire + Preuve de Vie + Voix | Semaine 4 |
 
 ---
 
-# ═══════════════════════════════════════════════
-# CHAPITRE 11 — LES 8 RÈGLES ABSOLUES
-# ═══════════════════════════════════════════════
+**MVP complet et testable : fin de la semaine 4.**
 
-1. Ne jamais coder un écran avant d'avoir le thème (Prompt 2)
-2. Ne jamais stocker une donnée sans chiffrement Tink (Prompt 3 en premier)
-3. Ne jamais envoyer du contenu chiffré à Vertex AI — uniquement les aiSummary et aiTags générés **localement** (Gemini Nano)
-4. Ne jamais activer le protocole sans le délai de contestation 72h
-5. Ne jamais afficher plus d'une action primaire par écran
-6. Ne jamais utiliser le noir pur (#000000) sauf dans le Mode 3h du Matin
-7. Ne jamais faire parler l'IA au nom du défunt à la première personne du présent
-8. Ne jamais lancer les fonctionnalités V2 avant que le MVP soit testé par de vrais utilisateurs
-9. **Priorité au Brut** : Ne jamais remplacer un enregistrement vocal réel par une voix synthétique. Le synthétique ne sert que de liant.
+---
+
+# ═══════════════════════════════════════════════════
+# CHAPITRE 11 — LES 10 RÈGLES ABSOLUES
+# ═══════════════════════════════════════════════════
+
+Les violations de ces règles nécessitent de refaire depuis zéro — pas de correction partielle.
+
+1. Ne jamais coder un écran avant d'avoir créé le thème (Prompt 2 obligatoire en premier)
+2. Ne jamais stocker une donnée utilisateur sans chiffrement Tink (Prompt 3 avant tout autre build)
+3. Gemini Nano analyse le contenu AVANT le chiffrement — sur l'appareil — jamais après
+4. Vertex AI reçoit UNIQUEMENT aiSummary et aiTags générés localement — jamais le contenu original
+5. Ne jamais activer le protocole de transmission sans délai de contestation de minimum 24h
+6. Jamais plus d'une action primaire visible par écran — règle UX absolue
+7. Jamais de noir pur (#000000) comme fond — sauf Mode 3h du Matin (exception intentionnelle)
+8. Jamais l'IA ne parle au nom du défunt à la première personne du présent
+9. La voix synthétique ne remplace jamais une voix réelle — elle complète uniquement les lacunes
+10. Ne jamais lancer une fonctionnalité V2 avant que le MVP soit testé par de vrais utilisateurs pendant au moins 2 semaines
 
 ---
 
@@ -1658,26 +1856,41 @@ VoiceAccessibilityManager.kt, AccessibilitySettingsScreen.kt,
 # CHAPITRE 12 — LES TEXTES FONDATEURS À INTÉGRER
 # ════════════════════════════════════════════════════════
 
-**Écran 1 de l'onboarding :**
+Ces textes doivent apparaître exactement tels quels, aux emplacements indiqués.
+
+**Écran 1 de l'onboarding** (étape 1, non passable) :
 > "J'ai survécu trois fois. Chaque retour m'a appris que l'urgence n'était pas médicale — c'était ce que je n'avais jamais encore transmis."
 
-**Page "À propos" (Réglages) :**
+**Page "À propos"** (Réglages > À propos de PHOEN-X) :
 > "PHOEN-X est né de trois arrêts cardiaques. Trois fois, le cœur s'est arrêté. Trois fois, il est revenu. Et à chaque retour, la même question : si je n'étais pas revenu, qu'est-ce que j'aurais laissé ? Pas des documents. Pas des mots de passe. Rien de ce qui compte vraiment — les valeurs, les regrets, les amours, les histoires qu'on n'a jamais eu le temps de raconter. PHOEN-X est ma réponse à cette question."
 
 **Email d'invitation au Destinataire** (objet : "Quelque chose a été préparé pour toi") :
 > "[Prénom] avait préparé quelque chose pour toi. Ce n'est pas une archive. C'est une présence."
 
-**Toast après premier dépôt :**
+**Toast après chaque dépôt** :
 > "Souvenir déposé. À [âge exact]. Il t'appartient."
 
-**Notification Preuve de Vie (hebdomadaire) :**
+**Notification Preuve de Vie** (si tap manuel nécessaire) :
 > "Tu es là. Un tap suffit à le confirmer."
 
-**Texte introductif du Mode 3h du Matin (première utilisation) :**
+**Texte introductif du Mode 3h du Matin** (première utilisation uniquement) :
 > "Les pensées qui arrivent la nuit méritent d'être gardées. Parle. On s'occupe du reste."
 
-**Texte introductif de la Lettre à Mon Jeune Moi :**
+**Texte introductif de la Lettre à Mon Jeune Moi** :
 > "Qu'aurais-tu voulu entendre, à l'âge où tout semblait encore incertain ?"
 
-**Texte introductif du Pacte :**
+**Texte introductif du Pacte** :
 > "Certaines histoires ont deux vérités. Voici un endroit pour les garder toutes les deux."
+
+**Texte introductif du Portrait d'un Proche** :
+> "Voici comment je t'ai vu. Voici ce que j'ai vu en toi que tu n'as peut-être jamais su."
+
+**Message d'avertissement légal** (Réglages > Protocole de transmission) :
+> "Ce protocole ne remplace pas un testament. Il n'a aucune valeur juridique par défaut. Pour une transmission légale officielle, consultez un notaire."
+
+---
+
+*Ce document est la source unique et définitive de PHOEN-X · Version 5.0*
+*Intègre : vision fondatrice · 24 fonctionnalités · architecture E2EE avec Gemini Nano*
+*Preuve de Vie passive · Sceau de l'Âge · 13 prompts Android Studio · 10 règles absolues*
+*Aucun document antérieur n'est nécessaire — tous remplacés par ce fichier.*

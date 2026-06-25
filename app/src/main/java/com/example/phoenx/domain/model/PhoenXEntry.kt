@@ -15,7 +15,11 @@ data class PhoenXEntry(
     val tags: List<String> = emptyList(),
     val isYoungSelfLetter: Boolean = false,
     val targetAge: Int? = null,
-    val amendments: List<PhoenXAmendment> = emptyList()
+    val amendments: List<PhoenXAmendment> = emptyList(),
+    
+    // IA SIGNATURE 5.0
+    val aiSummary: String = "",
+    val aiTags: List<String> = emptyList()
 )
 
 data class PhoenXAmendment(

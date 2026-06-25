@@ -3,6 +3,7 @@ package com.example.phoenx.ui.screens.capture
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.ai.AIManager
+import com.example.phoenx.data.ai.OnDeviceAIManager
 import com.example.phoenx.data.audio.PhoenXAudioRecorder
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.haptic.HapticManager
@@ -28,6 +29,7 @@ class CaptureViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
     private val aiManager: AIManager,
+    private val onDeviceAIManager: OnDeviceAIManager,
     private val audioRecorder: PhoenXAudioRecorder,
     private val hapticManager: HapticManager
 ) : ViewModel() {
@@ -60,19 +62,24 @@ class CaptureViewModel @Inject constructor(
         targetAge: Int? = null
     ) {
         val user = auth.currentUser ?: return
+        val rawText = content ?: "Audio message"
         _uiState.value = CaptureUiState.Loading
 
         viewModelScope.launch {
             try {
+                // 1. ANALYSE IA LOCALE (Avant chiffrement)
+                val analysis = onDeviceAIManager.analyzeLocally(rawText)
+
+                // 2. CALCUL DE L'ÂGE
                 val userDoc = db.collection("users").document(user.uid).get().await()
                 val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: Date()
                 val age = AgeUtils.calculateAge(birthDate)
                 
+                // 3. CHIFFREMENT E2EE
                 val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
+                val encrypted = encryptionManager.encryptText(rawText, tempKey)
                 
-                val payloadText = content ?: "Audio message"
-                val encrypted = encryptionManager.encryptText(payloadText, tempKey)
-                
+                // 4. SAUVEGARDE HORS-LIGNE
                 val entry = OfflineEntry(
                     encryptedPayload = encrypted,
                     entryType = type,
@@ -81,10 +88,13 @@ class CaptureViewModel @Inject constructor(
                     visibility = visibility,
                     isYoungSelfLetter = isYoungSelfLetter,
                     targetAge = targetAge,
-                    createdAt = System.currentTimeMillis()
+                    createdAt = System.currentTimeMillis(),
+                    aiSummary = analysis.summary,
+                    aiTags = analysis.tags.joinToString(",")
                 )
                 offlineEntryDao.insertEntry(entry)
                 
+                // 5. SIGNAL PHYSIQUE
                 hapticManager.signalSaveSuccess()
                 _uiState.value = CaptureUiState.Success
             } catch (e: Exception) {

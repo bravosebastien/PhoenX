@@ -91,6 +91,9 @@ dependencies {
     implementation(libs.tink.android)
     implementation(libs.argon2.jvm)
 
+    // IA On-Device (Gemini Nano)
+    implementation(libs.google.aicore)
+
     // Images
     implementation(libs.coil.compose)
 

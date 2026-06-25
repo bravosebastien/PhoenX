@@ -221,6 +221,26 @@ fun TimelineEntryItem(entry: PhoenXEntry) {
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = String(entry.encryptedContent), style = MaterialTheme.typography.bodyLarge, color = TextPrimary, lineHeight = 26.sp)
+            
+            if (entry.aiSummary.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Surface(
+                    color = AccentPrimary.copy(alpha = 0.05f),
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.AutoAwesome, null, tint = AccentPrimary.copy(alpha = 0.5f), modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Résumé IA : ${entry.aiSummary}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary,
+                            fontStyle = FontStyle.Italic
+                        )
+                    }
+                }
+            }
         }
     }
 }
