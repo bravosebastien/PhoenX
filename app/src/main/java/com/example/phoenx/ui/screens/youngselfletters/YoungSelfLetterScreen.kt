@@ -197,7 +197,7 @@ fun YoungSelfLetterScreen(
                     onClick = { 
                         captureViewModel.saveEntry(
                             content = text,
-                            audioFile = null,
+                            mediaFile = null,
                             type = Screen.Capture.TYPE_TEXT,
                             category = "Sagesse",
                             visibility = "Privé",
