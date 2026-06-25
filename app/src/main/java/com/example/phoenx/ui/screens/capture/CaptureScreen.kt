@@ -43,7 +43,12 @@ import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,24 +59,21 @@ fun CaptureScreen(
     viewModel: CaptureViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
     
-    // GESTION DES PERMISSIONS (ADN 5.0)
-    var permissionToRequest by remember { mutableStateOf<String?>(null) }
+    // GESTION DES PERMISSIONS
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        if (!isGranted) onNavigateBack() // Retour si refus
+        if (!isGranted) onNavigateBack()
     }
 
-    // Vérification initiale selon le type
     LaunchedEffect(initialType) {
         val permission = when (initialType) {
             Screen.Capture.TYPE_AUDIO, Screen.Capture.TYPE_NIGHT -> Manifest.permission.RECORD_AUDIO
             Screen.Capture.TYPE_PHOTO -> Manifest.permission.CAMERA
             else -> null
         }
-        
         if (permission != null) {
             if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
                 permissionLauncher.launch(permission)
@@ -82,8 +84,15 @@ fun CaptureScreen(
     var text by remember { mutableStateOf(initialText) }
     var selectedCategory by remember { mutableStateOf("Sagesse") }
     var visibility by remember { mutableStateOf("Privé") }
-    val isNightMode = initialType == Screen.Capture.TYPE_NIGHT
     
+    // OPTIONS AVANCÉES (ADN 5.0)
+    var showAdvancedOptions by remember { mutableStateOf(false) }
+    var enigmaQuestion by remember { mutableStateOf("") }
+    var enigmaAnswer by remember { mutableStateOf("") }
+    var scheduledTimestamp by remember { mutableStateOf<Long?>(null) }
+    val sheetState = rememberModalBottomSheetState()
+
+    val isNightMode = initialType == Screen.Capture.TYPE_NIGHT
     var capturedPhotoFile by remember { mutableStateOf<File?>(null) }
     var isRitualPlaying by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
@@ -129,12 +138,9 @@ fun CaptureScreen(
                         }
                     },
                     actions = {
-                        Text(
-                            "🔒 E2EE",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextTertiary,
-                            modifier = Modifier.padding(end = 16.dp)
-                        )
+                        IconButton(onClick = { showAdvancedOptions = true }) {
+                            Icon(Icons.Default.Tune, null, tint = AccentPrimary)
+                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
                 )
@@ -153,7 +159,16 @@ fun CaptureScreen(
                         }
                         Button(
                             onClick = { 
-                                viewModel.saveEntry(text, capturedPhotoFile, initialType, selectedCategory, visibility) 
+                                viewModel.saveEntry(
+                                    content = text, 
+                                    mediaFile = capturedPhotoFile, 
+                                    type = initialType, 
+                                    category = selectedCategory, 
+                                    visibility = visibility,
+                                    enigmaQuestion = if (enigmaQuestion.isNotBlank()) enigmaQuestion else null,
+                                    enigmaAnswer = if (enigmaAnswer.isNotBlank()) enigmaAnswer else null,
+                                    scheduledTimestamp = scheduledTimestamp
+                                ) 
                             },
                             enabled = (text.isNotEmpty() || capturedPhotoFile != null || initialType == Screen.Capture.TYPE_PHOTO) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
                             colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
@@ -170,80 +185,175 @@ fun CaptureScreen(
             }
         }
     ) { padding ->
-        AnimatedVisibility(
-            visible = !isRitualPlaying,
-            exit = slideOutVertically(tween(800)) { -it } + fadeOut(tween(600)),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            val boxModifier = if (isNightMode) {
-                Modifier.fillMaxSize().background(Color.Black).clickable {
-                    if (uiState is CaptureUiState.RecordingAudio) {
-                        viewModel.stopAudioRecording()
-                        viewModel.saveEntry(null, null, Screen.Capture.TYPE_NIGHT, "Sagesse", "Privé")
+        Box(modifier = Modifier.fillMaxSize()) {
+            AnimatedVisibility(
+                visible = !isRitualPlaying,
+                exit = slideOutVertically(tween(800)) { -it } + fadeOut(tween(600)),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                val boxModifier = if (isNightMode) {
+                    Modifier.fillMaxSize().background(Color.Black).clickable {
+                        if (uiState is CaptureUiState.RecordingAudio) {
+                            viewModel.stopAudioRecording()
+                            viewModel.saveEntry(null, null, Screen.Capture.TYPE_NIGHT, "Sagesse", "Privé")
+                        }
+                    }
+                } else {
+                    Modifier.fillMaxSize().background(
+                        Brush.radialGradient(listOf(BackgroundSecondary, BackgroundPrimary), radius = 2000f)
+                    )
+                }
+
+                Box(modifier = boxModifier) {
+                    when (initialType) {
+                        Screen.Capture.TYPE_NIGHT -> {
+                            NightCaptureContent(
+                                isRecording = uiState is CaptureUiState.RecordingAudio,
+                                onStart = { viewModel.startAudioRecording(context.cacheDir) }
+                            )
+                        }
+                        Screen.Capture.TYPE_AUDIO -> {
+                            AudioCaptureContent(
+                                isRecording = uiState is CaptureUiState.RecordingAudio,
+                                onStart = { viewModel.startAudioRecording(context.cacheDir) },
+                                onStop = { 
+                                    viewModel.stopAudioRecording()
+                                    viewModel.saveEntry(null, null, Screen.Capture.TYPE_AUDIO, "Sagesse", "Privé")
+                                }
+                            )
+                        }
+                        Screen.Capture.TYPE_PHOTO -> {
+                            PhotoCaptureContent(
+                                padding = padding,
+                                capturedPhoto = capturedPhotoFile,
+                                caption = text,
+                                onCaptionChange = { text = it },
+                                onPhotoCaptured = { capturedPhotoFile = it }
+                            )
+                        }
+                        else -> {
+                            TextCaptureContent(
+                                padding = padding,
+                                text = text,
+                                onTextChange = { text = it },
+                                selectedCategory = selectedCategory,
+                                onCategoryChange = { selectedCategory = it }
+                            )
+                        }
                     }
                 }
-            } else {
-                Modifier.fillMaxSize().background(
-                    Brush.radialGradient(listOf(BackgroundSecondary, BackgroundPrimary), radius = 2000f)
-                )
             }
 
-            Box(modifier = boxModifier) {
-                when (initialType) {
-                    Screen.Capture.TYPE_NIGHT -> {
-                        NightCaptureContent(
-                            isRecording = uiState is CaptureUiState.RecordingAudio,
-                            onStart = { viewModel.startAudioRecording(context.cacheDir) }
+            if (isRitualPlaying) {
+                Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        PhoenXRiveAnimation(
+                            resId = R.raw.depot,
+                            modifier = Modifier.size(300.dp)
                         )
-                    }
-                    Screen.Capture.TYPE_AUDIO -> {
-                        AudioCaptureContent(
-                            isRecording = uiState is CaptureUiState.RecordingAudio,
-                            onStart = { viewModel.startAudioRecording(context.cacheDir) },
-                            onStop = { 
-                                viewModel.stopAudioRecording()
-                                viewModel.saveEntry(null, null, Screen.Capture.TYPE_AUDIO, "Sagesse", "Privé")
-                            }
-                        )
-                    }
-                    Screen.Capture.TYPE_PHOTO -> {
-                        PhotoCaptureContent(
-                            padding = padding,
-                            capturedPhoto = capturedPhotoFile,
-                            caption = text,
-                            onCaptionChange = { text = it },
-                            onPhotoCaptured = { capturedPhotoFile = it }
-                        )
-                    }
-                    else -> {
-                        TextCaptureContent(
-                            padding = padding,
-                            text = text,
-                            onTextChange = { text = it },
-                            selectedCategory = selectedCategory,
-                            onCategoryChange = { selectedCategory = it }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = if (isNightMode) "Capturé. Dors bien." else "Souvenir déposé.",
+                            style = MaterialTheme.typography.displaySmall,
+                            color = AccentPrimary,
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
             }
         }
 
-        if (isRitualPlaying) {
-            Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    PhoenXRiveAnimation(
-                        resId = R.raw.depot,
-                        modifier = Modifier.size(300.dp)
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = if (isNightMode) "Capturé. Dors bien." else "Souvenir déposé.",
-                        style = MaterialTheme.typography.displaySmall,
-                        color = AccentPrimary,
-                        textAlign = TextAlign.Center
-                    )
-                }
+        if (showAdvancedOptions) {
+            ModalBottomSheet(
+                onDismissRequest = { showAdvancedOptions = false },
+                sheetState = sheetState,
+                containerColor = BackgroundSecondary
+            ) {
+                AdvancedOptionsContent(
+                    enigmaQuestion = enigmaQuestion,
+                    onEnigmaQuestionChange = { enigmaQuestion = it },
+                    enigmaAnswer = enigmaAnswer,
+                    onEnigmaAnswerChange = { enigmaAnswer = it },
+                    scheduledTimestamp = scheduledTimestamp,
+                    onScheduledTimestampChange = { scheduledTimestamp = it }
+                )
             }
+        }
+    }
+}
+
+@Composable
+fun AdvancedOptionsContent(
+    enigmaQuestion: String,
+    onEnigmaQuestionChange: (String) -> Unit,
+    enigmaAnswer: String,
+    onEnigmaAnswerChange: (String) -> Unit,
+    scheduledTimestamp: Long?,
+    onScheduledTimestampChange: (Long?) -> Unit
+) {
+    Column(modifier = Modifier.padding(24.dp).fillMaxWidth().padding(bottom = 32.dp)) {
+        Text("OPTIONS AVANCÉES", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // MODE DÉTECTIVE
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Fingerprint, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text("Mode Détective", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+        }
+        Text(
+            "Verrouille ce souvenir derrière une énigme personnelle.",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextSecondary,
+            modifier = Modifier.padding(start = 32.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedTextField(
+            value = enigmaQuestion,
+            onValueChange = onEnigmaQuestionChange,
+            label = { Text("Ta question secrète") },
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
+            placeholder = { Text("Ex: Quel était le nom de notre premier chien ?") }
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = enigmaAnswer,
+            onValueChange = onEnigmaAnswerChange,
+            label = { Text("La réponse attendue") },
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        // BOÎTE AUX LETTRES
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Event, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text("Ouverture Programmée", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+        }
+        Text(
+            "Ce souvenir ne sera visible qu'à partir d'une date précise.",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextSecondary,
+            modifier = Modifier.padding(start = 32.dp)
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        val dateText = scheduledTimestamp?.let {
+            DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.FRENCH)
+                .withZone(ZoneId.systemDefault())
+                .format(Instant.ofEpochMilli(it))
+        } ?: "Choisir une date"
+        
+        OutlinedButton(
+            onClick = { /* TODO: Show DatePicker */ },
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp)
+        ) {
+            Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(dateText)
         }
     }
 }
@@ -258,10 +368,8 @@ fun PhotoCaptureContent(
 ) {
     Box(modifier = Modifier.fillMaxSize().padding(padding)) {
         if (capturedPhoto == null) {
-            // Camera Preview (Simplified)
             Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
                 Text("Caméra active", color = Color.White)
-                // In a real implementation, we would use PreviewView here
                 IconButton(
                     onClick = { /* Simulate capture */ },
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 40.dp).size(80.dp).background(Color.White, CircleShape)
@@ -270,12 +378,9 @@ fun PhotoCaptureContent(
                 }
             }
         } else {
-            // Photo Preview with Caption overlay
             Column(modifier = Modifier.fillMaxSize()) {
                 Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color.DarkGray)) {
-                    // Display photo
                     Text("Photo capturée", modifier = Modifier.align(Alignment.Center), color = Color.White)
-                    
                     TextField(
                         value = caption,
                         onValueChange = onCaptionChange,

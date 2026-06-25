@@ -59,7 +59,10 @@ class CaptureViewModel @Inject constructor(
         category: String,
         visibility: String,
         isYoungSelfLetter: Boolean = false,
-        targetAge: Int? = null
+        targetAge: Int? = null,
+        enigmaQuestion: String? = null,
+        enigmaAnswer: String? = null,
+        scheduledTimestamp: Long? = null
     ) {
         val user = auth.currentUser ?: return
         val rawText = content ?: if (type == Screen.Capture.TYPE_AUDIO) "Message vocal" else "Photo souvenir"
@@ -81,9 +84,6 @@ class CaptureViewModel @Inject constructor(
                 // On chiffre le texte (légende ou contenu)
                 val encrypted = encryptionManager.encryptText(rawText, tempKey)
                 
-                // Si on a un fichier (audio ou photo), on pourrait le chiffrer ici aussi
-                // Pour le MVP on stocke la référence ou on simule le chiffrement de fichier
-                
                 // 4. SAUVEGARDE HORS-LIGNE
                 val entry = OfflineEntry(
                     encryptedPayload = encrypted,
@@ -95,7 +95,10 @@ class CaptureViewModel @Inject constructor(
                     targetAge = targetAge,
                     createdAt = System.currentTimeMillis(),
                     aiSummary = analysis.summary,
-                    aiTags = analysis.tags.joinToString(",")
+                    aiTags = analysis.tags.joinToString(","),
+                    enigmaQuestion = enigmaQuestion,
+                    enigmaAnswer = enigmaAnswer,
+                    scheduledTimestamp = scheduledTimestamp
                 )
                 offlineEntryDao.insertEntry(entry)
                 

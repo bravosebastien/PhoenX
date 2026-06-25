@@ -11,7 +11,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material3.*
@@ -246,6 +248,16 @@ fun TimelineEntryItem(entry: PhoenXEntry) {
                                 fontSize = 9.sp
                             )
                         }
+                    }
+
+                    if (entry.hasEnigma) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.Fingerprint, null, tint = AccentPrimary, modifier = Modifier.size(12.dp))
+                    }
+
+                    if (entry.scheduledDate != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.Event, null, tint = Success, modifier = Modifier.size(12.dp))
                     }
                 }
                 Surface(color = BackgroundPrimary, shape = CircleShape, border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))) {

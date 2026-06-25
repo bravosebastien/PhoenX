@@ -20,7 +20,11 @@ data class PhoenXEntry(
     // IA SIGNATURE 5.0
     val aiSummary: String = "",
     val aiTags: List<String> = emptyList(),
-    val temporalEvolution: String? = null
+    val temporalEvolution: String? = null,
+    
+    // DÉTECTIVE & PROGRAMMATION (ADN 5.0)
+    val hasEnigma: Boolean = false,
+    val scheduledDate: Instant? = null
 )
 
 data class PhoenXAmendment(

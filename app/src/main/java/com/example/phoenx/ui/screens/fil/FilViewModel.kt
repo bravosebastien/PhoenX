@@ -119,7 +119,9 @@ class FilViewModel @Inject constructor(
                 // On récupère l'évolution depuis Room si disponible
                 // (Ici on utilise une logique simplifiée pour le lien)
                 "Évolution stylistique détectée par l'IA"
-            } else null
+            } else null,
+            hasEnigma = enigmaQuestion != null,
+            scheduledDate = scheduledTimestamp?.let { Instant.ofEpochMilli(it) }
         )
     }
 }

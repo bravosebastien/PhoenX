@@ -19,5 +19,10 @@ data class OfflineEntry(
     
     // CHAMPS IA LOCALE (Signature 5.0)
     val aiSummary: String = "",
-    val aiTags: String = "" // Tags séparés par des virgules pour Room
+    val aiTags: String = "", // Tags séparés par des virgules pour Room
+
+    // MODE DÉTECTIVE & BOÎTE AUX LETTRES (ADN 5.0)
+    val enigmaQuestion: String? = null,
+    val enigmaAnswer: String? = null,
+    val scheduledTimestamp: Long? = null
 )

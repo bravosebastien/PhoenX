@@ -78,7 +78,8 @@ fun PhoenXNavGraph(
                 onNavigateToPortraits = { navController.navigate(Screen.Portraits.route) },
                 onNavigateToWorlds = { navController.navigate(Screen.Worlds.route) },
                 onNavigateToFavorites = { navController.navigate(Screen.Favorites.route) },
-                onNavigateToQuestions = { navController.navigate(Screen.Questions.route) }
+                onNavigateToQuestions = { navController.navigate(Screen.Questions.route) },
+                onNavigateToMailbox = { /* TODO */ }
             )
         }
 

@@ -48,6 +48,7 @@ fun HomeScreen(
     onNavigateToWorlds: () -> Unit,
     onNavigateToFavorites: () -> Unit,
     onNavigateToQuestions: () -> Unit,
+    onNavigateToMailbox: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -110,6 +111,10 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 YoungSelfLetterCard(onNavigateToLetters)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                MailboxCard(onNavigateToMailbox)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -431,6 +436,30 @@ fun FavoritesCard(onClick: () -> Unit) {
                 Text("Livres, films et musiques essentiels", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
             }
             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+@Composable
+fun MailboxCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clickable(onClick = onClick)
+            .phoenXMatiere(isPaper = false),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, Success.copy(alpha = 0.3f))
+    ) {
+        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Mail, contentDescription = null, tint = Success, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(20.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("BOÎTE AUX LETTRES", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                Text("Cadeaux à ouverture programmée", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+            }
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Success, modifier = Modifier.size(20.dp))
         }
     }
 }
