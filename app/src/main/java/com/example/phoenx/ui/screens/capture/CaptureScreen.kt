@@ -28,11 +28,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.PreviewView
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import com.example.phoenx.R
 import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.navigation.Screen
@@ -50,6 +55,30 @@ fun CaptureScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    
+    // GESTION DES PERMISSIONS (ADN 5.0)
+    var permissionToRequest by remember { mutableStateOf<String?>(null) }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) onNavigateBack() // Retour si refus
+    }
+
+    // Vérification initiale selon le type
+    LaunchedEffect(initialType) {
+        val permission = when (initialType) {
+            Screen.Capture.TYPE_AUDIO, Screen.Capture.TYPE_NIGHT -> Manifest.permission.RECORD_AUDIO
+            Screen.Capture.TYPE_PHOTO -> Manifest.permission.CAMERA
+            else -> null
+        }
+        
+        if (permission != null) {
+            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                permissionLauncher.launch(permission)
+            }
+        }
+    }
+
     var text by remember { mutableStateOf(initialText) }
     var selectedCategory by remember { mutableStateOf("Sagesse") }
     var visibility by remember { mutableStateOf("Privé") }
@@ -84,7 +113,16 @@ fun CaptureScreen(
         topBar = {
             if (!isNightMode) {
                 TopAppBar(
-                    title = { },
+                    title = { 
+                        Text(
+                            text = when(initialType) {
+                                Screen.Capture.TYPE_AUDIO -> "Capture Vocale"
+                                Screen.Capture.TYPE_PHOTO -> "Capture Visuelle"
+                                else -> "Nouvelle Pensée"
+                            },
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(Icons.Default.Close, contentDescription = null, tint = TextPrimary)
@@ -92,7 +130,7 @@ fun CaptureScreen(
                     },
                     actions = {
                         Text(
-                            "🔒 Chiffré E2EE",
+                            "🔒 E2EE",
                             style = MaterialTheme.typography.labelSmall,
                             color = TextTertiary,
                             modifier = Modifier.padding(end = 16.dp)
@@ -117,7 +155,7 @@ fun CaptureScreen(
                             onClick = { 
                                 viewModel.saveEntry(text, capturedPhotoFile, initialType, selectedCategory, visibility) 
                             },
-                            enabled = (text.isNotEmpty() || capturedPhotoFile != null) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
+                            enabled = (text.isNotEmpty() || capturedPhotoFile != null || initialType == Screen.Capture.TYPE_PHOTO) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
                             colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
                             shape = MaterialTheme.shapes.medium
                         ) {
@@ -151,36 +189,41 @@ fun CaptureScreen(
             }
 
             Box(modifier = boxModifier) {
-                if (isNightMode) {
-                    NightCaptureContent(
-                        isRecording = uiState is CaptureUiState.RecordingAudio,
-                        onStart = { viewModel.startAudioRecording(context.cacheDir) }
-                    )
-                } else if (initialType == Screen.Capture.TYPE_AUDIO) {
-                    AudioCaptureContent(
-                        isRecording = uiState is CaptureUiState.RecordingAudio,
-                        onStart = { viewModel.startAudioRecording(context.cacheDir) },
-                        onStop = { 
-                            viewModel.stopAudioRecording()
-                            viewModel.saveEntry(null, null, Screen.Capture.TYPE_AUDIO, "Sagesse", "Privé")
-                        }
-                    )
-                } else if (initialType == Screen.Capture.TYPE_PHOTO) {
-                    PhotoCaptureContent(
-                        padding = padding,
-                        capturedPhoto = capturedPhotoFile,
-                        caption = text,
-                        onCaptionChange = { text = it },
-                        onPhotoCaptured = { capturedPhotoFile = it }
-                    )
-                } else {
-                    TextCaptureContent(
-                        padding = padding,
-                        text = text,
-                        onTextChange = { text = it },
-                        selectedCategory = selectedCategory,
-                        onCategoryChange = { selectedCategory = it }
-                    )
+                when (initialType) {
+                    Screen.Capture.TYPE_NIGHT -> {
+                        NightCaptureContent(
+                            isRecording = uiState is CaptureUiState.RecordingAudio,
+                            onStart = { viewModel.startAudioRecording(context.cacheDir) }
+                        )
+                    }
+                    Screen.Capture.TYPE_AUDIO -> {
+                        AudioCaptureContent(
+                            isRecording = uiState is CaptureUiState.RecordingAudio,
+                            onStart = { viewModel.startAudioRecording(context.cacheDir) },
+                            onStop = { 
+                                viewModel.stopAudioRecording()
+                                viewModel.saveEntry(null, null, Screen.Capture.TYPE_AUDIO, "Sagesse", "Privé")
+                            }
+                        )
+                    }
+                    Screen.Capture.TYPE_PHOTO -> {
+                        PhotoCaptureContent(
+                            padding = padding,
+                            capturedPhoto = capturedPhotoFile,
+                            caption = text,
+                            onCaptionChange = { text = it },
+                            onPhotoCaptured = { capturedPhotoFile = it }
+                        )
+                    }
+                    else -> {
+                        TextCaptureContent(
+                            padding = padding,
+                            text = text,
+                            onTextChange = { text = it },
+                            selectedCategory = selectedCategory,
+                            onCategoryChange = { selectedCategory = it }
+                        )
+                    }
                 }
             }
         }
