@@ -9,13 +9,14 @@ import android.os.Looper
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class VoiceAccessibilityManager @Inject constructor(
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) : RecognitionListener {
 
     private var speechRecognizer: SpeechRecognizer? = null

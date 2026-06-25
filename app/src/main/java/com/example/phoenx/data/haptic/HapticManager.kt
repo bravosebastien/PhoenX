@@ -5,11 +5,13 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import androidx.annotation.RequiresApi
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class HapticManager @Inject constructor(context: Context) {
+class HapticManager @Inject constructor(@ApplicationContext context: Context) {
 
     private val vibrator: Vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
@@ -24,13 +26,9 @@ class HapticManager @Inject constructor(context: Context) {
      */
     fun signalStartRecording() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val timings = longArrayOf(0, 100, 100, 100)
-            val amplitudes = intArrayOf(0, 150, 0, 150)
-            vibrator.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
+            vibrateOreoPlus(longArrayOf(0, 100, 100, 100), intArrayOf(0, 150, 0, 150))
         } else {
-            @Suppress("DEPRECATION")
-            val pattern = longArrayOf(0, 100, 100, 100)
-            vibrator.vibrate(pattern, -1)
+            vibrateLegacy(longArrayOf(0, 100, 100, 100))
         }
     }
 
@@ -39,10 +37,29 @@ class HapticManager @Inject constructor(context: Context) {
      */
     fun signalSaveSuccess() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
+            vibrateOreoPlusOneShot(500)
         } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(500)
+            vibrateLegacyOneShot(500)
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun vibrateOreoPlus(timings: LongArray, amplitudes: IntArray) {
+        vibrator.vibrate(VibrationEffect.createWaveform(timings, amplitudes, -1))
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun vibrateOreoPlusOneShot(duration: Long) {
+        vibrator.vibrate(VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE))
+    }
+
+    @Suppress("DEPRECATION")
+    private fun vibrateLegacy(pattern: LongArray) {
+        vibrator.vibrate(pattern, -1)
+    }
+
+    @Suppress("DEPRECATION")
+    private fun vibrateLegacyOneShot(duration: Long) {
+        vibrator.vibrate(duration)
     }
 }

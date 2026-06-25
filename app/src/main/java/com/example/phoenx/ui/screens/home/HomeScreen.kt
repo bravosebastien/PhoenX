@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,7 +47,6 @@ fun HomeScreen(
         containerColor = BackgroundPrimary,
         bottomBar = { PhoenXBottomBar() }
     ) { padding ->
-        // Fond avec dégradé radial très subtil pour donner de la "matière"
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -66,37 +66,30 @@ fun HomeScreen(
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
-                // Section 1: En-tête (Aéré)
                 HomeHeader(uiState.userName, uiState.currentDate, onNavigateToSettings)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Section 2: L'Impulsion (Action primaire unique)
                 ImpulseSection(onNavigateToCapture)
 
                 Spacer(modifier = Modifier.height(48.dp))
 
-                // Section 3: Aperçu Fil de Pensée (Signature avec "Sceau")
                 TimelinePreviewCard(uiState.entryCount, uiState.minAge, uiState.currentAge, onNavigateToFil)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Section 4: Lettre à Mon Jeune Moi
                 YoungSelfLetterCard(onNavigateToLetters)
 
                 Spacer(modifier = Modifier.height(48.dp))
 
-                // Section 5: Question du Biographe (Rituel)
                 BiographerQuestionSection(uiState.biographerQuestion)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Section 6: Derniers souvenirs
                 LatestMemoriesSection()
 
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // Section 7: Preuve de Vie
                 ProofOfLifeBadge(uiState.lastProofOfLifeDays) {
                     viewModel.updateProofOfLife()
                 }
@@ -127,7 +120,7 @@ fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit) {
             )
         }
         Surface(
-            modifier = Modifier.size(52.dp),
+            modifier = Modifier.size(52.dp).phoenXMatiere(),
             shape = CircleShape,
             color = SurfaceCard,
             border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.3f)),
@@ -161,6 +154,7 @@ fun ImpulseSection(onNavigate: (String) -> Unit) {
                         colors = listOf(AccentPrimary, Color(0xFF8B4A1A))
                     )
                 )
+                .phoenXMatiere() // Application de la texture cuir/matière
                 .clickable(
                     interactionSource = interactionSource,
                     indication = null,
@@ -218,7 +212,8 @@ fun TimelinePreviewCard(count: Int, minAge: Int, maxAge: Int, onClick: () -> Uni
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick),
+            .clickable(onClick = onClick)
+            .phoenXMatiere(),
         colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
         shape = MaterialTheme.shapes.large,
         border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
@@ -235,24 +230,25 @@ fun TimelinePreviewCard(count: Int, minAge: Int, maxAge: Int, onClick: () -> Uni
                     Text("$count moments capturés", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
                 }
                 
-                // Le Sceau de l'Âge
+                // Le Sceau de l'Âge (Signature 4.1)
                 Surface(
-                    color = AccentPrimary.copy(alpha = 0.1f),
+                    color = AccentPrimary,
                     shape = CircleShape,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.5f))
+                    modifier = Modifier.size(60.dp).border(2.dp, Color.White.copy(alpha = 0.2f), CircleShape)
                 ) {
-                    Text(
-                        text = "$maxAge ans",
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = AccentPrimary
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "$maxAge\nans",
+                            style = MaterialTheme.typography.labelSmall.copy(lineHeight = 12.sp, fontWeight = FontWeight.Bold),
+                            color = BackgroundPrimary,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Sparkline élégant (Matière)
             Row(modifier = Modifier.fillMaxWidth().height(50.dp), verticalAlignment = Alignment.Bottom) {
                 repeat(24) { i ->
                     val h = (0.2f + (Math.sin(i.toDouble() / 3.0).toFloat() + 1f) * 0.4f)
@@ -280,8 +276,9 @@ fun YoungSelfLetterCard(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = BackgroundSecondary),
+            .clickable(onClick = onClick)
+            .phoenXMatiere(isPaper = true),
+        colors = CardDefaults.cardColors(containerColor = MateriauPapier.copy(alpha = 0.1f)),
         shape = MaterialTheme.shapes.large,
         border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
     ) {
@@ -313,7 +310,7 @@ fun BiographerQuestionSection(question: String) {
             onClick = { /* TODO */ },
             colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard),
             shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.height(48.dp)
+            modifier = Modifier.height(48.dp).phoenXMatiere()
         ) {
             Text("Y répondre maintenant", color = TextPrimary)
         }
@@ -344,7 +341,7 @@ fun LatestMemoriesSection() {
 @Composable
 fun MemoryCard() {
     Surface(
-        modifier = Modifier.size(160.dp, 200.dp),
+        modifier = Modifier.size(160.dp, 200.dp).phoenXMatiere(),
         color = SurfaceCard.copy(alpha = 0.4f),
         shape = MaterialTheme.shapes.large,
         border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))

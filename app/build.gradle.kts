@@ -1,11 +1,11 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.google.services)
-    alias(libs.plugins.hilt)
-    id("kotlin-kapt")
-    alias(libs.plugins.gradle.versions)
-    alias(libs.plugins.kotlin.compose)
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("com.google.gms.google-services")
+    id("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
+    id("com.github.ben-manes.versions")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -42,10 +42,17 @@ android {
     buildFeatures {
         compose = true
     }
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
+        }
+    }
 }
 
 dependencies {
     coreLibraryDesugaring(libs.desugar.jdk.libs)
+    
     // Core & Compose
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
@@ -74,11 +81,11 @@ dependencies {
     implementation(libs.play.services.auth)
     implementation(libs.kotlinx.coroutines.play.services)
 
-    // Hilt
+    // Hilt (KSP)
     implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.hilt.work)
-    kapt(libs.hilt.work.compiler)
+    ksp(libs.hilt.work.compiler)
 
     // Security
     implementation(libs.tink.android)
@@ -87,12 +94,12 @@ dependencies {
     // Images
     implementation(libs.coil.compose)
 
-    // Storage & Background
+    // Storage & Background (KSP)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

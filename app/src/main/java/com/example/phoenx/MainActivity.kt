@@ -30,6 +30,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             PhoenXTheme {
+                // 1. PREUVE DE VIE PASSIVE (ADN 4.1)
+                // Chaque ouverture de l'application confirme la présence du Créateur
+                LaunchedEffect(Unit) {
+                    mainViewModel.confirmPresence()
+                }
+
                 val isVoiceActive by mainViewModel.isVoiceModeActive.collectAsState()
                 val navController = rememberNavController()
 

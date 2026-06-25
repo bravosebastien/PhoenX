@@ -29,8 +29,20 @@ class MainViewModel @Inject constructor(
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             if (protocolManager.checkInactivity(userId)) {
-                // On peut ici déclencher une notification ou un état spécial
+                // Protocole en attente si nécessaire
             }
+        }
+    }
+
+    /**
+     * PREUVE DE VIE PASSIVE : Confirme la présence du créateur silencieusement.
+     */
+    fun confirmPresence() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                protocolManager.confirmProofOfLife(userId)
+            } catch (e: Exception) { /* Silencieux pour l'utilisateur */ }
         }
     }
 
