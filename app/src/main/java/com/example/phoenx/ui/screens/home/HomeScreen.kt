@@ -16,10 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.domain.util.AgeUtils
+import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 
@@ -49,9 +47,18 @@ fun HomeScreen(
     onNavigateToFavorites: () -> Unit,
     onNavigateToQuestions: () -> Unit,
     onNavigateToMailbox: () -> Unit,
+    mainViewModel: MainViewModel, // Injected from NavGraph
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val isVoiceActive by mainViewModel.isVoiceModeActive.collectAsState()
+
+    // Lecture vocale automatique de la question si le mode est actif
+    LaunchedEffect(uiState.biographerQuestion) {
+        if (isVoiceActive && uiState.biographerQuestion.isNotEmpty()) {
+            mainViewModel.speak("La question du jour est : ${uiState.biographerQuestion}")
+        }
+    }
 
     Scaffold(
         containerColor = BackgroundPrimary,

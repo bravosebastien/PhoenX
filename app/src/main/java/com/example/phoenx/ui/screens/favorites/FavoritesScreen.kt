@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Public
@@ -62,14 +63,20 @@ fun FavoritesScreen(
             when (val state = uiState) {
                 is FavoritesUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 is FavoritesUiState.Success -> {
-                    if (state.items.isEmpty()) {
-                        EmptyFavorites(modifier = Modifier.padding(padding))
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize().padding(padding),
-                            contentPadding = PaddingValues(24.dp),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(padding),
+                        contentPadding = PaddingValues(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        if (state.tasteMap.isNotEmpty()) {
+                            item {
+                                TasteMapCard(state.tasteMap)
+                            }
+                        }
+
+                        if (state.items.isEmpty()) {
+                            item { EmptyFavorites() }
+                        } else {
                             items(state.items) { item ->
                                 FavoriteCard(item)
                             }
@@ -87,6 +94,26 @@ fun FavoritesScreen(
                     showAddDialog = false
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun TasteMapCard(content: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth().phoenXMatiere(),
+        colors = CardDefaults.cardColors(containerColor = AccentPrimary.copy(alpha = 0.05f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.AutoAwesome, null, tint = AccentPrimary, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("TA CARTE DES GOÛTS", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(content, style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontStyle = FontStyle.Italic)
         }
     }
 }

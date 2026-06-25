@@ -29,7 +29,13 @@ class FavoritesViewModel @Inject constructor(
         viewModelScope.launch {
             offlineEntryDao.getAllFavorites().collectLatest { entities ->
                 val decoded = entities.map { it.toDomain() }
-                _uiState.value = FavoritesUiState.Success(decoded)
+                
+                // Simulation de génération de Carte des Goûts par l'IA
+                val tasteMap = if (decoded.isNotEmpty()) {
+                    "Ta bibliothèque révèle un attachement profond pour les récits d'aventure et la musique mélancolique. Tes choix tournent souvent autour du thème de la découverte."
+                } else ""
+
+                _uiState.value = FavoritesUiState.Success(decoded, tasteMap)
             }
         }
     }
@@ -71,5 +77,8 @@ data class FavoriteItem(
 
 sealed class FavoritesUiState {
     object Loading : FavoritesUiState()
-    data class Success(val items: List<FavoriteItem>) : FavoritesUiState()
+    data class Success(
+        val items: List<FavoriteItem>,
+        val tasteMap: String = "" // Résumé IA des goûts
+    ) : FavoritesUiState()
 }
