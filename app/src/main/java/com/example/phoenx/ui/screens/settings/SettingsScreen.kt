@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RecordVoiceOver
@@ -25,7 +26,8 @@ fun SettingsScreen(
     onNavigateToAccessibility: () -> Unit,
     onNavigateToReconciliation: () -> Unit,
     onNavigateToRecipients: () -> Unit,
-    onNavigateToUniqueKey: () -> Unit
+    onNavigateToUniqueKey: () -> Unit,
+    onNavigateToDetective: () -> Unit
 ) {
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -82,6 +84,15 @@ fun SettingsScreen(
                 subtitle = "Mots secrets à ouverture différée",
                 icon = Icons.Default.Mail,
                 onClick = onNavigateToReconciliation
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(
+                title = "Tester le Mode Détective",
+                subtitle = "Déchiffre tes propres énigmes",
+                icon = Icons.Default.Fingerprint,
+                onClick = onNavigateToDetective
             )
 
             Spacer(modifier = Modifier.height(32.dp))

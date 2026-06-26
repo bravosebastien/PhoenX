@@ -15,6 +15,7 @@ import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.screens.auth.AuthScreen
 import com.example.phoenx.ui.screens.capture.CaptureScreen
 import com.example.phoenx.ui.screens.depositary.DepositaryScreen
+import com.example.phoenx.ui.screens.detective.DetectiveScreen
 import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.home.HomeScreen
 import com.example.phoenx.ui.screens.onboarding.OnboardingScreen
@@ -23,6 +24,7 @@ import com.example.phoenx.ui.screens.legacy.LegacyPreparationScreen
 import com.example.phoenx.ui.screens.legacy.UniqueKeyScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
+import com.example.phoenx.ui.screens.mailbox.MailboxScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.recipient.RecipientScreen
@@ -151,7 +153,8 @@ fun PhoenXNavGraph(
                 onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
                 onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) },
                 onNavigateToRecipients = { navController.navigate("recipients") },
-                onNavigateToUniqueKey = { navController.navigate(Screen.UniqueKey.route) }
+                onNavigateToUniqueKey = { navController.navigate(Screen.UniqueKey.route) },
+                onNavigateToDetective = { navController.navigate(Screen.RecipientDetective.route) }
             )
         }
 
@@ -179,7 +182,11 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.RecipientMailbox.route) {
-            PlaceholderScreen("Boîte aux Lettres (Bientôt)")
+            MailboxScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.RecipientDetective.route) {
+            DetectiveScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Depositary.route) {
