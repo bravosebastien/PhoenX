@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
+import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,6 +58,10 @@ fun FilScreen(
                     }
                 },
                 actions = {
+                    InfoPoint(
+                        title = "Votre Signature",
+                        content = "Chaque souvenir est marqué par votre âge exact. Cela permet à vos proches de voir votre évolution et votre maturité à travers les années. C'est le cœur de votre héritage."
+                    )
                     IconButton(onClick = { showFilters = true }) {
                         Icon(Icons.Default.FilterList, contentDescription = null, tint = AccentPrimary)
                     }

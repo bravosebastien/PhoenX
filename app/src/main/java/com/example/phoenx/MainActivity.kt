@@ -13,6 +13,7 @@ import com.example.phoenx.accessibility.VoiceAccessibilityManager
 import com.example.phoenx.data.biometric.PhoenXBiometricManager
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.navigation.PhoenXNavGraph
+import com.example.phoenx.ui.screens.guide.WelcomeGuideScreen
 import com.example.phoenx.ui.theme.PhoenXTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -33,7 +34,10 @@ class MainActivity : FragmentActivity() {
         setContent {
             PhoenXTheme {
                 val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
+                val shouldShowGuide by mainViewModel.shouldShowWelcomeGuide.collectAsState()
+                
                 var isUnlocked by remember { mutableStateOf(false) }
+                var showGuide by remember { mutableStateOf(false) }
 
                 LaunchedEffect(isBiometricEnabled) {
                     if (isBiometricEnabled && !isUnlocked) {
@@ -47,7 +51,19 @@ class MainActivity : FragmentActivity() {
                     }
                 }
 
-                if (isUnlocked) {
+                // Une fois déverrouillé, on vérifie si on doit montrer le guide
+                LaunchedEffect(isUnlocked, shouldShowGuide) {
+                    if (isUnlocked && shouldShowGuide) {
+                        showGuide = true
+                    }
+                }
+
+                if (showGuide) {
+                    WelcomeGuideScreen(onDismiss = { neverShowAgain ->
+                        mainViewModel.dismissWelcomeGuide(neverShowAgain)
+                        showGuide = false
+                    })
+                } else if (isUnlocked) {
                     MainContent()
                 } else {
                     // Lock screen waiting for fingerprint

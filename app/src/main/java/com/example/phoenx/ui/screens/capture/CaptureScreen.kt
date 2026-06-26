@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.example.phoenx.R
+import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
@@ -301,6 +302,11 @@ fun AdvancedOptionsContent(
             Icon(Icons.Default.Fingerprint, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Text("Mode Détective", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.weight(1f))
+            InfoPoint(
+                title = "Le Jeu de Piste",
+                content = "Transformez la lecture de vos souvenirs en une quête. Vos proches devront répondre à cette question personnelle pour déverrouiller ce fragment. C'est idéal pour les anecdotes de famille ou les secrets partagés."
+            )
         }
         Text(
             "Verrouille ce souvenir derrière une énigme personnelle.",
@@ -453,20 +459,26 @@ fun TextCaptureContent(
 
         Text("ÉTAT ÉMOTIONNEL", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 1.sp)
         Spacer(modifier = Modifier.height(16.dp))
-        val categories = listOf("Espoir", "Poésie", "Bonheur", "Regret", "Sagesse", "Amour")
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            categories.forEach { cat ->
-                FilterChip(
-                    selected = selectedCategory == cat,
-                    onClick = { onCategoryChange(cat) },
-                    label = { Text(cat) },
-                    shape = CircleShape,
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = AccentPrimary.copy(alpha = 0.2f),
-                        selectedLabelColor = AccentPrimary
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            val categories = listOf("Espoir", "Poésie", "Bonheur", "Regret", "Sagesse", "Amour")
+            Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                categories.forEach { cat ->
+                    FilterChip(
+                        selected = selectedCategory == cat,
+                        onClick = { onCategoryChange(cat) },
+                        label = { Text(cat) },
+                        shape = CircleShape,
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AccentPrimary.copy(alpha = 0.2f),
+                            selectedLabelColor = AccentPrimary
+                        )
                     )
-                )
+                }
             }
+            InfoPoint(
+                title = "Les Tiroirs Émotionnels",
+                content = "L'IA utilise ce choix pour ranger automatiquement votre souvenir dans le bon tiroir de votre commode. Si vous ne choisissez rien, l'IA analysera vos mots pour le faire à votre place."
+            )
         }
     }
 }

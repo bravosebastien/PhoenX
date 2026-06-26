@@ -13,6 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,6 +45,12 @@ fun ProtocolSettingsScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = TextPrimary)
                     }
+                },
+                actions = {
+                    InfoPoint(
+                        title = "La Transmission",
+                        content = "C'est ici que tout se joue. Le dépositaire est la seule personne qui pourra confirmer votre départ pour ouvrir l'accès à vos souvenirs. Le délai de contestation est votre sécurité pour annuler une fausse alerte."
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
             )

@@ -33,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.domain.util.AgeUtils
 import com.example.phoenx.ui.MainViewModel
+import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 
@@ -189,7 +190,13 @@ fun TransmissionStatusRow(count: Int) {
             border = androidx.compose.foundation.BorderStroke(1.dp, Success.copy(alpha = 0.2f))
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("SÉCURITÉ", style = MaterialTheme.typography.labelSmall, color = Success)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("SÉCURITÉ", style = MaterialTheme.typography.labelSmall, color = Success, modifier = Modifier.weight(1f))
+                    InfoPoint(
+                        title = "Votre Coffre-Fort",
+                        content = "Vos données sont chiffrées avec une technologie militaire (E2EE) sur votre téléphone. Seule votre empreinte ou votre mot de passe peut les lire. Même PHOEN-X ne peut pas voir vos souvenirs."
+                    )
+                }
                 Text("ACTIVE", style = MaterialTheme.typography.headlineSmall, color = Success, fontSize = 20.sp)
             }
         }

@@ -30,6 +30,9 @@ class MainViewModel @Inject constructor(
     val isBiometricEnabled: StateFlow<Boolean> = preferenceManager.isBiometricEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val shouldShowWelcomeGuide: StateFlow<Boolean> = preferenceManager.shouldShowWelcomeGuide
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
     init {
         checkInactivity()
     }
@@ -65,6 +68,14 @@ class MainViewModel @Inject constructor(
     fun toggleBiometric(enabled: Boolean) {
         viewModelScope.launch {
             preferenceManager.setBiometricEnabled(enabled)
+        }
+    }
+
+    fun dismissWelcomeGuide(neverShowAgain: Boolean) {
+        if (neverShowAgain) {
+            viewModelScope.launch {
+                preferenceManager.setShouldShowWelcomeGuide(false)
+            }
         }
     }
 
