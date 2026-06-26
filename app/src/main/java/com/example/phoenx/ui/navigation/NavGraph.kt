@@ -27,6 +27,7 @@ import com.example.phoenx.ui.screens.favorites.FavoritesScreen
 import com.example.phoenx.ui.screens.mailbox.MailboxScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
+import com.example.phoenx.ui.screens.recipient.RecipientCubeScreen
 import com.example.phoenx.ui.screens.recipient.RecipientScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.worlds.WorldsScreen
@@ -85,6 +86,7 @@ fun PhoenXNavGraph(
                 onNavigateToQuestions = { navController.navigate(Screen.Questions.route) },
                 onNavigateToMailbox = { navController.navigate(Screen.RecipientMailbox.route) },
                 onNavigateToLegacy = { navController.navigate(Screen.NewLegacy.route) },
+                onNavigateToCube = { navController.navigate(Screen.RecipientCube.route) },
                 mainViewModel = mainViewModel
             )
         }
@@ -140,6 +142,10 @@ fun PhoenXNavGraph(
 
         composable("recipients") { // New route for circle management
             RecipientScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.RecipientCube.route) {
+            RecipientCubeScreen(onExit = { navController.popBackStack() })
         }
 
         composable(Screen.Essence.route) {
