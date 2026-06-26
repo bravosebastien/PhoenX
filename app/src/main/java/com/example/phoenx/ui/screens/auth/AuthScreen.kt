@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter
 fun AuthScreen(
     isSignup: Boolean,
     onAuthSuccess: () -> Unit,
+    onNavigateToRecovery: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     var currentStep by remember { mutableStateOf(if (isSignup) SignupStep.StepA else SignupStep.Login) }
@@ -77,6 +78,7 @@ fun AuthScreen(
                         onPasswordChange = { password = it },
                         onLoginClick = { viewModel.login(email, password) },
                         onNavigateToSignup = { currentStep = SignupStep.StepA },
+                        onNavigateToRecovery = onNavigateToRecovery,
                         isLoading = uiState is AuthState.Loading
                     )
                     SignupStep.StepA -> SignupStepA(
@@ -125,6 +127,7 @@ fun LoginContent(
     password: String, onPasswordChange: (String) -> Unit,
     onLoginClick: () -> Unit,
     onNavigateToSignup: () -> Unit,
+    onNavigateToRecovery: () -> Unit,
     isLoading: Boolean
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -152,7 +155,15 @@ fun LoginContent(
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentPrimary)
         )
-        Spacer(modifier = Modifier.height(32.dp))
+        
+        TextButton(
+            onClick = onNavigateToRecovery,
+            modifier = Modifier.align(Alignment.End)
+        ) {
+            Text("Mot de passe oublié ?", color = TextTertiary, style = MaterialTheme.typography.labelSmall)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = onLoginClick,
             modifier = Modifier.fillMaxWidth().height(56.dp),

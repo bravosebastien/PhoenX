@@ -24,6 +24,7 @@ workManager = "2.9.1"
 room = "2.7.0-alpha11"
 ksp = "2.1.10-1.0.29"
 rive = "0.13.0"
+biometric = "1.2.0-alpha05"
 argon2 = "2.11"
 googleAiEdge = "0.0.1-exp02"
 googleFonts = "1.8.0"
@@ -72,6 +73,7 @@ hilt-work-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.
 
 # Security (Tink)
 tink-android = { group = "com.google.crypto.tink", name = "tink-android", version.ref = "tink" }
+biometric = { group = "androidx.biometric", name = "biometric-ktx", version.ref = "biometric" }
 
 # Gemini Nano (On-Device AI)
 google-aicore = { group = "com.google.ai.edge.aicore", name = "aicore", version.ref = "googleAiEdge" }

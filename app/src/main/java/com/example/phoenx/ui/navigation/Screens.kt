@@ -12,6 +12,7 @@ sealed class Screen(val route: String) {
     object Auth : Screen("auth") {
         object Login : Screen("auth/login")
         object Signup : Screen("auth/signup")
+        object Recovery : Screen("auth/recovery")
     }
     
     object Home : Screen("home")
@@ -70,6 +71,7 @@ sealed class Screen(val route: String) {
     object RecipientCube : Screen("recipient/cube")
     object RecipientFil : Screen("recipient/fil")
     object RecipientLibrary : Screen("recipient/library")
+    object RecipientDiscotheque : Screen("recipient/discotheque")
     object RecipientFavorites : Screen("recipient/favorites")
     object RecipientDetective : Screen("recipient/detective")
     object RecipientMessage : Screen("recipient/message/{id}") {

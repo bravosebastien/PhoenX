@@ -19,15 +19,27 @@ class PreferenceManager @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private val VOICE_MODE_KEY = booleanPreferencesKey("voice_mode_active")
+    private val BIOMETRIC_ENABLED_KEY = booleanPreferencesKey("biometric_enabled")
 
     val isVoiceModeActive: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
             preferences[VOICE_MODE_KEY] ?: false
         }
 
+    val isBiometricEnabled: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[BIOMETRIC_ENABLED_KEY] ?: false
+        }
+
     suspend fun setVoiceModeActive(active: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[VOICE_MODE_KEY] = active
+        }
+    }
+
+    suspend fun setBiometricEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[BIOMETRIC_ENABLED_KEY] = enabled
         }
     }
 }

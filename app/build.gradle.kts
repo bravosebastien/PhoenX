@@ -96,6 +96,7 @@ dependencies {
     // Security
     implementation(libs.tink.android)
     implementation(libs.argon2.jvm)
+    implementation(libs.biometric)
 
     // IA On-Device (Gemini Nano)
     implementation(libs.google.aicore)

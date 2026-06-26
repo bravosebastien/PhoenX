@@ -30,6 +30,7 @@ import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.recipient.RecipientCubeScreen
 import com.example.phoenx.ui.screens.recipient.RecipientScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
+import com.example.phoenx.ui.screens.recovery.RecoveryScreen
 import com.example.phoenx.ui.screens.worlds.WorldsScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
 import com.example.phoenx.ui.screens.settings.SettingsScreen
@@ -60,15 +61,32 @@ fun PhoenXNavGraph(
         }
         
         composable(Screen.Auth.Signup.route) {
-            AuthScreen(isSignup = true, onAuthSuccess = {
-                navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
-            })
+            AuthScreen(
+                isSignup = true, 
+                onAuthSuccess = {
+                    navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
+                },
+                onNavigateToRecovery = { navController.navigate(Screen.Auth.Recovery.route) }
+            )
         }
         
         composable(Screen.Auth.Login.route) {
-            AuthScreen(isSignup = false, onAuthSuccess = {
-                navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
-            })
+            AuthScreen(
+                isSignup = false, 
+                onAuthSuccess = {
+                    navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
+                },
+                onNavigateToRecovery = { navController.navigate(Screen.Auth.Recovery.route) }
+            )
+        }
+
+        composable(Screen.Auth.Recovery.route) {
+            RecoveryScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onSuccess = { 
+                    navController.navigate(Screen.Home.route) { popUpTo(Screen.Auth.Login.route) { inclusive = true } }
+                }
+            )
         }
 
         composable(Screen.Home.route) {
@@ -145,7 +163,20 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.RecipientCube.route) {
-            RecipientCubeScreen(onExit = { navController.popBackStack() })
+            RecipientCubeScreen(
+                onExit = { navController.popBackStack() },
+                onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.route) },
+                onNavigateToDiscotheque = { navController.navigate(Screen.RecipientDiscotheque.route) },
+                onNavigateToArchives = { navController.navigate(Screen.RecipientLibrary.route) } // Reuse library for now
+            )
+        }
+
+        composable(Screen.RecipientLibrary.route) {
+            PlaceholderScreen("Grande Bibliothèque (Textes & Lettres)")
+        }
+
+        composable(Screen.RecipientDiscotheque.route) {
+            PlaceholderScreen("Grande Discothèque (Audio & Mémos)")
         }
 
         composable(Screen.Essence.route) {
@@ -160,7 +191,8 @@ fun PhoenXNavGraph(
                 onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) },
                 onNavigateToRecipients = { navController.navigate("recipients") },
                 onNavigateToUniqueKey = { navController.navigate(Screen.UniqueKey.route) },
-                onNavigateToDetective = { navController.navigate(Screen.RecipientDetective.route) }
+                onNavigateToDetective = { navController.navigate(Screen.RecipientDetective.route) },
+                mainViewModel = mainViewModel
             )
         }
 

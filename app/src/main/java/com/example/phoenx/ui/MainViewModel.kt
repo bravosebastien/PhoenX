@@ -27,6 +27,9 @@ class MainViewModel @Inject constructor(
     val isVoiceModeActive: StateFlow<Boolean> = preferenceManager.isVoiceModeActive
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val isBiometricEnabled: StateFlow<Boolean> = preferenceManager.isBiometricEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     init {
         checkInactivity()
     }
@@ -56,6 +59,12 @@ class MainViewModel @Inject constructor(
             } else {
                 voiceManager.speak("Mode vocal désactivé.")
             }
+        }
+    }
+
+    fun toggleBiometric(enabled: Boolean) {
+        viewModelScope.launch {
+            preferenceManager.setBiometricEnabled(enabled)
         }
     }
 

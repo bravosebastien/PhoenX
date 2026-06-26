@@ -15,22 +15,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.phoenx.ui.theme.*
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.*
 
 /**
  * RecipientCubeScreen (Signature PHOEN-X 5.0)
  * L'interface immersive pour les Destinataires.
- * C'est ici que l'armoire Spline 3D sera affichée.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipientCubeScreen(
-    onExit: () -> Unit
+    onExit: () -> Unit,
+    onNavigateToLibrary: () -> Unit,
+    onNavigateToDiscotheque: () -> Unit,
+    onNavigateToArchives: () -> Unit
 ) {
     Scaffold(
-        containerColor = Color.Black, // Fond noir pur pour l'immersion 3D
+        containerColor = Color.Black,
         topBar = {
             TopAppBar(
                 title = { 
@@ -54,7 +53,7 @@ fun RecipientCubeScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // ZONE 3D SPLINE (Placeholder en attendant ton fichier)
+            // ZONE 3D SPLINE
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -68,7 +67,7 @@ fun RecipientCubeScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "Prête à accueillir ton design Spline 3D.",
+                        "Scannez l'objet pour l'explorer en 3D.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextTertiary,
                         fontStyle = FontStyle.Italic
@@ -76,7 +75,7 @@ fun RecipientCubeScreen(
                 }
             }
 
-            // NAVIGATION RAPIDE DES TIROIRS (Overlay)
+            // NAVIGATION RAPIDE DES TIROIRS
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -96,9 +95,9 @@ fun RecipientCubeScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    DrawerShortCut("Bibliothèque", "Textes")
-                    DrawerShortCut("Discothèque", "Audio")
-                    DrawerShortCut("Archives", "Photos")
+                    DrawerShortCut("Bibliothèque", "Textes", onNavigateToLibrary)
+                    DrawerShortCut("Discothèque", "Audio", onNavigateToDiscotheque)
+                    DrawerShortCut("Archives", "Photos", onNavigateToArchives)
                 }
             }
         }
@@ -106,8 +105,9 @@ fun RecipientCubeScreen(
 }
 
 @Composable
-fun DrawerShortCut(label: String, subtitle: String) {
+fun DrawerShortCut(label: String, subtitle: String, onClick: () -> Unit) {
     Surface(
+        onClick = onClick,
         color = SurfaceCard.copy(alpha = 0.3f),
         shape = MaterialTheme.shapes.medium,
         border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.2f)),

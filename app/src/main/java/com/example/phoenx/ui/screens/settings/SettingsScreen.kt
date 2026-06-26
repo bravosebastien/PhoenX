@@ -2,20 +2,19 @@ package com.example.phoenx.ui.screens.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Mail
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Key
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.RecordVoiceOver
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,8 +26,11 @@ fun SettingsScreen(
     onNavigateToReconciliation: () -> Unit,
     onNavigateToRecipients: () -> Unit,
     onNavigateToUniqueKey: () -> Unit,
-    onNavigateToDetective: () -> Unit
+    onNavigateToDetective: () -> Unit,
+    mainViewModel: MainViewModel
 ) {
+    val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
+
     Scaffold(
         containerColor = BackgroundPrimary,
         topBar = {
@@ -47,6 +49,7 @@ fun SettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
             Text("SÉCURITÉ ET TRANSMISSION", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
@@ -67,6 +70,30 @@ fun SettingsScreen(
                 icon = Icons.Default.Person,
                 onClick = onNavigateToRecipients
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Surface(
+                color = SurfaceCard,
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Fingerprint, null, tint = AccentPrimary)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Empreinte Digitale", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+                        Text("Ouverture sécurisée de l'application", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    }
+                    Switch(
+                        checked = isBiometricEnabled,
+                        onCheckedChange = { mainViewModel.toggleBiometric(it) },
+                        colors = SwitchDefaults.colors(checkedThumbColor = AccentPrimary)
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
