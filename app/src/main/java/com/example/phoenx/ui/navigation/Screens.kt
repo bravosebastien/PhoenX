@@ -59,6 +59,7 @@ sealed class Screen(val route: String) {
     
     object Depositary : Screen("depositary")
     object Essence : Screen("essence")
+    object UniqueKey : Screen("uniquekey")
     object Reconciliation : Screen("reconciliation")
     object Settings : Screen("settings")
     object ProtocolSettings : Screen("settings/protocol")

@@ -63,4 +63,14 @@ interface OfflineEntryDao {
 
     @Query("DELETE FROM depositaries")
     suspend fun clearDepositaries()
+
+    // Legacies
+    @Query("SELECT * FROM legacies ORDER BY createdAt DESC")
+    fun getAllLegacies(): Flow<List<LegacyEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLegacy(legacy: LegacyEntity)
+
+    @Delete
+    suspend fun deleteLegacy(legacy: LegacyEntity)
 }

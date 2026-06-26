@@ -19,6 +19,8 @@ import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.home.HomeScreen
 import com.example.phoenx.ui.screens.onboarding.OnboardingScreen
 import com.example.phoenx.ui.screens.portrait.EssencePortraitScreen
+import com.example.phoenx.ui.screens.legacy.LegacyPreparationScreen
+import com.example.phoenx.ui.screens.legacy.UniqueKeyScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
@@ -79,7 +81,8 @@ fun PhoenXNavGraph(
                 onNavigateToWorlds = { navController.navigate(Screen.Worlds.route) },
                 onNavigateToFavorites = { navController.navigate(Screen.Favorites.route) },
                 onNavigateToQuestions = { navController.navigate(Screen.Questions.route) },
-                onNavigateToMailbox = { /* TODO */ },
+                onNavigateToMailbox = { navController.navigate(Screen.RecipientMailbox.route) },
+                onNavigateToLegacy = { navController.navigate(Screen.NewLegacy.route) },
                 mainViewModel = mainViewModel
             )
         }
@@ -147,8 +150,13 @@ fun PhoenXNavGraph(
                 onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
                 onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
                 onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) },
-                onNavigateToRecipients = { navController.navigate("recipients") }
+                onNavigateToRecipients = { navController.navigate("recipients") },
+                onNavigateToUniqueKey = { navController.navigate(Screen.UniqueKey.route) }
             )
+        }
+
+        composable(Screen.UniqueKey.route) {
+            UniqueKeyScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Reconciliation.route) {
@@ -164,6 +172,14 @@ fun PhoenXNavGraph(
                 onNavigateBack = { navController.popBackStack() },
                 mainViewModel = mainViewModel
             )
+        }
+
+        composable(Screen.NewLegacy.route) {
+            LegacyPreparationScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.RecipientMailbox.route) {
+            PlaceholderScreen("Boîte aux Lettres (Bientôt)")
         }
 
         composable(Screen.Depositary.route) {

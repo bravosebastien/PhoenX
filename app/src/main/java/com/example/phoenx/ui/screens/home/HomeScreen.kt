@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -47,7 +48,8 @@ fun HomeScreen(
     onNavigateToFavorites: () -> Unit,
     onNavigateToQuestions: () -> Unit,
     onNavigateToMailbox: () -> Unit,
-    mainViewModel: MainViewModel, // Injected from NavGraph
+    onNavigateToLegacy: () -> Unit,
+    mainViewModel: MainViewModel,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -64,9 +66,9 @@ fun HomeScreen(
         containerColor = BackgroundPrimary,
         bottomBar = { 
             PhoenXBottomBar(
-                onCaptureClick = { onNavigateToCapture(Screen.Capture.TYPE_TEXT, null) },
                 onFilClick = onNavigateToFil,
-                onIAClick = onNavigateToEssence
+                onIAClick = onNavigateToEssence,
+                onLegacyClick = onNavigateToLegacy
             ) 
         }
     ) { padding ->
@@ -600,9 +602,9 @@ fun ProofOfLifeBadge(days: Int, onClick: () -> Unit) {
 
 @Composable
 fun PhoenXBottomBar(
-    onCaptureClick: () -> Unit = {},
     onFilClick: () -> Unit = {},
-    onIAClick: () -> Unit = {}
+    onIAClick: () -> Unit = {},
+    onLegacyClick: () -> Unit = {}
 ) {
     NavigationBar(
         containerColor = BackgroundPrimary.copy(alpha = 0.95f),
@@ -624,15 +626,15 @@ fun PhoenXBottomBar(
         )
         NavigationBarItem(
             selected = false,
-            onClick = onCaptureClick,
-            icon = { Icon(Icons.Default.AddCircleOutline, null) },
-            label = { Text("Capturer", style = MaterialTheme.typography.labelSmall) }
-        )
-        NavigationBarItem(
-            selected = false,
             onClick = onFilClick,
             icon = { Icon(Icons.Default.Timeline, null) },
             label = { Text("Mon Fil", style = MaterialTheme.typography.labelSmall) }
+        )
+        NavigationBarItem(
+            selected = false,
+            onClick = onLegacyClick,
+            icon = { Icon(Icons.AutoMirrored.Filled.Send, null) },
+            label = { Text("Transmettre", style = MaterialTheme.typography.labelSmall) }
         )
         NavigationBarItem(
             selected = false,

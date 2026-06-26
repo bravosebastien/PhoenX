@@ -7,6 +7,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material3.*
@@ -23,7 +24,8 @@ fun SettingsScreen(
     onNavigateToProtocol: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
     onNavigateToReconciliation: () -> Unit,
-    onNavigateToRecipients: () -> Unit
+    onNavigateToRecipients: () -> Unit,
+    onNavigateToUniqueKey: () -> Unit
 ) {
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -62,6 +64,15 @@ fun SettingsScreen(
                 subtitle = "Gère tes destinataires",
                 icon = Icons.Default.Person,
                 onClick = onNavigateToRecipients
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(
+                title = "Le Tiroir à Clé Unique",
+                subtitle = "Ton secret le plus précieux",
+                icon = Icons.Default.Key,
+                onClick = onNavigateToUniqueKey
             )
 
             Spacer(modifier = Modifier.height(16.dp))
