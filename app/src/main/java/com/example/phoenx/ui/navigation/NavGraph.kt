@@ -28,6 +28,8 @@ import com.example.phoenx.ui.screens.mailbox.MailboxScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.recipient.RecipientCubeScreen
+import com.example.phoenx.ui.screens.recipient.RecipientDiscothequeScreen
+import com.example.phoenx.ui.screens.recipient.RecipientLibraryScreen
 import com.example.phoenx.ui.screens.recipient.RecipientScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.recovery.RecoveryScreen
@@ -172,11 +174,11 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.RecipientLibrary.route) {
-            PlaceholderScreen("Grande Bibliothèque (Textes & Lettres)")
+            RecipientLibraryScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.RecipientDiscotheque.route) {
-            PlaceholderScreen("Grande Discothèque (Audio & Mémos)")
+            RecipientDiscothequeScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Essence.route) {
