@@ -41,16 +41,24 @@ class RecipientMediaViewModel @Inject constructor(
             offlineEntryDao.getAllEntries().collectLatest { offlineEntries ->
                 val decoded = offlineEntries.map { it.toDomain(encryptionManager) }
                 
-                _libraryEntries.value = decoded.filter { it.type == EntryType.THOUGHT || it.isYoungSelfLetter }
-                _discothequeEntries.value = decoded.filter { it.type == EntryType.NIGHT_CAPTURE || it.type == EntryType.EMOTION } // Mapping to Audio
-                _archiveEntries.value = decoded.filter { it.type == EntryType.LEGACY } // Mapping to Photos/Videos for now
+                _libraryEntries.value = decoded.filter { 
+                    it.type == EntryType.THOUGHT || it.isYoungSelfLetter || it.type == EntryType.LEGACY 
+                }
+                _discothequeEntries.value = decoded.filter { 
+                    it.type == EntryType.AUDIO || it.type == EntryType.NIGHT_CAPTURE || it.type == EntryType.EMOTION 
+                }
+                _archiveEntries.value = decoded.filter { 
+                    it.type == EntryType.PHOTO || it.type == EntryType.VIDEO 
+                }
             }
         }
     }
 
     private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager): PhoenXEntry {
         val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
-        val decryptedText = encryptionManager.decryptText(encryptedPayload, tempKey)
+        val decryptedText = try { 
+            encryptionManager.decryptText(encryptedPayload, tempKey) 
+        } catch(e: Exception) { "Contenu chiffré" }
         
         val ageJson = JSONObject(ageAtCreation)
         val age = AgeSnapshot(
@@ -59,11 +67,20 @@ class RecipientMediaViewModel @Inject constructor(
             days = ageJson.getInt("days")
         )
 
+        val domainType = when(entryType) {
+            "TEXT" -> EntryType.THOUGHT
+            "AUDIO" -> EntryType.AUDIO
+            "PHOTO" -> EntryType.PHOTO
+            "VIDEO" -> EntryType.VIDEO
+            "NIGHT" -> EntryType.NIGHT_CAPTURE
+            else -> try { EntryType.valueOf(entryType) } catch(e: Exception) { EntryType.THOUGHT }
+        }
+
         return PhoenXEntry(
             id = id,
             ageAtCreation = age,
             encryptedContent = decryptedText.toByteArray(),
-            type = try { EntryType.valueOf(entryType) } catch(e: Exception) { EntryType.THOUGHT },
+            type = domainType,
             isYoungSelfLetter = isYoungSelfLetter,
             targetAge = targetAge,
             timestamp = Instant.ofEpochMilli(createdAt),

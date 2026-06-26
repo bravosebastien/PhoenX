@@ -27,6 +27,7 @@ import com.example.phoenx.ui.screens.favorites.FavoritesScreen
 import com.example.phoenx.ui.screens.mailbox.MailboxScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
+import com.example.phoenx.ui.screens.recipient.RecipientArchiveScreen
 import com.example.phoenx.ui.screens.recipient.RecipientCubeScreen
 import com.example.phoenx.ui.screens.recipient.RecipientDiscothequeScreen
 import com.example.phoenx.ui.screens.recipient.RecipientLibraryScreen
@@ -169,8 +170,12 @@ fun PhoenXNavGraph(
                 onExit = { navController.popBackStack() },
                 onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.route) },
                 onNavigateToDiscotheque = { navController.navigate(Screen.RecipientDiscotheque.route) },
-                onNavigateToArchives = { navController.navigate(Screen.RecipientLibrary.route) } // Reuse library for now
+                onNavigateToArchives = { navController.navigate(Screen.RecipientFavorites.route) } // Use favorites route for archives for now if needed, or better:
             )
+        }
+
+        composable(Screen.RecipientFavorites.route) { // We'll use this for Archive screen for now or create a specific one
+            RecipientArchiveScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.RecipientLibrary.route) {

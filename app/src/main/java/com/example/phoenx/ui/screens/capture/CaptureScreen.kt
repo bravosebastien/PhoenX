@@ -282,6 +282,7 @@ fun CaptureScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedOptionsContent(
     enigmaQuestion: String,
@@ -347,13 +348,30 @@ fun AdvancedOptionsContent(
                 .format(Instant.ofEpochMilli(it))
         } ?: "Choisir une date"
         
+        var showDatePicker by remember { mutableStateOf(false) }
+        val datePickerState = rememberDatePickerState()
+
         OutlinedButton(
-            onClick = { /* TODO: Show DatePicker */ },
+            onClick = { showDatePicker = true },
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp)
         ) {
             Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Text(dateText)
+        }
+
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        onScheduledTimestampChange(datePickerState.selectedDateMillis)
+                        showDatePicker = false
+                    }) { Text("Confirmer", color = AccentPrimary) }
+                }
+            ) {
+                DatePicker(state = datePickerState)
+            }
         }
     }
 }
