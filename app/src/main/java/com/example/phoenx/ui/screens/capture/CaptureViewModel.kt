@@ -9,6 +9,7 @@ import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.haptic.HapticManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.domain.util.AgeUtils
 import com.example.phoenx.ui.navigation.Screen
 import com.google.firebase.auth.FirebaseAuth
@@ -37,6 +38,21 @@ class CaptureViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<CaptureUiState>(CaptureUiState.Idle)
     val uiState: StateFlow<CaptureUiState> = _uiState
 
+    private val _recipients = MutableStateFlow<List<RecipientEntity>>(emptyList())
+    val recipients: StateFlow<List<RecipientEntity>> = _recipients
+
+    init {
+        loadRecipients()
+    }
+
+    private fun loadRecipients() {
+        viewModelScope.launch {
+            offlineEntryDao.getAllRecipients().collect { list ->
+                _recipients.value = list
+            }
+        }
+    }
+
     private var currentAudioFile: File? = null
 
     fun startAudioRecording(cacheDir: File) {
@@ -58,6 +74,7 @@ class CaptureViewModel @Inject constructor(
         type: String,
         category: String,
         visibility: String,
+        recipientIds: List<String> = emptyList(),
         isYoungSelfLetter: Boolean = false,
         targetAge: Int? = null,
         enigmaQuestion: String? = null,
@@ -91,6 +108,7 @@ class CaptureViewModel @Inject constructor(
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",
                     emotionalCategory = category,
                     visibility = visibility,
+                    recipientIds = recipientIds.joinToString(","),
                     isYoungSelfLetter = isYoungSelfLetter,
                     targetAge = targetAge,
                     createdAt = System.currentTimeMillis(),

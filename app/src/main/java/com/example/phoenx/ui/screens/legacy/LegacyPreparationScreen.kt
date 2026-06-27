@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
@@ -27,6 +28,7 @@ import com.example.phoenx.ui.theme.*
 @Composable
 fun LegacyPreparationScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToRecipients: () -> Unit,
     viewModel: LegacyPreparationViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -54,7 +56,8 @@ fun LegacyPreparationScreen(
                 RecipientSelectionList(
                     padding = padding,
                     recipients = uiState.recipients,
-                    onSelect = { selectedRecipient = it }
+                    onSelect = { selectedRecipient = it },
+                    onAddRecipient = onNavigateToRecipients
                 )
             } else {
                 EntrySelectionList(
@@ -82,7 +85,8 @@ fun LegacyPreparationScreen(
 fun RecipientSelectionList(
     padding: PaddingValues,
     recipients: List<RecipientEntity>,
-    onSelect: (RecipientEntity) -> Unit
+    onSelect: (RecipientEntity) -> Unit,
+    onAddRecipient: () -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),
@@ -92,6 +96,21 @@ fun RecipientSelectionList(
         item {
             Text("Choisissez à qui vous voulez transmettre des souvenirs.", style = MaterialTheme.typography.bodyLarge, color = TextSecondary)
         }
+        
+        if (recipients.isEmpty()) {
+            item {
+                Button(
+                    onClick = onAddRecipient,
+                    modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard)
+                ) {
+                    Icon(Icons.Default.Add, null, tint = AccentPrimary)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Ajouter une personne au cercle", color = TextPrimary)
+                }
+            }
+        }
+
         items(recipients) { recipient ->
             Surface(
                 onClick = { onSelect(recipient) },

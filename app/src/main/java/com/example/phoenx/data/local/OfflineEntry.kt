@@ -12,6 +12,7 @@ data class OfflineEntry(
     val ageAtCreation: String, // Stocké en JSON
     val emotionalCategory: String,
     val visibility: String,
+    val recipientIds: String = "", // IDs des destinataires séparés par des virgules (Signature 5.0)
     val isYoungSelfLetter: Boolean = false,
     val targetAge: Int? = null,
     val createdAt: Long = System.currentTimeMillis(),

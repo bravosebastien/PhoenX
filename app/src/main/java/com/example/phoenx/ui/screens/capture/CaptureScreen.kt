@@ -85,6 +85,8 @@ fun CaptureScreen(
     var text by remember { mutableStateOf(initialText) }
     var selectedCategory by remember { mutableStateOf("Sagesse") }
     var visibility by remember { mutableStateOf("Privé") }
+    val selectedRecipientIds = remember { mutableStateListOf<String>() }
+    val recipients by viewModel.recipients.collectAsState()
     
     // OPTIONS AVANCÉES (ADN 5.0)
     var showAdvancedOptions by remember { mutableStateOf(false) }
@@ -166,6 +168,7 @@ fun CaptureScreen(
                                     type = initialType, 
                                     category = selectedCategory, 
                                     visibility = visibility,
+                                    recipientIds = selectedRecipientIds.toList(),
                                     enigmaQuestion = if (enigmaQuestion.isNotBlank()) enigmaQuestion else null,
                                     enigmaAnswer = if (enigmaAnswer.isNotBlank()) enigmaAnswer else null,
                                     scheduledTimestamp = scheduledTimestamp
@@ -238,7 +241,9 @@ fun CaptureScreen(
                                 text = text,
                                 onTextChange = { text = it },
                                 selectedCategory = selectedCategory,
-                                onCategoryChange = { selectedCategory = it }
+                                onCategoryChange = { selectedCategory = it },
+                                recipients = recipients,
+                                selectedRecipientIds = selectedRecipientIds
                             )
                         }
                     }
@@ -430,7 +435,9 @@ fun TextCaptureContent(
     text: String,
     onTextChange: (String) -> Unit,
     selectedCategory: String,
-    onCategoryChange: (String) -> Unit
+    onCategoryChange: (String) -> Unit,
+    recipients: List<com.example.phoenx.data.local.RecipientEntity>,
+    selectedRecipientIds: MutableList<String>
 ) {
     Column(
         modifier = Modifier
@@ -454,6 +461,36 @@ fun TextCaptureContent(
                 unfocusedIndicatorColor = Color.Transparent
             )
         )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        if (recipients.isEmpty()) {
+            Text("Personne dans ton cercle. Ajoute tes proches dans l'accueil.", style = MaterialTheme.typography.bodySmall, color = TextTertiary)
+        } else {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                recipients.forEach { recipient ->
+                    val isSelected = selectedRecipientIds.contains(recipient.id)
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = {
+                            if (isSelected) selectedRecipientIds.remove(recipient.id)
+                            else selectedRecipientIds.add(recipient.id)
+                        },
+                        label = { Text(recipient.name) },
+                        leadingIcon = if (isSelected) {
+                            { Icon(Icons.Default.Check, null, modifier = Modifier.size(12.dp)) }
+                        } else null,
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = AccentPrimary.copy(alpha = 0.2f),
+                            selectedLabelColor = AccentPrimary
+                        )
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 

@@ -29,6 +29,7 @@ import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.recipient.RecipientArchiveScreen
 import com.example.phoenx.ui.screens.recipient.RecipientCubeScreen
+import com.example.phoenx.ui.screens.recipient.RecipientDetailScreen
 import com.example.phoenx.ui.screens.recipient.RecipientDiscothequeScreen
 import com.example.phoenx.ui.screens.recipient.RecipientLibraryScreen
 import com.example.phoenx.ui.screens.recipient.RecipientScreen
@@ -108,6 +109,7 @@ fun PhoenXNavGraph(
                 onNavigateToMailbox = { navController.navigate(Screen.RecipientMailbox.route) },
                 onNavigateToLegacy = { navController.navigate(Screen.NewLegacy.route) },
                 onNavigateToCube = { navController.navigate(Screen.RecipientCube.route) },
+                onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
                 mainViewModel = mainViewModel
             )
         }
@@ -153,16 +155,35 @@ fun PhoenXNavGraph(
             )
         }
 
-        composable(Screen.Portraits.route) {
-            PortraitScreen(onNavigateBack = { navController.popBackStack() })
+        composable(
+            route = Screen.Portraits.route,
+            arguments = listOf(navArgument("recipientId") { nullable = true })
+        ) { backStackEntry ->
+            val recipientId = backStackEntry.arguments?.getString("recipientId")
+            PortraitScreen(
+                initialRecipientId = recipientId,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.Pact.route) {
             PactScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable("recipients") { // New route for circle management
-            RecipientScreen(onNavigateBack = { navController.popBackStack() })
+        composable(Screen.Recipients.route) { // New route for circle management
+            RecipientScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { id -> navController.navigate(Screen.RecipientDetail.createRoute(id)) }
+            )
+        }
+
+        composable(Screen.RecipientDetail.route) { backStackEntry ->
+            val recipientId = backStackEntry.arguments?.getString("recipientId") ?: ""
+            RecipientDetailScreen(
+                recipientId = recipientId,
+                onNavigateBack = { navController.popBackStack() },
+                onComposePortrait = { id -> navController.navigate(Screen.Portraits.createRoute(id)) }
+            )
         }
 
         composable(Screen.RecipientCube.route) {
@@ -196,7 +217,7 @@ fun PhoenXNavGraph(
                 onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
                 onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
                 onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) },
-                onNavigateToRecipients = { navController.navigate("recipients") },
+                onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
                 onNavigateToUniqueKey = { navController.navigate(Screen.UniqueKey.route) },
                 onNavigateToDetective = { navController.navigate(Screen.RecipientDetective.route) },
                 mainViewModel = mainViewModel
@@ -223,7 +244,10 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.NewLegacy.route) {
-            LegacyPreparationScreen(onNavigateBack = { navController.popBackStack() })
+            LegacyPreparationScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) }
+            )
         }
 
         composable(Screen.RecipientMailbox.route) {

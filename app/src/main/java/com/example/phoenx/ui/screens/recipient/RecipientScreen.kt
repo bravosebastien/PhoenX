@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.recipient
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,6 +27,7 @@ import com.example.phoenx.ui.theme.*
 @Composable
 fun RecipientScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToDetail: (String) -> Unit,
     viewModel: RecipientViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -71,7 +73,8 @@ fun RecipientScreen(
                             items(state.recipients) { recipient ->
                                 RecipientCard(
                                     recipient = recipient,
-                                    onDelete = { viewModel.deleteRecipient(recipient) }
+                                    onDelete = { viewModel.deleteRecipient(recipient) },
+                                    onClick = { onNavigateToDetail(recipient.id) }
                                 )
                             }
                         }
@@ -93,9 +96,9 @@ fun RecipientScreen(
 }
 
 @Composable
-fun RecipientCard(recipient: RecipientEntity, onDelete: () -> Unit) {
+fun RecipientCard(recipient: RecipientEntity, onDelete: () -> Unit, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().phoenXMatiere(),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).phoenXMatiere(),
         colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
         shape = MaterialTheme.shapes.large
     ) {

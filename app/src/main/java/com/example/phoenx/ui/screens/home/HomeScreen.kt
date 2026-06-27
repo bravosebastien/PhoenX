@@ -51,6 +51,7 @@ fun HomeScreen(
     onNavigateToMailbox: () -> Unit,
     onNavigateToLegacy: () -> Unit,
     onNavigateToCube: () -> Unit,
+    onNavigateToRecipients: () -> Unit,
     mainViewModel: MainViewModel,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -104,6 +105,10 @@ fun HomeScreen(
                 ImpulseSection(onNavigateToCapture)
 
                 Spacer(modifier = Modifier.height(48.dp))
+
+                RecipientsCard(onNavigateToRecipients)
+
+                Spacer(modifier = Modifier.height(24.dp))
 
                 TimelinePreviewCard(uiState.entryCount, uiState.minAge, uiState.currentAge, onNavigateToFil)
 
@@ -308,6 +313,30 @@ fun QuickActionIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+    }
+}
+
+@Composable
+fun RecipientsCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clickable(onClick = onClick)
+            .phoenXMatiere(isPaper = false),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
+    ) {
+        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Groups, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(20.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("MON CERCLE DE CONFIANCE", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                Text("Gérer tes proches et leurs accès", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+            }
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+        }
     }
 }
 
