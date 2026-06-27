@@ -52,6 +52,7 @@ fun HomeScreen(
     onNavigateToLegacy: () -> Unit,
     onNavigateToCube: () -> Unit,
     onNavigateToRecipients: () -> Unit,
+    onNavigateToMap: () -> Unit,
     mainViewModel: MainViewModel,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -123,6 +124,10 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 FavoritesCard(onNavigateToFavorites)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                MapCard(onNavigateToMap)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -469,6 +474,30 @@ fun QuestionsCard(onClick: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 Text("100 QUESTIONS", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
                 Text("Raconte ta vie pas à pas", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+            }
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+        }
+    }
+}
+
+@Composable
+fun MapCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clickable(onClick = onClick)
+            .phoenXMatiere(isPaper = false),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
+    ) {
+        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.Public, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(20.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("MA MAPPEMONDE", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                Text("Épingler mes voyages et souvenirs", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
             }
             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
         }

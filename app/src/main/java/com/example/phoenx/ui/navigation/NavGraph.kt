@@ -18,6 +18,7 @@ import com.example.phoenx.ui.screens.depositary.DepositaryScreen
 import com.example.phoenx.ui.screens.detective.DetectiveScreen
 import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.home.HomeScreen
+import com.example.phoenx.ui.screens.map.MapScreen
 import com.example.phoenx.ui.screens.onboarding.OnboardingScreen
 import com.example.phoenx.ui.screens.portrait.EssencePortraitScreen
 import com.example.phoenx.ui.screens.legacy.LegacyPreparationScreen
@@ -110,6 +111,7 @@ fun PhoenXNavGraph(
                 onNavigateToLegacy = { navController.navigate(Screen.NewLegacy.route) },
                 onNavigateToCube = { navController.navigate(Screen.RecipientCube.route) },
                 onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
+                onNavigateToMap = { navController.navigate(Screen.Map.route) },
                 mainViewModel = mainViewModel
             )
         }
@@ -140,6 +142,10 @@ fun PhoenXNavGraph(
 
         composable(Screen.Favorites.route) {
             FavoritesScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Map.route) {
+            MapScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Questions.route) {

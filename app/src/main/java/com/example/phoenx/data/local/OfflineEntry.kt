@@ -12,7 +12,7 @@ data class OfflineEntry(
     val ageAtCreation: String, // Stocké en JSON
     val emotionalCategory: String,
     val visibility: String,
-    val recipientIds: String = "", // IDs des destinataires séparés par des virgules (Signature 5.0)
+    val recipientIds: String = "",
     val isYoungSelfLetter: Boolean = false,
     val targetAge: Int? = null,
     val createdAt: Long = System.currentTimeMillis(),
@@ -20,12 +20,17 @@ data class OfflineEntry(
     
     // CHAMPS IA LOCALE (Signature 5.0)
     val aiSummary: String = "",
-    val aiTags: String = "", // Tags séparés par des virgules pour Room
+    val aiTags: String = "",
 
     // MODE DÉTECTIVE & BOÎTE AUX LETTRES (ADN 5.0)
     val enigmaQuestion: String? = null,
     val enigmaAnswer: String? = null,
-    val scheduledTimestamp: Long? = null
+    val scheduledTimestamp: Long? = null,
+
+    // GÉOLOCALISATION (Signature 5.0 - La Mappemonde)
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val locationName: String? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -49,6 +54,9 @@ data class OfflineEntry(
         if (enigmaQuestion != other.enigmaQuestion) return false
         if (enigmaAnswer != other.enigmaAnswer) return false
         if (scheduledTimestamp != other.scheduledTimestamp) return false
+        if (latitude != other.latitude) return false
+        if (longitude != other.longitude) return false
+        if (locationName != other.locationName) return false
 
         return true
     }
@@ -70,6 +78,9 @@ data class OfflineEntry(
         result = 31 * result + (enigmaQuestion?.hashCode() ?: 0)
         result = 31 * result + (enigmaAnswer?.hashCode() ?: 0)
         result = 31 * result + (scheduledTimestamp?.hashCode() ?: 0)
+        result = 31 * result + (latitude?.hashCode() ?: 0)
+        result = 31 * result + (longitude?.hashCode() ?: 0)
+        result = 31 * result + (locationName?.hashCode() ?: 0)
         return result
     }
 }
