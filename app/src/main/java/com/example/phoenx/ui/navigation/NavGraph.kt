@@ -25,6 +25,8 @@ import com.example.phoenx.ui.screens.legacy.LegacyPreparationScreen
 import com.example.phoenx.ui.screens.legacy.UniqueKeyScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
+import com.example.phoenx.ui.screens.library.LibraryScreen
+import com.example.phoenx.ui.screens.library.ViewerMode
 import com.example.phoenx.ui.screens.mailbox.MailboxScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
@@ -112,6 +114,7 @@ fun PhoenXNavGraph(
                 onNavigateToCube = { navController.navigate(Screen.RecipientCube.route) },
                 onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
                 onNavigateToMap = { navController.navigate(Screen.Map.route) },
+                onNavigateToLibrary = { navController.navigate(Screen.Library.route) },
                 mainViewModel = mainViewModel
             )
         }
@@ -146,6 +149,14 @@ fun PhoenXNavGraph(
 
         composable(Screen.Map.route) {
             MapScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Library.route) {
+            LibraryScreen(
+                navController = navController,
+                creatorId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
+                viewerMode = ViewerMode.CREATOR_PREVIEW
+            )
         }
 
         composable(Screen.Questions.route) {

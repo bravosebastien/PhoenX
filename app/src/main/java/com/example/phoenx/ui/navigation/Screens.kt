@@ -38,6 +38,7 @@ sealed class Screen(val route: String) {
     }
     
     object Worlds : Screen("worlds")
+    object Library : Screen("library/preview")
     object Map : Screen("map")
     object Favorites : Screen("favorites")
     object Questions : Screen("questions")

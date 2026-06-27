@@ -53,6 +53,7 @@ fun HomeScreen(
     onNavigateToCube: () -> Unit,
     onNavigateToRecipients: () -> Unit,
     onNavigateToMap: () -> Unit,
+    onNavigateToLibrary: () -> Unit,
     mainViewModel: MainViewModel,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -140,6 +141,23 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 PortraitsOfLovedOnesCard(onNavigateToPortraits)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                OutlinedButton(
+                    onClick = onNavigateToLibrary,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp)
+                        .height(56.dp)
+                        .phoenXMatiere(),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.5f)),
+                    shape = MaterialTheme.shapes.medium
+                ) {
+                    Icon(Icons.Default.AutoStories, null, tint = AccentPrimary)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("👁 Voir ma bibliothèque", color = AccentPrimary)
+                }
 
                 Spacer(modifier = Modifier.height(48.dp))
                 
