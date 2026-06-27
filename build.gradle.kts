@@ -7,4 +7,5 @@ plugins {
     id("com.github.ben-manes.versions") version "0.51.0" apply false
     id("org.jetbrains.kotlin.plugin.compose") version "2.1.10" apply false
     id("com.google.devtools.ksp") version "2.1.10-1.0.29" apply false
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin") version "2.0.1" apply false
 }

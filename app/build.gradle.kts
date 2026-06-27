@@ -6,6 +6,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.github.ben-manes.versions")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -109,6 +110,9 @@ dependencies {
 
     // Rive (Animations)
     implementation(libs.rive.android)
+
+    // Maps
+    implementation("com.google.android.gms:play-services-maps:19.0.0")
 
     // Images
     implementation(libs.coil.compose)
