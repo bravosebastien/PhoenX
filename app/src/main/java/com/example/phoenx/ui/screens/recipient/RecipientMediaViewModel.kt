@@ -48,11 +48,17 @@ class RecipientMediaViewModel @Inject constructor(
                     it.type == EntryType.AUDIO || it.type == EntryType.NIGHT_CAPTURE || it.type == EntryType.EMOTION 
                 }
                 _archiveEntries.value = decoded.filter { 
-                    it.type == EntryType.PHOTO || it.type == EntryType.VIDEO 
+                    it.type == EntryType.PHOTO 
+                }
+                _videoEntries.value = decoded.filter {
+                    it.type == EntryType.VIDEO
                 }
             }
         }
     }
+
+    private val _videoEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
+    val videoEntries: StateFlow<List<PhoenXEntry>> = _videoEntries
 
     private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager): PhoenXEntry {
         val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())

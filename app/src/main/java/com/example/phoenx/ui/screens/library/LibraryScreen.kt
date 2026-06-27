@@ -6,6 +6,9 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -78,8 +81,12 @@ fun LibraryScreen(
                         Text(
                             text = if (viewerMode == ViewerMode.CREATOR_PREVIEW) "Ta Bibliothèque" else "La bibliothèque de ${uiState.creatorName}",
                             style = MaterialTheme.typography.headlineMedium,
-                            color = TextPrimary
+                            color = TextPrimary,
+                            modifier = Modifier.weight(1f)
                         )
+                        IconButton(onClick = { navController.navigate("questions_room") }) {
+                            Icon(Icons.Default.Search, null, tint = AccentPrimary)
+                        }
                     }
                 }
 

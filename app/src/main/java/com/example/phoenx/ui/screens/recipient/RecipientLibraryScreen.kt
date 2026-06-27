@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.domain.model.PhoenXEntry
+import com.example.phoenx.ui.components.BookItem
 import com.example.phoenx.ui.components.BookRevealMode
 import com.example.phoenx.ui.theme.*
 
@@ -88,51 +89,4 @@ fun RecipientLibraryScreen(
     }
 }
 
-@Composable
-fun BookItem(entry: PhoenXEntry, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .phoenXMatiere(isPaper = true),
-        colors = CardDefaults.cardColors(containerColor = MateriauPapier.copy(alpha = 0.9f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.1f))
-    ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.AutoStories, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "À ${entry.ageAtCreation.years} ans",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AccentPrimary,
-                    letterSpacing = 1.sp
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text(
-                text = entry.aiSummary.ifEmpty { "Fragment de pensée..." },
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF24211F)
-                )
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Text(
-                text = String(entry.encryptedContent),
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    lineHeight = 24.sp,
-                    fontStyle = FontStyle.Italic,
-                    color = Color(0xFF4A4542)
-                ),
-                maxLines = 5,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-            )
-        }
-    }
-}
+

@@ -30,12 +30,14 @@ import com.example.phoenx.ui.screens.library.ViewerMode
 import com.example.phoenx.ui.screens.mailbox.MailboxScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
+import com.example.phoenx.ui.screens.questionsroom.QuestionsRoomScreen
 import com.example.phoenx.ui.screens.recipient.RecipientArchiveScreen
 import com.example.phoenx.ui.screens.recipient.RecipientCubeScreen
 import com.example.phoenx.ui.screens.recipient.RecipientDetailScreen
 import com.example.phoenx.ui.screens.recipient.RecipientDiscothequeScreen
 import com.example.phoenx.ui.screens.recipient.RecipientLibraryScreen
 import com.example.phoenx.ui.screens.recipient.RecipientScreen
+import com.example.phoenx.ui.screens.recipient.RecipientVideothequeScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.recovery.RecoveryScreen
 import com.example.phoenx.ui.screens.worlds.WorldsScreen
@@ -163,6 +165,10 @@ fun PhoenXNavGraph(
             QuestionsScreen(onNavigateBack = { navController.popBackStack() })
         }
 
+        composable("questions_room") {
+            QuestionsRoomScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
         composable(Screen.Worlds.route) {
             WorldsScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -222,6 +228,10 @@ fun PhoenXNavGraph(
 
         composable(Screen.RecipientDiscotheque.route) {
             RecipientDiscothequeScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.RecipientVideotheque.route) {
+            RecipientVideothequeScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Essence.route) {

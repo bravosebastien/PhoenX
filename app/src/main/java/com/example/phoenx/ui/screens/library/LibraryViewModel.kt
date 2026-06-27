@@ -92,9 +92,9 @@ class LibraryViewModel @Inject constructor(
                 route = when(id) {
                     CompartmentId.BIBLIOTHEQUE -> "recipient/library"
                     CompartmentId.DISCOTHEQUE -> "recipient/discotheque"
-                    CompartmentId.VIDEOTHEQUE -> "recipient/favorites" // Archive for now
+                    CompartmentId.VIDEOTHEQUE -> "recipient/videotheque"
                     CompartmentId.MAPPEMONDE -> "map"
-                    CompartmentId.CENT_QUESTIONS -> "questions"
+                    CompartmentId.CENT_QUESTIONS -> "questions_room"
                     CompartmentId.COFFRE_FORT -> "recipient/detective"
                     else -> "home"
                 }

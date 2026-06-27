@@ -82,6 +82,7 @@ sealed class Screen(val route: String) {
     object RecipientFil : Screen("recipient/fil")
     object RecipientLibrary : Screen("recipient/library")
     object RecipientDiscotheque : Screen("recipient/discotheque")
+    object RecipientVideotheque : Screen("recipient/videotheque")
     object RecipientFavorites : Screen("recipient/favorites")
     object RecipientDetective : Screen("recipient/detective")
     object RecipientMessage : Screen("recipient/message/{id}") {
