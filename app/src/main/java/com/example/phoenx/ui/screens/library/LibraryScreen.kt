@@ -1,13 +1,11 @@
 package com.example.phoenx.ui.screens.library
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,7 +28,7 @@ fun LibraryScreen(
     creatorId: String,
     recipientId: String? = null,
     viewerMode: ViewerMode = ViewerMode.RECIPIENT_FULL,
-    viewModel: LibraryViewModel = hiltViewModel()
+    viewModel: LibraryViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val haptic = LocalHapticFeedback.current
@@ -77,7 +75,7 @@ fun LibraryScreen(
                         .background(Brush.verticalGradient(listOf(Color(0xFF1A1A1F), Color.Transparent)))
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
-                    Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = if (viewerMode == ViewerMode.CREATOR_PREVIEW) "Ta Bibliothèque" else "La bibliothèque de ${uiState.creatorName}",
                             style = MaterialTheme.typography.headlineMedium,
@@ -104,16 +102,15 @@ fun LibraryScreen(
                     items(uiState.compartments) { compartment ->
                         CompartmentCell(
                             compartment = compartment,
-                            glowIntensity = uiState.glowIntensity,
-                            onClick = {
-                                if (compartment.access == CompartmentAccess.OPEN) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    navController.navigate(compartment.route)
-                                } else {
-                                    viewModel.onCompartmentSelected(compartment)
-                                }
+                            glowIntensity = uiState.glowIntensity
+                        ) {
+                            if (compartment.access == CompartmentAccess.OPEN) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                navController.navigate(compartment.route)
+                            } else {
+                                viewModel.onCompartmentSelected(compartment)
                             }
-                        )
+                        }
                     }
                 }
             }
@@ -126,7 +123,7 @@ fun LibraryScreen(
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {
             uiState.selectedCompartment?.let {
-                LockedCompartmentPanel(it, onDismiss = { viewModel.onDismissCompartment() })
+                LockedCompartmentPanel(it) { viewModel.onDismissCompartment() }
             }
         }
     }
@@ -166,8 +163,8 @@ fun CompartmentCell(compartment: LibraryCompartment, glowIntensity: Float, onCli
             drawRect(Color(0xFF1C1410), topLeft = Offset(w*0.95f, 0f), size = Size(w*0.05f, h))
 
             // Contenu
-            translate(left = w*0.07f, top = h*0.08f) {
-                clipRect(right = w*0.86f, bottom = h*0.75f) {
+            translate(left = (w * 0.07f), top = (h * 0.08f)) {
+                clipRect(right = (w * 0.86f), bottom = (h * 0.75f)) {
                     drawCompartmentContent(compartment, glowIntensity)
                 }
             }
@@ -179,8 +176,8 @@ fun CompartmentCell(compartment: LibraryCompartment, glowIntensity: Float, onCli
         }
 
         Column(modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)))).padding(8.dp)) {
-            Text(compartment.title, style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
-            Text(if (isLocked) "Verrouillé" else compartment.subtitle, style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Text(compartment.title, style = MaterialTheme.typography.bodyMedium, color = if (isLocked) TextTertiary else TextPrimary)
+            Text(if (isLocked) "Contenu Scellé" else compartment.subtitle, style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
         }
     }
 }
@@ -189,16 +186,37 @@ fun DrawScope.drawLockIcon(access: CompartmentAccess) {
     val cx = size.width / 2f
     val cy = size.height / 2f
     val s = size.width * 0.15f
-    drawRoundRect(Color(0xFFC97B3A), topLeft = Offset(cx-s, cy-s*0.5f), size = Size(s*2, s*1.6f), cornerRadius = CornerRadius(4f))
+    
+    val lockColor = when(access) {
+        CompartmentAccess.LOCKED_DATE -> Color(0xFFE8A85F)
+        else -> Color(0xFFC97B3A)
+    }
+
+    drawRoundRect(
+        color = lockColor, 
+        topLeft = Offset(cx - s, cy - (s * 0.5f)), 
+        size = Size(s * 2, s * 1.6f), 
+        cornerRadius = CornerRadius(4f)
+    )
 }
 
 @Composable
 fun LockedCompartmentPanel(compartment: LibraryCompartment, onDismiss: () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth().padding(16.dp), colors = CardDefaults.cardColors(containerColor = Color(0xFF242429))) {
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(16.dp), 
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF242429)),
+        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+    ) {
         Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text("Compartiment Scellé", style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Ce tiroir n'est pas encore accessible.", color = TextSecondary)
+            val message = when(compartment.access) {
+                CompartmentAccess.LOCKED_DATE -> "Ce tiroir s'ouvrira à une date choisie par le Créateur."
+                CompartmentAccess.LOCKED_ENIGMA -> "Vous devez résoudre une énigme pour ouvrir ce secret."
+                CompartmentAccess.LOCKED_KEY -> "Une clé physique est nécessaire pour déverrouiller ce tiroir."
+                else -> "Ce compartiment n'est pas encore accessible."
+            }
+            Text(message, color = TextSecondary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)) {
                 Text("Fermer", color = BackgroundPrimary)

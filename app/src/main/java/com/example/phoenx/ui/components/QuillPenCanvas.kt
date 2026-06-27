@@ -19,7 +19,7 @@ fun QuillPenCanvas(
     progress: Float, // 0f à 1f sur la ligne
     currentLine: Int,
     isWriting: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val tremble by animateFloatAsState(
         targetValue = if (isWriting) 1f else 0f,
@@ -47,8 +47,8 @@ fun QuillPenCanvas(
         val h = size.height
 
         // Coordonnées de la pointe
-        val tipX = w * 0.07f + (w * 0.86f * progress) + (trembleX * tremble)
-        val tipY = h * 0.18f + (currentLine * h * 0.052f)
+        val tipX = (w * 0.07f) + (w * 0.86f * progress) + (trembleX * tremble)
+        val tipY = (h * 0.18f) + (currentLine * h * 0.052f)
 
         // 1. CORPS DE LA PLUME (Incliné)
         val angle = -40f * (PI / 180f).toFloat()

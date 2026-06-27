@@ -20,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RecipientMediaViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
-    private val encryptionManager: EncryptionManager
+    private val encryptionManager: EncryptionManager,
 ) : ViewModel() {
 
     private val _libraryEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
@@ -42,10 +42,10 @@ class RecipientMediaViewModel @Inject constructor(
                 val decoded = offlineEntries.map { it.toDomain(encryptionManager) }
                 
                 _libraryEntries.value = decoded.filter { 
-                    it.type == EntryType.THOUGHT || it.isYoungSelfLetter || it.type == EntryType.LEGACY 
+                    (it.type == EntryType.THOUGHT) || it.isYoungSelfLetter || (it.type == EntryType.LEGACY) 
                 }
                 _discothequeEntries.value = decoded.filter { 
-                    it.type == EntryType.AUDIO || it.type == EntryType.NIGHT_CAPTURE || it.type == EntryType.EMOTION 
+                    (it.type == EntryType.AUDIO) || (it.type == EntryType.NIGHT_CAPTURE) || (it.type == EntryType.EMOTION) 
                 }
                 _archiveEntries.value = decoded.filter { 
                     it.type == EntryType.PHOTO 
@@ -64,7 +64,7 @@ class RecipientMediaViewModel @Inject constructor(
         val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
         val decryptedText = try { 
             encryptionManager.decryptText(encryptedPayload, tempKey) 
-        } catch(e: Exception) { "Contenu chiffré" }
+        } catch(_: Exception) { "Contenu chiffré" }
         
         val ageJson = JSONObject(ageAtCreation)
         val age = AgeSnapshot(
@@ -79,7 +79,7 @@ class RecipientMediaViewModel @Inject constructor(
             "PHOTO" -> EntryType.PHOTO
             "VIDEO" -> EntryType.VIDEO
             "NIGHT" -> EntryType.NIGHT_CAPTURE
-            else -> try { EntryType.valueOf(entryType) } catch(e: Exception) { EntryType.THOUGHT }
+            else -> try { EntryType.valueOf(entryType) } catch(_: Exception) { EntryType.THOUGHT }
         }
 
         return PhoenXEntry(

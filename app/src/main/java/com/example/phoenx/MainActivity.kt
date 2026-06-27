@@ -36,15 +36,15 @@ class MainActivity : FragmentActivity() {
                 val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
                 val shouldShowGuide by mainViewModel.shouldShowWelcomeGuide.collectAsState()
                 
-                var isUnlocked by remember { mutableStateOf(false) }
-                var showGuide by remember { mutableStateOf(false) }
+                var isUnlocked by remember { mutableStateOf(value = false) }
+                var showGuide by remember { mutableStateOf(value = false) }
 
                 LaunchedEffect(isBiometricEnabled) {
                     if (isBiometricEnabled && !isUnlocked) {
                         biometricManager.showBiometricPrompt(
                             activity = this@MainActivity,
                             onSuccess = { isUnlocked = true },
-                            onError = { /* Log error, fallback to password */ }
+                            onError = { _ -> /* Log error, fallback to password */ },
                         )
                     } else {
                         isUnlocked = true
@@ -59,10 +59,10 @@ class MainActivity : FragmentActivity() {
                 }
 
                 if (showGuide) {
-                    WelcomeGuideScreen(onDismiss = { neverShowAgain ->
+                    WelcomeGuideScreen { neverShowAgain ->
                         mainViewModel.dismissWelcomeGuide(neverShowAgain)
                         showGuide = false
-                    })
+                    }
                 } else if (isUnlocked) {
                     MainContent()
                 } else {

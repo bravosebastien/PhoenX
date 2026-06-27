@@ -1,18 +1,17 @@
 package com.example.phoenx.ui.screens.guide
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -25,7 +24,7 @@ data class GuideStep(
     val title: String,
     val description: String,
     val icon: ImageVector,
-    val color: Color = AccentPrimary
+    val color: Color = AccentPrimary,
 )
 
 @Composable
@@ -51,7 +50,7 @@ fun WelcomeGuideScreen(
         GuideStep(
             "Transmettre à vos proches",
             "Choisissez qui recevra vos messages. Vous pouvez même programmer des envois pour le futur (ex: les 18 ans d'un enfant).",
-            Icons.Default.Send
+            Icons.AutoMirrored.Filled.Send
         ),
         GuideStep(
             "Sécurité Totale",
@@ -60,8 +59,8 @@ fun WelcomeGuideScreen(
         )
     )
 
-    val pagerState = rememberPagerState(pageCount = { steps.size })
-    var neverShowAgain by remember { mutableStateOf(false) }
+    val pagerState = rememberPagerState { steps.size }
+    var neverShowAgain by remember { mutableStateOf(value = false) }
 
     Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary)) {
         HorizontalPager(
@@ -89,7 +88,7 @@ fun WelcomeGuideScreen(
                 }
             }
 
-            if (pagerState.currentPage == steps.size - 1) {
+            if (pagerState.currentPage == (steps.size - 1)) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(bottom = 16.dp)

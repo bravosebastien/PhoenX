@@ -5,7 +5,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.drawscope.*
 
 /**
  * OpenBookCanvas (Signature PHOEN-X 5.0)
@@ -13,7 +12,7 @@ import androidx.compose.ui.graphics.drawscope.*
  */
 @Composable
 fun OpenBookCanvas(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Canvas(modifier = modifier) {
         val w = size.width
@@ -100,10 +99,10 @@ fun OpenBookCanvas(
         val lineStart = centerX + 20f
         val lineEnd = w * 0.90f
         val lineTop = h * 0.18f
-        val lineSpacing = (h * 0.70f - h * 0.18f) / 10f
+        val lineSpacing = (h * 0.70f - (h * 0.18f)) / 10f
 
         for (i in 0..9) {
-            val y = lineTop + i * lineSpacing
+            val y = lineTop + (i * lineSpacing)
             drawLine(
                 color = lineColor,
                 start = Offset(lineStart, y),

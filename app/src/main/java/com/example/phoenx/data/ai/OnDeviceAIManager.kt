@@ -15,7 +15,7 @@ data class LocalAnalysis(
     val summary: String,
     val tags: List<String>,
     val emotionalTone: String,
-    val lifePeriod: String
+    val lifePeriod: String,
 )
 
 @Singleton
@@ -40,7 +40,11 @@ class OnDeviceAIManager @Inject constructor() {
     private fun generateSummary(text: String): String {
         // Simulation Gemini Nano : Résumé de 20 mots max
         val words = text.split(" ")
-        return if (words.size > 15) words.take(15).joinToString(" ") + "..." else text
+        return if (words.size > 15) {
+            words.asSequence().take(n = 15).joinToString(separator = " ") + "..."
+        } else {
+            text
+        }
     }
 
     private fun extractTags(text: String): List<String> {
@@ -61,9 +65,9 @@ class OnDeviceAIManager @Inject constructor() {
 
     private fun determineLifePeriod(text: String): String {
         return when {
-            text.contains("enfant", true) || text.contains("petit", true) -> "Enfance"
-            text.contains("école", true) || text.contains("lycée", true) -> "Adolescence"
-            text.contains("travail", true) || text.contains("bureau", true) -> "Adulte"
+            text.contains("enfant", ignoreCase = true) || text.contains("petit", ignoreCase = true) -> "Enfance"
+            text.contains("école", ignoreCase = true) || text.contains("lycée", ignoreCase = true) -> "Adolescence"
+            text.contains("travail", ignoreCase = true) || text.contains("bureau", ignoreCase = true) -> "Adulte"
             else -> "Actuel"
         }
     }

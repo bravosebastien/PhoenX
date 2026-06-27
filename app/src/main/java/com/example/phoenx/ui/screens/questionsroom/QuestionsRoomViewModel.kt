@@ -21,7 +21,7 @@ import javax.inject.Inject
 class QuestionsRoomViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
-    private val aiManager: AIManager
+    private val aiManager: AIManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QuestionsRoomUiState())
@@ -39,8 +39,7 @@ class QuestionsRoomViewModel @Inject constructor(
                 val summariesWithIds = allEntries.map { it.id to it.aiSummary }
                 
                 // 2. Envoyer la question et les résumés à l'IA Cloud (Vertex AI)
-                // Note: En prod, on utiliserait une Cloud Function dédiée.
-                // Ici on simule la sélection sémantique par l'IA.
+                // Note: En prod, on utiliserait une Cloud Function via aiManager.
                 val relevantIds = performSimulatedSemanticSearch(query, summariesWithIds)
                 
                 // 3. Récupérer et déchiffrer les entrées correspondantes
@@ -52,7 +51,7 @@ class QuestionsRoomViewModel @Inject constructor(
                     results = results,
                     hasSearched = true
                 )
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(isSearching = false, error = "L'IA n'a pas pu traiter votre demande.")
             }
         }

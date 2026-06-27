@@ -27,19 +27,19 @@ fun BookWritingMode(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String = "Commence à écrire ton souvenir...",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val charsPerLine = 35
     val currentChar = value.length
     val currentLine = (currentChar / charsPerLine) % 10
     val progressOnLine = (currentChar % charsPerLine).toFloat() / charsPerLine.toFloat()
     
-    var isActivelyWriting by remember { mutableStateOf(false) }
+    var isActivelyWriting by remember { mutableStateOf(value = false) }
 
     LaunchedEffect(value) {
         if (value.isNotEmpty()) {
             isActivelyWriting = true
-            delay(800)
+            delay(800L)
             isActivelyWriting = false
         }
     }

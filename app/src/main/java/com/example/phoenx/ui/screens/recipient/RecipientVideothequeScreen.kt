@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.components.InfoPoint
@@ -31,7 +30,7 @@ import com.example.phoenx.ui.theme.*
 @Composable
 fun RecipientVideothequeScreen(
     onNavigateBack: () -> Unit,
-    viewModel: RecipientMediaViewModel = hiltViewModel()
+    viewModel: RecipientMediaViewModel = hiltViewModel(),
 ) {
     val entries by viewModel.videoEntries.collectAsState()
     var selectedVideo by remember { mutableStateOf<PhoenXEntry?>(null) }
@@ -56,9 +55,11 @@ fun RecipientVideothequeScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(BackgroundSecondary, BackgroundPrimary))
-        )) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(BackgroundSecondary, BackgroundPrimary)))
+        ) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Le projecteur est éteint pour le moment.", color = TextTertiary, textAlign = TextAlign.Center)
@@ -72,7 +73,7 @@ fun RecipientVideothequeScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     items(entries) { entry ->
-                        VHSCard(entry, onClick = { selectedVideo = entry })
+                        VHSCard(entry) { selectedVideo = entry }
                     }
                 }
             }

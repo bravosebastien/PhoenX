@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -31,7 +30,7 @@ import com.example.phoenx.ui.theme.*
 @Composable
 fun RecipientArchiveScreen(
     onNavigateBack: () -> Unit,
-    viewModel: RecipientMediaViewModel = hiltViewModel()
+    viewModel: RecipientMediaViewModel = hiltViewModel(),
 ) {
     val entries by viewModel.archiveEntries.collectAsState()
 
@@ -49,9 +48,11 @@ fun RecipientArchiveScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(BackgroundSecondary, BackgroundPrimary))
-        )) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(BackgroundSecondary, BackgroundPrimary)))
+        ) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("L'album photo est encore vide.", color = TextTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)

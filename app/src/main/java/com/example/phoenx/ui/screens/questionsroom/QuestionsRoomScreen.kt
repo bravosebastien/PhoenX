@@ -1,6 +1,5 @@
 package com.example.phoenx.ui.screens.questionsroom
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,14 +7,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +29,7 @@ import com.example.phoenx.ui.theme.*
 @Composable
 fun QuestionsRoomScreen(
     onNavigateBack: () -> Unit,
-    viewModel: QuestionsRoomViewModel = hiltViewModel()
+    viewModel: QuestionsRoomViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var query by remember { mutableStateOf("") }
@@ -52,9 +48,11 @@ fun QuestionsRoomScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(BackgroundSecondary, BackgroundPrimary))
-        )) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(BackgroundSecondary, BackgroundPrimary)))
+        ) {
             Column(modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp)) {
                 
                 // Explication Narrative
@@ -134,6 +132,6 @@ fun ResultSnippet(entry: PhoenXEntry) {
             modifier = Modifier.padding(bottom = 8.dp)
         )
         // On réutilise le composant de livre pour garder la cohérence "Matière"
-        BookItem(entry = entry, onClick = {})
+        BookItem(entry = entry) {}
     }
 }

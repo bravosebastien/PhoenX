@@ -1,6 +1,5 @@
 package com.example.phoenx.ui.components
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -16,21 +15,21 @@ import kotlinx.coroutines.delay
 @Composable
 fun InkRevealText(
     fullText: String,
+    modifier: Modifier = Modifier,
     revealSpeedMs: Long = 40L,
     textStyle: TextStyle = TextStyle(
         fontSize = 14.sp,
         color = Color(0xFF2A1F10),
-        lineHeight = 24.sp
+        lineHeight = 24.sp,
     ),
     onProgress: (Float, Int) -> Unit,
     onComplete: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     var displayedText by remember(fullText) { mutableStateOf("") }
 
     LaunchedEffect(fullText) {
         displayedText = ""
-        delay(600) // Attente ouverture du livre
+        delay(600L) // Attente ouverture du livre
 
         fullText.forEachIndexed { index, char ->
             displayedText += char

@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.Locale
 import javax.inject.Inject
 
 data class LibraryUiState(
@@ -18,7 +19,7 @@ data class LibraryUiState(
     val creatorName: String = "",
     val isLoading: Boolean = true,
     val selectedCompartment: LibraryCompartment? = null,
-    val glowIntensity: Float = 1f
+    val glowIntensity: Float = 1f,
 )
 
 @HiltViewModel
@@ -39,7 +40,7 @@ class LibraryViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 // Pour le moment on simule les droits d'accès
-                val accessRights = CompartmentId.values().associateWith { CompartmentAccess.OPEN }
+                val accessRights = CompartmentId.entries.associateWith { CompartmentAccess.OPEN }
 
                 // Récupérer les comptes d'items par compartiment via Room
                 val entries = offlineEntryDao.getAllEntriesSync()
@@ -60,18 +61,30 @@ class LibraryViewModel @Inject constructor(
                 // Construire la liste des compartiments
                 val compartments = buildCompartments(accessRights, itemCounts, viewerMode)
 
+                // Utilisation de auth et firestore pour récupérer le nom réel si disponible
+                val creatorName = try {
+                    firestore.collection("users").document(creatorId).get().await().getString("displayName") ?: "Créateur"
+                } catch (_: Exception) { "Moi" }
+
+                val recipientName = if (recipientId != null) {
+                    try {
+                        firestore.collection("users").document(creatorId).collection("recipients").document(recipientId).get().await().getString("name") ?: ""
+                    } catch (_: Exception) { "" }
+                } else ""
+
                 _uiState.update {
                     it.copy(
                         compartments = compartments,
                         viewerMode = viewerMode,
-                        creatorName = "Moi", // TODO: fetch from user doc
+                        creatorName = creatorName,
+                        recipientName = recipientName,
                         isLoading = false
                     )
                 }
 
                 startGlowAnimation()
 
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
@@ -82,10 +95,10 @@ class LibraryViewModel @Inject constructor(
         itemCounts: Map<CompartmentId, Int>,
         viewerMode: ViewerMode
     ): List<LibraryCompartment> {
-        return CompartmentId.values().map { id ->
+        return CompartmentId.entries.map { id ->
             LibraryCompartment(
                 id = id,
-                title = id.name.lowercase().capitalize(),
+                title = id.name.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
                 subtitle = "Découvrir",
                 access = accessRights[id] ?: CompartmentAccess.OPEN,
                 itemCount = itemCounts[id] ?: 0,
@@ -99,15 +112,15 @@ class LibraryViewModel @Inject constructor(
                     else -> "home"
                 }
             )
-        }.filter { it.itemCount > 0 || viewerMode == ViewerMode.CREATOR_PREVIEW }
+        }.filter { (it.itemCount > 0) || (viewerMode == ViewerMode.CREATOR_PREVIEW) }
     }
 
     private fun startGlowAnimation() {
         viewModelScope.launch {
             while (true) {
-                kotlinx.coroutines.delay(2000)
+                kotlinx.coroutines.delay(2000L)
                 _uiState.update { it.copy(glowIntensity = 0.8f) }
-                kotlinx.coroutines.delay(2000)
+                kotlinx.coroutines.delay(2000L)
                 _uiState.update { it.copy(glowIntensity = 1f) }
             }
         }

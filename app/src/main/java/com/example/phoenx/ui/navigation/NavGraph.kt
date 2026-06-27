@@ -61,12 +61,10 @@ fun PhoenXNavGraph(
         startDestination = startScreen
     ) {
         composable(Screen.Onboarding.route) {
-            OnboardingScreen(
-                onFinish = { isSignup ->
-                    if (isSignup) navController.navigate(Screen.Auth.Signup.route)
-                    else navController.navigate(Screen.Auth.Login.route)
-                }
-            )
+            OnboardingScreen { isSignup ->
+                if (isSignup) navController.navigate(Screen.Auth.Signup.route)
+                else navController.navigate(Screen.Auth.Login.route)
+            }
         }
         
         composable(Screen.Auth.Signup.route) {

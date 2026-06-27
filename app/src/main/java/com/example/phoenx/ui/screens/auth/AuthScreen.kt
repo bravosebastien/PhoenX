@@ -18,7 +18,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.theme.*
 import java.time.LocalDate
@@ -29,7 +28,7 @@ fun AuthScreen(
     isSignup: Boolean,
     onAuthSuccess: () -> Unit,
     onNavigateToRecovery: () -> Unit,
-    viewModel: AuthViewModel = hiltViewModel()
+    viewModel: AuthViewModel = hiltViewModel(),
 ) {
     var currentStep by remember { mutableStateOf(if (isSignup) SignupStep.StepA else SignupStep.Login) }
     
@@ -38,7 +37,7 @@ fun AuthScreen(
     var password by remember { mutableStateOf("") }
     var birthDate by remember { mutableStateOf(LocalDate.now().minusYears(25)) }
     var depositaryName by remember { mutableStateOf("") }
-    var recoveryConfirmed by remember { mutableStateOf(false) }
+    var recoveryConfirmed by remember { mutableStateOf(value = false) }
 
     val uiState by viewModel.uiState.collectAsState()
     val recoveryPhrase by viewModel.recoveryPhrase.collectAsState()
@@ -86,18 +85,16 @@ fun AuthScreen(
                         password = password,
                         onPasswordChange = { password = it },
                         birthDate = birthDate,
-                        onBirthDateChange = { birthDate = it },
-                        onNext = { 
-                            viewModel.generateRecoveryPhrase()
-                            currentStep = SignupStep.StepB 
-                        }
-                    )
+                        onBirthDateChange = { birthDate = it }
+                    ) { 
+                        viewModel.generateRecoveryPhrase()
+                        currentStep = SignupStep.StepB 
+                    }
                     SignupStep.StepB -> SignupStepB(
                         phrase = recoveryPhrase,
                         confirmed = recoveryConfirmed,
-                        onConfirmedChange = { recoveryConfirmed = it },
-                        onNext = { currentStep = SignupStep.StepC }
-                    )
+                        onConfirmedChange = { recoveryConfirmed = it }
+                    ) { currentStep = SignupStep.StepC }
                     SignupStep.StepC -> SignupStepC(
                         depositaryName = depositaryName,
                         onDepositaryNameChange = { depositaryName = it },
@@ -204,7 +201,7 @@ fun SignupStepA(
             color = AccentPrimary,
             modifier = Modifier.align(Alignment.Start)
         )
-        var showDatePicker by remember { mutableStateOf(false) }
+        var showDatePicker by remember { mutableStateOf(value = false) }
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = birthDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
         )
@@ -269,7 +266,7 @@ fun SignupStepA(
         Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = onNext,
-            enabled = email.isNotEmpty() && password.length >= 12,
+            enabled = (email.isNotEmpty() && password.length >= 12),
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
         ) {
