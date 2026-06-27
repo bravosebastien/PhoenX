@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.example.phoenx.R
+import com.example.phoenx.ui.components.BookWritingMode
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.navigation.Screen
@@ -85,6 +86,7 @@ fun CaptureScreen(
     var text by remember { mutableStateOf(initialText) }
     var selectedCategory by remember { mutableStateOf("Sagesse") }
     var visibility by remember { mutableStateOf("Privé") }
+    var useBookMode by remember { mutableStateOf(true) }
     val selectedRecipientIds = remember { mutableStateListOf<String>() }
     val recipients by viewModel.recipients.collectAsState()
     
@@ -243,7 +245,9 @@ fun CaptureScreen(
                                 selectedCategory = selectedCategory,
                                 onCategoryChange = { selectedCategory = it },
                                 recipients = recipients,
-                                selectedRecipientIds = selectedRecipientIds
+                                selectedRecipientIds = selectedRecipientIds,
+                                useBookMode = useBookMode,
+                                onToggleMode = { useBookMode = !useBookMode }
                             )
                         }
                     }
@@ -437,7 +441,9 @@ fun TextCaptureContent(
     selectedCategory: String,
     onCategoryChange: (String) -> Unit,
     recipients: List<com.example.phoenx.data.local.RecipientEntity>,
-    selectedRecipientIds: MutableList<String>
+    selectedRecipientIds: MutableList<String>,
+    useBookMode: Boolean,
+    onToggleMode: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -446,21 +452,41 @@ fun TextCaptureContent(
             .padding(24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        TextField(
-            value = text,
-            onValueChange = onTextChange,
-            placeholder = { 
-                Text("Écris ce qui ne doit pas se perdre...", style = MaterialTheme.typography.displaySmall, color = TextTertiary) 
-            },
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            textStyle = MaterialTheme.typography.displaySmall.copy(color = TextPrimary, lineHeight = 34.sp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = Color.Transparent,
-                unfocusedContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = if (useBookMode) "ÉCRITURE SACRÉE" else "VUE SIMPLE",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextTertiary,
+                modifier = Modifier.weight(1f)
             )
-        )
+            TextButton(onClick = onToggleMode) {
+                Text(if (useBookMode) "Passer en vue simple" else "Activer la plume", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            }
+        }
+
+        if (useBookMode) {
+            BookWritingMode(
+                value = text,
+                onValueChange = onTextChange,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+        } else {
+            TextField(
+                value = text,
+                onValueChange = onTextChange,
+                placeholder = { 
+                    Text("Écris ce qui ne doit pas se perdre...", style = MaterialTheme.typography.displaySmall, color = TextTertiary) 
+                },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
+                textStyle = MaterialTheme.typography.displaySmall.copy(color = TextPrimary, lineHeight = 34.sp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
+            )
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 

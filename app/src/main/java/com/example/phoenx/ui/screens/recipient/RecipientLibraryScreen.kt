@@ -1,12 +1,14 @@
 package com.example.phoenx.ui.screens.recipient
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoStories
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.domain.model.PhoenXEntry
+import com.example.phoenx.ui.components.BookRevealMode
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,6 +31,7 @@ fun RecipientLibraryScreen(
     viewModel: RecipientMediaViewModel = hiltViewModel()
 ) {
     val entries by viewModel.libraryEntries.collectAsState()
+    var selectedEntry by remember { mutableStateOf<PhoenXEntry?>(null) }
 
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -57,7 +61,26 @@ fun RecipientLibraryScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(entries) { entry ->
-                        BookItem(entry)
+                        BookItem(entry, onClick = { selectedEntry = entry })
+                    }
+                }
+            }
+            
+            // Mode Révélation (Livre & Plume)
+            if (selectedEntry != null) {
+                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.9f))) {
+                    BookRevealMode(
+                        text = String(selectedEntry!!.encryptedContent),
+                        onComplete = { /* Optionnel: marquer comme lu */ },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    
+                    // Bouton Fermer
+                    IconButton(
+                        onClick = { selectedEntry = null },
+                        modifier = Modifier.align(Alignment.TopEnd).padding(16.dp)
+                    ) {
+                        Icon(Icons.Default.Close, null, tint = Color.White)
                     }
                 }
             }
@@ -66,10 +89,11 @@ fun RecipientLibraryScreen(
 }
 
 @Composable
-fun BookItem(entry: PhoenXEntry) {
+fun BookItem(entry: PhoenXEntry, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(onClick = onClick)
             .phoenXMatiere(isPaper = true),
         colors = CardDefaults.cardColors(containerColor = MateriauPapier.copy(alpha = 0.9f)),
         shape = MaterialTheme.shapes.large,
