@@ -32,6 +32,9 @@ class MainViewModel @Inject constructor(
     val shouldShowWelcomeGuide: StateFlow<Boolean> = preferenceManager.shouldShowWelcomeGuide
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
+    val isVideoBannerDismissed: StateFlow<Boolean> = preferenceManager.isVideoBannerDismissed
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     init {
         checkInactivity()
     }
@@ -75,6 +78,18 @@ class MainViewModel @Inject constructor(
             viewModelScope.launch {
                 preferenceManager.setShouldShowWelcomeGuide(false)
             }
+        }
+    }
+
+    fun dismissVideoBanner() {
+        viewModelScope.launch {
+            preferenceManager.setVideoBannerDismissed(true)
+        }
+    }
+
+    fun resetVideoBanner() {
+        viewModelScope.launch {
+            preferenceManager.setVideoBannerDismissed(false)
         }
     }
 

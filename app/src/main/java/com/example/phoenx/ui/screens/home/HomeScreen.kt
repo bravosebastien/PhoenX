@@ -34,6 +34,7 @@ import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.domain.util.AgeUtils
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.components.InfoPoint
+import com.example.phoenx.ui.components.VideoPlayerBanner
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 
@@ -59,6 +60,7 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isVoiceActive by mainViewModel.isVoiceModeActive.collectAsState()
+    val isVideoBannerDismissed by mainViewModel.isVideoBannerDismissed.collectAsState()
 
     // Lecture vocale automatique de la question si le mode est actif
     LaunchedEffect(uiState.biographerQuestion) {
@@ -97,6 +99,13 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 HomeHeader(uiState.userName, uiState.currentDate, onNavigateToSettings)
+
+                if (!isVideoBannerDismissed) {
+                    VideoPlayerBanner(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        onDismiss = { mainViewModel.dismissVideoBanner() }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 

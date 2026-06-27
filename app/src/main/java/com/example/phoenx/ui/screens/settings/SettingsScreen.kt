@@ -132,6 +132,15 @@ fun SettingsScreen(
                 icon = Icons.Default.RecordVoiceOver,
                 onClick = onNavigateToAccessibility
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(
+                title = "Réafficher la vidéo d'accueil",
+                subtitle = "Réinitialiser la bannière vidéo",
+                icon = Icons.Default.VideoLibrary,
+                onClick = { mainViewModel.resetVideoBanner() }
+            )
         }
     }
 }

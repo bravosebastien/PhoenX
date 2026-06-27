@@ -23,6 +23,7 @@ import com.example.phoenx.ui.screens.onboarding.OnboardingScreen
 import com.example.phoenx.ui.screens.portrait.EssencePortraitScreen
 import com.example.phoenx.ui.screens.legacy.LegacyPreparationScreen
 import com.example.phoenx.ui.screens.legacy.UniqueKeyScreen
+import com.example.phoenx.ui.screens.pact.PactDetailScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
 import com.example.phoenx.ui.screens.library.LibraryScreen
@@ -32,6 +33,7 @@ import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.questionsroom.QuestionsRoomScreen
 import com.example.phoenx.ui.screens.recipient.RecipientArchiveScreen
+import com.example.phoenx.ui.screens.splash.SplashScreen
 import com.example.phoenx.ui.screens.recipient.RecipientCubeScreen
 import com.example.phoenx.ui.screens.recipient.RecipientDetailScreen
 import com.example.phoenx.ui.screens.recipient.RecipientDiscothequeScreen
@@ -53,13 +55,25 @@ fun PhoenXNavGraph(
     navController: NavHostController,
     mainViewModel: MainViewModel
 ) {
-    val currentUser = FirebaseAuth.getInstance().currentUser
-    val startScreen = if (currentUser != null) Screen.Home.route else Screen.Onboarding.route
-
     NavHost(
         navController = navController,
-        startDestination = startScreen
+        startDestination = Screen.Splash.route
     ) {
+        composable(Screen.Splash.route) {
+            SplashScreen(onAnimationFinished = {
+                val user = FirebaseAuth.getInstance().currentUser
+                if (user == null) {
+                    navController.navigate(Screen.Onboarding.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                } else {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                }
+            })
+        }
+
         composable(Screen.Onboarding.route) {
             OnboardingScreen { isSignup ->
                 if (isSignup) navController.navigate(Screen.Auth.Signup.route)
@@ -127,14 +141,17 @@ fun PhoenXNavGraph(
             route = Screen.Capture.route,
             arguments = listOf(
                 navArgument("type") { defaultValue = Screen.Capture.TYPE_TEXT },
-                navArgument("prompt") { nullable = true }
+                navArgument("prompt") { nullable = true },
+                navArgument("pactId") { nullable = true }
             )
         ) { backStackEntry ->
             val type = backStackEntry.arguments?.getString("type") ?: Screen.Capture.TYPE_TEXT
             val prompt = backStackEntry.arguments?.getString("prompt")
+            val pactId = backStackEntry.arguments?.getString("pactId")
             CaptureScreen(
                 initialType = type, 
                 initialText = prompt ?: "",
+                pactId = pactId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }
@@ -188,7 +205,21 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.Pact.route) {
-            PactScreen(onNavigateBack = { navController.popBackStack() })
+            PactScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { id -> navController.navigate("pact/$id") }
+            )
+        }
+
+        composable("pact/{pactId}") { backStackEntry ->
+            val pactId = backStackEntry.arguments?.getString("pactId") ?: ""
+            PactDetailScreen(
+                pactId = pactId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCapture = { id, name -> 
+                    navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, "Vers ma vérité avec $name", id))
+                }
+            )
         }
 
         composable(Screen.Recipients.route) { // New route for circle management

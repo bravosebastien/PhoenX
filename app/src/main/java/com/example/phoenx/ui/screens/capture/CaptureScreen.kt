@@ -57,6 +57,7 @@ import java.util.Locale
 fun CaptureScreen(
     initialType: String = Screen.Capture.TYPE_TEXT,
     initialText: String = "",
+    pactId: String? = null,
     onNavigateBack: () -> Unit,
     viewModel: CaptureViewModel = hiltViewModel()
 ) {
@@ -173,7 +174,8 @@ fun CaptureScreen(
                                     recipientIds = selectedRecipientIds.toList(),
                                     enigmaQuestion = if (enigmaQuestion.isNotBlank()) enigmaQuestion else null,
                                     enigmaAnswer = if (enigmaAnswer.isNotBlank()) enigmaAnswer else null,
-                                    scheduledTimestamp = scheduledTimestamp
+                                    scheduledTimestamp = scheduledTimestamp,
+                                    pactId = pactId
                                 ) 
                             },
                             enabled = (text.isNotEmpty() || capturedPhotoFile != null || initialType == Screen.Capture.TYPE_PHOTO) && uiState !is CaptureUiState.Loading && !isRitualPlaying,

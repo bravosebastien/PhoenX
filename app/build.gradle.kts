@@ -118,6 +118,13 @@ dependencies {
     // Images
     implementation(libs.coil.compose)
 
+    // Media
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
+    implementation("androidx.media3:media3-ui:1.3.1")
+
+    // Firebase Remote Config
+    implementation("com.google.firebase:firebase-config-ktx")
+
     // Storage & Background (KSP)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.work.runtime.ktx)

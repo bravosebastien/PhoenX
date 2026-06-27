@@ -4,6 +4,8 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 sealed class Screen(val route: String) {
+    object Splash : Screen("splash")
+
     // GRAPHE CRÉATEUR
     object Onboarding : Screen("onboarding/{step}") {
         fun createRoute(step: Int) = "onboarding/$step"
@@ -17,10 +19,15 @@ sealed class Screen(val route: String) {
     
     object Home : Screen("home")
     
-    object Capture : Screen("capture/{type}?prompt={prompt}") {
-        fun createRoute(type: String, prompt: String? = null): String {
+    object Capture : Screen("capture/{type}?prompt={prompt}&pactId={pactId}") {
+        fun createRoute(type: String, prompt: String? = null, pactId: String? = null): String {
             val encodedPrompt = prompt?.let { URLEncoder.encode(it, StandardCharsets.UTF_8.toString()) }
-            return if (encodedPrompt != null) "capture/$type?prompt=$encodedPrompt" else "capture/$type"
+            var route = "capture/$type"
+            val params = mutableListOf<String>()
+            if (encodedPrompt != null) params.add("prompt=$encodedPrompt")
+            if (pactId != null) params.add("pactId=$pactId")
+            if (params.isNotEmpty()) route += "?" + params.joinToString("&")
+            return route
         }
         const val TYPE_TEXT = "TEXT"
         const val TYPE_AUDIO = "AUDIO"

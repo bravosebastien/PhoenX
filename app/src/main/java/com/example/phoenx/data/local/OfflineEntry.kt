@@ -30,7 +30,10 @@ data class OfflineEntry(
     // GÉOLOCALISATION (Signature 5.0 - La Mappemonde)
     val latitude: Double? = null,
     val longitude: Double? = null,
-    val locationName: String? = null
+    val locationName: String? = null,
+
+    // LE PACTE (Signature 5.0)
+    val pactId: String? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

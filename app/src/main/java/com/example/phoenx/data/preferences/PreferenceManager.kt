@@ -21,6 +21,7 @@ class PreferenceManager @Inject constructor(
     private val VOICE_MODE_KEY = booleanPreferencesKey("voice_mode_active")
     private val BIOMETRIC_ENABLED_KEY = booleanPreferencesKey("biometric_enabled")
     private val SHOW_WELCOME_GUIDE_KEY = booleanPreferencesKey("show_welcome_guide")
+    private val VIDEO_BANNER_DISMISSED_KEY = booleanPreferencesKey("video_banner_dismissed")
 
     val isVoiceModeActive: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
@@ -35,6 +36,11 @@ class PreferenceManager @Inject constructor(
     val shouldShowWelcomeGuide: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
             preferences[SHOW_WELCOME_GUIDE_KEY] ?: true
+        }
+
+    val isVideoBannerDismissed: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[VIDEO_BANNER_DISMISSED_KEY] ?: false
         }
 
     suspend fun setVoiceModeActive(active: Boolean) {
@@ -52,6 +58,12 @@ class PreferenceManager @Inject constructor(
     suspend fun setShouldShowWelcomeGuide(show: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[SHOW_WELCOME_GUIDE_KEY] = show
+        }
+    }
+
+    suspend fun setVideoBannerDismissed(dismissed: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[VIDEO_BANNER_DISMISSED_KEY] = dismissed
         }
     }
 }

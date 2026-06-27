@@ -76,4 +76,14 @@ interface OfflineEntryDao {
 
     @Delete
     suspend fun deleteLegacy(legacy: LegacyEntity)
+
+    // Pacts
+    @Query("SELECT * FROM pacts ORDER BY createdAt DESC")
+    fun getAllPacts(): Flow<List<PactEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPact(pact: PactEntity)
+
+    @Query("SELECT * FROM offline_entries WHERE pactId = :pactId")
+    fun getEntriesForPact(pactId: String): Flow<List<OfflineEntry>>
 }

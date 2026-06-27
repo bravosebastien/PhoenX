@@ -79,7 +79,8 @@ class CaptureViewModel @Inject constructor(
         targetAge: Int? = null,
         enigmaQuestion: String? = null,
         enigmaAnswer: String? = null,
-        scheduledTimestamp: Long? = null
+        scheduledTimestamp: Long? = null,
+        pactId: String? = null
     ) {
         val user = auth.currentUser ?: return
         val rawText = content ?: if (type == Screen.Capture.TYPE_AUDIO) "Message vocal" else "Photo souvenir"
@@ -116,7 +117,8 @@ class CaptureViewModel @Inject constructor(
                     aiTags = analysis.tags.joinToString(","),
                     enigmaQuestion = enigmaQuestion,
                     enigmaAnswer = enigmaAnswer,
-                    scheduledTimestamp = scheduledTimestamp
+                    scheduledTimestamp = scheduledTimestamp,
+                    pactId = pactId
                 )
                 offlineEntryDao.insertEntry(entry)
                 
