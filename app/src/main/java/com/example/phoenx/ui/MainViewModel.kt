@@ -8,7 +8,6 @@ import com.example.phoenx.domain.liveness.LivenessManager
 import com.example.phoenx.domain.usecase.ActivationProtocolManager
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn

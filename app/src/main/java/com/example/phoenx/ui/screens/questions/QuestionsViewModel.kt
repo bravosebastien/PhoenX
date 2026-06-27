@@ -65,7 +65,7 @@ class QuestionsViewModel @Inject constructor(
                 offlineEntryDao.insertEntry(entry)
                 
                 _uiState.value = _uiState.value.copy(isSaving = false, isSuccess = true)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(isSaving = false)
             }
         }

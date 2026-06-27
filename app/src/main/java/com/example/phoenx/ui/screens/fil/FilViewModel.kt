@@ -79,7 +79,7 @@ class FilViewModel @Inject constructor(
                     aiEvolution = evolution
                 )
                 offlineEntryDao.insertAmendment(amendment)
-            } catch (e: Exception) { }
+            } catch (_: Exception) { }
         }
     }
 

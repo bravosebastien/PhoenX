@@ -53,7 +53,7 @@ class FavoritesViewModel @Inject constructor(
                     encryptedWhy = encWhy
                 )
                 offlineEntryDao.insertFavorite(entity)
-            } catch (e: Exception) {}
+            } catch (_: Exception) {}
         }
     }
 

@@ -1,7 +1,5 @@
 package com.example.phoenx.data.ai
 
-import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -21,9 +19,7 @@ data class LocalAnalysis(
 )
 
 @Singleton
-class OnDeviceAIManager @Inject constructor(
-    @ApplicationContext private val context: Context
-) {
+class OnDeviceAIManager @Inject constructor() {
 
     /**
      * Analyse le contenu localement sans envoyer de données au cloud.

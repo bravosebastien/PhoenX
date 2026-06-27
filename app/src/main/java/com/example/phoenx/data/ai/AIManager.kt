@@ -54,7 +54,7 @@ class AIManager @Inject constructor(
             val transitions = map["transitions"] as List<*>
             val first = transitions.first() as Map<*, *>
             first["description"] as String
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             "Évolution de pensée détectée entre ces deux époques."
         }
     }

@@ -26,4 +26,50 @@ data class OfflineEntry(
     val enigmaQuestion: String? = null,
     val enigmaAnswer: String? = null,
     val scheduledTimestamp: Long? = null
-)
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as OfflineEntry
+
+        if (id != other.id) return false
+        if (!encryptedPayload.contentEquals(other.encryptedPayload)) return false
+        if (entryType != other.entryType) return false
+        if (ageAtCreation != other.ageAtCreation) return false
+        if (emotionalCategory != other.emotionalCategory) return false
+        if (visibility != other.visibility) return false
+        if (recipientIds != other.recipientIds) return false
+        if (isYoungSelfLetter != other.isYoungSelfLetter) return false
+        if (targetAge != other.targetAge) return false
+        if (createdAt != other.createdAt) return false
+        if (syncStatus != other.syncStatus) return false
+        if (aiSummary != other.aiSummary) return false
+        if (aiTags != other.aiTags) return false
+        if (enigmaQuestion != other.enigmaQuestion) return false
+        if (enigmaAnswer != other.enigmaAnswer) return false
+        if (scheduledTimestamp != other.scheduledTimestamp) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + encryptedPayload.contentHashCode()
+        result = 31 * result + entryType.hashCode()
+        result = 31 * result + ageAtCreation.hashCode()
+        result = 31 * result + emotionalCategory.hashCode()
+        result = 31 * result + visibility.hashCode()
+        result = 31 * result + recipientIds.hashCode()
+        result = 31 * result + isYoungSelfLetter.hashCode()
+        result = 31 * result + (targetAge ?: 0)
+        result = 31 * result + createdAt.hashCode()
+        result = 31 * result + syncStatus.hashCode()
+        result = 31 * result + aiSummary.hashCode()
+        result = 31 * result + aiTags.hashCode()
+        result = 31 * result + (enigmaQuestion?.hashCode() ?: 0)
+        result = 31 * result + (enigmaAnswer?.hashCode() ?: 0)
+        result = 31 * result + (scheduledTimestamp?.hashCode() ?: 0)
+        return result
+    }
+}
