@@ -1,4 +1,4 @@
-import { onRequest, onCall, HttpsError } from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { VertexAI } from "@google-cloud/vertexai";
 
@@ -42,7 +42,7 @@ export const analyzeEntry = onCall(async (request) => {
     Résumé : ${summary}`;
 
     const result = await generativeModel.generateContent(prompt);
-    const responseText = result.response.candidates[0].content.parts[0].text || "{}";
+    const responseText = result.response.candidates?.[0]?.content.parts[0]?.text || "{}";
     const cleaned = responseText.replace(/```json|```/g, "").trim();
     return JSON.parse(cleaned);
 });
@@ -59,7 +59,7 @@ export const generateBiographerQuestion = onCall(async (request) => {
     Réponds juste par la question entre guillemets.`;
 
     const result = await generativeModel.generateContent(prompt);
-    return result.response.candidates[0].content.parts[0].text || "Quel est le souvenir qui te fait sourire aujourd'hui ?";
+    return result.response.candidates?.[0]?.content.parts[0]?.text || "Quel est le souvenir qui te fait sourire aujourd'hui ?";
 });
 
 // 3. Portrait d'Essence (Synthèse de vie)
@@ -77,7 +77,7 @@ export const generateEssencePortrait = onCall(async (request) => {
     Données : ${summaries.join(" | ")}`;
 
     const result = await generativeModel.generateContent(prompt);
-    return result.response.candidates[0].content.parts[0].text || "";
+    return result.response.candidates?.[0]?.content.parts[0]?.text || "";
 });
 
 // 4. Détection d'Évolution (Dialogue Temporel)
@@ -90,7 +90,7 @@ export const detectThoughtEvolution = onCall(async (request) => {
     Données : ${JSON.stringify(entriesByAge)}`;
 
     const result = await generativeModel.generateContent(prompt);
-    const responseText = result.response.candidates[0].content.parts[0].text || '{"transitions":[]}';
+    const responseText = result.response.candidates?.[0]?.content.parts[0]?.text || '{"transitions":[]}';
     const cleaned = responseText.replace(/```json|```/g, "").trim();
     return JSON.parse(cleaned);
 });
@@ -106,7 +106,7 @@ export const generateYoungSelfSuggestions = onCall(async (request) => {
     Réponds en liste à puces.`;
 
     const result = await generativeModel.generateContent(prompt);
-    return result.response.candidates[0].content.parts[0].text || "";
+    return result.response.candidates?.[0]?.content.parts[0]?.text || "";
 });
 
 // 6. Synthèse Narrative d'un Portrait de Proche
@@ -119,7 +119,7 @@ export const generatePortraitNarrative = onCall(async (request) => {
     Réponses aux questions : ${answers.join(" | ")}`;
 
     const result = await generativeModel.generateContent(prompt);
-    return result.response.candidates[0].content.parts[0].text || "";
+    return result.response.candidates?.[0]?.content.parts[0]?.text || "";
 });
 
 // 7. Aide à la Réconciliation
@@ -133,7 +133,7 @@ export const generateReconciliationHelp = onCall(async (request) => {
     Reste dans la bienveillance et le conditionnel.`;
 
     const result = await generativeModel.generateContent(prompt);
-    return result.response.candidates[0].content.parts[0].text || "";
+    return result.response.candidates?.[0]?.content.parts[0]?.text || "";
 });
 
 // 8. Génération du livre complet
@@ -183,7 +183,7 @@ FORMAT JSON OBLIGATOIRE :
 }`;
 
     const result = await generativeModel.generateContent(prompt);
-    const responseText = result.response.candidates[0].content.parts[0].text || "";
+    const responseText = result.response.candidates?.[0]?.content.parts[0]?.text || "";
     const cleaned = responseText.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(cleaned);
     return { chapters: parsed.chapters };
@@ -210,6 +210,6 @@ Réponds UNIQUEMENT avec le nouveau texte,
 sans explication ni markdown.`;
 
     const result = await generativeModel.generateContent(prompt);
-    const newContent = result.response.candidates[0].content.parts[0].text || currentContent;
+    const newContent = result.response.candidates?.[0]?.content.parts[0]?.text || currentContent;
     return { newContent };
 });
