@@ -42,7 +42,9 @@ export const analyzeEntry = onCall(async (request) => {
     Résumé : ${summary}`;
 
     const result = await generativeModel.generateContent(prompt);
-    return JSON.parse(result.response.candidates[0].content.parts[0].text || "{}");
+    const responseText = result.response.candidates[0].content.parts[0].text || "{}";
+    const cleaned = responseText.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleaned);
 });
 
 // 2. Génération de la Question du Biographe (Hebdomadaire)
@@ -78,20 +80,6 @@ export const generateEssencePortrait = onCall(async (request) => {
     return result.response.candidates[0].content.parts[0].text || "";
 });
 
-// 7. Aide à la Réconciliation
-export const generateReconciliationHelp = onCall(async (request) => {
-    const { recipient, intent } = request.data;
-
-    const prompt = `${AI_RULES}
-    L'utilisateur veut se réconcilier avec ${recipient}.
-    Son intention est : ${intent}.
-    Propose 3 façons différentes de formuler ce message (1 courte, 1 profonde, 1 explicative).
-    Reste dans la bienveillance et le conditionnel.`;
-
-    const result = await generativeModel.generateContent(prompt);
-    return result.response.candidates[0].content.parts[0].text || "";
-});
-
 // 4. Détection d'Évolution (Dialogue Temporel)
 export const detectThoughtEvolution = onCall(async (request) => {
     const { entriesByAge } = request.data;
@@ -102,7 +90,9 @@ export const detectThoughtEvolution = onCall(async (request) => {
     Données : ${JSON.stringify(entriesByAge)}`;
 
     const result = await generativeModel.generateContent(prompt);
-    return JSON.parse(result.response.candidates[0].content.parts[0].text || '{"transitions":[]}');
+    const responseText = result.response.candidates[0].content.parts[0].text || '{"transitions":[]}';
+    const cleaned = responseText.replace(/```json|```/g, "").trim();
+    return JSON.parse(cleaned);
 });
 
 // 5. Suggestions pour Lettre à Mon Jeune Moi
@@ -114,20 +104,6 @@ export const generateYoungSelfSuggestions = onCall(async (request) => {
     À cet âge, il pensait à : ${summariesAtThatAge.join(" | ")}.
     Suggère 3 thèmes à aborder au conditionnel. 10 mots max chacun.
     Réponds en liste à puces.`;
-
-    const result = await generativeModel.generateContent(prompt);
-    return result.response.candidates[0].content.parts[0].text || "";
-});
-
-// 7. Aide à la Réconciliation
-export const generateReconciliationHelp = onCall(async (request) => {
-    const { recipient, intent } = request.data;
-
-    const prompt = `${AI_RULES}
-    L'utilisateur veut se réconcilier avec ${recipient}.
-    Son intention est : ${intent}.
-    Propose 3 façons différentes de formuler ce message (1 courte, 1 profonde, 1 explicative).
-    Reste dans la bienveillance et le conditionnel.`;
 
     const result = await generativeModel.generateContent(prompt);
     return result.response.candidates[0].content.parts[0].text || "";
@@ -158,4 +134,82 @@ export const generateReconciliationHelp = onCall(async (request) => {
 
     const result = await generativeModel.generateContent(prompt);
     return result.response.candidates[0].content.parts[0].text || "";
+});
+
+// 8. Génération du livre complet
+export const generateBookChapters = onCall(async (request) => {
+    const { summaries, tags, categoryCounts, places, ageMin, ageMax, totalEntries } = request.data;
+
+    const prompt = `
+Tu es un biographe de luxe, bienveillant et respectueux.
+On te confie les jalons d'une vie humaine sous forme de métadonnées.
+Ta mission : rédiger un livre de vie structuré en chapitres.
+
+RÈGLES ABSOLUES :
+- N'invente JAMAIS de faits non présents dans les données.
+- Écris à la première personne (je, mon, ma, mes).
+- Ton chaleureux, jamais morbide ni clinique.
+- Entre 300 et 500 mots par chapitre.
+- Réponds en JSON strict uniquement, sans markdown.
+- Langue : français.
+- Utilise le conditionnel pour les passages incertains.
+
+DONNÉES DE CETTE VIE :
+Nombre total de souvenirs : ${totalEntries}
+Résumés des moments clés : ${summaries.slice(0, 50).join(" | ")}
+Thèmes récurrents : ${tags.slice(0, 30).join(", ")}
+Répartition émotionnelle : ${JSON.stringify(categoryCounts)}
+Lieux de vie et voyages : ${places.slice(0, 20).join(", ")}
+Période couverte : de ${ageMin} à ${ageMax}
+
+STRUCTURE DES CHAPITRES (adapte selon les données) :
+1. Les années fondatrices
+2. Ce que j'ai construit
+3. Ce que j'ai aimé
+4. Les lieux de ma vie
+5. Ce que je regrette
+6. Ce que je transmets
+(Omets les chapitres sans données suffisantes)
+
+FORMAT JSON OBLIGATOIRE :
+{
+  "chapters": [
+    {
+      "orderIndex": 0,
+      "title": "Titre du chapitre",
+      "content": "Texte complet du chapitre..."
+    }
+  ]
+}`;
+
+    const result = await generativeModel.generateContent(prompt);
+    const responseText = result.response.candidates[0].content.parts[0].text || "";
+    const cleaned = responseText.replace(/```json|```/g, "").trim();
+    const parsed = JSON.parse(cleaned);
+    return { chapters: parsed.chapters };
+});
+
+// 9. Modification d'un chapitre par l'IA
+export const modifyBookChapter = onCall(async (request) => {
+    const { currentContent, instruction } = request.data;
+
+    const prompt = `
+Tu es un éditeur littéraire bienveillant.
+Voici un chapitre d'un livre de vie :
+
+---
+${currentContent}
+---
+
+Instruction de l'auteur : "${instruction}"
+
+Réécris ce chapitre en appliquant l'instruction.
+Garde le même sens général.
+Écris à la première personne.
+Réponds UNIQUEMENT avec le nouveau texte,
+sans explication ni markdown.`;
+
+    const result = await generativeModel.generateContent(prompt);
+    const newContent = result.response.candidates[0].content.parts[0].text || currentContent;
+    return { newContent };
 });

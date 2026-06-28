@@ -47,6 +47,8 @@ import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.recovery.RecoveryScreen
 import com.example.phoenx.ui.screens.witness.WitnessInviteScreen
 import com.example.phoenx.ui.screens.worlds.WorldsScreen
+import com.example.phoenx.ui.screens.book.BookEditorScreen
+import com.example.phoenx.ui.screens.book.BookViewerScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
 import com.example.phoenx.ui.screens.settings.SettingsScreen
 import com.example.phoenx.ui.screens.settings.ProtocolSettingsScreen
@@ -346,6 +348,24 @@ fun PhoenXNavGraph(
         }
         composable("reconciliation") {
             ReconciliationScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        
+        composable("book_editor") {
+            BookEditorScreen(navController = navController)
+        }
+
+        composable("book_viewer") {
+            BookViewerScreen(
+                navController = navController,
+                isRecipientMode = false
+            )
+        }
+
+        composable("book_viewer_recipient") {
+            BookViewerScreen(
+                navController = navController,
+                isRecipientMode = true
+            )
         }
         // -----------------------------------
 

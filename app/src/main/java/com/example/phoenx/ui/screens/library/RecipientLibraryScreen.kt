@@ -54,7 +54,7 @@ private data class LibraryCard(
 
 // ── Liste des 14 sections ───────────────────────────────────────────────────
 private val libraryCards = listOf(
-    LibraryCard("bibliotheque",   "Bibliothèque",    "library_books"),
+    LibraryCard("bibliotheque",   "Bibliothèque",    "book_viewer_recipient"),
     LibraryCard("discotheque",    "Discothèque",     "library_music"),
     LibraryCard("videotheque",    "Vidéothèque",     "library_video"),
     LibraryCard("fil_pensee",     "Fil de pensée",   "fil_pensee"),
