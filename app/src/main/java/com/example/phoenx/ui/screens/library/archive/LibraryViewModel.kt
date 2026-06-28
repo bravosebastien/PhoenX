@@ -1,8 +1,9 @@
-package com.example.phoenx.ui.screens.library
+package com.example.phoenx.ui.screens.library.archive
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.ui.screens.library.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,7 +13,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import javax.inject.Inject
 
-data class LibraryUiState(
+data class OldLibraryUiState(
     val compartments: List<LibraryCompartment> = emptyList(),
     val viewerMode: ViewerMode = ViewerMode.RECIPIENT_FULL,
     val recipientName: String = "",
@@ -23,14 +24,14 @@ data class LibraryUiState(
 )
 
 @HiltViewModel
-class LibraryViewModel @Inject constructor(
+class OldLibraryViewModel @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val offlineEntryDao: OfflineEntryDao
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(LibraryUiState())
-    val uiState: StateFlow<LibraryUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(OldLibraryUiState())
+    val uiState: StateFlow<OldLibraryUiState> = _uiState.asStateFlow()
 
     fun initialize(
         creatorId: String,

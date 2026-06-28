@@ -1,8 +1,9 @@
-package com.example.phoenx.ui.screens.library
+package com.example.phoenx.ui.screens.library.archive
 
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.*
+import com.example.phoenx.ui.screens.library.*
 import kotlin.math.*
 
 // Dessine le contenu visuel de chaque compartiment

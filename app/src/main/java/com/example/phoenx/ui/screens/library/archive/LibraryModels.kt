@@ -1,4 +1,4 @@
-package com.example.phoenx.ui.screens.library
+package com.example.phoenx.ui.screens.library.archive
 
 // Mode de consultation de la bibliothèque
 enum class ViewerMode {

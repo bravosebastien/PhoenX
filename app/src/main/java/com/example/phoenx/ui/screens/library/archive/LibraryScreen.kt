@@ -1,4 +1,4 @@
-package com.example.phoenx.ui.screens.library
+package com.example.phoenx.ui.screens.library.archive
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
@@ -20,15 +20,16 @@ import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.ui.theme.*
+import com.example.phoenx.ui.screens.library.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LibraryScreen(
+fun OldWoodenLibraryScreen(
     navController: NavController,
     creatorId: String,
     recipientId: String? = null,
     viewerMode: ViewerMode = ViewerMode.RECIPIENT_FULL,
-    viewModel: LibraryViewModel = hiltViewModel(),
+    viewModel: OldLibraryViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val haptic = LocalHapticFeedback.current

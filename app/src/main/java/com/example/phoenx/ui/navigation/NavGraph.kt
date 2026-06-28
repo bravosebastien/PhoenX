@@ -26,21 +26,13 @@ import com.example.phoenx.ui.screens.legacy.UniqueKeyScreen
 import com.example.phoenx.ui.screens.pact.PactDetailScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
-import com.example.phoenx.ui.screens.library.LibraryScreen
-import com.example.phoenx.ui.screens.library.ViewerMode
+import com.example.phoenx.ui.screens.library.RecipientLibraryScreen
 import com.example.phoenx.ui.screens.mailbox.MailboxScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.questionsroom.QuestionsRoomScreen
-import com.example.phoenx.ui.screens.recipient.RecipientArchiveScreen
+import com.example.phoenx.ui.screens.recipient.*
 import com.example.phoenx.ui.screens.splash.SplashScreen
-import com.example.phoenx.ui.screens.recipient.RecipientCubeScreen
-import com.example.phoenx.ui.screens.recipient.RecipientDetailScreen
-import com.example.phoenx.ui.screens.recipient.RecipientBooksScreen
-import com.example.phoenx.ui.screens.recipient.RecipientDiscothequeScreen
-import com.example.phoenx.ui.screens.library.RecipientLibraryScreen
-import com.example.phoenx.ui.screens.recipient.RecipientScreen
-import com.example.phoenx.ui.screens.recipient.RecipientVideothequeScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.recovery.RecoveryScreen
 import com.example.phoenx.ui.screens.worlds.WorldsScreen
@@ -170,11 +162,7 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.Library.route) {
-            LibraryScreen(
-                navController = navController,
-                creatorId = FirebaseAuth.getInstance().currentUser?.uid ?: "",
-                viewerMode = ViewerMode.CREATOR_PREVIEW
-            )
+            RecipientLibraryScreen(navController = navController)
         }
 
         composable(Screen.Questions.route) {
