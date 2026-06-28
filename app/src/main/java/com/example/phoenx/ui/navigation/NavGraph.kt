@@ -36,8 +36,9 @@ import com.example.phoenx.ui.screens.recipient.RecipientArchiveScreen
 import com.example.phoenx.ui.screens.splash.SplashScreen
 import com.example.phoenx.ui.screens.recipient.RecipientCubeScreen
 import com.example.phoenx.ui.screens.recipient.RecipientDetailScreen
+import com.example.phoenx.ui.screens.recipient.RecipientBooksScreen
 import com.example.phoenx.ui.screens.recipient.RecipientDiscothequeScreen
-import com.example.phoenx.ui.screens.recipient.RecipientLibraryScreen
+import com.example.phoenx.ui.screens.library.RecipientLibraryScreen
 import com.example.phoenx.ui.screens.recipient.RecipientScreen
 import com.example.phoenx.ui.screens.recipient.RecipientVideothequeScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
@@ -125,10 +126,10 @@ fun PhoenXNavGraph(
                 onNavigateToQuestions = { navController.navigate(Screen.Questions.route) },
                 onNavigateToMailbox = { navController.navigate(Screen.RecipientMailbox.route) },
                 onNavigateToLegacy = { navController.navigate(Screen.NewLegacy.route) },
-                onNavigateToCube = { navController.navigate(Screen.RecipientCube.route) },
+                onNavigateToCube = { navController.navigate(Screen.RecipientLibrary.route) },
                 onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
                 onNavigateToMap = { navController.navigate(Screen.Map.route) },
-                onNavigateToLibrary = { navController.navigate(Screen.Library.route) },
+                onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.route) },
                 mainViewModel = mainViewModel
             )
         }
@@ -252,8 +253,57 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.RecipientLibrary.route) {
-            RecipientLibraryScreen(onNavigateBack = { navController.popBackStack() })
+            RecipientLibraryScreen(navController = navController)
         }
+
+        // --- Routes for the Library Grid ---
+        composable("library_books") {
+            RecipientBooksScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("library_music") {
+            RecipientDiscothequeScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("library_video") {
+            RecipientVideothequeScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("fil_pensee") {
+            FilScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("lettres") {
+            MailboxScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("mes_meilleurs") {
+            FavoritesScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("photos") {
+            RecipientArchiveScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("mappemonde") {
+            MapScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("cent_questions") {
+            QuestionsRoomScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("coffre_fort") {
+            DetectiveScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("tiroir_secret") {
+            UniqueKeyScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("le_pacte") {
+            PactScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { id -> navController.navigate("pact/$id") }
+            )
+        }
+        composable("portrait_proche") {
+            PortraitScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("reconciliation") {
+            ReconciliationScreen(onNavigateBack = { navController.popBackStack() })
+        }
+        // -----------------------------------
+
 
         composable(Screen.RecipientDiscotheque.route) {
             RecipientDiscothequeScreen(onNavigateBack = { navController.popBackStack() })

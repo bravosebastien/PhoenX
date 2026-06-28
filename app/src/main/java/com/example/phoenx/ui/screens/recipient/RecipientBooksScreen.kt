@@ -27,7 +27,7 @@ import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RecipientLibraryScreen(
+fun RecipientBooksScreen(
     onNavigateBack: () -> Unit,
     viewModel: RecipientMediaViewModel = hiltViewModel()
 ) {
