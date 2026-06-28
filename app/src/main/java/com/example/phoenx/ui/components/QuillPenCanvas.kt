@@ -12,57 +12,58 @@ import kotlin.math.sin
 
 /**
  * QuillPenCanvas (Signature PHOEN-X 5.0)
- * Dessine une plume dorée animée qui vibre pendant l'écriture.
+ * Dessine une plume dorée qui suit précisément le curseur de texte.
  */
 @Composable
 fun QuillPenCanvas(
-    progress: Float, // 0f à 1f sur la ligne
-    currentLine: Int,
+    tipOffset: Offset, // Position exacte de la pointe (X, Y)
     isWriting: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val tremble by animateFloatAsState(
         targetValue = if (isWriting) 1f else 0f,
-        animationSpec = spring(stiffness = Spring.StiffnessHigh),
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
         label = "tremble"
     )
 
-    val infiniteTransition = rememberInfiniteTransition(label = "tremble_infinite")
-    val trembleX by infiniteTransition.animateFloat(
-        initialValue = -1.5f,
-        targetValue = 1.5f,
-        animationSpec = infiniteRepeatable(tween(80, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
-        label = "trembleX"
-    )
-    
-    val inkPulse by infiniteTransition.animateFloat(
-        initialValue = 0.8f,
-        targetValue = 1.2f,
-        animationSpec = infiniteRepeatable(tween(400, easing = FastOutSlowInEasing), repeatMode = RepeatMode.Reverse),
-        label = "inkPulse"
+    val infiniteTransition = rememberInfiniteTransition(label = "plume_motion")
+    val vibrate by infiniteTransition.animateFloat(
+        initialValue = -0.8f,
+        targetValue = 0.8f,
+        animationSpec = infiniteRepeatable(tween(100, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
+        label = "vibrate"
     )
 
     Canvas(modifier = modifier) {
-        val w = size.width
-        val h = size.height
+        if (tipOffset == Offset(0f, 0f) && !isWriting) return@Canvas
 
-        // Coordonnées de la pointe
-        val tipX = (w * 0.07f) + (w * 0.86f * progress) + (trembleX * tremble)
-        val tipY = (h * 0.18f) + (currentLine * h * 0.052f)
+        val tipX = tipOffset.x + (vibrate * tremble)
+        val tipY = tipOffset.y
 
-        // 1. CORPS DE LA PLUME (Incliné)
-        val angle = -40f * (PI / 180f).toFloat()
-        val plumeLength = h * 0.35f
-        val plumeWidth = h * 0.06f
+        // 1. CORPS DE LA PLUME
+        // On incline la plume à 45 degrés pour le réalisme
+        val angle = -45f * (PI / 180f).toFloat()
+        val plumeLength = size.height * 0.4f
+        val plumeWidth = 24f
+        
         val hautX = tipX - cos(angle) * plumeLength
         val hautY = tipY - sin(angle) * plumeLength
+        
         val perpX = -sin(angle)
         val perpY = cos(angle)
 
         val plumePath = Path().apply {
             moveTo(tipX, tipY)
-            lineTo(hautX - perpX * plumeWidth * 0.5f, hautY - perpY * plumeWidth * 0.5f)
-            quadraticTo(hautX, hautY - h * 0.04f, hautX + perpX * plumeWidth * 0.5f, hautY - perpY * plumeWidth * 0.5f)
+            // Dessin asymétrique pour simuler une vraie plume d'oie
+            quadraticTo(
+                tipX - cos(angle) * 20f, tipY - sin(angle) * 20f,
+                hautX - perpX * plumeWidth, hautY - perpY * plumeWidth
+            )
+            quadraticTo(hautX, hautY - 30f, hautX + perpX * plumeWidth, hautY - perpY * plumeWidth)
+            quadraticTo(
+                tipX - cos(angle) * 30f, tipY - sin(angle) * 5f,
+                tipX, tipY
+            )
             close()
         }
 
@@ -70,26 +71,25 @@ fun QuillPenCanvas(
             path = plumePath,
             brush = Brush.linearGradient(
                 colors = listOf(Color(0xFF8B5A1E), Color(0xFFC97B3A), Color(0xFFE8A85F), Color(0xFFC97B3A)),
-                start = Offset(hautX - perpX * plumeWidth, hautY),
-                end = Offset(hautX + perpX * plumeWidth, hautY)
+                start = Offset(tipX, tipY),
+                end = Offset(hautX, hautY)
             )
         )
 
-        // 2. POINTE MÉTALLIQUE
-        val nibLength = h * 0.06f
+        // 2. LA POINTE (Nib)
         drawLine(
-            brush = Brush.linearGradient(colors = listOf(Color(0xFF9B9590), Color(0xFFF2EDE8), Color(0xFF9B9590))),
+            color = Color(0xFF2A1F10),
             start = Offset(tipX, tipY),
-            end = Offset(tipX - cos(angle) * nibLength, tipY - sin(angle) * nibLength),
-            strokeWidth = 3f,
+            end = Offset(tipX - cos(angle) * 10f, tipY - sin(angle) * 10f),
+            strokeWidth = 2f,
             cap = StrokeCap.Round
         )
 
-        // 3. GOUTTE D'ENCRE
+        // 3. GOUTTE D'ENCRE (Seulement lors de l'écriture)
         if (isWriting) {
             drawCircle(
-                color = Color(0xFFC97B3A).copy(alpha = 0.8f),
-                radius = 4f * inkPulse,
+                color = Color(0xFFC97B3A).copy(alpha = 0.6f),
+                radius = 3f,
                 center = Offset(tipX, tipY + 2f)
             )
         }

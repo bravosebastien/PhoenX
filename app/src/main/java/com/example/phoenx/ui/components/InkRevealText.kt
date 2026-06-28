@@ -4,13 +4,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 /**
  * InkRevealText (Signature PHOEN-X 5.0)
- * Révèle le texte lettre par lettre comme si une plume l'écrivait.
+ * Révèle le texte avec un suivi précis du curseur pour la plume.
  */
 @Composable
 fun InkRevealText(
@@ -21,23 +23,21 @@ fun InkRevealText(
         fontSize = 14.sp,
         color = Color(0xFF2A1F10),
         lineHeight = 24.sp,
+        fontFamily = FontFamily.Serif
     ),
-    onProgress: (Float, Int) -> Unit,
+    onProgress: (Int) -> Unit,
     onComplete: () -> Unit = {},
+    onLayoutMeasured: (TextLayoutResult) -> Unit
 ) {
     var displayedText by remember(fullText) { mutableStateOf("") }
 
     LaunchedEffect(fullText) {
         displayedText = ""
-        delay(600L) // Attente ouverture du livre
+        delay(800L) // Attente ouverture du livre
 
         fullText.forEachIndexed { index, char ->
             displayedText += char
-            
-            val progress = index.toFloat() / fullText.length.toFloat()
-            val charsPerLine = 35
-            val currentLine = index / charsPerLine
-            onProgress(progress % 1f, currentLine)
+            onProgress(index + 1)
 
             val charDelay = when(char) {
                 '.', '!', '?' -> revealSpeedMs * 8
@@ -53,6 +53,7 @@ fun InkRevealText(
     Text(
         text = displayedText,
         style = textStyle,
+        onTextLayout = { onLayoutMeasured(it) },
         modifier = modifier
     )
 }
