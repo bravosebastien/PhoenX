@@ -46,7 +46,11 @@ sealed class Screen(val route: String) {
     
     object Worlds : Screen("worlds")
     object Library : Screen("library/preview")
-    object Map : Screen("map")
+    object Map : Screen("mappemonde")
+    object MapRecipient : Screen("mappemonde_recipient")
+    object LocationDetail : Screen("location_detail/{locationId}") {
+        fun createRoute(locationId: String) = "location_detail/$locationId"
+    }
     object Favorites : Screen("favorites")
     object Questions : Screen("questions")
     

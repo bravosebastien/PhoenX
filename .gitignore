@@ -15,6 +15,10 @@
 local.properties
 # Logs
 *.log
+kotlin-compiler-*
 
 # Android Studio / IntelliJ
 .idea/
+*.iws
+*.out
+*.app

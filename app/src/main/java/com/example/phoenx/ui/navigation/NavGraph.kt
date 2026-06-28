@@ -22,7 +22,9 @@ import com.example.phoenx.ui.screens.depositary.*
 import com.example.phoenx.ui.screens.detective.DetectiveScreen
 import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.home.HomeScreen
-import com.example.phoenx.ui.screens.map.MapScreen
+import com.example.phoenx.ui.screens.mappemonde.LocationDetailScreen
+import com.example.phoenx.ui.screens.mappemonde.MapMode
+import com.example.phoenx.ui.screens.mappemonde.MappamondeScreen
 import com.example.phoenx.ui.screens.onboarding.OnboardingScreen
 import com.example.phoenx.ui.screens.portrait.EssencePortraitScreen
 import com.example.phoenx.ui.screens.legacy.LegacyPreparationScreen
@@ -188,14 +190,28 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.Map.route) {
-            MapScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToCapture = { lat, lng, name ->
-                    navController.navigate(Screen.Capture.createRoute(
-                        type = Screen.Capture.TYPE_TEXT, 
-                        prompt = "Mon souvenir à $name",
-                    ) + "&lat=$lat&lng=$lng&locationName=$name")
-                }
+            MappamondeScreen(
+                navController = navController,
+                mode = MapMode.CREATOR
+            )
+        }
+
+        composable(Screen.MapRecipient.route) {
+            MappamondeScreen(
+                navController = navController,
+                mode = MapMode.RECIPIENT
+            )
+        }
+
+        composable(
+            route = Screen.LocationDetail.route,
+            arguments = listOf(navArgument("locationId") { type = androidx.navigation.NavType.StringType })
+        ) { backStackEntry ->
+            val locationId = backStackEntry.arguments?.getString("locationId") ?: ""
+            LocationDetailScreen(
+                locationId = locationId,
+                navController = navController,
+                mode = MapMode.CREATOR
             )
         }
 
@@ -305,14 +321,9 @@ fun PhoenXNavGraph(
             RecipientArchiveScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable("mappemonde") {
-            MapScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToCapture = { lat, lng, name ->
-                    navController.navigate(Screen.Capture.createRoute(
-                        type = Screen.Capture.TYPE_TEXT, 
-                        prompt = "Mon souvenir à $name",
-                    ) + "&lat=$lat&lng=$lng&locationName=$name")
-                }
+            MappamondeScreen(
+                navController = navController,
+                mode = MapMode.CREATOR
             )
         }
         composable("cent_questions") {
