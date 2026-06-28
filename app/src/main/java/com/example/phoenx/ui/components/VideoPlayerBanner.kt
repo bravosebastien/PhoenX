@@ -44,11 +44,28 @@ fun VideoPlayerBanner(
     LaunchedEffect(Unit) {
         val remoteConfig = Firebase.remoteConfig
         val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = 3600
+            minimumFetchIntervalInSeconds = 0 // Force le rafraîchissement immédiat pour les tests
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
-        remoteConfig.fetchAndActivate().addOnSuccessListener {
-            videoUrl = remoteConfig.getString("home_video_url")
+        
+        android.util.Log.d("PHOENX_VIDEO", "Tentative de récupération Remote Config...")
+        
+        remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val keys = remoteConfig.all.keys
+                android.util.Log.d("PHOENX_VIDEO", "Fetch réussi ! Clés disponibles : ${keys.joinToString(", ")}")
+                
+                val url = remoteConfig.getString("home_video_url").trim()
+                if (url.isNotEmpty()) {
+                    android.util.Log.d("PHOENX_VIDEO", "URL trouvée : $url")
+                    videoUrl = url
+                } else {
+                    android.util.Log.w("PHOENX_VIDEO", "Attention : La clé 'home_video_url' existe mais la valeur est VIDE.")
+                }
+            } else {
+                val error = task.exception?.message ?: "Erreur inconnue"
+                android.util.Log.e("PHOENX_VIDEO", "Échec du Fetch : $error")
+            }
         }
     }
 
