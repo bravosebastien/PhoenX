@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.theme.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -24,10 +25,10 @@ import androidx.compose.ui.platform.LocalContext
 @Composable
 fun MapScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToCapture: (Double, Double, String) -> Unit,
     viewModel: MapViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
     
     // Position initiale (ex: Paris ou centre du monde)
     val cameraPositionState = rememberCameraPositionState {
@@ -47,6 +48,12 @@ fun MapScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
                     }
                 },
+                actions = {
+                    InfoPoint(
+                        title = "La Mappemonde",
+                        content = "Épinglez vos souvenirs là où ils sont nés. Cliquez sur un point pour revivre le moment, ou touchez la carte pour créer une nouvelle balise de vie."
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
             )
         }
@@ -56,7 +63,6 @@ fun MapScreen(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(
-                    mapStyleOptions = MapStyleOptions(MapStyle.ANTHRACITE_GOLD), // On va définir ce style
                     isMyLocationEnabled = false
                 ),
                 uiSettings = MapUiSettings(
@@ -91,7 +97,7 @@ fun MapScreen(
                 border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
             ) {
                 Text(
-                    "Touchez un lieu sur la carte pour épingler un souvenir.",
+                    "Touchez un lieu pour y déposer un souvenir.",
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextPrimary
@@ -103,8 +109,8 @@ fun MapScreen(
             AddLocationDialog(
                 onDismiss = { showAddDialog = false },
                 onConfirm = { name ->
-                    viewModel.addMapEntry(clickedLatLng!!.latitude, clickedLatLng!!.longitude, name)
                     showAddDialog = false
+                    onNavigateToCapture(clickedLatLng!!.latitude, clickedLatLng!!.longitude, name)
                 }
             )
         }
@@ -146,16 +152,12 @@ object MapStyle {
     // Style JSON pour une carte Anthracite et Or (similaire au thème PHOEN-X)
     const val ANTHRACITE_GOLD = """
     [
-      { "elementType": "geometry", "stylers": [ { "color": "#1a1a1f" } ] },
-      { "elementType": "labels.text.fill", "stylers": [ { "color": "#f2ede8" } ] },
-      { "elementType": "labels.text.stroke", "stylers": [ { "color": "#1a1a1f" } ] },
-      { "featureType": "administrative", "elementType": "geometry.stroke", "stylers": [ { "color": "#2e2e35" } ] },
-      { "featureType": "landscape.natural", "elementType": "geometry", "stylers": [ { "color": "#1a1a1f" } ] },
-      { "featureType": "poi", "elementType": "geometry", "stylers": [ { "color": "#1a1a1f" } ] },
-      { "featureType": "road", "elementType": "geometry", "stylers": [ { "color": "#2e2e35" } ] },
-      { "featureType": "road", "elementType": "geometry.stroke", "stylers": [ { "color": "#1a1a1f" } ] },
-      { "featureType": "water", "elementType": "geometry", "stylers": [ { "color": "#121215" } ] },
-      { "featureType": "water", "elementType": "labels.text.fill", "stylers": [ { "color": "#c97b3a" } ] }
+      { "elementType": "geometry", "stylers": [ { "color": "#242429" } ] },
+      { "elementType": "labels.text.fill", "stylers": [ { "color": "#F2EDE8" } ] },
+      { "elementType": "labels.text.stroke", "stylers": [ { "color": "#242429" } ] },
+      { "featureType": "administrative", "elementType": "geometry.stroke", "stylers": [ { "color": "#C97B3A" }, { "weight": 0.5 } ] },
+      { "featureType": "landscape.natural", "elementType": "geometry", "stylers": [ { "color": "#2c2c31" } ] },
+      { "featureType": "water", "elementType": "geometry", "stylers": [ { "color": "#1A1A1F" } ] }
     ]
     """
 }

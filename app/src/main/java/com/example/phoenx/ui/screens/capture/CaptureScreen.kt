@@ -58,6 +58,9 @@ fun CaptureScreen(
     initialType: String = Screen.Capture.TYPE_TEXT,
     initialText: String = "",
     pactId: String? = null,
+    latitude: Double? = null,
+    longitude: Double? = null,
+    locationName: String? = null,
     onNavigateBack: () -> Unit,
     viewModel: CaptureViewModel = hiltViewModel()
 ) {
@@ -175,7 +178,10 @@ fun CaptureScreen(
                                     enigmaQuestion = if (enigmaQuestion.isNotBlank()) enigmaQuestion else null,
                                     enigmaAnswer = if (enigmaAnswer.isNotBlank()) enigmaAnswer else null,
                                     scheduledTimestamp = scheduledTimestamp,
-                                    pactId = pactId
+                                    pactId = pactId,
+                                    latitude = latitude,
+                                    longitude = longitude,
+                                    locationName = locationName
                                 ) 
                             },
                             enabled = (text.isNotEmpty() || capturedPhotoFile != null || initialType == Screen.Capture.TYPE_PHOTO) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
