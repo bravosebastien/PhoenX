@@ -54,6 +54,9 @@ private val sparks = listOf(
     Spark(angle =  0.6f, distance = 68f, size = 2.5f, arrivalDelay = 720)
 )
 
+enum class SplashVariant { ETINCELLES, TRACE, FLASH }
+val SPLASH_VARIANT = SplashVariant.ETINCELLES
+
 // État global de disparition — toutes s'éteignent ensemble
 // 0f = visibles, 1f = éteintes
 @Composable
@@ -62,7 +65,7 @@ fun SplashScreen(
 ) {
     val logoScale      = remember { Animatable(0.4f) }
     val logoAlpha      = remember { Animatable(0f) }
-    val logoOffsetY    = remember { Animatable(36f) }
+    val logoOffsetY    = remember { Animatable(28f) }
     val nameAlpha      = remember { Animatable(0f) }
     val nameOffsetY    = remember { Animatable(16f) }
     val lineWidth      = remember { Animatable(0f) }
@@ -74,7 +77,7 @@ fun SplashScreen(
     // Fondu global de toutes les étincelles ensemble
     val sparksFade     = remember { Animatable(1f) }
 
-    // Halo — très lent, 7 secondes par cycle
+    // Halo — cycle 7000ms, opacité 0.03→0.22, scale 0.5→1.4
     val haloScale by rememberInfiniteTransition(label = "halo").animateFloat(
         initialValue  = 0.5f,
         targetValue   = 1.4f,
@@ -95,28 +98,23 @@ fun SplashScreen(
     )
 
     LaunchedEffect(Unit) {
+        // Phase 1 : Halo seul pendant 800ms
+        delay(800)
 
-        // ── Phase 1 : Halo seul (0 → 1600ms) ──────────────────────
-        // Rien ne se passe, le halo pulse doucement
-        delay(1600)
-
-        // ── Phase 2 : Logo monte lentement (1600ms → 3600ms) ───────
+        // Phase 2 : Logo monte en 1000ms (scale 0.4→1.0, offsetY 28dp→0)
         launch {
-            logoScale.animateTo(1.08f, tween(1800, easing = EaseOutBack))
-            logoScale.animateTo(1.0f,  tween(400,  easing = LinearEasing))
+            logoScale.animateTo(1.0f, tween(1000, easing = EaseOutCubic))
         }
         launch {
-            logoAlpha.animateTo(1.0f, tween(2000, easing = FastOutSlowInEasing))
+            logoAlpha.animateTo(1.0f, tween(1000, easing = FastOutSlowInEasing))
         }
         launch {
-            logoOffsetY.animateTo(0f, tween(2000, easing = EaseOutCubic))
+            logoOffsetY.animateTo(0f, tween(1000, easing = EaseOutCubic))
         }
 
-        delay(1400)
+        delay(400) // Delay pour synchroniser avec l'arrivée des étincelles
 
-        // ── Phase 3 : Étincelles arrivent une par une (3000ms → 3720ms)
-        // Chaque point part 120ms après le précédent — rapide
-        // Mais chaque voyage individuel est lent (1400ms)
+        // Phase 3 : 7 étincelles en Canvas, une toutes les 120ms
         sparks.forEachIndexed { index, spark ->
             launch {
                 delay(spark.arrivalDelay.toLong())
@@ -127,40 +125,38 @@ fun SplashScreen(
             }
         }
 
-        // Attendre que toutes soient arrivées (720ms + 1400ms = 2120ms)
-        delay(2200)
+        // Phase 4 : Nom "PHOEN-X" en 600ms
+        launch {
+            nameAlpha.animateTo(1.0f, tween(600, easing = FastOutSlowInEasing))
+        }
+        launch {
+            nameOffsetY.animateTo(0f, tween(600, easing = EaseOutCubic))
+        }
 
-        // ── Phase 4 : Toutes les étincelles s'éteignent ensemble (lent)
+        delay(400)
+
+        // Phase 5 : Ligne dorée s'étend de 0 à 52dp en 500ms
+        lineWidth.animateTo(52f, tween(500, easing = FastOutSlowInEasing))
+
+        delay(300)
+
+        // Phase 6 : Phrase en italic en 700ms
+        launch {
+            phraseAlpha.animateTo(1.0f, tween(700, easing = FastOutSlowInEasing))
+        }
+        launch {
+            phraseOffY.animateTo(0f, tween(700, easing = EaseOutCubic))
+        }
+
+        // Attendre l'extinction globale des étincelles (ensemble en 1800ms)
+        delay(500)
         sparksFade.animateTo(
             targetValue   = 0f,
             animationSpec = tween(1800, easing = FastOutSlowInEasing)
         )
 
-        // ── Phase 5 : Nom PHOEN-X (pendant l'extinction des étincelles)
-        launch {
-            nameAlpha.animateTo(1.0f, tween(1200, easing = FastOutSlowInEasing))
-        }
-        launch {
-            nameOffsetY.animateTo(0f, tween(1200, easing = EaseOutCubic))
-        }
-
-        delay(800)
-
-        // ── Phase 6 : Ligne dorée ───────────────────────────────────
-        lineWidth.animateTo(52f, tween(1000, easing = FastOutSlowInEasing))
-
-        delay(600)
-
-        // ── Phase 7 : Phrase ────────────────────────────────────────
-        launch {
-            phraseAlpha.animateTo(1.0f, tween(1400, easing = FastOutSlowInEasing))
-        }
-        launch {
-            phraseOffY.animateTo(0f, tween(1400, easing = EaseOutCubic))
-        }
-
-        // Maintien 3 secondes puis navigation
-        delay(3000)
+        // Maintien 2000ms puis navigation
+        delay(2000)
         onAnimationFinished()
     }
 
@@ -171,17 +167,19 @@ fun SplashScreen(
         contentAlignment = Alignment.Center
     ) {
 
-        // Halo radial pulsant très lent
+        // Halo radial pulsant
         Box(
             modifier = Modifier
-                .size(260.dp)
+                .size(300.dp)
                 .scale(haloScale)
                 .alpha(haloAlpha)
                 .background(
                     brush = Brush.radialGradient(
-                        colors = listOf(AccentPrimary, Color.Transparent),
-                        center = Offset(130f, 130f),
-                        radius = 380f
+                        0.0f to AccentPrimary.copy(alpha = 0.35f),
+                        0.4f to AccentPrimary.copy(alpha = 0.10f),
+                        1.0f to Color.Transparent,
+                        center = Offset(450f, 450f), // Centre ajusté pour le rayonnement
+                        radius = 500f
                     ),
                     shape = CircleShape
                 )

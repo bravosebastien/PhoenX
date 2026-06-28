@@ -5,8 +5,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -14,7 +18,7 @@ import androidx.navigation.navArgument
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.screens.auth.AuthScreen
 import com.example.phoenx.ui.screens.capture.CaptureScreen
-import com.example.phoenx.ui.screens.depositary.DepositaryScreen
+import com.example.phoenx.ui.screens.depositary.*
 import com.example.phoenx.ui.screens.detective.DetectiveScreen
 import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.home.HomeScreen
@@ -32,9 +36,14 @@ import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.questionsroom.QuestionsRoomScreen
 import com.example.phoenx.ui.screens.recipient.*
+import com.example.phoenx.ui.screens.silence.SilenceBlockScreen
+import com.example.phoenx.ui.screens.silence.SilenceCheckInScreen
+import com.example.phoenx.ui.screens.silence.SilenceOnboardingScreen
 import com.example.phoenx.ui.screens.splash.SplashScreen
+import com.example.phoenx.domain.manager.SilenceStatus
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.recovery.RecoveryScreen
+import com.example.phoenx.ui.screens.witness.WitnessInviteScreen
 import com.example.phoenx.ui.screens.worlds.WorldsScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
 import com.example.phoenx.ui.screens.settings.SettingsScreen
@@ -104,6 +113,17 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.Home.route) {
+            val silenceStatus by mainViewModel.silenceStatus.collectAsState()
+            val daysMissed by mainViewModel.daysSinceLastCheckIn.collectAsState()
+
+            LaunchedEffect(silenceStatus) {
+                when (silenceStatus) {
+                    SilenceStatus.CHECK_IN_DUE -> navController.navigate(Screen.SilenceCheckIn.route)
+                    SilenceStatus.BLOCKED, SilenceStatus.NOTIFY_DEPOSITARY -> navController.navigate(Screen.SilenceBlock.route)
+                    else -> {}
+                }
+            }
+
             HomeScreen(
                 onNavigateToCapture = { type, prompt -> 
                     navController.navigate(Screen.Capture.createRoute(type, prompt)) 
@@ -352,6 +372,34 @@ fun PhoenXNavGraph(
             ReconciliationScreen(onNavigateBack = { navController.popBackStack() })
         }
 
+        composable("witness_invite") {
+            WitnessInviteScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        // --- SILENCE & PREUVE DE VIE ---
+        composable(Screen.SilenceOnboarding.route) {
+            SilenceOnboardingScreen(onConfirmRythm = { days ->
+                mainViewModel.setSilenceConfig(days)
+                navController.popBackStack()
+            })
+        }
+
+        composable(Screen.SilenceCheckIn.route) {
+            SilenceCheckInScreen(
+                onImHere = { mainViewModel.recordCheckIn("present") },
+                onTraversingSomething = { /* BottomSheet logic or navigation */ }
+            )
+        }
+
+        composable(Screen.SilenceBlock.route) {
+            val daysMissed by mainViewModel.daysSinceLastCheckIn.collectAsState()
+            SilenceBlockScreen(
+                daysSinceLastCheckIn = daysMissed,
+                onImHere = { mainViewModel.recordCheckIn("present") }
+            )
+        }
+        // -------------------------------
+
         composable(Screen.ProtocolSettings.route) {
             ProtocolSettingsScreen(onNavigateBack = { navController.popBackStack() })
         }
@@ -383,6 +431,32 @@ fun PhoenXNavGraph(
                 onConfirm = { /* Logic */ },
                 onCancel = { navController.popBackStack() }
             )
+        }
+
+        composable(Screen.DepositaryWelcome.route) {
+            DepositaryWelcomeScreen(onUnderstood = {
+                navController.navigate(Screen.DepositaryDashboard.route)
+            })
+        }
+
+        composable(Screen.DepositaryDashboard.route) {
+            DepositaryDashboardScreen(onNavigateToActivation = {
+                navController.navigate(Screen.DepositaryActivation.route)
+            })
+        }
+
+        composable(Screen.DepositaryActivation.route) {
+            val viewModel: DepositaryViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsState()
+            DepositaryActivationScreen(
+                creatorName = uiState.creatorName,
+                onActivationComplete = { navController.navigate(Screen.DepositaryDashboard.route) },
+                onCancel = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.DepositaryNotifications.route) {
+            DepositaryNotificationsScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

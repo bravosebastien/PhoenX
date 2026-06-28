@@ -76,6 +76,15 @@ sealed class Screen(val route: String) {
     }
     
     object Depositary : Screen("depositary")
+    object DepositaryWelcome : Screen("depositary/welcome")
+    object DepositaryDashboard : Screen("depositary/dashboard")
+    object DepositaryActivation : Screen("depositary/activation")
+    object DepositaryNotifications : Screen("depositary/notifications")
+
+    object SilenceOnboarding : Screen("silence/onboarding")
+    object SilenceCheckIn : Screen("silence/checkin")
+    object SilenceBlock : Screen("silence/block")
+
     object Essence : Screen("essence")
     object UniqueKey : Screen("uniquekey")
     object Reconciliation : Screen("reconciliation")

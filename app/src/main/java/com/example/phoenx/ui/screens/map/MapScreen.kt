@@ -21,6 +21,13 @@ import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.*
 import androidx.compose.ui.platform.LocalContext
 
+import android.location.Geocoder
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.*
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
@@ -29,14 +36,17 @@ fun MapScreen(
     viewModel: MapViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     
-    // Position initiale (ex: Paris ou centre du monde)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(20.0, 0.0), 2f)
     }
 
     var showAddDialog by remember { mutableStateOf(false) }
     var clickedLatLng by remember { mutableStateOf<LatLng?>(null) }
+    var detectedLocationName by remember { mutableStateOf("") }
+    var isResolvingLocation by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -71,7 +81,30 @@ fun MapScreen(
                 ),
                 onMapClick = { latLng ->
                     clickedLatLng = latLng
-                    showAddDialog = true
+                    isResolvingLocation = true
+                    
+                    scope.launch(Dispatchers.IO) {
+                        val geocoder = Geocoder(context, Locale.getDefault())
+                        try {
+                            val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+                            val cityName = if (!addresses.isNullOrEmpty()) {
+                                val address = addresses[0]
+                                address.locality ?: address.subLocality ?: address.adminArea ?: ""
+                            } else ""
+                            
+                            withContext(Dispatchers.Main) {
+                                detectedLocationName = cityName
+                                isResolvingLocation = false
+                                showAddDialog = true
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                detectedLocationName = ""
+                                isResolvingLocation = false
+                                showAddDialog = true
+                            }
+                        }
+                    }
                 }
             ) {
                 // Afficher les souvenirs existants
@@ -87,7 +120,14 @@ fun MapScreen(
                 }
             }
 
-            // Bouton d'aide flottant
+            // Indicateur de chargement si géocodage en cours
+            if (isResolvingLocation) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = AccentPrimary
+                )
+            }
+
             Surface(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -107,6 +147,7 @@ fun MapScreen(
 
         if (showAddDialog && clickedLatLng != null) {
             AddLocationDialog(
+                initialName = detectedLocationName,
                 onDismiss = { showAddDialog = false },
                 onConfirm = { name ->
                     showAddDialog = false
@@ -118,20 +159,25 @@ fun MapScreen(
 }
 
 @Composable
-fun AddLocationDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    var name by remember { mutableStateOf("") }
+fun AddLocationDialog(
+    initialName: String,
+    onDismiss: () -> Unit, 
+    onConfirm: (String) -> Unit
+) {
+    var name by remember { mutableStateOf(initialName) }
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = BackgroundSecondary,
         title = { Text("Épingler ce lieu", color = TextPrimary) },
         text = {
             Column {
-                Text("Quel souvenir associez-vous à cet endroit ?", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                Text("Voulez-vous épingler ce souvenir à :", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nom du lieu / Ville") },
+                    label = { Text("Ville / Lieu") },
+                    placeholder = { Text("Ex: Ma crique secrète") },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -143,6 +189,11 @@ fun AddLocationDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
             ) {
                 Text("Épingler", color = BackgroundPrimary)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Annuler", color = TextSecondary)
             }
         }
     )

@@ -7,24 +7,86 @@ import com.example.phoenx.data.preferences.PreferenceManager
 import com.example.phoenx.domain.liveness.LivenessManager
 import com.example.phoenx.domain.usecase.ActivationProtocolManager
 import com.google.firebase.auth.FirebaseAuth
+import com.example.phoenx.domain.manager.SilenceManager
+import com.example.phoenx.domain.manager.SilenceStatus
+import com.example.phoenx.domain.models.SilenceConfig
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val auth: FirebaseAuth,
+    private val db: FirebaseFirestore,
     private val protocolManager: ActivationProtocolManager,
     private val voiceManager: VoiceAccessibilityManager,
     private val livenessManager: LivenessManager,
     private val preferenceManager: PreferenceManager
 ) : ViewModel() {
 
+    private val _silenceStatus = MutableStateFlow<SilenceStatus>(SilenceStatus.OK)
+    val silenceStatus: StateFlow<SilenceStatus> = _silenceStatus.asStateFlow()
+
+    private val _daysSinceLastCheckIn = MutableStateFlow(0)
+    val daysSinceLastCheckIn: StateFlow<Int> = _daysSinceLastCheckIn.asStateFlow()
+
     val isVoiceModeActive: StateFlow<Boolean> = preferenceManager.isVoiceModeActive
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    
+    // ... rest of state flows ...
+
+    init {
+        checkInactivity()
+        checkSilence()
+    }
+
+    private fun checkSilence() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                val doc = db.collection("users").document(userId).get().await()
+                val rhythmDays = doc.getLong("silenceConfig.rhythmDays")?.toInt() ?: 30
+                val lastCheckInAt = doc.getTimestamp("silenceConfig.lastCheckInAt") ?: com.google.firebase.Timestamp.now()
+                val missedCycles = doc.getLong("silenceConfig.missedCycles")?.toInt() ?: 0
+                val lastSilenceStatus = doc.getString("silenceConfig.lastSilenceStatus") ?: "present"
+
+                val config = SilenceConfig(rhythmDays, lastCheckInAt, missedCycles, lastSilenceStatus)
+                val status = SilenceManager.checkSilenceStatus(config)
+                
+                _silenceStatus.value = status
+                
+                // Calculer les jours pour l'écran de blocage
+                val diff = System.currentTimeMillis() - lastCheckInAt.toDate().time
+                _daysSinceLastCheckIn.value = (diff / (1000 * 60 * 60 * 24)).toInt()
+
+            } catch (e: Exception) {
+                // Erreur ou config inexistante
+            }
+        }
+    }
+
+    fun recordCheckIn(status: String) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            SilenceManager.recordCheckIn(userId, status, db)
+            _silenceStatus.value = SilenceStatus.OK
+        }
+    }
+
+    fun setSilenceConfig(rhythmDays: Int) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            val config = SilenceConfig(rhythmDays = rhythmDays)
+            db.collection("users").document(userId).update("silenceConfig", config).await()
+        }
+    }
 
     val isBiometricEnabled: StateFlow<Boolean> = preferenceManager.isBiometricEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)

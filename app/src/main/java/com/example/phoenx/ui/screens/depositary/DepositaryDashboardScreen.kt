@@ -1,0 +1,139 @@
+package com.example.phoenx.ui.screens.depositary
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.theme.*
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun DepositaryDashboardScreen(
+    onNavigateToActivation: () -> Unit,
+    viewModel: DepositaryViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    Scaffold(
+        containerColor = BackgroundPrimary,
+        topBar = {
+            TopAppBar(
+                title = { Text("Tableau de bord Dépositaire", color = TextPrimary) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+            )
+        }
+    ) { padding ->
+        if (uiState.isLoading) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = AccentPrimary)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    StatusCard(
+                        name = uiState.creatorName,
+                        missedCycles = uiState.missedCycles,
+                        days = uiState.daysSinceLastCheckIn,
+                        onAction = onNavigateToActivation
+                    )
+                }
+
+                item {
+                    DepositarySection("MON RÔLE", Icons.Default.Security)
+                }
+                
+                item {
+                    DepositarySection("NOTIFICATIONS", Icons.Default.Notifications)
+                }
+
+                item {
+                    DepositarySection("MES INFORMATIONS", Icons.Default.Person)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StatusCard(
+    name: String,
+    missedCycles: Int,
+    days: Int,
+    onAction: () -> Unit
+) {
+    val statusColor = when {
+        missedCycles >= 3 -> Error
+        missedCycles > 0 -> Warning
+        else -> Success
+    }
+
+    val statusText = when {
+        missedCycles >= 3 -> "$name n'a pas confirmé sa présence depuis $days jours."
+        missedCycles > 0 -> "$name n'a pas confirmé depuis $days jours. Pas d'inquiétude."
+        else -> "$name a confirmé sa présence il y a $days jours."
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = SurfaceCard,
+        shape = MaterialTheme.shapes.medium,
+        border = androidx.compose.foundation.BorderStroke(1.dp, statusColor.copy(alpha = 0.3f))
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(modifier = Modifier.size(12.dp).background(statusColor, CircleShape))
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = statusText,
+                    color = TextPrimary,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+            
+            if (missedCycles >= 3) {
+                Spacer(modifier = Modifier.height(16.dp))
+                TextButton(onClick = onAction) {
+                    Text("Voir les options", color = AccentPrimary)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DepositarySection(title: String, icon: ImageVector) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = SurfaceCard.copy(alpha = 0.5f),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, null, tint = TextTertiary, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(16.dp))
+            Text(title, color = TextSecondary, style = MaterialTheme.typography.labelLarge, letterSpacing = 1.sp)
+        }
+    }
+}
