@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.ai.AIManager
 import com.example.phoenx.data.ai.OnDeviceAIManager
 import com.example.phoenx.data.audio.PhoenXAudioRecorder
+import com.example.phoenx.data.audio.SpeechToTextManager
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.haptic.HapticManager
 import com.example.phoenx.data.local.OfflineEntry
@@ -17,6 +18,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
@@ -32,14 +35,22 @@ class CaptureViewModel @Inject constructor(
     private val aiManager: AIManager,
     private val onDeviceAIManager: OnDeviceAIManager,
     private val audioRecorder: PhoenXAudioRecorder,
-    private val hapticManager: HapticManager
+    private val hapticManager: HapticManager,
+    private val sttManager: SpeechToTextManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<CaptureUiState>(CaptureUiState.Idle)
-    val uiState: StateFlow<CaptureUiState> = _uiState
+    val uiState: StateFlow<CaptureUiState> = _uiState.asStateFlow()
 
     private val _recipients = MutableStateFlow<List<RecipientEntity>>(emptyList())
-    val recipients: StateFlow<List<RecipientEntity>> = _recipients
+    val recipients: StateFlow<List<RecipientEntity>> = _recipients.asStateFlow()
+
+    // Vocal
+    val isSttListening = sttManager.isListening
+    val sttPartialText = sttManager.partialText
+
+    private val _transcript = MutableStateFlow("")
+    val transcript: StateFlow<String> = _transcript.asStateFlow()
 
     init {
         loadRecipients()
@@ -51,6 +62,21 @@ class CaptureViewModel @Inject constructor(
                 _recipients.value = list
             }
         }
+    }
+
+    fun startVocalCapture() {
+        _transcript.value = ""
+        sttManager.startListening { finalResult ->
+            _transcript.value = finalResult
+        }
+    }
+
+    fun stopVocalCapture() {
+        sttManager.stopListening()
+    }
+
+    fun appendTranscript(text: String) {
+        _transcript.value = text
     }
 
     private var currentAudioFile: File? = null

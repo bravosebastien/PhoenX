@@ -17,12 +17,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -93,6 +95,16 @@ fun CaptureScreen(
     var useBookMode by remember { mutableStateOf(true) }
     val selectedRecipientIds = remember { mutableStateListOf<String>() }
     val recipients by viewModel.recipients.collectAsState()
+    val isSttListening by viewModel.isSttListening.collectAsState()
+    val sttPartialText by viewModel.sttPartialText.collectAsState()
+    val transcript by viewModel.transcript.collectAsState()
+
+    // Synchroniser le texte avec la transcription vocale
+    LaunchedEffect(transcript) {
+        if (transcript.isNotEmpty()) {
+            text = if (text.isEmpty()) transcript else "$text $transcript"
+        }
+    }
     
     // OPTIONS AVANCÉES (ADN 5.0)
     var showAdvancedOptions by remember { mutableStateOf(false) }
@@ -228,11 +240,15 @@ fun CaptureScreen(
                         }
                         Screen.Capture.TYPE_AUDIO -> {
                             AudioCaptureContent(
-                                isRecording = uiState is CaptureUiState.RecordingAudio,
-                                onStart = { viewModel.startAudioRecording(context.cacheDir) },
+                                isRecording = isSttListening,
+                                transcript = text,
+                                partialText = sttPartialText,
+                                onStart = { viewModel.startVocalCapture() },
                                 onStop = { 
-                                    viewModel.stopAudioRecording()
-                                    viewModel.saveEntry(null, null, Screen.Capture.TYPE_AUDIO, "Sagesse", "Privé")
+                                    viewModel.stopVocalCapture()
+                                },
+                                onSave = {
+                                    viewModel.saveEntry(text, null, Screen.Capture.TYPE_TEXT, selectedCategory, visibility, selectedRecipientIds.toList())
                                 }
                             )
                         }
@@ -255,7 +271,12 @@ fun CaptureScreen(
                                 recipients = recipients,
                                 selectedRecipientIds = selectedRecipientIds,
                                 useBookMode = useBookMode,
-                                onToggleMode = { useBookMode = !useBookMode }
+                                onToggleMode = { useBookMode = !useBookMode },
+                                isListening = isSttListening,
+                                onMicClick = {
+                                    if (isSttListening) viewModel.stopVocalCapture()
+                                    else viewModel.startVocalCapture()
+                                }
                             )
                         }
                     }
@@ -451,7 +472,9 @@ fun TextCaptureContent(
     recipients: List<com.example.phoenx.data.local.RecipientEntity>,
     selectedRecipientIds: MutableList<String>,
     useBookMode: Boolean,
-    onToggleMode: () -> Unit
+    onToggleMode: () -> Unit,
+    isListening: Boolean,
+    onMicClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -476,24 +499,39 @@ fun TextCaptureContent(
             BookWritingMode(
                 value = text,
                 onValueChange = onTextChange,
+                onMicClick = onMicClick,
+                isListening = isListening,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
         } else {
-            TextField(
-                value = text,
-                onValueChange = onTextChange,
-                placeholder = { 
-                    Text("Écris ce qui ne doit pas se perdre...", style = MaterialTheme.typography.displaySmall, color = TextTertiary) 
-                },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
-                textStyle = MaterialTheme.typography.displaySmall.copy(color = TextPrimary, lineHeight = 34.sp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+            Box(modifier = Modifier.fillMaxWidth()) {
+                TextField(
+                    value = text,
+                    onValueChange = onTextChange,
+                    placeholder = { 
+                        Text("Écris ce qui ne doit pas se perdre...", style = MaterialTheme.typography.displaySmall, color = TextTertiary) 
+                    },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
+                    textStyle = MaterialTheme.typography.displaySmall.copy(color = TextPrimary, lineHeight = 34.sp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
                 )
-            )
+                
+                IconButton(
+                    onClick = onMicClick,
+                    modifier = Modifier.align(Alignment.TopEnd).background(if (isListening) Color.Red.copy(alpha = 0.1f) else Color.Transparent, CircleShape)
+                ) {
+                    Icon(
+                        imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
+                        contentDescription = null,
+                        tint = if (isListening) Color.Red else AccentPrimary
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -557,8 +595,11 @@ fun TextCaptureContent(
 @Composable
 fun AudioCaptureContent(
     isRecording: Boolean,
+    transcript: String,
+    partialText: String,
     onStart: () -> Unit,
-    onStop: () -> Unit
+    onStop: () -> Unit,
+    onSave: () -> Unit
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
@@ -572,22 +613,51 @@ fun AudioCaptureContent(
     )
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        if (!isRecording && transcript.isNotEmpty()) {
+            Text("Voici ce que j'ai compris :", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Spacer(modifier = Modifier.height(16.dp))
+            Card(
+                modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
+                colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.5f))
+            ) {
+                Text(
+                    text = transcript,
+                    modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState()),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextPrimary
+                )
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
         Text(
-            text = if (isRecording) "On t'écoute..." else "Prêt à enregistrer ta voix ?",
-            style = MaterialTheme.typography.displaySmall,
-            color = TextPrimary
+            text = if (isRecording) "On t'écoute..." else if (transcript.isEmpty()) "Parle, nous écrivons pour toi" else "Continuer l'enregistrement ?",
+            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
+            color = TextPrimary,
+            textAlign = TextAlign.Center
         )
         
-        Spacer(modifier = Modifier.height(64.dp))
+        if (isRecording && partialText.isNotEmpty()) {
+            Text(
+                text = "... $partialText",
+                style = MaterialTheme.typography.bodyMedium,
+                color = AccentPrimary.copy(alpha = 0.7f),
+                fontStyle = FontStyle.Italic,
+                modifier = Modifier.padding(top = 16.dp)
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(48.dp))
 
         Surface(
             modifier = Modifier
-                .size(160.dp)
+                .size(140.dp)
                 .scale(if (isRecording) scale else 1f)
+                .shadow(if (isRecording) 20.dp else 0.dp, CircleShape, spotColor = AccentPrimary)
                 .clickable { if (isRecording) onStop() else onStart() },
             shape = CircleShape,
             color = if (isRecording) Error.copy(alpha = 0.2f) else AccentPrimary.copy(alpha = 0.1f),
@@ -606,6 +676,15 @@ fun AudioCaptureContent(
         if (isRecording) {
             Spacer(modifier = Modifier.height(32.dp))
             Text("Appuie pour arrêter", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+        } else if (transcript.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(48.dp))
+            Button(
+                onClick = onSave,
+                modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+            ) {
+                Text("Sceller ce souvenir", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }

@@ -1,13 +1,22 @@
 package com.example.phoenx.ui.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
@@ -23,6 +32,8 @@ import kotlinx.coroutines.delay
 fun BookWritingMode(
     value: String,
     onValueChange: (String) -> Unit,
+    onMicClick: () -> Unit,
+    isListening: Boolean = false,
     placeholder: String = "Commence à écrire ton souvenir...",
     modifier: Modifier = Modifier,
 ) {
@@ -46,6 +57,21 @@ fun BookWritingMode(
 
     Box(modifier = modifier.fillMaxSize()) { // Remplit tout l'espace (Plein Écran)
         OpenBookCanvas(modifier = Modifier.fillMaxSize())
+
+        // Bouton Micro (Flottant sur le livre)
+        IconButton(
+            onClick = onMicClick,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(end = 40.dp, top = 40.dp)
+                .background(if (isListening) Color.Red.copy(alpha = 0.2f) else Color.Transparent, CircleShape)
+        ) {
+            Icon(
+                imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
+                contentDescription = "Dictée vocale",
+                tint = if (isListening) Color.Red else Color(0xFFC97B3A)
+            )
+        }
 
         // Conteneur du texte (Page de droite)
         Box(
@@ -79,7 +105,7 @@ fun BookWritingMode(
             // La Plume (superposée exactement sur le texte)
             QuillPenCanvas(
                 tipOffset = tipPosition,
-                isWriting = isActivelyWriting,
+                isWriting = isActivelyWriting || isListening,
                 modifier = Modifier.fillMaxSize()
             )
         }
