@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
@@ -184,8 +185,15 @@ fun ReconciliationScreen(
                 Button(
                     onClick = { viewModel.saveReconciliationMessage(text, recipientName) },
                     enabled = text.isNotEmpty() && recipientName.isNotEmpty() && !uiState.isSaving && !isRitualPlaying,
-                    modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .phoenXMatiere()
+                        .alpha(if (text.isNotEmpty() && recipientName.isNotEmpty()) 1f else 0.5f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = AccentPrimary,
+                        disabledContainerColor = AccentPrimary.copy(alpha = 0.3f)
+                    ),
                     shape = MaterialTheme.shapes.medium
                 ) {
                     if (uiState.isSaving) {

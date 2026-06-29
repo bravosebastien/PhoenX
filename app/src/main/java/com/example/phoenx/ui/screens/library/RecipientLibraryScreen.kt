@@ -77,9 +77,11 @@ fun RecipientLibraryScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(BgPrimary)
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .padding(horizontal = 16.dp)
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         // En-tête
         Row(

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +28,7 @@ import com.example.phoenx.ui.theme.*
 @Composable
 fun RecipientDiscothequeScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToCapture: () -> Unit,
     viewModel: RecipientMediaViewModel = hiltViewModel()
 ) {
     val entries by viewModel.discothequeEntries.collectAsState()
@@ -39,6 +41,11 @@ fun RecipientDiscothequeScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onNavigateToCapture) {
+                        Icon(Icons.Default.Add, null, tint = AccentPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)

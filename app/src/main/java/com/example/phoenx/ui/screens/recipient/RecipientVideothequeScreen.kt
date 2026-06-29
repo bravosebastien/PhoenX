@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,6 +31,7 @@ import com.example.phoenx.ui.theme.*
 @Composable
 fun RecipientVideothequeScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToCapture: () -> Unit,
     viewModel: RecipientMediaViewModel = hiltViewModel(),
 ) {
     val entries by viewModel.videoEntries.collectAsState()
@@ -46,6 +48,9 @@ fun RecipientVideothequeScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onNavigateToCapture) {
+                        Icon(Icons.Default.Add, null, tint = AccentPrimary)
+                    }
                     InfoPoint(
                         title = "La Vidéothèque",
                         content = "Vos souvenirs les plus vivants sont conservés ici sous forme de cassettes VHS. Cliquez sur une cassette pour lancer le projecteur."

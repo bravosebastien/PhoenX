@@ -7,7 +7,7 @@ data class Question(
 )
 
 object QuestionsData {
-    val categories = listOf("Enfance", "Famille", "Amour", "Travail", "Valeurs", "Regrets", "Rêves", "Sagesse")
+    val categories = listOf("Enfance", "Famille", "Amour", "Travail", "Valeurs", "Regrets", "Rêves", "Passions", "Sagesse")
 
     val allQuestions = listOf(
         // ENFANCE
@@ -123,6 +123,23 @@ object QuestionsData {
         Question("rv8", "Qu'est-ce qui te rend encore émerveillé aujourd'hui ?", "Rêves"),
         Question("rv9", "Quelle musique ou chanson raconte le mieux ta vie ?", "Rêves"),
         Question("rv10", "Quel film ou livre t'a donné l'impression qu'il avait été fait pour toi ?", "Rêves"),
+
+        // PASSIONS & HOBBIES
+        Question("ph1", "Quelle activité te fait perdre la notion du temps ?", "Passions"),
+        Question("ph2", "Quel sport a marqué ta vie, en tant que pratiquant ou spectateur ?", "Passions"),
+        Question("ph3", "As-tu une collection secrète ou une passion dont tu parles peu ?", "Passions"),
+        Question("ph4", "Quel est l'objet le plus précieux que tu possèdes par passion ?", "Passions"),
+        Question("ph5", "Quelle discipline aurais-tu aimé maîtriser (musique, dessin, sport...) ?", "Passions"),
+        Question("ph6", "Quel est ton rapport à la nature et aux grands espaces ?", "Passions"),
+        Question("ph7", "Y a-t-il un domaine où tu te considères comme un expert ?", "Passions"),
+        Question("ph8", "Quelle est la plus belle émotion que le sport t'a procurée ?", "Passions"),
+        Question("ph9", "Aimes-tu cuisiner ? Quel est ton plat signature ?", "Passions"),
+        Question("ph10", "Quel est ton passe-temps favori le dimanche après-midi ?", "Passions"),
+        Question("ph11", "As-tu déjà fait un voyage uniquement pour une passion ?", "Passions"),
+        Question("ph12", "Quel instrument de musique te touche le plus ?", "Passions"),
+        Question("ph13", "Es-tu plutôt manuel ou intellectuel dans tes loisirs ?", "Passions"),
+        Question("ph14", "Quel défi physique ou artistique es-tu fier d'avoir relevé ?", "Passions"),
+        Question("ph15", "Si tu avais tout le temps du monde, quel nouveau hobby lancerais-tu ?", "Passions"),
 
         // SAGESSE
         Question("s1", "Qu'est-ce que tu sais à 50 ans que tu aurais voulu savoir à 25 ans ?", "Sagesse"),

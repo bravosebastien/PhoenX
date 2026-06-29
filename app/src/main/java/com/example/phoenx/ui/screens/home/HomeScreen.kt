@@ -51,7 +51,6 @@ fun HomeScreen(
     onNavigateToQuestions: () -> Unit,
     onNavigateToMailbox: () -> Unit,
     onNavigateToLegacy: () -> Unit,
-    onNavigateToCube: () -> Unit,
     onNavigateToRecipients: () -> Unit,
     onNavigateToMap: () -> Unit,
     onNavigateToLibrary: () -> Unit,
@@ -153,32 +152,19 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                OutlinedButton(
+                Button(
                     onClick = onNavigateToLibrary,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp)
                         .height(56.dp)
                         .phoenXMatiere(),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.5f)),
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
                     shape = MaterialTheme.shapes.medium
                 ) {
-                    Icon(Icons.Default.AutoStories, null, tint = AccentPrimary)
+                    Icon(Icons.Default.AutoStories, null, tint = BackgroundPrimary)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("👁 Voir ma bibliothèque", color = AccentPrimary)
-                }
-
-                Spacer(modifier = Modifier.height(48.dp))
-                
-                Button(
-                    onClick = onNavigateToCube,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).height(56.dp).phoenXMatiere(),
-                    colors = ButtonDefaults.buttonColors(containerColor = BackgroundSecondary),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.5f))
-                ) {
-                    Icon(Icons.Default.ViewInAr, null, tint = AccentPrimary)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Aperçu de mon Armoire (Vue Destinataire)", color = TextPrimary)
+                    Text("👁 Voir ma bibliothèque", color = BackgroundPrimary, style = MaterialTheme.typography.labelLarge)
                 }
 
                 Spacer(modifier = Modifier.height(48.dp))

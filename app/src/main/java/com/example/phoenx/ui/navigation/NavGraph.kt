@@ -142,7 +142,6 @@ fun PhoenXNavGraph(
                 onNavigateToQuestions = { navController.navigate(Screen.Questions.route) },
                 onNavigateToMailbox = { navController.navigate(Screen.RecipientMailbox.route) },
                 onNavigateToLegacy = { navController.navigate(Screen.NewLegacy.route) },
-                onNavigateToCube = { navController.navigate(Screen.RecipientLibrary.route) },
                 onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
                 onNavigateToMap = { navController.navigate(Screen.Map.route) },
                 onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.route) },
@@ -302,13 +301,22 @@ fun PhoenXNavGraph(
 
         // --- Routes for the Library Grid ---
         composable("library_books") {
-            RecipientBooksScreen(onNavigateBack = { navController.popBackStack() })
+            RecipientBooksScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCapture = { navController.navigate("capture/TEXT") }
+            )
         }
         composable("library_music") {
-            RecipientDiscothequeScreen(onNavigateBack = { navController.popBackStack() })
+            RecipientDiscothequeScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCapture = { navController.navigate("capture/AUDIO") }
+            )
         }
         composable("library_video") {
-            RecipientVideothequeScreen(onNavigateBack = { navController.popBackStack() })
+            RecipientVideothequeScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCapture = { navController.navigate("capture/VIDEO") }
+            )
         }
         composable("fil_pensee") {
             FilScreen(onNavigateBack = { navController.popBackStack() })
@@ -371,11 +379,17 @@ fun PhoenXNavGraph(
 
 
         composable(Screen.RecipientDiscotheque.route) {
-            RecipientDiscothequeScreen(onNavigateBack = { navController.popBackStack() })
+            RecipientDiscothequeScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCapture = { navController.navigate("capture/AUDIO") }
+            )
         }
 
         composable(Screen.RecipientVideotheque.route) {
-            RecipientVideothequeScreen(onNavigateBack = { navController.popBackStack() })
+            RecipientVideothequeScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCapture = { navController.navigate("capture/VIDEO") }
+            )
         }
 
         composable(Screen.Essence.route) {

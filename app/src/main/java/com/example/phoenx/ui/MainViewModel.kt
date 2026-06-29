@@ -136,8 +136,8 @@ class MainViewModel @Inject constructor(
     }
 
     fun dismissWelcomeGuide(neverShowAgain: Boolean) {
-        if (neverShowAgain) {
-            viewModelScope.launch {
+        viewModelScope.launch {
+            if (neverShowAgain) {
                 preferenceManager.setShouldShowWelcomeGuide(false)
             }
         }
