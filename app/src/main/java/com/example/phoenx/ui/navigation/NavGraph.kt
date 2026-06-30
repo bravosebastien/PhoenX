@@ -2,6 +2,7 @@ package com.example.phoenx.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
@@ -33,6 +35,7 @@ import com.example.phoenx.ui.screens.pact.PactDetailScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
 import com.example.phoenx.ui.screens.library.RecipientLibraryScreen
+import com.example.phoenx.ui.screens.library.LibraryCoverPickerScreen
 import com.example.phoenx.ui.screens.mailbox.MailboxScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
@@ -56,6 +59,7 @@ import com.example.phoenx.ui.screens.settings.AccessibilitySettingsScreen
 import com.example.phoenx.ui.theme.TextPrimary
 import com.google.firebase.auth.FirebaseAuth
 
+@androidx.media3.common.util.UnstableApi
 @Composable
 fun PhoenXNavGraph(
     navController: NavHostController,
@@ -118,7 +122,6 @@ fun PhoenXNavGraph(
 
         composable(Screen.Home.route) {
             val silenceStatus by mainViewModel.silenceStatus.collectAsState()
-            val daysMissed by mainViewModel.daysSinceLastCheckIn.collectAsState()
 
             LaunchedEffect(silenceStatus) {
                 when (silenceStatus) {
@@ -217,7 +220,23 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.Library.route) {
-            RecipientLibraryScreen(navController = navController)
+            RecipientLibraryScreen(navController = navController, isCreatorMode = true)
+        }
+
+        composable(
+            route = "library_cover_picker/{compartmentId}/{compartmentName}",
+            arguments = listOf(
+                navArgument("compartmentId") { type = androidx.navigation.NavType.StringType },
+                navArgument("compartmentName") { type = androidx.navigation.NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val compId = backStackEntry.arguments?.getString("compartmentId") ?: ""
+            val compName = backStackEntry.arguments?.getString("compartmentName") ?: ""
+            LibraryCoverPickerScreen(
+                compartmentId = compId,
+                compartmentName = compName,
+                navController = navController
+            )
         }
 
         composable(Screen.Questions.route) {
@@ -231,7 +250,7 @@ fun PhoenXNavGraph(
         composable(Screen.Worlds.route) {
             WorldsScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToWorld = { category ->
+                onNavigateToWorld = { _ ->
                     // Pour le moment on reste sur l'écran
                 }
             )
@@ -506,9 +525,4 @@ fun PhoenXNavGraph(
     }
 }
 
-@Composable
-fun PlaceholderScreen(name: String) {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = name, color = TextPrimary, style = MaterialTheme.typography.displayMedium)
-    }
-}
+

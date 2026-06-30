@@ -7,30 +7,44 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.PlayerView
+import coil3.compose.AsyncImage
+import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.example.phoenx.ui.theme.BackgroundPrimary
 import com.example.phoenx.ui.theme.TextPrimary
@@ -71,8 +85,28 @@ private val libraryCards = listOf(
 )
 
 // ── Écran principal ──────────────────────────────────────────────────────────
+@androidx.media3.common.util.UnstableApi
 @Composable
-fun RecipientLibraryScreen(navController: NavController) {
+fun RecipientLibraryScreen(
+    navController: NavController,
+    isCreatorMode: Boolean = true,
+    viewModel: LibraryCoverViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+    val covers by viewModel.covers.collectAsState()
+    
+    // Un seul player partagé pour tout l'écran (Règle d'or : MUET)
+    val sharedPlayer = remember {
+        ExoPlayer.Builder(context).build().apply {
+            volume = 0f
+            repeatMode = Player.REPEAT_MODE_ONE
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { sharedPlayer.release() }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -115,10 +149,17 @@ fun RecipientLibraryScreen(navController: NavController) {
             modifier            = Modifier.fillMaxSize()
         ) {
             items(libraryCards) { card ->
+                val cover = covers[card.id]
                 LibraryCardItem(
-                    card    = card,
+                    card = card,
+                    cover = cover,
+                    isCreatorMode = isCreatorMode,
+                    sharedPlayer = sharedPlayer,
                     onClick = {
                         navController.navigate(card.route)
+                    },
+                    onEditClick = {
+                        navController.navigate("library_cover_picker/${card.id}/${card.name}")
                     }
                 )
             }
@@ -127,11 +168,18 @@ fun RecipientLibraryScreen(navController: NavController) {
 }
 
 // ── Carte individuelle ───────────────────────────────────────────────────────
+@androidx.media3.common.util.UnstableApi
 @Composable
 private fun LibraryCardItem(
     card: LibraryCard,
-    onClick: () -> Unit
+    cover: LibraryCover?,
+    isCreatorMode: Boolean,
+    sharedPlayer: ExoPlayer,
+    onClick: () -> Unit,
+    onEditClick: () -> Unit
 ) {
+    var isVisible by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -139,43 +187,72 @@ private fun LibraryCardItem(
             .clip(RoundedCornerShape(16.dp))
             .background(CardBg)
             .clickable { onClick() }
+            .onGloballyPositioned { coordinates ->
+                // Détection de visibilité > 50% pour lancer la vidéo
+                val windowBounds = coordinates.parentLayoutCoordinates?.size?.height?.toFloat() ?: 2000f
+                val positionY = coordinates.positionInWindow().y
+                isVisible = positionY > 0 && positionY < (windowBounds * 0.8f)
+            }
     ) {
-        // Bordure subtile
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.Transparent)
-        )
+        // --- COUVERTURE PERSONNALISÉE ---
+        if (cover != null && cover.mediaType != "none") {
+            if (cover.mediaType == "photo") {
+                AsyncImage(
+                    model = cover.mediaUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else if (cover.mediaType == "video") {
+                VideoCardContent(
+                    url = cover.mediaUrl,
+                    isVisible = isVisible,
+                    sharedPlayer = sharedPlayer
+                )
+            }
+            // Overlay dégradé pour la lisibilité du texte
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f)),
+                            startY = 100f
+                        )
+                    )
+            )
+        }
 
+        // --- CONTENU (CANVAS OU TEXTE) ---
         Column(
             modifier            = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Illustration Canvas
-            Canvas(
-                modifier = Modifier.size(64.dp)
-            ) {
-                when (card.id) {
-                    "bibliotheque"   -> drawBibliotheque()
-                    "discotheque"    -> drawDiscotheque()
-                    "videotheque"    -> drawVideotheque()
-                    "fil_pensee"     -> drawFilPensee()
-                    "lettres"        -> drawLettres()
-                    "mes_meilleurs"  -> drawMesMeilleurs()
-                    "photos"         -> drawPhotos()
-                    "mappemonde"     -> drawMappemonde()
-                    "cent_questions" -> drawCentQuestions()
-                    "coffre_fort"    -> drawCoffreFort()
-                    "tiroir_secret"  -> drawTiroirSecret()
-                    "le_pacte"       -> drawLePacte()
-                    "portrait"       -> drawPortrait()
-                    "reconciliation" -> drawReconciliation()
+            if (cover == null || cover.mediaType == "none") {
+                // Illustration Canvas
+                Canvas(modifier = Modifier.size(64.dp)) {
+                    when (card.id) {
+                        "bibliotheque"   -> drawBibliotheque()
+                        "discotheque"    -> drawDiscotheque()
+                        "videotheque"    -> drawVideotheque()
+                        "fil_pensee"     -> drawFilPensee()
+                        "lettres"        -> drawLettres()
+                        "mes_meilleurs"  -> drawMesMeilleurs()
+                        "photos"         -> drawPhotos()
+                        "mappemonde"     -> drawMappemonde()
+                        "cent_questions" -> drawCentQuestions()
+                        "coffre_fort"    -> drawCoffreFort()
+                        "tiroir_secret"  -> drawTiroirSecret()
+                        "le_pacte"       -> drawLePacte()
+                        "portrait"       -> drawPortrait()
+                        "reconciliation" -> drawReconciliation()
+                    }
                 }
+                Spacer(modifier = Modifier.height(14.dp))
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
             }
-
-            Spacer(modifier = Modifier.height(14.dp))
 
             // Nom de la section
             Text(
@@ -198,9 +275,61 @@ private fun LibraryCardItem(
                     color      = Accent
                 )
             )
+            
+            if (cover != null && cover.mediaType != "none") {
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+
+        // BOUTON PERSONNALISER (Crayon)
+        if (isCreatorMode) {
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp)
+                    .size(32.dp)
+                    .clip(CircleShape)
+                    .clickable { onEditClick() },
+                color = BgPrimary.copy(alpha = 0.6f)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "Éditer",
+                    tint = TextPrimary,
+                    modifier = Modifier.padding(8.dp).size(16.dp)
+                )
+            }
         }
     }
 }
+
+@androidx.media3.common.util.UnstableApi
+@Composable
+private fun VideoCardContent(
+    url: String,
+    isVisible: Boolean,
+    sharedPlayer: ExoPlayer
+) {
+    LaunchedEffect(isVisible) {
+        if (isVisible) {
+            sharedPlayer.setMediaItem(MediaItem.fromUri(url))
+            sharedPlayer.prepare()
+            sharedPlayer.play()
+        }
+    }
+
+    AndroidView(
+        factory = { ctx ->
+            PlayerView(ctx).apply {
+                player = sharedPlayer
+                useController = false
+                resizeMode = androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            }
+        },
+        modifier = Modifier.fillMaxSize()
+    )
+}
+
 
 // ════════════════════════════════════════════════════════════════════════════
 // ILLUSTRATIONS CANVAS — une fonction par carte
