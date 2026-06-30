@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +29,7 @@ fun RecipientDetailScreen(
     recipientId: String,
     onNavigateBack: () -> Unit,
     onComposePortrait: (String) -> Unit,
+    onNavigateToPermissions: (String) -> Unit,
     viewModel: RecipientViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -99,6 +101,19 @@ fun RecipientDetailScreen(
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
+
+                    Button(
+                        onClick = { onNavigateToPermissions(recipient.id) },
+                        modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+                        colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.5f))
+                    ) {
+                        Icon(Icons.Default.Security, null, tint = AccentPrimary)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Gérer les droits d'accès", color = TextPrimary)
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     Button(
                         onClick = { onComposePortrait(recipient.id) },

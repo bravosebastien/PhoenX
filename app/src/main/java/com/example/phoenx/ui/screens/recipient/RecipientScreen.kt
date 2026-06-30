@@ -16,6 +16,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -140,46 +142,94 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var relationship by remember { mutableStateOf("") }
+    var showInvitationConfirm by remember { mutableStateOf(false) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = BackgroundSecondary,
-        title = { Text("Ajouter un proche", color = TextPrimary) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Nom complet") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = relationship,
-                    onValueChange = { relationship = it },
-                    label = { Text("Lien (ex: Fils, Épouse...)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+    if (!showInvitationConfirm) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            containerColor = BackgroundSecondary,
+            title = { Text("Ajouter un proche", color = TextPrimary) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Nom complet") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedTextField(
+                        value = relationship,
+                        onValueChange = { relationship = it },
+                        label = { Text("Lien (ex: Fils, Épouse...)") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showInvitationConfirm = true },
+                    enabled = name.isNotEmpty() && email.isNotEmpty(),
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                ) {
+                    Text("Suivant", color = BackgroundPrimary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Annuler", color = TextSecondary)
+                }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(name, email, relationship) },
-                enabled = name.isNotEmpty() && email.isNotEmpty(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
-            ) {
-                Text("Ajouter", color = BackgroundPrimary)
+        )
+    } else {
+        AlertDialog(
+            onDismissRequest = { showInvitationConfirm = false },
+            containerColor = BackgroundSecondary,
+            title = { Text("Confirmer l'invitation", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif), color = TextPrimary) },
+            text = {
+                Column {
+                    Text(
+                        "Un email va être envoyé à $name pour l'informer qu'il/elle fait partie des personnes que tu as choisies dans PHOEN-X. Veux-tu continuer ?",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Surface(
+                        color = SurfaceCard,
+                        shape = MaterialTheme.shapes.medium,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("APERÇU DE L'EMAIL", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                "$name vient d'être ajouté(e) par ton proche.\nTu fais partie des personnes choisies pour recevoir son héritage PHOEN-X.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = TextPrimary,
+                                fontStyle = FontStyle.Italic
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { onConfirm(name, email, relationship) },
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                ) {
+                    Text("Envoyer l'invitation", color = BackgroundPrimary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showInvitationConfirm = false }) {
+                    Text("Retour", color = TextSecondary)
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Annuler", color = TextSecondary)
-            }
-        }
-    )
+        )
+    }
 }

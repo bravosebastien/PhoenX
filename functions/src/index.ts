@@ -393,6 +393,38 @@ export const resolveCreatorSilence = onCall(async (request) => {
     return { success: true };
 });
 
+// 17. Notification d'octroi du droit de poser des questions
+export const notifyQuestionRightGranted = onCall(async (request) => {
+    const { recipientEmail, recipientName, creatorName, inviteLink } = request.data;
+
+    await admin.firestore().collection("mail").add({
+        to: recipientEmail,
+        message: {
+            subject: `${creatorName} t'invite à lui poser une question`,
+            text: `${recipientName},\n\n${creatorName} t'a donné la possibilité de lui poser une ou plusieurs questions dans PHOEN-X.\n\nCes questions resteront scellées — tu n'auras la réponse qu'après son départ, le jour où son héritage te sera transmis.\n\nC'est une façon différente de garder le lien : poser aujourd'hui une question que tu n'as peut-être jamais osé formuler.\n\n${inviteLink}`
+        }
+    });
+});
+
+// 18. Notification au Créateur d'une nouvelle question
+export const notifyNewPendingQuestion = admin.firestore
+    .document("users/{userId}/pendingQuestions/{questionId}")
+    .onCreate(async (snapshot, context) => {
+        const userId = context.params.userId;
+        const userDoc = await admin.firestore().collection("users").doc(userId).get();
+        const fcmToken = userDoc.data()?.fcmToken;
+
+        if (fcmToken) {
+            await admin.messaging().send({
+                token: fcmToken,
+                notification: {
+                    title: "Une nouvelle question t'attend",
+                    body: "Quelqu'un t'a posé une question dans PHOEN-X."
+                }
+            });
+        }
+    });
+
 // 12. Génération d'un token d'invitation sécurisé
 export const generateDepositaryInviteToken = onCall(async (request) => {
     const { creatorId, depositaryId } = request.data;
@@ -441,6 +473,38 @@ export const joinAsDepositary = onCall(async (request) => {
 
     return { success: true };
 });
+
+// 17. Notification d'octroi du droit de poser des questions
+export const notifyQuestionRightGranted = onCall(async (request) => {
+    const { recipientEmail, recipientName, creatorName, inviteLink } = request.data;
+
+    await admin.firestore().collection("mail").add({
+        to: recipientEmail,
+        message: {
+            subject: `${creatorName} t'invite à lui poser une question`,
+            text: `${recipientName},\n\n${creatorName} t'a donné la possibilité de lui poser une ou plusieurs questions dans PHOEN-X.\n\nCes questions resteront scellées — tu n'auras la réponse qu'après son départ, le jour où son héritage te sera transmis.\n\nC'est une façon différente de garder le lien : poser aujourd'hui une question que tu n'as peut-être jamais osé formuler.\n\n${inviteLink}`
+        }
+    });
+});
+
+// 18. Notification au Créateur d'une nouvelle question
+export const notifyNewPendingQuestion = admin.firestore
+    .document("users/{userId}/pendingQuestions/{questionId}")
+    .onCreate(async (snapshot, context) => {
+        const userId = context.params.userId;
+        const userDoc = await admin.firestore().collection("users").doc(userId).get();
+        const fcmToken = userDoc.data()?.fcmToken;
+
+        if (fcmToken) {
+            await admin.messaging().send({
+                token: fcmToken,
+                notification: {
+                    title: "Une nouvelle question t'attend",
+                    body: "Quelqu'un t'a posé une question dans PHOEN-X."
+                }
+            });
+        }
+    });
 
 // 14. Génération d'un code court temporaire (15 min)
 export const generateDepositaryShortCode = onCall(async (request) => {

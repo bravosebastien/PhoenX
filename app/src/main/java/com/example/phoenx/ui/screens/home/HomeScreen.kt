@@ -49,6 +49,7 @@ fun HomeScreen(
     onNavigateToWorlds: () -> Unit,
     onNavigateToFavorites: () -> Unit,
     onNavigateToQuestions: () -> Unit,
+    onNavigateToPendingQuestions: () -> Unit,
     onNavigateToMailbox: () -> Unit,
     onNavigateToLegacy: () -> Unit,
     onNavigateToRecipients: () -> Unit,
@@ -125,6 +126,10 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 QuestionsCard(onNavigateToQuestions)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                PendingQuestionsCard(onNavigateToPendingQuestions)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -493,6 +498,37 @@ fun QuestionsCard(onClick: () -> Unit) {
     }
 }
 
+@Composable
+fun PendingQuestionsCard(onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clickable(onClick = onClick)
+            .phoenXMatiere(isPaper = false),
+        colors = CardDefaults.cardColors(containerColor = AccentPrimary.copy(alpha = 0.05f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
+    ) {
+        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
+            BadgedBox(
+                badge = { 
+                    Badge(containerColor = AccentPrimary) { 
+                        Text("3", color = BackgroundPrimary) 
+                    } 
+                }
+            ) {
+                Icon(Icons.Default.QuestionAnswer, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
+            }
+            Spacer(modifier = Modifier.width(20.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("QUESTIONS EN ATTENTE", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+                Text("Quelqu'un veut en savoir plus", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+            }
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+        }
+    }
+}
 @Composable
 fun MapCard(onClick: () -> Unit) {
     Card(

@@ -33,9 +33,12 @@ import com.example.phoenx.ui.screens.pact.PactDetailScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
 import com.example.phoenx.ui.screens.library.*
+import com.example.phoenx.ui.screens.recipient.RecipientPermissionsScreen
 import com.example.phoenx.ui.screens.mailbox.MailboxScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
+import com.example.phoenx.ui.screens.questions.AskQuestionScreen
+import com.example.phoenx.ui.screens.questions.PendingQuestionsScreen
 import com.example.phoenx.ui.screens.questionsroom.QuestionsRoomScreen
 import com.example.phoenx.ui.screens.recipient.*
 import com.example.phoenx.ui.screens.silence.SilenceBlockScreen
@@ -140,6 +143,7 @@ fun PhoenXNavGraph(
                 onNavigateToWorlds = { navController.navigate(Screen.Worlds.route) },
                 onNavigateToFavorites = { navController.navigate(Screen.Favorites.route) },
                 onNavigateToQuestions = { navController.navigate(Screen.Questions.route) },
+                onNavigateToPendingQuestions = { navController.navigate(Screen.PendingQuestions.route) },
                 onNavigateToMailbox = { navController.navigate(Screen.RecipientMailbox.route) },
                 onNavigateToLegacy = { navController.navigate(Screen.NewLegacy.route) },
                 onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
@@ -240,8 +244,28 @@ fun PhoenXNavGraph(
             QuestionsScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable("questions_room") {
-            QuestionsRoomScreen(onNavigateBack = { navController.popBackStack() })
+        composable(Screen.PendingQuestions.route) {
+            PendingQuestionsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAnswerQuestion = { id -> 
+                    navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, "Ma réponse à ta question...")) 
+                }
+            )
+        }
+
+        composable(
+            route = Screen.AskQuestion.route,
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "https://phoenx.app/ask?creator={creatorId}&recipient={recipientId}" }
+            )
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+            val recipientId = backStackEntry.arguments?.getString("recipientId") ?: ""
+            AskQuestionScreen(
+                creatorId = creatorId,
+                recipientId = recipientId,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.Worlds.route) {
@@ -294,7 +318,16 @@ fun PhoenXNavGraph(
             RecipientDetailScreen(
                 recipientId = recipientId,
                 onNavigateBack = { navController.popBackStack() },
-                onComposePortrait = { id -> navController.navigate(Screen.Portraits.createRoute(id)) }
+                onComposePortrait = { id -> navController.navigate(Screen.Portraits.createRoute(id)) },
+                onNavigateToPermissions = { id -> navController.navigate(Screen.RecipientPermissions.createRoute(id)) }
+            )
+        }
+
+        composable(Screen.RecipientPermissions.route) { backStackEntry ->
+            val recipientId = backStackEntry.arguments?.getString("recipientId") ?: ""
+            RecipientPermissionsScreen(
+                recipientId = recipientId,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

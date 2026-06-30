@@ -47,6 +47,20 @@ class RecipientViewModel @Inject constructor(
             offlineEntryDao.deleteRecipient(recipient)
         }
     }
+
+    fun updatePermissions(recipientId: String, canAsk: Boolean, maxQuestions: Int?) {
+        viewModelScope.launch {
+            val recipients = (uiState.value as? RecipientUiState.Success)?.recipients ?: return@launch
+            val recipient = recipients.find { it.id == recipientId } ?: return@launch
+            
+            val updated = recipient.copy(
+                canAskQuestions = canAsk,
+                maxQuestionsAllowed = maxQuestions
+            )
+            offlineEntryDao.insertRecipient(updated)
+            // TODO: Sync with Firestore and trigger notifyQuestionRightGranted Cloud Function
+        }
+    }
 }
 
 sealed class RecipientUiState {
