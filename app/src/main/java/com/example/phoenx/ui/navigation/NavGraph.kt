@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -17,6 +14,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.screens.auth.AuthScreen
 import com.example.phoenx.ui.screens.capture.CaptureScreen
@@ -34,8 +32,7 @@ import com.example.phoenx.ui.screens.legacy.UniqueKeyScreen
 import com.example.phoenx.ui.screens.pact.PactDetailScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
-import com.example.phoenx.ui.screens.library.RecipientLibraryScreen
-import com.example.phoenx.ui.screens.library.LibraryCoverPickerScreen
+import com.example.phoenx.ui.screens.library.*
 import com.example.phoenx.ui.screens.mailbox.MailboxScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
@@ -209,7 +206,7 @@ fun PhoenXNavGraph(
 
         composable(
             route = Screen.LocationDetail.route,
-            arguments = listOf(navArgument("locationId") { type = androidx.navigation.NavType.StringType })
+            arguments = listOf(navArgument("locationId") { type = NavType.StringType })
         ) { backStackEntry ->
             val locationId = backStackEntry.arguments?.getString("locationId") ?: ""
             LocationDetailScreen(
@@ -226,8 +223,8 @@ fun PhoenXNavGraph(
         composable(
             route = "library_cover_picker/{compartmentId}/{compartmentName}",
             arguments = listOf(
-                navArgument("compartmentId") { type = androidx.navigation.NavType.StringType },
-                navArgument("compartmentName") { type = androidx.navigation.NavType.StringType }
+                navArgument("compartmentId") { type = NavType.StringType },
+                navArgument("compartmentName") { type = NavType.StringType }
             )
         ) { backStackEntry ->
             val compId = backStackEntry.arguments?.getString("compartmentId") ?: ""
@@ -285,7 +282,7 @@ fun PhoenXNavGraph(
             )
         }
 
-        composable(Screen.Recipients.route) { // New route for circle management
+        composable(Screen.Recipients.route) {
             RecipientScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToDetail = { id -> navController.navigate(Screen.RecipientDetail.createRoute(id)) }
@@ -306,11 +303,11 @@ fun PhoenXNavGraph(
                 onExit = { navController.popBackStack() },
                 onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.route) },
                 onNavigateToDiscotheque = { navController.navigate(Screen.RecipientDiscotheque.route) },
-                onNavigateToArchives = { navController.navigate(Screen.RecipientFavorites.route) } // Use favorites route for archives for now if needed, or better:
+                onNavigateToArchives = { navController.navigate(Screen.RecipientFavorites.route) }
             )
         }
 
-        composable(Screen.RecipientFavorites.route) { // We'll use this for Archive screen for now or create a specific one
+        composable(Screen.RecipientFavorites.route) {
             RecipientArchiveScreen(onNavigateBack = { navController.popBackStack() })
         }
 
@@ -318,7 +315,7 @@ fun PhoenXNavGraph(
             RecipientLibraryScreen(navController = navController)
         }
 
-        // --- Routes for the Library Grid ---
+        // --- ROUTES BIBLIOTHÈQUE ---
         composable("library_books") {
             RecipientBooksScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -350,10 +347,7 @@ fun PhoenXNavGraph(
             RecipientArchiveScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable("mappemonde") {
-            MappamondeScreen(
-                navController = navController,
-                mode = MapMode.CREATOR
-            )
+            MappamondeScreen(navController = navController, mode = MapMode.CREATOR)
         }
         composable("cent_questions") {
             QuestionsRoomScreen(onNavigateBack = { navController.popBackStack() })
@@ -365,10 +359,7 @@ fun PhoenXNavGraph(
             UniqueKeyScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable("le_pacte") {
-            PactScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToDetail = { id -> navController.navigate("pact/$id") }
-            )
+            PactScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToDetail = { id -> navController.navigate("pact/$id") })
         }
         composable("portrait_proche") {
             PortraitScreen(onNavigateBack = { navController.popBackStack() })
@@ -376,41 +367,118 @@ fun PhoenXNavGraph(
         composable("reconciliation") {
             ReconciliationScreen(onNavigateBack = { navController.popBackStack() })
         }
-        
+
+        // --- LIVRE DE VIE ---
         composable("book_editor") {
             BookEditorScreen(navController = navController)
         }
-
         composable("book_viewer") {
-            BookViewerScreen(
-                navController = navController,
-                isRecipientMode = false
-            )
+            BookViewerScreen(navController = navController, isRecipientMode = false)
         }
-
         composable("book_viewer_recipient") {
-            BookViewerScreen(
-                navController = navController,
-                isRecipientMode = true
-            )
-        }
-        // -----------------------------------
-
-
-        composable(Screen.RecipientDiscotheque.route) {
-            RecipientDiscothequeScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToCapture = { navController.navigate("capture/AUDIO") }
-            )
+            BookViewerScreen(navController = navController, isRecipientMode = true)
         }
 
-        composable(Screen.RecipientVideotheque.route) {
-            RecipientVideothequeScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToCapture = { navController.navigate("capture/VIDEO") }
+        // --- DEPOSITARY GRAPH ---
+        composable(
+            route = Screen.DepositaryWelcome.route,
+            arguments = listOf(
+                navArgument("shortCode") { type = NavType.StringType }
+            ),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "https://phoenx.app/invite/{shortCode}" }
+            )
+        ) { backStackEntry ->
+            val shortCode = backStackEntry.arguments?.getString("shortCode") ?: ""
+
+            val user = FirebaseAuth.getInstance().currentUser
+            val onboardingSeen by if (user != null) {
+                mainViewModel.isDepositaryOnboardingSeen(user.uid).collectAsState(initial = true)
+            } else {
+                remember { mutableStateOf(true) }
+            }
+            
+            DepositaryWelcomeScreen(
+                shortCode = shortCode,
+                onUnderstood = {
+                    if (!onboardingSeen) {
+                        navController.navigate("depositary_onboarding")
+                    } else {
+                        navController.navigate(Screen.Home.route)
+                    }
+                }
             )
         }
 
+        composable("depositary_onboarding") {
+            val user = FirebaseAuth.getInstance().currentUser
+            DepositaryOnboardingScreen(
+                creatorName = "Ton proche", 
+                onFinish = {
+                    user?.uid?.let { uid ->
+                        mainViewModel.markDepositaryOnboardingSeen(uid)
+                        navController.navigate(Screen.DepositaryDashboard.createRoute(uid)) {
+                            popUpTo("depositary_onboarding") { inclusive = true }
+                        }
+                    }
+                }
+            )
+        }
+
+        composable(
+            route = Screen.DepositaryDashboard.route,
+            arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+            DepositaryDashboardScreen(
+                creatorId = creatorId,
+                onNavigateToActivation = { id ->
+                    navController.navigate(Screen.DepositaryActivation.createRoute(id))
+                },
+                onNavigateToOnboarding = {
+                    navController.navigate("depositary_onboarding")
+                }
+            )
+        }
+
+        composable(
+            route = Screen.DepositaryActivation.route,
+            arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+            val viewModel: DepositaryViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsState()
+            
+            DepositaryActivationScreen(
+                creatorId = creatorId,
+                depositaryId = "primary",
+                creatorName = uiState.creatorName,
+                onActivationComplete = { navController.navigate(Screen.DepositaryDashboard.createRoute(creatorId)) },
+                onCancel = { navController.popBackStack() },
+                viewModel = viewModel
+            )
+        }
+
+        composable(
+            route = "depositary_alert?level={level}&uid={creatorId}",
+            arguments = listOf(
+                navArgument("level") { type = NavType.IntType; defaultValue = 3 },
+                navArgument("creatorId") { type = NavType.StringType; defaultValue = "" }
+            ),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "https://phoenx.app/depositary-alert?level={level}&uid={creatorId}" }
+            )
+        ) { backStackEntry ->
+            val level = backStackEntry.arguments?.getInt("level") ?: 3
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+            DepositaryAlertReceivedScreen(
+                escalationLevel = level,
+                creatorId = creatorId,
+                navController = navController
+            )
+        }
+
+        // --- RÉGLAGES ET AUTRES ---
         composable(Screen.Essence.route) {
             EssencePortraitScreen(onNavigateBack = { navController.popBackStack() })
         }
@@ -436,11 +504,6 @@ fun PhoenXNavGraph(
             ReconciliationScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable("witness_invite") {
-            WitnessInviteScreen(onNavigateBack = { navController.popBackStack() })
-        }
-
-        // --- SILENCE & PREUVE DE VIE ---
         composable(Screen.SilenceOnboarding.route) {
             SilenceOnboardingScreen(onConfirmRythm = { days ->
                 mainViewModel.setSilenceConfig(days)
@@ -451,7 +514,7 @@ fun PhoenXNavGraph(
         composable(Screen.SilenceCheckIn.route) {
             SilenceCheckInScreen(
                 onImHere = { mainViewModel.recordCheckIn("present") },
-                onTraversingSomething = { /* BottomSheet logic or navigation */ }
+                onTraversingSomething = { /* Logic */ }
             )
         }
 
@@ -462,7 +525,6 @@ fun PhoenXNavGraph(
                 onImHere = { mainViewModel.recordCheckIn("present") }
             )
         }
-        // -------------------------------
 
         composable(Screen.ProtocolSettings.route) {
             ProtocolSettingsScreen(onNavigateBack = { navController.popBackStack() })
@@ -490,39 +552,8 @@ fun PhoenXNavGraph(
             DetectiveScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable(Screen.Depositary.route) {
-            DepositaryScreen(
-                onConfirm = { /* Logic */ },
-                onCancel = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.DepositaryWelcome.route) {
-            DepositaryWelcomeScreen(onUnderstood = {
-                navController.navigate(Screen.DepositaryDashboard.route)
-            })
-        }
-
-        composable(Screen.DepositaryDashboard.route) {
-            DepositaryDashboardScreen(onNavigateToActivation = {
-                navController.navigate(Screen.DepositaryActivation.route)
-            })
-        }
-
-        composable(Screen.DepositaryActivation.route) {
-            val viewModel: DepositaryViewModel = hiltViewModel()
-            val uiState by viewModel.uiState.collectAsState()
-            DepositaryActivationScreen(
-                creatorName = uiState.creatorName,
-                onActivationComplete = { navController.navigate(Screen.DepositaryDashboard.route) },
-                onCancel = { navController.popBackStack() }
-            )
-        }
-
         composable(Screen.DepositaryNotifications.route) {
             DepositaryNotificationsScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }
-
-

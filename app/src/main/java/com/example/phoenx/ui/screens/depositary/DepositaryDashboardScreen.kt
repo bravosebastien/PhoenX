@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.depositary
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -23,10 +24,16 @@ import com.example.phoenx.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DepositaryDashboardScreen(
-    onNavigateToActivation: () -> Unit,
+    creatorId: String,
+    onNavigateToActivation: (String) -> Unit,
+    onNavigateToOnboarding: () -> Unit,
     viewModel: DepositaryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(creatorId) {
+        viewModel.loadCreatorStatus(creatorId)
+    }
 
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -54,12 +61,16 @@ fun DepositaryDashboardScreen(
                         name = uiState.creatorName,
                         missedCycles = uiState.missedCycles,
                         days = uiState.daysSinceLastCheckIn,
-                        onAction = onNavigateToActivation
+                        onAction = { onNavigateToActivation(creatorId) }
                     )
                 }
 
                 item {
-                    DepositarySection("MON RÔLE", Icons.Default.Security)
+                    DepositarySection(
+                        title = "MON RÔLE",
+                        icon = Icons.Default.Security,
+                        onClick = onNavigateToOnboarding
+                    )
                 }
                 
                 item {
@@ -121,9 +132,15 @@ fun StatusCard(
 }
 
 @Composable
-fun DepositarySection(title: String, icon: ImageVector) {
+fun DepositarySection(
+    title: String,
+    icon: ImageVector,
+    onClick: (() -> Unit)? = null
+) {
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         color = SurfaceCard.copy(alpha = 0.5f),
         shape = MaterialTheme.shapes.medium
     ) {

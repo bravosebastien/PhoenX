@@ -80,9 +80,16 @@ sealed class Screen(val route: String) {
     }
     
     object Depositary : Screen("depositary")
-    object DepositaryWelcome : Screen("depositary/welcome")
-    object DepositaryDashboard : Screen("depositary/dashboard")
-    object DepositaryActivation : Screen("depositary/activation")
+    object DepositaryWelcome : Screen("depositary/welcome/{shortCode}") {
+        fun createRoute(shortCode: String) = 
+            "depositary/welcome/$shortCode"
+    }
+    object DepositaryDashboard : Screen("depositary/dashboard/{creatorId}") {
+        fun createRoute(creatorId: String) = "depositary/dashboard/$creatorId"
+    }
+    object DepositaryActivation : Screen("depositary/activation/{creatorId}") {
+        fun createRoute(creatorId: String) = "depositary/activation/$creatorId"
+    }
     object DepositaryNotifications : Screen("depositary/notifications")
 
     object SilenceOnboarding : Screen("silence/onboarding")

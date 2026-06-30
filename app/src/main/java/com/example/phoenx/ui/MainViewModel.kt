@@ -12,6 +12,7 @@ import com.example.phoenx.domain.manager.SilenceStatus
 import com.example.phoenx.domain.models.SilenceConfig
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -152,6 +153,15 @@ class MainViewModel @Inject constructor(
     fun resetVideoBanner() {
         viewModelScope.launch {
             preferenceManager.setVideoBannerDismissed(false)
+        }
+    }
+
+    fun isDepositaryOnboardingSeen(userId: String): Flow<Boolean> = 
+        preferenceManager.isDepositaryOnboardingSeen(userId)
+
+    fun markDepositaryOnboardingSeen(userId: String) {
+        viewModelScope.launch {
+            preferenceManager.setDepositaryOnboardingSeen(userId, true)
         }
     }
 

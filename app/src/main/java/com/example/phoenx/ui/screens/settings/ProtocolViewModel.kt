@@ -4,51 +4,169 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.local.DepositaryEntity
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
 class ProtocolViewModel @Inject constructor(
-    private val offlineEntryDao: OfflineEntryDao
+    private val offlineEntryDao: OfflineEntryDao,
+    private val auth: FirebaseAuth,
+    private val db: FirebaseFirestore,
+    private val functions: FirebaseFunctions
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProtocolUiState())
     val uiState: StateFlow<ProtocolUiState> = _uiState
 
+    private val _inviteToken = MutableStateFlow<String?>(null)
+    val inviteToken: StateFlow<String?> = _inviteToken
+
+    private val _secondaryInviteToken = MutableStateFlow<String?>(null)
+    val secondaryInviteToken: StateFlow<String?> = _secondaryInviteToken
+
+    private val _shortCode = MutableStateFlow<String?>(null)
+    val shortCode: StateFlow<String?> = _shortCode
+
+    private val _secondaryShortCode = MutableStateFlow<String?>(null)
+    val secondaryShortCode: StateFlow<String?> = _secondaryShortCode
+
     init {
-        loadDepositary()
+        loadDepositaries()
     }
 
-    private fun loadDepositary() {
+    private fun loadDepositaries() {
+        val userId = auth.currentUser?.uid ?: return
+        
+        // 1. Charger le primaire (priorité locale pour réactivité)
         viewModelScope.launch {
             offlineEntryDao.getDepositary().collectLatest { dep ->
                 if (dep != null) {
-                    _uiState.value = _uiState.value.copy(
+                    _uiState.update { it.copy(
                         name = dep.name,
                         email = dep.email,
                         phone = dep.phone,
                         status = dep.status
-                    )
+                    ) }
                 }
+            }
+        }
+
+        // 2. Vérifier le secondaire sur Firestore
+        viewModelScope.launch {
+            try {
+                val doc = db.collection("users").document(userId)
+                    .collection("depositaries").document("secondary").get().await()
+                
+                if (doc.exists()) {
+                    _uiState.update { it.copy(
+                        hasSecondaryDepositary = true,
+                        secondaryName = doc.getString("name") ?: "",
+                        secondaryEmail = doc.getString("email") ?: "",
+                        secondaryPhone = doc.getString("phone") ?: ""
+                    ) }
+                }
+            } catch (e: Exception) {
+                // Erreur silencieuse
             }
         }
     }
 
     fun saveProtocol(name: String, email: String, phone: String, threshold: Int) {
+        val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            offlineEntryDao.clearDepositaries()
-            val dep = DepositaryEntity(
-                name = name,
-                email = email,
-                phone = phone
-            )
-            offlineEntryDao.insertDepositary(dep)
-            // Update threshold logic here later
-            _uiState.value = _uiState.value.copy(isSuccess = true)
+            try {
+                // 1. Sauvegarde locale
+                offlineEntryDao.clearDepositaries()
+                val dep = DepositaryEntity(name = name, email = email, phone = phone)
+                offlineEntryDao.insertDepositary(dep)
+
+                // 2. Sauvegarde Firestore
+                val depositaryId = "primary"
+                val depositaryData = hashMapOf(
+                    "name" to name,
+                    "email" to email,
+                    "phone" to phone,
+                    "role" to "primary",
+                    "status" to "active"
+                )
+                db.collection("users").document(userId)
+                    .collection("depositaries").document(depositaryId)
+                    .set(depositaryData).await()
+
+                // 3. Génération du Token
+                val result = functions.getHttpsCallable("generateDepositaryInviteToken")
+                    .call(mapOf("creatorId" to userId, "depositaryId" to depositaryId))
+                    .await()
+                
+                val token = (result.data as Map<*, *>)["token"] as String
+                _inviteToken.value = token
+
+                // 4. Génération du Short Code (pour le lien email)
+                val codeResult = functions.getHttpsCallable("generateDepositaryShortCode")
+                    .call(mapOf("creatorId" to userId, "depositaryId" to depositaryId))
+                    .await()
+                
+                _shortCode.value = (codeResult.data as Map<*, *>)["shortCode"] as String
+                
+                _uiState.update { it.copy(isSuccess = true) }
+
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_PROTO", "Erreur sauvegarde primaire: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Sauvegarde le Dépositaire secondaire (Palier 4 d'alerte).
+     */
+    fun saveSecondaryDepositary(name: String, email: String, phone: String) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                val depositaryId = "secondary"
+                val depositaryData = hashMapOf(
+                    "name" to name,
+                    "email" to email,
+                    "phone" to phone,
+                    "role" to "secondary",
+                    "status" to "active"
+                )
+                db.collection("users").document(userId)
+                    .collection("depositaries").document(depositaryId)
+                    .set(depositaryData).await()
+
+                // Génération du token pour le secondaire
+                val result = functions.getHttpsCallable("generateDepositaryInviteToken")
+                    .call(mapOf("creatorId" to userId, "depositaryId" to depositaryId))
+                    .await()
+                
+                val token = (result.data as Map<*, *>)["token"] as String
+                _secondaryInviteToken.value = token
+
+                // Génération du Short Code pour le secondaire
+                val codeResult = functions.getHttpsCallable("generateDepositaryShortCode")
+                    .call(mapOf("creatorId" to userId, "depositaryId" to depositaryId))
+                    .await()
+                
+                _secondaryShortCode.value = (codeResult.data as Map<*, *>)["shortCode"] as String
+                
+                _uiState.update { it.copy(
+                    hasSecondaryDepositary = true,
+                    secondaryName = name,
+                    secondaryEmail = email,
+                    secondaryPhone = phone,
+                    isSuccess = true
+                ) }
+
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_PROTO", "Erreur sauvegarde secondaire: ${e.message}")
+            }
         }
     }
 }
@@ -59,5 +177,9 @@ data class ProtocolUiState(
     val phone: String = "",
     val status: String = "Dormant",
     val thresholdHours: Int = 72,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val hasSecondaryDepositary: Boolean = false,
+    val secondaryName: String = "",
+    val secondaryEmail: String = "",
+    val secondaryPhone: String = ""
 )

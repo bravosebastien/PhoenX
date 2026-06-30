@@ -1,18 +1,120 @@
-rules_version='2'
+rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ═══ USERS — Le Créateur lui-même ═══
+    match /users/{userId} {
+      // Seul le propriétaire authentifié peut lire/écrire son profil
+      allow read, write: if request.auth != null
+                          && request.auth.uid == userId;
+
+      // ═══ ENTRIES — Souvenirs du Créateur ═══
+      match /entries/{entryId} {
+        allow read, write: if request.auth != null
+                            && request.auth.uid == userId;
+
+        match /amendments/{amendmentId} {
+          allow read, write: if request.auth != null
+                              && request.auth.uid == userId;
+        }
+      }
+
+      // ═══ LOCATIONS — Mappemonde ═══
+      match /locations/{locationId} {
+        allow read, write: if request.auth != null
+                            && request.auth.uid == userId;
+      }
+
+      // ═══ RECIPIENTS — Liste des Destinataires ═══
+      match /recipients/{recipientId} {
+        // Le Créateur gère sa liste
+        allow read, write: if request.auth != null
+                            && request.auth.uid == userId;
+      }
+
+      // ═══ DEPOSITARIES — Le Dépositaire a un accès LIMITÉ ═══
+      match /depositaries/{depositaryId} {
+        // Le Créateur gère ses Dépositaires
+        allow write: if request.auth != null
+                     && request.auth.uid == userId;
+
+        // Le Dépositaire peut lire UNIQUEMENT son propre document,
+        // identifié par son UID stocké dans le champ depositaryUid
+        allow read: if request.auth != null
+                     && (request.auth.uid == userId
+                         || resource.data.depositaryUid == request.auth.uid);
+      }
+
+      // ═══ PENDING QUESTIONS — Questions en Attente ═══
+      match /pendingQuestions/{questionId} {
+        // Seul le Créateur peut lire ET modifier (répondre/décliner)
+        allow read, update: if request.auth != null
+                             && request.auth.uid == userId;
+
+        // La création passe UNIQUEMENT par Cloud Function
+        // (sealQuestion) — jamais directement depuis le client
+        allow create: if false;
+        allow delete: if false;
+      }
+
+      // ═══ BOOK — Livre de Ma Vie ═══
+      match /book/{bookId} {
+        allow read, write: if request.auth != null
+                            && request.auth.uid == userId;
+      }
+
+      // ═══ RECONCILIATIONS ═══
+      match /reconciliations/{reconciliationId} {
+        allow read, write: if request.auth != null
+                            && request.auth.uid == userId;
+      }
+
+      // ═══ WITNESSES — Témoignages ═══
+      match /witnesses/{witnessId} {
+        // Le Créateur ne peut PAS lire avant activation —
+        // ceci est vérifié côté application, mais on bloque
+        // aussi l'écriture libre ici
+        allow read: if request.auth != null
+                    && request.auth.uid == userId;
+        allow create: if false; // Passe par Cloud Function uniquement
+      }
+
+      // ═══ SILENCE NOTIFICATIONS — Historique ═══
+      match /silenceNotifications/{notifId} {
+        allow read: if request.auth != null
+                    && request.auth.uid == userId;
+        // Écriture UNIQUEMENT par Cloud Function
+        allow create, update, delete: if false;
+      }
+    }
+
+    // ═══ ACTIVATION PROTOCOLS — Le plus sensible ═══
+    match /activationProtocols/{protocolId} {
+      allow read: if request.auth != null
+                  && (resource.data.creatorId == request.auth.uid
+                      || resource.data.depositaryId == request.auth.uid);
+
+      // La création/modification passe par Cloud Function
+      allow create, update: if false;
+    }
+
+    // ═══ PACTS ═══
+    match /pacts/{pactId} {
+      allow read, write: if request.auth != null
+                          && (resource.data.creatorAId == request.auth.uid
+                              || resource.data.creatorBId == request.auth.uid);
+    }
+
+    // ═══ INVITE CODES ═══
+    match /depositaryInviteCodes/{codeId} {
+       // Lecture via Cloud Function uniquement (Admin SDK)
+       allow read, write: if false;
+    }
+
+    // ═══ TOUT LE RESTE EST BLOQUÉ PAR DÉFAUT ═══
     match /{document=**} {
-      // This rule allows anyone with your database reference to view, edit,
-      // and delete all data in your database. It is useful for getting
-      // started, but it is configured to expire after 30 days because it
-      // leaves your app open to attackers. At that time, all client
-      // requests to your database will be denied.
-      //
-      // Make sure to write security rules for your app before that time, or
-      // else all client requests to your database will be denied until you
-      // update your rules.
-      allow read, write: if request.time < timestamp.date(2026, 7, 2);
+      allow read, write: if false;
     }
   }
 }
