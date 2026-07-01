@@ -529,6 +529,7 @@ fun PendingQuestionsCard(onClick: () -> Unit) {
         }
     }
 }
+
 @Composable
 fun MapCard(onClick: () -> Unit) {
     Card(

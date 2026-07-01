@@ -7,9 +7,7 @@ sealed class Screen(val route: String) {
     object Splash : Screen("splash")
 
     // GRAPHE CRÉATEUR
-    object Onboarding : Screen("onboarding/{step}") {
-        fun createRoute(step: Int) = "onboarding/$step"
-    }
+    object Onboarding : Screen("onboarding")
     
     object Auth : Screen("auth") {
         object Login : Screen("auth/login")
@@ -62,8 +60,8 @@ sealed class Screen(val route: String) {
     object RecipientDetail : Screen("recipients/{recipientId}") {
         fun createRoute(recipientId: String) = "recipients/$recipientId"
     }
-    object RecipientPermissions : Screen("recipients/permissions/{recipientId}") {
-        fun createRoute(recipientId: String) = "recipients/permissions/$recipientId"
+    object RecipientPermissions : Screen("recipient_permissions/{recipientId}") {
+        fun createRoute(recipientId: String) = "recipient_permissions/$recipientId"
     }
     
     object Portraits : Screen("portraits?recipientId={recipientId}") {

@@ -35,7 +35,16 @@ fun AuthScreen(
     // États partagés
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var birthDate by remember { mutableStateOf(LocalDate.now().minusYears(25)) }
+    var birthDate by remember { 
+        mutableStateOf(
+            try {
+                LocalDate.now().minusYears(25)
+            } catch (e: Throwable) {
+                // Fallback si LocalDate.now() échoue (très rare)
+                LocalDate.of(1995, 1, 1)
+            }
+        ) 
+    }
     var depositaryName by remember { mutableStateOf("") }
     var recoveryConfirmed by remember { mutableStateOf(value = false) }
 

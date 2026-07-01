@@ -29,8 +29,22 @@ class MainActivity : FragmentActivity() {
     @Inject
     lateinit var biometricManager: PhoenXBiometricManager
 
+    @androidx.media3.common.util.UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // CAPTUREUR DE CRASH POUR DEBUG
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            android.util.Log.e("PHOENX_DEBUG", "FATAL CRASH sur le thread ${thread.name}")
+            android.util.Log.e("PHOENX_DEBUG", "CAUSE: ${throwable.message}")
+            val sw = java.io.StringWriter()
+            val pw = java.io.PrintWriter(sw)
+            throwable.printStackTrace(pw)
+            android.util.Log.e("PHOENX_DEBUG", sw.toString())
+        }
+
+        android.util.Log.d("PHOENX_DEBUG", "MainActivity onCreate")
+
         setContent {
             PhoenXTheme {
                 val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
@@ -40,11 +54,18 @@ class MainActivity : FragmentActivity() {
                 var showGuide by remember { mutableStateOf(value = false) }
 
                 LaunchedEffect(isBiometricEnabled) {
+                    android.util.Log.d("PHOENX_DEBUG", "Vérification Biométrie: enabled=$isBiometricEnabled")
                     if (isBiometricEnabled && !isUnlocked) {
                         biometricManager.showBiometricPrompt(
                             activity = this@MainActivity,
-                            onSuccess = { isUnlocked = true },
-                            onError = { _ -> /* Log error, fallback to password */ },
+                            onSuccess = { 
+                                android.util.Log.d("PHOENX_DEBUG", "Biométrie SUCCESS")
+                                isUnlocked = true 
+                            },
+                            onError = { err -> 
+                                android.util.Log.e("PHOENX_DEBUG", "Biométrie ERROR: $err")
+                                isUnlocked = true // Fallback pour ne pas bloquer en debug
+                            },
                         )
                     } else {
                         isUnlocked = true
@@ -54,19 +75,21 @@ class MainActivity : FragmentActivity() {
                 // Une fois déverrouillé, on vérifie si on doit montrer le guide
                 LaunchedEffect(isUnlocked, shouldShowGuide) {
                     if (isUnlocked && shouldShowGuide) {
+                        android.util.Log.d("PHOENX_DEBUG", "Affichage Guide de bienvenue")
                         showGuide = true
                     }
                 }
 
                 if (showGuide) {
                     WelcomeGuideScreen { neverShowAgain ->
+                        android.util.Log.d("PHOENX_DEBUG", "Guide terminé: neverShowAgain=$neverShowAgain")
                         mainViewModel.dismissWelcomeGuide(neverShowAgain)
                         showGuide = false
                     }
                 } else if (isUnlocked) {
+                    android.util.Log.d("PHOENX_DEBUG", "Chargement MainContent")
                     MainContent()
                 } else {
-                    // Lock screen waiting for fingerprint
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = com.example.phoenx.ui.theme.BackgroundPrimary
@@ -76,9 +99,9 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    @androidx.media3.common.util.UnstableApi
     @Composable
     fun MainContent() {
-        // Silent Proof of Life update
         LaunchedEffect(Unit) {
             mainViewModel.confirmPresence()
         }

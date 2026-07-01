@@ -72,22 +72,17 @@ fun PhoenXNavGraph(
         composable(Screen.Splash.route) {
             SplashScreen(onAnimationFinished = {
                 val user = FirebaseAuth.getInstance().currentUser
-                if (user == null) {
-                    navController.navigate(Screen.Onboarding.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
-                } else {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Splash.route) { inclusive = true }
-                    }
+                val destination = if (user == null) Screen.Onboarding.route else Screen.Home.route
+                navController.navigate(destination) {
+                    popUpTo(Screen.Splash.route) { inclusive = true }
                 }
             })
         }
 
         composable(Screen.Onboarding.route) {
             OnboardingScreen { isSignup ->
-                if (isSignup) navController.navigate(Screen.Auth.Signup.route)
-                else navController.navigate(Screen.Auth.Login.route)
+                val nextRoute = if (isSignup) Screen.Auth.Signup.route else Screen.Auth.Login.route
+                navController.navigate(nextRoute)
             }
         }
         
@@ -244,28 +239,8 @@ fun PhoenXNavGraph(
             QuestionsScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable(Screen.PendingQuestions.route) {
-            PendingQuestionsScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onAnswerQuestion = { id -> 
-                    navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, "Ma réponse à ta question...")) 
-                }
-            )
-        }
-
-        composable(
-            route = Screen.AskQuestion.route,
-            deepLinks = listOf(
-                navDeepLink { uriPattern = "https://phoenx.app/ask?creator={creatorId}&recipient={recipientId}" }
-            )
-        ) { backStackEntry ->
-            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
-            val recipientId = backStackEntry.arguments?.getString("recipientId") ?: ""
-            AskQuestionScreen(
-                creatorId = creatorId,
-                recipientId = recipientId,
-                onNavigateBack = { navController.popBackStack() }
-            )
+        composable("questions_room") {
+            QuestionsRoomScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Worlds.route) {
