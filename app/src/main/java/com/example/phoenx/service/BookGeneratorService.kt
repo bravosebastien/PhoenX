@@ -1,220 +1,163 @@
 package com.example.phoenx.service
 
 import com.example.phoenx.data.encryption.EncryptionManager
-import com.example.phoenx.data.model.*
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FieldValue
+import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.model.BookChapter
+import com.example.phoenx.data.model.BookDraft
+import com.example.phoenx.data.model.BookMetadata
+import com.example.phoenx.data.model.ChapterStatus
+import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
 import com.google.firebase.functions.FirebaseFunctions
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * BookGeneratorService — Cœur de l'IA Biographe de PHOEN-X.
+ * RÈGLE D'OR : Ce service ne manipule JAMAIS le texte brut chiffré Tink.
+ * Il travaille exclusivement sur les résumés et tags générés localement par Gemini Nano.
+ */
 @Singleton
 class BookGeneratorService @Inject constructor(
     private val db: FirebaseFirestore,
-    private val auth: FirebaseAuth,
     private val functions: FirebaseFunctions,
+    private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager
 ) {
 
-    // ── EXTRACTEUR ─────────────────────────────
-    suspend fun extractMetadata(userId: String): BookMetadata {
-        val entriesSnap = db.collection("users")
-            .document(userId)
-            .collection("entries")
-            .get()
-            .await()
-
-        val locationsSnap = db.collection("users")
-            .document(userId)
-            .collection("locations")
-            .get()
-            .await()
-
-        val summaries = entriesSnap.documents
-            .mapNotNull { it.getString("aiSummary") }
-            .filter { it.isNotBlank() }
-
-        val tags = entriesSnap.documents
-            .flatMap { doc ->
-                @Suppress("UNCHECKED_CAST")
-                (doc.get("aiTags") as? List<String>) ?: emptyList()
+    /**
+     * Charge le brouillon de livre actuel depuis Firestore.
+     */
+    suspend fun loadBookDraft(userId: String): BookDraft? {
+        return try {
+            val doc = db.collection("users").document(userId)
+                .collection("book").document("current_draft").get().await()
+            
+            if (doc.exists()) {
+                doc.toObject(BookDraft::class.java)
+            } else {
+                null
             }
-            .distinct()
+        } catch (e: Exception) {
+            android.util.Log.e("PHOENX_BOOK", "Erreur lors du chargement du livre: ${e.message}")
+            null
+        }
+    }
 
-        val ages = entriesSnap.documents
-            .mapNotNull { it.getString("ageAtCreation.displayLabel") }
+    /**
+     * Extrait les métadonnées IA de tous les souvenirs locaux.
+     */
+    suspend fun extractMetadata(): BookMetadata {
+        val entries = offlineEntryDao.getAllEntriesSync()
+        
+        val summaries = entries.map { it.aiSummary }.filter { it.isNotEmpty() }
+        val tags = entries.flatMap { it.aiTags.split(",") }.map { it.trim() }.filter { it.isNotEmpty() }
+        val ages = entries.map { AgeUtils.parseAgeJson(it.ageAtCreation).years }
+        val categories = entries.map { it.emotionalCategory }
+        
+        // Extraction des lieux mentionnés dans les métadonnées
+        val places = entries.map { it.aiSummary }
+            .filter { it.contains("à ") || it.contains("en ") } 
+            // Amélioration future : utiliser un détecteur d'entités nommées
 
-        val categories = entriesSnap.documents
-            .mapNotNull { it.getString("emotionalCategory") }
-
-        val categoryCounts = categories
-            .groupingBy { it }
-            .eachCount()
-
-        val places = locationsSnap.documents
-            .mapNotNull { it.getString("placeName") }
-            .distinct()
+        val categoryCounts = categories.groupingBy { it }.eachCount()
 
         return BookMetadata(
             summaries = summaries,
-            tags = tags,
+            tags = tags.distinct(),
             ages = ages,
-            categories = categories,
+            categories = categories.distinct(),
             places = places,
             categoryCounts = categoryCounts
         )
     }
 
-    // ── COMPILATEUR ────────────────────────────
-    suspend fun generateBook(
-        userId: String,
-        onProgress: (String) -> Unit
-    ): BookDraft {
-
-        onProgress("Lecture de tes souvenirs...")
-        val metadata = extractMetadata(userId)
-
+    /**
+     * Lance la génération complète du manuscrit.
+     * @param onProgress Callback pour mettre à jour l'UI pendant les étapes.
+     */
+    suspend fun generateBook(userId: String, onProgress: (String) -> Unit): BookDraft {
+        onProgress("Analyse de tes souvenirs...")
+        val metadata = extractMetadata()
+        
         if (metadata.summaries.isEmpty()) {
-            throw Exception("Pas assez de souvenirs pour générer un livre.")
+            throw Exception("Pas assez de souvenirs pour écrire ton livre.")
         }
 
-        onProgress("Analyse des thèmes de ta vie...")
-        delay(800)
-
-        onProgress("Rédaction du plan de ton livre...")
-
-        // Appel Cloud Function
+        onProgress("Rédaction des chapitres par l'IA...")
+        
         val data = hashMapOf(
-            "summaries" to metadata.summaries.take(50),
-            "tags" to metadata.tags.take(30),
+            "summaries" to metadata.summaries,
+            "tags" to metadata.tags,
             "categoryCounts" to metadata.categoryCounts,
-            "places" to metadata.places.take(20),
-            "ageMin" to (metadata.ages.minOrNull() ?: ""),
-            "ageMax" to (metadata.ages.maxOrNull() ?: ""),
-            "totalEntries" to metadata.summaries.size
+            "ageMin" to (metadata.ages.minOrNull() ?: 0),
+            "ageMax" to (metadata.ages.maxOrNull() ?: 0),
+            "totalEntries" to metadata.summaries.size,
+            "places" to metadata.places
         )
 
-        onProgress("L'IA rédige ton histoire...")
-
-        val result = functions
-            .getHttpsCallable("generateBookChapters")
+        val result = functions.getHttpsCallable("generateBookChapters")
             .call(data)
             .await()
 
-        onProgress("Finalisation des chapitres...")
+        val response = result.data as Map<*, *>
+        val rawChapters = response["chapters"] as List<Map<*, *>>
 
-        @Suppress("UNCHECKED_CAST")
-        val rawChapters = (result.data as? Map<*, *>)
-            ?.get("chapters") as? List<Map<String, Any>>
-            ?: throw Exception("Réponse invalide de l'IA.")
+        onProgress("Chiffrement et sécurisation...")
 
-        // Chiffrement de chaque chapitre avec Tink
-        val chapters = rawChapters.mapIndexed { index, raw ->
-            val content = raw["content"] as? String ?: ""
+        val chapters = rawChapters.map { ch ->
+            val content = ch["content"] as String
             BookChapter(
-                title = raw["title"] as? String ?: "Chapitre ${index + 1}",
-                content = encryptionManager.encrypt(content),
-                orderIndex = (raw["orderIndex"] as? Long)?.toInt() ?: index,
-                status = ChapterStatus.DRAFT
+                id = java.util.UUID.randomUUID().toString(),
+                title = ch["title"] as String,
+                content = encryptionManager.encrypt(content), // Chiffrage Tink simulé ou réel
+                status = ChapterStatus.DRAFT,
+                orderIndex = (ch["orderIndex"] as Number).toInt()
             )
         }
 
-        onProgress("Sauvegarde en cours...")
-
         val draft = BookDraft(
+            id = java.util.UUID.randomUUID().toString(),
             userId = userId,
             chapters = chapters,
-            totalEntries = metadata.summaries.size,
-            status = BookStatus.DRAFT
+            totalEntries = metadata.summaries.size
         )
 
+        onProgress("Sauvegarde finale...")
         saveBookDraft(userId, draft)
+
         return draft
     }
 
-    // ── SAUVEGARDE ─────────────────────────────
+    /**
+     * Enregistre le brouillon dans Firestore.
+     */
     suspend fun saveBookDraft(userId: String, draft: BookDraft) {
-        val chaptersData = draft.chapters.map { chapter ->
-            mapOf(
-                "id" to chapter.id,
-                "title" to chapter.title,
-                "content" to chapter.content,
-                "status" to chapter.status.name,
-                "lastModified" to FieldValue.serverTimestamp(),
-                "orderIndex" to chapter.orderIndex
-            )
+        try {
+            db.collection("users").document(userId)
+                .collection("book").document("current_draft")
+                .set(draft)
+                .await()
+        } catch (e: Exception) {
+            android.util.Log.e("PHOENX_BOOK", "Erreur lors de la sauvegarde: ${e.message}")
         }
-        db.collection("users")
-            .document(userId)
-            .collection("book")
-            .document(draft.id)
-            .set(mapOf(
-                "generatedAt" to FieldValue.serverTimestamp(),
-                "lastUpdatedAt" to FieldValue.serverTimestamp(),
-                "status" to draft.status.name,
-                "totalEntries" to draft.totalEntries,
-                "chapters" to chaptersData
-            ))
-            .await()
     }
 
-    // ── CHARGEMENT ─────────────────────────────
-    suspend fun loadBookDraft(userId: String): BookDraft? {
-        val snap = db.collection("users")
-            .document(userId)
-            .collection("book")
-            .orderBy("generatedAt", Query.Direction.DESCENDING)
-            .limit(1)
-            .get()
-            .await()
-        if (snap.isEmpty) return null
-        val doc = snap.documents.first()
-        @Suppress("UNCHECKED_CAST")
-        val rawChapters = doc.get("chapters") as? List<Map<String, Any>>
-            ?: return null
-        val chapters = rawChapters.map { raw ->
-            BookChapter(
-                id = raw["id"] as? String ?: "",
-                title = raw["title"] as? String ?: "",
-                content = encryptionManager.decrypt(
-                    raw["content"] as? String ?: ""
-                ),
-                status = ChapterStatus.valueOf(
-                    raw["status"] as? String ?: "DRAFT"
-                ),
-                orderIndex = (raw["orderIndex"] as? Long)?.toInt() ?: 0
-            )
-        }.sortedBy { it.orderIndex }
-        return BookDraft(
-            id = doc.id,
-            userId = userId,
-            chapters = chapters,
-            totalEntries = (doc.getLong("totalEntries") ?: 0).toInt(),
-            status = BookStatus.valueOf(
-                doc.getString("status") ?: "DRAFT"
-            )
-        )
-    }
-
-    // ── MODIFICATION PAR L'IA ──────────────────
-    suspend fun askAiToModifyChapter(
-        currentContent: String,
-        instruction: String
-    ): String {
+    /**
+     * Permet à l'auteur de modifier un chapitre en dialoguant avec l'IA.
+     */
+    suspend fun askAiToModifyChapter(currentContent: String, instruction: String): String {
         val data = hashMapOf(
             "currentContent" to currentContent,
             "instruction" to instruction
         )
-        val result = functions
-            .getHttpsCallable("modifyBookChapter")
+        
+        val result = functions.getHttpsCallable("modifyBookChapter")
             .call(data)
             .await()
-        return (result.data as? Map<*, *>)
-            ?.get("newContent") as? String
-            ?: currentContent
+            
+        val response = result.data as Map<*, *>
+        return response["newContent"] as String
     }
 }

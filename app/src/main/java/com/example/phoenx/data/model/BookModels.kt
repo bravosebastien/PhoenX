@@ -1,24 +1,21 @@
 package com.example.phoenx.data.model
 
-import java.util.UUID
+import com.google.firebase.Timestamp
+
+enum class ChapterStatus { DRAFT, IN_REVIEW, VALIDATED }
+enum class BookStatus { DRAFT, IN_PROGRESS, COMPLETE }
 
 data class BookChapter(
-    val id: String = UUID.randomUUID().toString(),
+    val id: String = "",
     val title: String = "",
-    val content: String = "",
+    val content: String = "", // Chiffré Tink
     val status: ChapterStatus = ChapterStatus.DRAFT,
     val lastModified: Long = System.currentTimeMillis(),
     val orderIndex: Int = 0
 )
 
-enum class ChapterStatus {
-    DRAFT,
-    IN_REVIEW,
-    VALIDATED
-}
-
 data class BookDraft(
-    val id: String = UUID.randomUUID().toString(),
+    val id: String = "",
     val userId: String = "",
     val generatedAt: Long = System.currentTimeMillis(),
     val lastUpdatedAt: Long = System.currentTimeMillis(),
@@ -27,23 +24,17 @@ data class BookDraft(
     val totalEntries: Int = 0
 )
 
-enum class BookStatus {
-    DRAFT,
-    IN_PROGRESS,
-    COMPLETE
-}
-
 data class BookMetadata(
     val summaries: List<String> = emptyList(),
     val tags: List<String> = emptyList(),
-    val ages: List<String> = emptyList(),
+    val ages: List<Int> = emptyList(),
     val categories: List<String> = emptyList(),
     val places: List<String> = emptyList(),
     val categoryCounts: Map<String, Int> = emptyMap()
 )
 
 data class AiMessage(
-    val role: String,
-    val content: String,
+    val role: String = "user", // "user" | "model"
+    val content: String = "",
     val timestamp: Long = System.currentTimeMillis()
 )

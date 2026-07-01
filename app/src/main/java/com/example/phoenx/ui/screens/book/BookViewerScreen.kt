@@ -23,35 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import com.example.phoenx.data.model.BookDraft
-import com.example.phoenx.service.BookGeneratorService
 import com.example.phoenx.ui.theme.AccentPrimary
-import com.google.firebase.auth.FirebaseAuth
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-
-@HiltViewModel
-class BookViewerViewModel @Inject constructor(
-    private val bookService: BookGeneratorService,
-    private val auth: FirebaseAuth
-) : ViewModel() {
-
-    private val _bookDraft = MutableStateFlow<BookDraft?>(null)
-    val bookDraft: StateFlow<BookDraft?> = _bookDraft
-
-    init {
-        viewModelScope.launch {
-            val userId = auth.currentUser?.uid ?: return@launch
-            _bookDraft.value = bookService.loadBookDraft(userId)
-        }
-    }
-}
 
 @Composable
 fun BookViewerScreen(
