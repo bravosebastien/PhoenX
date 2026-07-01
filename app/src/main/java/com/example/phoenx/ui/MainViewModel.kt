@@ -98,10 +98,6 @@ class MainViewModel @Inject constructor(
     val isVideoBannerDismissed: StateFlow<Boolean> = preferenceManager.isVideoBannerDismissed
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    init {
-        checkInactivity()
-    }
-
     private fun checkInactivity() {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {

@@ -123,6 +123,6 @@ sealed class Screen(val route: String) {
     object RecipientMailbox : Screen("recipient/mailbox")
     object RecipientPortraits : Screen("recipient/portraits")
     object RecipientPact : Screen("recipient/pact/{pactId}") {
-        fun createRoute(pactId: String) = "pact/$pactId"
+        fun createRoute(pactId: String) = "recipient/pact/$pactId"
     }
 }
