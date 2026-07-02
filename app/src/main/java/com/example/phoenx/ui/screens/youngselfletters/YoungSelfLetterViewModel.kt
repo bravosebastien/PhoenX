@@ -2,74 +2,153 @@ package com.example.phoenx.ui.screens.youngselfletters
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.phoenx.data.ai.AIManager
+import com.example.phoenx.data.encryption.EncryptionManager
+import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
-import java.util.*
+import java.util.Date
+import java.time.ZoneId
 import javax.inject.Inject
 
 @HiltViewModel
 class YoungSelfLetterViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val offlineEntryDao: OfflineEntryDao,
-    private val aiManager: AIManager
+    private val functions: FirebaseFunctions,
+    private val encryptionManager: EncryptionManager,
+    private val offlineEntryDao: OfflineEntryDao
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(YoungSelfLetterUiState())
-    val uiState: StateFlow<YoungSelfLetterUiState> = _uiState
+    val uiState: StateFlow<YoungSelfLetterUiState> = _uiState.asStateFlow()
 
     init {
-        loadUserAge()
+        loadUserBirthYear()
     }
 
-    private fun loadUserAge() {
-        val user = auth.currentUser ?: return
+    fun loadUserBirthYear() {
+        val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                val userDoc = db.collection("users").document(user.uid).get().await()
-                val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: Date()
-                val age = AgeUtils.calculateAge(birthDate)
-                _uiState.value = _uiState.value.copy(currentAge = age.years)
+                val doc = db.collection("users").document(userId).get().await()
+                val birthTimestamp = doc.getTimestamp("dateOfBirth")
+                birthTimestamp?.let { ts ->
+                    val birthDate = ts.toDate()
+                    val birthYear = birthDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().year
+                    _uiState.update { it.copy(birthYear = birthYear, birthDate = birthDate) }
+                }
             } catch (e: Exception) {
-                // Fallback age
-                _uiState.value = _uiState.value.copy(currentAge = 40)
+                android.util.Log.e("YoungSelfLetterVM", "Error loading birth year", e)
             }
         }
     }
 
-    /**
-     * Suggère des thèmes basés sur les pensées de l'utilisateur à l'âge cible.
-     */
-    fun getSuggestions(targetAge: Int) {
+    fun updateContent(text: String) {
+        _uiState.update { it.copy(letterContent = text) }
+    }
+
+    fun updateTargetAge(age: Int) {
+        _uiState.update { it.copy(targetAge = age) }
+    }
+
+    fun getSuggestions() {
+        val targetAge = _uiState.value.targetAge
         viewModelScope.launch {
-            // Dans le MVP 5.0, on simule l'appel cloud pour les suggestions
-            // car on n'a pas encore toutes les entrées filtrées par âge exact en local
-            _uiState.value = _uiState.value.copy(isLoadingSuggestions = true)
-            
-            // Simulation d'une recherche locale de résumés à cet âge
-            val summaries = listOf("Incertitude professionnelle", "Premiers amours", "Voyage en sac à dos") 
-            
-            // Note: En prod, on appellerait aiManager.generateYoungSelfSuggestions(targetAge, summaries)
-            val suggestions = "L'IA se souvient qu'à cet âge, tu parlais souvent d'incertitude et de liberté. Tu pourrais lui dire ce que tu as appris sur ces deux thèmes."
-            
-            _uiState.value = _uiState.value.copy(
-                aiSuggestions = suggestions,
-                isLoadingSuggestions = false
-            )
+            _uiState.update { it.copy(isLoadingSuggestions = true) }
+            try {
+                val allEntries = offlineEntryDao.getAllEntriesSync()
+                val summariesAtThatAge = allEntries.filter { 
+                    AgeUtils.parseAgeJson(it.ageAtCreation).years in (targetAge - 2)..(targetAge + 2)
+                }.map { it.aiSummary }.filter { it.isNotEmpty() }
+
+                val data = hashMapOf(
+                    "targetAge" to targetAge,
+                    "summariesAtThatAge" to summariesAtThatAge
+                )
+
+                val result = functions.getHttpsCallable("generateYoungSelfSuggestions")
+                    .call(data)
+                    .await()
+                
+                val response = result.data as? String ?: ""
+                val suggestionList = response.split("\n").filter { it.isNotBlank() }.map { it.trim().removePrefix("- ") }
+                
+                _uiState.update { it.copy(suggestions = suggestionList, isLoadingSuggestions = false) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoadingSuggestions = false) }
+                android.util.Log.e("YoungSelfLetterVM", "Error getting suggestions", e)
+            }
+        }
+    }
+
+    fun saveLetter(onSuccess: () -> Unit) {
+        val userId = auth.currentUser?.uid ?: return
+        val state = _uiState.value
+        val birthDate = state.birthDate ?: return
+        
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true) }
+            try {
+                val encryptedPayload = encryptionManager.encryptText(state.letterContent)
+                
+                val ageAtCreation = AgeUtils.calculateAge(birthDate)
+                val ageJson = "{\"years\":${ageAtCreation.years},\"months\":${ageAtCreation.months},\"days\":${ageAtCreation.days}}"
+
+                val entryData = hashMapOf(
+                    "type" to "TEXT",
+                    "encryptedContent" to android.util.Base64.encodeToString(encryptedPayload, android.util.Base64.DEFAULT),
+                    "isYoungSelfLetter" to true,
+                    "targetAge" to state.targetAge,
+                    "ageAtCreation" to ageJson,
+                    "emotionalCategory" to "Sagesse",
+                    "isFulfilled" to false,
+                    "aiSummary" to "",
+                    "createdAt" to com.google.firebase.Timestamp.now()
+                )
+
+                db.collection("users").document(userId).collection("entries").add(entryData).await()
+                
+                offlineEntryDao.insertEntry(
+                    OfflineEntry(
+                        id = java.util.UUID.randomUUID().toString(),
+                        encryptedPayload = encryptedPayload,
+                        entryType = "TEXT",
+                        ageAtCreation = ageJson,
+                        emotionalCategory = "Sagesse",
+                        visibility = "Privé",
+                        isYoungSelfLetter = true,
+                        targetAge = state.targetAge,
+                        syncStatus = "synced"
+                    )
+                )
+
+                onSuccess()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isSaving = false) }
+                android.util.Log.e("YoungSelfLetterVM", "Error saving letter", e)
+            }
         }
     }
 }
 
 data class YoungSelfLetterUiState(
-    val currentAge: Int = 0,
-    val aiSuggestions: String? = null,
-    val isLoadingSuggestions: Boolean = false
-)
+    val letterContent: String = "",
+    val targetAge: Int = 20,
+    val birthYear: Int = 1990,
+    val birthDate: Date? = null,
+    val suggestions: List<String> = emptyList(),
+    val isLoadingSuggestions: Boolean = false,
+    val isSaving: Boolean = false
+) {
+    val calculatedYear: Int get() = birthYear + targetAge
+}

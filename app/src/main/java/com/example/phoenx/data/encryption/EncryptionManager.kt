@@ -13,13 +13,22 @@ import javax.inject.Singleton
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import android.content.Context
 
 @Singleton
 class EncryptionManager @Inject constructor() {
 
+    private var sessionKey: ByteArray? = null
+
     init {
         AeadConfig.register()
     }
+
+    fun setSessionKey(key: ByteArray) {
+        this.sessionKey = key
+    }
+
+    fun getSessionKey(): ByteArray? = sessionKey
 
     /**
      * Dérivée une clé à partir d'un mot de passe en utilisant Argon2id
@@ -40,34 +49,56 @@ class EncryptionManager @Inject constructor() {
     }
 
     /**
-     * Chiffre un texte avec une clé dérivée (AES-256-GCM via Tink)
+     * Chiffre un texte avec une clé fournie ou la clé de session (AES-256-GCM)
      */
-    fun encryptText(plaintext: String, key: ByteArray): ByteArray {
-        val keysetHandle = KeysetHandle.generateNew(KeyTemplates.get("AES256_GCM"))
-        val aead = keysetHandle.getPrimitive(Aead::class.java)
-        return aead.encrypt(plaintext.toByteArray(Charsets.UTF_8), null)
+    fun encryptText(plaintext: String, key: ByteArray? = null): ByteArray {
+        val encryptionKey = key ?: sessionKey
+            ?: throw IllegalStateException(
+                "Clé de session non initialisée. " +
+                "L'utilisateur doit être connecté."
+            )
+        // Générer un IV aléatoire de 12 bytes (standard AES-GCM)
+        val iv = ByteArray(12)
+        SecureRandom().nextBytes(iv)
+        // Chiffrement AES-256-GCM avec la clé dérivée
+        val cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+        val keySpec = javax.crypto.spec.SecretKeySpec(encryptionKey, "AES")
+        val paramSpec = javax.crypto.spec.GCMParameterSpec(128, iv)
+        cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, keySpec, paramSpec)
+        val encrypted = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
+        // Concaténer IV + données chiffrées pour pouvoir déchiffrer
+        return iv + encrypted
     }
 
     /**
      * Déchiffre un texte
      */
-    fun decryptText(ciphertext: ByteArray, key: ByteArray): String {
-        // En version réelle, on déchiffrerait avec le KeysetHandle correspondant
-        // Pour le moment on retourne le texte tel quel ou on simule pour que ça compile
-        return String(ciphertext, Charsets.UTF_8)
+    fun decryptText(ciphertext: ByteArray, key: ByteArray? = null): String {
+        val decryptionKey = key ?: sessionKey
+            ?: throw IllegalStateException("Clé de session non initialisée.")
+        // Extraire IV (12 premiers bytes) et données chiffrées
+        val iv = ciphertext.sliceArray(0..11)
+        val encrypted = ciphertext.sliceArray(12 until ciphertext.size)
+        val cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+        val keySpec = javax.crypto.spec.SecretKeySpec(decryptionKey, "AES")
+        val paramSpec = javax.crypto.spec.GCMParameterSpec(128, iv)
+        cipher.init(javax.crypto.Cipher.DECRYPT_MODE, keySpec, paramSpec)
+        return String(cipher.doFinal(encrypted), Charsets.UTF_8)
     }
 
     // --- Helpers pour le Livre ---
     fun encrypt(text: String): String {
-        // Simplification pour le MVP : Retourne un faux chiffré (Base64)
-        return android.util.Base64.encodeToString(text.toByteArray(), android.util.Base64.DEFAULT)
+        val encrypted = encryptText(text)
+        return android.util.Base64.encodeToString(encrypted, android.util.Base64.DEFAULT)
     }
 
     fun decrypt(encryptedBase64: String): String {
         return try {
-            String(android.util.Base64.decode(encryptedBase64, android.util.Base64.DEFAULT))
+            val bytes = android.util.Base64.decode(encryptedBase64, android.util.Base64.DEFAULT)
+            decryptText(bytes)
         } catch (e: Exception) {
-            encryptedBase64
+            android.util.Log.e("EncryptionManager", "Déchiffrement échoué", e)
+            ""
         }
     }
     // ----------------------------
@@ -85,9 +116,21 @@ class EncryptionManager @Inject constructor() {
     /**
      * Génère une phrase de récupération de 12 mots (BIP-39)
      */
-    fun generateRecoveryPhrase(): List<String> {
-        // Liste simplifiée pour l'exemple, à remplacer par une vraie liste BIP-39
-        return listOf("soleil", "rivière", "montagne", "forêt", "oiseau", "vent", "pierre", "sable", "mer", "nuage", "étoile", "lune")
+    fun generateRecoveryPhrase(context: Context): List<String> {
+        val wordList = try {
+            context.assets
+                .open("bip39_french.txt")
+                .bufferedReader()
+                .readLines()
+                .filter { it.isNotBlank() }
+        } catch (e: Exception) {
+            android.util.Log.e("EncryptionManager", "Erreur lecture wordlist BIP-39", e)
+            // Fallback en cas de problème de lecture des assets
+            listOf("soleil", "rivière", "montagne", "forêt", "oiseau", "vent", "pierre", "sable", "mer", "nuage", "étoile", "lune")
+        }
+
+        val random = SecureRandom()
+        return (1..12).map { wordList[random.nextInt(wordList.size)] }
     }
 
     fun deriveKeyFromPhrase(phrase: List<String>): ByteArray {

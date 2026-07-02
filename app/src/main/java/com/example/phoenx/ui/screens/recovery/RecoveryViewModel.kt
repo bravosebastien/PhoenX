@@ -19,12 +19,17 @@ class RecoveryViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<RecoveryUiState>(RecoveryUiState.Idle)
     val uiState: StateFlow<RecoveryUiState> = _uiState
 
-    fun recoverWithPhrase(phrase: String, newPassword: String) {
+    fun recoverWithPhrase(email: String, phrase: String, newPassword: String) {
         _uiState.value = RecoveryUiState.Loading
         viewModelScope.launch {
             try {
+                if (email.isBlank()) {
+                    _uiState.value = RecoveryUiState.Error("L'adresse email est requise.")
+                    return@launch
+                }
+                
                 // 1. Re-dériver la clé depuis la phrase
-                val words = phrase.trim().split(" ")
+                val words = phrase.trim().split(Regex("\\s+"))
                 if (words.size != 12) {
                     _uiState.value = RecoveryUiState.Error("La phrase doit contenir exactement 12 mots.")
                     return@launch

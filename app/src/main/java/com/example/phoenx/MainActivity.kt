@@ -14,6 +14,8 @@ import com.example.phoenx.data.biometric.PhoenXBiometricManager
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.navigation.PhoenXNavGraph
 import com.example.phoenx.ui.screens.guide.WelcomeGuideScreen
+import com.example.phoenx.ui.navigation.Screen
+import com.example.phoenx.ui.components.RecoveryReminderDialog
 import com.example.phoenx.ui.theme.PhoenXTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -88,7 +90,15 @@ class MainActivity : FragmentActivity() {
                     }
                 } else if (isUnlocked) {
                     android.util.Log.d("PHOENX_DEBUG", "Chargement MainContent")
-                    MainContent()
+                    MainContent(
+                        onVerifyBiometrics = { onSuccess ->
+                            biometricManager.showBiometricPrompt(
+                                activity = this@MainActivity,
+                                onSuccess = onSuccess,
+                                onError = { /* handle error */ }
+                            )
+                        }
+                    )
                 } else {
                     Surface(
                         modifier = Modifier.fillMaxSize(),
@@ -101,13 +111,24 @@ class MainActivity : FragmentActivity() {
 
     @androidx.media3.common.util.UnstableApi
     @Composable
-    fun MainContent() {
+    fun MainContent(onVerifyBiometrics: (onSuccess: () -> Unit) -> Unit) {
         LaunchedEffect(Unit) {
             mainViewModel.confirmPresence()
         }
 
         val isVoiceActive by mainViewModel.isVoiceModeActive.collectAsState()
+        val showRecoveryReminder by mainViewModel.showRecoveryReminder.collectAsState()
         val navController = rememberNavController()
+
+        if (showRecoveryReminder) {
+            RecoveryReminderDialog(
+                onDismiss = { mainViewModel.dismissRecoveryReminder(false) },
+                onConfirm = { 
+                    mainViewModel.dismissRecoveryReminder(true)
+                    navController.navigate(Screen.Settings.route + "?showRecovery=true")
+                }
+            )
+        }
 
         LaunchedEffect(isVoiceActive) {
             if (isVoiceActive) {
@@ -128,7 +149,8 @@ class MainActivity : FragmentActivity() {
         ) {
             PhoenXNavGraph(
                 navController = navController,
-                mainViewModel = mainViewModel
+                mainViewModel = mainViewModel,
+                onVerifyBiometrics = onVerifyBiometrics
             )
         }
     }

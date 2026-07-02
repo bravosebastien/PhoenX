@@ -24,6 +24,7 @@ fun RecoveryScreen(
     viewModel: RecoveryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    var email by remember { mutableStateOf("") }
     var phrase by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
 
@@ -73,6 +74,19 @@ fun RecoveryScreen(
                 Spacer(modifier = Modifier.height(40.dp))
 
                 OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Ton adresse email") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AccentPrimary,
+                        unfocusedBorderColor = TextTertiary
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
                     value = phrase,
                     onValueChange = { phrase = it },
                     label = { Text("Phrase de récupération (12 mots)") },
@@ -109,8 +123,8 @@ fun RecoveryScreen(
                 Spacer(modifier = Modifier.weight(1f))
 
                 Button(
-                    onClick = { viewModel.recoverWithPhrase(phrase, newPassword) },
-                    enabled = phrase.isNotBlank() && newPassword.length >= 8 && uiState !is RecoveryUiState.Loading,
+                    onClick = { viewModel.recoverWithPhrase(email, phrase, newPassword) },
+                    enabled = email.isNotBlank() && phrase.isNotBlank() && newPassword.length >= 8 && uiState !is RecoveryUiState.Loading,
                     modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                     colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
                 ) {

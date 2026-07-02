@@ -38,6 +38,9 @@ class MainViewModel @Inject constructor(
     private val _daysSinceLastCheckIn = MutableStateFlow(0)
     val daysSinceLastCheckIn: StateFlow<Int> = _daysSinceLastCheckIn.asStateFlow()
 
+    private val _showRecoveryReminder = MutableStateFlow(false)
+    val showRecoveryReminder: StateFlow<Boolean> = _showRecoveryReminder.asStateFlow()
+
     val isVoiceModeActive: StateFlow<Boolean> = preferenceManager.isVoiceModeActive
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     
@@ -46,6 +49,27 @@ class MainViewModel @Inject constructor(
     init {
         checkInactivity()
         checkSilence()
+        checkRecoveryReminder()
+    }
+
+    private fun checkRecoveryReminder() {
+        viewModelScope.launch {
+            preferenceManager.lastRecoveryReminder.collect { lastReminder ->
+                val sixMonthsMillis = 180L * 24 * 60 * 60 * 1000
+                if (System.currentTimeMillis() - lastReminder > sixMonthsMillis) {
+                    _showRecoveryReminder.value = true
+                }
+            }
+        }
+    }
+
+    fun dismissRecoveryReminder(confirmed: Boolean) {
+        _showRecoveryReminder.value = false
+        if (confirmed) {
+            viewModelScope.launch {
+                preferenceManager.updateLastRecoveryReminder(System.currentTimeMillis())
+            }
+        }
     }
 
     private fun checkSilence() {
@@ -94,6 +118,8 @@ class MainViewModel @Inject constructor(
 
     val shouldShowWelcomeGuide: StateFlow<Boolean> = preferenceManager.shouldShowWelcomeGuide
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    val recoveryPhrase: Flow<String?> = preferenceManager.recoveryPhrase
 
     val isVideoBannerDismissed: StateFlow<Boolean> = preferenceManager.isVideoBannerDismissed
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)

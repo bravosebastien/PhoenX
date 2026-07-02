@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.phoenx.ui.MainViewModel
+import com.example.phoenx.ui.components.RecoveryPhraseBottomSheet
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,9 +27,21 @@ fun SettingsScreen(
     onNavigateToRecipients: () -> Unit,
     onNavigateToUniqueKey: () -> Unit,
     onNavigateToDetective: () -> Unit,
-    mainViewModel: MainViewModel
+    onVerifyBiometrics: (onSuccess: () -> Unit) -> Unit,
+    mainViewModel: MainViewModel,
+    initialShowRecovery: Boolean = false
 ) {
     val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
+    var showRecoveryPhrase by remember { mutableStateOf(initialShowRecovery) }
+
+    val recoveryPhraseString by mainViewModel.recoveryPhrase.collectAsState(initial = null)
+
+    if (showRecoveryPhrase && recoveryPhraseString != null) {
+        RecoveryPhraseBottomSheet(
+            phrase = recoveryPhraseString!!.split(" "),
+            onDismiss = { showRecoveryPhrase = false }
+        )
+    }
 
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -119,6 +132,22 @@ fun SettingsScreen(
                 subtitle = "Déchiffre tes propres énigmes",
                 icon = Icons.Default.Fingerprint,
                 onClick = onNavigateToDetective
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text("SÉCURITÉ", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(
+                title = "Revoir ma phrase de récupération",
+                subtitle = "Tes 12 mots de secours",
+                icon = Icons.Default.VpnKey,
+                onClick = {
+                    onVerifyBiometrics {
+                        showRecoveryPhrase = true
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.height(32.dp))

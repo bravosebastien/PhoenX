@@ -125,11 +125,8 @@ class CaptureViewModel @Inject constructor(
                 val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: Date()
                 val age = AgeUtils.calculateAge(birthDate)
                 
-                // 3. CHIFFREMENT E2EE
-                val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
-                
-                // On chiffre le texte (légende ou contenu)
-                val encrypted = encryptionManager.encryptText(rawText, tempKey)
+                // 3. CHIFFREMENT E2EE (Signature 7.0 - Clé de session réelle)
+                val encrypted = encryptionManager.encryptText(rawText)
                 
                 // 4. SAUVEGARDE HORS-LIGNE
                 val entry = OfflineEntry(

@@ -5,7 +5,9 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.phoenx.data.encryption.EncryptionManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -16,12 +18,15 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 @Singleton
 class PreferenceManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val encryptionManager: EncryptionManager
 ) {
     private val VOICE_MODE_KEY = booleanPreferencesKey("voice_mode_active")
     private val BIOMETRIC_ENABLED_KEY = booleanPreferencesKey("biometric_enabled")
     private val SHOW_WELCOME_GUIDE_KEY = booleanPreferencesKey("show_welcome_guide")
     private val VIDEO_BANNER_DISMISSED_KEY = booleanPreferencesKey("video_banner_dismissed")
+    private val LAST_RECOVERY_REMINDER_KEY = longPreferencesKey("last_recovery_reminder")
+    private val RECOVERY_PHRASE_KEY = androidx.datastore.preferences.core.stringPreferencesKey("recovery_phrase")
 
     fun isDepositaryOnboardingSeen(userId: String): Flow<Boolean> = context.dataStore.data
         .map { preferences ->
@@ -46,6 +51,23 @@ class PreferenceManager @Inject constructor(
     val isVideoBannerDismissed: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
             preferences[VIDEO_BANNER_DISMISSED_KEY] ?: false
+        }
+
+    val lastRecoveryReminder: Flow<Long> = context.dataStore.data
+        .map { preferences ->
+            preferences[LAST_RECOVERY_REMINDER_KEY] ?: 0L
+        }
+
+    val recoveryPhrase: Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            val encrypted = preferences[RECOVERY_PHRASE_KEY]
+            if (encrypted != null) {
+                try {
+                    encryptionManager.decrypt(encrypted)
+                } catch (e: Exception) {
+                    null // Clé de session pas encore initialisée
+                }
+            } else null
         }
 
     suspend fun setVoiceModeActive(active: Boolean) {
@@ -75,6 +97,19 @@ class PreferenceManager @Inject constructor(
     suspend fun setDepositaryOnboardingSeen(userId: String, seen: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[booleanPreferencesKey("depositary_onboarding_seen_$userId")] = seen
+        }
+    }
+
+    suspend fun updateLastRecoveryReminder(timestamp: Long) {
+        context.dataStore.edit { preferences ->
+            preferences[LAST_RECOVERY_REMINDER_KEY] = timestamp
+        }
+    }
+
+    suspend fun setRecoveryPhrase(phrase: String) {
+        val encrypted = encryptionManager.encrypt(phrase)
+        context.dataStore.edit { preferences ->
+            preferences[RECOVERY_PHRASE_KEY] = encrypted
         }
     }
 }

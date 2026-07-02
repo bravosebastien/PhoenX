@@ -2,98 +2,179 @@ package com.example.phoenx.ui.screens.witness
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.GroupAdd
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WitnessInviteScreen(
-    onNavigateBack: () -> Unit
+    navController: NavController,
+    viewModel: WitnessViewModel = hiltViewModel()
 ) {
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
+    val witnesses by viewModel.witnesses.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    var showDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadWitnesses()
+    }
 
     Scaffold(
         containerColor = BackgroundPrimary,
         topBar = {
             TopAppBar(
-                title = { Text("Inviter un Témoin", style = MaterialTheme.typography.displaySmall) },
+                title = { Text("Les Témoins", style = MaterialTheme.typography.labelLarge) },
                 navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showDialog = true },
+                containerColor = AccentPrimary,
+                contentColor = BackgroundPrimary
+            ) {
+                Icon(Icons.Default.Add, null)
+            }
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(24.dp)
         ) {
-            Icon(Icons.Default.GroupAdd, null, tint = AccentPrimary, modifier = Modifier.size(64.dp))
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
             Text(
-                text = "Laisse tes proches raconter ton histoire.",
-                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-                color = TextPrimary,
-                textAlign = TextAlign.Center
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text(
-                text = "Tes témoins recevront un lien pour déposer un souvenir secret. Tu ne pourras pas voir leurs mots de ton vivant.",
+                "Invite des proches à témoigner sur toi. Tu ne verras jamais ce qu'ils écrivent. Leurs mots seront découverts par tes proches après ton départ.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary,
-                textAlign = TextAlign.Center,
                 lineHeight = 22.sp
             )
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nom du proche") },
-                modifier = Modifier.fillMaxWidth()
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = AccentPrimary)
+            } else if (witnesses.isEmpty()) {
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    Text("Aucun témoin invité pour le moment.", color = TextTertiary)
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(witnesses) { witness ->
+                        WitnessCard(witness)
+                    }
+                }
+            }
+        }
+
+        if (showDialog) {
+            InviteWitnessDialog(
+                onDismiss = { showDialog = false },
+                onConfirm = { name, email ->
+                    viewModel.inviteWitness(name, email, "Ton proche") // TODO: Get real creator name
+                    showDialog = false
+                }
             )
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email (pour envoyer l'invitation)") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Button(
-                onClick = { /* Logic to send invitation */ },
-                enabled = name.isNotBlank() && email.isNotBlank(),
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
-                shape = MaterialTheme.shapes.medium
+@Composable
+fun WitnessCard(witness: WitnessEntity) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(witness.name, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Bold)
+                Text(witness.email, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            }
+            
+            val statusColor = if (witness.status == "submitted") Success else Warning
+            val statusText = if (witness.status == "submitted") "Témoignage déposé" else "En attente"
+            
+            Surface(
+                color = statusColor.copy(alpha = 0.1f),
+                shape = MaterialTheme.shapes.small,
+                border = androidx.compose.foundation.BorderStroke(1.dp, statusColor.copy(alpha = 0.3f))
             ) {
-                Text("Envoyer l'invitation secrète", color = BackgroundPrimary)
+                Text(
+                    text = statusText,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = statusColor
+                )
             }
         }
     }
+}
+
+@Composable
+fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = BackgroundSecondary,
+        title = { Text("Inviter un témoin", color = TextPrimary, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nom complet") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(name, email) },
+                enabled = name.isNotBlank() && email.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+            ) {
+                Text("Envoyer l'invitation", color = BackgroundPrimary)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Annuler", color = TextSecondary)
+            }
+        }
+    )
 }

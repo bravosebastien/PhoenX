@@ -99,11 +99,10 @@ fun AuthScreen(
                         viewModel.generateRecoveryPhrase()
                         currentStep = SignupStep.StepB 
                     }
-                    SignupStep.StepB -> SignupStepB(
+                    SignupStep.StepB -> RecoveryPhraseScreen(
                         phrase = recoveryPhrase,
-                        confirmed = recoveryConfirmed,
-                        onConfirmedChange = { recoveryConfirmed = it }
-                    ) { currentStep = SignupStep.StepC }
+                        onConfirmed = { currentStep = SignupStep.StepC }
+                    )
                     SignupStep.StepC -> SignupStepC(
                         depositaryName = depositaryName,
                         onDepositaryNameChange = { depositaryName = it },
@@ -276,73 +275,6 @@ fun SignupStepA(
         Button(
             onClick = onNext,
             enabled = (email.isNotEmpty() && password.length >= 12),
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
-        ) {
-            Text("Continuer", color = BackgroundPrimary)
-        }
-    }
-}
-
-@Composable
-fun SignupStepB(
-    phrase: List<String>,
-    confirmed: Boolean,
-    onConfirmedChange: (Boolean) -> Unit,
-    onNext: () -> Unit
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Ta phrase de récupération", style = MaterialTheme.typography.displaySmall, color = TextPrimary)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            "Ces 12 mots sont la SEULE clé de ton héritage si tu perds ton téléphone.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = SurfaceCard,
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                phrase.chunked(3).forEach { rowWords ->
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        rowWords.forEach { word ->
-                            Text(
-                                text = word, 
-                                color = TextPrimary, 
-                                modifier = Modifier.weight(1f).padding(vertical = 4.dp), 
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            Checkbox(
-                checked = confirmed, 
-                onCheckedChange = onConfirmedChange,
-                colors = CheckboxDefaults.colors(checkedColor = AccentPrimary)
-            )
-            Text(
-                "J'ai noté ma phrase sur un support physique.", 
-                color = TextPrimary, 
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(
-            onClick = onNext,
-            enabled = confirmed,
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
         ) {

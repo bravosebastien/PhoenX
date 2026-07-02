@@ -19,6 +19,7 @@ import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.screens.auth.AuthScreen
 import com.example.phoenx.ui.screens.capture.CaptureScreen
 import com.example.phoenx.ui.screens.depositary.*
+import com.example.phoenx.ui.screens.detective.DetectiveCreateScreen
 import com.example.phoenx.ui.screens.detective.DetectiveScreen
 import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.home.HomeScreen
@@ -35,6 +36,9 @@ import com.example.phoenx.ui.screens.favorites.FavoritesScreen
 import com.example.phoenx.ui.screens.library.*
 import com.example.phoenx.ui.screens.recipient.RecipientPermissionsScreen
 import com.example.phoenx.ui.screens.mailbox.MailboxScreen
+import com.example.phoenx.ui.screens.witness.WitnessInviteScreen
+import com.example.phoenx.ui.screens.witness.WitnessResponseScreen
+import com.example.phoenx.ui.screens.portraits.PortraitProcheScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.questions.AskQuestionScreen
@@ -63,7 +67,8 @@ import com.google.firebase.auth.FirebaseAuth
 @Composable
 fun PhoenXNavGraph(
     navController: NavHostController,
-    mainViewModel: MainViewModel
+    mainViewModel: MainViewModel,
+    onVerifyBiometrics: (onSuccess: () -> Unit) -> Unit = {}
 ) {
     NavHost(
         navController = navController,
@@ -370,10 +375,35 @@ fun PhoenXNavGraph(
             PactScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToDetail = { id -> navController.navigate("pact/$id") })
         }
         composable("portrait_proche") {
-            PortraitScreen(onNavigateBack = { navController.popBackStack() })
+            PortraitProcheScreen(
+                initialRecipientId = null,
+                navController = navController
+            )
         }
         composable("reconciliation") {
             ReconciliationScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        // Côté Créateur
+        composable("witness_invite") {
+            WitnessInviteScreen(navController = navController)
+        }
+
+        // Côté Témoin (deeplink depuis email)
+        composable(
+            route = "witness_response/{creatorId}/{witnessId}/{token}",
+            deepLinks = listOf(
+                navDeepLink {
+                    uriPattern = "https://phoenx.app/witness?creator={creatorId}&witness={witnessId}&token={token}"
+                }
+            )
+        ) { backStackEntry ->
+            WitnessResponseScreen(
+                creatorId = backStackEntry.arguments?.getString("creatorId") ?: "",
+                witnessId = backStackEntry.arguments?.getString("witnessId") ?: "",
+                token = backStackEntry.arguments?.getString("token") ?: "",
+                navController = navController
+            )
         }
 
         // --- LIVRE DE VIE ---
@@ -491,7 +521,13 @@ fun PhoenXNavGraph(
             EssencePortraitScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable(Screen.Settings.route) {
+        composable(
+            route = Screen.Settings.route + "?showRecovery={showRecovery}",
+            arguments = listOf(
+                navArgument("showRecovery") { defaultValue = "false" }
+            )
+        ) { backStackEntry ->
+            val showRecovery = backStackEntry.arguments?.getString("showRecovery") == "true"
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
@@ -500,7 +536,9 @@ fun PhoenXNavGraph(
                 onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
                 onNavigateToUniqueKey = { navController.navigate(Screen.UniqueKey.route) },
                 onNavigateToDetective = { navController.navigate(Screen.RecipientDetective.route) },
-                mainViewModel = mainViewModel
+                onVerifyBiometrics = onVerifyBiometrics,
+                mainViewModel = mainViewModel,
+                initialShowRecovery = showRecovery
             )
         }
 
@@ -558,6 +596,10 @@ fun PhoenXNavGraph(
 
         composable(Screen.RecipientDetective.route) {
             DetectiveScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable("detective_create") {
+            DetectiveCreateScreen(navController = navController)
         }
 
         composable(Screen.DepositaryNotifications.route) {
