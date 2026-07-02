@@ -32,9 +32,18 @@ fun SettingsScreen(
     initialShowRecovery: Boolean = false
 ) {
     val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
-    var showRecoveryPhrase by remember { mutableStateOf(initialShowRecovery) }
+    var showRecoveryPhrase by remember { mutableStateOf(false) }
 
     val recoveryPhraseString by mainViewModel.recoveryPhrase.collectAsState(initial = null)
+
+    // Déclenchement automatique de la biométrie si demandé par le rappel
+    LaunchedEffect(initialShowRecovery) {
+        if (initialShowRecovery) {
+            onVerifyBiometrics {
+                showRecoveryPhrase = true
+            }
+        }
+    }
 
     if (showRecoveryPhrase && recoveryPhraseString != null) {
         RecoveryPhraseBottomSheet(

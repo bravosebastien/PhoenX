@@ -35,9 +35,10 @@ fun RecoveryReminderDialog(
         },
         text = {
             Text(
-                text = "Il y a plus de 6 mois que tu n'as pas vérifié ta phrase de récupération. Si tu changes de téléphone sans l'avoir notée, tes souvenirs seront irrécupérables.",
+                text = "PHOEN-X utilise une technologie de chiffrement de bout en bout. Tes souvenirs sont protégés par une clé privée unique que nous ne possédons pas.\n\nCes 12 mots sont l'unique sauvegarde de cette clé. Si tu changes de téléphone ou si l'application est désinstallée, sans ces mots, l'accès à ta vie sera DÉFINITIVEMENT verrouillé. Ni toi, ni nous ne pourrons rien faire. C'est ton unique bouclier contre l'oubli définitif.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary
+                color = TextSecondary,
+                lineHeight = 22.sp
             )
         },
         confirmButton = {
@@ -45,7 +46,7 @@ fun RecoveryReminderDialog(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
             ) {
-                Text("Revoir mes 12 mots", color = BackgroundPrimary)
+                Text("Vérifier mes 12 mots", color = BackgroundPrimary)
             }
         },
         dismissButton = {
