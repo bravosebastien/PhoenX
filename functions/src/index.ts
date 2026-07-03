@@ -43,7 +43,9 @@ async function sendSMSViaPartner(params: { to: string; body: string }): Promise<
 export const analyzeEntry = onCall(async (request) => {
     const { summary } = request.data;
     if (!summary) throw new HttpsError("invalid-argument", "Résumé manquant");
-    const prompt = `${AI_RULES} Analyse ce résumé en JSON (themes, persons, lifePeriod, emotionalTone). Résumé : ${summary}`;
+    const prompt = `${AI_RULES} Analyse ce résumé en JSON (themes, persons, lifePeriod, emotionalTone, universalCategory).
+    universalCategory doit être l'une des valeurs suivantes : Amour, Espoir, Sagesse, Regret, Transmission, Foi, Réconciliation, Humanité, Gratitude.
+    Résumé : ${summary}`;
     const result = await generativeModel.generateContent(prompt);
     const text = result.response.candidates?.[0]?.content.parts[0]?.text || "{}";
     return JSON.parse(text.replace(/```json|```/g, "").trim());

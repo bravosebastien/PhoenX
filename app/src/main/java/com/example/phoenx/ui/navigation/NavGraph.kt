@@ -247,7 +247,15 @@ fun PhoenXNavGraph(
         }
 
         composable("questions_room") {
-            QuestionsRoomScreen(onNavigateBack = { navController.popBackStack() })
+            QuestionsRoomScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAnswerQuestion = { id, text ->
+                    navController.navigate(com.example.phoenx.ui.navigation.Screen.Capture.createRoute(
+                        type = com.example.phoenx.ui.navigation.Screen.Capture.TYPE_TEXT,
+                        prompt = text
+                    ))
+                }
+            )
         }
 
         composable(Screen.Worlds.route) {
@@ -365,7 +373,15 @@ fun PhoenXNavGraph(
             MappamondeScreen(navController = navController, mode = MapMode.CREATOR)
         }
         composable("cent_questions") {
-            QuestionsRoomScreen(onNavigateBack = { navController.popBackStack() })
+            QuestionsRoomScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAnswerQuestion = { id, text ->
+                    navController.navigate(com.example.phoenx.ui.navigation.Screen.Capture.createRoute(
+                        type = com.example.phoenx.ui.navigation.Screen.Capture.TYPE_TEXT,
+                        prompt = text
+                    ))
+                }
+            )
         }
         composable("coffre_fort") {
             DetectiveScreen(onNavigateBack = { navController.popBackStack() })

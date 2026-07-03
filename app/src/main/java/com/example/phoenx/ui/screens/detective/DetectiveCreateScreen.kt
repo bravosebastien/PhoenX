@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -97,6 +98,25 @@ fun DetectiveCreateScreen(
                 ),
                 maxLines = 3
             )
+
+            // BOUTON INSPIRATION
+            var showInspiration by remember { mutableStateOf(false) }
+            TextButton(
+                onClick = { showInspiration = true },
+                modifier = Modifier.padding(top = 4.dp)
+            ) {
+                Text("✨ Besoin d'inspiration ?", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+            }
+
+            if (showInspiration) {
+                InspirationBottomSheet(
+                    onDismiss = { showInspiration = false },
+                    onSelect = { selectedQuestion ->
+                        viewModel.updateEnigma(selectedQuestion)
+                        showInspiration = false
+                    }
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -241,6 +261,96 @@ fun DetectiveCreateScreen(
                 } else {
                     Text("Sceller l'énigme", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InspirationBottomSheet(
+    onDismiss: () -> Unit,
+    onSelect: (String) -> Unit
+) {
+    val examples = mapOf(
+        "SOUVENIRS PARTAGÉS" to listOf(
+            "Dans quelle ville nous sommes-nous rencontrés ?",
+            "Quel était le nom de notre restaurant préféré ?",
+            "Quelle chanson passait lors de notre premier voyage ensemble ?",
+            "Quel surnom me donnais-tu quand tu étais petit(e) ?",
+            "Quelle était la couleur de la porte de notre première maison ?"
+        ),
+        "MOMENTS UNIQUES" to listOf(
+            "Quel est le meilleur repas qu'on ait partagé ensemble ?",
+            "Quelle bêtise avons-nous faite ensemble et dont on n'a jamais parlé ?",
+            "Quel film avons-nous regardé ensemble tellement de fois qu'on connaît les répliques ?",
+            "Lors de notre dernier voyage, quel était le nom de l'hôtel ?",
+            "Quelle est la première chose que tu m'as dite ?"
+        ),
+        "DÉTAILS INTIMES" to listOf(
+            "Quel était mon plat préféré que tu cuisinais ?",
+            "Quelle était ma chanson fétiche que je chantonnais sans m'en rendre compte ?",
+            "Comment s'appelait mon animal de compagnie d'enfance ?",
+            "Quel était mon livre de chevet pendant des années ?",
+            "Quel sport pratiquais-je en secret sans te le dire ?"
+        ),
+        "QUESTIONS PROFONDES" to listOf(
+            "Quelle est la phrase que je répétais toujours quand j'étais inquiet(e) ?",
+            "Quel était mon rêve d'enfant dont je t'avais parlé une seule fois ?",
+            "Quel endroit dans le monde disais-je toujours vouloir visiter avant de mourir ?",
+            "Quelle était la chose dont j'avais le plus peur et que tu étais le/la seul(e) à savoir ?",
+            "Quelle promesse t'avais-je faite que tu n'as jamais oubliée ?"
+        )
+    )
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        containerColor = BackgroundPrimary,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF2E2E35)) }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 32.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                "Des idées de questions",
+                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
+                color = TextPrimary
+            )
+            Text(
+                "Ces exemples sont là pour t'inspirer. La vraie question, c'est toi qui la connais.",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            examples.forEach { (category, questions) ->
+                Text(
+                    text = category,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = AccentPrimary,
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+                questions.forEach { question ->
+                    Card(
+                        onClick = { onSelect(question) },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF2E2E35))
+                    ) {
+                        Text(
+                            text = question,
+                            modifier = Modifier.padding(16.dp),
+                            style = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 15.sp),
+                            color = Color(0xFFF2EDE8)
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }
