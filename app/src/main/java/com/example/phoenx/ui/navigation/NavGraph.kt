@@ -40,10 +40,14 @@ import com.example.phoenx.ui.screens.witness.WitnessInviteScreen
 import com.example.phoenx.ui.screens.witness.WitnessResponseScreen
 import com.example.phoenx.ui.screens.portraits.PortraitProcheScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
+import com.example.phoenx.ui.screens.questions.HundredQuestionsScreen
+import com.example.phoenx.ui.screens.questions.HundredQuestionsViewModel
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.questions.AskQuestionScreen
 import com.example.phoenx.ui.screens.questions.PendingQuestionsScreen
 import com.example.phoenx.ui.screens.questionsroom.QuestionsRoomScreen
+import com.example.phoenx.ui.screens.universal.UniversalMessageScreen
+import com.example.phoenx.ui.screens.universal.UniversalFeedScreen
 import com.example.phoenx.ui.screens.recipient.*
 import com.example.phoenx.ui.screens.silence.SilenceBlockScreen
 import com.example.phoenx.ui.screens.silence.SilenceCheckInScreen
@@ -243,7 +247,23 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.Questions.route) {
-            QuestionsScreen(onNavigateBack = { navController.popBackStack() })
+            HundredQuestionsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAnswerQuestion = { id, text ->
+                    navController.navigate(Screen.Capture.createRoute(
+                        type = Screen.Capture.TYPE_TEXT,
+                        prompt = text
+                    ))
+                }
+            )
+        }
+
+        composable("universal_message") {
+            UniversalMessageScreen(navController = navController)
+        }
+
+        composable("universal_feed") {
+            UniversalFeedScreen(navController = navController)
         }
 
         composable("questions_room") {
