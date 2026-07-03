@@ -56,20 +56,28 @@ class MainActivity : FragmentActivity() {
                 var showGuide by remember { mutableStateOf(value = false) }
 
                 LaunchedEffect(isBiometricEnabled) {
-                    android.util.Log.d("PHOENX_DEBUG", "Vérification Biométrie: enabled=$isBiometricEnabled")
-                    if (isBiometricEnabled && !isUnlocked) {
-                        biometricManager.showBiometricPrompt(
-                            activity = this@MainActivity,
-                            onSuccess = { 
-                                android.util.Log.d("PHOENX_DEBUG", "Biométrie SUCCESS")
-                                isUnlocked = true 
-                            },
-                            onError = { err -> 
-                                android.util.Log.e("PHOENX_DEBUG", "Biométrie ERROR: $err")
-                                isUnlocked = true // Fallback pour ne pas bloquer en debug
-                            },
-                        )
+                    val user = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+                    android.util.Log.d("PHOENX_DEBUG", "Vérification Biométrie: enabled=$isBiometricEnabled, userLoggedIn=${user != null}")
+                    
+                    if (user != null && isBiometricEnabled && !isUnlocked) {
+                        if (biometricManager.isBiometricAvailable()) {
+                            biometricManager.showBiometricPrompt(
+                                activity = this@MainActivity,
+                                onSuccess = { 
+                                    android.util.Log.d("PHOENX_DEBUG", "Biométrie SUCCESS")
+                                    isUnlocked = true 
+                                },
+                                onError = { err -> 
+                                    android.util.Log.e("PHOENX_DEBUG", "Biométrie ERROR: $err")
+                                    // Reste bloqué sur l'écran vide
+                                },
+                            )
+                        } else {
+                            // Biométrie non disponible sur l'appareil -> On laisse passer
+                            isUnlocked = true
+                        }
                     } else {
+                        // Pas de user ou biométrie désactivée -> Déverrouillage auto
                         isUnlocked = true
                     }
                 }
@@ -117,9 +125,10 @@ class MainActivity : FragmentActivity() {
         }
 
         val isVoiceActive by mainViewModel.isVoiceModeActive.collectAsState()
-        val showRecoveryReminder by mainViewModel.showRecoveryReminder.collectAsState()
+        // val showRecoveryReminder by mainViewModel.showRecoveryReminder.collectAsState() // Mis en veille
         val navController = rememberNavController()
 
+        /*
         if (showRecoveryReminder) {
             RecoveryReminderDialog(
                 onDismiss = { mainViewModel.dismissRecoveryReminder(false) },
@@ -129,6 +138,7 @@ class MainActivity : FragmentActivity() {
                 }
             )
         }
+        */
 
         LaunchedEffect(isVoiceActive) {
             if (isVoiceActive) {

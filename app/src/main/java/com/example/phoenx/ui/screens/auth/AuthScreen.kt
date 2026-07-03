@@ -20,6 +20,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.theme.*
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -49,11 +52,13 @@ fun AuthScreen(
     var recoveryConfirmed by remember { mutableStateOf(value = false) }
 
     val uiState by viewModel.uiState.collectAsState()
-    val recoveryPhrase by viewModel.recoveryPhrase.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     LaunchedEffect(uiState) {
         if (uiState is AuthState.Success) {
             onAuthSuccess()
+        } else if (uiState is AuthState.PasswordResetSent) {
+            android.widget.Toast.makeText(context, "Un email de réinitialisation a été envoyé.", android.widget.Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -62,65 +67,124 @@ fun AuthScreen(
             .fillMaxSize()
             .background(BackgroundPrimary)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            AnimatedContent(
-                targetState = currentStep,
-                transitionSpec = {
-                    fadeIn(tween(500)) togetherWith fadeOut(tween(500))
-                },
-                label = "auth_step"
-            ) { step ->
-                when (step) {
-                    SignupStep.Login -> LoginContent(
-                        email = email,
-                        onEmailChange = { email = it },
-                        password = password,
-                        onPasswordChange = { password = it },
-                        onLoginClick = { viewModel.login(email, password) },
-                        onNavigateToSignup = { currentStep = SignupStep.StepA },
-                        onNavigateToRecovery = onNavigateToRecovery,
-                        isLoading = uiState is AuthState.Loading
-                    )
-                    SignupStep.StepA -> SignupStepA(
-                        email = email,
-                        onEmailChange = { email = it },
-                        password = password,
-                        onPasswordChange = { password = it },
-                        birthDate = birthDate,
-                        onBirthDateChange = { birthDate = it }
-                    ) { 
-                        viewModel.generateRecoveryPhrase()
-                        currentStep = SignupStep.StepB 
+        if (uiState is AuthState.EmailVerificationSent || uiState is AuthState.EmailNotVerified) {
+            EmailVerificationContent(
+                email = email,
+                isNotVerifiedError = uiState is AuthState.EmailNotVerified,
+                onConfirmedClick = { 
+                    com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.reload()?.addOnCompleteListener {
+                        if (com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.isEmailVerified == true) {
+                            onAuthSuccess()
+                        }
                     }
-                    SignupStep.StepB -> RecoveryPhraseScreen(
-                        phrase = recoveryPhrase,
-                        onConfirmed = { currentStep = SignupStep.StepC }
-                    )
-                    SignupStep.StepC -> SignupStepC(
-                        depositaryName = depositaryName,
-                        onDepositaryNameChange = { depositaryName = it },
-                        onFinish = { viewModel.signUp(email, password, birthDate, depositaryName) },
-                        isLoading = uiState is AuthState.Loading
+                },
+                onResendClick = { viewModel.resendVerificationEmail() }
+            )
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                AnimatedContent(
+                    targetState = currentStep,
+                    transitionSpec = {
+                        fadeIn(tween(500)) togetherWith fadeOut(tween(500))
+                    },
+                    label = "auth_step"
+                ) { step ->
+                    when (step) {
+                        SignupStep.Login -> LoginContent(
+                            email = email,
+                            onEmailChange = { email = it },
+                            password = password,
+                            onPasswordChange = { password = it },
+                            onLoginClick = { viewModel.login(email, password) },
+                            onResetPasswordClick = { viewModel.resetPassword(email) },
+                            onNavigateToSignup = { currentStep = SignupStep.StepA },
+                            onNavigateToRecovery = onNavigateToRecovery,
+                            isLoading = uiState is AuthState.Loading
+                        )
+                        SignupStep.StepA -> SignupStepA(
+                            email = email,
+                            onEmailChange = { email = it },
+                            password = password,
+                            onPasswordChange = { password = it },
+                            birthDate = birthDate,
+                            onBirthDateChange = { birthDate = it }
+                        ) { 
+                            viewModel.signUp(email, password, birthDate)
+                        }
+                        SignupStep.StepB -> Text("Système avancé en veille")
+                        SignupStep.StepC -> Text("Système avancé en veille")
+                    }
+                }
+
+                if (uiState is AuthState.Error) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = (uiState as AuthState.Error).message,
+                        color = Error,
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center
                     )
                 }
             }
+        }
+    }
+}
 
-            if (uiState is AuthState.Error) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = (uiState as AuthState.Error).message,
-                    color = Error,
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center
-                )
-            }
+@Composable
+fun EmailVerificationContent(
+    email: String,
+    isNotVerifiedError: Boolean,
+    onConfirmedClick: () -> Unit,
+    onResendClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = androidx.compose.material.icons.Icons.Default.Email,
+            contentDescription = null,
+            tint = AccentPrimary,
+            modifier = Modifier.size(64.dp)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Vérifie ta boîte mail",
+            style = androidx.compose.ui.text.TextStyle(
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
+                fontSize = 22.sp
+            ),
+            color = TextPrimary
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = if (isNotVerifiedError) 
+                "Tu dois d'abord confirmer ton adresse email avant de pouvoir te connecter."
+            else 
+                "Un email de confirmation a été envoyé à $email. Clique sur le lien pour activer ton compte.",
+            style = androidx.compose.ui.text.TextStyle(fontSize = 15.sp),
+            color = TextSecondary,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Button(
+            onClick = onConfirmedClick,
+            modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+        ) {
+            Text("J'ai confirmé mon email", color = BackgroundPrimary)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        TextButton(onClick = onResendClick) {
+            Text("Renvoyer l'email", color = TextSecondary)
         }
     }
 }
@@ -130,6 +194,7 @@ fun LoginContent(
     email: String, onEmailChange: (String) -> Unit,
     password: String, onPasswordChange: (String) -> Unit,
     onLoginClick: () -> Unit,
+    onResetPasswordClick: () -> Unit,
     onNavigateToSignup: () -> Unit,
     onNavigateToRecovery: () -> Unit,
     isLoading: Boolean
@@ -161,7 +226,7 @@ fun LoginContent(
         )
         
         TextButton(
-            onClick = onNavigateToRecovery,
+            onClick = onResetPasswordClick,
             modifier = Modifier.align(Alignment.End)
         ) {
             Text("Mot de passe oublié ?", color = TextTertiary, style = MaterialTheme.typography.labelSmall)
@@ -179,6 +244,11 @@ fun LoginContent(
         }
         TextButton(onClick = onNavigateToSignup) {
             Text("Créer un compte", color = AccentPrimary)
+        }
+        
+        // Système avancé en veille
+        TextButton(onClick = onNavigateToRecovery) {
+            Text("Restaurer via mes 12 mots (Legacy)", color = TextTertiary, style = MaterialTheme.typography.labelSmall)
         }
     }
 }

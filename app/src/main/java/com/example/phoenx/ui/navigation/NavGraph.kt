@@ -111,6 +111,7 @@ fun PhoenXNavGraph(
             )
         }
 
+        /*
         composable(Screen.Auth.Recovery.route) {
             RecoveryScreen(
                 onNavigateBack = { navController.popBackStack() },
@@ -119,6 +120,7 @@ fun PhoenXNavGraph(
                 }
             )
         }
+        */
 
         composable(Screen.Home.route) {
             val silenceStatus by mainViewModel.silenceStatus.collectAsState()
@@ -521,13 +523,7 @@ fun PhoenXNavGraph(
             EssencePortraitScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable(
-            route = Screen.Settings.route + "?showRecovery={showRecovery}",
-            arguments = listOf(
-                navArgument("showRecovery") { defaultValue = "false" }
-            )
-        ) { backStackEntry ->
-            val showRecovery = backStackEntry.arguments?.getString("showRecovery") == "true"
+        composable(Screen.Settings.route) {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
@@ -537,8 +533,7 @@ fun PhoenXNavGraph(
                 onNavigateToUniqueKey = { navController.navigate(Screen.UniqueKey.route) },
                 onNavigateToDetective = { navController.navigate(Screen.RecipientDetective.route) },
                 onVerifyBiometrics = onVerifyBiometrics,
-                mainViewModel = mainViewModel,
-                initialShowRecovery = showRecovery
+                mainViewModel = mainViewModel
             )
         }
 

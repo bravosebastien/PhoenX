@@ -34,6 +34,8 @@ fun SettingsScreen(
     val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
     var showRecoveryPhrase by remember { mutableStateOf(false) }
 
+    // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
+    /*
     val recoveryPhraseString by mainViewModel.recoveryPhrase.collectAsState(initial = null)
 
     // Déclenchement automatique de la biométrie si demandé par le rappel
@@ -51,6 +53,7 @@ fun SettingsScreen(
             onDismiss = { showRecoveryPhrase = false }
         )
     }
+    */
 
     Scaffold(
         containerColor = BackgroundPrimary,

@@ -53,6 +53,11 @@ class PreferenceManager @Inject constructor(
             preferences[VIDEO_BANNER_DISMISSED_KEY] ?: false
         }
 
+    // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
+    // Chiffrement E2EE avec Argon2id + BIP-39
+    // Conservé pour activation future (V2 Pro)
+    // ══════════════════════════════════════
+    /*
     val lastRecoveryReminder: Flow<Long> = context.dataStore.data
         .map { preferences ->
             preferences[LAST_RECOVERY_REMINDER_KEY] ?: 0L
@@ -69,6 +74,7 @@ class PreferenceManager @Inject constructor(
                 }
             } else null
         }
+    */
 
     suspend fun setVoiceModeActive(active: Boolean) {
         context.dataStore.edit { preferences ->
@@ -100,6 +106,8 @@ class PreferenceManager @Inject constructor(
         }
     }
 
+    // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
+    /*
     suspend fun updateLastRecoveryReminder(timestamp: Long) {
         context.dataStore.edit { preferences ->
             preferences[LAST_RECOVERY_REMINDER_KEY] = timestamp
@@ -112,4 +120,5 @@ class PreferenceManager @Inject constructor(
             preferences[RECOVERY_PHRASE_KEY] = encrypted
         }
     }
+    */
 }

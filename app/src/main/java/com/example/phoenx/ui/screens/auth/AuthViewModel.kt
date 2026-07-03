@@ -31,6 +31,11 @@ class AuthViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<AuthState>(AuthState.Idle)
     val uiState: StateFlow<AuthState> = _uiState
 
+    // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
+    // Chiffrement E2EE avec Argon2id + BIP-39
+    // Conservé pour activation future (V2 Pro)
+    // ══════════════════════════════════════
+    /*
     private val _recoveryPhrase = MutableStateFlow<List<String>>(emptyList())
     val recoveryPhrase: StateFlow<List<String>> = _recoveryPhrase
 
@@ -41,14 +46,23 @@ class AuthViewModel @Inject constructor(
     fun generateRecoveryPhrase() {
         _recoveryPhrase.value = encryptionManager.generateRecoveryPhrase(context)
     }
+    */
 
     fun login(email: String, password: String) {
         _uiState.value = AuthState.Loading
         viewModelScope.launch {
             try {
-                val authResult = auth.signInWithEmailAndPassword(email, password).await()
-                val user = authResult.user ?: throw Exception("Utilisateur introuvable")
+                val result = auth.signInWithEmailAndPassword(email, password).await()
+                val user = result.user ?: throw Exception("Utilisateur introuvable")
 
+                // Vérifier que l'email est confirmé
+                if (!user.isEmailVerified) {
+                    _uiState.value = AuthState.EmailNotVerified
+                    return@launch
+                }
+
+                /*
+                // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
                 // Charger le sel unique depuis Firestore
                 val userDoc = db.collection("users").document(user.uid).get().await()
                 val saltBase64 = userDoc.getString("encryptionSalt") 
@@ -59,6 +73,7 @@ class AuthViewModel @Inject constructor(
                 val key = encryptionManager.deriveKeyFromPassword(password, salt)
                 sessionKey = key
                 encryptionManager.setSessionKey(key)
+                */
                 
                 _uiState.value = AuthState.Success
             } catch (e: Exception) {
@@ -67,46 +82,72 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun signUp(email: String, password: String, birthDate: LocalDate, depositaryName: String?) {
+    fun signUp(email: String, password: String, birthDate: LocalDate) {
         _uiState.value = AuthState.Loading
         viewModelScope.launch {
             try {
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
-                val user = result.user
-                if (user != null) {
-                    // Générer un sel aléatoire unique de 32 bytes
-                    val salt = ByteArray(32)
-                    java.security.SecureRandom().nextBytes(salt)
-                    val saltBase64 = android.util.Base64.encodeToString(salt, android.util.Base64.DEFAULT)
+                val user = result.user ?: return@launch
 
-                    // Dériver la clé avec ce sel
-                    val key = encryptionManager.deriveKeyFromPassword(password, salt)
-                    sessionKey = key
-                    encryptionManager.setSessionKey(key)
+                // Envoyer l'email de vérification
+                user.sendEmailVerification().await()
 
-                    // Sauvegarder la phrase de récupération localement
-                    val phraseString = _recoveryPhrase.value.joinToString(" ")
-                    preferenceManager.setRecoveryPhrase(phraseString)
-                    preferenceManager.updateLastRecoveryReminder(System.currentTimeMillis())
-                    
-                    val birthDateInstant = birthDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
-                    
-                    val userProfile = hashMapOf(
-                        "uid" to user.uid,
-                        "email" to email,
-                        "encryptionSalt" to saltBase64, // Stockage du sel unique
-                        "dateOfBirth" to Timestamp(Date.from(birthDateInstant)),
-                        "createdAt" to Timestamp.now(),
-                        "depositaryName" to depositaryName,
-                        "onboardingCompleted" to true,
-                        "lastAliveConfirmedAt" to Timestamp.now()
-                    )
-                    
-                    db.collection("users").document(user.uid).set(userProfile).await()
-                    _uiState.value = AuthState.Success
-                }
+                /*
+                // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
+                // Générer un sel aléatoire unique de 32 bytes
+                val salt = ByteArray(32)
+                java.security.SecureRandom().nextBytes(salt)
+                val saltBase64 = android.util.Base64.encodeToString(salt, android.util.Base64.DEFAULT)
+
+                // Dériver la clé avec ce sel
+                val key = encryptionManager.deriveKeyFromPassword(password, salt)
+                sessionKey = key
+                encryptionManager.setSessionKey(key)
+
+                // Sauvegarder la phrase de récupération localement
+                val phraseString = _recoveryPhrase.value.joinToString(" ")
+                preferenceManager.setRecoveryPhrase(phraseString)
+                preferenceManager.updateLastRecoveryReminder(System.currentTimeMillis())
+                */
+                
+                val birthDateInstant = birthDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
+                
+                val userProfile = hashMapOf(
+                    "uid" to user.uid,
+                    "email" to email,
+                    //"encryptionSalt" to saltBase64, // Stockage du sel unique
+                    "dateOfBirth" to Timestamp(Date.from(birthDateInstant)),
+                    "createdAt" to Timestamp.now(),
+                    "onboardingCompleted" to true,
+                    "lastAliveConfirmedAt" to Timestamp.now()
+                )
+                
+                db.collection("users").document(user.uid).set(userProfile).await()
+                _uiState.value = AuthState.EmailVerificationSent
             } catch (e: Exception) {
                 _uiState.value = AuthState.Error(e.message ?: "Erreur d'inscription")
+            }
+        }
+    }
+
+    fun resetPassword(email: String) {
+        viewModelScope.launch {
+            try {
+                auth.sendPasswordResetEmail(email).await()
+                _uiState.value = AuthState.PasswordResetSent
+            } catch (e: Exception) {
+                _uiState.value = AuthState.Error(e.message ?: "Erreur")
+            }
+        }
+    }
+
+    fun resendVerificationEmail() {
+        viewModelScope.launch {
+            try {
+                auth.currentUser?.sendEmailVerification()?.await()
+                _uiState.value = AuthState.EmailVerificationSent
+            } catch (e: Exception) {
+                _uiState.value = AuthState.Error(e.message ?: "Erreur")
             }
         }
     }
@@ -116,5 +157,8 @@ sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
     object Success : AuthState()
+    object EmailVerificationSent : AuthState()
+    object EmailNotVerified : AuthState()
+    object PasswordResetSent : AuthState()
     data class Error(val message: String) : AuthState()
 }
