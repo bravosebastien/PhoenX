@@ -7,9 +7,8 @@ import com.example.phoenx.data.preferences.PreferenceManager
 import com.example.phoenx.domain.liveness.LivenessManager
 import com.example.phoenx.domain.usecase.ActivationProtocolManager
 import com.google.firebase.auth.FirebaseAuth
-import com.example.phoenx.domain.manager.SilenceManager
-import com.example.phoenx.domain.manager.SilenceStatus
-import com.example.phoenx.domain.models.SilenceConfig
+import com.example.phoenx.service.SilenceManager
+import com.example.phoenx.service.SilenceStatus
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -29,14 +28,18 @@ class MainViewModel @Inject constructor(
     private val protocolManager: ActivationProtocolManager,
     private val voiceManager: VoiceAccessibilityManager,
     private val livenessManager: LivenessManager,
-    private val preferenceManager: PreferenceManager
+    private val preferenceManager: PreferenceManager,
+    private val silenceManager: SilenceManager
 ) : ViewModel() {
 
-    private val _silenceStatus = MutableStateFlow<SilenceStatus>(SilenceStatus.OK)
-    val silenceStatus: StateFlow<SilenceStatus> = _silenceStatus.asStateFlow()
+    private val _silenceStatus = MutableStateFlow<SilenceStatus?>(null)
+    val silenceStatus: StateFlow<SilenceStatus?> = _silenceStatus.asStateFlow()
 
     private val _daysSinceLastCheckIn = MutableStateFlow(0)
     val daysSinceLastCheckIn: StateFlow<Int> = _daysSinceLastCheckIn.asStateFlow()
+    
+    val isSilenceOnboardingDone: StateFlow<Boolean> = preferenceManager.isSilenceOnboardingDone
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
     /*
@@ -51,61 +54,33 @@ class MainViewModel @Inject constructor(
 
     init {
         checkInactivity()
-        checkSilence()
-        // checkRecoveryReminder() // Mis en veille
-    }
-
-    /*
-    private fun checkRecoveryReminder() {
-        viewModelScope.launch {
-            preferenceManager.lastRecoveryReminder.collect { lastReminder ->
-                val sixMonthsMillis = 180L * 24 * 60 * 60 * 1000
-                if (System.currentTimeMillis() - lastReminder > sixMonthsMillis) {
-                    _showRecoveryReminder.value = true
-                }
-            }
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            checkSilenceOnLaunch(userId)
         }
     }
 
-    fun dismissRecoveryReminder(confirmed: Boolean) {
-        _showRecoveryReminder.value = false
-        if (confirmed) {
-            viewModelScope.launch {
-                preferenceManager.updateLastRecoveryReminder(System.currentTimeMillis())
-            }
-        }
-    }
-    */
-
-    private fun checkSilence() {
-        val userId = auth.currentUser?.uid ?: return
+    fun checkSilenceOnLaunch(userId: String) {
         viewModelScope.launch {
+            val status = silenceManager.checkSilenceStatus(userId)
+            _silenceStatus.value = status
+            
+            // Calculer les jours pour l'affichage
             try {
                 val doc = db.collection("users").document(userId).get().await()
-                val rhythmDays = doc.getLong("silenceConfig.rhythmDays")?.toInt() ?: 30
-                val lastCheckInAt = doc.getTimestamp("silenceConfig.lastCheckInAt") ?: com.google.firebase.Timestamp.now()
-                val missedCycles = doc.getLong("silenceConfig.missedCycles")?.toInt() ?: 0
-                val lastSilenceStatus = doc.getString("silenceConfig.lastSilenceStatus") ?: "present"
-
-                val config = SilenceConfig(rhythmDays, lastCheckInAt, missedCycles, lastSilenceStatus)
-                val status = SilenceManager.checkSilenceStatus(config)
-                
-                _silenceStatus.value = status
-                
-                // Calculer les jours pour l'écran de blocage
-                val diff = System.currentTimeMillis() - lastCheckInAt.toDate().time
-                _daysSinceLastCheckIn.value = (diff / (1000 * 60 * 60 * 24)).toInt()
-
-            } catch (e: Exception) {
-                // Erreur ou config inexistante
-            }
+                val lastCheckIn = doc.getTimestamp("silenceConfig.lastCheckInAt")
+                if (lastCheckIn != null) {
+                    val diff = System.currentTimeMillis() - lastCheckIn.toDate().time
+                    _daysSinceLastCheckIn.value = (diff / (1000 * 60 * 60 * 24)).toInt()
+                }
+            } catch (e: Exception) {}
         }
     }
 
     fun recordCheckIn(status: String) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            SilenceManager.recordCheckIn(userId, status, db)
+            silenceManager.recordCheckIn(userId, status)
             _silenceStatus.value = SilenceStatus.OK
         }
     }
@@ -113,8 +88,16 @@ class MainViewModel @Inject constructor(
     fun setSilenceConfig(rhythmDays: Int) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            val config = SilenceConfig(rhythmDays = rhythmDays)
-            db.collection("users").document(userId).update("silenceConfig", config).await()
+            db.collection("users").document(userId).update(
+                mapOf(
+                    "silenceConfig.rhythmDays" to rhythmDays,
+                    "silenceConfig.lastCheckInAt" to com.google.firebase.Timestamp.now(),
+                    "silenceConfig.missedCycles" to 0,
+                    "silenceConfig.escalationLevel" to 0,
+                    "silenceConfig.lastSilenceStatus" to "present"
+                )
+            ).await()
+            preferenceManager.setSilenceOnboardingDone(true)
         }
     }
 

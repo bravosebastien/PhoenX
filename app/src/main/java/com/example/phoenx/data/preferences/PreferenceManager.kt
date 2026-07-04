@@ -27,6 +27,7 @@ class PreferenceManager @Inject constructor(
     private val VIDEO_BANNER_DISMISSED_KEY = booleanPreferencesKey("video_banner_dismissed")
     private val LAST_RECOVERY_REMINDER_KEY = longPreferencesKey("last_recovery_reminder")
     private val RECOVERY_PHRASE_KEY = androidx.datastore.preferences.core.stringPreferencesKey("recovery_phrase")
+    private val SILENCE_ONBOARDING_DONE_KEY = booleanPreferencesKey("silence_onboarding_done")
 
     fun isDepositaryOnboardingSeen(userId: String): Flow<Boolean> = context.dataStore.data
         .map { preferences ->
@@ -51,6 +52,11 @@ class PreferenceManager @Inject constructor(
     val isVideoBannerDismissed: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
             preferences[VIDEO_BANNER_DISMISSED_KEY] ?: false
+        }
+
+    val isSilenceOnboardingDone: Flow<Boolean> = context.dataStore.data
+        .map { preferences ->
+            preferences[SILENCE_ONBOARDING_DONE_KEY] ?: false
         }
 
     // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
@@ -103,6 +109,12 @@ class PreferenceManager @Inject constructor(
     suspend fun setDepositaryOnboardingSeen(userId: String, seen: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[booleanPreferencesKey("depositary_onboarding_seen_$userId")] = seen
+        }
+    }
+
+    suspend fun setSilenceOnboardingDone(done: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[SILENCE_ONBOARDING_DONE_KEY] = done
         }
     }
 

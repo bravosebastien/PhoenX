@@ -1,10 +1,10 @@
 package com.example.phoenx.ui.navigation
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,10 +53,9 @@ import com.example.phoenx.ui.screens.silence.SilenceBlockScreen
 import com.example.phoenx.ui.screens.silence.SilenceCheckInScreen
 import com.example.phoenx.ui.screens.silence.SilenceOnboardingScreen
 import com.example.phoenx.ui.screens.splash.SplashScreen
-import com.example.phoenx.domain.manager.SilenceStatus
+import com.example.phoenx.service.SilenceStatus
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.recovery.RecoveryScreen
-import com.example.phoenx.ui.screens.witness.WitnessInviteScreen
 import com.example.phoenx.ui.screens.worlds.WorldsScreen
 import com.example.phoenx.ui.screens.book.BookEditorScreen
 import com.example.phoenx.ui.screens.book.BookViewerScreen
@@ -115,25 +114,37 @@ fun PhoenXNavGraph(
             )
         }
 
-        /*
-        composable(Screen.Auth.Recovery.route) {
-            RecoveryScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onSuccess = { 
-                    navController.navigate(Screen.Home.route) { popUpTo(Screen.Auth.Login.route) { inclusive = true } }
-                }
-            )
-        }
-        */
-
         composable(Screen.Home.route) {
             val silenceStatus by mainViewModel.silenceStatus.collectAsState()
+            val isSilenceOnboardingDone by mainViewModel.isSilenceOnboardingDone.collectAsState()
+            val isLoggedIn = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser != null
+            val isEmailVerified = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.isEmailVerified ?: false
 
-            LaunchedEffect(silenceStatus) {
-                when (silenceStatus) {
-                    SilenceStatus.CHECK_IN_DUE -> navController.navigate(Screen.SilenceCheckIn.route)
-                    SilenceStatus.BLOCKED, SilenceStatus.NOTIFY_DEPOSITARY -> navController.navigate(Screen.SilenceBlock.route)
-                    else -> {}
+            if (isLoggedIn && isEmailVerified && silenceStatus == null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color(0xFF1A1A1F)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = Color(0xFFC97B3A),
+                        modifier = Modifier.size(32.dp),
+                        strokeWidth = 2.dp
+                    )
+                }
+                return@composable
+            }
+
+            LaunchedEffect(silenceStatus, isSilenceOnboardingDone) {
+                if (!isSilenceOnboardingDone) {
+                    navController.navigate(Screen.SilenceOnboarding.route)
+                } else {
+                    when (silenceStatus) {
+                        SilenceStatus.CHECK_IN_DUE -> navController.navigate(Screen.SilenceCheckIn.route)
+                        SilenceStatus.BLOCKED -> navController.navigate(Screen.SilenceBlock.route)
+                        else -> {}
+                    }
                 }
             }
 
@@ -584,14 +595,30 @@ fun PhoenXNavGraph(
         composable(Screen.SilenceOnboarding.route) {
             SilenceOnboardingScreen(onConfirmRythm = { days ->
                 mainViewModel.setSilenceConfig(days)
-                navController.popBackStack()
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.SilenceOnboarding.route) { inclusive = true }
+                }
             })
         }
 
         composable(Screen.SilenceCheckIn.route) {
             SilenceCheckInScreen(
-                onImHere = { mainViewModel.recordCheckIn("present") },
-                onTraversingSomething = { /* Logic */ }
+                onImHere = { 
+                    mainViewModel.recordCheckIn("present")
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.SilenceCheckIn.route) { inclusive = true }
+                    }
+                },
+                onTraversingSomething = { action ->
+                    mainViewModel.recordCheckIn("traversing")
+                    if (action == "record") {
+                        navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_NIGHT))
+                    } else {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.SilenceCheckIn.route) { inclusive = true }
+                        }
+                    }
+                }
             )
         }
 
@@ -599,7 +626,12 @@ fun PhoenXNavGraph(
             val daysMissed by mainViewModel.daysSinceLastCheckIn.collectAsState()
             SilenceBlockScreen(
                 daysSinceLastCheckIn = daysMissed,
-                onImHere = { mainViewModel.recordCheckIn("present") }
+                onImHere = { 
+                    mainViewModel.recordCheckIn("present")
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.SilenceBlock.route) { inclusive = true }
+                    }
+                }
             )
         }
 
