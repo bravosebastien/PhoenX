@@ -1,17 +1,18 @@
 package com.example.phoenx.ui.screens.silence
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.phoenx.ui.theme.*
@@ -21,108 +22,112 @@ fun SilenceOnboardingScreen(
     onConfirmRythm: (Int) -> Unit
 ) {
     var selectedRythm by remember { mutableIntStateOf(30) }
-    val rythms = listOf(
-        RythmOption(14, "Toutes les 2 semaines", "Recommandé"),
-        RythmOption(30, "Une fois par mois", null),
-        RythmOption(60, "Tous les 2 mois", null)
+
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
     )
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary)
+            .background(Color(0xFF1A1A1F))
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // Point pulsant animé
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .scale(pulseScale)
+                .background(Color(0xFFC97B3A), CircleShape)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
         Text(
             text = "Une présence, même dans le silence",
             style = MaterialTheme.typography.headlineMedium.copy(
                 fontFamily = FontFamily.Serif,
-                color = TextPrimary
-            )
+                color = Color(0xFFF2EDE8)
+            ),
+            textAlign = TextAlign.Center
         )
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            text = "PHOEN-X ne peut transmettre ce que tu as construit que s'il sait que tu es là pour continuer à le construire. De temps en temps, l'app te donnera simplement signe de vie — un tap, et c'est tout.",
+            text = "De temps en temps, PHOEN-X te demandera juste de confirmer que tu es là. Un simple tap suffit. Si tu ne réponds pas pendant un moment, ta personne de confiance sera doucement prévenue pour prendre de tes nouvelles.",
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
-            lineHeight = 22.sp
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Column(Modifier.selectableGroup()) {
-            rythms.forEach { option ->
-                RythmItem(
-                    option = option,
-                    selected = (selectedRythm == option.days),
-                    onClick = { selectedRythm = option.days }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = "Si tu ne réponds pas après 3 rappels, ton Dépositaire recevra une notification discrète.",
-            style = MaterialTheme.typography.labelSmall,
-            color = TextTertiary,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            color = Color(0xFF9B9590),
+            lineHeight = 26.sp,
+            textAlign = TextAlign.Center
         )
 
         Spacer(modifier = Modifier.height(40.dp))
 
+        Text(
+            text = "À quelle fréquence veux-tu qu'on te contacte ?",
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color(0xFFF2EDE8),
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        RythmRadioOption(14, "Toutes les 2 semaines", selectedRythm == 14) { selectedRythm = 14 }
+        RythmRadioOption(30, "Une fois par mois", selectedRythm == 30) { selectedRythm = 30 }
+        RythmRadioOption(60, "Tous les 2 mois", selectedRythm == 60) { selectedRythm = 60 }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Si tu ne réponds pas 3 fois de suite, ta personne de confiance recevra un message doux.",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color(0xFF5C5855),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.weight(1f))
+
         Button(
             onClick = { onConfirmRythm(selectedRythm) },
             modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
-            shape = MaterialTheme.shapes.medium
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC97B3A))
         ) {
-            Text("Je choisis ce rythme", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+            Text("Je choisis ce rythme", color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold)
         }
+        
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
 @Composable
-fun RythmItem(
-    option: RythmOption,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    Surface(
+fun RythmRadioOption(days: Int, label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .selectable(
-                selected = selected,
-                onClick = onClick,
-                role = Role.RadioButton
-            ),
-        color = if (selected) SurfaceCard else Color.Transparent,
-        shape = MaterialTheme.shapes.medium,
-        border = if (selected) androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary) else null
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            RadioButton(
-                selected = selected,
-                onClick = null, // Handled by selectable Modifier
-                colors = RadioButtonDefaults.colors(selectedColor = AccentPrimary, unselectedColor = TextTertiary)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Column {
-                Text(option.label, color = TextPrimary, style = MaterialTheme.typography.bodyLarge)
-                if (option.badge != null) {
-                    Text(option.badge, color = AccentPrimary, style = MaterialTheme.typography.labelSmall)
-                }
-            }
-        }
+        RadioButton(
+            selected = selected,
+            onClick = onClick,
+            colors = RadioButtonDefaults.colors(selectedColor = Color(0xFFC97B3A), unselectedColor = Color(0xFF5C5855))
+        )
+        Text(
+            text = label,
+            color = if (selected) Color(0xFFF2EDE8) else Color(0xFF9B9590),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(start = 8.dp)
+        )
     }
 }
-
-data class RythmOption(val days: Int, val label: String, val badge: String?)

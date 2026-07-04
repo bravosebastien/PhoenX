@@ -60,6 +60,7 @@ fun CaptureScreen(
     initialType: String = Screen.Capture.TYPE_TEXT,
     initialText: String = "",
     pactId: String? = null,
+    pendingQuestionId: String? = null,
     latitude: Double? = null,
     longitude: Double? = null,
     locationName: String? = null,
@@ -134,7 +135,14 @@ fun CaptureScreen(
             if (uiState is CaptureUiState.RecordingAudio) {
                 if (event.key == Key.VolumeUp || event.key == Key.VolumeDown) {
                     viewModel.stopAudioRecording()
-                    viewModel.saveEntry(null, null, initialType, "Sagesse", "Privé")
+                    viewModel.saveEntry(
+                        content = null, 
+                        mediaFile = null, 
+                        type = initialType, 
+                        category = "Sagesse", 
+                        visibility = "Privé",
+                        pendingQuestionId = pendingQuestionId
+                    )
                     return@onKeyEvent true
                 }
             }
@@ -187,6 +195,7 @@ fun CaptureScreen(
                                     category = selectedCategory, 
                                     visibility = visibility,
                                     recipientIds = selectedRecipientIds.toList(),
+                                    pendingQuestionId = pendingQuestionId,
                                     enigmaQuestion = if (enigmaQuestion.isNotBlank()) enigmaQuestion else null,
                                     enigmaAnswer = if (enigmaAnswer.isNotBlank()) enigmaAnswer else null,
                                     scheduledTimestamp = scheduledTimestamp,
@@ -221,7 +230,14 @@ fun CaptureScreen(
                     Modifier.fillMaxSize().background(Color.Black).clickable {
                         if (uiState is CaptureUiState.RecordingAudio) {
                             viewModel.stopAudioRecording()
-                            viewModel.saveEntry(null, null, Screen.Capture.TYPE_NIGHT, "Sagesse", "Privé")
+                            viewModel.saveEntry(
+                                content = null, 
+                                mediaFile = null, 
+                                type = Screen.Capture.TYPE_NIGHT, 
+                                category = "Sagesse", 
+                                visibility = "Privé",
+                                pendingQuestionId = pendingQuestionId
+                            )
                         }
                     }
                 } else {
@@ -248,7 +264,15 @@ fun CaptureScreen(
                                     viewModel.stopVocalCapture()
                                 },
                                 onSave = {
-                                    viewModel.saveEntry(text, null, Screen.Capture.TYPE_TEXT, selectedCategory, visibility, selectedRecipientIds.toList())
+                                    viewModel.saveEntry(
+                                        content = text, 
+                                        mediaFile = null, 
+                                        type = Screen.Capture.TYPE_TEXT, 
+                                        category = selectedCategory, 
+                                        visibility = visibility, 
+                                        recipientIds = selectedRecipientIds.toList(),
+                                        pendingQuestionId = pendingQuestionId
+                                    )
                                 }
                             )
                         }

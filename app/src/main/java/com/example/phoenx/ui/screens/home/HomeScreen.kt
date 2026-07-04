@@ -129,7 +129,7 @@ fun HomeScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                PendingQuestionsCard(onNavigateToPendingQuestions)
+                PendingQuestionsCard(uiState.pendingQuestionsCount, onNavigateToPendingQuestions)
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -499,7 +499,7 @@ fun QuestionsCard(onClick: () -> Unit) {
 }
 
 @Composable
-fun PendingQuestionsCard(onClick: () -> Unit) {
+fun PendingQuestionsCard(count: Int, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -513,9 +513,11 @@ fun PendingQuestionsCard(onClick: () -> Unit) {
         Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
             BadgedBox(
                 badge = { 
-                    Badge(containerColor = AccentPrimary) { 
-                        Text("3", color = BackgroundPrimary) 
-                    } 
+                    if (count > 0) {
+                        Badge(containerColor = AccentPrimary) { 
+                            Text("$count", color = BackgroundPrimary) 
+                        } 
+                    }
                 }
             ) {
                 Icon(Icons.Default.QuestionAnswer, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
@@ -523,7 +525,11 @@ fun PendingQuestionsCard(onClick: () -> Unit) {
             Spacer(modifier = Modifier.width(20.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text("QUESTIONS EN ATTENTE", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
-                Text("Quelqu'un veut en savoir plus", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+                Text(
+                    if (count > 0) "Quelqu'un veut en savoir plus" else "Aucune nouvelle question", 
+                    style = MaterialTheme.typography.bodyLarge, 
+                    color = TextPrimary
+                )
             }
             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
         }

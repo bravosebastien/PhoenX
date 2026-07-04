@@ -214,6 +214,96 @@ export const resolveCreatorSilence = onCall(async (request) => {
     return { success: true };
 });
 
+// 17. Notification d'octroi du droit de poser des questions
+export const notifyQuestionRightGranted = onCall(async (request) => {
+    const { recipientEmail, recipientName, creatorName, inviteLink } = request.data;
+
+    await admin.firestore().collection("mail").add({
+        to: recipientEmail,
+        message: {
+            subject: `${creatorName} t'invite à lui poser une question`,
+            text: `${recipientName},\n\n${creatorName} t'a donné la possibilité de lui poser une ou plusieurs questions dans PHOEN-X.\n\nCes questions resteront scellées — tu n'auras la réponse qu'après son départ, le jour où son héritage te sera transmis.\n\nC'est une façon différente de garder le lien : poser aujourd'hui une question que tu n'as peut-être jamais osé formuler.\n\n${inviteLink}`
+        }
+    });
+});
+
+// 18. Notification au Créateur d'une nouvelle question
+export const notifyNewPendingQuestion = admin.firestore
+    .document("users/{userId}/pendingQuestions/{questionId}")
+    .onCreate(async (snapshot, context) => {
+        const userId = context.params.userId;
+        const userDoc = await admin.firestore().collection("users").doc(userId).get();
+        const fcmToken = userDoc.data()?.fcmToken;
+
+        if (fcmToken) {
+            await admin.messaging().send({
+                token: fcmToken,
+                notification: {
+                    title: "Une nouvelle question t'attend",
+                    body: "Quelqu'un t'a posé une question dans PHOEN-X."
+                }
+            });
+        }
+    });
+
+// 19. Sceller une question (Côté Destinataire)
+export const sealPendingQuestion = onCall(async (request) => {
+    const { creatorId, recipientId, questionText } = request.data;
+
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
+
+    // Vérifier que le destinataire a bien le droit de poser
+    // des questions
+    const recipientDoc = await admin.firestore()
+        .collection("users").doc(creatorId)
+        .collection("recipients").doc(recipientId)
+        .get();
+
+    if (!recipientDoc.exists) {
+        throw new HttpsError("not-found", "Destinataire introuvable");
+    }
+
+    const recipientData = recipientDoc.data()!;
+
+    if (!recipientData.canAskQuestions) {
+        throw new HttpsError(
+            "permission-denied",
+            "Ce destinataire n'est pas autorisé à poser des questions"
+        );
+    }
+
+    // Vérifier la limite si définie
+    const max = recipientData.maxQuestionsAllowed;
+    const asked = recipientData.questionsAskedCount || 0;
+    if (max !== null && max !== undefined && asked >= max) {
+        throw new HttpsError(
+            "resource-exhausted",
+            "Limite de questions atteinte"
+        );
+    }
+
+    // Stocker la question chiffrée
+    await admin.firestore()
+        .collection("users").doc(creatorId)
+        .collection("pendingQuestions")
+        .add({
+            recipientId,
+            recipientName: recipientData.name || "",
+            questionText, // déjà chiffré RSA côté client
+            askedAt: admin.firestore.FieldValue.serverTimestamp(),
+            status: "pending"
+        });
+
+    // Incrémenter le compteur
+    await recipientDoc.ref.update({
+        questionsAskedCount: admin.firestore.FieldValue.increment(1)
+    });
+
+    return { success: true };
+});
+
 // Fonctions d'invitation Dépositaire
 export const generateDepositaryInviteToken = onCall(async (request) => {
     const { creatorId, depositaryId } = request.data;

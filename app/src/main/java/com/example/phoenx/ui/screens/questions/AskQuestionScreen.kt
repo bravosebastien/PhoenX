@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.questions
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -23,17 +25,41 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.phoenx.ui.theme.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AskQuestionScreen(
     creatorId: String,
     recipientId: String,
-    creatorName: String = "Ton proche",
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    viewModel: AskQuestionViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsState()
+    
     var questionText by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Amour & Couple") }
+
+    LaunchedEffect(creatorId, recipientId) {
+        viewModel.loadData(creatorId, recipientId)
+    }
+
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            Toast.makeText(context, "Ta question a été scellée.", Toast.LENGTH_SHORT).show()
+            onNavigateBack()
+        }
+    }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            Toast.makeText(context, "Erreur : $it", Toast.LENGTH_SHORT).show()
+        }
+    }
     
     val categories = listOf(
         "Amour & Couple", "Fierté & Jugement", "Secrets de famille", 
@@ -89,7 +115,7 @@ fun AskQuestionScreen(
         containerColor = BackgroundPrimary,
         topBar = {
             TopAppBar(
-                title = { Text("Une question pour $creatorName", style = MaterialTheme.typography.labelLarge) },
+                title = { Text("Une question pour ${uiState.creatorName}", style = MaterialTheme.typography.labelLarge) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
@@ -107,13 +133,22 @@ fun AskQuestionScreen(
                 .padding(24.dp)
         ) {
             Text(
-                text = "Certaines personnes trouvent les mots facilement. D'autres non — par pudeur, par habitude du silence, ou simplement parce que certains sujets n'ont jamais trouvé leur moment. Si tu as une question que tu n'as jamais réussi à poser à $creatorName de son vivant, tu peux la déposer ici. Ceci ne remplace jamais une conversation possible aujourd'hui. Si tu peux encore poser cette question à voix haute, fais-le — c'est toujours mieux.",
+                text = "Certaines personnes trouvent les mots facilement. D'autres non — par pudeur, par habitude du silence, ou simplement parce que certains sujets n'ont jamais trouvé leur moment. Si tu as une question que tu n'as jamais réussi à poser à ${uiState.creatorName} de son vivant, tu peux la déposer ici. Ceci ne remplace jamais une conversation possible aujourd'hui. Si tu peux encore poser cette question à voix haute, fais-le — c'est toujours mieux.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary,
                 lineHeight = 22.sp
             )
 
             Spacer(modifier = Modifier.height(32.dp))
+
+            if (uiState.questionsRemaining >= 0) {
+                Text(
+                    text = "${uiState.questionsRemaining} questions restantes sur ${uiState.maxQuestions} autorisées",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (uiState.questionsRemaining > 0) AccentPrimary else Error,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+            }
 
             TextField(
                 value = questionText,
@@ -174,12 +209,20 @@ fun AskQuestionScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             Button(
-                onClick = { /* TODO: Tink Encryption + Cloud Function sealPendingQuestion */ },
-                enabled = questionText.isNotBlank(),
+                onClick = {
+                    viewModel.sealQuestion(creatorId, recipientId, questionText)
+                },
+                enabled = questionText.isNotBlank() && !uiState.isSaving && (uiState.questionsRemaining != 0),
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                 colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
             ) {
-                Text("Sceller cette question", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                if (uiState.isSaving) {
+                    CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+                } else if (uiState.questionsRemaining == 0) {
+                    Text("Limite atteinte", color = BackgroundPrimary)
+                } else {
+                    Text("Sceller cette question", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

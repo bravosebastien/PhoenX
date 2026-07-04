@@ -17,13 +17,14 @@ sealed class Screen(val route: String) {
     
     object Home : Screen("home")
     
-    object Capture : Screen("capture/{type}?prompt={prompt}&pactId={pactId}&lat={lat}&lng={lng}&locationName={locationName}") {
-        fun createRoute(type: String, prompt: String? = null, pactId: String? = null): String {
+    object Capture : Screen("capture/{type}?prompt={prompt}&pactId={pactId}&pendingQuestionId={pendingQuestionId}&lat={lat}&lng={lng}&locationName={locationName}") {
+        fun createRoute(type: String, prompt: String? = null, pactId: String? = null, pendingQuestionId: String? = null): String {
             val encodedPrompt = prompt?.let { URLEncoder.encode(it, StandardCharsets.UTF_8.toString()) }
             var route = "capture/$type"
             val params = mutableListOf<String>()
             if (encodedPrompt != null) params.add("prompt=$encodedPrompt")
             if (pactId != null) params.add("pactId=$pactId")
+            if (pendingQuestionId != null) params.add("pendingQuestionId=$pendingQuestionId")
             if (params.isNotEmpty()) route += "?" + params.joinToString("&")
             return route
         }

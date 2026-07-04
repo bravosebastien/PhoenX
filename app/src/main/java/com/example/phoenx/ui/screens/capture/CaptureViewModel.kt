@@ -103,6 +103,7 @@ class CaptureViewModel @Inject constructor(
         recipientIds: List<String> = emptyList(),
         isYoungSelfLetter: Boolean = false,
         targetAge: Int? = null,
+        pendingQuestionId: String? = null,
         enigmaQuestion: String? = null,
         enigmaAnswer: String? = null,
         scheduledTimestamp: Long? = null,
@@ -129,7 +130,9 @@ class CaptureViewModel @Inject constructor(
                 val encrypted = encryptionManager.encryptText(rawText)
                 
                 // 4. SAUVEGARDE HORS-LIGNE
+                val entryId = UUID.randomUUID().toString()
                 val entry = OfflineEntry(
+                    id = entryId,
                     encryptedPayload = encrypted,
                     entryType = type,
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",
@@ -150,8 +153,20 @@ class CaptureViewModel @Inject constructor(
                     locationName = locationName
                 )
                 offlineEntryDao.insertEntry(entry)
+
+                // 5. UPDATE PENDING QUESTION STATUS (Signature 7.0)
+                if (pendingQuestionId != null) {
+                    db.collection("users").document(user.uid)
+                        .collection("pendingQuestions").document(pendingQuestionId)
+                        .update(mapOf(
+                            "status" to "answered",
+                            "linkedEntryId" to entryId,
+                            "answeredAt" to com.google.firebase.Timestamp.now(),
+                            "answerType" to type.lowercase()
+                        )).await()
+                }
                 
-                // 5. SIGNAL PHYSIQUE
+                // 6. SIGNAL PHYSIQUE
                 hapticManager.signalSaveSuccess()
                 _uiState.value = CaptureUiState.Success
             } catch (e: Exception) {

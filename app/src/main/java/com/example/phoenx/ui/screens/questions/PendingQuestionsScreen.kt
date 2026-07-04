@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.domain.model.PendingQuestion
 import com.example.phoenx.ui.theme.*
 import java.time.Instant
@@ -30,10 +31,11 @@ import java.util.*
 @Composable
 fun PendingQuestionsScreen(
     onNavigateBack: () -> Unit,
-    onAnswerQuestion: (String) -> Unit
+    onAnswerQuestion: (String) -> Unit,
+    viewModel: PendingQuestionsViewModel = hiltViewModel()
 ) {
-    // Simuler des données pour l'instant
-    val questions = remember { mutableStateListOf<PendingQuestion>() }
+    val questions by viewModel.questions.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     var selectedQuestion by remember { mutableStateOf<PendingQuestion?>(null) }
     val sheetState = rememberModalBottomSheetState()
 
@@ -56,6 +58,10 @@ fun PendingQuestionsScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            if (isLoading) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = AccentPrimary)
+            }
+
             Text(
                 text = "${questions.size} questions de ${questions.map { it.recipientName }.distinct().size} personnes",
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
@@ -63,7 +69,7 @@ fun PendingQuestionsScreen(
                 color = TextSecondary
             )
 
-            if (questions.isEmpty()) {
+            if (questions.isEmpty() && !isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Aucune question en attente", color = TextTertiary, style = MaterialTheme.typography.bodyLarge)
                 }
@@ -95,7 +101,10 @@ fun PendingQuestionsScreen(
                         onAnswerQuestion(selectedQuestion!!.id)
                         selectedQuestion = null 
                     },
-                    onDecline = { /* TODO: Decline logic */ },
+                    onDecline = { note ->
+                        viewModel.declineQuestion(selectedQuestion!!.id, note)
+                        selectedQuestion = null
+                    },
                     onDismiss = { selectedQuestion = null }
                 )
             }

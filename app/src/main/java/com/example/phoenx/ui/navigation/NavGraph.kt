@@ -116,7 +116,7 @@ fun PhoenXNavGraph(
 
         composable(Screen.Home.route) {
             val silenceStatus by mainViewModel.silenceStatus.collectAsState()
-            val isSilenceOnboardingDone by mainViewModel.isSilenceOnboardingDone.collectAsState()
+            val isSilenceOnboardingDone by mainViewModel.isSilenceOnboardingDone.collectAsState(initial = false)
             val isLoggedIn = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser != null
             val isEmailVerified = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.isEmailVerified ?: false
 
@@ -180,6 +180,7 @@ fun PhoenXNavGraph(
                 navArgument("type") { defaultValue = Screen.Capture.TYPE_TEXT },
                 navArgument("prompt") { nullable = true },
                 navArgument("pactId") { nullable = true },
+                navArgument("pendingQuestionId") { nullable = true },
                 navArgument("lat") { nullable = true },
                 navArgument("lng") { nullable = true },
                 navArgument("locationName") { nullable = true }
@@ -188,6 +189,7 @@ fun PhoenXNavGraph(
             val type = backStackEntry.arguments?.getString("type") ?: Screen.Capture.TYPE_TEXT
             val prompt = backStackEntry.arguments?.getString("prompt")
             val pactId = backStackEntry.arguments?.getString("pactId")
+            val pendingQuestionId = backStackEntry.arguments?.getString("pendingQuestionId")
             val lat = backStackEntry.arguments?.getString("lat")?.toDoubleOrNull()
             val lng = backStackEntry.arguments?.getString("lng")?.toDoubleOrNull()
             val locationName = backStackEntry.arguments?.getString("locationName")
@@ -196,6 +198,7 @@ fun PhoenXNavGraph(
                 initialType = type, 
                 initialText = prompt ?: "",
                 pactId = pactId,
+                pendingQuestionId = pendingQuestionId,
                 latitude = lat,
                 longitude = lng,
                 locationName = locationName,
@@ -347,6 +350,31 @@ fun PhoenXNavGraph(
         composable(Screen.RecipientPermissions.route) { backStackEntry ->
             val recipientId = backStackEntry.arguments?.getString("recipientId") ?: ""
             RecipientPermissionsScreen(
+                recipientId = recipientId,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.PendingQuestions.route) {
+            PendingQuestionsScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onAnswerQuestion = { questionId ->
+                    // Navigation vers la capture pour répondre avec l'ID de la question
+                    navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, pendingQuestionId = questionId))
+                }
+            )
+        }
+
+        composable(
+            route = Screen.AskQuestion.route,
+            deepLinks = listOf(navDeepLink {
+                uriPattern = "https://phoenx.app/ask?creator={creatorId}&recipient={recipientId}"
+            })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+            val recipientId = backStackEntry.arguments?.getString("recipientId") ?: ""
+            AskQuestionScreen(
+                creatorId = creatorId,
                 recipientId = recipientId,
                 onNavigateBack = { navController.popBackStack() }
             )

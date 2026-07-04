@@ -14,6 +14,7 @@ data class RecipientEntity(
     val canAskQuestions: Boolean = false,
     val maxQuestionsAllowed: Int? = null,
     val questionsAskedCount: Int = 0,
+    val accessToken: String? = null,
     val invitationSentAt: Long? = null,
     val invitationConfirmed: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()

@@ -136,4 +136,38 @@ class EncryptionManager @Inject constructor() {
     fun deriveKeyFromPhrase(phrase: List<String>): ByteArray {
         return deriveKeyFromPassword(phrase.joinToString(" "), "phoenx_salt".toByteArray())
     }
+
+    /**
+     * Chiffre un texte avec une clé publique RSA (RSA-OAEP)
+     */
+    fun encryptWithPublicKey(plaintext: String, publicKeyBytes: ByteArray): ByteArray {
+        val publicKey = java.security.KeyFactory
+            .getInstance("RSA")
+            .generatePublic(
+                java.security.spec.X509EncodedKeySpec(publicKeyBytes)
+            )
+        val cipher = javax.crypto.Cipher.getInstance(
+            "RSA/ECB/OAEPWithSHA-256AndMGF1Padding"
+        )
+        cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, publicKey)
+        return cipher.doFinal(
+            plaintext.toByteArray(Charsets.UTF_8)
+        )
+    }
+
+    /**
+     * Déchiffre un texte avec une clé privée RSA (RSA-OAEP)
+     */
+    fun decryptWithPrivateKey(ciphertext: ByteArray, privateKeyBytes: ByteArray): String {
+        val privateKey = java.security.KeyFactory
+            .getInstance("RSA")
+            .generatePrivate(
+                java.security.spec.PKCS8EncodedKeySpec(privateKeyBytes)
+            )
+        val cipher = javax.crypto.Cipher.getInstance(
+            "RSA/ECB/OAEPWithSHA-256AndMGF1Padding"
+        )
+        cipher.init(javax.crypto.Cipher.DECRYPT_MODE, privateKey)
+        return String(cipher.doFinal(ciphertext), Charsets.UTF_8)
+    }
 }

@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -36,6 +37,21 @@ class HomeViewModel @Inject constructor(
         loadUserData()
         loadBiographerQuestion()
         observeLatestEntries()
+        loadPendingQuestionsCount()
+    }
+
+    private fun loadPendingQuestionsCount() {
+        val user = auth.currentUser ?: return
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(user.uid)
+                    .collection("pendingQuestions")
+                    .whereEqualTo("status", "pending")
+                    .addSnapshotListener { snapshot, _ ->
+                        _uiState.update { it.copy(pendingQuestionsCount = snapshot?.size() ?: 0) }
+                    }
+            } catch (e: Exception) {}
+        }
     }
 
     private fun loadUserData() {
@@ -48,6 +64,19 @@ class HomeViewModel @Inject constructor(
                         val birthTimestamp = doc.getTimestamp("dateOfBirth")
                         val lastAlive = doc.getTimestamp("lastAliveConfirmedAt")
                         
+                        // Initialisation silenceConfig si absent
+                        if (!doc.contains("silenceConfig")) {
+                            db.collection("users").document(user.uid).update(
+                                "silenceConfig", mapOf(
+                                    "rhythmDays" to 30,
+                                    "lastCheckInAt" to com.google.firebase.Timestamp.now(),
+                                    "missedCycles" to 0,
+                                    "escalationLevel" to 0,
+                                    "lastSilenceStatus" to "present"
+                                )
+                            )
+                        }
+
                         var currentAge = 0
                         if (birthTimestamp != null) {
                             val birthDate = birthTimestamp.toDate()
@@ -115,5 +144,6 @@ data class HomeUiState(
     val currentAge: Int = 0,
     val biographerQuestion: String = "Quelle décision as-tu prise dont tu es le plus fier ?",
     val lastProofOfLifeDays: Int = 0,
+    val pendingQuestionsCount: Int = 0,
     val latestEntries: List<OfflineEntry> = emptyList()
 )
