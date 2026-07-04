@@ -59,6 +59,30 @@ class DetectiveCreateViewModel @Inject constructor(
         _uiState.update { it.copy(photoUri = uri) }
     }
 
+    private val _existingEntries = MutableStateFlow<List<OfflineEntry>>(emptyList())
+    val existingEntries: StateFlow<List<OfflineEntry>> = _existingEntries.asStateFlow()
+
+    fun loadExistingDetectiveEntries() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                val snapshot = db.collection("users")
+                    .document(userId)
+                    .collection("entries")
+                    .whereEqualTo("isDetective", true)
+                    .get()
+                    .await()
+                
+                val entries = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(OfflineEntry::class.java)?.copy(id = doc.id)
+                }
+                _existingEntries.value = entries
+            } catch (e: Exception) {
+                android.util.Log.e("DetectiveVM", "Erreur chargement", e)
+            }
+        }
+    }
+
     fun hashAnswer(answer: String): String {
         return MessageDigest
             .getInstance("SHA-256")

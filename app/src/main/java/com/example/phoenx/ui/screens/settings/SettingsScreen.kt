@@ -71,10 +71,10 @@ fun SettingsScreen(
                             title = "Réglages",
                             points = listOf(
                                 "Active la biométrie pour protéger l'accès à l'application.",
-                                "Tu peux revoir ta phrase de récupération à tout moment — elle est protégée par ton empreinte.",
-                                "Choisis la fréquence des vérifications de présence (2 semaines, 1 mois, 2 mois).",
-                                "Tes données ne sont jamais vendues ni utilisées à des fins commerciales.",
-                                "PHOEN-X ne contient aucune publicité."
+                                "Choisis la fréquence des vérifications de présence.",
+                                "Tes données ne sont jamais vendues ni utilisées commercialement.",
+                                "PHOEN-X ne contient aucune publicité.",
+                                "Tu peux gérer tes Destinataires et ton Dépositaire depuis ici."
                             )
                         )
                     }
@@ -167,6 +167,8 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
+            /* ═══ SYSTÈME AVANCÉ EN VEILLE ═══
+            // Masqué jusqu'à réactivation V2 Pro
             Text("SÉCURITÉ", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -182,6 +184,7 @@ fun SettingsScreen(
             )
 
             Spacer(modifier = Modifier.height(32.dp))
+            */
 
             Text("ACCESSIBILITÉ", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
             Spacer(modifier = Modifier.height(16.dp))
