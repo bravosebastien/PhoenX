@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -135,10 +136,26 @@ fun UniversalMessageScreen(
                             .verticalScroll(rememberScrollState())
                             .padding(24.dp)
                     ) {
-                        Text(
-                            "Ma Lettre à l'Humanité",
-                            style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Ma Lettre à l'Humanité",
+                                style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                            )
+                            InfoButton(
+                                title = "Ma Lettre à l'Humanité",
+                                points = listOf(
+                                    "Un seul message, pour tout le monde — rendu public après ton départ.",
+                                    "Tu peux ajouter jusqu'à 3 photos et une vidéo de 30 secondes maximum.",
+                                    "L'IA classe automatiquement ton message dans une catégorie (Amour, Espoir, Sagesse...).",
+                                    "Notre équipe valide chaque message avant publication.",
+                                    "Les lecteurs n'ont besoin que d'un compte gratuit pour lire les lettres."
+                                )
+                            )
+                        }
                         Text(
                             "Un seul message. Pour tout le monde. Il sera lu après ton départ.",
                             style = MaterialTheme.typography.bodySmall,

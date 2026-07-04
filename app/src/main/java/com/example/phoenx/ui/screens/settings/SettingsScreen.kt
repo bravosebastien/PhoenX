@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.phoenx.ui.MainViewModel
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.RecoveryPhraseBottomSheet
 import com.example.phoenx.ui.theme.*
 
@@ -59,7 +60,25 @@ fun SettingsScreen(
         containerColor = BackgroundPrimary,
         topBar = {
             TopAppBar(
-                title = { Text("Réglages", style = MaterialTheme.typography.labelLarge) },
+                title = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Réglages", style = MaterialTheme.typography.labelLarge)
+                        InfoButton(
+                            title = "Réglages",
+                            points = listOf(
+                                "Active la biométrie pour protéger l'accès à l'application.",
+                                "Tu peux revoir ta phrase de récupération à tout moment — elle est protégée par ton empreinte.",
+                                "Choisis la fréquence des vérifications de présence (2 semaines, 1 mois, 2 mois).",
+                                "Tes données ne sont jamais vendues ni utilisées à des fins commerciales.",
+                                "PHOEN-X ne contient aucune publicité."
+                            )
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = TextPrimary)

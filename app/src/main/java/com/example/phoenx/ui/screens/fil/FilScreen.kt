@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.theme.*
 
@@ -47,9 +48,25 @@ fun FilScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(text = "Mon Fil de Pensée", style = MaterialTheme.typography.displaySmall, color = TextPrimary)
-                        Text(text = "${uiState.totalCount} fragments de vie", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(text = "Mon Fil de Pensée", style = MaterialTheme.typography.displaySmall, color = TextPrimary)
+                            Text(text = "${uiState.totalCount} fragments de vie", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                        }
+                        InfoButton(
+                            title = "Le Fil de Pensée",
+                            points = listOf(
+                                "Chaque souvenir est classé par l'âge que tu avais quand tu l'as déposé.",
+                                "Pas par date — par âge. C'est la fonctionnalité unique de PHOEN-X.",
+                                "Tes proches pourront naviguer et voir comment tu as évolué au fil des années.",
+                                "Utilise le slider pour naviguer dans ta propre trajectoire de pensée.",
+                                "Chaque entrée porte un Sceau de l'Âge — ton âge exact au moment du dépôt."
+                            )
+                        )
                     }
                 },
                 navigationIcon = {
@@ -58,10 +75,6 @@ fun FilScreen(
                     }
                 },
                 actions = {
-                    InfoPoint(
-                        title = "Votre Signature",
-                        content = "Chaque souvenir est marqué par votre âge exact. Cela permet à vos proches de voir votre évolution et votre maturité à travers les années. C'est le cœur de votre héritage."
-                    )
                     IconButton(onClick = { showFilters = true }) {
                         Icon(Icons.Default.FilterList, contentDescription = null, tint = AccentPrimary)
                     }

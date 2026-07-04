@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,15 +38,31 @@ fun HundredQuestionsScreen(
             Column(modifier = Modifier.background(BackgroundPrimary)) {
                 TopAppBar(
                     title = {
-                        Column {
-                            Text("Les 100 Questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif))
-                            Text(
-                                text = if (answeredCount == totalCount) 
-                                    "Toutes tes histoires sont racontées." 
-                                else 
-                                    "$answeredCount / $totalCount questions racontées",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (answeredCount == totalCount) Success else TextSecondary
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text("Les 100 Questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif))
+                                Text(
+                                    text = if (answeredCount == totalCount) 
+                                        "Toutes tes histoires sont racontées." 
+                                    else 
+                                        "$answeredCount / $totalCount questions racontées",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (answeredCount == totalCount) Success else TextSecondary
+                                )
+                            }
+                            InfoButton(
+                                title = "Les 120 Questions",
+                                points = listOf(
+                                    "120 questions organisées en 16 catégories pour raconter ta vie en profondeur.",
+                                    "Réponds à celles qui te touchent — ignore les autres.",
+                                    "Chaque réponse est un souvenir normal, classé et sécurisé.",
+                                    "Un badge ✓ apparaît sur les questions auxquelles tu as déjà répondu.",
+                                    "Le compteur en haut montre ta progression globale."
+                                )
                             )
                         }
                     },

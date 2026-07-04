@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.domain.model.PendingQuestion
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 import java.time.Instant
 import java.time.ZoneId
@@ -43,7 +44,25 @@ fun PendingQuestionsScreen(
         containerColor = BackgroundPrimary,
         topBar = {
             TopAppBar(
-                title = { Text("Questions en attente", style = MaterialTheme.typography.labelLarge) },
+                title = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Questions en attente", style = MaterialTheme.typography.labelLarge)
+                        InfoButton(
+                            title = "Questions en Attente",
+                            points = listOf(
+                                "Ce sont les questions que tes proches t'ont posées.",
+                                "Tu as trois choix : répondre, décliner consciemment, ou laisser en attente.",
+                                "Si tu déclines, tu peux laisser une courte note — ta proche saura que tu as vu sa question.",
+                                "Les réponses seront transmises après l'activation du protocole.",
+                                "Tu choisis pour chaque proche s'il a le droit de te poser des questions."
+                            )
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)

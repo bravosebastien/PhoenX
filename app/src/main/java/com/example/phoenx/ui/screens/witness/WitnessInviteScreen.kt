@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +39,25 @@ fun WitnessInviteScreen(
         containerColor = BackgroundPrimary,
         topBar = {
             TopAppBar(
-                title = { Text("Les Témoins", style = MaterialTheme.typography.labelLarge) },
+                title = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Les Témoins", style = MaterialTheme.typography.labelLarge)
+                        InfoButton(
+                            title = "Les Témoins",
+                            points = listOf(
+                                "Invite des proches à témoigner sur toi — tu ne verras jamais ce qu'ils écrivent.",
+                                "Leurs témoignages sont chiffrés et scellés jusqu'à l'activation du protocole.",
+                                "Tes proches découvriront une version de toi vue par les autres.",
+                                "Chaque témoin reçoit un lien unique par email pour déposer son témoignage.",
+                                "Le lien n'est utilisable qu'une seule fois."
+                            )
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)

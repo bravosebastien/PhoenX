@@ -45,6 +45,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
 import com.example.phoenx.ui.MainViewModel
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.example.phoenx.ui.theme.BackgroundPrimary
 import com.example.phoenx.ui.theme.TextPrimary
@@ -131,12 +132,26 @@ fun RecipientLibraryScreen(
                     color      = TextPrimary
                 )
             )
-            Icon(
-                imageVector        = Icons.Default.Search,
-                contentDescription = "Rechercher",
-                tint               = Accent,
-                modifier           = Modifier.size(26.dp)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                InfoButton(
+                    title = "La Grande Bibliothèque",
+                    points = listOf(
+                        "14 compartiments, chacun représentant une dimension de ta vie.",
+                        "Tape sur une carte pour accéder à son contenu.",
+                        "Tu peux personnaliser chaque carte avec une photo ou une vidéo silencieuse.",
+                        "Le bouton ✏️ sur chaque carte permet de la personnaliser.",
+                        "Tes proches verront cette bibliothèque après l'activation du protocole."
+                    )
+                )
+                IconButton(onClick = { /* TODO */ }) {
+                    Icon(
+                        imageVector        = Icons.Default.Search,
+                        contentDescription = "Rechercher",
+                        tint               = Accent,
+                        modifier           = Modifier.size(26.dp)
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))

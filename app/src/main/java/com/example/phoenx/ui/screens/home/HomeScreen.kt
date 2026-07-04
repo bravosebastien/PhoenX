@@ -38,6 +38,8 @@ import com.example.phoenx.ui.components.VideoPlayerBanner
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 
+import com.example.phoenx.ui.components.InfoButton
+
 @Composable
 fun HomeScreen(
     onNavigateToCapture: (String, String?) -> Unit,
@@ -240,16 +242,30 @@ fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
-            Text(
-                text = "Bonjour, $name",
-                style = MaterialTheme.typography.displayMedium,
-                color = TextPrimary
-            )
-            Text(
-                text = date,
-                style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(
+                    text = "Bonjour, $name",
+                    style = MaterialTheme.typography.displayMedium,
+                    color = TextPrimary
+                )
+                Text(
+                    text = date,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextSecondary
+                )
+            }
+            InfoButton(
+                title = "Bienvenue dans PHOEN-X",
+                points = listOf(
+                    "C'est ici que tu construis ce que tu veux laisser à ceux que tu aimes.",
+                    "Dépose des souvenirs, des pensées, des messages — à ton rythme.",
+                    "Tout est chiffré et sécurisé avant même de quitter ton téléphone.",
+                    "Tes proches n'auront accès à rien tant que tu n'auras pas activé le protocole.",
+                    "Le point lumineux en haut indique que tout va bien."
+                )
             )
         }
         Surface(

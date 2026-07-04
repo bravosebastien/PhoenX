@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,11 +68,27 @@ fun DetectiveCreateScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
-            Text(
-                text = "Un secret protégé par une question",
-                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-                color = TextPrimary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Un secret protégé par une question",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
+                    color = TextPrimary
+                )
+                InfoButton(
+                    title = "Mode Détective",
+                    points = listOf(
+                        "Cache un contenu derrière une question dont seul ton proche connaît la réponse.",
+                        "La réponse est protégée localement — personne ne peut la lire, même nos serveurs.",
+                        "Ton proche a plusieurs tentatives pour trouver la réponse.",
+                        "Tape sur 'Besoin d'inspiration ?' pour voir 20 exemples de questions.",
+                        "C'est différent du Tiroir à Clé Unique — ici, pas de limite d'ouvertures."
+                    )
+                )
+            }
             Text(
                 text = "Seul celui qui connaît la réponse pourra accéder à ce que tu déposes ici.",
                 style = MaterialTheme.typography.bodySmall,

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.R
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
@@ -52,7 +53,25 @@ fun ReconciliationScreen(
         containerColor = BackgroundPrimary,
         topBar = {
             TopAppBar(
-                title = { Text("Protocole de Réconciliation", style = MaterialTheme.typography.labelLarge) },
+                title = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Protocole de Réconciliation", style = MaterialTheme.typography.labelLarge)
+                        InfoButton(
+                            title = "Protocole de Réconciliation",
+                            points = listOf(
+                                "Écris un message à quelqu'un à qui tu n'as jamais dit ce que tu aurais dû dire.",
+                                "Ce message sera délivré après ton départ, avec un délai que tu choisis.",
+                                "Le délai permet au deuil de s'apaiser avant que la personne lise ton message.",
+                                "La personne n'a pas besoin d'avoir un compte PHOEN-X pour recevoir ce message.",
+                                "Tu peux choisir un délai entre 30 jours et 1 an après ton départ."
+                            )
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)

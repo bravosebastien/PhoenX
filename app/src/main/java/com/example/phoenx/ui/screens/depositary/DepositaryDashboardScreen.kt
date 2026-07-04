@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -39,7 +40,25 @@ fun DepositaryDashboardScreen(
         containerColor = BackgroundPrimary,
         topBar = {
             TopAppBar(
-                title = { Text("Tableau de bord Dépositaire", color = TextPrimary) },
+                title = {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Tableau de bord Dépositaire", color = TextPrimary)
+                        InfoButton(
+                            title = "Tableau de Bord Dépositaire",
+                            points = listOf(
+                                "Tu es la personne de confiance choisie par ton proche.",
+                                "Le point vert indique que tout va bien et qu'il confirme régulièrement sa présence.",
+                                "Le point orange signale qu'il n'a pas confirmé depuis un moment — pas d'inquiétude.",
+                                "Le point rouge pulsant signifie qu'il faut essayer de le contacter.",
+                                "Tu n'activeras le protocole que si tu confirmes son absence définitive."
+                            )
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
             )
         }

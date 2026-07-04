@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
@@ -195,13 +196,23 @@ fun MappamondeScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
                     }
                     Text(
-                        text = "Ma Mappemonde",
-                        style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-                        color = TextPrimary,
-                        modifier = Modifier.weight(1f)
+                    text = "Ma Mappemonde",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
+                    color = TextPrimary,
+                    modifier = Modifier.weight(1f)
+                )
+                InfoButton(
+                    title = "La Mappemonde",
+                    points = listOf(
+                        "Épingle des souvenirs sur n'importe quel lieu dans le monde.",
+                        "Maintiens ton doigt sur un point de la carte pour créer un marqueur.",
+                        "Plus un lieu contient de souvenirs, plus son marqueur est grand et brillant.",
+                        "Utilise le slider en bas pour voir ta trajectoire géographique de vie.",
+                        "Le fil doré relie tes lieux dans l'ordre chronologique."
                     )
-                    Text(
-                        text = "${visibleLocations.size} lieux",
+                )
+                Text(
+                    text = "${visibleLocations.size} lieux",
                         style = MaterialTheme.typography.labelSmall,
                         color = AccentPrimary
                     )

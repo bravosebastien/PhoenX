@@ -36,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.data.model.BookChapter
 import com.example.phoenx.data.model.ChapterStatus
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.example.phoenx.ui.theme.BackgroundPrimary
 import com.example.phoenx.ui.theme.SurfaceCard
@@ -76,11 +77,23 @@ fun BookEditorScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "Retour",
-                        tint = AccentPrimary
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Retour",
+                            tint = AccentPrimary
+                        )
+                    }
+                    InfoButton(
+                        title = "Le Livre de Ma Vie",
+                        points = listOf(
+                            "L'IA génère un livre narratif à partir de tes souvenirs.",
+                            "Chaque chapitre arrive en brouillon — tu peux le valider, le modifier, ou demander à l'IA de le réécrire.",
+                            "L'IA ne lit jamais tes vrais souvenirs — uniquement les résumés anonymisés.",
+                            "Un chapitre validé est verrouillé mais tu peux le déverrouiller à tout moment.",
+                            "Tes proches liront ce livre comme un vrai livre, page par page."
+                        )
                     )
                 }
                 if (bookDraft != null) {

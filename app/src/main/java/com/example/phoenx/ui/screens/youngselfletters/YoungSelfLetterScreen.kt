@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,16 +58,33 @@ fun YoungSelfLetterScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
-            Text(
-                text = "Qu'aurais-tu voulu entendre, à l'âge où tout semblait encore incertain ?",
-                style = TextStyle(
-                    fontFamily = FontFamily.Serif,
-                    fontSize = 24.sp,
-                    fontStyle = FontStyle.Italic,
-                    color = TextPrimary,
-                    lineHeight = 32.sp
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Qu'aurais-tu voulu entendre, à l'âge où tout semblait encore incertain ?",
+                    style = TextStyle(
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 24.sp,
+                        fontStyle = FontStyle.Italic,
+                        color = TextPrimary,
+                        lineHeight = 32.sp
+                    ),
+                    modifier = Modifier.weight(1f)
                 )
-            )
+                InfoButton(
+                    title = "Lettre à Mon Jeune Moi",
+                    points = listOf(
+                        "Choisis un âge dans ton passé et écris une lettre à toi-même.",
+                        "L'application calcule l'année correspondante depuis ta date de naissance.",
+                        "Si tu manques d'inspiration, tape sur l'ampoule pour des suggestions.",
+                        "Cette lettre sera conservée comme un souvenir normal dans ton Fil de Pensée.",
+                        "C'est l'une des fonctionnalités les plus touchantes pour tes proches."
+                    )
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 

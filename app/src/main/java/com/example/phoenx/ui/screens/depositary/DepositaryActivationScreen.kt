@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 
 @Composable
@@ -51,12 +52,28 @@ fun DepositaryActivationScreen(
     ) {
         when (step) {
             0 -> {
-                Text(
-                    "Avant d'aller plus loin",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontFamily = FontFamily.Serif, color = TextPrimary
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "Avant d'aller plus loin",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontFamily = FontFamily.Serif, color = TextPrimary
+                        )
                     )
-                )
+                    InfoButton(
+                        title = "Protocole d'Activation",
+                        points = listOf(
+                            "Cette action est irréversible — prends le temps d'en être certain(e).",
+                            "Tu dois d'abord confirmer que tu as tenté de contacter ton proche.",
+                            "Un délai de 72 heures s'écoule avant que les proches soient prévenus.",
+                            "Ce délai permet de contester en cas d'erreur.",
+                            "Une fois activé, les Destinataires reçoivent une invitation par email."
+                        )
+                    )
+                }
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     "Pour activer ce protocole, tu dois confirmer que tu as " +

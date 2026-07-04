@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,12 +64,24 @@ fun SilenceCheckInScreen(
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            Text(
-                text = "Tu es toujours là.",
-                style = MaterialTheme.typography.displaySmall.copy(fontFamily = FontFamily.Serif),
-                color = Color(0xFFF2EDE8),
-                textAlign = TextAlign.Center
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Tu es toujours là.",
+                    style = MaterialTheme.typography.displaySmall.copy(fontFamily = FontFamily.Serif),
+                    color = Color(0xFFF2EDE8),
+                    textAlign = TextAlign.Center
+                )
+                InfoButton(
+                    title = "La Preuve de Vie",
+                    points = listOf(
+                        "Un simple tap sur 'Je suis là' confirme ta présence.",
+                        "Si tu traverses quelque chose de difficile, tu peux le signaler sans expliquer.",
+                        "Même 'passer pour l'instant' compte — tu restes présent(e).",
+                        "Si tu ne réponds pas plusieurs fois, ta personne de confiance sera prévenue.",
+                        "Tu choisis la fréquence de ces vérifications dans tes réglages."
+                    )
+                )
+            }
 
             Spacer(modifier = Modifier.height(64.dp))
 
