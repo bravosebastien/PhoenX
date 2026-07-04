@@ -69,12 +69,18 @@ fun CaptureScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val suggestPin by viewModel.suggestPin.collectAsState()
+    val detectedLocation by viewModel.detectedLocation.collectAsState()
     
     // GESTION DES PERMISSIONS
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (!isGranted) onNavigateBack()
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.checkLocationForPin(context)
     }
 
     LaunchedEffect(initialType) {
@@ -321,6 +327,28 @@ fun CaptureScreen(
                             color = AccentPrimary,
                             textAlign = TextAlign.Center
                         )
+                    }
+                }
+            }
+
+            // Snackbar de suggestion de Pin
+            if (suggestPin && detectedLocation != null) {
+                Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
+                    Snackbar(
+                        containerColor = SurfaceCard,
+                        contentColor = TextPrimary,
+                        action = {
+                            Row {
+                                TextButton(onClick = { viewModel.confirmPin(detectedLocation!!) }) {
+                                    Text("Épingler", color = AccentPrimary)
+                                }
+                                TextButton(onClick = { viewModel.dismissPin() }) {
+                                    Text("Non merci", color = TextTertiary)
+                                }
+                            }
+                        }
+                    ) {
+                        Text("📍 Nouveau lieu détecté : ${detectedLocation!!.placeName}. Épingler sur la Mappemonde ?")
                     }
                 }
             }

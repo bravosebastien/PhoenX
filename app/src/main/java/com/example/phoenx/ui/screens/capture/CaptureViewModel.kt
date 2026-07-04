@@ -26,6 +26,11 @@ import java.io.File
 import java.util.*
 import javax.inject.Inject
 
+import androidx.core.app.ActivityCompat
+import android.content.Context
+import android.location.Geocoder
+import com.google.android.gms.location.LocationServices
+
 @HiltViewModel
 class CaptureViewModel @Inject constructor(
     private val auth: FirebaseAuth,
@@ -52,8 +57,82 @@ class CaptureViewModel @Inject constructor(
     private val _transcript = MutableStateFlow("")
     val transcript: StateFlow<String> = _transcript.asStateFlow()
 
+    private val _suggestPin = MutableStateFlow(false)
+    val suggestPin: StateFlow<Boolean> = _suggestPin.asStateFlow()
+
+    private val _detectedLocation = MutableStateFlow<DetectedLocation?>(null)
+    val detectedLocation: StateFlow<DetectedLocation?> = _detectedLocation.asStateFlow()
+
+    data class DetectedLocation(
+        val latitude: Double,
+        val longitude: Double,
+        val placeName: String
+    )
+
     init {
         loadRecipients()
+    }
+
+    fun checkLocationForPin(context: Context) {
+        viewModelScope.launch {
+            try {
+                if (ActivityCompat.checkSelfPermission(
+                        context,
+                        android.Manifest.permission.ACCESS_FINE_LOCATION
+                    ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+                ) {
+                    return@launch
+                }
+                
+                val fusedLocation = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(context)
+                val location = fusedLocation.lastLocation.await() ?: return@launch
+
+                // Vérifier si ce lieu existe déjà (proche de < 50m)
+                val userId = auth.currentUser?.uid ?: return@launch
+                val snapshot = db.collection("users").document(userId)
+                    .collection("locations").get().await()
+                
+                val isExisting = snapshot.documents.any { doc ->
+                    val lat = doc.getDouble("latitude") ?: 0.0
+                    val lng = doc.getDouble("longitude") ?: 0.0
+                    val results = FloatArray(1)
+                    android.location.Location.distanceBetween(location.latitude, location.longitude, lat, lng, results)
+                    results[0] < 50 // 50 mètres de marge
+                }
+
+                if (!isExisting) {
+                    val geocoder = Geocoder(context, Locale.getDefault())
+                    @Suppress("DEPRECATION")
+                    val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                    val name = addresses?.firstOrNull()?.locality ?: "Lieu inconnu"
+                    
+                    _detectedLocation.value = DetectedLocation(location.latitude, location.longitude, name)
+                    _suggestPin.value = true
+                }
+            } catch (e: Exception) {}
+        }
+    }
+
+    fun confirmPin(loc: DetectedLocation) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(userId).collection("locations").add(mapOf(
+                    "latitude" to loc.latitude,
+                    "longitude" to loc.longitude,
+                    "placeName" to loc.placeName,
+                    "emoji" to "📍",
+                    "memoriesCount" to 1,
+                    "visitedAt" to System.currentTimeMillis()
+                )).await()
+                _suggestPin.value = false
+            } catch (e: Exception) {}
+        }
+    }
+
+    fun dismissPin() {
+        _suggestPin.value = false
+        _detectedLocation.value = null
     }
 
     private fun loadRecipients() {

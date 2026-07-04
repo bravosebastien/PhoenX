@@ -86,4 +86,7 @@ interface OfflineEntryDao {
 
     @Query("SELECT * FROM offline_entries WHERE pactId = :pactId")
     fun getEntriesForPact(pactId: String): Flow<List<OfflineEntry>>
+
+    @Query("SELECT * FROM offline_entries WHERE id IN (:ids)")
+    fun getEntriesByIds(ids: List<String>): Flow<List<OfflineEntry>>
 }

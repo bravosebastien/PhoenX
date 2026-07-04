@@ -1,5 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
+import { onDocumentCreated } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
 import { VertexAI } from "@google-cloud/vertexai";
 import axios from "axios";
@@ -228,10 +229,13 @@ export const notifyQuestionRightGranted = onCall(async (request) => {
 });
 
 // 18. Notification au Créateur d'une nouvelle question
-export const notifyNewPendingQuestion = admin.firestore
-    .document("users/{userId}/pendingQuestions/{questionId}")
-    .onCreate(async (snapshot, context) => {
-        const userId = context.params.userId;
+export const notifyNewPendingQuestion = onDocumentCreated(
+    "users/{userId}/pendingQuestions/{questionId}",
+    async (event) => {
+        const snapshot = event.data;
+        if (!snapshot) return;
+
+        const userId = event.params.userId;
         const userDoc = await admin.firestore().collection("users").doc(userId).get();
         const fcmToken = userDoc.data()?.fcmToken;
 
