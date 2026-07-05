@@ -3,10 +3,14 @@ package com.example.phoenx
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
 import com.example.phoenx.accessibility.VoiceAccessibilityManager
@@ -14,8 +18,6 @@ import com.example.phoenx.data.biometric.PhoenXBiometricManager
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.navigation.PhoenXNavGraph
 import com.example.phoenx.ui.screens.guide.WelcomeGuideScreen
-import com.example.phoenx.ui.navigation.Screen
-import com.example.phoenx.ui.components.RecoveryReminderDialog
 import com.example.phoenx.ui.theme.PhoenXTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -55,42 +57,46 @@ class MainActivity : FragmentActivity() {
                 var isUnlocked by remember { mutableStateOf(value = false) }
                 var showGuide by remember { mutableStateOf(value = false) }
 
+                // LOGIQUE DE DÉVERROUILLAGE BIOMÉTRIQUE
                 LaunchedEffect(isBiometricEnabled) {
                     val user = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
-                    android.util.Log.d("PHOENX_DEBUG", "Vérification Biométrie: enabled=$isBiometricEnabled, userLoggedIn=${user != null}")
-                    
                     if (user != null && isBiometricEnabled && !isUnlocked) {
                         if (biometricManager.isBiometricAvailable()) {
                             biometricManager.showBiometricPrompt(
                                 activity = this@MainActivity,
-                                onSuccess = { 
-                                    android.util.Log.d("PHOENX_DEBUG", "Biométrie SUCCESS")
-                                    isUnlocked = true 
-                                },
-                                onError = { err -> 
-                                    android.util.Log.e("PHOENX_DEBUG", "Biométrie ERROR: $err")
-                                    // Reste bloqué sur l'écran vide
-                                },
+                                onSuccess = { isUnlocked = true },
+                                onError = { /* handle error */ },
                             )
                         } else {
-                            // Biométrie non disponible sur l'appareil -> On laisse passer
                             isUnlocked = true
                         }
                     } else {
-                        // Pas de user ou biométrie désactivée -> Déverrouillage auto
                         isUnlocked = true
                     }
                 }
 
-                // Une fois déverrouillé, on vérifie si on doit montrer le guide
+                // LOGIQUE DU GUIDE DE BIENVENUE
                 LaunchedEffect(isUnlocked, shouldShowGuide) {
-                    if (isUnlocked && shouldShowGuide) {
-                        android.util.Log.d("PHOENX_DEBUG", "Affichage Guide de bienvenue")
+                    if (isUnlocked && shouldShowGuide == true) {
                         showGuide = true
                     }
                 }
 
-                if (showGuide) {
+                if (isUnlocked && shouldShowGuide == null) {
+                    // Attente du chargement des préférences
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = com.example.phoenx.ui.theme.BackgroundPrimary
+                    ) {
+                        Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
+                            CircularProgressIndicator(
+                                color = com.example.phoenx.ui.theme.AccentPrimary,
+                                modifier = Modifier.size(32.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    }
+                } else if (showGuide) {
                     WelcomeGuideScreen { neverShowAgain ->
                         android.util.Log.d("PHOENX_DEBUG", "Guide terminé: neverShowAgain=$neverShowAgain")
                         mainViewModel.dismissWelcomeGuide(neverShowAgain)

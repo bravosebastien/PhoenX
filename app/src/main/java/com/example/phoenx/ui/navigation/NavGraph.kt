@@ -118,11 +118,11 @@ fun PhoenXNavGraph(
 
         composable(Screen.Home.route) {
             val silenceStatus by mainViewModel.silenceStatus.collectAsState()
-            val isSilenceOnboardingDone by mainViewModel.isSilenceOnboardingDone.collectAsState(initial = false)
+            val isSilenceOnboardingDone by mainViewModel.isSilenceOnboardingDone.collectAsState()
             val isLoggedIn = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser != null
             val isEmailVerified = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.isEmailVerified ?: false
 
-            if (isLoggedIn && isEmailVerified && silenceStatus == null) {
+            if (isLoggedIn && isEmailVerified && (silenceStatus == null || isSilenceOnboardingDone == null)) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -139,9 +139,9 @@ fun PhoenXNavGraph(
             }
 
             LaunchedEffect(silenceStatus, isSilenceOnboardingDone) {
-                if (!isSilenceOnboardingDone) {
+                if (isSilenceOnboardingDone == false) {
                     navController.navigate(Screen.SilenceOnboarding.route)
-                } else {
+                } else if (isSilenceOnboardingDone == true) {
                     when (silenceStatus) {
                         SilenceStatus.CHECK_IN_DUE -> navController.navigate(Screen.SilenceCheckIn.route)
                         SilenceStatus.BLOCKED -> navController.navigate(Screen.SilenceBlock.route)

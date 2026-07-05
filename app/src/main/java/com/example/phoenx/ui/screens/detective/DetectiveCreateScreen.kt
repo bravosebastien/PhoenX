@@ -51,6 +51,7 @@ fun DetectiveCreateScreen(
 
     Scaffold(
         containerColor = BackgroundPrimary,
+        modifier = Modifier.imePadding(),
         topBar = {
             TopAppBar(
                 title = { Text("", style = MaterialTheme.typography.labelLarge) },
@@ -120,22 +121,25 @@ fun DetectiveCreateScreen(
 
             // BOUTON INSPIRATION
             var showInspiration by remember { mutableStateOf(false) }
-            TextButton(
+            Button(
                 onClick = { showInspiration = true },
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary.copy(alpha = 0.15f)),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
                         contentDescription = null,
                         tint = AccentPrimary,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Besoin d'inspiration ?",
                         color = AccentPrimary,
-                        style = MaterialTheme.typography.labelLarge
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 }
             }

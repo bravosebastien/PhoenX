@@ -121,6 +121,31 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            var showRhythmDialog by remember { mutableStateOf(false) }
+            val currentRhythm by mainViewModel.silenceRhythmDays.collectAsState()
+
+            SettingsItem(
+                title = "Fréquence de présence",
+                subtitle = "Vérification tous les $currentRhythm jours",
+                icon = Icons.Default.Timer,
+                onClick = { showRhythmDialog = true }
+            )
+
+            if (showRhythmDialog) {
+                RhythmSelectionDialog(
+                    initialRhythm = currentRhythm,
+                    onDismiss = { showRhythmDialog = false },
+                    onConfirm = { days ->
+                        scope.launch {
+                            mainViewModel.setSilenceConfig(days)
+                            showRhythmDialog = false
+                        }
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             Surface(
                 color = SurfaceCard,
                 shape = MaterialTheme.shapes.medium
@@ -171,29 +196,6 @@ fun SettingsScreen(
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            var showRhythmDialog by remember { mutableStateOf(false) }
-            val currentRhythm by mainViewModel.silenceRhythmDays.collectAsState()
-
-            SettingsItem(
-                title = "Fréquence de présence",
-                subtitle = "Vérification tous les $currentRhythm jours",
-                icon = Icons.Default.Timer,
-                onClick = { showRhythmDialog = true }
-            )
-
-            if (showRhythmDialog) {
-                RhythmSelectionDialog(
-                    initialRhythm = currentRhythm,
-                    onDismiss = { showRhythmDialog = false },
-                    onConfirm = { days ->
-                        scope.launch {
-                            mainViewModel.setSilenceConfig(days)
-                            showRhythmDialog = false
-                        }
-                    }
-                )
-            }
 
             Spacer(modifier = Modifier.height(32.dp))
 

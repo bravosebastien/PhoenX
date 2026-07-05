@@ -90,7 +90,7 @@ fun SilenceOnboardingScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Si tu ne confirmes pas ta présence, on te relancera chaque semaine. Au bout de 3 semaines sans réponse, ta personne de confiance sera prévenue.",
+            text = "Si tu ne confirmes pas ta présence, on te relancera chaque semaine. Au bout de 3 semaines sans réponse, ta personne de confiance sera prévenue pour s'assurer que tu vas bien.",
             style = MaterialTheme.typography.labelSmall,
             color = Color(0xFF5C5855),
             textAlign = TextAlign.Center

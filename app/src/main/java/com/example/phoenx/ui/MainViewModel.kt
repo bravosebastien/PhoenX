@@ -38,8 +38,8 @@ class MainViewModel @Inject constructor(
     private val _daysSinceLastCheckIn = MutableStateFlow(0)
     val daysSinceLastCheckIn: StateFlow<Int> = _daysSinceLastCheckIn.asStateFlow()
     
-    val isSilenceOnboardingDone: StateFlow<Boolean> = preferenceManager.isSilenceOnboardingDone
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    val isSilenceOnboardingDone: StateFlow<Boolean?> = preferenceManager.isSilenceOnboardingDone
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _silenceRhythmDays = MutableStateFlow(30)
     val silenceRhythmDays: StateFlow<Int> = _silenceRhythmDays.asStateFlow()
@@ -117,8 +117,8 @@ class MainViewModel @Inject constructor(
     val isBiometricEnabled: StateFlow<Boolean> = preferenceManager.isBiometricEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    val shouldShowWelcomeGuide: StateFlow<Boolean> = preferenceManager.shouldShowWelcomeGuide
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+    val shouldShowWelcomeGuide: StateFlow<Boolean?> = preferenceManager.shouldShowWelcomeGuide
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
     // val recoveryPhrase: Flow<String?> = preferenceManager.recoveryPhrase
