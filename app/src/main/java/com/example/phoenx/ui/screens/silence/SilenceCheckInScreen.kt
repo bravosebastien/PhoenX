@@ -128,7 +128,7 @@ fun SilenceCheckInScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Tu n'as rien à expliquer. Choisis ce qui te convient le mieux en ce moment.",
+                        text = "Tu n'as rien à expliquer. On te relance chaque semaine pour s'assurer que tu vas bien. Au bout de 3 semaines sans réponse, ta personne de confiance sera prévenue.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFF9B9590),
                         lineHeight = 22.sp

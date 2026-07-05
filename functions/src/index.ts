@@ -106,17 +106,28 @@ export const checkCreatorSilence = onSchedule({
         const data = doc.data();
         const conf = data.silenceConfig;
         if (!conf?.lastCheckInAt) continue;
-        const diff = Math.floor((Date.now() - conf.lastCheckInAt.toMillis()) / 86400000);
-        const r = conf.rhythmDays || 30;
+        const daysSinceLastCheckIn = Math.floor((Date.now() - conf.lastCheckInAt.toMillis()) / 86400000);
+        const rhythmDays = conf.rhythmDays || 30;
+
         let l = 0;
-        if (diff >= r * 3) l = 4; else if (diff >= r * 2) l = 3; else if (diff >= r + 7) l = 2; else if (diff >= r) l = 1;
+        if (daysSinceLastCheckIn >= rhythmDays + 21) {
+            l = 3; // Dépositaire notifié (Équivalent au point rouge pulsant)
+        } else if (daysSinceLastCheckIn >= rhythmDays + 14) {
+            l = 2; // 2ème relance Créateur
+        } else if (daysSinceLastCheckIn >= rhythmDays + 7) {
+            l = 1; // 1ère relance Créateur
+        }
+
         if (l === (conf.escalationLevel || 0)) continue;
-        await doc.ref.update({ "silenceConfig.escalationLevel": l });
+        await doc.ref.update({
+            "silenceConfig.escalationLevel": l,
+            "silenceConfig.missedCycles": l // Maintenir cohérence avec UI actuelle
+        });
         if (l < 3) continue;
         const deps = await doc.ref.collection("depositaries").where("status", "==", "active").get();
         const target = l === 3 ? deps.docs.find(d => d.data().role === "primary") : deps.docs.find(d => d.data().role === "secondary");
         if (!target) continue;
-        const msg = `PHOEN-X: ${data.displayName || "Un proche"} est silencieux depuis ${diff} jours. https://phoenx.app/depositary-alert?level=${l}&uid=${doc.id}`;
+        const msg = `PHOEN-X: ${data.displayName || "Un proche"} est silencieux depuis ${daysSinceLastCheckIn} jours. https://phoenx.app/depositary-alert?level=${l}&uid=${doc.id}`;
         const tData = target.data();
         if (tData.phone) await sendSMSViaPartner({ to: tData.phone, body: msg });
         if (tData.email) await db.collection("mail").add({ to: tData.email, message: { subject: "Action requise PHOEN-X", text: msg } });

@@ -175,32 +175,12 @@ fun SettingsScreen(
             var showRhythmDialog by remember { mutableStateOf(false) }
             val currentRhythm by mainViewModel.silenceRhythmDays.collectAsState()
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showRhythmDialog = true }
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Fréquence de présence",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = TextPrimary
-                    )
-                    Text(
-                        text = "Tous les $currentRhythm jours",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
-                    )
-                }
-                Icon(
-                    imageVector = Icons.Default.ChevronRight,
-                    contentDescription = null,
-                    tint = TextTertiary
-                )
-            }
+            SettingsItem(
+                title = "Fréquence de présence",
+                subtitle = "Vérification tous les $currentRhythm jours",
+                icon = Icons.Default.Timer,
+                onClick = { showRhythmDialog = true }
+            )
 
             if (showRhythmDialog) {
                 RhythmSelectionDialog(
@@ -278,7 +258,7 @@ fun RhythmSelectionDialog(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    "Si tu ne réponds pas 3 fois de suite, ta personne de confiance recevra un message doux.",
+                    "Si tu ne confirmes pas ta présence, on te relancera chaque semaine. Au bout de 3 semaines sans réponse, ta personne de confiance sera prévenue pour prendre de tes nouvelles.",
                     style = MaterialTheme.typography.bodySmall,
                     color = TextTertiary
                 )
