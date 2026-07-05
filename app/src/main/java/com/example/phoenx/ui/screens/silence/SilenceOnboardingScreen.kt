@@ -99,7 +99,9 @@ fun SilenceOnboardingScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
-            onClick = { onConfirmRythm(selectedRythm) },
+            onClick = { 
+                onConfirmRythm(selectedRythm)
+            },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC97B3A))
         ) {

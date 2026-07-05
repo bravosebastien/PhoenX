@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.launch
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -20,6 +21,7 @@ import com.example.phoenx.ui.screens.auth.AuthScreen
 import com.example.phoenx.ui.screens.capture.CaptureScreen
 import com.example.phoenx.ui.screens.depositary.*
 import com.example.phoenx.ui.screens.detective.DetectiveCreateScreen
+import com.example.phoenx.ui.screens.detective.DetectiveHomeScreen
 import com.example.phoenx.ui.screens.detective.DetectiveScreen
 import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.home.HomeScreen
@@ -606,7 +608,7 @@ fun PhoenXNavGraph(
                 onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) },
                 onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
                 onNavigateToUniqueKey = { navController.navigate(Screen.UniqueKey.route) },
-                onNavigateToDetective = { navController.navigate(Screen.RecipientDetective.route) },
+                onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
                 onVerifyBiometrics = onVerifyBiometrics,
                 mainViewModel = mainViewModel
             )
@@ -621,10 +623,13 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.SilenceOnboarding.route) {
+            val scope = rememberCoroutineScope()
             SilenceOnboardingScreen(onConfirmRythm = { days ->
-                mainViewModel.setSilenceConfig(days)
-                navController.navigate(Screen.Home.route) {
-                    popUpTo(Screen.SilenceOnboarding.route) { inclusive = true }
+                scope.launch {
+                    mainViewModel.setSilenceConfig(days)
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.SilenceOnboarding.route) { inclusive = true }
+                    }
                 }
             })
         }
@@ -687,6 +692,10 @@ fun PhoenXNavGraph(
 
         composable(Screen.RecipientDetective.route) {
             DetectiveScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.DetectiveHome.route) {
+            DetectiveHomeScreen(navController = navController)
         }
 
         composable("detective_create") {

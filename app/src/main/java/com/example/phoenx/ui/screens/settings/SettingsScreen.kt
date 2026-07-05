@@ -3,6 +3,8 @@ package com.example.phoenx.ui.screens.settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -12,11 +14,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.RecoveryPhraseBottomSheet
 import com.example.phoenx.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +38,7 @@ fun SettingsScreen(
 ) {
     val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
     var showRecoveryPhrase by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
     /*
@@ -165,6 +170,51 @@ fun SettingsScreen(
                 onClick = onNavigateToDetective
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
+            var showRhythmDialog by remember { mutableStateOf(false) }
+            val currentRhythm by mainViewModel.silenceRhythmDays.collectAsState()
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showRhythmDialog = true }
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(
+                        text = "Fréquence de présence",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "Tous les $currentRhythm jours",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Default.ChevronRight,
+                    contentDescription = null,
+                    tint = TextTertiary
+                )
+            }
+
+            if (showRhythmDialog) {
+                RhythmSelectionDialog(
+                    initialRhythm = currentRhythm,
+                    onDismiss = { showRhythmDialog = false },
+                    onConfirm = { days ->
+                        scope.launch {
+                            mainViewModel.setSilenceConfig(days)
+                            showRhythmDialog = false
+                        }
+                    }
+                )
+            }
+
             Spacer(modifier = Modifier.height(32.dp))
 
             /* ═══ SYSTÈME AVANCÉ EN VEILLE ═══
@@ -205,6 +255,75 @@ fun SettingsScreen(
                 onClick = { mainViewModel.resetVideoBanner() }
             )
         }
+    }
+}
+
+@Composable
+fun RhythmSelectionDialog(
+    initialRhythm: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit
+) {
+    var selectedRythm by remember { mutableIntStateOf(initialRhythm) }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = BackgroundSecondary,
+        title = { Text("Fréquence de présence", color = TextPrimary, style = MaterialTheme.typography.titleLarge) },
+        text = {
+            Column(Modifier.selectableGroup()) {
+                RhythmOptionItem(14, "Toutes les 2 semaines", selectedRythm == 14) { selectedRythm = 14 }
+                RhythmOptionItem(30, "Une fois par mois", selectedRythm == 30) { selectedRythm = 30 }
+                RhythmOptionItem(60, "Tous les 2 mois", selectedRythm == 60) { selectedRythm = 60 }
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    "Si tu ne réponds pas 3 fois de suite, ta personne de confiance recevra un message doux.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextTertiary
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { onConfirm(selectedRythm) },
+                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+            ) {
+                Text("Enregistrer", color = BackgroundPrimary)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Annuler", color = TextSecondary)
+            }
+        }
+    )
+}
+
+@Composable
+fun RhythmOptionItem(days: Int, label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .selectable(
+                selected = selected,
+                onClick = onClick,
+                role = Role.RadioButton
+            )
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = null,
+            colors = RadioButtonDefaults.colors(selectedColor = AccentPrimary)
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (selected) TextPrimary else TextSecondary,
+            modifier = Modifier.padding(start = 12.dp)
+        )
     }
 }
 

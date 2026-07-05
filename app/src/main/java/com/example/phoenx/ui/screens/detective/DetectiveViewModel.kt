@@ -8,12 +8,19 @@ import com.example.phoenx.data.local.OfflineEntryDao
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+
 @HiltViewModel
 class DetectiveViewModel @Inject constructor(
+    private val auth: FirebaseAuth,
+    private val db: FirebaseFirestore,
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager
 ) : ViewModel() {
@@ -26,13 +33,31 @@ class DetectiveViewModel @Inject constructor(
     }
 
     private fun loadLockedEntries() {
+        val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            offlineEntryDao.getAllEntries().collectLatest { entries ->
-                val locked = entries.filter { it.enigmaQuestion != null }
-                _uiState.value = _uiState.value.copy(
-                    lockedEntries = locked,
-                    isLoading = false
-                )
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                // 1. D'abord essayer Firestore (car c'est là que le Créateur envoie ses énigmes)
+                val snapshot = db.collection("users").document(userId)
+                    .collection("entries")
+                    .whereEqualTo("isDetective", true)
+                    .get().await()
+                
+                val cloudEntries = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(OfflineEntry::class.java)?.copy(id = doc.id)
+                }
+
+                if (cloudEntries.isNotEmpty()) {
+                    _uiState.update { it.copy(lockedEntries = cloudEntries, isLoading = false) }
+                } else {
+                    // 2. Fallback sur la base locale si Firestore est vide
+                    offlineEntryDao.getAllEntries().collect { entries ->
+                        val locked = entries.filter { it.enigmaQuestion != null }
+                        _uiState.update { it.copy(lockedEntries = locked, isLoading = false) }
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, error = "Erreur de connexion") }
             }
         }
     }

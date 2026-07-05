@@ -41,6 +41,9 @@ class MainViewModel @Inject constructor(
     val isSilenceOnboardingDone: StateFlow<Boolean> = preferenceManager.isSilenceOnboardingDone
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    private val _silenceRhythmDays = MutableStateFlow(30)
+    val silenceRhythmDays: StateFlow<Int> = _silenceRhythmDays.asStateFlow()
+
     // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
     /*
     private val _showRecoveryReminder = MutableStateFlow(false)
@@ -68,6 +71,11 @@ class MainViewModel @Inject constructor(
             // Calculer les jours pour l'affichage
             try {
                 val doc = db.collection("users").document(userId).get().await()
+                
+                // Charger le rythme
+                val rhythm = doc.getLong("silenceConfig.rhythmDays")?.toInt() ?: 30
+                _silenceRhythmDays.value = rhythm
+
                 val lastCheckIn = doc.getTimestamp("silenceConfig.lastCheckInAt")
                 if (lastCheckIn != null) {
                     val diff = System.currentTimeMillis() - lastCheckIn.toDate().time
@@ -85,9 +93,13 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun setSilenceConfig(rhythmDays: Int) {
+    suspend fun setSilenceConfig(rhythmDays: Int) {
         val userId = auth.currentUser?.uid ?: return
-        viewModelScope.launch {
+        // Sauvegarder localement IMMEDIATEMENT pour stopper l'onboarding
+        preferenceManager.setSilenceOnboardingDone(true)
+        _silenceRhythmDays.value = rhythmDays
+        
+        try {
             db.collection("users").document(userId).update(
                 mapOf(
                     "silenceConfig.rhythmDays" to rhythmDays,
@@ -97,7 +109,8 @@ class MainViewModel @Inject constructor(
                     "silenceConfig.lastSilenceStatus" to "present"
                 )
             ).await()
-            preferenceManager.setSilenceOnboardingDone(true)
+        } catch (e: Exception) {
+            // Si Firestore échoue, on garde quand même le flag local pour ne pas harceler l'utilisateur
         }
     }
 

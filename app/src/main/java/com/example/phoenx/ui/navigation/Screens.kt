@@ -53,6 +53,7 @@ sealed class Screen(val route: String) {
     object Favorites : Screen("favorites")
     object Questions : Screen("questions")
     object PendingQuestions : Screen("questions/pending")
+    object DetectiveHome : Screen("detective/home")
     object AskQuestion : Screen("ask_question/{creatorId}/{recipientId}") {
         fun createRoute(creatorId: String, recipientId: String) = "ask_question/$creatorId/$recipientId"
     }

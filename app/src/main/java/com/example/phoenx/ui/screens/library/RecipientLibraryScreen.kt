@@ -45,6 +45,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import coil3.compose.AsyncImage
 import com.example.phoenx.ui.MainViewModel
+import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.example.phoenx.ui.theme.BackgroundPrimary
@@ -78,7 +79,7 @@ private val libraryCards = listOf(
     LibraryCard("photos",         "Photos",          "photos"),
     LibraryCard("mappemonde",     "Mappemonde",      "mappemonde"),
     LibraryCard("cent_questions", "100 Questions",   "cent_questions"),
-    LibraryCard("coffre_fort",    "Coffre fort",     "coffre_fort"),
+    LibraryCard("coffre_fort",    "Coffre fort",     Screen.DetectiveHome.route),
     LibraryCard("tiroir_secret",  "Tiroir secret",   "tiroir_secret"),
     LibraryCard("le_pacte",       "Le pacte",        "le_pacte"),
     LibraryCard("portrait",       "Portrait proche", "portrait_proche"),
@@ -171,7 +172,12 @@ fun RecipientLibraryScreen(
                     isCreatorMode = isCreatorMode,
                     sharedPlayer = sharedPlayer,
                     onClick = {
-                        navController.navigate(card.route)
+                        if (card.id == "coffre_fort") {
+                            val route = if (isCreatorMode) Screen.DetectiveHome.route else Screen.RecipientDetective.route
+                            navController.navigate(route)
+                        } else {
+                            navController.navigate(card.route)
+                        }
                     },
                     onEditClick = {
                         navController.navigate("library_cover_picker/${card.id}/${card.name}")
