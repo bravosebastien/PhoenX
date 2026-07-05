@@ -81,6 +81,8 @@ class DepositaryViewModel @Inject constructor(
                 }
                 _redeemState.value = RedeemState.Error(message)
                 android.util.Log.e("PHOENX_AUTH", "Erreur rachat code: ${e.message}")
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
@@ -107,6 +109,7 @@ class DepositaryViewModel @Inject constructor(
 
     fun loadCreatorStatus(creatorId: String) {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
             try {
                 val doc = db.collection("users").document(creatorId).get().await()
                 val name = doc.getString("displayName") ?: "Proche"
@@ -120,10 +123,11 @@ class DepositaryViewModel @Inject constructor(
                 _uiState.update { it.copy(
                     creatorName = name,
                     missedCycles = missedCycles,
-                    daysSinceLastCheckIn = daysSince.toInt(),
-                    isLoading = false
+                    daysSinceLastCheckIn = daysSince.toInt()
                 ) }
             } catch (e: Exception) {
+                android.util.Log.e("DepositaryVM", "Error loading status", e)
+            } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
@@ -155,6 +159,7 @@ class DepositaryViewModel @Inject constructor(
         contactAttemptDetails: Map<String, Boolean>,
         depositaryNote: String?
     ) {
+        _uiState.update { it.copy(isLoading = true) }
         viewModelScope.launch {
             try {
                 val data = hashMapOf(
@@ -170,7 +175,9 @@ class DepositaryViewModel @Inject constructor(
                 
                 _activationSuccess.emit(true)
             } catch (e: Exception) {
-                // Gérer l'erreur
+                android.util.Log.e("DepositaryVM", "Error activating protocol", e)
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

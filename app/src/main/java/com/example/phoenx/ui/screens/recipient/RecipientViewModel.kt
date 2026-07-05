@@ -32,8 +32,13 @@ class RecipientViewModel @Inject constructor(
 
     private fun loadRecipients() {
         viewModelScope.launch {
-            offlineEntryDao.getAllRecipients().collectLatest { recipients ->
-                _uiState.value = RecipientUiState.Success(recipients)
+            try {
+                offlineEntryDao.getAllRecipients().collectLatest { recipients ->
+                    _uiState.value = RecipientUiState.Success(recipients)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientVM", "Erreur chargement", e)
+                _uiState.value = RecipientUiState.Success(emptyList())
             }
         }
     }

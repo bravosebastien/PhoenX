@@ -3,9 +3,12 @@ package com.example.phoenx.ui.screens.detective
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -13,9 +16,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -363,36 +364,7 @@ fun InspirationBottomSheet(
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit
 ) {
-    val examples = mapOf(
-        "SOUVENIRS PARTAGÉS" to listOf(
-            "Dans quelle ville nous sommes-nous rencontrés ?",
-            "Quel était le nom de notre restaurant préféré ?",
-            "Quelle chanson passait lors de notre premier voyage ensemble ?",
-            "Quel surnom me donnais-tu quand tu étais petit(e) ?",
-            "Quelle était la couleur de la porte de notre première maison ?"
-        ),
-        "MOMENTS UNIQUES" to listOf(
-            "Quel est le meilleur repas qu'on ait partagé ensemble ?",
-            "Quelle bêtise avons-nous faite ensemble et dont on n'a jamais parlé ?",
-            "Quel film avons-nous regardé ensemble tellement de fois qu'on connaît les répliques ?",
-            "Lors de notre dernier voyage, quel était le nom de l'hôtel ?",
-            "Quelle est la première chose que tu m'as dite ?"
-        ),
-        "DÉTAILS INTIMES" to listOf(
-            "Quel était mon plat préféré que tu cuisinais ?",
-            "Quelle était ma chanson fétiche que je chantonnais sans m'en rendre compte ?",
-            "Comment s'appelait mon animal de compagnie d'enfance ?",
-            "Quel était mon livre de chevet pendant des années ?",
-            "Quel sport pratiquais-je en secret sans te le dire ?"
-        ),
-        "QUESTIONS PROFONDES" to listOf(
-            "Quelle est la phrase que je répétais toujours quand j'étais inquiet(e) ?",
-            "Quel était mon rêve d'enfant dont je t'avais parlé une seule fois ?",
-            "Quel endroit dans le monde disais-je toujours vouloir visiter avant de mourir ?",
-            "Quelle était la chose dont j'avais le plus peur et que tu étais le/la seul(e) à savoir ?",
-            "Quelle promesse t'avais-je faite que tu n'as jamais oubliée ?"
-        )
-    )
+    var expandedCategory by remember { mutableStateOf<String?>(null) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -404,7 +376,6 @@ fun InspirationBottomSheet(
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 32.dp)
-                .verticalScroll(rememberScrollState())
         ) {
             Text(
                 "Des idées de questions",
@@ -420,28 +391,70 @@ fun InspirationBottomSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            examples.forEach { (category, questions) ->
-                Text(
-                    text = category,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AccentPrimary,
-                    modifier = Modifier.padding(vertical = 12.dp)
-                )
-                questions.forEach { question ->
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(InspirationData.categories) { category ->
+                    val isExpanded = expandedCategory == category.title
+                    
                     Card(
-                        onClick = { onSelect(question) },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        onClick = { expandedCategory = if (isExpanded) null else category.title },
+                        modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF2E2E35))
                     ) {
-                        Text(
-                            text = question,
-                            modifier = Modifier.padding(16.dp),
-                            style = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 15.sp),
-                            color = Color(0xFFF2EDE8)
-                        )
+                        Column {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(category.emoji, modifier = Modifier.padding(end = 12.dp))
+                                Text(
+                                    text = category.title,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = TextPrimary,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = "${category.questions.size}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = AccentPrimary,
+                                    modifier = Modifier.padding(horizontal = 8.dp)
+                                )
+                                Icon(
+                                    imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = null,
+                                    tint = TextTertiary
+                                )
+                            }
+
+                            AnimatedVisibility(visible = isExpanded) {
+                                Column(modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)) {
+                                    category.questions.forEach { question ->
+                                        Card(
+                                            onClick = { onSelect(question) },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 4.dp),
+                                            colors = CardDefaults.cardColors(containerColor = Color(0xFF242429))
+                                        ) {
+                                            Text(
+                                                text = question,
+                                                modifier = Modifier.padding(12.dp),
+                                                style = TextStyle(
+                                                    fontFamily = FontFamily.Serif,
+                                                    fontStyle = FontStyle.Italic,
+                                                    fontSize = 14.sp,
+                                                    color = Color(0xFF9B9590)
+                                                )
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
             }
         }
     }

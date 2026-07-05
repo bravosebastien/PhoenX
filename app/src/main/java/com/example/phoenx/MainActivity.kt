@@ -148,10 +148,23 @@ class MainActivity : FragmentActivity() {
 
         LaunchedEffect(isVoiceActive) {
             if (isVoiceActive) {
-                voiceManager.startListening { command ->
-                    mainViewModel.handleVoiceCommand(command) { route ->
-                        if (route == "back") navController.popBackStack()
-                        else navController.navigate(route)
+                // Vérifier la permission RECORD_AUDIO au runtime
+                if (androidx.core.content.ContextCompat.checkSelfPermission(
+                        this@MainActivity,
+                        android.Manifest.permission.RECORD_AUDIO
+                    ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+                ) {
+                    androidx.core.app.ActivityCompat.requestPermissions(
+                        this@MainActivity,
+                        arrayOf(android.Manifest.permission.RECORD_AUDIO),
+                        1001
+                    )
+                } else {
+                    voiceManager.startListening { command ->
+                        mainViewModel.handleVoiceCommand(command) { route ->
+                            if (route == "back") navController.popBackStack()
+                            else navController.navigate(route)
+                        }
                     }
                 }
             } else {

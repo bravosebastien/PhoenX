@@ -34,8 +34,10 @@ class VoiceAccessibilityManager @Inject constructor(
         
         // Initialiser le SpeechRecognizer (Reconnaissance vocale)
         Handler(Looper.getMainLooper()).post {
-            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
-            speechRecognizer?.setRecognitionListener(this)
+            if (SpeechRecognizer.isRecognitionAvailable(context)) {
+                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+                speechRecognizer?.setRecognitionListener(this)
+            }
         }
     }
 
@@ -53,14 +55,25 @@ class VoiceAccessibilityManager @Inject constructor(
         this.onCommandRecognized = onCommand
         if (isListening) return
 
+        if (!SpeechRecognizer.isRecognitionAvailable(context)) {
+            speak("La reconnaissance vocale n'est pas disponible sur cet appareil.")
+            return
+        }
+
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.FRENCH.toString())
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "fr-FR")
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
         }
 
         Handler(Looper.getMainLooper()).post {
-            speechRecognizer?.startListening(intent)
-            isListening = true
+            try {
+                speechRecognizer?.startListening(intent)
+                isListening = true
+            } catch (e: Exception) {
+                android.util.Log.e("VoiceManager", "Error starting listening", e)
+                isListening = false
+            }
         }
     }
 

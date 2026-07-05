@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -28,18 +29,40 @@ import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
 
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.ui.text.font.FontFamily
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReconciliationScreen(
     onNavigateBack: () -> Unit,
     viewModel: ReconciliationViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     var text by remember { mutableStateOf("") }
     var recipientName by remember { mutableStateOf("") }
     var intent by remember { mutableStateOf("") }
     var isRitualPlaying by remember { mutableStateOf(false) }
+    var contentType by remember { mutableStateOf("TEXT") } // TEXT ou AUDIO
     
     val uiState by viewModel.uiState.collectAsState()
+
+    // Permission pour l'audio
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            contentType = "AUDIO"
+        }
+    }
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -52,6 +75,7 @@ fun ReconciliationScreen(
     Scaffold(
         containerColor = BackgroundPrimary,
         topBar = {
+// ... existing TopAppBar ...
             TopAppBar(
                 title = {
                     Row(
@@ -157,26 +181,86 @@ fun ReconciliationScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Card(
-                    modifier = Modifier.fillMaxWidth().phoenXMatiere(isPaper = true),
-                    colors = CardDefaults.cardColors(containerColor = MateriauPapier.copy(alpha = 0.05f)),
-                    shape = MaterialTheme.shapes.large,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
+                // SÉLECTEUR DE MODE
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(modifier = Modifier.padding(24.dp)) {
-                        TextField(
-                            value = text,
-                            onValueChange = { text = it },
-                            placeholder = { Text("Écris tes mots ici...", color = TextTertiary) },
-                            modifier = Modifier.fillMaxWidth(),
-                            textStyle = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent
-                            )
-                        )
+                    Button(
+                        onClick = { contentType = "TEXT" },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (contentType == "TEXT") AccentPrimary else SurfaceCard
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("✍️ Texte", color = if (contentType == "TEXT") BackgroundPrimary else TextSecondary)
+                    }
+                    Button(
+                        onClick = {
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                                contentType = "AUDIO"
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (contentType == "AUDIO") AccentPrimary else SurfaceCard
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("🎙️ Audio", color = if (contentType == "AUDIO") BackgroundPrimary else TextSecondary)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                if (contentType == "TEXT") {
+                    BasicTextField(
+                        value = text,
+                        onValueChange = { text = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 150.dp)
+                            .background(Color(0xFF242429), RoundedCornerShape(12.dp))
+                            .padding(16.dp),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            color = Color(0xFFF2EDE8)
+                        ),
+                        decorationBox = { innerTextField ->
+                            if (text.isEmpty()) {
+                                Text(
+                                    "Écris ton message ici...",
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        color = Color(0xFF5C5855)
+                                    )
+                                )
+                            }
+                            innerTextField()
+                        }
+                    )
+                } else {
+                    // MODE AUDIO (Simplifié pour l'instant)
+                    Card(
+                        modifier = Modifier.fillMaxWidth().height(150.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF242429)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                IconButton(
+                                    onClick = { /* Démarrer enregistrement */ },
+                                    modifier = Modifier.size(64.dp).background(AccentPrimary.copy(alpha = 0.1f), CircleShape)
+                                ) {
+                                    Icon(Icons.Default.Mic, null, tint = AccentPrimary, modifier = Modifier.size(32.dp))
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Appuie pour enregistrer", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                            }
+                        }
                     }
                 }
 
