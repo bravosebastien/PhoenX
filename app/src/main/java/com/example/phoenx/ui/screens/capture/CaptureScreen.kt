@@ -1,8 +1,14 @@
 package com.example.phoenx.ui.screens.capture
 
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -31,15 +37,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.view.PreviewView
 import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import coil3.compose.AsyncImage
 import com.example.phoenx.R
 import com.example.phoenx.ui.components.BookWritingMode
 import com.example.phoenx.ui.components.InfoPoint
@@ -49,10 +58,12 @@ import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.concurrent.Executor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -480,21 +491,66 @@ fun PhotoCaptureContent(
     onCaptionChange: (String) -> Unit,
     onPhotoCaptured: (File) -> Unit
 ) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val imageCapture = remember { ImageCapture.Builder().build() }
+    
     Box(modifier = Modifier.fillMaxSize().padding(padding)) {
         if (capturedPhoto == null) {
-            Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-                Text("Caméra active", color = Color.White)
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+                CameraPreview(
+                    imageCapture = imageCapture,
+                    modifier = Modifier.fillMaxSize()
+                )
+                
                 IconButton(
-                    onClick = { /* Simulate capture */ },
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 40.dp).size(80.dp).background(Color.White, CircleShape)
+                    onClick = {
+                        val photoFile = File(context.cacheDir, "phoenx_${System.currentTimeMillis()}.jpg")
+                        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+                        
+                        imageCapture.takePicture(
+                            outputOptions,
+                            ContextCompat.getMainExecutor(context),
+                            object : ImageCapture.OnImageSavedCallback {
+                                override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
+                                    onPhotoCaptured(photoFile)
+                                }
+                                override fun onError(exception: ImageCaptureException) {
+                                    android.util.Log.e("CaptureScreen", "Photo capture failed", exception)
+                                }
+                            }
+                        )
+                    },
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 40.dp)
+                        .size(80.dp)
+                        .background(Color.White, CircleShape)
+                        .border(4.dp, Color.White.copy(alpha = 0.5f), CircleShape)
                 ) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = null, tint = Color.Black)
+                    Icon(Icons.Default.CameraAlt, contentDescription = "Prendre une photo", tint = Color.Black)
                 }
             }
         } else {
             Column(modifier = Modifier.fillMaxSize()) {
                 Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color.DarkGray)) {
-                    Text("Photo capturée", modifier = Modifier.align(Alignment.Center), color = Color.White)
+                    AsyncImage(
+                        model = capturedPhoto,
+                        contentDescription = "Photo capturée",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                    
+                    IconButton(
+                        onClick = { onPhotoCaptured(null as File) }, // Reset capture
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(16.dp)
+                            .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = "Supprimer la photo", tint = Color.White)
+                    }
+
                     TextField(
                         value = caption,
                         onValueChange = onCaptionChange,
@@ -512,6 +568,44 @@ fun PhotoCaptureContent(
             }
         }
     }
+}
+
+@Composable
+fun CameraPreview(
+    imageCapture: ImageCapture,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    
+    AndroidView(
+        factory = { ctx ->
+            val previewView = PreviewView(ctx)
+            cameraProviderFuture.addListener({
+                val cameraProvider = cameraProviderFuture.get()
+                val preview = Preview.Builder().build().also {
+                    it.setSurfaceProvider(previewView.surfaceProvider)
+                }
+                
+                val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+                
+                try {
+                    cameraProvider.unbindAll()
+                    cameraProvider.bindToLifecycle(
+                        lifecycleOwner,
+                        cameraSelector,
+                        preview,
+                        imageCapture
+                    )
+                } catch (e: Exception) {
+                    android.util.Log.e("CameraPreview", "Use case binding failed", e)
+                }
+            }, ContextCompat.getMainExecutor(ctx))
+            previewView
+        },
+        modifier = modifier
+    )
 }
 
 @Composable
