@@ -181,6 +181,61 @@ fun DetectiveCreateScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
+            // SECTION DÉLAI DE GRÂCE
+            Text("SI TON PROCHE NE TROUVE PAS LA RÉPONSE...", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            val delayOptions = listOf(7, 14, 30, 60, 90, 180)
+            var sliderPosition by remember { mutableFloatStateOf(delayOptions.indexOf(uiState.unlockAfterDays).coerceAtLeast(0).toFloat()) }
+            
+            Slider(
+                value = sliderPosition,
+                onValueChange = { 
+                    sliderPosition = it
+                    viewModel.updateUnlockDays(delayOptions[it.toInt()])
+                },
+                valueRange = 0f..(delayOptions.size - 1).toFloat(),
+                steps = delayOptions.size - 2,
+                colors = SliderDefaults.colors(
+                    thumbColor = AccentPrimary,
+                    activeTrackColor = AccentPrimary,
+                    inactiveTrackColor = SurfaceCard
+                )
+            )
+            
+            Text(
+                text = "Débloquer automatiquement après ${uiState.unlockAfterDays} jours",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextPrimary
+            )
+            Text(
+                text = "Ton proche pourra voir le contenu automatiquement après ${uiState.unlockAfterDays} jours s'il ne trouve pas la réponse.",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextTertiary,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text("MESSAGE DE RÉVÉLATION (FACULTATIF)", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = uiState.fallbackMessage,
+                onValueChange = { viewModel.updateFallbackMessage(it) },
+                placeholder = { Text("Ex: La réponse était [ville]. J'espère que tu t'en souviendras un jour...", color = TextTertiary) },
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(fontFamily = FontFamily.Serif, fontSize = 15.sp, fontStyle = FontStyle.Italic, color = TextPrimary),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = AccentPrimary,
+                    unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f),
+                    unfocusedContainerColor = Color(0xFF242429),
+                    focusedContainerColor = Color(0xFF242429)
+                ),
+                maxLines = 3
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
             // ÉTAPE 3 — LE CONTENU
             Text("LE CONTENU SECRET", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
             Text(

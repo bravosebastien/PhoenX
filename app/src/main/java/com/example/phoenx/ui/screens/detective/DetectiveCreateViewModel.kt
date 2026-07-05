@@ -25,7 +25,9 @@ data class DetectiveCreateUiState(
     val textContent: String = "",
     val audioUri: Uri? = null,
     val photoUri: Uri? = null,
-    val isSaving: Boolean = false
+    val isSaving: Boolean = false,
+    val unlockAfterDays: Int = 30,
+    val fallbackMessage: String = ""
 )
 
 @HiltViewModel
@@ -59,28 +61,12 @@ class DetectiveCreateViewModel @Inject constructor(
         _uiState.update { it.copy(photoUri = uri) }
     }
 
-    private val _existingEntries = MutableStateFlow<List<OfflineEntry>>(emptyList())
-    val existingEntries: StateFlow<List<OfflineEntry>> = _existingEntries.asStateFlow()
+    fun updateUnlockDays(days: Int) {
+        _uiState.update { it.copy(unlockAfterDays = days) }
+    }
 
-    fun loadExistingDetectiveEntries() {
-        val userId = auth.currentUser?.uid ?: return
-        viewModelScope.launch {
-            try {
-                val snapshot = db.collection("users")
-                    .document(userId)
-                    .collection("entries")
-                    .whereEqualTo("isDetective", true)
-                    .get()
-                    .await()
-                
-                val entries = snapshot.documents.mapNotNull { doc ->
-                    doc.toObject(OfflineEntry::class.java)?.copy(id = doc.id)
-                }
-                _existingEntries.value = entries
-            } catch (e: Exception) {
-                android.util.Log.e("DetectiveVM", "Erreur chargement", e)
-            }
-        }
+    fun updateFallbackMessage(text: String) {
+        _uiState.update { it.copy(fallbackMessage = text) }
     }
 
     fun hashAnswer(answer: String): String {
@@ -102,12 +88,20 @@ class DetectiveCreateViewModel @Inject constructor(
                 // Préparation du contenu à chiffrer
                 val contentToEncrypt = when(state.contentType) {
                     ContentType.TEXT -> state.textContent
-                    ContentType.AUDIO -> "Audio record placeholder" // TODO: Real audio
+                    ContentType.AUDIO -> "Audio record placeholder"
                     ContentType.PHOTO -> state.photoUri?.toString() ?: ""
                 }
                 
                 val encryptedPayload = encryptionManager.encryptText(contentToEncrypt)
                 
+                // Chiffrement du message de révélation (fallbackAnswer)
+                val encryptedFallback = if (state.fallbackMessage.isNotBlank()) {
+                    android.util.Base64.encodeToString(
+                        encryptionManager.encryptText(state.fallbackMessage),
+                        android.util.Base64.DEFAULT
+                    )
+                } else null
+
                 val userDoc = db.collection("users").document(userId).get().await()
                 val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: java.util.Date()
                 val ageAtCreation = AgeUtils.calculateAge(birthDate)
@@ -119,7 +113,8 @@ class DetectiveCreateViewModel @Inject constructor(
                     "isDetective" to true,
                     "enigmaText" to state.enigmaText,
                     "hashedAnswer" to hashedAnswer,
-                    "maxAttempts" to 3,
+                    "unlockAfterDays" to state.unlockAfterDays,
+                    "fallbackAnswer" to encryptedFallback,
                     "ageAtCreation" to ageJson,
                     "emotionalCategory" to "Sagesse",
                     "aiSummary" to "",
@@ -139,7 +134,9 @@ class DetectiveCreateViewModel @Inject constructor(
                         isYoungSelfLetter = false,
                         syncStatus = "synced",
                         enigmaQuestion = state.enigmaText,
-                        enigmaAnswer = hashedAnswer
+                        enigmaAnswer = hashedAnswer,
+                        unlockAfterDays = state.unlockAfterDays,
+                        fallbackAnswer = encryptedFallback
                     )
                 )
 

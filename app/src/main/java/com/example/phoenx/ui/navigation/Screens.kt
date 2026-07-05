@@ -120,7 +120,10 @@ sealed class Screen(val route: String) {
     object RecipientDiscotheque : Screen("recipient/discotheque")
     object RecipientVideotheque : Screen("recipient/videotheque")
     object RecipientFavorites : Screen("recipient/favorites")
-    object RecipientDetective : Screen("recipient/detective")
+    object RecipientDetective : Screen("recipient/detective?creatorId={creatorId}") {
+        fun createRoute(creatorId: String? = null) = 
+            if (creatorId != null) "recipient/detective?creatorId=$creatorId" else "recipient/detective"
+    }
     object RecipientMessage : Screen("recipient/message/{id}") {
         fun createRoute(id: String) = "recipient/message/$id"
     }

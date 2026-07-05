@@ -22,7 +22,7 @@ import com.example.phoenx.ui.screens.capture.CaptureScreen
 import com.example.phoenx.ui.screens.depositary.*
 import com.example.phoenx.ui.screens.detective.DetectiveCreateScreen
 import com.example.phoenx.ui.screens.detective.DetectiveHomeScreen
-import com.example.phoenx.ui.screens.detective.DetectiveScreen
+import com.example.phoenx.ui.screens.detective.DetectivePlayerScreen
 import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.home.HomeScreen
 import com.example.phoenx.ui.screens.mappemonde.LocationDetailScreen
@@ -445,7 +445,7 @@ fun PhoenXNavGraph(
             )
         }
         composable("coffre_fort") {
-            DetectiveScreen(onNavigateBack = { navController.popBackStack() })
+            DetectiveHomeScreen(navController = navController)
         }
         composable("tiroir_secret") {
             UniqueKeyScreen(onNavigateBack = { navController.popBackStack() })
@@ -690,8 +690,12 @@ fun PhoenXNavGraph(
             MailboxScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable(Screen.RecipientDetective.route) {
-            DetectiveScreen(onNavigateBack = { navController.popBackStack() })
+        composable(Screen.RecipientDetective.route) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId")
+            DetectivePlayerScreen(
+                creatorId = creatorId,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.DetectiveHome.route) {

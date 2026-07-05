@@ -26,6 +26,9 @@ data class OfflineEntry(
     val enigmaQuestion: String? = null,
     val enigmaAnswer: String? = null,
     val scheduledTimestamp: Long? = null,
+    val unlockAfterDays: Int = 30,
+    val unlockedAt: Long? = null,
+    val fallbackAnswer: String? = null, // Chiffré Tink
 
     // GÉOLOCALISATION (Signature 5.0 - La Mappemonde)
     val latitude: Double? = null,
