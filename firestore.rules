@@ -87,6 +87,17 @@ service cloud.firestore {
         // Écriture UNIQUEMENT par Cloud Function
         allow create, update, delete: if false;
       }
+
+      // ═══ NOTIFICATION CONTACTS ═══
+      match /notificationContacts/{contactId} {
+        allow read, write: if request.auth != null
+                            && request.auth.uid == userId;
+      }
+    }
+
+    // ═══ TASKS ═══
+    match /tasks/{taskId} {
+      allow read, write: if false;
     }
 
     // ═══ ACTIVATION PROTOCOLS — Le plus sensible ═══

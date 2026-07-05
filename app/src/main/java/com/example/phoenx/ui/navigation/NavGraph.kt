@@ -63,8 +63,9 @@ import com.example.phoenx.ui.screens.book.BookEditorScreen
 import com.example.phoenx.ui.screens.book.BookViewerScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
 import com.example.phoenx.ui.screens.settings.SettingsScreen
-import com.example.phoenx.ui.screens.settings.ProtocolSettingsScreen
 import com.example.phoenx.ui.screens.settings.AccessibilitySettingsScreen
+import com.example.phoenx.ui.screens.settings.NotificationContactsScreen
+import com.example.phoenx.ui.screens.settings.ProtocolSettingsScreen
 import com.example.phoenx.ui.theme.TextPrimary
 import com.google.firebase.auth.FirebaseAuth
 
@@ -605,6 +606,7 @@ fun PhoenXNavGraph(
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
                 onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
+                onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
                 onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) },
                 onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
                 onNavigateToUniqueKey = { navController.navigate(Screen.UniqueKey.route) },
@@ -704,6 +706,10 @@ fun PhoenXNavGraph(
 
         composable("detective_create") {
             DetectiveCreateScreen(navController = navController)
+        }
+
+        composable(Screen.NotificationContacts.route) {
+            NotificationContactsScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.DepositaryNotifications.route) {

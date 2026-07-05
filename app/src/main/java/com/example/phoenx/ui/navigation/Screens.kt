@@ -111,6 +111,7 @@ sealed class Screen(val route: String) {
     }
     object ProtocolSettings : Screen("settings/protocol")
     object AccessibilitySettings : Screen("settings/accessibility")
+    object NotificationContacts : Screen("notification_contacts")
 
     // GRAPHE DESTINATAIRE
     object RecipientWelcome : Screen("recipient/welcome")

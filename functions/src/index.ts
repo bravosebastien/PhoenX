@@ -181,7 +181,62 @@ export const activateProtocol = onCall(async (request) => {
             depositaryNote: depositaryNote || null
         });
 
+    await admin.firestore().collection("tasks").add({
+        type: "notifyDeathContacts",
+        creatorId: creatorId,
+        scheduledFor: admin.firestore.Timestamp.fromMillis(Date.now() + 72 * 60 * 60 * 1000),
+        status: "pending"
+    });
+
     return { protocolId: ref.id, contestDeadline: contestDeadline.toMillis() };
+});
+
+// 12. Notification Contacts de Notification (Email sobre après 72h)
+async function notifyDeathContactsInternal(creatorId: string): Promise<void> {
+    const creatorDoc = await admin.firestore().collection("users").doc(creatorId).get();
+    const creatorName = creatorDoc.data()?.displayName || "Votre proche";
+
+    const contactsSnap = await admin.firestore().collection("users").doc(creatorId)
+        .collection("notificationContacts").get();
+
+    if (contactsSnap.empty) return;
+
+    const emailPromises = contactsSnap.docs.map(doc => {
+        const contact = doc.data();
+        return admin.firestore().collection("mail").add({
+            to: contact.email,
+            message: {
+                subject: "Un message important",
+                text: `${contact.name || "Madame, Monsieur"},\n\n` +
+                    `${creatorName} nous a quittés.\n` +
+                    `Il/elle avait souhaité que vous soyez informé(e) de son départ.\n\n` +
+                    `Avec nos sincères condoléances.`
+            }
+        });
+    });
+
+    await Promise.all(emailPromises);
+}
+
+export const scheduledNotifications = onSchedule("every 60 minutes", async () => {
+    const now = admin.firestore.Timestamp.now();
+    const tasksSnap = await admin.firestore().collection("tasks")
+        .where("status", "==", "pending")
+        .where("scheduledFor", "<=", now)
+        .get();
+
+    for (const taskDoc of tasksSnap.docs) {
+        const task = taskDoc.data();
+        try {
+            if (task.type === "notifyDeathContacts") {
+                await notifyDeathContactsInternal(task.creatorId);
+            }
+            await taskDoc.ref.update({ status: "done" });
+        } catch (e) {
+            console.error("Erreur tâche:", e);
+            await taskDoc.ref.update({ status: "failed" });
+        }
+    }
 });
 
 // 16. Résolution silence

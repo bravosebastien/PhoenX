@@ -28,6 +28,7 @@ fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToProtocol: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
+    onNavigateToNotificationContacts: () -> Unit,
     onNavigateToReconciliation: () -> Unit,
     onNavigateToRecipients: () -> Unit,
     onNavigateToUniqueKey: () -> Unit,
@@ -117,6 +118,15 @@ fun SettingsScreen(
                 subtitle = "Gère tes destinataires",
                 icon = Icons.Default.Person,
                 onClick = onNavigateToRecipients
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(
+                title = "Contacts à prévenir",
+                subtitle = "Personnes informées de ton départ",
+                icon = Icons.Default.NotificationsNone,
+                onClick = onNavigateToNotificationContacts
             )
 
             Spacer(modifier = Modifier.height(16.dp))
