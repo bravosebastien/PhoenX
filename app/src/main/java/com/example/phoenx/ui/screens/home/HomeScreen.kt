@@ -1,45 +1,43 @@
 package com.example.phoenx.ui.screens.home
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.phoenx.data.local.OfflineEntry
-import com.example.phoenx.domain.util.AgeUtils
 import com.example.phoenx.ui.MainViewModel
-import com.example.phoenx.ui.components.InfoPoint
+import com.example.phoenx.ui.components.ProfileDrawer
 import com.example.phoenx.ui.components.VideoPlayerBanner
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
+import kotlinx.coroutines.launch
 
-import com.example.phoenx.ui.components.InfoButton
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onNavigateToCapture: (String, String?) -> Unit,
@@ -57,177 +55,233 @@ fun HomeScreen(
     onNavigateToRecipients: () -> Unit,
     onNavigateToMap: () -> Unit,
     onNavigateToLibrary: () -> Unit,
+    onNavigateToDetective: () -> Unit,
+    onNavigateToNotificationContacts: () -> Unit,
+    onNavigateToAccessibility: () -> Unit,
     mainViewModel: MainViewModel,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val isVoiceActive by mainViewModel.isVoiceModeActive.collectAsState()
+    val daysSincePresence by viewModel.daysSincePresence.collectAsState()
+    val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
     val isVideoBannerDismissed by mainViewModel.isVideoBannerDismissed.collectAsState()
+    
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    // Lecture vocale automatique de la question si le mode est actif
-    LaunchedEffect(uiState.biographerQuestion) {
-        if (isVoiceActive && uiState.biographerQuestion.isNotEmpty()) {
-            mainViewModel.speak("La question du jour est : ${uiState.biographerQuestion}")
-        }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            containerColor = BackgroundSecondary,
+            title = { Text("Se déconnecter ?", color = TextPrimary) },
+            text = { Text("Es-tu sûr de vouloir fermer ta session ?", color = TextSecondary) },
+            confirmButton = {
+                TextButton(onClick = {
+                    com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
+                    // La navigation sera gérée par le NavGraph (onAuthStateChanged) ou manuellement
+                    // Ici on force un retour au splash/auth
+                    onNavigateToSettings() // Placeholder pour déclencher un refresh si besoin, mais signOut suffit
+                    showLogoutDialog = false
+                }) {
+                    Text("Déconnexion", color = Error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Annuler", color = TextPrimary)
+                }
+            }
+        )
     }
 
-    Scaffold(
-        containerColor = BackgroundPrimary,
-        bottomBar = { 
-            PhoenXBottomBar(
-                onFilClick = onNavigateToFil,
-                onIAClick = onNavigateToEssence,
-                onLegacyClick = onNavigateToLegacy
-            ) 
-        }
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.radialGradient(
-                        colors = listOf(BackgroundSecondary, BackgroundPrimary),
-                        radius = 2000f
-                    )
+    ProfileDrawer(
+        userName = uiState.userName,
+        userEmail = uiState.userEmail,
+        isBiometricEnabled = isBiometricEnabled,
+        onToggleBiometric = { mainViewModel.toggleBiometric(it) },
+        onNavigate = { route -> 
+            scope.launch { drawerState.close() }
+            if (route == "notification_contacts") onNavigateToNotificationContacts()
+            if (route == "settings/accessibility") onNavigateToAccessibility()
+        },
+        onLogout = { 
+            scope.launch { drawerState.close() }
+            showLogoutDialog = true 
+        },
+        onResetVideo = { mainViewModel.resetVideoBanner() },
+        onUpdateRhythm = { onNavigateToSettings() },
+        drawerState = drawerState
+    ) {
+        Scaffold(
+            containerColor = BackgroundPrimary,
+            bottomBar = {
+                HomeNavigationBar(
+                    onNavigateToHome = { },
+                    onNavigateToLegacy = onNavigateToLegacy,
+                    onNavigateToIA = onNavigateToEssence,
+                    onOpenProfile = { scope.launch { drawerState.open() } }
                 )
-        ) {
+            }
+        ) { padding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
-                    .padding(bottom = 32.dp)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(BackgroundSecondary, BackgroundPrimary),
+                            radius = 2000f
+                        )
+                    )
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                HomeHeader(uiState.userName, uiState.currentDate, onNavigateToSettings)
+                // HEADER
+                HomeHeader(
+                    name = uiState.userName,
+                    date = uiState.currentDate,
+                    onProfileClick = { scope.launch { drawerState.open() } }
+                )
 
+                // BANNIÈRE VIDÉO
                 if (!isVideoBannerDismissed) {
                     VideoPlayerBanner(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        modifier = Modifier.padding(horizontal = 12.dp).clip(RoundedCornerShape(16.dp)),
                         onDismiss = { mainViewModel.dismissVideoBanner() }
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                TransmissionStatusRow(uiState.entryCount)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                ImpulseSection(onNavigateToCapture)
-
-                Spacer(modifier = Modifier.height(48.dp))
-
-                RecipientsCard(onNavigateToRecipients)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                TimelinePreviewCard(uiState.entryCount, uiState.minAge, uiState.currentAge, onNavigateToFil)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                QuestionsCard(onNavigateToQuestions)
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                PendingQuestionsCard(uiState.pendingQuestionsCount, onNavigateToPendingQuestions)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                CommodeCard(onNavigateToWorlds)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                FavoritesCard(onNavigateToFavorites)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                MapCard(onNavigateToMap)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                YoungSelfLetterCard(onNavigateToLetters)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                MailboxCard(onNavigateToMailbox)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                PortraitsOfLovedOnesCard(onNavigateToPortraits)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = onNavigateToLibrary,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                        .height(56.dp)
-                        .phoenXMatiere(),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
-                    shape = MaterialTheme.shapes.medium
+                // BADGES STATUT
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Default.AutoStories, null, tint = BackgroundPrimary)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("👁 Voir ma bibliothèque", color = BackgroundPrimary, style = MaterialTheme.typography.labelLarge)
-                }
-
-                Spacer(modifier = Modifier.height(48.dp))
-
-                BiographerQuestionSection(uiState.biographerQuestion) {
-                    onNavigateToCapture(Screen.Capture.TYPE_TEXT, uiState.biographerQuestion)
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                LatestMemoriesSection(uiState.latestEntries)
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                ProofOfLifeBadge(uiState.lastProofOfLifeDays) {
-                    viewModel.updateProofOfLife()
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun TransmissionStatusRow(count: Int) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Surface(
-            modifier = Modifier.weight(1f),
-            color = SurfaceCard.copy(alpha = 0.4f),
-            shape = MaterialTheme.shapes.medium,
-            border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text("FRAGMENTS", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
-                Text("$count", style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
-            }
-        }
-        Surface(
-            modifier = Modifier.weight(1f),
-            color = Success.copy(alpha = 0.05f),
-            shape = MaterialTheme.shapes.medium,
-            border = androidx.compose.foundation.BorderStroke(1.dp, Success.copy(alpha = 0.2f))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("SÉCURITÉ", style = MaterialTheme.typography.labelSmall, color = Success, modifier = Modifier.weight(1f))
-                    InfoPoint(
-                        title = "Votre Coffre-Fort",
-                        content = "Vos données sont chiffrées avec une technologie militaire (E2EE) sur votre téléphone. Seule votre empreinte ou votre mot de passe peut les lire. Même PHOEN-X ne peut pas voir vos souvenirs."
+                    StatusBadge(
+                        title = "Sécurité",
+                        subtitle = "Active",
+                        dotColor = Color(0xFF4CAF50),
+                        modifier = Modifier.weight(1f)
+                    )
+                    StatusBadge(
+                        title = "Présence",
+                        subtitle = "il y a $daysSincePresence jours",
+                        dotColor = AccentPrimary,
+                        modifier = Modifier.weight(1f)
                     )
                 }
-                Text("ACTIVE", style = MaterialTheme.typography.headlineSmall, color = Success, fontSize = 20.sp)
+
+                // BOUTONS PRINCIPAUX
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Button(
+                        onClick = { onNavigateToCapture(Screen.Capture.TYPE_TEXT, null) },
+                        modifier = Modifier.weight(2f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                        shape = RoundedCornerShape(14.dp),
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                modifier = Modifier.size(20.dp),
+                                shape = CircleShape,
+                                color = Color.Black.copy(alpha = 0.25f)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text("+", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Déposer un souvenir", color = BackgroundPrimary, style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold))
+                        }
+                    }
+
+                    Card(
+                        modifier = Modifier.weight(1f).height(56.dp).clickable { onNavigateToLibrary() },
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+                        shape = RoundedCornerShape(14.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(Icons.Outlined.AutoStories, null, tint = AccentPrimary, modifier = Modifier.size(18.dp))
+                            Text("Ma biblio", color = AccentPrimary, style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp))
+                        }
+                    }
+                }
+
+                // DERNIER SOUVENIR
+                LastMemoryCard(uiState.latestEntries.firstOrNull())
+
+                // CARTE PROGRESSION
+                ProgressionCard(
+                    memoriesCount = uiState.entryCount,
+                    questionsCount = uiState.answeredQuestionsCount,
+                    chaptersCount = uiState.validatedChaptersCount
+                )
+
+                // ACTIONS RAPIDES
+                Text(
+                    "ACTIONS RAPIDES",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp),
+                    color = TextTertiary,
+                    modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 6.dp)
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+                ) {
+                    QuickActionCard(
+                        icon = Icons.Outlined.Public,
+                        name = "Mappemonde",
+                        modifier = Modifier.weight(1f),
+                        onClick = onNavigateToMap
+                    )
+                    QuickActionCard(
+                        icon = Icons.Outlined.QuestionAnswer,
+                        name = "Questions reçues",
+                        modifier = Modifier.weight(1f),
+                        badgeCount = uiState.pendingQuestionsCount,
+                        onClick = onNavigateToPendingQuestions
+                    )
+                    QuickActionCard(
+                        icon = Icons.Outlined.Fingerprint,
+                        name = "Mode Détective",
+                        modifier = Modifier.weight(1f),
+                        onClick = onNavigateToDetective
+                    )
+                }
+
+                // PRÉSENCE
+                Card(
+                    modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 12.dp).fillMaxWidth().clickable { viewModel.updateProofOfLife() },
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1A221A)),
+                    shape = RoundedCornerShape(10.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2D3D22))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(modifier = Modifier.size(6.dp).background(Color(0xFF4CAF50), CircleShape))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            "Ma présence · confirmée il y a $daysSincePresence jours",
+                            color = Color(0xFF7CB87C),
+                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp)
+                        )
+                    }
+                }
             }
         }
     }
@@ -236,206 +290,76 @@ fun TransmissionStatusRow(count: Int) {
 @Composable
 fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp),
+        modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
+        Column {
+            Text(
+                text = "Bonsoir, $name",
+                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 18.sp),
+                color = TextPrimary
+            )
+            Text(text = date, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = TextTertiary)
+        }
+        Surface(
+            modifier = Modifier.size(34.dp).clickable { onProfileClick() },
+            shape = CircleShape,
+            color = AccentPrimary.copy(alpha = 0.15f),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
         ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(Icons.Outlined.Person, null, tint = AccentPrimary, modifier = Modifier.size(18.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun StatusBadge(title: String, subtitle: String, dotColor: Color, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+        shape = RoundedCornerShape(10.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+    ) {
+        Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(modifier = Modifier.size(6.dp).background(dotColor, CircleShape).shadow(4.dp, CircleShape, spotColor = dotColor))
+            Spacer(modifier = Modifier.width(8.dp))
             Column {
-                Text(
-                    text = "Bonjour, $name",
-                    style = MaterialTheme.typography.displayMedium,
-                    color = TextPrimary
-                )
-                Text(
-                    text = date,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
-                )
+                Text(title, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
+                Text(subtitle, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = TextSecondary)
             }
-            InfoButton(
-                title = "Bienvenue dans PHOEN-X",
-                points = listOf(
-                    "C'est ici que tu construis ce que tu veux laisser à ceux que tu aimes.",
-                    "Dépose des souvenirs, des pensées, des messages — à ton rythme.",
-                    "Tout est chiffré et sécurisé avant même de quitter ton téléphone.",
-                    "Tes proches n'auront accès à rien tant que tu n'auras pas activé le protocole.",
-                    "Le point lumineux en haut indique que tout va bien."
-                )
-            )
-        }
-        Surface(
-            modifier = Modifier.size(52.dp).phoenXMatiere(),
-            shape = CircleShape,
-            color = SurfaceCard,
-            border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.3f)),
-            onClick = onProfileClick
-        ) {
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = null,
-                tint = AccentPrimary,
-                modifier = Modifier.padding(12.dp)
-            )
         }
     }
 }
 
 @Composable
-fun ImpulseSection(onNavigate: (String, String?) -> Unit) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale = PhoenXAnimations.pressScale(isPressed)
-
-    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(90.dp)
-                .scale(scale)
-                .clip(MaterialTheme.shapes.large)
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(AccentPrimary, Color(0xFF8B4A1A))
+fun LastMemoryCard(entry: com.example.phoenx.data.local.OfflineEntry?) {
+    Card(
+        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 4.dp).fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+        shape = RoundedCornerShape(14.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+    ) {
+        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+            Box(modifier = Modifier.width(3.dp).fillMaxHeight().background(Brush.verticalGradient(listOf(AccentPrimary, Color.Transparent))))
+            Column(modifier = Modifier.padding(13.dp, 14.dp)) {
+                Text("DERNIER SOUVENIR", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = TextTertiary)
+                Spacer(modifier = Modifier.height(4.dp))
+                if (entry == null) {
+                    Text("Aucun souvenir déposé pour l'instant.", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 12.sp), color = TextSecondary)
+                    Text("— Commence dès maintenant", color = AccentPrimary, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp))
+                } else {
+                    Text(
+                        entry.aiSummary,
+                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 12.sp),
+                        color = TextSecondary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
-                )
-                .phoenXMatiere()
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = { onNavigate(Screen.Capture.TYPE_TEXT, null) }
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Add, contentDescription = null, tint = Color.White)
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Déposer un souvenir",
-                    style = MaterialTheme.typography.labelLarge.copy(fontSize = 18.sp),
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            QuickActionIcon(Icons.Default.Edit, "Texte") { onNavigate(Screen.Capture.TYPE_TEXT, null) }
-            QuickActionIcon(Icons.Default.Mic, "Voix") { onNavigate(Screen.Capture.TYPE_AUDIO, null) }
-            QuickActionIcon(Icons.Default.CameraAlt, "Photo") { onNavigate(Screen.Capture.TYPE_PHOTO, null) }
-            QuickActionIcon(Icons.Default.NightsStay, "3h du matin") { onNavigate(Screen.Capture.TYPE_NIGHT, null) }
-        }
-    }
-}
-
-@Composable
-fun QuickActionIcon(icon: ImageVector, label: String, onClick: () -> Unit) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Surface(
-            modifier = Modifier
-                .size(56.dp)
-                .clickable(onClick = onClick),
-            shape = CircleShape,
-            color = SurfaceCard,
-            border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.2f))
-        ) {
-            Icon(imageVector = icon, contentDescription = label, tint = AccentPrimary, modifier = Modifier.padding(16.dp))
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = TextTertiary)
-    }
-}
-
-@Composable
-fun RecipientsCard(onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick)
-            .phoenXMatiere(isPaper = false),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
-    ) {
-        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Groups, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(20.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("MON CERCLE DE CONFIANCE", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                Text("Gérer tes proches et leurs accès", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
-            }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
-        }
-    }
-}
-
-@Composable
-fun TimelinePreviewCard(count: Int, minAge: Int, maxAge: Int, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick)
-            .phoenXMatiere(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
-    ) {
-        Column(modifier = Modifier.padding(24.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column {
-                    Text("TON FIL DE PENSÉE", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text("$count moments capturés", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
-                }
-                
-                Surface(
-                    color = AccentPrimary,
-                    shape = CircleShape,
-                    modifier = Modifier.size(60.dp).border(2.dp, Color.White.copy(alpha = 0.2f), CircleShape)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "$maxAge\nans",
-                            style = MaterialTheme.typography.labelSmall.copy(lineHeight = 12.sp, fontWeight = FontWeight.Bold),
-                            color = BackgroundPrimary,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Row(modifier = Modifier.fillMaxWidth().height(50.dp), verticalAlignment = Alignment.Bottom) {
-                repeat(24) { i ->
-                    val h = (0.2f + (Math.sin(i.toDouble() / 3.0).toFloat() + 1f) * 0.4f)
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 1.5.dp)
-                            .fillMaxHeight(fraction = h)
-                            .background(
-                                brush = Brush.verticalGradient(
-                                    colors = if (i > 20) listOf(AccentPrimary, AccentSecondary) else listOf(TextTertiary, TextTertiary.copy(alpha = 0.5f))
-                                ),
-                                shape = RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp)
-                            )
-                    )
+                    val age = com.example.phoenx.domain.util.AgeUtils.parseAgeJson(entry.ageAtCreation)
+                    Text("— À ${age.years} ans", color = AccentPrimary, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp))
                 }
             }
         }
@@ -443,355 +367,106 @@ fun TimelinePreviewCard(count: Int, minAge: Int, maxAge: Int, onClick: () -> Uni
 }
 
 @Composable
-fun CommodeCard(onClick: () -> Unit) {
+fun ProgressionCard(memoriesCount: Int, questionsCount: Int, chaptersCount: Int) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick)
-            .phoenXMatiere(isPaper = false),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
+        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 4.dp).fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+        shape = RoundedCornerShape(14.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
     ) {
-        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Inbox, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(20.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("MA COMMODE", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                Text("Tes souvenirs rangés par l'IA", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
-            }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+        Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+            StatItem(count = memoriesCount, label = "SOUVENIRS", modifier = Modifier.weight(1f))
+            Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color(0xFF2E2E35)).align(Alignment.CenterVertically))
+            StatItem(count = questionsCount, label = "QUESTIONS", modifier = Modifier.weight(1f))
+            Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color(0xFF2E2E35)).align(Alignment.CenterVertically))
+            StatItem(count = chaptersCount, label = "CHAPITRES", modifier = Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-fun YoungSelfLetterCard(onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick)
-            .phoenXMatiere(isPaper = true),
-        colors = CardDefaults.cardColors(containerColor = MateriauPapier.copy(alpha = 0.1f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
-    ) {
-        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.width(2.dp).height(40.dp).background(AccentPrimary))
-            Spacer(modifier = Modifier.width(20.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("LETTRE À MON JEUNE MOI", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                Text("Écris à celui que tu étais à 20 ans", style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Normal)
-            }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
-        }
+fun StatItem(count: Int, label: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(count.toString(), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontSize = 22.sp), color = AccentPrimary)
+        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = TextTertiary)
     }
 }
 
 @Composable
-fun QuestionsCard(onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick)
-            .phoenXMatiere(isPaper = false),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
-    ) {
-        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.HelpCenter, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(20.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("100 QUESTIONS", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                Text("Raconte ta vie pas à pas", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
-            }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
-        }
-    }
-}
-
-@Composable
-fun PendingQuestionsCard(count: Int, onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick)
-            .phoenXMatiere(isPaper = false),
-        colors = CardDefaults.cardColors(containerColor = AccentPrimary.copy(alpha = 0.05f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
-    ) {
-        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-            BadgedBox(
-                badge = { 
-                    if (count > 0) {
-                        Badge(containerColor = AccentPrimary) { 
-                            Text("$count", color = BackgroundPrimary) 
-                        } 
-                    }
-                }
-            ) {
-                Icon(Icons.Default.QuestionAnswer, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
-            }
-            Spacer(modifier = Modifier.width(20.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("QUESTIONS EN ATTENTE", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
-                Text(
-                    if (count > 0) "Quelqu'un veut en savoir plus" else "Aucune nouvelle question", 
-                    style = MaterialTheme.typography.bodyLarge, 
-                    color = TextPrimary
-                )
-            }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
-        }
-    }
-}
-
-@Composable
-fun MapCard(onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick)
-            .phoenXMatiere(isPaper = false),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
-    ) {
-        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Public, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(20.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("MA MAPPEMONDE", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                Text("Épingler mes voyages et souvenirs", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
-            }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
-        }
-    }
-}
-
-@Composable
-fun FavoritesCard(onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick)
-            .phoenXMatiere(isPaper = false),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
-    ) {
-        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.AutoStories, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(20.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("MES MEILLEURS", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                Text("Livres, films et musiques essentiels", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
-            }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
-        }
-    }
-}
-
-@Composable
-fun MailboxCard(onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick)
-            .phoenXMatiere(isPaper = false),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Success.copy(alpha = 0.3f))
-    ) {
-        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Mail, contentDescription = null, tint = Success, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(20.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("BOÎTE AUX LETTRES", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                Text("Cadeaux à ouverture programmée", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
-            }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = Success, modifier = Modifier.size(20.dp))
-        }
-    }
-}
-
-@Composable
-fun PortraitsOfLovedOnesCard(onClick: () -> Unit) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .clickable(onClick = onClick)
-            .phoenXMatiere(isPaper = false),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AccentSecondary.copy(alpha = 0.3f))
-    ) {
-        Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Favorite, contentDescription = null, tint = AccentSecondary, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(20.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text("CEUX QUE J'AIME", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                Text("Composer le portrait d'un proche", style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Normal)
-            }
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null, tint = AccentSecondary, modifier = Modifier.size(20.dp))
-        }
-    }
-}
-
-@Composable
-fun BiographerQuestionSection(question: String, onAnswerClick: () -> Unit) {
-    Column(modifier = Modifier.padding(horizontal = 24.dp)) {
-        Text("LA QUESTION DU BIOGRAPHE", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 1.sp)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "\"$question\"",
-            style = MaterialTheme.typography.displaySmall.copy(lineHeight = 34.sp),
-            color = TextPrimary,
-            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(
-            onClick = onAnswerClick,
-            colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard),
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.height(48.dp).phoenXMatiere()
-        ) {
-            Text("Y répondre maintenant", color = TextPrimary)
-        }
-    }
-}
-
-@Composable
-fun LatestMemoriesSection(entries: List<OfflineEntry>) {
-    Column {
-        Text(
-            "Derniers souvenirs", 
-            style = MaterialTheme.typography.labelLarge, 
-            color = TextPrimary,
-            modifier = Modifier.padding(horizontal = 24.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        if (entries.isEmpty()) {
-            Text(
-                "Aucun souvenir capturé.",
-                modifier = Modifier.padding(horizontal = 24.dp),
-                color = TextTertiary,
-                style = MaterialTheme.typography.bodySmall
-            )
-        } else {
-            LazyRow(
-                contentPadding = PaddingValues(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(entries) { entry ->
-                    MemoryCard(entry)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun MemoryCard(entry: OfflineEntry) {
-    val age = AgeUtils.parseAgeJson(entry.ageAtCreation)
-    Surface(
-        modifier = Modifier.size(160.dp, 200.dp).phoenXMatiere(),
-        color = SurfaceCard.copy(alpha = 0.4f),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Icon(Icons.Default.AutoStories, contentDescription = null, tint = TextTertiary, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("À ${age.years} ans", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                entry.aiSummary.ifEmpty { "Moment capturé..." },
-                style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
-                color = TextSecondary,
-                maxLines = 4
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(Icons.Default.Lock, contentDescription = null, tint = TextTertiary.copy(alpha = 0.5f), modifier = Modifier.size(14.dp).align(Alignment.End))
-        }
-    }
-}
-
-@Composable
-fun ProofOfLifeBadge(days: Int, onClick: () -> Unit) {
-    val color = if (days < 5) Success else if (days < 10) Warning else Error
-    Surface(
-        modifier = Modifier
-            .padding(horizontal = 24.dp)
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        color = color.copy(alpha = 0.05f),
-        shape = CircleShape,
-        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.2f))
-    ) {
-        Row(
-            modifier = Modifier.padding(vertical = 16.dp, horizontal = 24.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Box(modifier = Modifier.size(6.dp).background(color, CircleShape))
-            Spacer(modifier = Modifier.width(12.dp))
-            Text("Ma présence • confirmée il y a $days jours", style = MaterialTheme.typography.labelLarge, color = TextPrimary)
-        }
-    }
-}
-
-@Composable
-fun PhoenXBottomBar(
-    onFilClick: () -> Unit = {},
-    onIAClick: () -> Unit = {},
-    onLegacyClick: () -> Unit = {}
+fun QuickActionCard(
+    icon: androidx.compose.ui.graphics.vector.ImageVector, 
+    name: String, 
+    modifier: Modifier = Modifier,
+    badgeCount: Int = 0, 
+    onClick: () -> Unit
 ) {
-    NavigationBar(
-        containerColor = BackgroundPrimary.copy(alpha = 0.95f),
-        tonalElevation = 0.dp,
-        modifier = Modifier.border(1.dp, TextTertiary.copy(alpha = 0.1f), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)).clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+    Card(
+        modifier = modifier.height(80.dp).clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+        shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
     ) {
-        NavigationBarItem(
-            selected = true,
-            onClick = { },
-            icon = { Icon(Icons.Default.Home, null) },
-            label = { Text("Accueil", style = MaterialTheme.typography.labelSmall) },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = AccentPrimary,
-                selectedTextColor = AccentPrimary,
-                indicatorColor = Color.Transparent,
-                unselectedIconColor = TextTertiary,
-                unselectedTextColor = TextTertiary
-            )
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onFilClick,
-            icon = { Icon(Icons.Default.Timeline, null) },
-            label = { Text("Mon Fil", style = MaterialTheme.typography.labelSmall) }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onLegacyClick,
-            icon = { Icon(Icons.AutoMirrored.Filled.Send, null) },
-            label = { Text("Transmettre", style = MaterialTheme.typography.labelSmall) }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = onIAClick,
-            icon = { Icon(Icons.Default.AutoAwesome, null) },
-            label = { Text("L'IA", style = MaterialTheme.typography.labelSmall) }
-        )
+        Box(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(AccentPrimary.copy(alpha = 0.4f)))
+            
+            if (badgeCount > 0) {
+                Surface(
+                    modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(14.dp),
+                    shape = CircleShape,
+                    color = AccentPrimary
+                ) {
+                    Text(badgeCount.toString(), color = BackgroundPrimary, fontSize = 8.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Column(
+                modifier = Modifier.fillMaxSize().padding(top = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(icon, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(name, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 10.sp), color = TextSecondary, textAlign = TextAlign.Center)
+            }
+            
+            // Halo bottom
+            Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(20.dp).background(Brush.verticalGradient(listOf(Color.Transparent, AccentPrimary.copy(alpha = 0.05f)))))
+        }
+    }
+}
+
+@Composable
+fun HomeNavigationBar(
+    onNavigateToHome: () -> Unit,
+    onNavigateToLegacy: () -> Unit,
+    onNavigateToIA: () -> Unit,
+    onOpenProfile: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = Color(0xFF111116),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 14.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            NavItem(Icons.Outlined.Home, "Accueil", true, onNavigateToHome)
+            NavItem(Icons.Outlined.Send, "Transmettre", false, onNavigateToLegacy)
+            NavItem(Icons.Outlined.AutoAwesome, "L'IA", false, onNavigateToIA)
+            NavItem(Icons.Outlined.AccountCircle, "Profil", false, onOpenProfile)
+        }
+    }
+}
+
+@Composable
+fun NavItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, active: Boolean, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier.clickable { onClick() },
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(icon, null, tint = if (active) AccentPrimary else TextTertiary, modifier = Modifier.size(22.dp))
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = if (active) AccentPrimary else TextTertiary)
     }
 }

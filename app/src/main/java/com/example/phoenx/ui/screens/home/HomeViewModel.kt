@@ -12,13 +12,13 @@ import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
@@ -33,11 +33,47 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
 
+    private val _daysSincePresence = MutableStateFlow(0)
+    val daysSincePresence: StateFlow<Int> = _daysSincePresence.asStateFlow()
+
     init {
         loadUserData()
         loadBiographerQuestion()
         observeLatestEntries()
         loadPendingQuestionsCount()
+        loadExtraStats()
+    }
+
+    /**
+     * Calcule le nombre de jours écoulés depuis la dernière présence confirmée.
+     */
+    fun calculateDaysSincePresence(lastCheckInTimestamp: Long) {
+        val diff = System.currentTimeMillis() - lastCheckInTimestamp
+        _daysSincePresence.value = (diff / (1000 * 60 * 60 * 24)).toInt()
+    }
+
+    private fun loadExtraStats() {
+        val user = auth.currentUser ?: return
+        viewModelScope.launch {
+            try {
+                // Nombre de questions répondues
+                db.collection("users").document(user.uid)
+                    .collection("entries")
+                    .whereNotEqualTo("enigmaQuestion", null)
+                    .addSnapshotListener { snapshot, _ ->
+                        _uiState.update { it.copy(answeredQuestionsCount = snapshot?.size() ?: 0) }
+                    }
+
+                // Nombre de chapitres validés
+                db.collection("users").document(user.uid)
+                    .collection("book").document("default") // Hypothèse ID livre
+                    .collection("chapters")
+                    .whereEqualTo("status", "validated")
+                    .addSnapshotListener { snapshot, _ ->
+                        _uiState.update { it.copy(validatedChaptersCount = snapshot?.size() ?: 0) }
+                    }
+            } catch (e: Exception) {}
+        }
     }
 
     private fun loadPendingQuestionsCount() {
@@ -84,16 +120,14 @@ class HomeViewModel @Inject constructor(
                             currentAge = ageSnapshot.years
                         }
 
-                        var daysSinceLastProof = 0
                         if (lastAlive != null) {
-                            val diff = System.currentTimeMillis() - lastAlive.toDate().time
-                            daysSinceLastProof = TimeUnit.MILLISECONDS.toDays(diff).toInt()
+                            calculateDaysSincePresence(lastAlive.toDate().time)
                         }
 
                         _uiState.value = _uiState.value.copy(
                             userName = name,
+                            userEmail = user.email ?: "",
                             currentAge = currentAge,
-                            lastProofOfLifeDays = daysSinceLastProof,
                             currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH))
                                 .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
                         )
@@ -130,7 +164,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 protocolManager.confirmProofOfLife(userId)
-                _uiState.value = _uiState.value.copy(lastProofOfLifeDays = 0)
+                _daysSincePresence.value = 0
             } catch (e: Exception) { }
         }
     }
@@ -138,12 +172,14 @@ class HomeViewModel @Inject constructor(
 
 data class HomeUiState(
     val userName: String = "",
+    val userEmail: String = "",
     val currentDate: String = "",
     val entryCount: Int = 0,
     val minAge: Int = 0,
     val currentAge: Int = 0,
     val biographerQuestion: String = "Quelle décision as-tu prise dont tu es le plus fier ?",
-    val lastProofOfLifeDays: Int = 0,
     val pendingQuestionsCount: Int = 0,
+    val answeredQuestionsCount: Int = 0,
+    val validatedChaptersCount: Int = 0,
     val latestEntries: List<OfflineEntry> = emptyList()
 )

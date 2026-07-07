@@ -169,6 +169,9 @@ fun PhoenXNavGraph(
                 onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
                 onNavigateToMap = { navController.navigate(Screen.Map.route) },
                 onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.route) },
+                onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
+                onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
+                onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
                 mainViewModel = mainViewModel
             )
         }
