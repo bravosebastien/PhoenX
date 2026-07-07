@@ -48,6 +48,9 @@ import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.questions.AskQuestionScreen
 import com.example.phoenx.ui.screens.questions.PendingQuestionsScreen
 import com.example.phoenx.ui.screens.questionsroom.QuestionsRoomScreen
+import com.example.phoenx.ui.screens.quiz.QuizCreateScreen
+import com.example.phoenx.ui.screens.quiz.QuizLeaderboardScreen
+import com.example.phoenx.ui.screens.quiz.QuizPlayScreen
 import com.example.phoenx.ui.screens.universal.UniversalMessageScreen
 import com.example.phoenx.ui.screens.universal.UniversalFeedScreen
 import com.example.phoenx.ui.screens.recipient.*
@@ -713,6 +716,39 @@ fun PhoenXNavGraph(
 
         composable(Screen.NotificationContacts.route) {
             NotificationContactsScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        // --- QUIZ ---
+        composable("quiz_create") {
+            QuizCreateScreen(navController = navController)
+        }
+
+        composable(
+            route = "quiz_play/{creatorId}/{quizId}",
+            arguments = listOf(
+                navArgument("creatorId") { type = NavType.StringType },
+                navArgument("quizId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            QuizPlayScreen(
+                creatorId = backStackEntry.arguments?.getString("creatorId") ?: "",
+                quizId = backStackEntry.arguments?.getString("quizId") ?: "",
+                navController = navController
+            )
+        }
+
+        composable(
+            route = "quiz_leaderboard/{creatorId}/{quizId}",
+            arguments = listOf(
+                navArgument("creatorId") { type = NavType.StringType },
+                navArgument("quizId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            QuizLeaderboardScreen(
+                creatorId = backStackEntry.arguments?.getString("creatorId") ?: "",
+                quizId = backStackEntry.arguments?.getString("quizId") ?: "",
+                navController = navController
+            )
         }
 
         composable(Screen.DepositaryNotifications.route) {

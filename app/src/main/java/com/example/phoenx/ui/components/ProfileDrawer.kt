@@ -37,6 +37,7 @@ fun ProfileDrawer(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val accent = LocalAccentColor.current
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -58,11 +59,11 @@ fun ProfileDrawer(
                     Surface(
                         modifier = Modifier.size(52.dp),
                         shape = CircleShape,
-                        color = AccentPrimary.copy(alpha = 0.15f),
-                        border = androidx.compose.foundation.BorderStroke(2.dp, AccentPrimary.copy(alpha = 0.4f))
+                        color = accent.copy(alpha = 0.15f),
+                        border = androidx.compose.foundation.BorderStroke(2.dp, accent.copy(alpha = 0.4f))
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Outlined.Person, null, tint = AccentPrimary, modifier = Modifier.size(28.dp))
+                            Icon(Icons.Outlined.Person, null, tint = accent, modifier = Modifier.size(28.dp))
                         }
                     }
 
@@ -83,7 +84,7 @@ fun ProfileDrawer(
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
-                    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(AccentPrimary.copy(alpha = 0.25f)))
+                    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(accent.copy(alpha = 0.25f)))
                     Spacer(modifier = Modifier.height(24.dp))
 
                     // ITEMS - MON COMPTE
@@ -103,14 +104,14 @@ fun ProfileDrawer(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                            Icon(Icons.Outlined.Fingerprint, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+                            Icon(Icons.Outlined.Fingerprint, null, tint = accent, modifier = Modifier.size(20.dp))
                             Spacer(modifier = Modifier.width(14.dp))
                             Text("Empreinte Digitale", style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
                         }
                         Switch(
                             checked = isBiometricEnabled,
                             onCheckedChange = onToggleBiometric,
-                            colors = SwitchDefaults.colors(checkedThumbColor = AccentPrimary)
+                            colors = SwitchDefaults.colors(checkedThumbColor = accent)
                         )
                     }
 
@@ -160,6 +161,7 @@ fun DrawerItem(
     textColor: Color = TextPrimary,
     onClick: () -> Unit
 ) {
+    val accent = LocalAccentColor.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -167,7 +169,7 @@ fun DrawerItem(
             .padding(vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+        Icon(icon, null, tint = accent, modifier = Modifier.size(20.dp))
         Spacer(modifier = Modifier.width(14.dp))
         Text(text, style = MaterialTheme.typography.bodyMedium, color = textColor, modifier = Modifier.weight(1f))
         Icon(Icons.Outlined.ChevronRight, null, tint = TextTertiary, modifier = Modifier.size(16.dp))

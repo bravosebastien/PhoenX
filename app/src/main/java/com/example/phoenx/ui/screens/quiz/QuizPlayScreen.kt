@@ -1,0 +1,274 @@
+package com.example.phoenx.ui.screens.quiz
+
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.phoenx.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QuizPlayScreen(
+    creatorId: String,
+    quizId: String,
+    navController: NavController,
+    viewModel: QuizViewModel = hiltViewModel()
+) {
+    val accent = LocalAccentColor.current
+    val backgroundBrush = LocalBackgroundBrush.current
+    val quiz by viewModel.currentQuiz.collectAsState()
+    val currentIndex by viewModel.currentQuestionIndex.collectAsState()
+    val score by viewModel.score.collectAsState()
+    val userResult by viewModel.userResult.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    
+    val scope = rememberCoroutineScope()
+    var selectedAnswerIndex by remember { mutableStateOf<Int?>(null) }
+    var gameStarted by remember { mutableStateOf(false) }
+
+    LaunchedEffect(creatorId, quizId) {
+        viewModel.loadQuiz(creatorId, quizId)
+    }
+
+    // Rediriger vers le classement si déjà joué
+    LaunchedEffect(userResult) {
+        if (userResult != null && !gameStarted) {
+            navController.navigate("quiz_leaderboard/$creatorId/$quizId") {
+                popUpTo("quiz_play/$creatorId/$quizId") { inclusive = true }
+            }
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(backgroundBrush)) {
+        if (isLoading) {
+            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
+        } else if (quiz != null) {
+            val totalQuestions = quiz!!.questions.size
+
+            if (!gameStarted) {
+                // ÉCRAN D'ACCUEIL DU QUIZ
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text("PHOEN-X", style = MaterialTheme.typography.labelLarge, color = accent, letterSpacing = 4.sp)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(quiz!!.title, style = MaterialTheme.typography.displaySmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic), color = TextPrimary, textAlign = TextAlign.Center)
+                    
+                    Card(
+                        modifier = Modifier.padding(top = 24.dp).fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+                        shape = RoundedCornerShape(14.dp)
+                    ) {
+                        Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                            StatItem(totalQuestions.toString(), "QUESTIONS", accent)
+                            StatItem(totalQuestions.toString(), "POINTS MAX", accent)
+                            StatItem("?", "CLASSÉS", accent)
+                        }
+                    }
+
+                    Button(
+                        onClick = { gameStarted = true },
+                        modifier = Modifier.padding(top = 32.dp).fillMaxWidth().height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = accent)
+                    ) {
+                        Text("Commencer le quiz", color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold)
+                    }
+                }
+            } else if (currentIndex < totalQuestions) {
+                // ÉCRAN DE JEU
+                val currentQuestion = quiz!!.questions[currentIndex]
+                val progress by animateFloatAsState(targetValue = (currentIndex.toFloat() / totalQuestions.toFloat()))
+
+                Column(modifier = Modifier.fillMaxSize()) {
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.fillMaxWidth().height(4.dp),
+                        color = accent,
+                        trackColor = accent.copy(alpha = 0.1f)
+                    )
+
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Question ${currentIndex + 1} sur $totalQuestions", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                        
+                        Card(
+                            modifier = Modifier.padding(top = 16.dp).fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Box(modifier = Modifier.fillMaxWidth()) {
+                                Box(modifier = Modifier.align(Alignment.CenterStart).width(3.dp).fillMaxHeight().background(accent))
+                                Text(
+                                    currentQuestion.question,
+                                    modifier = Modifier.padding(20.dp),
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, fontSize = 18.sp, lineHeight = 28.sp),
+                                    color = TextPrimary
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        currentQuestion.answers.forEachIndexed { index, answer ->
+                            AnswerCard(
+                                index = index,
+                                text = answer,
+                                isSelected = selectedAnswerIndex == index,
+                                isCorrect = currentQuestion.correctIndex == index,
+                                showResult = selectedAnswerIndex != null,
+                                onClick = {
+                                    if (selectedAnswerIndex == null) {
+                                        selectedAnswerIndex = index
+                                        scope.launch {
+                                            delay(1500)
+                                            viewModel.answerQuestion(index)
+                                            selectedAnswerIndex = null
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+                        Text("$score / $totalQuestions points", style = MaterialTheme.typography.labelLarge, color = accent)
+                    }
+                }
+            } else {
+                // ÉCRAN DE RÉSULTAT FINAL
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Surface(
+                        modifier = Modifier.size(100.dp),
+                        shape = CircleShape,
+                        color = accent
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text("$score/$totalQuestions", style = MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold), color = Color(0xFF1A1A1F))
+                        }
+                    }
+
+                    val percentage = (score.toFloat() / totalQuestions.toFloat()) * 100
+                    val resultText = when {
+                        percentage >= 80 -> "Tu me connaissais bien."
+                        percentage >= 50 -> "Tu savais l'essentiel."
+                        else -> "Il te restait des choses à découvrir."
+                    }
+
+                    Text(resultText, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic), color = TextPrimary, modifier = Modifier.padding(top = 16.dp))
+
+                    if (quiz!!.finalMessage.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier.padding(top = 16.dp).fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF211E1A)),
+                            shape = RoundedCornerShape(16.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.4f))
+                        ) {
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                // Halo radial (Simulation)
+                                Box(modifier = Modifier.align(Alignment.TopEnd).size(80.dp).background(Brush.radialGradient(listOf(accent.copy(alpha = 0.1f), Color.Transparent))))
+                                
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text("UN MOT DE TON PROCHE", style = MaterialTheme.typography.labelSmall, color = accent)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(quiz!!.finalMessage, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic), color = TextPrimary, lineHeight = 24.sp)
+                                }
+                            }
+                        }
+                    }
+
+                    Button(
+                        onClick = { 
+                            viewModel.submitResult(creatorId, quizId, "Participant") // Remplacer par nom réel si dispo
+                            navController.navigate("quiz_leaderboard/$creatorId/$quizId")
+                        },
+                        modifier = Modifier.padding(top = 24.dp).fillMaxWidth().height(52.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = accent)
+                    ) {
+                        Text("Voir le classement", color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AnswerCard(
+    index: Int,
+    text: String,
+    isSelected: Boolean,
+    isCorrect: Boolean,
+    showResult: Boolean,
+    onClick: () -> Unit
+) {
+    val bgColor = when {
+        showResult && isCorrect -> Success.copy(alpha = 0.15f)
+        showResult && isSelected && !isCorrect -> Error.copy(alpha = 0.15f)
+        else -> Color(0xFF242429)
+    }
+    val borderColor = when {
+        showResult && isCorrect -> Success
+        showResult && isSelected && !isCorrect -> Error
+        else -> Color(0xFF2E2E35)
+    }
+    val textColor = when {
+        showResult && isCorrect -> Success
+        showResult && isSelected && !isCorrect -> Error
+        else -> TextPrimary
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp).clickable(enabled = !showResult, onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        border = androidx.compose.foundation.BorderStroke(if (showResult && (isCorrect || isSelected)) 2.dp else 1.dp, borderColor),
+        colors = CardDefaults.cardColors(containerColor = bgColor)
+    ) {
+        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text("${'A' + index}. $text", style = MaterialTheme.typography.bodyMedium, color = textColor, modifier = Modifier.weight(1f))
+            if (showResult) {
+                if (isCorrect) Icon(Icons.Default.Check, null, tint = Success)
+                else if (isSelected) Icon(Icons.Default.Close, null, tint = Error)
+            }
+        }
+    }
+}
+
+@Composable
+fun StatItem(value: String, label: String, accent: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(value, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif), color = accent)
+        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = TextTertiary)
+    }
+}

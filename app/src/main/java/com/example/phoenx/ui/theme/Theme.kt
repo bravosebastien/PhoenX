@@ -4,10 +4,22 @@ import android.app.Activity
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+
+val LocalAccentColor = staticCompositionLocalOf { AccentPrimary }
+val LocalBackgroundBrush = staticCompositionLocalOf {
+    Brush.radialGradient(
+        colors = listOf(BackgroundSecondary, BackgroundPrimary),
+        radius = 2000f
+    )
+}
 
 private val DarkColorScheme = darkColorScheme(
     primary = AccentPrimary,
@@ -26,11 +38,17 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun PhoenXTheme(
+    accentColor: Color = AccentPrimary,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = DarkColorScheme
+    val colorScheme = DarkColorScheme.copy(primary = accentColor)
     val view = LocalView.current
     
+    val backgroundBrush = Brush.radialGradient(
+        colors = listOf(BackgroundSecondary, BackgroundPrimary),
+        radius = 2000f
+    )
+
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
@@ -44,10 +62,15 @@ fun PhoenXTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        shapes = Shapes,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalAccentColor provides accentColor,
+        LocalBackgroundBrush provides backgroundBrush
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            shapes = Shapes,
+            content = content
+        )
+    }
 }

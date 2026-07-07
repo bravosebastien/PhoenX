@@ -112,6 +112,7 @@ sealed class Screen(val route: String) {
     object ProtocolSettings : Screen("settings/protocol")
     object AccessibilitySettings : Screen("settings/accessibility")
     object NotificationContacts : Screen("notification_contacts")
+    object QuizCreate : Screen("quiz_create")
 
     // GRAPHE DESTINATAIRE
     object RecipientWelcome : Screen("recipient/welcome")

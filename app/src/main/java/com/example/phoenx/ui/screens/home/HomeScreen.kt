@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +66,7 @@ fun HomeScreen(
     val daysSincePresence by viewModel.daysSincePresence.collectAsState()
     val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
     val isVideoBannerDismissed by mainViewModel.isVideoBannerDismissed.collectAsState()
+    val accent = LocalAccentColor.current
     
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -168,7 +170,7 @@ fun HomeScreen(
                     StatusBadge(
                         title = "Présence",
                         subtitle = "il y a $daysSincePresence jours",
-                        dotColor = AccentPrimary,
+                        dotColor = accent,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -181,7 +183,7 @@ fun HomeScreen(
                     Button(
                         onClick = { onNavigateToCapture(Screen.Capture.TYPE_TEXT, null) },
                         modifier = Modifier.weight(2f).height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                        colors = ButtonDefaults.buttonColors(containerColor = accent),
                         shape = RoundedCornerShape(14.dp),
                         contentPadding = PaddingValues(0.dp)
                     ) {
@@ -204,15 +206,15 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f).height(56.dp).clickable { onNavigateToLibrary() },
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
                         shape = RoundedCornerShape(14.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
                     ) {
                         Column(
                             modifier = Modifier.fillMaxSize(),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Outlined.AutoStories, null, tint = AccentPrimary, modifier = Modifier.size(18.dp))
-                            Text("Ma biblio", color = AccentPrimary, style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp))
+                            Icon(Icons.Outlined.AutoStories, null, tint = accent, modifier = Modifier.size(18.dp))
+                            Text("Ma biblio", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp))
                         }
                     }
                 }
@@ -289,6 +291,7 @@ fun HomeScreen(
 
 @Composable
 fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit) {
+    val accent = LocalAccentColor.current
     Row(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -305,11 +308,11 @@ fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit) {
         Surface(
             modifier = Modifier.size(34.dp).clickable { onProfileClick() },
             shape = CircleShape,
-            color = AccentPrimary.copy(alpha = 0.15f),
-            border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
+            color = accent.copy(alpha = 0.15f),
+            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Icon(Icons.Outlined.Person, null, tint = AccentPrimary, modifier = Modifier.size(18.dp))
+                Icon(Icons.Outlined.Person, null, tint = accent, modifier = Modifier.size(18.dp))
             }
         }
     }
@@ -336,6 +339,7 @@ fun StatusBadge(title: String, subtitle: String, dotColor: Color, modifier: Modi
 
 @Composable
 fun LastMemoryCard(entry: com.example.phoenx.data.local.OfflineEntry?) {
+    val accent = LocalAccentColor.current
     Card(
         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 4.dp).fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
@@ -343,13 +347,13 @@ fun LastMemoryCard(entry: com.example.phoenx.data.local.OfflineEntry?) {
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
     ) {
         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            Box(modifier = Modifier.width(3.dp).fillMaxHeight().background(Brush.verticalGradient(listOf(AccentPrimary, Color.Transparent))))
+            Box(modifier = Modifier.width(3.dp).fillMaxHeight().background(Brush.verticalGradient(listOf(accent, Color.Transparent))))
             Column(modifier = Modifier.padding(13.dp, 14.dp)) {
                 Text("DERNIER SOUVENIR", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = TextTertiary)
                 Spacer(modifier = Modifier.height(4.dp))
                 if (entry == null) {
                     Text("Aucun souvenir déposé pour l'instant.", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 12.sp), color = TextSecondary)
-                    Text("— Commence dès maintenant", color = AccentPrimary, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp))
+                    Text("— Commence dès maintenant", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp))
                 } else {
                     Text(
                         entry.aiSummary,
@@ -359,7 +363,7 @@ fun LastMemoryCard(entry: com.example.phoenx.data.local.OfflineEntry?) {
                         overflow = TextOverflow.Ellipsis
                     )
                     val age = com.example.phoenx.domain.util.AgeUtils.parseAgeJson(entry.ageAtCreation)
-                    Text("— À ${age.years} ans", color = AccentPrimary, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp))
+                    Text("— À ${age.years} ans", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp))
                 }
             }
         }
@@ -386,8 +390,9 @@ fun ProgressionCard(memoriesCount: Int, questionsCount: Int, chaptersCount: Int)
 
 @Composable
 fun StatItem(count: Int, label: String, modifier: Modifier = Modifier) {
+    val accent = LocalAccentColor.current
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(count.toString(), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontSize = 22.sp), color = AccentPrimary)
+        Text(count.toString(), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontSize = 22.sp), color = accent)
         Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = TextTertiary)
     }
 }
@@ -400,20 +405,21 @@ fun QuickActionCard(
     badgeCount: Int = 0, 
     onClick: () -> Unit
 ) {
+    val accent = LocalAccentColor.current
     Card(
         modifier = modifier.height(80.dp).clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
         shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(AccentPrimary.copy(alpha = 0.4f)))
+            Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(accent.copy(alpha = 0.4f)))
             
             if (badgeCount > 0) {
                 Surface(
                     modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(14.dp),
                     shape = CircleShape,
-                    color = AccentPrimary
+                    color = accent
                 ) {
                     Text(badgeCount.toString(), color = BackgroundPrimary, fontSize = 8.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
                 }
@@ -424,13 +430,13 @@ fun QuickActionCard(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Icon(icon, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+                Icon(icon, null, tint = accent, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(name, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 10.sp), color = TextSecondary, textAlign = TextAlign.Center)
             }
             
             // Halo bottom
-            Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(20.dp).background(Brush.verticalGradient(listOf(Color.Transparent, AccentPrimary.copy(alpha = 0.05f)))))
+            Box(modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(20.dp).background(Brush.verticalGradient(listOf(Color.Transparent, accent.copy(alpha = 0.05f)))))
         }
     }
 }
@@ -461,12 +467,13 @@ fun HomeNavigationBar(
 
 @Composable
 fun NavItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, active: Boolean, onClick: () -> Unit) {
+    val accent = LocalAccentColor.current
     Column(
         modifier = Modifier.clickable { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(icon, null, tint = if (active) AccentPrimary else TextTertiary, modifier = Modifier.size(22.dp))
+        Icon(icon, null, tint = if (active) accent else TextTertiary, modifier = Modifier.size(22.dp))
         Spacer(modifier = Modifier.height(4.dp))
-        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = if (active) AccentPrimary else TextTertiary)
+        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = if (active) accent else TextTertiary)
     }
 }

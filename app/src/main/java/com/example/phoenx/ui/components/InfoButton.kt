@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.phoenx.ui.theme.LocalAccentColor
 
 @Composable
 fun InfoButton(
@@ -23,6 +24,7 @@ fun InfoButton(
     modifier: Modifier = Modifier
 ) {
     var showDialog by remember { mutableStateOf(false) }
+    val accent = LocalAccentColor.current
 
     // Le bouton ℹ️ discret
     IconButton(
@@ -40,7 +42,7 @@ fun InfoButton(
         ) {
             Text(
                 text = "i",
-                color = Color(0xFFC97B3A),
+                color = accent,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = FontFamily.Serif
@@ -59,7 +61,7 @@ fun InfoButton(
                 colors = CardDefaults.cardColors(
                     containerColor = Color(0xFF1A1A1F)
                 ),
-                border = BorderStroke(1.dp, Color(0xFFC97B3A).copy(alpha = 0.3f))
+                border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp)
@@ -77,7 +79,7 @@ fun InfoButton(
 
                     // Ligne dorée fine
                     HorizontalDivider(
-                        color = Color(0xFFC97B3A).copy(alpha = 0.4f),
+                        color = accent.copy(alpha = 0.4f),
                         thickness = 1.dp
                     )
 
@@ -91,7 +93,7 @@ fun InfoButton(
                         ) {
                             Text(
                                 text = "•",
-                                color = Color(0xFFC97B3A),
+                                color = accent,
                                 fontSize = 14.sp,
                                 modifier = Modifier.padding(
                                     end = 8.dp, top = 2.dp
@@ -115,7 +117,7 @@ fun InfoButton(
                     ) {
                         Text(
                             "Compris",
-                            color = Color(0xFFC97B3A),
+                            color = accent,
                             fontWeight = FontWeight.Medium
                         )
                     }
