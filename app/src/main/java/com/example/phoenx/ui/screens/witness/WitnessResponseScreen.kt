@@ -1,21 +1,22 @@
 package com.example.phoenx.ui.screens.witness
 
-import androidx.compose.foundation.Image
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -26,8 +27,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.R
+import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.theme.*
+import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WitnessResponseScreen(
     creatorId: String,
@@ -36,143 +40,118 @@ fun WitnessResponseScreen(
     navController: NavController,
     viewModel: WitnessViewModel = hiltViewModel()
 ) {
-    var step by remember { mutableIntStateOf(1) } // 1: form, 2: success
+    val accent = LocalAccentColor.current
+    val backgroundBrush = LocalBackgroundBrush.current
+    
+    var testimonyText by remember { mutableStateOf("") }
+    var isRitualPlaying by remember { mutableStateOf(false) }
     val isLoading by viewModel.isLoading.collectAsState()
 
-    val answers = remember { mutableStateMapOf<String, String>() }
-    val questions = listOf(
-        "Raconte un souvenir avec ton proche — dans ta version, pas la sienne.",
-        "Quelle qualité unique possède-t-il/elle ?",
-        "Qu'est-ce qu'il/elle t'a appris ?",
-        "Y a-t-il quelque chose que tu voudrais lui dire ?"
-    )
-
-    val canSubmit = answers.values.any { it.isNotBlank() }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(BackgroundPrimary)
-    ) {
-        if (step == 1) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp)
-                )
-                
+    if (isRitualPlaying) {
+        Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                PhoenXRiveAnimation(resId = R.raw.depot, modifier = Modifier.size(300.dp))
                 Spacer(modifier = Modifier.height(24.dp))
-                
-                Text(
-                    text = "Ton témoignage",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-                    color = TextPrimary
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Text(
-                    text = "Ton proche ne verra jamais ce que tu écris ici. Tes mots seront découverts par ses héritiers après son départ. Réponds à ce qui te touche. Ignore le reste.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
-                    textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                questions.forEach { question ->
-                    TestimonyQuestionItem(
-                        question = question,
-                        value = answers[question] ?: "",
-                        onValueChange = { answers[question] = it }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = {
-                        viewModel.submitTestimony(creatorId, witnessId, token, answers) {
-                            step = 2
-                        }
-                    },
-                    enabled = canSubmit && !isLoading,
-                    modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
-                    } else {
-                        Text("Déposer mon témoignage", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(40.dp))
-            }
-        } else {
-            Column(
-                modifier = Modifier.fillMaxSize().padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = null,
-                    tint = Success,
-                    modifier = Modifier.size(80.dp)
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-                Text(
-                    text = "Témoignage déposé.",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-                    color = TextPrimary
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Merci. Ton proche ne le verra pas. Ses héritiers le découvriront en temps voulu.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
-                    textAlign = TextAlign.Center
-                )
+                Text("Témoignage scellé.\nMerci pour ce souvenir.", style = MaterialTheme.typography.displaySmall, color = accent, textAlign = TextAlign.Center)
             }
         }
+        LaunchedEffect(Unit) {
+            delay(4000)
+            navController.popBackStack()
+        }
+        return
     }
-}
 
-@Composable
-fun TestimonyQuestionItem(
-    question: String,
-    value: String,
-    onValueChange: (String) -> Unit
-) {
-    Column {
-        Text(
-            text = question,
-            style = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 15.sp),
-            color = AccentPrimary
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Box(
+    Box(modifier = Modifier.fillMaxSize().background(backgroundBrush)) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 100.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(SurfaceCard)
-                .padding(16.dp)
+                .fillMaxSize()
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                textStyle = TextStyle(color = TextPrimary, fontSize = 15.sp),
+            Spacer(modifier = Modifier.height(48.dp))
+
+            Icon(
+                imageVector = Icons.Default.AutoAwesome,
+                contentDescription = null,
+                tint = accent,
+                modifier = Modifier.size(40.dp).align(Alignment.CenterHorizontally)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                "Un témoignage précieux",
+                style = MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold),
+                color = TextPrimary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                "Raconte un moment où ton proche t'a surpris. Ce souvenir sera gardé précieusement et transmis à ses héritiers.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = TextSecondary,
+                textAlign = TextAlign.Center,
+                lineHeight = 26.sp
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // ZONE PAPIER SACRÉ
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF242429)),
+                shape = RoundedCornerShape(12.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+            ) {
+                Box(modifier = Modifier.padding(24.dp)) {
+                    if (testimonyText.isEmpty()) {
+                        Text(
+                            "Écris ton histoire ici...",
+                            style = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 18.sp, color = TextTertiary)
+                        )
+                    }
+                    BasicTextField(
+                        value = testimonyText,
+                        onValueChange = { testimonyText = it },
+                        textStyle = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 18.sp, color = TextPrimary, lineHeight = 30.sp),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 300.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            Button(
+                onClick = {
+                    viewModel.submitTestimony(creatorId, witnessId, token, testimonyText) {
+                        isRitualPlaying = true
+                    }
+                },
+                enabled = testimonyText.isNotBlank() && !isLoading,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = accent),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+                } else {
+                    Icon(Icons.Default.Send, null, tint = BackgroundPrimary)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Sceller mon témoignage", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text(
+                "Ton témoignage est chiffré. Seul ton proche (s'il l'a autorisé) et ses héritiers pourront le lire.",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextTertiary,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
         }

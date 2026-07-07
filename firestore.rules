@@ -72,12 +72,14 @@ service cloud.firestore {
 
       // ═══ WITNESSES — Témoignages ═══
       match /witnesses/{witnessId} {
-        // Le Créateur ne peut PAS lire avant activation —
-        // ceci est vérifié côté application, mais on bloque
-        // aussi l'écriture libre ici
-        allow read: if request.auth != null
-                    && request.auth.uid == userId;
-        allow create: if false; // Passe par Cloud Function uniquement
+        // Le Créateur peut lire les métadonnées mais PAS le contenu
+        // si allowCreatorToRead est false
+        allow read: if request.auth != null && request.auth.uid == userId
+                    && (resource.data.allowCreatorToRead == true
+                        || !resource.data.keys().contains('content'));
+
+        // Le Créateur peut gérer ses témoins
+        allow write: if request.auth != null && request.auth.uid == userId;
       }
 
       // ═══ SILENCE NOTIFICATIONS — Historique ═══

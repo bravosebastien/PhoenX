@@ -17,7 +17,8 @@ data class WitnessEntity(
     val name: String = "",
     val email: String = "",
     val status: String = "pending", // "pending" | "submitted"
-    val submittedAt: Long? = null
+    val submittedAt: Long? = null,
+    val allowCreatorToRead: Boolean = false
 )
 
 @HiltViewModel
@@ -37,19 +38,29 @@ class WitnessViewModel @Inject constructor(
     private val _inviteSuccess = MutableSharedFlow<Boolean>()
     val inviteSuccess: SharedFlow<Boolean> = _inviteSuccess.asSharedFlow()
 
+    init {
+        loadWitnesses()
+    }
+
     fun loadWitnesses() {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val snapshot = db.collection("users").document(userId).collection("witnesses").get().await()
+                val snapshot = db.collection("users").document(userId)
+                    .collection("witnesses")
+                    .orderBy("name")
+                    .get()
+                    .await()
+                
                 val list = snapshot.documents.map { doc ->
                     WitnessEntity(
                         id = doc.id,
                         name = doc.getString("name") ?: "",
                         email = doc.getString("email") ?: "",
                         status = if (doc.getTimestamp("submittedAt") != null) "submitted" else "pending",
-                        submittedAt = doc.getTimestamp("submittedAt")?.toDate()?.time
+                        submittedAt = doc.getTimestamp("submittedAt")?.toDate()?.time,
+                        allowCreatorToRead = doc.getBoolean("allowCreatorToRead") ?: false
                     )
                 }
                 _witnesses.value = list
@@ -61,7 +72,7 @@ class WitnessViewModel @Inject constructor(
         }
     }
 
-    fun inviteWitness(name: String, email: String, creatorName: String) {
+    fun inviteWitness(name: String, email: String, allowRead: Boolean, creatorName: String) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             _isLoading.value = true
@@ -70,12 +81,13 @@ class WitnessViewModel @Inject constructor(
                 val witnessData = hashMapOf(
                     "name" to name,
                     "email" to email,
-                    "revealed" to false,
-                    "submittedAt" to null
+                    "allowCreatorToRead" to allowRead,
+                    "submittedAt" to null,
+                    "createdAt" to com.google.firebase.Timestamp.now()
                 )
                 val docRef = db.collection("users").document(userId).collection("witnesses").add(witnessData).await()
                 
-                // 2. Appeler la Cloud Function pour le token et l'email
+                // 2. Appeler la Cloud Function pour générer le lien et envoyer l'email
                 val data = hashMapOf(
                     "creatorId" to userId,
                     "witnessId" to docRef.id,
@@ -95,37 +107,51 @@ class WitnessViewModel @Inject constructor(
         }
     }
 
+    fun deleteWitness(witnessId: String) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                db.collection("users").document(userId)
+                    .collection("witnesses")
+                    .document(witnessId)
+                    .delete()
+                    .await()
+                loadWitnesses()
+            } catch (e: Exception) {
+                android.util.Log.e("WitnessVM", "Error deleting witness", e)
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // --- CÔTÉ TÉMOIN (Réponse) ---
+
     fun submitTestimony(
         creatorId: String,
         witnessId: String,
         token: String,
-        answers: Map<String, String>,
+        testimonyText: String,
         onSuccess: () -> Unit
     ) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // 1. Vérifier le token
-                val verifyData = hashMapOf("creatorId" to creatorId, "witnessId" to witnessId, "token" to token)
-                functions.getHttpsCallable("verifyWitnessToken").call(verifyData).await()
-                
-                // 2. Préparer le témoignage (concaténation)
-                val structuredText = answers.entries.joinToString("\n\n") { "${it.key}\n${it.value}" }
-
-                // 3. Chiffrer
-                val encryptedTestimony = android.util.Base64.encodeToString(
-                    encryptionManager.encryptText(structuredText),
+                // 1. Chiffrer le témoignage (E2EE Tink)
+                val encrypted = android.util.Base64.encodeToString(
+                    encryptionManager.encryptText(testimonyText),
                     android.util.Base64.DEFAULT
                 )
 
-                // 4. Sauvegarder ATOMIQUEMENT
-                val witnessRef = db.collection("users").document(creatorId).collection("witnesses").document(witnessId)
+                // 2. Sauvegarder et verrouiller
+                val witnessRef = db.collection("users").document(creatorId)
+                    .collection("witnesses").document(witnessId)
                 
                 db.runBatch { batch ->
                     batch.update(witnessRef, mapOf(
-                        "encryptedTestimony" to encryptedTestimony,
+                        "content" to encrypted,
                         "submittedAt" to com.google.firebase.Timestamp.now(),
-                        "revealed" to false,
                         "inviteToken" to com.google.firebase.firestore.FieldValue.delete()
                     ))
                 }.await()
