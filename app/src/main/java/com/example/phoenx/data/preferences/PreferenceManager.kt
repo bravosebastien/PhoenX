@@ -28,6 +28,9 @@ class PreferenceManager @Inject constructor(
     private val LAST_RECOVERY_REMINDER_KEY = longPreferencesKey("last_recovery_reminder")
     private val RECOVERY_PHRASE_KEY = androidx.datastore.preferences.core.stringPreferencesKey("recovery_phrase")
     private val SILENCE_ONBOARDING_DONE_KEY = booleanPreferencesKey("silence_onboarding_done")
+    private val ACCENT_COLOR_KEY = androidx.datastore.preferences.core.intPreferencesKey("accent_color")
+    private val BACKGROUND_COLOR_KEY = androidx.datastore.preferences.core.intPreferencesKey("background_color")
+    private val BACKGROUND_STYLE_KEY = androidx.datastore.preferences.core.stringPreferencesKey("background_style")
 
     fun isDepositaryOnboardingSeen(userId: String): Flow<Boolean> = context.dataStore.data
         .map { preferences ->
@@ -57,6 +60,21 @@ class PreferenceManager @Inject constructor(
     val isSilenceOnboardingDone: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
             preferences[SILENCE_ONBOARDING_DONE_KEY] ?: false
+        }
+
+    val accentColor: Flow<Int?> = context.dataStore.data
+        .map { preferences ->
+            preferences[ACCENT_COLOR_KEY]
+        }
+
+    val backgroundColor: Flow<Int?> = context.dataStore.data
+        .map { preferences ->
+            preferences[BACKGROUND_COLOR_KEY]
+        }
+
+    val backgroundStyle: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[BACKGROUND_STYLE_KEY] ?: "RADIAL"
         }
 
     // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
@@ -115,6 +133,24 @@ class PreferenceManager @Inject constructor(
     suspend fun setSilenceOnboardingDone(done: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[SILENCE_ONBOARDING_DONE_KEY] = done
+        }
+    }
+
+    suspend fun setAccentColor(color: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[ACCENT_COLOR_KEY] = color
+        }
+    }
+
+    suspend fun setBackgroundColor(color: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[BACKGROUND_COLOR_KEY] = color
+        }
+    }
+
+    suspend fun setBackgroundStyle(style: String) {
+        context.dataStore.edit { preferences ->
+            preferences[BACKGROUND_STYLE_KEY] = style
         }
     }
 

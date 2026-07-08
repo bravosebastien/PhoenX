@@ -39,20 +39,29 @@ private val DarkColorScheme = darkColorScheme(
 @Composable
 fun PhoenXTheme(
     accentColor: Color = AccentPrimary,
+    backgroundColor: Color = BackgroundPrimary,
+    backgroundStyle: String = "RADIAL",
     content: @Composable () -> Unit
 ) {
     val colorScheme = DarkColorScheme.copy(primary = accentColor)
     val view = LocalView.current
     
-    val backgroundBrush = Brush.radialGradient(
-        colors = listOf(BackgroundSecondary, BackgroundPrimary),
-        radius = 2000f
-    )
+    val backgroundBrush = when(backgroundStyle) {
+        "LINEAR" -> Brush.verticalGradient(
+            colors = listOf(backgroundColor.copy(alpha = 0.2f), BackgroundPrimary)
+        )
+        "SOLID" -> Brush.linearGradient(
+            colors = listOf(backgroundColor.copy(alpha = 0.15f), backgroundColor.copy(alpha = 0.15f))
+        )
+        else -> Brush.radialGradient(
+            colors = listOf(backgroundColor.copy(alpha = 0.25f), BackgroundPrimary),
+            radius = 2500f
+        )
+    }
 
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Configuration moderne des barres système pour 2026
             window.statusBarColor = colorScheme.background.toArgb()
             window.navigationBarColor = colorScheme.background.toArgb()
             

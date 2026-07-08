@@ -115,10 +115,13 @@ fun HomeScreen(
         },
         onResetVideo = { mainViewModel.resetVideoBanner() },
         onUpdateRhythm = { onNavigateToSettings() },
+        onNavigateToSettings = onNavigateToSettings,
+        mainViewModel = mainViewModel,
         drawerState = drawerState
     ) {
         Scaffold(
-            containerColor = BackgroundPrimary,
+            containerColor = Color.Transparent,
+            modifier = Modifier.background(LocalBackgroundBrush.current),
             bottomBar = {
                 HomeNavigationBar(
                     onNavigateToHome = { },
@@ -133,12 +136,6 @@ fun HomeScreen(
                     .fillMaxSize()
                     .padding(padding)
                     .verticalScroll(rememberScrollState())
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(BackgroundSecondary, BackgroundPrimary),
-                            radius = 2000f
-                        )
-                    )
             ) {
                 // HEADER
                 HomeHeader(

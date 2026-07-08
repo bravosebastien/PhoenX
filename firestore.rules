@@ -72,14 +72,13 @@ service cloud.firestore {
 
       // ═══ WITNESSES — Témoignages ═══
       match /witnesses/{witnessId} {
-        // Le Créateur peut lire les métadonnées mais PAS le contenu
-        // si allowCreatorToRead est false
-        allow read: if request.auth != null && request.auth.uid == userId
-                    && (resource.data.allowCreatorToRead == true
-                        || !resource.data.keys().contains('content'));
+        // Le Créateur peut lire le document uniquement si autorisé
+        allow read: if request.auth != null
+                     && request.auth.uid == userId
+                     && resource.data.allowCreatorToRead == true;
 
-        // Le Créateur peut gérer ses témoins
-        allow write: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null;
+        allow update, delete: if false;
       }
 
       // ═══ SILENCE NOTIFICATIONS — Historique ═══

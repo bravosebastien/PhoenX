@@ -13,12 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.accessibility.VoiceAccessibilityManager
 import com.example.phoenx.data.biometric.PhoenXBiometricManager
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.navigation.PhoenXNavGraph
 import com.example.phoenx.ui.screens.guide.WelcomeGuideScreen
 import com.example.phoenx.ui.theme.PhoenXTheme
+import com.example.phoenx.ui.theme.ThemeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -50,7 +52,16 @@ class MainActivity : FragmentActivity() {
         android.util.Log.d("PHOENX_DEBUG", "MainActivity onCreate")
 
         setContent {
-            PhoenXTheme {
+            val themeViewModel: ThemeViewModel = hiltViewModel()
+            val accentColor by themeViewModel.accentColor.collectAsState()
+            val backgroundColor by themeViewModel.backgroundColor.collectAsState()
+            val backgroundStyle by themeViewModel.backgroundStyle.collectAsState()
+            
+            PhoenXTheme(
+                accentColor = accentColor,
+                backgroundColor = backgroundColor,
+                backgroundStyle = backgroundStyle
+            ) {
                 val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
                 val shouldShowGuide by mainViewModel.shouldShowWelcomeGuide.collectAsState()
                 

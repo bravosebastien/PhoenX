@@ -1,5 +1,6 @@
 package com.example.phoenx.ui
 
+import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.accessibility.VoiceAccessibilityManager
@@ -9,6 +10,7 @@ import com.example.phoenx.domain.usecase.ActivationProtocolManager
 import com.google.firebase.auth.FirebaseAuth
 import com.example.phoenx.service.SilenceManager
 import com.example.phoenx.service.SilenceStatus
+import com.example.phoenx.ui.theme.AccentPrimary
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -44,22 +47,43 @@ class MainViewModel @Inject constructor(
     private val _silenceRhythmDays = MutableStateFlow(30)
     val silenceRhythmDays: StateFlow<Int> = _silenceRhythmDays.asStateFlow()
 
-    // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
-    /*
-    private val _showRecoveryReminder = MutableStateFlow(false)
-    val showRecoveryReminder: StateFlow<Boolean> = _showRecoveryReminder.asStateFlow()
-    */
+    val accentColor: StateFlow<Int> = preferenceManager.accentColor
+        .map { it ?: AccentPrimary.toArgb() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AccentPrimary.toArgb())
+
+    val backgroundColor: StateFlow<Int> = preferenceManager.backgroundColor
+        .map { it ?: 0xFF00FFFF.toInt() } // Néon par défaut pour le fond (selon XML)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0xFF00FFFF.toInt())
+
+    val backgroundStyle: StateFlow<String> = preferenceManager.backgroundStyle
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "RADIAL")
 
     val isVoiceModeActive: StateFlow<Boolean> = preferenceManager.isVoiceModeActive
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
     
-    // ... rest of state flows ...
-
     init {
         checkInactivity()
         val userId = auth.currentUser?.uid
         if (userId != null) {
             checkSilenceOnLaunch(userId)
+        }
+    }
+
+    fun setAccentColor(color: Int) {
+        viewModelScope.launch {
+            preferenceManager.setAccentColor(color)
+        }
+    }
+
+    fun setBackgroundColor(color: Int) {
+        viewModelScope.launch {
+            preferenceManager.setBackgroundColor(color)
+        }
+    }
+
+    fun setBackgroundStyle(style: String) {
+        viewModelScope.launch {
+            preferenceManager.setBackgroundStyle(style)
         }
     }
 
@@ -120,9 +144,6 @@ class MainViewModel @Inject constructor(
     val shouldShowWelcomeGuide: StateFlow<Boolean?> = preferenceManager.shouldShowWelcomeGuide
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
-    // val recoveryPhrase: Flow<String?> = preferenceManager.recoveryPhrase
-
     val isVideoBannerDismissed: StateFlow<Boolean> = preferenceManager.isVideoBannerDismissed
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -135,9 +156,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    /**
-     * PREUVE DE VIE PASSIVE : Confirme la présence du créateur silencieusement.
-     */
     fun confirmPresence() {
         livenessManager.confirmPassivePresence()
     }

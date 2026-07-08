@@ -1,10 +1,13 @@
 package com.example.phoenx.ui.screens.settings
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -14,6 +17,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.example.phoenx.ui.MainViewModel
@@ -246,6 +251,100 @@ fun SettingsScreen(
                 icon = Icons.Default.VideoLibrary,
                 onClick = { mainViewModel.resetVideoBanner() }
             )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text("PERSONNALISATION", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Surface(
+                color = SurfaceCard,
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Couleur d'accentuation", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    val colors = listOf(
+                        Color(0xFFC97B3A), // Gold
+                        Color(0xFFE91E63), // Pink
+                        Color(0xFF2196F3), // Blue
+                        Color(0xFF4CAF50), // Green
+                        Color(0xFF9C27B0), // Purple
+                        Color(0xFFF44336)  // Red
+                    )
+                    
+                    val currentAccentInt by mainViewModel.accentColor.collectAsState()
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        colors.forEach { color ->
+                            val isSelected = color.toArgb() == currentAccentInt
+                            Box(
+                                modifier = Modifier
+                                    .size(36.dp)
+                                    .background(color, CircleShape)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color = if (isSelected) TextPrimary else Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                                    .clickable { mainViewModel.setAccentColor(color.toArgb()) }
+                            )
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Surface(
+                color = SurfaceCard,
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Style de fond", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    val styles = listOf(
+                        "RADIAL" to "Radial (Défaut)",
+                        "LINEAR" to "Linéaire",
+                        "SOLID" to "Uni"
+                    )
+                    
+                    val currentStyle by mainViewModel.backgroundStyle.collectAsState()
+                    
+                    Column(Modifier.selectableGroup()) {
+                        styles.forEach { (style, label) ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .selectable(
+                                        selected = currentStyle == style,
+                                        onClick = { mainViewModel.setBackgroundStyle(style) },
+                                        role = Role.RadioButton
+                                    )
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = currentStyle == style,
+                                    onClick = null,
+                                    colors = RadioButtonDefaults.colors(selectedColor = LocalAccentColor.current)
+                                )
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = if (currentStyle == style) TextPrimary else TextSecondary,
+                                    modifier = Modifier.padding(start = 12.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

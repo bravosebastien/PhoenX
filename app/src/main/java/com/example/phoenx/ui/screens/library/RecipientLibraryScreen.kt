@@ -48,7 +48,7 @@ fun RecipientLibraryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary)
+            .background(LocalBackgroundBrush.current)
             .verticalScroll(rememberScrollState())
     ) {
         // HEADER
