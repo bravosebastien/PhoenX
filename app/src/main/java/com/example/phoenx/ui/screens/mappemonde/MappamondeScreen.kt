@@ -1,6 +1,8 @@
 package com.example.phoenx.ui.screens.mappemonde
 
 import android.location.Geocoder
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -12,6 +14,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -29,6 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,12 +42,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.*
 import com.google.maps.android.compose.clustering.Clustering
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,11 +69,22 @@ fun MappamondeScreen(
     val currentAge by viewModel.currentAge.collectAsState()
     val canShowTimeline by viewModel.canShowTimeline.collectAsState()
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    var searchQuery by remember { mutableStateOf("") }
+    var isSearching by remember { mutableStateOf(false) }
 
     var selectedLocationWithEntries by remember { mutableStateOf<LocationWithEntries?>(null) }
 
     var showAddLocationDialog by remember { mutableStateOf(false) }
     var pendingLatLng by remember { mutableStateOf<LatLng?>(null) }
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.builder()
+            .target(LatLng(20.0, 0.0))
+            .zoom(if (isGlobeView) 2.0f else 5.0f)
+            .build()
+    }
 
     val mapStyleOptions = remember {
         MapStyleOptions.loadRawResourceStyle(context, com.example.phoenx.R.raw.map_style_phoenx)
@@ -90,12 +111,7 @@ fun MappamondeScreen(
             // ── Le Globe ou Carte Google Maps ──────────────────
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
-                cameraPositionState = rememberCameraPositionState {
-                    position = CameraPosition.builder()
-                        .target(LatLng(20.0, 0.0))
-                        .zoom(if (isGlobeView) 2.0f else 5.0f)
-                        .build()
-                },
+                cameraPositionState = cameraPositionState,
                 properties = MapProperties(
                     mapType = if (isGlobeView) MapType.HYBRID else MapType.NORMAL,
                     isMyLocationEnabled = false,
@@ -219,11 +235,98 @@ fun MappamondeScreen(
                 }
             }
 
+            // ── Barre de recherche flottante ──────────
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp)
+                    .padding(top = 110.dp) // Sous le titre, aligné avec le bouton globe
+                    .align(Alignment.TopCenter),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xF01E1E23)
+                ),
+                shape = RoundedCornerShape(14.dp),
+                elevation = CardDefaults.cardElevation(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        tint = LocalAccentColor.current,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    BasicTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(vertical = 10.dp),
+                        textStyle = TextStyle(
+                            color = Color(0xFFF2EDE8),
+                            fontSize = 15.sp,
+                            fontFamily = FontFamily.SansSerif
+                        ),
+                        decorationBox = { innerTextField ->
+                            if (searchQuery.isEmpty()) {
+                                Text(
+                                    "Chercher un lieu ou une adresse...",
+                                    color = Color(0xFF5C5855),
+                                    fontSize = 15.sp
+                                )
+                            }
+                            innerTextField()
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            imeAction = ImeAction.Search
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onSearch = {
+                                coroutineScope.launch {
+                                    searchAddress(
+                                        context = context,
+                                        query = searchQuery,
+                                        cameraPositionState = cameraPositionState,
+                                        onSearchStateChange = { isSearching = it }
+                                    )
+                                }
+                            }
+                        ),
+                        singleLine = true
+                    )
+                    if (searchQuery.isNotEmpty()) {
+                        IconButton(
+                            onClick = { searchQuery = "" },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = null,
+                                tint = Color(0xFF5C5855),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                    if (isSearching) {
+                        CircularProgressIndicator(
+                            color = LocalAccentColor.current,
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    }
+                }
+            }
+
             // ── Toggle Globe / Classic ─────────────────
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 110.dp, end = 16.dp)
+                    .padding(top = 180.dp, end = 16.dp) // Décalé vers le bas car la barre de recherche prend de la place
             ) {
                 FloatingActionButton(
                     onClick = { viewModel.toggleMapView() },
@@ -590,4 +693,43 @@ fun AddLocationDialog(
             TextButton(onClick = onDismiss) { Text("Annuler", color = TextSecondary) }
         }
     )
+}
+
+/**
+ * Fonction de recherche d'adresse par géocodage
+ */
+suspend fun searchAddress(
+    context: Context,
+    query: String,
+    cameraPositionState: CameraPositionState,
+    onSearchStateChange: (Boolean) -> Unit
+) {
+    if (query.isBlank()) return
+    onSearchStateChange(true)
+    try {
+        withContext(Dispatchers.IO) {
+            val geocoder = Geocoder(context, Locale.getDefault())
+            @Suppress("DEPRECATION")
+            val results = geocoder.getFromLocationName(query, 1)
+            
+            if (!results.isNullOrEmpty()) {
+                val location = results[0]
+                val latLng = LatLng(location.latitude, location.longitude)
+                withContext(Dispatchers.Main) {
+                    cameraPositionState.animate(
+                        update = CameraUpdateFactory.newLatLngZoom(latLng, 14f),
+                        durationMs = 800
+                    )
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Lieu introuvable. Essaie une autre adresse.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    } catch (e: Exception) {
+        android.util.Log.e("Mappemonde", "Erreur géocodage", e)
+    } finally {
+        onSearchStateChange(false)
+    }
 }

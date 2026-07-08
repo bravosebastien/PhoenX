@@ -48,14 +48,17 @@ fun PhoenXTheme(
     
     val backgroundBrush = when(backgroundStyle) {
         "LINEAR" -> Brush.verticalGradient(
-            colors = listOf(backgroundColor.copy(alpha = 0.2f), BackgroundPrimary)
+            colors = listOf(backgroundColor.copy(alpha = 0.6f), BackgroundPrimary)
         )
         "SOLID" -> Brush.linearGradient(
-            colors = listOf(backgroundColor.copy(alpha = 0.15f), backgroundColor.copy(alpha = 0.15f))
+            colors = listOf(backgroundColor.copy(alpha = 0.45f), backgroundColor.copy(alpha = 0.45f))
         )
         else -> Brush.radialGradient(
-            colors = listOf(backgroundColor.copy(alpha = 0.25f), BackgroundPrimary),
-            radius = 2500f
+            colors = listOf(
+                backgroundColor.copy(alpha = 0.7f),
+                BackgroundPrimary.copy(alpha = 0.95f)
+            ),
+            radius = 1200f
         )
     }
 

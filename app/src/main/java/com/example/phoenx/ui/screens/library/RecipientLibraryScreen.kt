@@ -45,6 +45,8 @@ fun RecipientLibraryScreen(
     // Simulation des stats (à lier au VM si besoin)
     val totalSouvenirs = 42 
 
+    android.util.Log.d("LibraryCover", "Covers chargées : ${covers.keys}")
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -94,6 +96,7 @@ fun RecipientLibraryScreen(
             description = "Souvenirs classés par l'âge que tu avais.",
             status = "$totalSouvenirs souvenirs",
             icon = Icons.Outlined.Timeline,
+            cover = covers["fil_pensee"],
             onClick = { navController.navigate("fil_pensee") },
             onEdit = { navController.navigate("library_cover_picker/fil_pensee/Fil de Pensée") }
         )
@@ -103,6 +106,7 @@ fun RecipientLibraryScreen(
             description = "Co-écrit avec l'IA narrative.",
             status = "En cours",
             icon = Icons.Outlined.MenuBook,
+            cover = covers["livre_vie"],
             onClick = { navController.navigate("book_editor") },
             onEdit = { navController.navigate("library_cover_picker/livre_vie/Livre de Ma Vie") }
         )
@@ -112,8 +116,9 @@ fun RecipientLibraryScreen(
             description = "Écris à celui que tu étais.",
             status = "1 lettre active",
             icon = Icons.Outlined.HistoryEdu,
+            cover = covers["lettre_jeune_moi"],
             onClick = { navController.navigate("youngselfletters") },
-            onEdit = { navController.navigate("library_cover_picker/jeune_moi/Lettre à Mon Jeune Moi") }
+            onEdit = { navController.navigate("library_cover_picker/lettre_jeune_moi/Lettre à Mon Jeune Moi") }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -127,19 +132,20 @@ fun RecipientLibraryScreen(
         )
 
         val compartments = listOf(
-            Triple("Discothèque", Icons.Outlined.Album, "library_music"),
-            Triple("Vidéothèque", Icons.Outlined.Movie, "library_video"),
-            Triple("Mes Meilleurs", Icons.Outlined.StarOutline, "mes_meilleurs"),
-            Triple("Photos", Icons.Outlined.PhotoCamera, "photos"),
-            Triple("Mappemonde", Icons.Outlined.Public, "mappemonde"),
-            Triple("100 Questions", Icons.Outlined.HelpOutline, "cent_questions"),
-            Triple("Coffre Fort", Icons.Outlined.Lock, "coffre_fort"),
-            Triple("Le Pacte", Icons.Outlined.Handshake, "le_pacte"),
-            Triple("Portrait proche", Icons.Outlined.AccountCircle, "portrait_proche"),
-            Triple("Réconciliation", Icons.Outlined.Mail, "reconciliation"),
-            Triple("Lettres", Icons.Outlined.MailOutline, "lettres"),
-            Triple("Tiroir secret", Icons.Outlined.Key, "tiroir_secret"),
-            Triple("Mon Quiz", Icons.Outlined.EmojiEvents, "quiz")
+            // Triple("Label", Icon, "route", "ID pour cover")
+            listOf("Discothèque", Icons.Outlined.Album, "library_music", "discotheque"),
+            listOf("Vidéothèque", Icons.Outlined.Movie, "library_video", "videotheque"),
+            listOf("Mes Meilleurs", Icons.Outlined.StarOutline, "mes_meilleurs", "mes_meilleurs"),
+            listOf("Photos", Icons.Outlined.PhotoCamera, "photos", "photos"),
+            listOf("Mappemonde", Icons.Outlined.Public, "mappemonde", "mappemonde"),
+            listOf("100 Questions", Icons.Outlined.HelpOutline, "cent_questions", "cent_questions"),
+            listOf("Coffre Fort", Icons.Outlined.Lock, "coffre_fort", "coffre_fort"),
+            listOf("Le Pacte", Icons.Outlined.Handshake, "le_pacte", "le_pacte"),
+            listOf("Portrait proche", Icons.Outlined.AccountCircle, "portrait_proche", "portrait_proche"),
+            listOf("Réconciliation", Icons.Outlined.Mail, "reconciliation", "reconciliation"),
+            listOf("Lettres", Icons.Outlined.MailOutline, "lettres", "lettres"),
+            listOf("Tiroir secret", Icons.Outlined.Key, "tiroir_secret", "tiroir_secret"),
+            listOf("Mon Quiz", Icons.Outlined.EmojiEvents, "quiz", "quiz")
         )
 
         // Affichage en grille manuelle pour éviter le LazyVerticalGrid dans Scrollable
@@ -150,25 +156,31 @@ fun RecipientLibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
                     rowItems.forEach { comp ->
+                        val label = comp[0] as String
+                        val icon = comp[1] as androidx.compose.ui.graphics.vector.ImageVector
+                        val route = comp[2] as String
+                        val id = comp[3] as String
+                        
                         CompartmentCard(
-                            name = comp.first,
-                            icon = comp.second,
-                            cover = covers[comp.first.lowercase().replace(" ", "_")],
+                            name = label,
+                            icon = icon,
+                            cover = covers[id],
                             modifier = Modifier.weight(1f),
                             onClick = {
-                                if (comp.first == "Mon Quiz") {
+                                if (label == "Mon Quiz") {
                                     if (isCreatorMode) {
                                         navController.navigate("quiz_create")
                                     } else {
-                                        // Côté destinataire, on a besoin de creatorId et quizId
-                                        // Pour l'instant on navigue vers une route générique ou on récupère les IDs
-                                        // navController.navigate("quiz_play/$creatorId/$quizId")
+                                        // Côté destinataire
                                     }
                                 } else {
-                                    navController.navigate(comp.third)
+                                    navController.navigate(route)
                                 }
                             },
-                            onEdit = { navController.navigate("library_cover_picker/${comp.first.lowercase().replace(" ", "_")}/${comp.first}") }
+                            onEdit = { 
+                                android.util.Log.d("LibraryCover", "ID cherché : $id")
+                                navController.navigate("library_cover_picker/$id/$label") 
+                            }
                         )
                     }
                     // Compléter la ligne si moins de 3 items
@@ -191,6 +203,7 @@ fun EssentialCard(
     description: String,
     status: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
+    cover: LibraryCover? = null,
     onClick: () -> Unit,
     onEdit: () -> Unit
 ) {
@@ -205,7 +218,17 @@ fun EssentialCard(
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.33f))
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxWidth().height(100.dp)) {
+            if (cover != null) {
+                AsyncImage(
+                    model = cover.mediaUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)))
+            }
+            
             // Halo coin supérieur droit
             Box(
                 modifier = Modifier
@@ -236,7 +259,7 @@ fun EssentialCard(
                 Surface(
                     modifier = Modifier.size(52.dp),
                     shape = RoundedCornerShape(14.dp),
-                    color = accent.copy(alpha = 0.12f),
+                    color = if (cover != null) Color.White.copy(alpha = 0.1f) else accent.copy(alpha = 0.12f),
                     border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
                 ) {
                     Box(contentAlignment = Alignment.Center) {
@@ -258,7 +281,10 @@ fun EssentialCard(
                 }
                 
                 IconButton(
-                    onClick = onEdit,
+                    onClick = {
+                        android.util.Log.d("LibraryCover", "Edit Essential: $title")
+                        onEdit()
+                    },
                     modifier = Modifier.size(22.dp).background(accent.copy(alpha = 0.12f), RoundedCornerShape(6.dp)).border(1.dp, accent.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
                 ) {
                     Icon(Icons.Outlined.Edit, null, tint = accent, modifier = Modifier.size(12.dp))
