@@ -131,7 +131,7 @@ fun CaptureScreen(
 
     LaunchedEffect(transcript) {
         if (transcript.isNotEmpty()) {
-            text = if (text.isEmpty()) transcript else "$text $transcript"
+            text = transcript
         }
     }
 
@@ -290,7 +290,7 @@ fun CaptureScreen(
                                 isRecording = isSttListening,
                                 transcript = text,
                                 partialText = sttPartialText,
-                                onStart = { viewModel.startVocalCapture() },
+                                onStart = { viewModel.startVocalCapture(text) },
                                 onStop = { viewModel.stopVocalCapture() },
                                 onSave = {
                                     viewModel.saveEntry(
@@ -347,7 +347,7 @@ fun CaptureScreen(
                                 isListening = isSttListening,
                                 onMicClick = {
                                     if (isSttListening) viewModel.stopVocalCapture()
-                                    else viewModel.startVocalCapture()
+                                    else viewModel.startVocalCapture(text)
                                 },
                                 preselectedName = preselectedName
                             )
@@ -524,6 +524,7 @@ fun PhotoCaptureContent(
     selectedRecipientIds: MutableList<String> = mutableStateListOf()
 ) {
     val context = LocalContext.current
+    val accent = LocalAccentColor.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val imageCapture = remember { ImageCapture.Builder().build() }
     

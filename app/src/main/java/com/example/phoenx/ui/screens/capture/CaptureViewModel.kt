@@ -124,10 +124,17 @@ class CaptureViewModel @Inject constructor(
         }
     }
 
-    fun startVocalCapture() {
-        _transcript.value = ""
+    fun startVocalCapture(currentText: String) {
+        _transcript.value = currentText
         sttManager.startListening { finalResult ->
-            _transcript.value = finalResult
+            if (finalResult.isNotEmpty()) {
+                val buffer = _transcript.value
+                _transcript.value = if (buffer.isEmpty()) {
+                    finalResult
+                } else {
+                    "$buffer $finalResult"
+                }
+            }
         }
     }
 
