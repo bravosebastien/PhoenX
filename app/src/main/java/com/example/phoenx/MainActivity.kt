@@ -3,11 +3,11 @@ package com.example.phoenx
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -95,11 +95,12 @@ class MainActivity : FragmentActivity() {
 
                 if (isUnlocked && shouldShowGuide == null) {
                     // Attente du chargement des préférences
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = com.example.phoenx.ui.theme.BackgroundPrimary
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(com.example.phoenx.ui.theme.LocalBackgroundBrush.current)
                     ) {
-                        Box(contentAlignment = androidx.compose.ui.Alignment.Center) {
+                        Box(contentAlignment = androidx.compose.ui.Alignment.Center, modifier = Modifier.fillMaxSize()) {
                             CircularProgressIndicator(
                                 color = com.example.phoenx.ui.theme.AccentPrimary,
                                 modifier = Modifier.size(32.dp),
@@ -125,9 +126,10 @@ class MainActivity : FragmentActivity() {
                         }
                     )
                 } else {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = com.example.phoenx.ui.theme.BackgroundPrimary
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(com.example.phoenx.ui.theme.LocalBackgroundBrush.current)
                     ) {}
                 }
             }
@@ -183,9 +185,10 @@ class MainActivity : FragmentActivity() {
             }
         }
 
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = com.example.phoenx.ui.theme.BackgroundPrimary
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(com.example.phoenx.ui.theme.LocalBackgroundBrush.current)
         ) {
             PhoenXNavGraph(
                 navController = navController,
