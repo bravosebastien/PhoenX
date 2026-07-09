@@ -1,24 +1,27 @@
 package com.example.phoenx.data.encryption
 
+import android.content.Context
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import android.util.Base64
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator
 import org.bouncycastle.crypto.params.Argon2Parameters
-import com.google.crypto.tink.Aead
-import com.google.crypto.tink.KeyTemplates
 import com.google.crypto.tink.aead.AeadConfig
-import com.google.crypto.tink.KeysetHandle
-import com.google.crypto.tink.aead.AesGcmKeyManager
-import java.security.SecureRandom
+import java.security.*
+import javax.crypto.Cipher
 import javax.inject.Inject
 import javax.inject.Singleton
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import android.content.Context
+import java.util.*
 
 @Singleton
 class EncryptionManager @Inject constructor() {
 
     private var sessionKey: ByteArray? = null
+    private val keyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore").apply {
+        load(null)
+    }
+    private val RSA_ALIAS = "phoenx_rsa_key"
 
     init {
         AeadConfig.register()
@@ -31,7 +34,7 @@ class EncryptionManager @Inject constructor() {
     fun getSessionKey(): ByteArray? = sessionKey
 
     /**
-     * Dérivée une clé à partir d'un mot de passe en utilisant Argon2id
+     * Dérive une clé à partir d'un mot de passe en utilisant Argon2id
      */
     fun deriveKeyFromPassword(password: String, salt: ByteArray): ByteArray {
         val generator = Argon2BytesGenerator()
@@ -57,16 +60,13 @@ class EncryptionManager @Inject constructor() {
                 "Clé de session non initialisée. " +
                 "L'utilisateur doit être connecté."
             )
-        // Générer un IV aléatoire de 12 bytes (standard AES-GCM)
         val iv = ByteArray(12)
         SecureRandom().nextBytes(iv)
-        // Chiffrement AES-256-GCM avec la clé dérivée
-        val cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         val keySpec = javax.crypto.spec.SecretKeySpec(encryptionKey, "AES")
         val paramSpec = javax.crypto.spec.GCMParameterSpec(128, iv)
-        cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, keySpec, paramSpec)
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, paramSpec)
         val encrypted = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
-        // Concaténer IV + données chiffrées pour pouvoir déchiffrer
         return iv + encrypted
     }
 
@@ -76,46 +76,30 @@ class EncryptionManager @Inject constructor() {
     fun decryptText(ciphertext: ByteArray, key: ByteArray? = null): String {
         val decryptionKey = key ?: sessionKey
             ?: throw IllegalStateException("Clé de session non initialisée.")
-        // Extraire IV (12 premiers bytes) et données chiffrées
         val iv = ciphertext.sliceArray(0..11)
         val encrypted = ciphertext.sliceArray(12 until ciphertext.size)
-        val cipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding")
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         val keySpec = javax.crypto.spec.SecretKeySpec(decryptionKey, "AES")
         val paramSpec = javax.crypto.spec.GCMParameterSpec(128, iv)
-        cipher.init(javax.crypto.Cipher.DECRYPT_MODE, keySpec, paramSpec)
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, paramSpec)
         return String(cipher.doFinal(encrypted), Charsets.UTF_8)
     }
 
-    // --- Helpers pour le Livre ---
     fun encrypt(text: String): String {
         val encrypted = encryptText(text)
-        return android.util.Base64.encodeToString(encrypted, android.util.Base64.DEFAULT)
+        return Base64.encodeToString(encrypted, Base64.DEFAULT)
     }
 
     fun decrypt(encryptedBase64: String): String {
         return try {
-            val bytes = android.util.Base64.decode(encryptedBase64, android.util.Base64.DEFAULT)
+            val bytes = Base64.decode(encryptedBase64, Base64.DEFAULT)
             decryptText(bytes)
         } catch (e: Exception) {
             android.util.Log.e("EncryptionManager", "Déchiffrement échoué", e)
             ""
         }
     }
-    // ----------------------------
 
-    /**
-     * Chiffre un fichier par blocs de 512KB
-     */
-    fun encryptFile(inputPath: String, key: ByteArray): ByteArray {
-        val file = File(inputPath)
-        val buffer = ByteArray(512 * 1024)
-        // Logique de lecture et chiffrement par morceaux
-        return ByteArray(0) 
-    }
-
-    /**
-     * Génère une phrase de récupération de 12 mots (BIP-39)
-     */
     fun generateRecoveryPhrase(context: Context): List<String> {
         val wordList = try {
             context.assets
@@ -125,7 +109,6 @@ class EncryptionManager @Inject constructor() {
                 .filter { it.isNotBlank() }
         } catch (e: Exception) {
             android.util.Log.e("EncryptionManager", "Erreur lecture wordlist BIP-39", e)
-            // Fallback en cas de problème de lecture des assets
             listOf("soleil", "rivière", "montagne", "forêt", "oiseau", "vent", "pierre", "sable", "mer", "nuage", "étoile", "lune")
         }
 
@@ -141,33 +124,66 @@ class EncryptionManager @Inject constructor() {
      * Chiffre un texte avec une clé publique RSA (RSA-OAEP)
      */
     fun encryptWithPublicKey(plaintext: String, publicKeyBytes: ByteArray): ByteArray {
-        val publicKey = java.security.KeyFactory
+        val publicKey = KeyFactory
             .getInstance("RSA")
             .generatePublic(
                 java.security.spec.X509EncodedKeySpec(publicKeyBytes)
             )
-        val cipher = javax.crypto.Cipher.getInstance(
-            "RSA/ECB/OAEPWithSHA-256AndMGF1Padding"
-        )
-        cipher.init(javax.crypto.Cipher.ENCRYPT_MODE, publicKey)
-        return cipher.doFinal(
-            plaintext.toByteArray(Charsets.UTF_8)
-        )
+        val cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey)
+        return cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
     }
 
     /**
-     * Déchiffre un texte avec une clé privée RSA (RSA-OAEP)
+     * Vérifie si la paire de clés RSA existe localement dans le Keystore.
      */
-    fun decryptWithPrivateKey(ciphertext: ByteArray, privateKeyBytes: ByteArray): String {
-        val privateKey = java.security.KeyFactory
-            .getInstance("RSA")
-            .generatePrivate(
-                java.security.spec.PKCS8EncodedKeySpec(privateKeyBytes)
+    fun hasLocalRsaKey(): Boolean = keyStore.containsAlias(RSA_ALIAS)
+
+    /**
+     * Garantit l'existence d'une paire de clés RSA.
+     * Si elle n'existe pas, elle est générée dans le Keystore matériel.
+     * Retourne la clé publique encodée en Base64.
+     */
+    fun ensureRsaKeyPairExists(): String {
+        if (!hasLocalRsaKey()) {
+            val kpg: KeyPairGenerator = KeyPairGenerator.getInstance(
+                KeyProperties.KEY_ALGORITHM_RSA,
+                "AndroidKeyStore"
             )
-        val cipher = javax.crypto.Cipher.getInstance(
-            "RSA/ECB/OAEPWithSHA-256AndMGF1Padding"
-        )
-        cipher.init(javax.crypto.Cipher.DECRYPT_MODE, privateKey)
+            val parameterSpec: KeyGenParameterSpec = KeyGenParameterSpec.Builder(
+                RSA_ALIAS,
+                KeyProperties.PURPOSE_DECRYPT or KeyProperties.PURPOSE_ENCRYPT
+            ).run {
+                setKeySize(2048)
+                setDigests(KeyProperties.DIGEST_SHA256)
+                setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
+                setUserAuthenticationRequired(false)
+                build()
+            }
+            kpg.initialize(parameterSpec)
+            kpg.generateKeyPair()
+        }
+
+        val publicKey = keyStore.getCertificate(RSA_ALIAS).publicKey
+        return Base64.encodeToString(publicKey.encoded, Base64.NO_WRAP)
+    }
+
+    private fun getPrivateKeyForDecryption(): PrivateKey {
+        return keyStore.getKey(RSA_ALIAS, null) as PrivateKey
+    }
+
+    /**
+     * Déchiffre un texte avec la clé privée RSA du Keystore (RSA-OAEP).
+     * Auto-réparation : si la clé est absente (ex: changement d'appareil),
+     * elle est générée (mais les anciens messages resteront indéchiffrables).
+     */
+    fun decryptWithPrivateKey(ciphertext: ByteArray): String {
+        if (!hasLocalRsaKey()) {
+            ensureRsaKeyPairExists()
+        }
+        val privateKey = getPrivateKeyForDecryption()
+        val cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
+        cipher.init(Cipher.DECRYPT_MODE, privateKey)
         return String(cipher.doFinal(ciphertext), Charsets.UTF_8)
     }
 }

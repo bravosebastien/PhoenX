@@ -12,6 +12,7 @@ import com.example.phoenx.service.SilenceManager
 import com.example.phoenx.service.SilenceStatus
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.google.firebase.firestore.FirebaseFirestore
+import com.example.phoenx.data.encryption.EncryptionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,7 +33,8 @@ class MainViewModel @Inject constructor(
     private val voiceManager: VoiceAccessibilityManager,
     private val livenessManager: LivenessManager,
     private val preferenceManager: PreferenceManager,
-    private val silenceManager: SilenceManager
+    private val silenceManager: SilenceManager,
+    private val encryptionManager: EncryptionManager
 ) : ViewModel() {
 
     private val _silenceStatus = MutableStateFlow<SilenceStatus?>(null)
@@ -87,15 +89,31 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Appelé au démarrage ou après connexion.
+     * Gère la présence du Créateur et la synchronisation des clés de sécurité.
+     */
     fun checkSilenceOnLaunch(userId: String) {
         viewModelScope.launch {
             val status = silenceManager.checkSilenceStatus(userId)
             _silenceStatus.value = status
             
-            // Calculer les jours pour l'affichage
             try {
+                // 1. Garantir l'existence d'une clé RSA locale
+                val localPublicKey = encryptionManager.ensureRsaKeyPairExists()
+
+                // 2. Vérifier Firestore
                 val doc = db.collection("users").document(userId).get().await()
+                val firestoreKey = doc.getString("publicEncryptionKey")
                 
+                // 3. Si changement d'appareil ou première fois : mise à jour Firestore
+                if (firestoreKey != localPublicKey) {
+                    db.collection("users").document(userId)
+                        .update("publicEncryptionKey", localPublicKey)
+                        .await()
+                    android.util.Log.d("PHOENX_RSA", "Clé RSA synchronisée (Nouvel appareil détecté)")
+                }
+
                 // Charger le rythme
                 val rhythm = doc.getLong("silenceConfig.rhythmDays")?.toInt() ?: 30
                 _silenceRhythmDays.value = rhythm
@@ -105,7 +123,9 @@ class MainViewModel @Inject constructor(
                     val diff = System.currentTimeMillis() - lastCheckIn.toDate().time
                     _daysSinceLastCheckIn.value = (diff / (1000 * 60 * 60 * 24)).toInt()
                 }
-            } catch (e: Exception) {}
+            } catch (e: Exception) {
+                android.util.Log.e("MainViewModel", "Erreur Sync RSA/Silence", e)
+            }
         }
     }
 
@@ -156,8 +176,16 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Appelée à chaque fois que l'utilisateur est considéré comme "actif" sur l'app.
+     */
     fun confirmPresence() {
         livenessManager.confirmPassivePresence()
+        val userId = auth.currentUser?.uid
+        if (userId != null) {
+            // Déclenche le check RSA/Silence même si l'app était déjà en RAM
+            checkSilenceOnLaunch(userId)
+        }
     }
 
     fun toggleVoiceMode() {
