@@ -36,7 +36,10 @@ data class OfflineEntry(
     val locationName: String? = null,
 
     // LE PACTE (Signature 5.0)
-    val pactId: String? = null
+    val pactId: String? = null,
+
+    // GÉOLOCALISATION AVANCÉE (Signature 7.1)
+    val locationId: String? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

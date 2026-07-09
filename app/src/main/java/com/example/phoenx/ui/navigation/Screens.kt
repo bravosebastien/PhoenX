@@ -17,20 +17,28 @@ sealed class Screen(val route: String) {
     
     object Home : Screen("home")
     
-    object Capture : Screen("capture/{type}?prompt={prompt}&pactId={pactId}&pendingQuestionId={pendingQuestionId}&lat={lat}&lng={lng}&locationName={locationName}") {
-        fun createRoute(type: String, prompt: String? = null, pactId: String? = null, pendingQuestionId: String? = null): String {
+    object Capture : Screen("capture/{type}?prompt={prompt}&pactId={pactId}&pendingQuestionId={pendingQuestionId}&lat={lat}&lng={lng}&locationName={locationName}&locationId={locationId}") {
+        fun createRoute(
+            type: String, 
+            prompt: String? = null, 
+            pactId: String? = null, 
+            pendingQuestionId: String? = null,
+            locationId: String? = null
+        ): String {
             val encodedPrompt = prompt?.let { URLEncoder.encode(it, StandardCharsets.UTF_8.toString()) }
             var route = "capture/$type"
             val params = mutableListOf<String>()
             if (encodedPrompt != null) params.add("prompt=$encodedPrompt")
             if (pactId != null) params.add("pactId=$pactId")
             if (pendingQuestionId != null) params.add("pendingQuestionId=$pendingQuestionId")
+            if (locationId != null) params.add("locationId=$locationId")
             if (params.isNotEmpty()) route += "?" + params.joinToString("&")
             return route
         }
         const val TYPE_TEXT = "TEXT"
         const val TYPE_AUDIO = "AUDIO"
         const val TYPE_PHOTO = "PHOTO"
+        const val TYPE_GALLERY = "GALLERY"
         const val TYPE_NIGHT = "NIGHT"
     }
     

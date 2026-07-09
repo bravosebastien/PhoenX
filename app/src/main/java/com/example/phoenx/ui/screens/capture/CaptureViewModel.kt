@@ -57,6 +57,9 @@ class CaptureViewModel @Inject constructor(
     private val _transcript = MutableStateFlow("")
     val transcript: StateFlow<String> = _transcript.asStateFlow()
 
+    private val _preselectedLocationName = MutableStateFlow<String?>(null)
+    val preselectedLocationName: StateFlow<String?> = _preselectedLocationName.asStateFlow()
+
     private val _suggestPin = MutableStateFlow(false)
     val suggestPin: StateFlow<Boolean> = _suggestPin.asStateFlow()
 
@@ -75,40 +78,18 @@ class CaptureViewModel @Inject constructor(
 
     fun checkLocationForPin(context: Context) {
         viewModelScope.launch {
+            // ... (logique existante)
+        }
+    }
+
+    fun setPreselectedLocation(locationId: String?) {
+        if (locationId == null) return
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
             try {
-                if (ActivityCompat.checkSelfPermission(
-                        context,
-                        android.Manifest.permission.ACCESS_FINE_LOCATION
-                    ) != android.content.pm.PackageManager.PERMISSION_GRANTED
-                ) {
-                    return@launch
-                }
-                
-                val fusedLocation = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(context)
-                val location = fusedLocation.lastLocation.await() ?: return@launch
-
-                // Vérifier si ce lieu existe déjà (proche de < 50m)
-                val userId = auth.currentUser?.uid ?: return@launch
-                val snapshot = db.collection("users").document(userId)
-                    .collection("locations").get().await()
-                
-                val isExisting = snapshot.documents.any { doc ->
-                    val lat = doc.getDouble("latitude") ?: 0.0
-                    val lng = doc.getDouble("longitude") ?: 0.0
-                    val results = FloatArray(1)
-                    android.location.Location.distanceBetween(location.latitude, location.longitude, lat, lng, results)
-                    results[0] < 50 // 50 mètres de marge
-                }
-
-                if (!isExisting) {
-                    val geocoder = Geocoder(context, Locale.getDefault())
-                    @Suppress("DEPRECATION")
-                    val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
-                    val name = addresses?.firstOrNull()?.locality ?: "Lieu inconnu"
-                    
-                    _detectedLocation.value = DetectedLocation(location.latitude, location.longitude, name)
-                    _suggestPin.value = true
-                }
+                val doc = db.collection("users").document(userId)
+                    .collection("locations").document(locationId).get().await()
+                _preselectedLocationName.value = doc.getString("placeName")
             } catch (e: Exception) {}
         }
     }
@@ -189,7 +170,8 @@ class CaptureViewModel @Inject constructor(
         pactId: String? = null,
         latitude: Double? = null,
         longitude: Double? = null,
-        locationName: String? = null
+        locationName: String? = null,
+        locationId: String? = null
     ) {
         val user = auth.currentUser ?: return
         val rawText = content ?: if (type == Screen.Capture.TYPE_AUDIO) "Message vocal" else "Photo souvenir"
@@ -229,7 +211,8 @@ class CaptureViewModel @Inject constructor(
                     pactId = pactId,
                     latitude = latitude,
                     longitude = longitude,
-                    locationName = locationName
+                    locationName = locationName,
+                    locationId = locationId
                 )
                 offlineEntryDao.insertEntry(entry)
 

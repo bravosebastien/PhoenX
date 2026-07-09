@@ -1,7 +1,7 @@
 package com.example.phoenx.ui.screens.mappemonde
 
-import android.location.Geocoder
 import android.content.Context
+import android.location.Geocoder
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -9,18 +9,20 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,16 +32,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -52,6 +58,7 @@ import com.google.maps.android.compose.clustering.Clustering
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,27 +69,29 @@ fun MappamondeScreen(
     viewModel: MappamondeViewModel = hiltViewModel()
 ) {
     val visibleLocations by viewModel.visibleLocations.collectAsState()
+    val allLocations by viewModel.allLocations.collectAsState()
     val trailPoints by viewModel.trailPoints.collectAsState()
     val lastAppeared by viewModel.lastAppearedLocation.collectAsState()
     val isGlobeView by viewModel.isGlobeView.collectAsState()
     val timelineAge by viewModel.timelineAge.collectAsState()
     val currentAge by viewModel.currentAge.collectAsState()
-    val canShowTimeline by viewModel.canShowTimeline.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
+    val accent = LocalAccentColor.current
+    val backgroundBrush = LocalBackgroundBrush.current
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     var searchQuery by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
-
+    var showInventory by remember { mutableStateOf(false) }
     var selectedLocationWithEntries by remember { mutableStateOf<LocationWithEntries?>(null) }
-
     var showAddLocationDialog by remember { mutableStateOf(false) }
     var pendingLatLng by remember { mutableStateOf<LatLng?>(null) }
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.builder()
             .target(LatLng(20.0, 0.0))
-            .zoom(if (isGlobeView) 2.0f else 5.0f)
+            .zoom(if (isGlobeView) 2.0f else 3.0f)
             .build()
     }
 
@@ -94,405 +103,300 @@ fun MappamondeScreen(
         viewModel.setMode(mode)
     }
 
-    Scaffold(
-        containerColor = BackgroundPrimary,
-        bottomBar = {
-            // Afficher la timeline seulement si au moins 2 souvenirs à des âges différents
-            if (canShowTimeline) {
-                GeographicTimeline(
-                    currentAge = currentAge,
-                    selectedAge = timelineAge,
-                    onAgeChange = { viewModel.onTimelineSlide(it) }
-                )
+    Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary)) {
+        // ── La Carte Google Maps ──────────────────
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            properties = MapProperties(
+                // RESTAURATION : Vue claire (NORMAL standard Google Maps)
+                mapType = if (isGlobeView) MapType.HYBRID else MapType.NORMAL,
+                isMyLocationEnabled = false,
+                mapStyleOptions = null // On retire le style "noir" pour retrouver le blanc/gris clair
+            ),
+            uiSettings = MapUiSettings(
+                zoomControlsEnabled = false,
+                compassEnabled = true,
+                rotationGesturesEnabled = true,
+                zoomGesturesEnabled = true
+            ),
+            onMapLongClick = { latLng ->
+                if (mode == MapMode.CREATOR) {
+                    pendingLatLng = latLng
+                    showAddLocationDialog = true
+                }
             }
-        }
-    ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // ── Le Globe ou Carte Google Maps ──────────────────
-            GoogleMap(
-                modifier = Modifier.fillMaxSize(),
-                cameraPositionState = cameraPositionState,
-                properties = MapProperties(
-                    mapType = if (isGlobeView) MapType.HYBRID else MapType.NORMAL,
-                    isMyLocationEnabled = false,
-                    mapStyleOptions = mapStyleOptions
-                ),
-                uiSettings = MapUiSettings(
-                    zoomControlsEnabled = false,
-                    compassEnabled = true,
-                    rotationGesturesEnabled = true,
-                    scrollGesturesEnabled = true,
-                    tiltGesturesEnabled = true,
-                    zoomGesturesEnabled = true
-                ),
-                onMapLongClick = { latLng ->
-                    if (mode == MapMode.CREATOR) {
-                        pendingLatLng = latLng
-                        showAddLocationDialog = true
-                    }
-                }
-            ) {
-                if (trailPoints.size >= 2) {
-                    Polyline(
-                        points = trailPoints,
-                        color = AccentPrimary,
-                        width = 4f,
-                        geodesic = true
-                    )
-                }
-
-                if (lastAppeared != null) {
-                    MarkerInfoWindow(
-                        state = rememberMarkerState(position = LatLng(lastAppeared!!.latitude, lastAppeared!!.longitude)),
-                        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE),
-                        content = {
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFF2E2E35)),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Text(
-                                    text = lastAppeared!!.placeName,
-                                    color = Color(0xFFF2EDE8),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    modifier = Modifier.padding(8.dp)
-                                )
-                            }
-                        }
-                    )
-                }
-
-                Clustering(
-                    items = visibleLocations,
-                    onClusterClick = { true },
-                    onClusterItemClick = { item ->
-                        selectedLocationWithEntries = item
-                        true
-                    },
-                    clusterContent = { cluster ->
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .background(AccentPrimary, CircleShape)
-                                .shadow(4.dp, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = cluster.size.toString(),
-                                color = Color(0xFF1A1A1F),
-                                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
-                            )
-                        }
-                    },
-                    clusterItemContent = { item ->
-                        MarqueurSouvenir(memoriesCount = item.location.memoriesCount)
-                    }
+        ) {
+            // Fil d'or chronologique
+            if (trailPoints.size >= 2) {
+                Polyline(
+                    points = trailPoints,
+                    color = accent,
+                    width = 6f,
+                    geodesic = true
                 )
             }
 
-            // ── Titre et Overlay Haut ─────────────────
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(100.dp)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(BackgroundPrimary.copy(alpha = 0.9f), Color.Transparent)
+            // Moteur de Clustering Intelligent
+            Clustering(
+                items = visibleLocations,
+                onClusterClick = { cluster ->
+                    // ACTION : Zoomer sur le groupe au clic
+                    coroutineScope.launch {
+                        cameraPositionState.animate(
+                            CameraUpdateFactory.newLatLngZoom(cluster.position, cameraPositionState.position.zoom + 2f),
+                            800
                         )
-                    )
-                    .align(Alignment.TopCenter)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(horizontal = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
                     }
-                    Text(
+                    true
+                },
+                onClusterItemClick = { item ->
+                    // Navigation directe vers le QG du lieu
+                    navController.navigate("location_detail/${item.location.id}")
+                    true
+                },
+                clusterContent = { cluster ->
+                    Box(
+                        modifier = Modifier
+                            .size(54.dp)
+                            .background(accent, CircleShape)
+                            .shadow(8.dp, CircleShape)
+                            .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = cluster.size.toString(),
+                            color = Color(0xFF1A1A1F),
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        )
+                    }
+                },
+                clusterItemContent = { item ->
+                    MarqueurSouvenir(memoriesCount = item.location.memoriesCount)
+                }
+            )
+        }
+
+        // ── Overlay Haut : Titre + Recherche ─────────────────
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(listOf(BackgroundPrimary.copy(alpha = 0.95f), Color.Transparent)))
+                .statusBarsPadding()
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
+                }
+                Text(
                     text = "Ma Mappemonde",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
+                    style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 22.sp),
                     color = TextPrimary,
                     modifier = Modifier.weight(1f)
                 )
+                IconButton(onClick = { showInventory = true }) {
+                    Icon(Icons.AutoMirrored.Filled.List, null, tint = accent)
+                }
                 InfoButton(
                     title = "La Mappemonde",
                     points = listOf(
-                        "Épingle des souvenirs sur n'importe quel lieu dans le monde.",
                         "Maintiens ton doigt sur un point de la carte pour créer un marqueur.",
-                        "Plus un lieu contient de souvenirs, plus son marqueur est grand et brillant.",
-                        "Utilise le slider en bas pour voir ta trajectoire géographique de vie.",
-                        "Le fil doré relie tes lieux dans l'ordre chronologique."
+                        "Tape sur un marqueur pour voir et modifier ses souvenirs.",
+                        "Le fil doré relie tes lieux dans l'ordre chronologique.",
+                        "Le slider en bas permet de filtrer tes lieux par âge.",
+                        "Recherche une adresse avec la barre flottante."
                     )
                 )
-                Text(
-                    text = "${visibleLocations.size} lieux",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AccentPrimary
-                    )
-                }
             }
 
-            // ── Barre de recherche flottante ──────────
+            // Barre de recherche flottante
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp)
-                    .padding(top = 110.dp) // Sous le titre, aligné avec le bouton globe
-                    .align(Alignment.TopCenter),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xF01E1E23)
-                ),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xF01E1E23)),
                 shape = RoundedCornerShape(14.dp),
-                elevation = CardDefaults.cardElevation(8.dp)
+                elevation = CardDefaults.cardElevation(10.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = null,
-                        tint = LocalAccentColor.current,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Icon(Icons.Default.Search, null, tint = accent, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(8.dp))
                     BasicTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(vertical = 10.dp),
-                        textStyle = TextStyle(
-                            color = Color(0xFFF2EDE8),
-                            fontSize = 15.sp,
-                            fontFamily = FontFamily.SansSerif
-                        ),
+                        modifier = Modifier.weight(1f).padding(vertical = 10.dp),
+                        textStyle = TextStyle(color = TextPrimary, fontSize = 15.sp, fontFamily = FontFamily.SansSerif),
                         decorationBox = { innerTextField ->
-                            if (searchQuery.isEmpty()) {
-                                Text(
-                                    "Chercher un lieu ou une adresse...",
-                                    color = Color(0xFF5C5855),
-                                    fontSize = 15.sp
-                                )
-                            }
+                            if (searchQuery.isEmpty()) Text("Chercher un lieu ou une adresse...", color = TextTertiary, fontSize = 15.sp)
                             innerTextField()
                         },
-                        keyboardOptions = KeyboardOptions(
-                            imeAction = ImeAction.Search
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onSearch = {
-                                coroutineScope.launch {
-                                    searchAddress(
-                                        context = context,
-                                        query = searchQuery,
-                                        cameraPositionState = cameraPositionState,
-                                        onSearchStateChange = { isSearching = it }
-                                    )
-                                }
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = {
+                            coroutineScope.launch {
+                                searchAddress(context, searchQuery, cameraPositionState) { isSearching = it }
                             }
-                        ),
+                        }),
                         singleLine = true
                     )
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(
-                            onClick = { searchQuery = "" },
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = null,
-                                tint = Color(0xFF5C5855),
-                                modifier = Modifier.size(16.dp)
-                            )
+                    if (isSearching) {
+                        CircularProgressIndicator(color = accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    } else if (searchQuery.isNotEmpty()) {
+                        IconButton(onClick = { searchQuery = "" }, modifier = Modifier.size(28.dp)) {
+                            Icon(Icons.Default.Close, null, tint = TextTertiary, modifier = Modifier.size(16.dp))
                         }
                     }
-                    if (isSearching) {
-                        CircularProgressIndicator(
-                            color = LocalAccentColor.current,
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                    }
                 }
             }
+        }
 
-            // ── Toggle Globe / Classic ─────────────────
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(top = 180.dp, end = 16.dp) // Décalé vers le bas car la barre de recherche prend de la place
+        // ── Boutons flottants à droite ──
+        Column(
+            modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            FloatingActionButton(
+                onClick = { viewModel.toggleMapView() },
+                containerColor = SurfaceCard,
+                contentColor = accent,
+                modifier = Modifier.size(48.dp),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                FloatingActionButton(
-                    onClick = { viewModel.toggleMapView() },
-                    containerColor = SurfaceCard,
-                    contentColor = AccentPrimary,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = if (isGlobeView) Icons.Default.Map else Icons.Default.Public,
-                        contentDescription = "Changer de vue"
-                    )
+                // RESTAURATION : Icône d'origine pour la bascule
+                Icon(imageVector = if (isGlobeView) Icons.Default.Map else Icons.Default.Public, contentDescription = null)
+            }
+        }
+
+        // ── Instructions quand vide ──
+        if (!isLoading && allLocations.isEmpty() && mode == MapMode.CREATOR) {
+            Card(
+                modifier = Modifier.align(Alignment.Center).padding(32.dp),
+                colors = CardDefaults.cardColors(containerColor = BackgroundPrimary.copy(alpha = 0.85f)),
+                shape = RoundedCornerShape(16.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.4f))
+            ) {
+                Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.LocationOn, null, tint = accent, modifier = Modifier.size(44.dp))
+                    Spacer(Modifier.height(16.dp))
+                    Text("Ta Mappemonde est vierge", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                    Spacer(Modifier.height(8.dp))
+                    Text("Maintiens ton doigt sur le globe pour épingler ton premier souvenir géographique.", textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                 }
             }
+        }
 
-            // ── Instructions ──
-            if (visibleLocations.isEmpty() && mode == MapMode.CREATOR) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 120.dp)
-                        .background(BackgroundPrimary.copy(alpha = 0.85f), RoundedCornerShape(12.dp))
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Maintiens ton doigt sur un lieu\npour y épingler un souvenir",
-                        style = TextStyle(fontSize = 14.sp, color = TextSecondary, textAlign = TextAlign.Center)
-                    )
+        // ── Slider Timeline Flottant ──
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp, start = 20.dp, end = 20.dp)
+        ) {
+            GeographicTimeline(
+                currentAge = currentAge,
+                selectedAge = timelineAge,
+                onAgeChange = { viewModel.onTimelineSlide(it) }
+            )
+        }
+
+        // ── BottomSheets & Dialogs ──
+        if (selectedLocationWithEntries != null) {
+            LocationBottomSheet(
+                data = selectedLocationWithEntries!!,
+                mode = mode,
+                viewModel = viewModel,
+                navController = navController,
+                onClose = { selectedLocationWithEntries = null }
+            )
+        }
+
+        if (showInventory) {
+            InventoryBottomSheet(
+                locations = allLocations,
+                onClose = { showInventory = false },
+                onSelect = { 
+                    showInventory = false
+                    navController.navigate("location_detail/${it.location.id}")
                 }
-            }
+            )
+        }
 
-            // ── BottomSheet : fiche du lieu sélectionné
-            if (selectedLocationWithEntries != null) {
-                LocationBottomSheet(
-                    data = selectedLocationWithEntries!!,
-                    mode = mode,
-                    onClose = { selectedLocationWithEntries = null },
-                    onViewMemories = {
-                        navController.navigate("location_detail/${selectedLocationWithEntries!!.location.id}")
-                        selectedLocationWithEntries = null
-                    },
-                    onAddMemory = {
-                        navController.navigate("capture?locationId=${selectedLocationWithEntries!!.location.id}")
-                        selectedLocationWithEntries = null
-                    },
-                    onDelete = {
-                        viewModel.removeLocation(selectedLocationWithEntries!!.location.id)
-                        selectedLocationWithEntries = null
-                    }
-                )
-            }
-
-            // ── Dialog ajout nouveau lieu ─────────────
-            if (showAddLocationDialog && pendingLatLng != null) {
-                AddLocationDialog(
-                    latLng = pendingLatLng!!,
-                    onConfirm = { placeName, emoji, visitedAt ->
-                        viewModel.pinLocation(pendingLatLng!!, placeName, "", emoji, visitedAt)
-                        showAddLocationDialog = false
-                    },
-                    onDismiss = { showAddLocationDialog = false }
-                )
-            }
+        if (showAddLocationDialog && pendingLatLng != null) {
+            AddLocationDialog(
+                latLng = pendingLatLng!!,
+                onConfirm = { placeName, emoji, visitedAt ->
+                    viewModel.pinLocation(pendingLatLng!!, placeName, "", emoji, visitedAt)
+                    showAddLocationDialog = false
+                },
+                onDismiss = { showAddLocationDialog = false }
+            )
         }
     }
 }
 
 @Composable
 fun MarqueurSouvenir(memoriesCount: Int) {
+    val accent = LocalAccentColor.current
     val size = when {
         memoriesCount == 0 -> 24.dp
-        memoriesCount <= 3 -> 32.dp
-        memoriesCount <= 10 -> 40.dp
-        else -> 52.dp
+        memoriesCount <= 3 -> 36.dp
+        memoriesCount <= 10 -> 48.dp
+        else -> 60.dp
     }
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.4f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = LinearOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
+        targetValue = 1.35f,
+        animationSpec = infiniteRepeatable(animation = tween(2200, easing = LinearOutSlowInEasing), repeatMode = RepeatMode.Reverse),
         label = "scale"
     )
 
-    Box(
-        modifier = Modifier.size(size * 1.5f),
-        contentAlignment = Alignment.Center
-    ) {
-        // Halo pulsant
-        Box(
-            modifier = Modifier
-                .size(size * scale)
-                .background(AccentPrimary.copy(alpha = 0.3f), CircleShape)
-        )
-        // Cercle intérieur fixe
-        Box(
-            modifier = Modifier
-                .size(size)
-                .background(AccentPrimary, CircleShape)
-                .shadow(4.dp, CircleShape),
-            contentAlignment = Alignment.Center
+    Box(contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.size(size * scale).background(accent.copy(alpha = 0.25f), CircleShape))
+        Surface(
+            modifier = Modifier.size(size).shadow(8.dp, CircleShape),
+            shape = CircleShape,
+            color = accent,
+            border = androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.6f))
         ) {
-            if (memoriesCount >= 11) {
-                Icon(
-                    Icons.Default.Star,
-                    contentDescription = null,
-                    tint = Color(0xFF1A1A1F),
-                    modifier = Modifier.size(24.dp)
-                )
-            } else if (memoriesCount > 0) {
-                Text(
-                    text = memoriesCount.toString(),
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1A1A1F),
-                        fontSize = 10.sp
-                    )
-                )
+            Box(contentAlignment = Alignment.Center) {
+                if (memoriesCount >= 11) {
+                    Icon(Icons.Default.Star, null, tint = Color(0xFF1A1A1F), modifier = Modifier.size((size.value * 0.5f).dp))
+                } else if (memoriesCount > 0) {
+                    Text(memoriesCount.toString(), color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold, fontSize = (size.value * 0.35f).sp)
+                } else {
+                    Box(modifier = Modifier.size(5.dp).background(Color(0xFF1A1A1F), CircleShape))
+                }
             }
         }
     }
 }
 
 @Composable
-fun GeographicTimeline(
-    currentAge: Int,
-    selectedAge: Int,
-    onAgeChange: (Int) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF1A1A1F))
-            .padding(top = 8.dp, bottom = 24.dp, start = 24.dp, end = 24.dp)
-            .border(width = 1.dp, color = Color(0xFF2E2E35), shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-            .padding(top = 16.dp)
+fun GeographicTimeline(currentAge: Int, selectedAge: Int, onAgeChange: (Int) -> Unit) {
+    val accent = LocalAccentColor.current
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xF21A1A1F)),
+        shape = RoundedCornerShape(20.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
     ) {
-        Text(
-            text = "Trajectoire de vie",
-            style = MaterialTheme.typography.labelSmall,
-            color = Color(0xFF5C5855),
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            letterSpacing = 1.sp
-        )
-
-        Slider(
-            value = selectedAge.toFloat(),
-            onValueChange = { onAgeChange(it.toInt()) },
-            valueRange = 0f..currentAge.toFloat().coerceAtLeast(1f),
-            colors = SliderDefaults.colors(
-                thumbColor = AccentPrimary,
-                activeTrackColor = AccentPrimary,
-                inactiveTrackColor = Color(0xFF2E2E35)
-            ),
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text("Naissance", style = MaterialTheme.typography.labelSmall, color = Color(0xFF5C5855))
-            Text("$selectedAge ans", style = MaterialTheme.typography.bodyMedium, color = Color(0xFF9B9590), fontWeight = FontWeight.Bold)
-            Text("Aujourd'hui", style = MaterialTheme.typography.labelSmall, color = Color(0xFF5C5855))
+        Column(modifier = Modifier.padding(18.dp)) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text("TRAJECTOIRE DE VIE", style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp, fontWeight = FontWeight.Bold), color = TextTertiary)
+                Text(if (selectedAge >= currentAge) "Aujourd'hui" else "$selectedAge ans", color = accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
+            }
+            Spacer(Modifier.height(4.dp))
+            Slider(
+                value = selectedAge.toFloat(),
+                onValueChange = { onAgeChange(it.toInt()) },
+                valueRange = 0f..currentAge.toFloat().coerceAtLeast(1f),
+                colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent, inactiveTrackColor = Color(0xFF2E2E35))
+            )
         }
     }
 }
@@ -502,127 +406,186 @@ fun GeographicTimeline(
 fun LocationBottomSheet(
     data: LocationWithEntries,
     mode: MapMode,
-    onClose: () -> Unit,
-    onViewMemories: () -> Unit,
-    onAddMemory: () -> Unit,
-    onDelete: () -> Unit
+    viewModel: MappamondeViewModel,
+    navController: NavController,
+    onClose: () -> Unit
 ) {
     val location = data.location
     val entries = data.entries
+    val accent = LocalAccentColor.current
+    
+    var isEditingName by remember { mutableStateOf(false) }
+    var editedName by remember { mutableStateOf(location.placeName) }
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    val dateState = rememberDatePickerState(
+        initialSelectedDateMillis = if (location.visitedAt > 0) location.visitedAt else System.currentTimeMillis()
+    )
 
     ModalBottomSheet(
         onDismissRequest = onClose,
         containerColor = BackgroundSecondary,
         dragHandle = { BottomSheetDefaults.DragHandle(color = TextTertiary) }
     ) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 40.dp)
-                .fillMaxWidth()
-        ) {
+        Column(modifier = Modifier.padding(horizontal = 24.dp).padding(bottom = 44.dp).fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(location.emoji, fontSize = 32.sp)
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(location.placeName, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif), color = TextPrimary)
-                    Text(location.countryName, style = MaterialTheme.typography.bodySmall, color = TextTertiary)
+                Text(location.emoji, fontSize = 36.sp)
+                Spacer(modifier = Modifier.width(18.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    if (isEditingName) {
+                        OutlinedTextField(
+                            value = editedName,
+                            onValueChange = { editedName = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = TextStyle(fontFamily = FontFamily.Serif, fontSize = 20.sp, color = TextPrimary),
+                            trailingIcon = {
+                                IconButton(onClick = { viewModel.updateLocationName(location.id, editedName); isEditingName = false }) {
+                                    Icon(Icons.Default.Check, null, tint = accent)
+                                }
+                            },
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                        )
+                    } else {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(location.placeName, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold), color = TextPrimary)
+                            IconButton(onClick = { isEditingName = true }, modifier = Modifier.size(32.dp)) {
+                                Icon(Icons.Default.Edit, null, tint = TextTertiary, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+                    
+                    // Date éditable
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { showDatePicker = true }) {
+                        Icon(Icons.Default.CalendarToday, null, tint = accent, modifier = Modifier.size(12.dp))
+                        Spacer(Modifier.width(6.dp))
+                        val dateStr = if (location.visitedAt > 0) {
+                            SimpleDateFormat("MMMM yyyy", Locale.FRENCH).format(Date(location.visitedAt))
+                        } else "Ajouter une date"
+                        Text(dateStr, style = MaterialTheme.typography.labelSmall, color = if (location.visitedAt > 0) TextTertiary else accent)
+                    }
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
-            Text(
-                text = "${entries.size} souvenir(s) à cet endroit",
-                style = MaterialTheme.typography.labelMedium,
-                color = AccentPrimary
-            )
+            Text(text = "${entries.size} souvenir(s) à cet endroit", style = MaterialTheme.typography.labelMedium, color = accent)
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-            // Mini-carrousel des résumés
+            // Carrousel des souvenirs
             if (entries.isNotEmpty()) {
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    items(entries.take(5)) { entry: com.example.phoenx.data.local.OfflineEntry ->
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp), contentPadding = PaddingValues(vertical = 4.dp)) {
+                    items(entries) { entry ->
                         Card(
-                            modifier = Modifier
-                                .width(240.dp)
-                                .height(120.dp),
-                            colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-                            shape = RoundedCornerShape(12.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
+                            modifier = Modifier.width(280.dp).height(140.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+                            shape = RoundedCornerShape(14.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Icon(Icons.Default.AutoStories, null, tint = AccentPrimary.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                            Column(modifier = Modifier.padding(14.dp).fillMaxSize()) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.AutoStories, null, tint = accent.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("SOUVENIR", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = TextTertiary)
+                                }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = entry.aiSummary.ifEmpty { "Souvenir capturé..." },
-                                    style = MaterialTheme.typography.bodySmall.copy(
-                                        fontFamily = FontFamily.Serif,
-                                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                                        lineHeight = 18.sp
-                                    ),
+                                    text = entry.aiSummary.ifEmpty { "Souvenir précieux..." },
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, lineHeight = 18.sp),
                                     color = TextSecondary,
                                     maxLines = 3,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
                     }
                 }
             } else {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .background(SurfaceCard, RoundedCornerShape(12.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Aucun résumé disponible", color = TextTertiary, style = MaterialTheme.typography.bodySmall)
+                Box(modifier = Modifier.fillMaxWidth().height(90.dp).background(Color(0xFF1E1E23), RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
+                    Text("Aucun souvenir attaché ici.", color = TextTertiary, style = MaterialTheme.typography.bodySmall)
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
+            Spacer(modifier = Modifier.height(28.dp))
+            
             if (mode == MapMode.CREATOR) {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Button(
-                        onClick = onAddMemory,
-                        modifier = Modifier.weight(1f).height(56.dp).phoenXMatiere(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                        onClick = { 
+                            navController.navigate(com.example.phoenx.ui.navigation.Screen.Capture.createRoute(com.example.phoenx.ui.navigation.Screen.Capture.TYPE_TEXT, locationId = location.id))
+                            onClose() 
+                        },
+                        modifier = Modifier.weight(1.4f).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = accent),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Icon(Icons.Default.Add, null, modifier = Modifier.size(20.dp), tint = BackgroundPrimary)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Épingler", color = BackgroundPrimary)
+                        Icon(Icons.Default.Add, null, tint = BackgroundPrimary)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Épingler", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
                     }
                     
                     OutlinedButton(
-                        onClick = onViewMemories,
+                        onClick = { navController.navigate("location_detail/${location.id}"); onClose() },
                         modifier = Modifier.weight(1f).height(56.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary)
+                        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Tout voir", color = TextPrimary)
+                        Text("Détails", color = TextPrimary)
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                TextButton(
-                    onClick = onDelete,
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                ) {
-                    Text("Supprimer ce lieu", color = Color(0xFFE57373), style = MaterialTheme.typography.labelSmall)
+                Spacer(modifier = Modifier.height(20.dp))
+                TextButton(onClick = { viewModel.removeLocation(location.id); onClose() }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                    Text("Supprimer ce lieu", color = Error, style = MaterialTheme.typography.labelSmall)
                 }
+            }
+        }
+
+        if (showDatePicker) {
+            DatePickerDialog(
+                onDismissRequest = { showDatePicker = false },
+                confirmButton = {
+                    TextButton(onClick = {
+                        dateState.selectedDateMillis?.let { viewModel.updateLocationDate(location.id, it) }
+                        showDatePicker = false
+                    }) { Text("Confirmer", color = accent) }
+                },
+                dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Annuler", color = TextPrimary) } }
+            ) {
+                DatePicker(state = dateState)
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InventoryBottomSheet(locations: List<LocationWithEntries>, onClose: () -> Unit, onSelect: (LocationWithEntries) -> Unit) {
+    ModalBottomSheet(onDismissRequest = onClose, containerColor = BackgroundSecondary) {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 40.dp)) {
+            Text("Mes Lieux Épinglés", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold), color = TextPrimary)
+            Spacer(modifier = Modifier.height(20.dp))
+            if (locations.isEmpty()) {
+                Text("Aucun lieu pour le moment.", color = TextTertiary, modifier = Modifier.padding(vertical = 20.dp))
             } else {
-                Button(
-                    onClick = onViewMemories,
-                    modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
-                ) {
-                    Text("Découvrir les souvenirs", color = BackgroundPrimary)
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(locations) { item ->
+                        Card(
+                            onClick = { onSelect(item) },
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF242429)),
+                            shape = RoundedCornerShape(14.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+                        ) {
+                            Row(modifier = Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Text(item.location.emoji, fontSize = 28.sp)
+                                Spacer(Modifier.width(16.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(item.location.placeName, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
+                                    Text("${item.entries.size} souvenirs", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                                }
+                                Icon(Icons.Default.ChevronRight, null, tint = TextTertiary)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -630,80 +593,47 @@ fun LocationBottomSheet(
 }
 
 @Composable
-fun AddLocationDialog(
-    latLng: LatLng,
-    onConfirm: (String, String, Long) -> Unit,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
+fun AddLocationDialog(latLng: LatLng, onConfirm: (String, String, Long) -> Unit, onDismiss: () -> Unit) {
     var placeName by remember { mutableStateOf("") }
     var selectedEmoji by remember { mutableStateOf("📍") }
-    val emojis = listOf("📍", "🏖️", "🏔️", "🌆", "🏛️", "🌿", "🏝️", "🎭", "🍷", "🎿", "🌊", "🏕️")
+    val emojis = listOf("📍", "🏠", "🏖️", "🏔️", "🌆", "🌿", "🏛️", "🎭", "🍷", "🎿", "🌊", "🏕️")
+    val context = LocalContext.current
+    val accent = LocalAccentColor.current
 
     LaunchedEffect(latLng) {
-        val geocoder = Geocoder(context, Locale.getDefault())
-        try {
+        withContext(Dispatchers.IO) {
+            val geocoder = Geocoder(context, Locale.getDefault())
             @Suppress("DEPRECATION")
-            val addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
-            placeName = addresses?.firstOrNull()?.locality ?: addresses?.firstOrNull()?.countryName ?: "Lieu inconnu"
-        } catch (e: Exception) {
-            placeName = "Lieu inconnu"
+            val results = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+            results?.firstOrNull()?.let { placeName = it.locality ?: it.countryName ?: "" }
         }
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = SurfaceCard,
-        title = { Text("Épingler ce souvenir", color = TextPrimary, style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif)) },
+        containerColor = BackgroundSecondary,
+        title = { Text("Nouveau lieu", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, color = TextPrimary) },
         text = {
             Column {
-                OutlinedTextField(
-                    value = placeName,
-                    onValueChange = { placeName = it },
-                    label = { Text("Nom du lieu") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentPrimary)
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                Text("Choisir un symbole :", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
-                Spacer(modifier = Modifier.height(8.dp))
-                LazyVerticalGrid(columns = GridCells.Fixed(6), modifier = Modifier.height(100.dp)) {
+                OutlinedTextField(value = placeName, onValueChange = { placeName = it }, label = { Text("Nom du lieu") }, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent))
+                Spacer(Modifier.height(20.dp))
+                Text("Icône :", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+                Spacer(Modifier.height(10.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(emojis) { emoji ->
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(if (selectedEmoji == emoji) AccentPrimary.copy(alpha = 0.2f) else Color.Transparent)
-                                .clickable { selectedEmoji = emoji }
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(emoji, fontSize = 20.sp)
+                        Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(if (selectedEmoji == emoji) accent.copy(alpha = 0.25f) else Color.Transparent).border(if (selectedEmoji == emoji) 1.dp else 0.dp, accent, CircleShape).clickable { selectedEmoji = emoji }, contentAlignment = Alignment.Center) {
+                            Text(emoji, fontSize = 22.sp)
                         }
                     }
                 }
             }
         },
-        confirmButton = {
-            Button(onClick = { onConfirm(placeName, selectedEmoji, System.currentTimeMillis()) }, colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)) {
-                Text("Épingler", color = BackgroundPrimary)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Annuler", color = TextSecondary) }
-        }
+        confirmButton = { Button(onClick = { onConfirm(placeName, selectedEmoji, System.currentTimeMillis()) }, colors = ButtonDefaults.buttonColors(containerColor = accent), shape = RoundedCornerShape(10.dp)) { Text("Épingler", color = BackgroundPrimary, fontWeight = FontWeight.Bold) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler", color = TextPrimary) } }
     )
 }
 
-/**
- * Fonction de recherche d'adresse par géocodage
- */
-suspend fun searchAddress(
-    context: Context,
-    query: String,
-    cameraPositionState: CameraPositionState,
-    onSearchStateChange: (Boolean) -> Unit
-) {
+suspend fun searchAddress(context: Context, query: String, cameraPositionState: CameraPositionState, onSearchStateChange: (Boolean) -> Unit) {
     if (query.isBlank()) return
     onSearchStateChange(true)
     try {
@@ -711,24 +641,17 @@ suspend fun searchAddress(
             val geocoder = Geocoder(context, Locale.getDefault())
             @Suppress("DEPRECATION")
             val results = geocoder.getFromLocationName(query, 1)
-            
             if (!results.isNullOrEmpty()) {
-                val location = results[0]
-                val latLng = LatLng(location.latitude, location.longitude)
+                val loc = results[0]
                 withContext(Dispatchers.Main) {
-                    cameraPositionState.animate(
-                        update = CameraUpdateFactory.newLatLngZoom(latLng, 14f),
-                        durationMs = 800
-                    )
+                    cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(LatLng(loc.latitude, loc.longitude), 14f), 1200)
                 }
             } else {
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Lieu introuvable. Essaie une autre adresse.", Toast.LENGTH_SHORT).show()
-                }
+                withContext(Dispatchers.Main) { Toast.makeText(context, "Lieu introuvable", Toast.LENGTH_SHORT).show() }
             }
         }
     } catch (e: Exception) {
-        android.util.Log.e("Mappemonde", "Erreur géocodage", e)
+        android.util.Log.e("Mappemonde", "Erreur", e)
     } finally {
         onSearchStateChange(false)
     }

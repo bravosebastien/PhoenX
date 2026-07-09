@@ -1,7 +1,6 @@
 package com.example.phoenx.ui.screens.mappemonde
 
 import com.example.phoenx.data.local.OfflineEntry
-import com.example.phoenx.domain.model.AgeSnapshot
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.clustering.ClusterItem
 
@@ -12,7 +11,9 @@ data class LocationMemory(
     val placeName: String = "",
     val countryName: String = "",
     val emoji: String = "📍",
-    val visitedAt: Long = 0L,
+    val visitedAt: Long = 0L, // Date unique (legacy)
+    val startDate: Long? = null, // Début de période (Signature 7.1)
+    val endDate: Long? = null,   // Fin de période (Signature 7.1)
     val entryIds: List<String> = emptyList(),
     val coverPhotoUrl: String = "",
     val memoriesCount: Int = 0

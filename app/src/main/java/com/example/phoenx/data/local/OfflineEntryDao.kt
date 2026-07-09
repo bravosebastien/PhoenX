@@ -87,6 +87,18 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM offline_entries WHERE pactId = :pactId")
     fun getEntriesForPact(pactId: String): Flow<List<OfflineEntry>>
 
+    @Query("SELECT * FROM offline_entries WHERE locationId = :locationId")
+    fun getEntriesForLocation(locationId: String): Flow<List<OfflineEntry>>
+
     @Query("SELECT * FROM offline_entries WHERE id IN (:ids)")
     fun getEntriesByIds(ids: List<String>): Flow<List<OfflineEntry>>
+
+    @Query("UPDATE offline_entries SET aiSummary = :newSummary WHERE id = :entryId")
+    suspend fun updateEntrySummary(newSummary: String, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET recipientIds = :newIds WHERE id = :entryId")
+    suspend fun updateEntryRecipients(newIds: String, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET latitude = NULL, longitude = NULL, locationName = NULL, locationId = NULL WHERE id = :entryId")
+    suspend fun detachEntryFromLocation(entryId: String): Int
 }

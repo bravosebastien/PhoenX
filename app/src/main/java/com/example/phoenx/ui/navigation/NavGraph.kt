@@ -192,7 +192,8 @@ fun PhoenXNavGraph(
                 navArgument("pendingQuestionId") { nullable = true },
                 navArgument("lat") { nullable = true },
                 navArgument("lng") { nullable = true },
-                navArgument("locationName") { nullable = true }
+                navArgument("locationName") { nullable = true },
+                navArgument("locationId") { nullable = true }
             )
         ) { backStackEntry ->
             val type = backStackEntry.arguments?.getString("type") ?: Screen.Capture.TYPE_TEXT
@@ -202,6 +203,7 @@ fun PhoenXNavGraph(
             val lat = backStackEntry.arguments?.getString("lat")?.toDoubleOrNull()
             val lng = backStackEntry.arguments?.getString("lng")?.toDoubleOrNull()
             val locationName = backStackEntry.arguments?.getString("locationName")
+            val locationId = backStackEntry.arguments?.getString("locationId")
 
             CaptureScreen(
                 initialType = type, 
@@ -211,6 +213,7 @@ fun PhoenXNavGraph(
                 latitude = lat,
                 longitude = lng,
                 locationName = locationName,
+                locationId = locationId,
                 onNavigateBack = { navController.popBackStack() }
             )
         }

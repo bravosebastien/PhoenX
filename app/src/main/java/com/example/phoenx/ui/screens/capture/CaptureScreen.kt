@@ -1,10 +1,18 @@
 package com.example.phoenx.ui.screens.capture
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -13,15 +21,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -29,28 +37,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.camera.view.PreviewView
-import androidx.compose.material.icons.filled.*
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.example.phoenx.R
-import com.example.phoenx.ui.components.BookWritingMode
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.navigation.Screen
@@ -58,12 +59,10 @@ import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
-import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
-import java.util.concurrent.Executor
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,6 +74,7 @@ fun CaptureScreen(
     latitude: Double? = null,
     longitude: Double? = null,
     locationName: String? = null,
+    locationId: String? = null,
     onNavigateBack: () -> Unit,
     viewModel: CaptureViewModel = hiltViewModel()
 ) {
@@ -82,8 +82,17 @@ fun CaptureScreen(
     val scope = rememberCoroutineScope()
     val suggestPin by viewModel.suggestPin.collectAsState()
     val detectedLocation by viewModel.detectedLocation.collectAsState()
-    
-    // GESTION DES PERMISSIONS
+    val preselectedName by viewModel.preselectedLocationName.collectAsState()
+
+    var selectedGalleryUri by remember { mutableStateOf<Uri?>(null) }
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            selectedGalleryUri = uri
+        } else if (initialType == Screen.Capture.TYPE_GALLERY) {
+            onNavigateBack()
+        }
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -92,6 +101,7 @@ fun CaptureScreen(
 
     LaunchedEffect(Unit) {
         viewModel.checkLocationForPin(context)
+        viewModel.setPreselectedLocation(locationId)
     }
 
     LaunchedEffect(initialType) {
@@ -105,26 +115,26 @@ fun CaptureScreen(
                 permissionLauncher.launch(permission)
             }
         }
+        if (initialType == Screen.Capture.TYPE_GALLERY) {
+            galleryLauncher.launch("*/*")
+        }
     }
 
     var text by remember { mutableStateOf(initialText) }
     var selectedCategory by remember { mutableStateOf("Sagesse") }
     var visibility by remember { mutableStateOf("Privé") }
-    var useBookMode by remember { mutableStateOf(true) }
     val selectedRecipientIds = remember { mutableStateListOf<String>() }
     val recipients by viewModel.recipients.collectAsState()
     val isSttListening by viewModel.isSttListening.collectAsState()
     val sttPartialText by viewModel.sttPartialText.collectAsState()
     val transcript by viewModel.transcript.collectAsState()
 
-    // Synchroniser le texte avec la transcription vocale
     LaunchedEffect(transcript) {
         if (transcript.isNotEmpty()) {
             text = if (text.isEmpty()) transcript else "$text $transcript"
         }
     }
-    
-    // OPTIONS AVANCÉES (ADN 5.0)
+
     var showAdvancedOptions by remember { mutableStateOf(false) }
     var enigmaQuestion by remember { mutableStateOf("") }
     var enigmaAnswer by remember { mutableStateOf("") }
@@ -153,12 +163,13 @@ fun CaptureScreen(
                 if (event.key == Key.VolumeUp || event.key == Key.VolumeDown) {
                     viewModel.stopAudioRecording()
                     viewModel.saveEntry(
-                        content = null, 
-                        mediaFile = null, 
-                        type = initialType, 
-                        category = "Sagesse", 
+                        content = null,
+                        mediaFile = null,
+                        type = initialType,
+                        category = "Sagesse",
                         visibility = "Privé",
-                        pendingQuestionId = pendingQuestionId
+                        pendingQuestionId = pendingQuestionId,
+                        locationId = locationId
                     )
                     return@onKeyEvent true
                 }
@@ -168,11 +179,12 @@ fun CaptureScreen(
         topBar = {
             if (!isNightMode) {
                 TopAppBar(
-                    title = { 
+                    title = {
                         Text(
-                            text = when(initialType) {
+                            text = when (initialType) {
                                 Screen.Capture.TYPE_AUDIO -> "Capture Vocale"
-                                Screen.Capture.TYPE_PHOTO -> "Capture Visuelle"
+                                Screen.Capture.TYPE_PHOTO -> "Caméra"
+                                Screen.Capture.TYPE_GALLERY -> "Galerie"
                                 else -> "Nouvelle Pensée"
                             },
                             style = MaterialTheme.typography.labelLarge
@@ -193,7 +205,7 @@ fun CaptureScreen(
             }
         },
         bottomBar = {
-            if (!isNightMode && (initialType == Screen.Capture.TYPE_TEXT || initialType == Screen.Capture.TYPE_PHOTO)) {
+            if (!isNightMode && (initialType == Screen.Capture.TYPE_TEXT || initialType == Screen.Capture.TYPE_PHOTO || initialType == Screen.Capture.TYPE_GALLERY)) {
                 BottomAppBar(containerColor = backgroundColor, tonalElevation = 0.dp) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
@@ -204,12 +216,12 @@ fun CaptureScreen(
                             Text("Annuler", color = TextSecondary)
                         }
                         Button(
-                            onClick = { 
+                            onClick = {
                                 viewModel.saveEntry(
-                                    content = text, 
-                                    mediaFile = capturedPhotoFile, 
-                                    type = initialType, 
-                                    category = selectedCategory, 
+                                    content = text,
+                                    mediaFile = capturedPhotoFile,
+                                    type = initialType,
+                                    category = selectedCategory,
                                     visibility = visibility,
                                     recipientIds = selectedRecipientIds.toList(),
                                     pendingQuestionId = pendingQuestionId,
@@ -219,10 +231,11 @@ fun CaptureScreen(
                                     pactId = pactId,
                                     latitude = latitude,
                                     longitude = longitude,
-                                    locationName = locationName
-                                ) 
+                                    locationName = locationName,
+                                    locationId = locationId
+                                )
                             },
-                            enabled = (text.isNotEmpty() || capturedPhotoFile != null || initialType == Screen.Capture.TYPE_PHOTO) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
+                            enabled = (text.isNotEmpty() || capturedPhotoFile != null || selectedGalleryUri != null || initialType == Screen.Capture.TYPE_PHOTO) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
                             colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
                             shape = MaterialTheme.shapes.medium
                         ) {
@@ -248,12 +261,13 @@ fun CaptureScreen(
                         if (uiState is CaptureUiState.RecordingAudio) {
                             viewModel.stopAudioRecording()
                             viewModel.saveEntry(
-                                content = null, 
-                                mediaFile = null, 
-                                type = Screen.Capture.TYPE_NIGHT, 
-                                category = "Sagesse", 
+                                content = null,
+                                mediaFile = null,
+                                type = Screen.Capture.TYPE_NIGHT,
+                                category = "Sagesse",
                                 visibility = "Privé",
-                                pendingQuestionId = pendingQuestionId
+                                pendingQuestionId = pendingQuestionId,
+                                locationId = locationId
                             )
                         }
                     }
@@ -277,20 +291,21 @@ fun CaptureScreen(
                                 transcript = text,
                                 partialText = sttPartialText,
                                 onStart = { viewModel.startVocalCapture() },
-                                onStop = { 
-                                    viewModel.stopVocalCapture()
-                                },
+                                onStop = { viewModel.stopVocalCapture() },
                                 onSave = {
                                     viewModel.saveEntry(
-                                        content = text, 
-                                        mediaFile = null, 
-                                        type = Screen.Capture.TYPE_TEXT, 
-                                        category = selectedCategory, 
-                                        visibility = visibility, 
+                                        content = text,
+                                        mediaFile = null,
+                                        type = Screen.Capture.TYPE_TEXT,
+                                        category = selectedCategory,
+                                        visibility = visibility,
                                         recipientIds = selectedRecipientIds.toList(),
-                                        pendingQuestionId = pendingQuestionId
+                                        pendingQuestionId = pendingQuestionId,
+                                        locationId = locationId
                                     )
-                                }
+                                },
+                                recipients = recipients,
+                                selectedRecipientIds = selectedRecipientIds
                             )
                         }
                         Screen.Capture.TYPE_PHOTO -> {
@@ -299,7 +314,25 @@ fun CaptureScreen(
                                 capturedPhoto = capturedPhotoFile,
                                 caption = text,
                                 onCaptionChange = { text = it },
-                                onPhotoCaptured = { capturedPhotoFile = it }
+                                onPhotoCaptured = { capturedPhotoFile = it },
+                                preselectedName = preselectedName,
+                                recipients = recipients,
+                                selectedRecipientIds = selectedRecipientIds
+                            )
+                        }
+                        Screen.Capture.TYPE_GALLERY -> {
+                            TextCaptureContent(
+                                padding = padding,
+                                text = text,
+                                onTextChange = { text = it },
+                                selectedCategory = selectedCategory,
+                                onCategoryChange = { selectedCategory = it },
+                                recipients = recipients,
+                                selectedRecipientIds = selectedRecipientIds,
+                                isListening = false,
+                                onMicClick = { },
+                                preselectedName = preselectedName,
+                                galleryUri = selectedGalleryUri
                             )
                         }
                         else -> {
@@ -311,13 +344,12 @@ fun CaptureScreen(
                                 onCategoryChange = { selectedCategory = it },
                                 recipients = recipients,
                                 selectedRecipientIds = selectedRecipientIds,
-                                useBookMode = useBookMode,
-                                onToggleMode = { useBookMode = !useBookMode },
                                 isListening = isSttListening,
                                 onMicClick = {
                                     if (isSttListening) viewModel.stopVocalCapture()
                                     else viewModel.startVocalCapture()
-                                }
+                                },
+                                preselectedName = preselectedName
                             )
                         }
                     }
@@ -342,7 +374,6 @@ fun CaptureScreen(
                 }
             }
 
-            // Snackbar de suggestion de Pin
             if (suggestPin && detectedLocation != null) {
                 Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
                     Snackbar(
@@ -398,7 +429,6 @@ fun AdvancedOptionsContent(
         Text("OPTIONS AVANCÉES", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
         Spacer(modifier = Modifier.height(32.dp))
 
-        // MODE DÉTECTIVE
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Fingerprint, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
@@ -406,7 +436,7 @@ fun AdvancedOptionsContent(
             Spacer(modifier = Modifier.weight(1f))
             InfoPoint(
                 title = "Le Jeu de Piste",
-                content = "Transformez la lecture de vos souvenirs en une quête. Vos proches devront répondre à cette question personnelle pour déverrouiller ce fragment. C'est idéal pour les anecdotes de famille ou les secrets partagés."
+                content = "Transformez la lecture de vos souvenirs en une quête. Vos proches devront répondre à cette question personnelle pour déverrouiller ce fragment."
             )
         }
         Text(
@@ -434,7 +464,6 @@ fun AdvancedOptionsContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // BOÎTE AUX LETTRES
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Event, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
@@ -489,7 +518,10 @@ fun PhotoCaptureContent(
     capturedPhoto: File?,
     caption: String,
     onCaptionChange: (String) -> Unit,
-    onPhotoCaptured: (File) -> Unit
+    onPhotoCaptured: (File) -> Unit,
+    preselectedName: String? = null,
+    recipients: List<com.example.phoenx.data.local.RecipientEntity> = emptyList(),
+    selectedRecipientIds: MutableList<String> = mutableStateListOf()
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -542,13 +574,27 @@ fun PhotoCaptureContent(
                     )
                     
                     IconButton(
-                        onClick = { onPhotoCaptured(null as File) }, // Reset capture
+                        onClick = { onPhotoCaptured(null as File) },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(16.dp)
                             .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
                         Icon(Icons.Default.Close, contentDescription = "Supprimer la photo", tint = Color.White)
+                    }
+
+                    if (preselectedName != null) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = LocalAccentColor.current.copy(alpha = 0.1f)),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.align(Alignment.BottomStart).padding(16.dp).padding(bottom = 80.dp)
+                        ) {
+                            Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.LocationOn, null, tint = LocalAccentColor.current, modifier = Modifier.size(14.dp))
+                                Spacer(Modifier.width(6.dp))
+                                Text("Enregistré pour : $preselectedName", style = MaterialTheme.typography.labelSmall, color = LocalAccentColor.current)
+                            }
+                        }
                     }
 
                     TextField(
@@ -563,6 +609,16 @@ fun PhotoCaptureContent(
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent
                         )
+                    )
+                }
+
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 24.dp)) {
+                    Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    RecipientSelector(
+                        recipients = recipients,
+                        selectedIds = selectedRecipientIds,
+                        accent = LocalAccentColor.current
                     )
                 }
             }
@@ -587,17 +643,10 @@ fun CameraPreview(
                 val preview = Preview.Builder().build().also {
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
-                
                 val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-                
                 try {
                     cameraProvider.unbindAll()
-                    cameraProvider.bindToLifecycle(
-                        lifecycleOwner,
-                        cameraSelector,
-                        preview,
-                        imageCapture
-                    )
+                    cameraProvider.bindToLifecycle(lifecycleOwner, cameraSelector, preview, imageCapture)
                 } catch (e: Exception) {
                     android.util.Log.e("CameraPreview", "Use case binding failed", e)
                 }
@@ -608,6 +657,7 @@ fun CameraPreview(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TextCaptureContent(
     padding: PaddingValues,
@@ -617,10 +667,10 @@ fun TextCaptureContent(
     onCategoryChange: (String) -> Unit,
     recipients: List<com.example.phoenx.data.local.RecipientEntity>,
     selectedRecipientIds: MutableList<String>,
-    useBookMode: Boolean,
-    onToggleMode: () -> Unit,
     isListening: Boolean,
-    onMicClick: () -> Unit
+    onMicClick: () -> Unit,
+    preselectedName: String? = null,
+    galleryUri: Uri? = null
 ) {
     Column(
         modifier = Modifier
@@ -629,111 +679,127 @@ fun TextCaptureContent(
             .padding(24.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = if (useBookMode) "ÉCRITURE SACRÉE" else "VUE SIMPLE",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextTertiary,
-                modifier = Modifier.weight(1f)
-            )
-            TextButton(onClick = onToggleMode) {
-                Text(if (useBookMode) "Passer en vue simple" else "Activer la plume", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+        Text(
+            text = "DÉPOSE TA PENSÉE",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+            color = AccentPrimary
+        )
+
+        if (preselectedName != null) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = LocalAccentColor.current.copy(alpha = 0.1f)),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.padding(bottom = 16.dp, top = 12.dp)
+            ) {
+                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.LocationOn, null, tint = LocalAccentColor.current, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text("Pour : $preselectedName", style = MaterialTheme.typography.labelSmall, color = LocalAccentColor.current)
+                }
             }
         }
 
-        if (useBookMode) {
-            BookWritingMode(
+        if (galleryUri != null) {
+            Box(modifier = Modifier.fillMaxWidth().height(200.dp).padding(vertical = 16.dp).clip(RoundedCornerShape(12.dp))) {
+                AsyncImage(model = galleryUri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Box(modifier = Modifier.fillMaxWidth()) {
+            TextField(
                 value = text,
                 onValueChange = onTextChange,
-                onMicClick = onMicClick,
-                isListening = isListening,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-        } else {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                TextField(
-                    value = text,
-                    onValueChange = onTextChange,
-                    placeholder = { 
-                        Text("Écris ce qui ne doit pas se perdre...", style = MaterialTheme.typography.displaySmall, color = TextTertiary) 
-                    },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
-                    textStyle = MaterialTheme.typography.displaySmall.copy(color = TextPrimary, lineHeight = 34.sp),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
+                placeholder = { Text("Écris tes mots ici...", style = MaterialTheme.typography.bodyLarge, color = TextTertiary) },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = TextPrimary, fontFamily = FontFamily.Serif),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
                 )
-                
-                IconButton(
-                    onClick = onMicClick,
-                    modifier = Modifier.align(Alignment.TopEnd).background(if (isListening) Color.Red.copy(alpha = 0.1f) else Color.Transparent, CircleShape)
-                ) {
-                    Icon(
-                        imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
-                        contentDescription = null,
-                        tint = if (isListening) Color.Red else AccentPrimary
-                    )
-                }
+            )
+            
+            IconButton(
+                onClick = onMicClick,
+                modifier = Modifier.align(Alignment.TopEnd).background(if (isListening) Color.Red.copy(alpha = 0.1f) else Color.Transparent, CircleShape)
+            ) {
+                Icon(
+                    imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
+                    contentDescription = null,
+                    tint = if (isListening) Color.Red else AccentPrimary
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 1.sp)
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Text("DANS QUEL TIROIR ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
         Spacer(modifier = Modifier.height(12.dp))
         
-        if (recipients.isEmpty()) {
-            Text("Personne dans ton cercle. Ajoute tes proches dans l'accueil.", style = MaterialTheme.typography.bodySmall, color = TextTertiary)
-        } else {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                recipients.forEach { recipient ->
-                    val isSelected = selectedRecipientIds.contains(recipient.id)
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = {
-                            if (isSelected) selectedRecipientIds.remove(recipient.id)
-                            else selectedRecipientIds.add(recipient.id)
-                        },
-                        label = { Text(recipient.name) },
-                        leadingIcon = if (isSelected) {
-                            { Icon(Icons.Default.Check, null, modifier = Modifier.size(12.dp)) }
-                        } else null,
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AccentPrimary.copy(alpha = 0.2f),
-                            selectedLabelColor = AccentPrimary
-                        )
-                    )
-                }
+        val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour")
+        FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            categories.forEach { cat ->
+                FilterChip(
+                    selected = selectedCategory == cat,
+                    onClick = { onCategoryChange(cat) },
+                    label = { Text(cat) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = LocalAccentColor.current, selectedLabelColor = BackgroundPrimary)
+                )
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+        Spacer(modifier = Modifier.height(12.dp))
+        
+        RecipientSelector(recipients = recipients, selectedIds = selectedRecipientIds, accent = LocalAccentColor.current)
+    }
+}
 
-        Text("ÉTAT ÉMOTIONNEL", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 1.sp)
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            val categories = listOf("Espoir", "Poésie", "Bonheur", "Regret", "Sagesse", "Amour")
-            Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                categories.forEach { cat ->
-                    FilterChip(
-                        selected = selectedCategory == cat,
-                        onClick = { onCategoryChange(cat) },
-                        label = { Text(cat) },
-                        shape = CircleShape,
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = AccentPrimary.copy(alpha = 0.2f),
-                            selectedLabelColor = AccentPrimary
-                        )
-                    )
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun RecipientSelector(
+    recipients: List<com.example.phoenx.data.local.RecipientEntity>,
+    selectedIds: MutableList<String>,
+    accent: Color
+) {
+    Column {
+        TextButton(
+            onClick = {
+                if (selectedIds.size == recipients.size) selectedIds.clear()
+                else {
+                    selectedIds.clear()
+                    selectedIds.addAll(recipients.map { it.id })
                 }
+            },
+            contentPadding = PaddingValues(0.dp)
+        ) {
+            val allSelected = selectedIds.size == recipients.size && recipients.isNotEmpty()
+            Text(if (allSelected) "Tout désélectionner" else "Ajouter tous les destinataires", style = MaterialTheme.typography.labelSmall, color = accent)
+        }
+
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            recipients.forEach { recipient ->
+                val isSelected = selectedIds.contains(recipient.id)
+                FilterChip(
+                    selected = isSelected,
+                    onClick = {
+                        if (isSelected) selectedIds.remove(recipient.id)
+                        else selectedIds.add(recipient.id)
+                    },
+                    label = { Text(recipient.name) },
+                    leadingIcon = { if (isSelected) Icon(Icons.Default.Check, null, modifier = Modifier.size(14.dp)) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = BackgroundPrimary)
+                )
             }
-            InfoPoint(
-                title = "Les Tiroirs Émotionnels",
-                content = "L'IA utilise ce choix pour ranger automatiquement votre souvenir dans le bon tiroir de votre commode. Si vous ne choisissez rien, l'IA analysera vos mots pour le faire à votre place."
-            )
         }
     }
 }
@@ -745,16 +811,16 @@ fun AudioCaptureContent(
     partialText: String,
     onStart: () -> Unit,
     onStop: () -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    recipients: List<com.example.phoenx.data.local.RecipientEntity> = emptyList(),
+    selectedRecipientIds: MutableList<String> = mutableStateListOf()
 ) {
+    val accent = LocalAccentColor.current
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
         targetValue = 1.1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
+        animationSpec = infiniteRepeatable(animation = tween(1000, easing = LinearEasing), repeatMode = RepeatMode.Reverse),
         label = "scale"
     )
 
@@ -764,7 +830,7 @@ fun AudioCaptureContent(
         verticalArrangement = Arrangement.Center
     ) {
         if (!isRecording && transcript.isNotEmpty()) {
-            Text("Voici ce que j'ai compris :", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Text("Voici ce que j'ai compris :", style = MaterialTheme.typography.labelSmall, color = accent)
             Spacer(modifier = Modifier.height(16.dp))
             Card(
                 modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
@@ -791,7 +857,7 @@ fun AudioCaptureContent(
             Text(
                 text = "... $partialText",
                 style = MaterialTheme.typography.bodyMedium,
-                color = AccentPrimary.copy(alpha = 0.7f),
+                color = accent.copy(alpha = 0.7f),
                 fontStyle = FontStyle.Italic,
                 modifier = Modifier.padding(top = 16.dp)
             )
@@ -803,17 +869,17 @@ fun AudioCaptureContent(
             modifier = Modifier
                 .size(140.dp)
                 .scale(if (isRecording) scale else 1f)
-                .shadow(if (isRecording) 20.dp else 0.dp, CircleShape, spotColor = AccentPrimary)
+                .shadow(if (isRecording) 20.dp else 0.dp, CircleShape, spotColor = accent)
                 .clickable { if (isRecording) onStop() else onStart() },
             shape = CircleShape,
-            color = if (isRecording) Error.copy(alpha = 0.2f) else AccentPrimary.copy(alpha = 0.1f),
-            border = androidx.compose.foundation.BorderStroke(2.dp, if (isRecording) Error else AccentPrimary)
+            color = if (isRecording) Error.copy(alpha = 0.2f) else accent.copy(alpha = 0.1f),
+            border = androidx.compose.foundation.BorderStroke(2.dp, if (isRecording) Error else accent)
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.Mic,
                     contentDescription = null,
-                    tint = if (isRecording) Error else AccentPrimary,
+                    tint = if (isRecording) Error else accent,
                     modifier = Modifier.size(48.dp)
                 )
             }
@@ -823,11 +889,19 @@ fun AudioCaptureContent(
             Spacer(modifier = Modifier.height(32.dp))
             Text("Appuie pour arrêter", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
         } else if (transcript.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            RecipientSelector(recipients = recipients, selectedIds = selectedRecipientIds, accent = accent)
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             Button(
                 onClick = onSave,
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
                 Text("Sceller ce souvenir", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
             }

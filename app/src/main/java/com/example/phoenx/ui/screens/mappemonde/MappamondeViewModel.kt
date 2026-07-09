@@ -16,6 +16,8 @@ import com.example.phoenx.domain.util.AgeUtils
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import java.util.Calendar
+import java.util.Date
 
 @HiltViewModel
 class MappamondeViewModel @Inject constructor(
@@ -25,6 +27,9 @@ class MappamondeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _allLocations = MutableStateFlow<List<LocationWithEntries>>(emptyList())
+    val allLocations: StateFlow<List<LocationWithEntries>> = _allLocations.asStateFlow()
+
+    private var birthDate: java.util.Date? = null
 
     private val _visibleLocations = MutableStateFlow<List<LocationWithEntries>>(emptyList())
     val visibleLocations: StateFlow<List<LocationWithEntries>> = _visibleLocations.asStateFlow()
@@ -36,8 +41,8 @@ class MappamondeViewModel @Inject constructor(
     val lastAppearedLocation: StateFlow<LocationMemory?> = _lastAppearedLocation.asStateFlow()
 
     val canShowTimeline: StateFlow<Boolean> = _allLocations.map { list ->
-        val ages = list.flatMap { it.entries.map { e -> AgeUtils.parseAgeJson(e.ageAtCreation).years } }.distinct()
-        ages.size >= 2
+        // On autorise la timeline dès qu'il y a des lieux avec des dates
+        list.size >= 2
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     private val _selectedLocation = MutableStateFlow<LocationMemory?>(null)
@@ -55,6 +60,9 @@ class MappamondeViewModel @Inject constructor(
     private val _currentAge = MutableStateFlow(0)
     val currentAge: StateFlow<Int> = _currentAge.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
     init {
         loadCurrentAge()
         loadLocations()
@@ -67,7 +75,9 @@ class MappamondeViewModel @Inject constructor(
                 val doc = db.collection("users").document(userId).get().await()
                 val birthTimestamp = doc.getTimestamp("dateOfBirth")
                 if (birthTimestamp != null) {
-                    val age = AgeUtils.calculateAge(birthTimestamp.toDate())
+                    val date = birthTimestamp.toDate()
+                    birthDate = date
+                    val age = AgeUtils.calculateAge(date)
                     _currentAge.value = age.years
                     _timelineAge.value = age.years
                 }
@@ -86,6 +96,7 @@ class MappamondeViewModel @Inject constructor(
     fun loadLocations() {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
+            _isLoading.value = true
             try {
                 val snapshot = db.collection("users").document(userId).collection("locations").get().await()
                 val locations = snapshot.documents.mapNotNull { it.toObject(LocationMemory::class.java)?.copy(id = it.id) }
@@ -105,7 +116,9 @@ class MappamondeViewModel @Inject constructor(
                 _allLocations.value = locationsWithEntries
                 updateVisibleAndTrail(locationsWithEntries)
             } catch (e: Exception) {
-                // Fallback ou erreur
+                android.util.Log.e("MappamondeVM", "Error loading locations", e)
+            } finally {
+                _isLoading.value = false
             }
         }
     }
@@ -113,39 +126,43 @@ class MappamondeViewModel @Inject constructor(
     private fun updateVisibleAndTrail(visible: List<LocationWithEntries>) {
         _visibleLocations.value = visible
         
-        // Calcul du fil d'ariane (Polyline)
-        // Visible uniquement si la timeline est active (moins de points que le total)
-        if (visible.size < _allLocations.value.size && visible.size >= 2) {
+        // Calcul du fil d'or (Polyline)
+        // On relie les points visibles triés par date
+        if (visible.size >= 2) {
             _trailPoints.value = visible
-                .sortedBy { it.location.visitedAt }
-                .map { LatLng(it.location.latitude, it.location.longitude) }
+                .map { it.location }
+                .filter { it.visitedAt > 0 }
+                .sortedBy { it.visitedAt }
+                .map { LatLng(it.latitude, it.longitude) }
         } else {
             _trailPoints.value = emptyList()
         }
     }
 
     fun onTimelineSlide(maxAge: Int) {
-        val previousLocations = _visibleLocations.value
         _timelineAge.value = maxAge
         
-        val newVisible = _allLocations.value.filter { locationWithEntries ->
-            if (locationWithEntries.entries.isEmpty()) true // Les lieux sans souvenirs restent
-            else locationWithEntries.entries.any { entry ->
-                val age = AgeUtils.parseAgeJson(entry.ageAtCreation)
-                age.years <= maxAge
-            }
+        if (maxAge >= _currentAge.value) {
+            updateVisibleAndTrail(_allLocations.value)
+            return
         }
+        
+        val birth = birthDate
+        if (birth == null) {
+            updateVisibleAndTrail(_allLocations.value)
+            return
+        }
+        
+        // Calculer date cutoff
+        val calendar = Calendar.getInstance()
+        calendar.time = birth
+        calendar.add(Calendar.YEAR, maxAge)
+        val cutoffMillis = calendar.timeInMillis
 
-        // Détection de la Bulle d'Éveil
-        val newlyAppeared = newVisible.filter { item -> !previousLocations.any { it.location.id == item.location.id } }
-        newlyAppeared.lastOrNull()?.let { item ->
-            _lastAppearedLocation.value = item.location
-            viewModelScope.launch {
-                kotlinx.coroutines.delay(2500)
-                if (_lastAppearedLocation.value?.id == item.location.id) {
-                    _lastAppearedLocation.value = null
-                }
-            }
+        val newVisible = _allLocations.value.filter { item ->
+            val loc = item.location
+            val refDate = loc.startDate ?: loc.visitedAt
+            refDate <= 0L || refDate <= cutoffMillis
         }
 
         updateVisibleAndTrail(newVisible)
@@ -160,25 +177,79 @@ class MappamondeViewModel @Inject constructor(
     ) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            val newLoc = LocationMemory(
-                latitude = latLng.latitude,
-                longitude = latLng.longitude,
-                placeName = placeName,
-                countryName = countryName,
-                emoji = emoji,
-                visitedAt = visitedAt
-            )
-            db.collection("users").document(userId).collection("locations").add(newLoc).await()
-            loadLocations()
+            try {
+                val newLoc = LocationMemory(
+                    latitude = latLng.latitude,
+                    longitude = latLng.longitude,
+                    placeName = placeName,
+                    countryName = countryName,
+                    emoji = emoji,
+                    visitedAt = visitedAt
+                )
+                db.collection("users").document(userId).collection("locations").add(newLoc).await()
+                loadLocations()
+            } catch (e: Exception) {
+                android.util.Log.e("MappamondeVM", "Error pinning location", e)
+            }
+        }
+    }
+
+    fun updateLocationName(locationId: String, newName: String) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(userId)
+                    .collection("locations").document(locationId)
+                    .update("placeName", newName).await()
+                loadLocations()
+            } catch (e: Exception) {
+                android.util.Log.e("MappamondeVM", "Error updating name", e)
+            }
+        }
+    }
+
+    fun updateLocationDate(locationId: String, dateMillis: Long) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(userId)
+                    .collection("locations").document(locationId)
+                    .update("visitedAt", dateMillis).await()
+                loadLocations()
+            } catch (e: Exception) {
+                android.util.Log.e("MappamondeVM", "Error updating date", e)
+            }
+        }
+    }
+
+    fun updateLocationPeriod(locationId: String, start: Long?, end: Long?) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(userId)
+                    .collection("locations").document(locationId)
+                    .update(mapOf(
+                        "startDate" to start,
+                        "endDate" to end,
+                        "visitedAt" to (start ?: 0L) // On garde visitedAt synchro avec le début
+                    )).await()
+                loadLocations()
+            } catch (e: Exception) {
+                android.util.Log.e("MappamondeVM", "Error updating period", e)
+            }
         }
     }
 
     fun removeLocation(locationId: String) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            db.collection("users").document(userId).collection("locations").document(locationId).delete().await()
-            loadLocations()
-            _selectedLocation.value = null
+            try {
+                db.collection("users").document(userId).collection("locations").document(locationId).delete().await()
+                loadLocations()
+                _selectedLocation.value = null
+            } catch (e: Exception) {
+                android.util.Log.e("MappamondeVM", "Error deleting location", e)
+            }
         }
     }
 
