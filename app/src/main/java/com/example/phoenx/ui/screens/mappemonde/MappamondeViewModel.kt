@@ -168,29 +168,32 @@ class MappamondeViewModel @Inject constructor(
         updateVisibleAndTrail(newVisible)
     }
 
-    fun pinLocation(
+    /**
+     * Épingle un nouveau lieu et retourne son ID Firestore.
+     */
+    suspend fun pinLocation(
         latLng: LatLng,
         placeName: String,
         countryName: String,
         emoji: String,
         visitedAt: Long
-    ) {
-        val userId = auth.currentUser?.uid ?: return
-        viewModelScope.launch {
-            try {
-                val newLoc = LocationMemory(
-                    latitude = latLng.latitude,
-                    longitude = latLng.longitude,
-                    placeName = placeName,
-                    countryName = countryName,
-                    emoji = emoji,
-                    visitedAt = visitedAt
-                )
-                db.collection("users").document(userId).collection("locations").add(newLoc).await()
-                loadLocations()
-            } catch (e: Exception) {
-                android.util.Log.e("MappamondeVM", "Error pinning location", e)
-            }
+    ): String? {
+        val userId = auth.currentUser?.uid ?: return null
+        return try {
+            val newLoc = LocationMemory(
+                latitude = latLng.latitude,
+                longitude = latLng.longitude,
+                placeName = placeName,
+                countryName = countryName,
+                emoji = emoji,
+                visitedAt = visitedAt
+            )
+            val ref = db.collection("users").document(userId).collection("locations").add(newLoc).await()
+            loadLocations()
+            ref.id
+        } catch (e: Exception) {
+            android.util.Log.e("MappamondeVM", "Error pinning location", e)
+            null
         }
     }
 

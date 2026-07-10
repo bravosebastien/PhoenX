@@ -66,6 +66,7 @@ import java.util.*
 fun MappamondeScreen(
     navController: NavController,
     mode: MapMode = MapMode.CREATOR,
+    returnToEntryId: String? = null,
     viewModel: MappamondeViewModel = hiltViewModel()
 ) {
     val visibleLocations by viewModel.visibleLocations.collectAsState()
@@ -121,14 +122,14 @@ fun MappamondeScreen(
                 zoomGesturesEnabled = true
             ),
             onMapLongClick = { latLng ->
-                if (mode == MapMode.CREATOR) {
+                if (mode == MapMode.CREATOR || mode == MapMode.PICKER) {
                     pendingLatLng = latLng
                     showAddLocationDialog = true
                 }
             }
         ) {
             // Fil d'or chronologique
-            if (trailPoints.size >= 2) {
+            if (trailPoints.size >= 2 && mode != MapMode.PICKER) {
                 Polyline(
                     points = trailPoints,
                     color = accent,
@@ -151,8 +152,14 @@ fun MappamondeScreen(
                     true
                 },
                 onClusterItemClick = { item ->
-                    // Navigation directe vers le QG du lieu
-                    navController.navigate("location_detail/${item.location.id}")
+                    if (mode == MapMode.PICKER && returnToEntryId != null) {
+                        // Retour avec l'ID du lieu sélectionné
+                        navController.previousBackStackEntry?.savedStateHandle?.set("pickedLocationId", item.location.id)
+                        navController.popBackStack()
+                    } else {
+                        // Navigation directe vers le QG du lieu
+                        navController.navigate("location_detail/${item.location.id}")
+                    }
                     true
                 },
                 clusterContent = { cluster ->
@@ -328,8 +335,14 @@ fun MappamondeScreen(
             AddLocationDialog(
                 latLng = pendingLatLng!!,
                 onConfirm = { placeName, emoji, visitedAt ->
-                    viewModel.pinLocation(pendingLatLng!!, placeName, "", emoji, visitedAt)
-                    showAddLocationDialog = false
+                    coroutineScope.launch {
+                        val newId = viewModel.pinLocation(pendingLatLng!!, placeName, "", emoji, visitedAt)
+                        if (mode == MapMode.PICKER && returnToEntryId != null && newId != null) {
+                            navController.previousBackStackEntry?.savedStateHandle?.set("pickedLocationId", newId)
+                            navController.popBackStack()
+                        }
+                        showAddLocationDialog = false
+                    }
                 },
                 onDismiss = { showAddLocationDialog = false }
             )

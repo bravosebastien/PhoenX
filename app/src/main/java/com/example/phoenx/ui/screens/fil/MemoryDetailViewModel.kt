@@ -123,6 +123,28 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Récupère les détails d'un lieu Firestore et les assigne au souvenir local.
+     */
+    fun assignLocationFromId(locationId: String) {
+        val uid = auth.currentUser?.uid ?: return
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            try {
+                val doc = db.collection("users").document(uid)
+                    .collection("locations").document(locationId).get().await()
+                
+                val lat = doc.getDouble("latitude")
+                val lng = doc.getDouble("longitude")
+                val name = doc.getString("placeName")
+                
+                updateLocation(lat, lng, name, locationId)
+            } catch (e: Exception) {
+                android.util.Log.e("MemoryDetailVM", "Erreur résolution lieu Firestore", e)
+            }
+        }
+    }
+
     fun deleteMemory() {
         val entryId = _entryId.value ?: return
         val uid = auth.currentUser?.uid ?: run {

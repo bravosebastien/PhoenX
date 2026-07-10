@@ -238,10 +238,19 @@ fun PhoenXNavGraph(
             FavoritesScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable(Screen.Map.route) {
+        composable(
+            route = Screen.Map.route,
+            arguments = listOf(
+                navArgument("returnToEntryId") { nullable = true; type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val returnToEntryId = backStackEntry.arguments?.getString("returnToEntryId")
+            val mode = if (returnToEntryId != null) MapMode.PICKER else MapMode.CREATOR
+            
             MappamondeScreen(
                 navController = navController,
-                mode = MapMode.CREATOR
+                mode = mode,
+                returnToEntryId = returnToEntryId
             )
         }
 
@@ -396,7 +405,8 @@ fun PhoenXNavGraph(
             val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
             MemoryDetailScreen(
                 entryId = entryId,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                navController = navController
             )
         }
 

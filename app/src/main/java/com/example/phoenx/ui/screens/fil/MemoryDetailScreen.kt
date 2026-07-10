@@ -26,7 +26,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.phoenx.domain.model.CompartmentIds
+import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.screens.capture.RecipientSelector
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
@@ -39,6 +41,7 @@ import java.util.*
 fun MemoryDetailScreen(
     entryId: String,
     onNavigateBack: () -> Unit,
+    navController: NavController,
     viewModel: MemoryDetailViewModel = hiltViewModel()
 ) {
     val entry by viewModel.entry.collectAsState()
@@ -47,6 +50,17 @@ fun MemoryDetailScreen(
     val deleteSuccess by viewModel.deleteSuccess.collectAsState()
     val error by viewModel.error.collectAsState()
     val accent = LocalAccentColor.current
+
+    // Observation du retour du Picker de lieu
+    val pickedLocationId by navController.currentBackStackEntry?.savedStateHandle
+        ?.getStateFlow<String?>("pickedLocationId", null)?.collectAsState() ?: remember { mutableStateOf(null) }
+
+    LaunchedEffect(pickedLocationId) {
+        pickedLocationId?.let { id ->
+            viewModel.assignLocationFromId(id)
+            navController.currentBackStackEntry?.savedStateHandle?.remove<String>("pickedLocationId")
+        }
+    }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -388,7 +402,9 @@ fun MemoryDetailScreen(
                                 color = if (entry!!.locationName != null) TextPrimary else TextTertiary
                             )
                             Spacer(modifier = Modifier.weight(1f))
-                            IconButton(onClick = { /* TODO: Modification de lieu */ }) {
+                            IconButton(onClick = { 
+                                navController.navigate(Screen.Map.createRoute(returnToEntryId = entryId))
+                            }) {
                                 Icon(Icons.Default.Edit, null, tint = TextTertiary, modifier = Modifier.size(18.dp))
                             }
                         }

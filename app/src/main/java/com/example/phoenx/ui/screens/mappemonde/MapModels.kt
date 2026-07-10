@@ -29,4 +29,4 @@ data class LocationWithEntries(
     override fun getZIndex(): Float? = null
 }
 
-enum class MapMode { CREATOR, RECIPIENT }
+enum class MapMode { CREATOR, RECIPIENT, PICKER }
