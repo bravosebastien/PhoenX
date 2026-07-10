@@ -305,14 +305,28 @@ fun TimelineEntryItem(entry: PhoenXEntry, onClick: () -> Unit) {
                     shape = MaterialTheme.shapes.small,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Icon(Icons.Default.AutoAwesome, null, tint = AccentPrimary.copy(alpha = 0.5f), modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Résumé IA : ${entry.aiSummary}",
                             style = MaterialTheme.typography.labelSmall,
                             color = TextSecondary,
-                            fontStyle = FontStyle.Italic
+                            fontStyle = FontStyle.Italic,
+                            modifier = Modifier.weight(1f)
+                        )
+                        InfoButton(
+                            title = "Le Résumé IA",
+                            points = listOf(
+                                "Une intelligence artificielle qui vit uniquement sur votre téléphone lit votre texte au moment où vous l'écrivez, sans jamais se connecter à internet.",
+                                "Elle en tire un résumé court, pour vous permettre de reconnaître rapidement vos souvenirs en parcourant votre Fil de Pensée.",
+                                "Si votre texte est déjà court, ce résumé peut lui ressembler beaucoup - c'est normal.",
+                                "Ce résumé pourra aussi, à l'avenir, aider à suggérer automatiquement dans quels tiroirs ranger vos souvenirs.",
+                                "Le texte complet de votre souvenir, lui, reste toujours intact et chiffré - jamais résumé ni modifié."
+                            )
                         )
                     }
                 }
