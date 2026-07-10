@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
+import com.example.phoenx.data.ai.OnDeviceAIManager
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
@@ -19,6 +20,7 @@ import javax.inject.Inject
 class MemoryDetailViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
+    private val onDeviceAIManager: OnDeviceAIManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -38,6 +40,26 @@ class MemoryDetailViewModel @Inject constructor(
 
     fun loadEntry(id: String) {
         _entryId.value = id
+    }
+
+    fun updateContent(newText: String) {
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            try {
+                val encrypted = encryptionManager.encryptText(newText)
+                offlineEntryDao.updateEntryContent(encrypted, id)
+                android.util.Log.d("MemoryDetailDebug", "Contenu mis à jour en local pour id=$id, taille chiffrée=${encrypted.size}")
+                
+                // Régénération de l'analyse IA locale après modification
+                val analysis = onDeviceAIManager.analyzeLocally(newText)
+                offlineEntryDao.updateEntrySummary(analysis.summary, id)
+                android.util.Log.d("MemoryDetailDebug", "Résumé IA mis à jour : ${analysis.summary}")
+
+                triggerSync(id)
+            } catch (e: Exception) {
+                android.util.Log.e("MemoryDetailVM", "Error updating content", e)
+            }
+        }
     }
 
     fun updateRecipients(newRecipientIds: List<String>) {
@@ -74,6 +96,14 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
+    fun updateMemoryPeriod(start: Long?, end: Long?) {
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            offlineEntryDao.updateEntryMemoryPeriod(start, end, id)
+            triggerSync(id)
+        }
+    }
+
     fun updateLocation(lat: Double?, lng: Double?, name: String?, locId: String?) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
@@ -85,6 +115,7 @@ class MemoryDetailViewModel @Inject constructor(
     private suspend fun triggerSync(entryId: String) {
         // Passage en pending pour forcer le Worker à le voir
         offlineEntryDao.updateSyncStatus(entryId, "pending")
+        android.util.Log.d("MemoryDetailDebug", "syncStatus repassé à pending pour id=$entryId")
 
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
@@ -93,5 +124,6 @@ class MemoryDetailViewModel @Inject constructor(
             .setConstraints(constraints)
             .build()
         WorkManager.getInstance(context).enqueue(syncRequest)
+        android.util.Log.d("MemoryDetailDebug", "OneTimeWorkRequest enqueue pour id=$entryId")
     }
 }

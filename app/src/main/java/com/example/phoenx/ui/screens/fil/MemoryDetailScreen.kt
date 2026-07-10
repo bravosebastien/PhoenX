@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
@@ -28,6 +29,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.domain.model.CompartmentIds
 import com.example.phoenx.ui.screens.capture.RecipientSelector
 import com.example.phoenx.ui.theme.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.debounce
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -43,8 +46,34 @@ fun MemoryDetailScreen(
     val recipients by viewModel.recipients.collectAsState()
     val accent = LocalAccentColor.current
 
+    android.util.Log.d("MemoryDetailDebug", "MemoryDetailScreen composé, entryId=$entryId")
+
+    var editableText by remember { mutableStateOf("") }
+    var isPeriodMode by remember(entry) {
+        mutableStateOf(entry?.memoryDateStart != null || entry?.memoryDateEnd != null)
+    }
+
     LaunchedEffect(entryId) {
         viewModel.loadEntry(entryId)
+    }
+
+    LaunchedEffect(content) {
+        if (editableText.isEmpty()) {
+            editableText = content
+        }
+    }
+
+    // Sauvegarde auto du texte avec debounce
+    LaunchedEffect(editableText) {
+        android.util.Log.d("MemoryDetailDebug", "LaunchedEffect déclenché - editableText='$editableText', content='$content'")
+        if (editableText.isNotEmpty() && editableText != content) {
+            android.util.Log.d("MemoryDetailDebug", "Condition vraie, attente du debounce...")
+            delay(1000)
+            android.util.Log.d("MemoryDetailDebug", "Debounce terminé, appel updateContent")
+            viewModel.updateContent(editableText)
+        } else {
+            android.util.Log.d("MemoryDetailDebug", "Condition fausse - pas de sauvegarde déclenchée")
+        }
     }
 
     Scaffold(
@@ -89,50 +118,128 @@ fun MemoryDetailScreen(
                             tint = Color.LightGray,
                             modifier = Modifier.size(32.dp)
                         )
-                        Text(
-                            text = content,
-                            style = MaterialTheme.typography.bodyLarge.copy(
+                        TextField(
+                            value = editableText,
+                            onValueChange = { editableText = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(
                                 fontFamily = FontFamily.Serif,
                                 fontStyle = FontStyle.Italic,
                                 color = Color(0xFF2C2C2E),
                                 lineHeight = 28.sp
+                            ),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent
                             )
                         )
                     }
                 }
 
-                // DATE RÉELLE (MemoryDate)
+                // DATE RÉELLE (MemoryDate / Période)
                 Column {
-                    Text("QUAND ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("QUAND ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Date", style = MaterialTheme.typography.labelSmall, color = if (!isPeriodMode) accent else TextTertiary)
+                            Switch(
+                                checked = isPeriodMode,
+                                onCheckedChange = { isPeriodMode = it },
+                                modifier = Modifier.scale(0.7f),
+                                colors = SwitchDefaults.colors(checkedThumbColor = accent)
+                            )
+                            Text("Période", style = MaterialTheme.typography.labelSmall, color = if (isPeriodMode) accent else TextTertiary)
+                        }
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
                     
-                    var showDatePicker by remember { mutableStateOf(false) }
-                    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = entry!!.memoryDate ?: entry!!.createdAt)
+                    if (!isPeriodMode) {
+                        var showDatePicker by remember { mutableStateOf(false) }
+                        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = entry!!.memoryDate ?: entry!!.createdAt)
 
-                    OutlinedButton(
-                        onClick = { showDatePicker = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = MaterialTheme.shapes.medium,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.3f))
-                    ) {
-                        Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp), tint = accent)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        val dateText = entry!!.memoryDate?.let { 
-                            SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(it))
-                        } ?: "Ajouter une date précise"
-                        Text(dateText, color = TextPrimary)
-                    }
+                        OutlinedButton(
+                            onClick = { showDatePicker = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.3f))
+                        ) {
+                            Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp), tint = accent)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            val dateText = entry!!.memoryDate?.let { 
+                                SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(it))
+                            } ?: "Ajouter une date précise"
+                            Text(dateText, color = TextPrimary)
+                        }
 
-                    if (showDatePicker) {
-                        DatePickerDialog(
-                            onDismissRequest = { showDatePicker = false },
-                            confirmButton = {
-                                TextButton(onClick = {
-                                    viewModel.updateMemoryDate(datePickerState.selectedDateMillis)
-                                    showDatePicker = false
-                                }) { Text("Confirmer", color = accent) }
+                        if (showDatePicker) {
+                            DatePickerDialog(
+                                onDismissRequest = { showDatePicker = false },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        viewModel.updateMemoryDate(datePickerState.selectedDateMillis)
+                                        showDatePicker = false
+                                    }) { Text("Confirmer", color = accent) }
+                                }
+                            ) { DatePicker(state = datePickerState) }
+                        }
+                    } else {
+                        // MODE PÉRIODE
+                        var showStartPicker by remember { mutableStateOf(false) }
+                        var showEndPicker by remember { mutableStateOf(false) }
+                        
+                        val startState = rememberDatePickerState(initialSelectedDateMillis = entry!!.memoryDateStart ?: entry!!.createdAt)
+                        val endState = rememberDatePickerState(initialSelectedDateMillis = entry!!.memoryDateEnd ?: System.currentTimeMillis())
+
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = { showStartPicker = true },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(8.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.3f))
+                            ) {
+                                val txt = entry!!.memoryDateStart?.let { SimpleDateFormat("dd/MM/yy").format(Date(it)) } ?: "Début"
+                                Text(txt, color = TextPrimary, fontSize = 12.sp)
                             }
-                        ) { DatePicker(state = datePickerState) }
+                            OutlinedButton(
+                                onClick = { showEndPicker = true },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(8.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.3f))
+                            ) {
+                                val txt = entry!!.memoryDateEnd?.let { SimpleDateFormat("dd/MM/yy").format(Date(it)) } ?: "Fin"
+                                Text(txt, color = TextPrimary, fontSize = 12.sp)
+                            }
+                        }
+
+                        if (showStartPicker) {
+                            DatePickerDialog(
+                                onDismissRequest = { showStartPicker = false },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        viewModel.updateMemoryPeriod(startState.selectedDateMillis, entry!!.memoryDateEnd)
+                                        showStartPicker = false
+                                    }) { Text("Confirmer", color = accent) }
+                                }
+                            ) { DatePicker(state = startState) }
+                        }
+                        if (showEndPicker) {
+                            DatePickerDialog(
+                                onDismissRequest = { showEndPicker = false },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        viewModel.updateMemoryPeriod(entry!!.memoryDateStart, endState.selectedDateMillis)
+                                        showEndPicker = false
+                                    }) { Text("Confirmer", color = accent) }
+                                }
+                            ) { DatePicker(state = endState) }
+                        }
                     }
                 }
 
@@ -205,9 +312,10 @@ fun MemoryDetailScreen(
                     )
                     
                     // On observe les changements du selector pour updater le VM
-                    // Note: RecipientSelector modifie la liste en place, on ajoute un effet pour sync
-                    LaunchedEffect(selectedRecipientIds.size) {
-                        if (selectedRecipientIds.toList().joinToString(",") != entry!!.recipientIds) {
+                    // Correction : observation du contenu réel de la liste
+                    LaunchedEffect(selectedRecipientIds.toList()) {
+                        val csv = selectedRecipientIds.toList().joinToString(",")
+                        if (csv != entry!!.recipientIds) {
                             viewModel.updateRecipients(selectedRecipientIds.toList())
                         }
                     }

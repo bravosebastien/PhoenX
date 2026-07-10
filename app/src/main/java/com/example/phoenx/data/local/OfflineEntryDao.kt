@@ -114,6 +114,12 @@ interface OfflineEntryDao {
     @Query("UPDATE offline_entries SET memoryDate = :newDate WHERE id = :entryId")
     suspend fun updateEntryMemoryDate(newDate: Long?, entryId: String): Int
 
+    @Query("UPDATE offline_entries SET memoryDateStart = :start, memoryDateEnd = :end WHERE id = :entryId")
+    suspend fun updateEntryMemoryPeriod(start: Long?, end: Long?, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET encryptedPayload = :newEncryptedPayload WHERE id = :entryId")
+    suspend fun updateEntryContent(newEncryptedPayload: ByteArray, entryId: String): Int
+
     @Query("UPDATE offline_entries SET latitude = :lat, longitude = :lng, locationName = :name, locationId = :locId WHERE id = :entryId")
     suspend fun updateEntryLocation(lat: Double?, lng: Double?, name: String?, locId: String?, entryId: String): Int
 

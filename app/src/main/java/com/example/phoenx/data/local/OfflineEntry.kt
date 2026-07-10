@@ -49,7 +49,11 @@ data class OfflineEntry(
     val localMediaPath: String? = null,
 
     // ÉDITION AVANCÉE (Signature 7.4 - v14)
-    val memoryDate: Long? = null // Date réelle du souvenir (distincte de createdAt)
+    val memoryDate: Long? = null, // Date réelle du souvenir (distincte de createdAt)
+
+    // PÉRIODE (Signature 7.5 - v15)
+    val memoryDateStart: Long? = null,
+    val memoryDateEnd: Long? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -81,6 +85,8 @@ data class OfflineEntry(
         if (mediaUrl != other.mediaUrl) return false
         if (localMediaPath != other.localMediaPath) return false
         if (memoryDate != other.memoryDate) return false
+        if (memoryDateStart != other.memoryDateStart) return false
+        if (memoryDateEnd != other.memoryDateEnd) return false
 
         return true
     }
@@ -110,6 +116,8 @@ data class OfflineEntry(
         result = 31 * result + (mediaUrl?.hashCode() ?: 0)
         result = 31 * result + (localMediaPath?.hashCode() ?: 0)
         result = 31 * result + (memoryDate?.hashCode() ?: 0)
+        result = 31 * result + (memoryDateStart?.hashCode() ?: 0)
+        result = 31 * result + (memoryDateEnd?.hashCode() ?: 0)
         return result
     }
 }

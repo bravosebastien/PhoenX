@@ -32,4 +32,12 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN memoryDate INTEGER")
         }
     }
+
+    val MIGRATION_14_15 = object : Migration(14, 15) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Période (Date début / Date fin)
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN memoryDateStart INTEGER")
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN memoryDateEnd INTEGER")
+        }
+    }
 }
