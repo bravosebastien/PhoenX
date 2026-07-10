@@ -61,9 +61,8 @@ class RecipientMediaViewModel @Inject constructor(
     val videoEntries: StateFlow<List<PhoenXEntry>> = _videoEntries
 
     private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager): PhoenXEntry {
-        val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
         val decryptedText = try { 
-            encryptionManager.decryptText(encryptedPayload, tempKey) 
+            encryptionManager.decryptText(encryptedPayload)
         } catch(_: Exception) { "Contenu chiffré" }
         
         val ageJson = JSONObject(ageAtCreation)

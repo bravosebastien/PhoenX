@@ -31,6 +31,14 @@ class PreferenceManager @Inject constructor(
     private val ACCENT_COLOR_KEY = androidx.datastore.preferences.core.intPreferencesKey("accent_color")
     private val BACKGROUND_COLOR_KEY = androidx.datastore.preferences.core.intPreferencesKey("background_color")
     private val BACKGROUND_STYLE_KEY = androidx.datastore.preferences.core.stringPreferencesKey("background_style")
+    private val SYNC_MIGRATION_V1_DONE_KEY = booleanPreferencesKey("sync_migration_v1_done")
+
+    fun isSyncMigrationV1Done(): Flow<Boolean> = context.dataStore.data
+        .map { it[SYNC_MIGRATION_V1_DONE_KEY] ?: false }
+
+    suspend fun setSyncMigrationV1Done(done: Boolean) {
+        context.dataStore.edit { it[SYNC_MIGRATION_V1_DONE_KEY] = done }
+    }
 
     fun isDepositaryOnboardingSeen(userId: String): Flow<Boolean> = context.dataStore.data
         .map { preferences ->

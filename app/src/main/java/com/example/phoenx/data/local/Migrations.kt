@@ -10,4 +10,11 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN locationId TEXT")
         }
     }
+
+    val MIGRATION_11_12 = object : Migration(11, 12) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Ajout de la colonne compartmentIds à la table offline_entries
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN compartmentIds TEXT NOT NULL DEFAULT ''")
+        }
+    }
 }

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -148,8 +149,10 @@ fun CaptureScreen(
 
     LaunchedEffect(uiState) {
         if (uiState is CaptureUiState.Success) {
+            android.util.Log.d("RitualDebug", "isRitualPlaying positionné à true")
             isRitualPlaying = true
             delay(3500)
+            android.util.Log.d("RitualDebug", "Fin du delay, navigation retour")
             onNavigateBack()
         }
     }
@@ -177,7 +180,7 @@ fun CaptureScreen(
             false
         },
         topBar = {
-            if (!isNightMode) {
+            if (!isNightMode && !isRitualPlaying) {
                 TopAppBar(
                     title = {
                         Text(
@@ -205,18 +208,22 @@ fun CaptureScreen(
             }
         },
         bottomBar = {
-            if (!isNightMode && (initialType == Screen.Capture.TYPE_TEXT || initialType == Screen.Capture.TYPE_PHOTO || initialType == Screen.Capture.TYPE_GALLERY)) {
+            if (!isNightMode && !isRitualPlaying && (initialType == Screen.Capture.TYPE_TEXT || initialType == Screen.Capture.TYPE_PHOTO || initialType == Screen.Capture.TYPE_GALLERY)) {
                 BottomAppBar(containerColor = backgroundColor, tonalElevation = 0.dp) {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        TextButton(onClick = onNavigateBack) {
+                        TextButton(onClick = {
+                            Log.d("ClickDebug", "Clic détecté sur le bouton Annuler")
+                            onNavigateBack()
+                        }) {
                             Text("Annuler", color = TextSecondary)
                         }
                         Button(
                             onClick = {
+                                Log.d("ClickDebug", "Clic détecté sur le bouton Déposer")
                                 viewModel.saveEntry(
                                     content = text,
                                     mediaFile = capturedPhotoFile,
@@ -242,7 +249,7 @@ fun CaptureScreen(
                             if (uiState is CaptureUiState.Loading) {
                                 CircularProgressIndicator(modifier = Modifier.size(20.dp), color = BackgroundPrimary, strokeWidth = 2.dp)
                             } else {
-                                Text("Déposer", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                                Text("TESTXYZ123", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -250,7 +257,7 @@ fun CaptureScreen(
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             AnimatedVisibility(
                 visible = !isRitualPlaying,
                 exit = slideOutVertically(tween(800)) { -it } + fadeOut(tween(600)),
@@ -357,11 +364,24 @@ fun CaptureScreen(
             }
 
             if (isRitualPlaying) {
+                val infiniteTransition = rememberInfiniteTransition(label = "ritual_pulse")
+                val scale by infiniteTransition.animateFloat(
+                    initialValue = 0.9f,
+                    targetValue = 1.1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1000, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "scale"
+                )
+
                 Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        PhoenXRiveAnimation(
-                            resId = R.raw.depot,
-                            modifier = Modifier.size(300.dp)
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(120.dp).scale(scale),
+                            tint = AccentPrimary
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(

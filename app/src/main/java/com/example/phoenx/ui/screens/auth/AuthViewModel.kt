@@ -61,6 +61,24 @@ class AuthViewModel @Inject constructor(
                     return@launch
                 }
 
+                // ETAPE 3 - Récupération de la clé à la connexion
+                val userDoc = db.collection("users").document(user.uid).get().await()
+                var encryptionKeyBase64 = userDoc.getString("encryptionKey")
+
+                if (encryptionKeyBase64 == null) {
+                    // Cas d'un compte créé avant la correction : génération d'une nouvelle clé
+                    android.util.Log.w("AuthViewModel", "Compte sans clé de chiffrement, nouvelle clé générée - les anciens souvenirs éventuels resteront indéchiffrables")
+                    val newKey = encryptionManager.generateNewSessionKey()
+                    encryptionKeyBase64 = android.util.Base64.encodeToString(newKey, android.util.Base64.NO_WRAP)
+                    
+                    db.collection("users").document(user.uid)
+                        .update("encryptionKey", encryptionKeyBase64)
+                        .await()
+                }
+
+                val decodedKey = android.util.Base64.decode(encryptionKeyBase64, android.util.Base64.NO_WRAP)
+                encryptionManager.setSessionKey(decodedKey)
+
                 /*
                 // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
                 // Charger le sel unique depuis Firestore
@@ -92,6 +110,10 @@ class AuthViewModel @Inject constructor(
                 // Envoyer l'email de vérification
                 user.sendEmailVerification().await()
 
+                // ETAPE 2 - Écriture de la clé à l'inscription
+                val newKey = encryptionManager.generateNewSessionKey()
+                val encryptionKeyBase64 = android.util.Base64.encodeToString(newKey, android.util.Base64.NO_WRAP)
+
                 /*
                 // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
                 // Générer un sel aléatoire unique de 32 bytes
@@ -116,6 +138,7 @@ class AuthViewModel @Inject constructor(
                     "uid" to user.uid,
                     "email" to email,
                     //"encryptionSalt" to saltBase64, // Stockage du sel unique
+                    "encryptionKey" to encryptionKeyBase64, // Nouvelle clé de chiffrement
                     "dateOfBirth" to Timestamp(Date.from(birthDateInstant)),
                     "createdAt" to Timestamp.now(),
                     "onboardingCompleted" to true,
@@ -123,6 +146,10 @@ class AuthViewModel @Inject constructor(
                 )
                 
                 db.collection("users").document(user.uid).set(userProfile).await()
+                
+                // Activer la clé immédiatement pour la session en cours
+                encryptionManager.setSessionKey(newKey)
+
                 _uiState.value = AuthState.EmailVerificationSent
             } catch (e: Exception) {
                 _uiState.value = AuthState.Error(e.message ?: "Erreur d'inscription")

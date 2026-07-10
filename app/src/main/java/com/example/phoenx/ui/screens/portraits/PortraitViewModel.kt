@@ -45,8 +45,7 @@ class PortraitViewModel @Inject constructor(
                 }
 
                 val fullContent = filteredAnswers.joinToString("\n\n")
-                val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
-                val encrypted = encryptionManager.encryptText(fullContent, tempKey)
+                val encrypted = encryptionManager.encryptText(fullContent)
 
                 val portrait = PortraitEntity(
                     recipientId = recipientId,

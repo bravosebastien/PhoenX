@@ -34,6 +34,15 @@ class EncryptionManager @Inject constructor() {
     fun getSessionKey(): ByteArray? = sessionKey
 
     /**
+     * Génère une nouvelle clé de session aléatoire de 32 octets (AES-256).
+     */
+    fun generateNewSessionKey(): ByteArray {
+        val key = ByteArray(32)
+        SecureRandom().nextBytes(key)
+        return key
+    }
+
+    /**
      * Dérive une clé à partir d'un mot de passe en utilisant Argon2id
      */
     fun deriveKeyFromPassword(password: String, salt: ByteArray): ByteArray {

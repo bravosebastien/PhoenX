@@ -50,8 +50,7 @@ class QuestionsViewModel @Inject constructor(
                 val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: Date()
                 val age = AgeUtils.calculateAge(birthDate)
                 
-                val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
-                val encrypted = encryptionManager.encryptText(answer, tempKey)
+                val encrypted = encryptionManager.encryptText(answer)
                 
                 val entry = OfflineEntry(
                     encryptedPayload = encrypted,

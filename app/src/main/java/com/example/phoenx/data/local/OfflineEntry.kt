@@ -39,7 +39,10 @@ data class OfflineEntry(
     val pactId: String? = null,
 
     // GÉOLOCALISATION AVANCÉE (Signature 7.1)
-    val locationId: String? = null
+    val locationId: String? = null,
+
+    // RANGEMENT MULTIPLE (Signature 7.2)
+    val compartmentIds: String = "" // Stocké en CSV avec virgules encadrantes : ,ID1,ID2,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -66,6 +69,8 @@ data class OfflineEntry(
         if (latitude != other.latitude) return false
         if (longitude != other.longitude) return false
         if (locationName != other.locationName) return false
+        if (locationId != other.locationId) return false
+        if (compartmentIds != other.compartmentIds) return false
 
         return true
     }
@@ -90,6 +95,8 @@ data class OfflineEntry(
         result = 31 * result + (latitude?.hashCode() ?: 0)
         result = 31 * result + (longitude?.hashCode() ?: 0)
         result = 31 * result + (locationName?.hashCode() ?: 0)
+        result = 31 * result + (locationId?.hashCode() ?: 0)
+        result = 31 * result + compartmentIds.hashCode()
         return result
     }
 }

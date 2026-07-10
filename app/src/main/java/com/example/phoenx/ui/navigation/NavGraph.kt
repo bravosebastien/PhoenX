@@ -104,6 +104,10 @@ fun PhoenXNavGraph(
             AuthScreen(
                 isSignup = true, 
                 onAuthSuccess = {
+                    val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                    if (uid != null) {
+                        mainViewModel.checkSilenceOnLaunch(uid)
+                    }
                     navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
                 },
                 onNavigateToRecovery = { navController.navigate(Screen.Auth.Recovery.route) }
@@ -114,6 +118,10 @@ fun PhoenXNavGraph(
             AuthScreen(
                 isSignup = false, 
                 onAuthSuccess = {
+                    val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                    if (uid != null) {
+                        mainViewModel.checkSilenceOnLaunch(uid)
+                    }
                     navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
                 },
                 onNavigateToRecovery = { navController.navigate(Screen.Auth.Recovery.route) }

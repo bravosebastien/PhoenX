@@ -91,7 +91,7 @@ class MainViewModel @Inject constructor(
 
     /**
      * Appelé au démarrage ou après connexion.
-     * Gère la présence du Créateur et la synchronisation des clés de sécurité.
+     * Gère la présence du Créateur et la synchronisation des clés de sécurité (AES et RSA).
      */
     fun checkSilenceOnLaunch(userId: String) {
         viewModelScope.launch {
@@ -99,14 +99,25 @@ class MainViewModel @Inject constructor(
             _silenceStatus.value = status
             
             try {
-                // 1. Garantir l'existence d'une clé RSA locale
-                val localPublicKey = encryptionManager.ensureRsaKeyPairExists()
-
-                // 2. Vérifier Firestore
+                // 1. Récupérer le document utilisateur UNE SEULE FOIS
                 val doc = db.collection("users").document(userId).get().await()
+
+                // 2. RÉCUPÉRATION ET ACTIVATION DE LA CLÉ DE SESSION AES
+                if (encryptionManager.getSessionKey() == null) {
+                    val encryptionKeyBase64 = doc.getString("encryptionKey")
+                    if (encryptionKeyBase64 != null) {
+                        val decodedKey = android.util.Base64.decode(encryptionKeyBase64, android.util.Base64.NO_WRAP)
+                        encryptionManager.setSessionKey(decodedKey)
+                        android.util.Log.d("MainViewModel", "Clé de session AES restaurée au démarrage")
+                    } else {
+                        android.util.Log.w("MainViewModel", "Aucune clé de chiffrement 'encryptionKey' trouvée sur Firestore")
+                    }
+                }
+
+                // 3. GESTION DES CLÉS RSA (Keystore local vs Firestore)
+                val localPublicKey = encryptionManager.ensureRsaKeyPairExists()
                 val firestoreKey = doc.getString("publicEncryptionKey")
                 
-                // 3. Si changement d'appareil ou première fois : mise à jour Firestore
                 if (firestoreKey != localPublicKey) {
                     db.collection("users").document(userId)
                         .update("publicEncryptionKey", localPublicKey)
@@ -114,7 +125,7 @@ class MainViewModel @Inject constructor(
                     android.util.Log.d("PHOENX_RSA", "Clé RSA synchronisée (Nouvel appareil détecté)")
                 }
 
-                // Charger le rythme
+                // 4. CHARGEMENT CONFIGURATION SILENCE
                 val rhythm = doc.getLong("silenceConfig.rhythmDays")?.toInt() ?: 30
                 _silenceRhythmDays.value = rhythm
 
@@ -124,7 +135,7 @@ class MainViewModel @Inject constructor(
                     _daysSinceLastCheckIn.value = (diff / (1000 * 60 * 60 * 24)).toInt()
                 }
             } catch (e: Exception) {
-                android.util.Log.e("MainViewModel", "Erreur Sync RSA/Silence", e)
+                android.util.Log.e("MainViewModel", "Erreur Sync RSA/AES/Silence", e)
             }
         }
     }

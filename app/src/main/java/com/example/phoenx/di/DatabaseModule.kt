@@ -22,7 +22,10 @@ object DatabaseModule {
             context,
             PhoenXDatabase::class.java,
             "phoenx_db"
-        ).addMigrations(com.example.phoenx.data.local.RoomMigrations.MIGRATION_10_11)
+        ).addMigrations(
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_10_11,
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_11_12
+        )
             .fallbackToDestructiveMigrationOnDowngrade()
             .build()
     }

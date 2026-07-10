@@ -69,8 +69,7 @@ class FilViewModel @Inject constructor(
                 val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: Date()
                 val age = AgeUtils.calculateAge(birthDate)
                 
-                val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
-                val encrypted = encryptionManager.encryptText(content, tempKey)
+                val encrypted = encryptionManager.encryptText(content)
 
                 val amendment = AmendmentEntity(
                     entryId = entryId,
@@ -94,8 +93,7 @@ class FilViewModel @Inject constructor(
     }
 
     private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager, amendments: List<PhoenXAmendment>): PhoenXEntry {
-        val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
-        val decryptedText = encryptionManager.decryptText(encryptedPayload, tempKey)
+        val decryptedText = encryptionManager.decryptText(encryptedPayload)
         
         val ageJson = JSONObject(ageAtCreation)
         val age = AgeSnapshot(

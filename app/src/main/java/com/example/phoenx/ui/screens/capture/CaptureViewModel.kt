@@ -28,8 +28,13 @@ import javax.inject.Inject
 
 import androidx.core.app.ActivityCompat
 import android.content.Context
+import android.util.Log
+import android.widget.Toast
 import android.location.Geocoder
+import androidx.work.*
+import com.example.phoenx.data.sync.SyncWorker
 import com.google.android.gms.location.LocationServices
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 @HiltViewModel
 class CaptureViewModel @Inject constructor(
@@ -41,7 +46,8 @@ class CaptureViewModel @Inject constructor(
     private val onDeviceAIManager: OnDeviceAIManager,
     private val audioRecorder: PhoenXAudioRecorder,
     private val hapticManager: HapticManager,
-    private val sttManager: SpeechToTextManager
+    private val sttManager: SpeechToTextManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<CaptureUiState>(CaptureUiState.Idle)
@@ -180,22 +186,31 @@ class CaptureViewModel @Inject constructor(
         locationName: String? = null,
         locationId: String? = null
     ) {
+        Toast.makeText(context, "saveEntry() appelée !", Toast.LENGTH_LONG).show()
+        Log.d("SaveEntryDebug", "saveEntry() appelée, uid actuel = ${auth.currentUser?.uid}")
+
         val user = auth.currentUser ?: return
+        Log.d("SaveEntryDebug", "Utilisateur confirmé, entrée dans viewModelScope.launch")
+
         val rawText = content ?: if (type == Screen.Capture.TYPE_AUDIO) "Message vocal" else "Photo souvenir"
         _uiState.value = CaptureUiState.Loading
 
         viewModelScope.launch {
             try {
+                Log.d("SaveEntryDebug", "Début du bloc try, lancement de l'analyse IA locale")
                 // 1. ANALYSE IA LOCALE (Avant chiffrement)
                 val analysis = onDeviceAIManager.analyzeLocally(rawText)
+                Log.d("SaveEntryDebug", "Analyse IA locale terminée : ${analysis.summary}")
 
                 // 2. CALCUL DE L'ÂGE
                 val userDoc = db.collection("users").document(user.uid).get().await()
+                Log.d("SaveEntryDebug", "Document utilisateur récupéré, dateOfBirth = ${userDoc.getTimestamp("dateOfBirth")}")
                 val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: Date()
                 val age = AgeUtils.calculateAge(birthDate)
                 
                 // 3. CHIFFREMENT E2EE (Signature 7.0 - Clé de session réelle)
                 val encrypted = encryptionManager.encryptText(rawText)
+                Log.d("SaveEntryDebug", "Chiffrement terminé, taille = ${encrypted.size} octets")
                 
                 // 4. SAUVEGARDE HORS-LIGNE
                 val entryId = UUID.randomUUID().toString()
@@ -222,6 +237,17 @@ class CaptureViewModel @Inject constructor(
                     locationId = locationId
                 )
                 offlineEntryDao.insertEntry(entry)
+                Log.d("SaveEntryDebug", "Entrée insérée en local avec id = $entryId")
+
+                // ETAPE 5 : Déclenchement immédiat de la synchronisation
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+                val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+                    .setConstraints(constraints)
+                    .build()
+                WorkManager.getInstance(context).enqueue(syncRequest)
+                android.util.Log.d("SaveEntryDebug", "Synchronisation déclenchée")
 
                 // 5. UPDATE PENDING QUESTION STATUS (Signature 7.0)
                 if (pendingQuestionId != null) {
@@ -236,9 +262,13 @@ class CaptureViewModel @Inject constructor(
                 }
                 
                 // 6. SIGNAL PHYSIQUE
+                android.util.Log.d("SaveEntryDebug", "Avant signal haptique, uiState va passer à Success")
                 hapticManager.signalSaveSuccess()
                 _uiState.value = CaptureUiState.Success
+                android.util.Log.d("SaveEntryDebug", "uiState positionné à Success")
             } catch (e: Exception) {
+                Log.e("SaveEntryDebug", "EXCEPTION dans saveEntry: ${e.javaClass.simpleName} - ${e.message}")
+                Log.e("SaveEntryDebug", "Exception complète", e)
                 _uiState.value = CaptureUiState.Error(e.message ?: "Erreur lors du dépôt")
             }
         }

@@ -27,6 +27,12 @@ Tu traites des contenus personnels et intimes.
 - Réponds UNIQUEMENT en JSON valide si demandé.
 `;
 
+const VALID_COMPARTMENTS = [
+    "LIBRARY_BOOKS", "LIBRARY_MUSIC", "LIBRARY_VIDEO", "FIL_PENSEE",
+    "LETTRES", "MES_MEILLEURS", "PHOTOS", "MAPPEMONDE", "CENT_QUESTIONS",
+    "COFFRE_FORT", "TIROIR_SECRET", "LE_PACTE", "PORTRAIT_PROCHE", "RECONCILIATION"
+];
+
 async function sendSMSViaPartner(params: { to: string; body: string }): Promise<void> {
     try {
         await axios.post("https://api.smspartner.fr/v1/send", {
@@ -44,12 +50,28 @@ async function sendSMSViaPartner(params: { to: string; body: string }): Promise<
 export const analyzeEntry = onCall(async (request) => {
     const { summary } = request.data;
     if (!summary) throw new HttpsError("invalid-argument", "Résumé manquant");
-    const prompt = `${AI_RULES} Analyse ce résumé en JSON (themes, persons, lifePeriod, emotionalTone, universalCategory).
+
+    const prompt = `${AI_RULES} Analyse ce résumé en JSON (themes, persons, lifePeriod, emotionalTone, universalCategory, suggestedCompartments).
     universalCategory doit être l'une des valeurs suivantes : Amour, Espoir, Sagesse, Regret, Transmission, Foi, Réconciliation, Humanité, Gratitude.
+    suggestedCompartments doit être un tableau de chaînes choisies UNIQUEMENT parmi cette liste : ${VALID_COMPARTMENTS.join(", ")}.
+    Choisis les compartiments les plus pertinents où ranger ce souvenir.
     Résumé : ${summary}`;
+
     const result = await generativeModel.generateContent(prompt);
     const text = result.response.candidates?.[0]?.content.parts[0]?.text || "{}";
-    return JSON.parse(text.replace(/```json|```/g, "").trim());
+
+    const analysis = JSON.parse(text.replace(/```json|```/g, "").trim());
+
+    // Filtrage de sécurité (Allowlist)
+    if (Array.isArray(analysis.suggestedCompartments)) {
+        analysis.suggestedCompartments = analysis.suggestedCompartments.filter(
+            (comp: string) => VALID_COMPARTMENTS.includes(comp)
+        );
+    } else {
+        analysis.suggestedCompartments = [];
+    }
+
+    return analysis;
 });
 
 // 2. Question du Biographe

@@ -43,9 +43,8 @@ class FavoritesViewModel @Inject constructor(
     fun saveFavorite(category: String, title: String, why: String) {
         viewModelScope.launch {
             try {
-                val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
-                val encTitle = encryptionManager.encryptText(title, tempKey)
-                val encWhy = encryptionManager.encryptText(why, tempKey)
+                val encTitle = encryptionManager.encryptText(title)
+                val encWhy = encryptionManager.encryptText(why)
 
                 val entity = FavoriteEntity(
                     category = category,
@@ -58,12 +57,11 @@ class FavoritesViewModel @Inject constructor(
     }
 
     private fun FavoriteEntity.toDomain(): FavoriteItem {
-        val tempKey = encryptionManager.deriveKeyFromPassword("temp_pass", "salt".toByteArray())
         return FavoriteItem(
             id = id,
             category = category,
-            title = encryptionManager.decryptText(encryptedTitle, tempKey),
-            why = encryptionManager.decryptText(encryptedWhy, tempKey)
+            title = encryptionManager.decryptText(encryptedTitle),
+            why = encryptionManager.decryptText(encryptedWhy)
         )
     }
 }
