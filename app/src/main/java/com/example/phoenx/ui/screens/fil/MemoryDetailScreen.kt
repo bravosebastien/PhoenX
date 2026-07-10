@@ -44,7 +44,11 @@ fun MemoryDetailScreen(
     val entry by viewModel.entry.collectAsState()
     val content by viewModel.decryptedContent.collectAsState()
     val recipients by viewModel.recipients.collectAsState()
+    val deleteSuccess by viewModel.deleteSuccess.collectAsState()
+    val error by viewModel.error.collectAsState()
     val accent = LocalAccentColor.current
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     android.util.Log.d("MemoryDetailDebug", "MemoryDetailScreen composé, entryId=$entryId")
 
@@ -76,6 +80,45 @@ fun MemoryDetailScreen(
         }
     }
 
+    // Retour après suppression réussie
+    LaunchedEffect(deleteSuccess) {
+        if (deleteSuccess) {
+            onNavigateBack()
+        }
+    }
+
+    // Affichage des erreurs
+    LaunchedEffect(error) {
+        error?.let {
+            // Ici on pourrait afficher un Snackbar si on avait accès au ScaffoldState
+            // Pour faire simple on peut utiliser un Toast ou laisser tel quel si géré ailleurs
+        }
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            containerColor = BackgroundSecondary,
+            title = { Text("Supprimer ce souvenir ?", color = TextPrimary) },
+            text = { Text("Cette action est irréversible et supprimera le souvenir de votre fil ainsi que du Cloud.", color = TextSecondary) },
+            confirmButton = {
+                TextButton(
+                    onClick = { 
+                        viewModel.deleteMemory()
+                        showDeleteDialog = false
+                    }
+                ) {
+                    Text("Supprimer", color = Error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Annuler", color = TextPrimary)
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = Color.Transparent,
         modifier = Modifier.background(LocalBackgroundBrush.current),
@@ -85,6 +128,11 @@ fun MemoryDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = Error)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)

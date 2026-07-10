@@ -10,10 +10,13 @@ import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.data.sync.SyncWorker
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,10 +24,18 @@ class MemoryDetailViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
     private val onDeviceAIManager: OnDeviceAIManager,
+    private val auth: FirebaseAuth,
+    private val db: FirebaseFirestore,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _entryId = MutableStateFlow<String?>(null)
+
+    private val _deleteSuccess = MutableStateFlow(false)
+    val deleteSuccess: StateFlow<Boolean> = _deleteSuccess.asStateFlow()
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
     val entry: StateFlow<OfflineEntry?> = _entryId
         .filterNotNull()
@@ -109,6 +120,35 @@ class MemoryDetailViewModel @Inject constructor(
         viewModelScope.launch {
             offlineEntryDao.updateEntryLocation(lat, lng, name, locId, id)
             triggerSync(id)
+        }
+    }
+
+    fun deleteMemory() {
+        val entryId = _entryId.value ?: return
+        val uid = auth.currentUser?.uid ?: run {
+            _error.value = "Utilisateur non connecté"
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                // 1. Suppression Firestore d'abord (Sécurité)
+                db.collection("users").document(uid)
+                    .collection("entries").document(entryId)
+                    .delete()
+                    .await()
+                
+                android.util.Log.d("MemoryDetailDebug", "Document Firestore supprimé pour id=$entryId")
+
+                // 2. Suppression Room seulement après succès Cloud
+                offlineEntryDao.deleteEntry(entryId)
+                android.util.Log.d("MemoryDetailDebug", "Entrée locale supprimée pour id=$entryId")
+
+                _deleteSuccess.value = true
+            } catch (e: Exception) {
+                android.util.Log.e("MemoryDetailVM", "Erreur lors de la suppression", e)
+                _error.value = "Échec de la suppression : ${e.message}"
+            }
         }
     }
 
