@@ -249,7 +249,7 @@ fun CaptureScreen(
                             if (uiState is CaptureUiState.Loading) {
                                 CircularProgressIndicator(modifier = Modifier.size(20.dp), color = BackgroundPrimary, strokeWidth = 2.dp)
                             } else {
-                                Text("TESTXYZ123", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                                Text("Déposer", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -390,6 +390,25 @@ fun CaptureScreen(
                             color = AccentPrimary,
                             textAlign = TextAlign.Center
                         )
+                        
+                        if (!isNightMode) {
+                            val recipientNames = selectedRecipientIds.mapNotNull { id -> 
+                                recipients.find { it.id == id }?.name 
+                            }
+                            val summary = if (recipientNames.isNotEmpty()) {
+                                "Rangé dans $selectedCategory, destiné à ${recipientNames.joinToString(", ")}."
+                            } else {
+                                "Rangé dans $selectedCategory. Aucun destinataire choisi pour l'instant."
+                            }
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = summary,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = TextSecondary,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 40.dp)
+                            )
+                        }
                     }
                 }
             }
