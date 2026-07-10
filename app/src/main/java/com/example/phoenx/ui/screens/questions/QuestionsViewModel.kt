@@ -1,14 +1,18 @@
 package com.example.phoenx.ui.screens.questions
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.*
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.sync.SyncWorker
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -21,7 +25,8 @@ class QuestionsViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val offlineEntryDao: OfflineEntryDao,
-    private val encryptionManager: EncryptionManager
+    private val encryptionManager: EncryptionManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<QuestionsUiState>(QuestionsUiState())
@@ -62,7 +67,16 @@ class QuestionsViewModel @Inject constructor(
                     aiSummary = "Réponse à : $question"
                 )
                 offlineEntryDao.insertEntry(entry)
-                
+
+                // DECLENCHEMENT PIPELINE STANDARD (SyncWorker)
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+                val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+                    .setConstraints(constraints)
+                    .build()
+                WorkManager.getInstance(context).enqueue(syncRequest)
+
                 _uiState.value = _uiState.value.copy(isSaving = false, isSuccess = true)
             } catch (_: Exception) {
                 _uiState.value = _uiState.value.copy(isSaving = false)

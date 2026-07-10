@@ -1,15 +1,19 @@
 package com.example.phoenx.ui.screens.reconciliation
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.*
 import com.example.phoenx.data.ai.AIManager
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.sync.SyncWorker
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -23,7 +27,8 @@ class ReconciliationViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
-    private val aiManager: AIManager
+    private val aiManager: AIManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ReconciliationUiState>(ReconciliationUiState())
@@ -63,6 +68,15 @@ class ReconciliationViewModel @Inject constructor(
                     aiSummary = "Message de réconciliation pour $recipientName"
                 )
                 offlineEntryDao.insertEntry(entry)
+
+                // DECLENCHEMENT PIPELINE STANDARD (SyncWorker)
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+                val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+                    .setConstraints(constraints)
+                    .build()
+                WorkManager.getInstance(context).enqueue(syncRequest)
                 
                 _uiState.value = _uiState.value.copy(isSaving = false, isSuccess = true)
             } catch (e: Exception) {
