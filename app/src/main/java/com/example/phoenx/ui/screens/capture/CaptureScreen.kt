@@ -123,7 +123,7 @@ fun CaptureScreen(
 
     var text by remember { mutableStateOf(initialText) }
     var selectedCategory by remember { mutableStateOf("Sagesse") }
-    var visibility by remember { mutableStateOf("Privé") }
+    var visibility by remember { mutableStateOf("private") }
     val selectedRecipientIds = remember { mutableStateListOf<String>() }
     val recipients by viewModel.recipients.collectAsState()
     val isSttListening by viewModel.isSttListening.collectAsState()
@@ -170,7 +170,7 @@ fun CaptureScreen(
                         mediaFile = null,
                         type = initialType,
                         category = "Sagesse",
-                        visibility = "Privé",
+                        visibility = "private",
                         pendingQuestionId = pendingQuestionId,
                         locationId = locationId
                     )
@@ -272,7 +272,7 @@ fun CaptureScreen(
                                 mediaFile = null,
                                 type = Screen.Capture.TYPE_NIGHT,
                                 category = "Sagesse",
-                                visibility = "Privé",
+                                visibility = "private",
                                 pendingQuestionId = pendingQuestionId,
                                 locationId = locationId
                             )

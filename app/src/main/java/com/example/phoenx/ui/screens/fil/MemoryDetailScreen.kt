@@ -32,6 +32,7 @@ import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.screens.capture.RecipientSelector
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.debounce
 import java.text.SimpleDateFormat
 import java.util.*
@@ -50,6 +51,8 @@ fun MemoryDetailScreen(
     val deleteSuccess by viewModel.deleteSuccess.collectAsState()
     val error by viewModel.error.collectAsState()
     val accent = LocalAccentColor.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     // Observation du retour du Picker de lieu
     val pickedLocationId by navController.currentBackStackEntry?.savedStateHandle
@@ -63,6 +66,7 @@ fun MemoryDetailScreen(
     }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showLocationMenu by remember { mutableStateOf(false) }
 
     android.util.Log.d("MemoryDetailDebug", "MemoryDetailScreen composé, entryId=$entryId")
 
@@ -104,8 +108,8 @@ fun MemoryDetailScreen(
     // Affichage des erreurs
     LaunchedEffect(error) {
         error?.let {
-            // Ici on pourrait afficher un Snackbar si on avait accès au ScaffoldState
-            // Pour faire simple on peut utiliser un Toast ou laisser tel quel si géré ailleurs
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
         }
     }
 
@@ -136,6 +140,7 @@ fun MemoryDetailScreen(
     Scaffold(
         containerColor = Color.Transparent,
         modifier = Modifier.background(LocalBackgroundBrush.current),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Édition du souvenir", style = MaterialTheme.typography.labelLarge) },
@@ -402,10 +407,39 @@ fun MemoryDetailScreen(
                                 color = if (entry!!.locationName != null) TextPrimary else TextTertiary
                             )
                             Spacer(modifier = Modifier.weight(1f))
-                            IconButton(onClick = { 
-                                navController.navigate(Screen.Map.createRoute(returnToEntryId = entryId))
-                            }) {
-                                Icon(Icons.Default.Edit, null, tint = TextTertiary, modifier = Modifier.size(18.dp))
+                            Box {
+                                IconButton(onClick = { 
+                                    if (entry!!.locationName == null) {
+                                        navController.navigate(Screen.Map.createRoute(returnToEntryId = entryId))
+                                    } else {
+                                        showLocationMenu = true
+                                    }
+                                }) {
+                                    Icon(Icons.Default.Edit, null, tint = TextTertiary, modifier = Modifier.size(18.dp))
+                                }
+
+                                DropdownMenu(
+                                    expanded = showLocationMenu,
+                                    onDismissRequest = { showLocationMenu = false },
+                                    containerColor = BackgroundSecondary
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Changer de lieu", color = TextPrimary) },
+                                        leadingIcon = { Icon(Icons.Default.EditLocation, null, tint = accent) },
+                                        onClick = {
+                                            showLocationMenu = false
+                                            navController.navigate(Screen.Map.createRoute(returnToEntryId = entryId))
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Voir sur la carte", color = TextPrimary) },
+                                        leadingIcon = { Icon(Icons.Default.Map, null, tint = accent) },
+                                        onClick = {
+                                            showLocationMenu = false
+                                            navController.navigate(Screen.Map.createRoute())
+                                        }
+                                    )
+                                }
                             }
                         }
                     }

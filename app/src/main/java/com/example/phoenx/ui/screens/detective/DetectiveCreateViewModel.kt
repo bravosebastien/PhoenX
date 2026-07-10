@@ -130,7 +130,7 @@ class DetectiveCreateViewModel @Inject constructor(
                         entryType = state.contentType.name,
                         ageAtCreation = ageJson,
                         emotionalCategory = "Sagesse",
-                        visibility = "Privé",
+                        visibility = "private",
                         isYoungSelfLetter = false,
                         syncStatus = "synced",
                         enigmaQuestion = state.enigmaText,

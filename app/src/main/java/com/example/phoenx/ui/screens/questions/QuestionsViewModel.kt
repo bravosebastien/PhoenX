@@ -57,7 +57,7 @@ class QuestionsViewModel @Inject constructor(
                     entryType = "QUESTION_ANSWER",
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",
                     emotionalCategory = "Sagesse",
-                    visibility = "Privé",
+                    visibility = "private",
                     createdAt = System.currentTimeMillis(),
                     aiSummary = "Réponse à : $question"
                 )

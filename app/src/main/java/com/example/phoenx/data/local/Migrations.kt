@@ -40,4 +40,10 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN memoryDateEnd INTEGER")
         }
     }
+
+    val MIGRATION_15_16 = object : Migration(15, 16) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("UPDATE offline_entries SET visibility = 'private' WHERE visibility = 'Privé'")
+        }
+    }
 }

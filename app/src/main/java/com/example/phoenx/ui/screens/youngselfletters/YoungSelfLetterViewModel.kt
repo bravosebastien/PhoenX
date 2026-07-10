@@ -125,7 +125,7 @@ class YoungSelfLetterViewModel @Inject constructor(
                         entryType = "TEXT",
                         ageAtCreation = ageJson,
                         emotionalCategory = "Sagesse",
-                        visibility = "Privé",
+                        visibility = "private",
                         isYoungSelfLetter = true,
                         targetAge = state.targetAge,
                         syncStatus = "synced"

@@ -53,6 +53,10 @@ class MemoryDetailViewModel @Inject constructor(
         _entryId.value = id
     }
 
+    fun clearError() {
+        _error.value = null
+    }
+
     fun updateContent(newText: String) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
