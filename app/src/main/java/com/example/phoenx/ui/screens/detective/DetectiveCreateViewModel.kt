@@ -9,6 +9,10 @@ import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import android.content.Context
+import androidx.work.*
+import com.example.phoenx.data.sync.SyncWorker
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -35,7 +39,8 @@ class DetectiveCreateViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val offlineEntryDao: OfflineEntryDao,
-    private val encryptionManager: EncryptionManager
+    private val encryptionManager: EncryptionManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DetectiveCreateUiState())
@@ -107,6 +112,7 @@ class DetectiveCreateViewModel @Inject constructor(
                 val ageAtCreation = AgeUtils.calculateAge(birthDate)
                 val ageJson = "{\"years\":${ageAtCreation.years},\"months\":${ageAtCreation.months},\"days\":${ageAtCreation.days}}"
 
+                /* // ANCIEN CODE - DESACTIVE 2024-05-24 : écriture manuelle Firestore, remplacée par le pipeline standard
                 val entryData = hashMapOf(
                     "type" to state.contentType.name,
                     "encryptedContent" to android.util.Base64.encodeToString(encryptedPayload, android.util.Base64.DEFAULT),
@@ -122,6 +128,7 @@ class DetectiveCreateViewModel @Inject constructor(
                 )
 
                 db.collection("users").document(userId).collection("entries").add(entryData).await()
+                */
                 
                 offlineEntryDao.insertEntry(
                     OfflineEntry(
@@ -132,13 +139,22 @@ class DetectiveCreateViewModel @Inject constructor(
                         emotionalCategory = "Sagesse",
                         visibility = "private",
                         isYoungSelfLetter = false,
-                        syncStatus = "synced",
+                        syncStatus = "pending",
                         enigmaQuestion = state.enigmaText,
                         enigmaAnswer = hashedAnswer,
                         unlockAfterDays = state.unlockAfterDays,
                         fallbackAnswer = encryptedFallback
                     )
                 )
+
+                // DECLENCHEMENT PIPELINE STANDARD (SyncWorker)
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+                val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+                    .setConstraints(constraints)
+                    .build()
+                WorkManager.getInstance(context).enqueue(syncRequest)
 
                 onSuccess()
             } catch (e: Exception) {

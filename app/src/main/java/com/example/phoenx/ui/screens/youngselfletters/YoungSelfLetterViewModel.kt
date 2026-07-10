@@ -9,6 +9,10 @@ import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
+import android.content.Context
+import androidx.work.*
+import com.example.phoenx.data.sync.SyncWorker
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +30,8 @@ class YoungSelfLetterViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
     private val encryptionManager: EncryptionManager,
-    private val offlineEntryDao: OfflineEntryDao
+    private val offlineEntryDao: OfflineEntryDao,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(YoungSelfLetterUiState())
@@ -104,6 +109,7 @@ class YoungSelfLetterViewModel @Inject constructor(
                 val ageAtCreation = AgeUtils.calculateAge(birthDate)
                 val ageJson = "{\"years\":${ageAtCreation.years},\"months\":${ageAtCreation.months},\"days\":${ageAtCreation.days}}"
 
+                /* // ANCIEN CODE - DESACTIVE 2024-05-24 : écriture manuelle Firestore, remplacée par le pipeline standard
                 val entryData = hashMapOf(
                     "type" to "TEXT",
                     "encryptedContent" to android.util.Base64.encodeToString(encryptedPayload, android.util.Base64.DEFAULT),
@@ -117,6 +123,7 @@ class YoungSelfLetterViewModel @Inject constructor(
                 )
 
                 db.collection("users").document(userId).collection("entries").add(entryData).await()
+                */
                 
                 offlineEntryDao.insertEntry(
                     OfflineEntry(
@@ -128,9 +135,18 @@ class YoungSelfLetterViewModel @Inject constructor(
                         visibility = "private",
                         isYoungSelfLetter = true,
                         targetAge = state.targetAge,
-                        syncStatus = "synced"
+                        syncStatus = "pending"
                     )
                 )
+
+                // DECLENCHEMENT PIPELINE STANDARD (SyncWorker)
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+                val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+                    .setConstraints(constraints)
+                    .build()
+                WorkManager.getInstance(context).enqueue(syncRequest)
 
                 onSuccess()
             } catch (e: Exception) {
