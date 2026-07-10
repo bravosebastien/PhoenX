@@ -38,7 +38,8 @@ fun YoungSelfLetterScreen(
     val sheetState = rememberModalBottomSheetState()
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = Color.Transparent,
+        modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
                 title = { Text("", style = MaterialTheme.typography.labelLarge) },
@@ -47,7 +48,7 @@ fun YoungSelfLetterScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { padding ->

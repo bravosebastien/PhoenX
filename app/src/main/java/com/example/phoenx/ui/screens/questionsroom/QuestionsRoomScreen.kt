@@ -41,9 +41,10 @@ fun QuestionsRoomScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = Color.Transparent,
+        modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
-            Column(modifier = Modifier.background(BackgroundPrimary)) {
+            Column(modifier = Modifier.background(Color.Transparent)) {
                 TopAppBar(
                     title = {
                         Column {
@@ -63,12 +64,12 @@ fun QuestionsRoomScreen(
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )
                 
                 ScrollableTabRow(
                     selectedTabIndex = QuestionsData.categories.indexOf(uiState.selectedCategory),
-                    containerColor = BackgroundPrimary,
+                    containerColor = Color.Transparent,
                     contentColor = AccentPrimary,
                     edgePadding = 16.dp,
                     indicator = { tabPositions ->

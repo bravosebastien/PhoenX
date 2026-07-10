@@ -34,7 +34,8 @@ fun RecipientDiscothequeScreen(
     val entries by viewModel.discothequeEntries.collectAsState()
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = Color.Transparent,
+        modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
                 title = { Text("Grande Discothèque", style = MaterialTheme.typography.displaySmall) },
@@ -48,13 +49,11 @@ fun RecipientDiscothequeScreen(
                         Icon(Icons.Default.Add, null, tint = AccentPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(BackgroundSecondary, BackgroundPrimary))
-        )) {
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Le tourne-disque est silencieux pour le moment.", color = TextTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)

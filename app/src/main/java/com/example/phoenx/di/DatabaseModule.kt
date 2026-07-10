@@ -24,7 +24,9 @@ object DatabaseModule {
             "phoenx_db"
         ).addMigrations(
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_10_11,
-            com.example.phoenx.data.local.RoomMigrations.MIGRATION_11_12
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_11_12,
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_12_13,
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_13_14
         )
             .fallbackToDestructiveMigrationOnDowngrade()
             .build()

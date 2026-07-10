@@ -47,6 +47,7 @@ import com.example.phoenx.ui.screens.questions.HundredQuestionsViewModel
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.questions.AskQuestionScreen
 import com.example.phoenx.ui.screens.questions.PendingQuestionsScreen
+import com.example.phoenx.ui.screens.fil.MemoryDetailScreen
 import com.example.phoenx.ui.screens.questionsroom.QuestionsRoomScreen
 import com.example.phoenx.ui.screens.quiz.QuizCreateScreen
 import com.example.phoenx.ui.screens.quiz.QuizLeaderboardScreen
@@ -188,7 +189,10 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.Fil.route) {
-            FilScreen(onNavigateBack = { navController.popBackStack() })
+            FilScreen(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         
         composable(
@@ -386,6 +390,17 @@ fun PhoenXNavGraph(
         }
 
         composable(
+            route = Screen.MemoryDetail.route,
+            arguments = listOf(navArgument("entryId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
+            MemoryDetailScreen(
+                entryId = entryId,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
             route = Screen.AskQuestion.route,
             deepLinks = listOf(navDeepLink {
                 uriPattern = "https://phoenx.app/ask?creator={creatorId}&recipient={recipientId}"
@@ -437,7 +452,10 @@ fun PhoenXNavGraph(
             )
         }
         composable("fil_pensee") {
-            FilScreen(onNavigateBack = { navController.popBackStack() })
+            FilScreen(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
         composable("lettres") {
             MailboxScreen(onNavigateBack = { navController.popBackStack() })

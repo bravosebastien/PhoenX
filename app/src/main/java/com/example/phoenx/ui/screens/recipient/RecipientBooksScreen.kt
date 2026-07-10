@@ -37,7 +37,8 @@ fun RecipientBooksScreen(
     var selectedEntry by remember { mutableStateOf<PhoenXEntry?>(null) }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = Color.Transparent,
+        modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
                 title = { Text("Grande Bibliothèque", style = MaterialTheme.typography.displaySmall) },
@@ -51,13 +52,11 @@ fun RecipientBooksScreen(
                         Icon(Icons.Default.Add, null, tint = AccentPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(BackgroundSecondary, BackgroundPrimary))
-        )) {
+        Box(modifier = Modifier.fillMaxSize()) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Aucun écrit n'a encore été confié à cette bibliothèque.", color = TextTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)

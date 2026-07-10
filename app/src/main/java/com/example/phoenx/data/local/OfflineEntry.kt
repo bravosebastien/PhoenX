@@ -42,7 +42,14 @@ data class OfflineEntry(
     val locationId: String? = null,
 
     // RANGEMENT MULTIPLE (Signature 7.2)
-    val compartmentIds: String = "" // Stocké en CSV avec virgules encadrantes : ,ID1,ID2,
+    val compartmentIds: String = "", // Stocké en CSV avec virgules encadrantes : ,ID1,ID2,
+
+    // PIPELINE MÉDIA (Signature 7.3 - Réservé v13)
+    val mediaUrl: String? = null,
+    val localMediaPath: String? = null,
+
+    // ÉDITION AVANCÉE (Signature 7.4 - v14)
+    val memoryDate: Long? = null // Date réelle du souvenir (distincte de createdAt)
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -71,6 +78,9 @@ data class OfflineEntry(
         if (locationName != other.locationName) return false
         if (locationId != other.locationId) return false
         if (compartmentIds != other.compartmentIds) return false
+        if (mediaUrl != other.mediaUrl) return false
+        if (localMediaPath != other.localMediaPath) return false
+        if (memoryDate != other.memoryDate) return false
 
         return true
     }
@@ -97,6 +107,9 @@ data class OfflineEntry(
         result = 31 * result + (locationName?.hashCode() ?: 0)
         result = 31 * result + (locationId?.hashCode() ?: 0)
         result = 31 * result + compartmentIds.hashCode()
+        result = 31 * result + (mediaUrl?.hashCode() ?: 0)
+        result = 31 * result + (localMediaPath?.hashCode() ?: 0)
+        result = 31 * result + (memoryDate?.hashCode() ?: 0)
         return result
     }
 }

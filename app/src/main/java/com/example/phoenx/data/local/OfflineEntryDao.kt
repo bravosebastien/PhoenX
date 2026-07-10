@@ -93,6 +93,9 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM offline_entries WHERE compartmentIds LIKE '%,' || :compartmentId || ',%'")
     fun getEntriesByCompartment(compartmentId: String): Flow<List<OfflineEntry>>
 
+    @Query("SELECT * FROM offline_entries WHERE id = :entryId")
+    fun getEntryById(entryId: String): Flow<OfflineEntry?>
+
     @Query("SELECT * FROM offline_entries WHERE id IN (:ids)")
     fun getEntriesByIds(ids: List<String>): Flow<List<OfflineEntry>>
 
@@ -101,6 +104,18 @@ interface OfflineEntryDao {
 
     @Query("UPDATE offline_entries SET recipientIds = :newIds WHERE id = :entryId")
     suspend fun updateEntryRecipients(newIds: String, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET compartmentIds = :newCompartmentIds WHERE id = :entryId")
+    suspend fun updateEntryCompartments(newCompartmentIds: String, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET emotionalCategory = :newCategory WHERE id = :entryId")
+    suspend fun updateEntryCategory(newCategory: String, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET memoryDate = :newDate WHERE id = :entryId")
+    suspend fun updateEntryMemoryDate(newDate: Long?, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET latitude = :lat, longitude = :lng, locationName = :name, locationId = :locId WHERE id = :entryId")
+    suspend fun updateEntryLocation(lat: Double?, lng: Double?, name: String?, locId: String?, entryId: String): Int
 
     @Query("UPDATE offline_entries SET latitude = NULL, longitude = NULL, locationName = NULL, locationId = NULL WHERE id = :entryId")
     suspend fun detachEntryFromLocation(entryId: String): Int

@@ -179,7 +179,7 @@ fun HomeScreen(
                 ) {
                     Button(
                         onClick = { onNavigateToCapture(Screen.Capture.TYPE_TEXT, null) },
-                        modifier = Modifier.weight(2f).height(56.dp),
+                        modifier = Modifier.weight(1.3f).height(56.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = accent),
                         shape = RoundedCornerShape(14.dp),
                         contentPadding = PaddingValues(0.dp)
@@ -195,12 +195,12 @@ fun HomeScreen(
                                 }
                             }
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Déposer un souvenir", color = BackgroundPrimary, style = MaterialTheme.typography.labelLarge.copy(fontSize = 15.sp, fontWeight = FontWeight.Bold))
+                            Text("Déposer", color = BackgroundPrimary, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold))
                         }
                     }
 
                     Card(
-                        modifier = Modifier.weight(1f).height(56.dp).clickable { onNavigateToLibrary() },
+                        modifier = Modifier.weight(0.85f).height(56.dp).clickable { onNavigateToLibrary() },
                         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
                         shape = RoundedCornerShape(14.dp),
                         border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
@@ -211,7 +211,23 @@ fun HomeScreen(
                             verticalArrangement = Arrangement.Center
                         ) {
                             Icon(Icons.Outlined.AutoStories, null, tint = accent, modifier = Modifier.size(18.dp))
-                            Text("Ma biblio", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp))
+                            Text("Ma biblio", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp))
+                        }
+                    }
+
+                    Card(
+                        modifier = Modifier.weight(0.85f).height(56.dp).clickable { onNavigateToFil() },
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+                        shape = RoundedCornerShape(14.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(Icons.Outlined.HistoryEdu, null, tint = accent, modifier = Modifier.size(18.dp))
+                            Text("Mon Fil", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp))
                         }
                     }
                 }

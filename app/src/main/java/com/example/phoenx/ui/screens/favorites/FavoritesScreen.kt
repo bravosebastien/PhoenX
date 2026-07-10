@@ -16,6 +16,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -34,7 +35,8 @@ fun FavoritesScreen(
     var showAddDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = Color.Transparent,
+        modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
                 title = { Text("Mes Meilleurs", style = MaterialTheme.typography.displaySmall) },
@@ -43,7 +45,7 @@ fun FavoritesScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
         floatingActionButton = {
@@ -56,9 +58,7 @@ fun FavoritesScreen(
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.radialGradient(listOf(BackgroundSecondary, BackgroundPrimary), radius = 2000f)
-        )) {
+        Box(modifier = Modifier.fillMaxSize()) {
             when (val state = uiState) {
                 is FavoritesUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 is FavoritesUiState.Success -> {

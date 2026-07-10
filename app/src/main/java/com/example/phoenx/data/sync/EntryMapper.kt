@@ -43,6 +43,7 @@ fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
         "longitude" to longitude,
         "locationName" to locationName,
         "pactId" to pactId,
-        "locationId" to locationId
+        "locationId" to locationId,
+        "memoryDate" to memoryDate
     )
 }

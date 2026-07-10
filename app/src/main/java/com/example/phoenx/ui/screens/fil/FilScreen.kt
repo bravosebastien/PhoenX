@@ -31,11 +31,14 @@ import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.InfoPoint
+import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilScreen(
+    navController: NavController,
     onNavigateBack: () -> Unit,
     viewModel: FilViewModel = hiltViewModel()
 ) {
@@ -44,7 +47,8 @@ fun FilScreen(
     val sheetState = rememberModalBottomSheetState()
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = Color.Transparent,
+        modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
                 title = {
@@ -79,13 +83,11 @@ fun FilScreen(
                         Icon(Icons.Default.FilterList, contentDescription = null, tint = AccentPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.radialGradient(colors = listOf(BackgroundSecondary, BackgroundPrimary), radius = 2000f)
-        )) {
+        Box(modifier = Modifier.fillMaxSize()) {
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = AccentPrimary)
             } else if (uiState.entries.isEmpty()) {
@@ -107,9 +109,15 @@ fun FilScreen(
                         item { YearSeparator(year, groupedEntries[year]?.size ?: 0) }
                         items(groupedEntries[year] ?: emptyList()) { entry ->
                             if (entry.amendments.isNotEmpty()) {
-                                DialogueTemporelItem(entry)
+                                DialogueTemporelItem(
+                                    entry = entry,
+                                    onClick = { navController.navigate(Screen.MemoryDetail.createRoute(entry.id)) }
+                                )
                             } else {
-                                TimelineEntryItem(entry)
+                                TimelineEntryItem(
+                                    entry = entry,
+                                    onClick = { navController.navigate(Screen.MemoryDetail.createRoute(entry.id)) }
+                                )
                             }
                         }
                     }
@@ -153,13 +161,14 @@ fun FilScreen(
 }
 
 @Composable
-fun DialogueTemporelItem(entry: PhoenXEntry) {
+fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
     val latestAmendment = entry.amendments.last()
     
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 12.dp)
+            .clickable { onClick() }
             .phoenXMatiere(),
         colors = CardDefaults.cardColors(containerColor = SurfaceCard),
         shape = MaterialTheme.shapes.large,
@@ -240,9 +249,13 @@ fun YearSeparator(year: Int, count: Int) {
 }
 
 @Composable
-fun TimelineEntryItem(entry: PhoenXEntry) {
+fun TimelineEntryItem(entry: PhoenXEntry, onClick: () -> Unit) {
     Surface(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 10.dp).phoenXMatiere(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 10.dp)
+            .clickable { onClick() }
+            .phoenXMatiere(),
         color = SurfaceCard.copy(alpha = 0.5f),
         shape = MaterialTheme.shapes.large,
         border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))

@@ -17,4 +17,19 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN compartmentIds TEXT NOT NULL DEFAULT ''")
         }
     }
+
+    val MIGRATION_12_13 = object : Migration(12, 13) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Pipeline Média (Réservé)
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN mediaUrl TEXT")
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN localMediaPath TEXT")
+        }
+    }
+
+    val MIGRATION_13_14 = object : Migration(13, 14) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Édition Avancée
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN memoryDate INTEGER")
+        }
+    }
 }
