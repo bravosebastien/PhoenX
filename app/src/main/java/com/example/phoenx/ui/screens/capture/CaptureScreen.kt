@@ -223,9 +223,17 @@ fun CaptureScreen(
                         Button(
                             onClick = {
                                 Log.d("ClickDebug", "Clic détecté sur le bouton Déposer")
+                                
+                                // Déterminer le fichier média à enregistrer
+                                val mediaFile = if (initialType == Screen.Capture.TYPE_GALLERY) {
+                                    selectedGalleryUri?.let { viewModel.uriToFile(it) }
+                                } else {
+                                    capturedPhotoFile
+                                }
+
                                 viewModel.saveEntry(
                                     content = text,
-                                    mediaFile = capturedPhotoFile,
+                                    mediaFile = mediaFile,
                                     type = initialType,
                                     category = selectedCategory,
                                     visibility = visibility,

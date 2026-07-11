@@ -126,6 +126,7 @@ sealed class Screen(val route: String) {
         fun createRoute(creatorId: String) = "depositary/activation/$creatorId"
     }
     object DepositaryNotifications : Screen("depositary/notifications")
+    object DepositaryInfo : Screen("depositary/info")
 
     object SilenceOnboarding : Screen("silence/onboarding")
     object SilenceCheckIn : Screen("silence/checkin")

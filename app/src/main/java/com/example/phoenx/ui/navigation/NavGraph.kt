@@ -655,6 +655,9 @@ fun PhoenXNavGraph(
                 },
                 onNavigateToNotifications = {
                     navController.navigate(Screen.DepositaryNotifications.route)
+                },
+                onNavigateToInfo = {
+                    navController.navigate(Screen.DepositaryInfo.route)
                 }
             )
         }
@@ -847,6 +850,10 @@ fun PhoenXNavGraph(
 
         composable(Screen.DepositaryNotifications.route) {
             DepositaryNotificationsScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.DepositaryInfo.route) {
+            DepositaryInfoScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

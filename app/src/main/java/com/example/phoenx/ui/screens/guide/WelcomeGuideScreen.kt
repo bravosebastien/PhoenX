@@ -54,7 +54,7 @@ fun WelcomeGuideScreen(
         ),
         GuideStep(
             "Sécurité Totale",
-            "Vos secrets sont protégés par votre empreinte et un chiffrement militaire. Seuls vos proches choisis pourront les ouvrir.",
+            "Tes souvenirs sont protégés par un chiffrement de pointe (E2EE). Ils ne pourront être ouverts que par toi et tes proches désignés.",
             Icons.Default.Lock
         )
     )

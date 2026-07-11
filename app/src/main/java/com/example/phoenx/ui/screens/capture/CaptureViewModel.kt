@@ -26,6 +26,7 @@ import java.io.File
 import java.util.*
 import javax.inject.Inject
 
+import android.net.Uri
 import androidx.core.app.ActivityCompat
 import android.content.Context
 import android.util.Log
@@ -35,6 +36,8 @@ import androidx.work.*
 import com.example.phoenx.data.sync.SyncWorker
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.FileOutputStream
+import java.io.InputStream
 
 @HiltViewModel
 class CaptureViewModel @Inject constructor(
@@ -167,6 +170,26 @@ class CaptureViewModel @Inject constructor(
         _uiState.value = CaptureUiState.Idle
     }
 
+    /**
+     * Convertit un Uri Android (Galerie) en File temporaire utilisable par saveEntry.
+     */
+    fun uriToFile(uri: Uri): File? {
+        return try {
+            val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+            val tempFile = File(context.cacheDir, "temp_gallery_${UUID.randomUUID()}.jpg")
+            val outputStream = FileOutputStream(tempFile)
+            inputStream?.use { input ->
+                outputStream.use { output ->
+                    input.copyTo(output)
+                }
+            }
+            tempFile
+        } catch (e: Exception) {
+            Log.e("CaptureVM", "Erreur lors de la conversion Uri -> File : ${e.message}")
+            null
+        }
+    }
+
     fun saveEntry(
         content: String?,
         mediaFile: File?,
@@ -212,7 +235,27 @@ class CaptureViewModel @Inject constructor(
                 val encrypted = encryptionManager.encryptText(rawText)
                 Log.d("SaveEntryDebug", "Chiffrement terminé, taille = ${encrypted.size} octets")
                 
-                // 4. SAUVEGARDE HORS-LIGNE
+                // 4. GESTION DU MÉDIA LOCAL (Signature 7.3)
+                var finalLocalPath: String? = null
+                if (mediaFile != null && mediaFile.exists()) {
+                    try {
+                        val mediaDir = File(context.filesDir, "media")
+                        if (!mediaDir.exists()) mediaDir.mkdirs()
+                        
+                        val destFile = File(mediaDir, "PHX_${UUID.randomUUID()}_${mediaFile.name}")
+                        mediaFile.inputStream().use { input ->
+                            destFile.outputStream().use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        finalLocalPath = destFile.absolutePath
+                        Log.d("SaveEntryDebug", "Média copié vers : $finalLocalPath")
+                    } catch (e: Exception) {
+                        Log.e("SaveEntryDebug", "Erreur lors de la copie du média", e)
+                    }
+                }
+
+                // 5. SAUVEGARDE HORS-LIGNE
                 val entryId = UUID.randomUUID().toString()
                 val entry = OfflineEntry(
                     id = entryId,
@@ -234,7 +277,8 @@ class CaptureViewModel @Inject constructor(
                     latitude = latitude,
                     longitude = longitude,
                     locationName = locationName,
-                    locationId = locationId
+                    locationId = locationId,
+                    localMediaPath = finalLocalPath
                 )
                 offlineEntryDao.insertEntry(entry)
                 Log.d("SaveEntryDebug", "Entrée insérée en local avec id = $entryId")

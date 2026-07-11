@@ -370,54 +370,58 @@ export const sealPendingQuestion = onCall(async (request) => {
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
 
-    // Vérifier que le destinataire a bien le droit de poser
-    // des questions
-    const recipientDoc = await admin.firestore()
-        .collection("users").doc(creatorId)
-        .collection("recipients").doc(recipientId)
-        .get();
+    const db = admin.firestore();
+    const recipientRef = db.collection("users").doc(creatorId).collection("recipients").doc(recipientId);
+    const questionsCol = db.collection("users").doc(creatorId).collection("pendingQuestions");
 
-    if (!recipientDoc.exists) {
-        throw new HttpsError("not-found", "Destinataire introuvable");
-    }
+    try {
+        await db.runTransaction(async (transaction) => {
+            const recipientDoc = await transaction.get(recipientRef);
 
-    const recipientData = recipientDoc.data()!;
+            if (!recipientDoc.exists) {
+                throw new HttpsError("not-found", "Destinataire introuvable");
+            }
 
-    if (!recipientData.canAskQuestions) {
-        throw new HttpsError(
-            "permission-denied",
-            "Ce destinataire n'est pas autorisé à poser des questions"
-        );
-    }
+            const recipientData = recipientDoc.data()!;
 
-    // Vérifier la limite si définie
-    const max = recipientData.maxQuestionsAllowed;
-    const asked = recipientData.questionsAskedCount || 0;
-    if (max !== null && max !== undefined && asked >= max) {
-        throw new HttpsError(
-            "resource-exhausted",
-            "Limite de questions atteinte"
-        );
-    }
+            if (!recipientData.canAskQuestions) {
+                throw new HttpsError(
+                    "permission-denied",
+                    "Ce destinataire n'est pas autorisé à poser des questions"
+                );
+            }
 
-    // Stocker la question chiffrée
-    await admin.firestore()
-        .collection("users").doc(creatorId)
-        .collection("pendingQuestions")
-        .add({
-            recipientId,
-            recipientName: recipientData.name || "",
-            questionText, // déjà chiffré RSA côté client
-            askedAt: admin.firestore.FieldValue.serverTimestamp(),
-            status: "pending"
+            // Vérifier la limite si définie
+            const max = recipientData.maxQuestionsAllowed;
+            const asked = recipientData.questionsAskedCount || 0;
+            if (max !== null && max !== undefined && asked >= max) {
+                throw new HttpsError(
+                    "resource-exhausted",
+                    "Limite de questions atteinte"
+                );
+            }
+
+            // 1. Stocker la question chiffrée
+            const newQuestionRef = questionsCol.doc();
+            transaction.set(newQuestionRef, {
+                recipientId,
+                recipientName: recipientData.name || "",
+                questionText, // déjà chiffré RSA côté client
+                askedAt: admin.firestore.FieldValue.serverTimestamp(),
+                status: "pending"
+            });
+
+            // 2. Incrémenter le compteur atomiquement
+            transaction.update(recipientRef, {
+                questionsAskedCount: admin.firestore.FieldValue.increment(1)
+            });
         });
 
-    // Incrémenter le compteur
-    await recipientDoc.ref.update({
-        questionsAskedCount: admin.firestore.FieldValue.increment(1)
-    });
-
-    return { success: true };
+        return { success: true };
+    } catch (error: any) {
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError("internal", error.message || "Erreur lors du scellage de la question");
+    }
 });
 
 // Fonctions d'invitation Dépositaire
@@ -470,7 +474,13 @@ export const sendWitnessInvitation = onCall(async (request) => {
     }
     const { creatorId, witnessId, witnessEmail, witnessName, creatorName } = request.data;
     const token = crypto.randomBytes(32).toString('hex');
-    await admin.firestore().collection("users").doc(creatorId).collection("witnesses").doc(witnessId).set({ inviteToken: token }, { merge: true });
+
+    // Correction : On enregistre aussi creatorName pour que verifyWitnessToken puisse le renvoyer au témoin
+    await admin.firestore().collection("users").doc(creatorId).collection("witnesses").doc(witnessId).set({
+        inviteToken: token,
+        creatorName: creatorName
+    }, { merge: true });
+
     const link = `https://phoenx.app/witness?creator=${creatorId}&witness=${witnessId}&token=${token}`;
     await admin.firestore().collection("mail").add({ to: witnessEmail, message: { subject: `${creatorName} demande ton témoignage`, text: `Lien: ${link}` } });
     return { success: true };

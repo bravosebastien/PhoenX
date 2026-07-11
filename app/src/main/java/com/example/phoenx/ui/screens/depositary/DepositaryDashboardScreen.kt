@@ -29,6 +29,7 @@ fun DepositaryDashboardScreen(
     onNavigateToActivation: (String) -> Unit,
     onNavigateToOnboarding: () -> Unit,
     onNavigateToNotifications: () -> Unit,
+    onNavigateToInfo: () -> Unit,
     viewModel: DepositaryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -102,7 +103,11 @@ fun DepositaryDashboardScreen(
                 }
 
                 item {
-                    DepositarySection("MES INFORMATIONS", Icons.Default.Person)
+                    DepositarySection(
+                        title = "MES INFORMATIONS",
+                        icon = Icons.Default.Person,
+                        onClick = onNavigateToInfo
+                    )
                 }
             }
         }

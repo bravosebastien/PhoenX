@@ -263,7 +263,7 @@ fun StepGetStarted(onFinish: (Boolean) -> Unit) {
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Chiffrement de bout en bout.\nTes données ne nous appartiennent pas.",
+            text = "Tes souvenirs sont chiffrés et scellés.\nIls ne seront transmis qu'au moment voulu.",
             style = MaterialTheme.typography.labelSmall,
             color = TextTertiary,
             textAlign = TextAlign.Center,

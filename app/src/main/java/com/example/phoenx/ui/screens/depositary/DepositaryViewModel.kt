@@ -147,6 +147,7 @@ class DepositaryViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
+                // 1. Charger le profil du créateur
                 val doc = db.collection("users").document(creatorId).get().await()
                 val name = doc.getString("displayName") ?: "Proche"
                 val missedCycles = doc.get("silenceConfig.missedCycles")?.toString()?.toInt() ?: 0
@@ -156,10 +157,22 @@ class DepositaryViewModel @Inject constructor(
                     (System.currentTimeMillis() - lastCheckInAt.toDate().time) / (1000 * 60 * 60 * 24)
                 } else 0
                 
+                // 2. Charger mon propre profil (Dépositaire connecté)
+                val myUid = auth.currentUser?.uid
+                var myName = ""
+                var myEmail = auth.currentUser?.email ?: ""
+                
+                if (myUid != null) {
+                    val myDoc = db.collection("users").document(myUid).get().await()
+                    myName = myDoc.getString("displayName") ?: myEmail.substringBefore("@")
+                }
+
                 _uiState.update { it.copy(
                     creatorName = name,
                     missedCycles = missedCycles,
-                    daysSinceLastCheckIn = daysSince.toInt()
+                    daysSinceLastCheckIn = daysSince.toInt(),
+                    personalName = myName,
+                    personalEmail = myEmail
                 ) }
             } catch (e: Exception) {
                 android.util.Log.e("DepositaryVM", "Error loading status", e)
@@ -223,5 +236,7 @@ data class DepositaryUiState(
     val creatorName: String = "",
     val missedCycles: Int = 0,
     val daysSinceLastCheckIn: Int = 0,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val personalName: String = "",
+    val personalEmail: String = ""
 )

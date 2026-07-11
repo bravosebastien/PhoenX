@@ -377,7 +377,7 @@ fun SignupStepA(
         )
         
         Text(
-            "Sécurité absolue : perdu = irrécupérable.",
+            "Tes souvenirs sont chiffrés. En cas d'oubli, utilise la procédure de récupération par email.",
             style = MaterialTheme.typography.labelSmall,
             color = Warning,
             textAlign = TextAlign.Center

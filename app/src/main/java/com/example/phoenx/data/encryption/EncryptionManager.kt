@@ -61,28 +61,25 @@ class EncryptionManager @Inject constructor() {
     }
 
     /**
-     * Chiffre un texte avec une clé fournie ou la clé de session (AES-256-GCM)
+     * Chiffre un tableau d'octets (AES-256-GCM)
      */
-    fun encryptText(plaintext: String, key: ByteArray? = null): ByteArray {
+    fun encryptBytes(data: ByteArray, key: ByteArray? = null): ByteArray {
         val encryptionKey = key ?: sessionKey
-            ?: throw IllegalStateException(
-                "Clé de session non initialisée. " +
-                "L'utilisateur doit être connecté."
-            )
+            ?: throw IllegalStateException("Clé de session non initialisée.")
         val iv = ByteArray(12)
         SecureRandom().nextBytes(iv)
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         val keySpec = javax.crypto.spec.SecretKeySpec(encryptionKey, "AES")
         val paramSpec = javax.crypto.spec.GCMParameterSpec(128, iv)
         cipher.init(Cipher.ENCRYPT_MODE, keySpec, paramSpec)
-        val encrypted = cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
+        val encrypted = cipher.doFinal(data)
         return iv + encrypted
     }
 
     /**
-     * Déchiffre un texte
+     * Déchiffre un tableau d'octets
      */
-    fun decryptText(ciphertext: ByteArray, key: ByteArray? = null): String {
+    fun decryptBytes(ciphertext: ByteArray, key: ByteArray? = null): ByteArray {
         val decryptionKey = key ?: sessionKey
             ?: throw IllegalStateException("Clé de session non initialisée.")
         val iv = ciphertext.sliceArray(0..11)
@@ -91,7 +88,21 @@ class EncryptionManager @Inject constructor() {
         val keySpec = javax.crypto.spec.SecretKeySpec(decryptionKey, "AES")
         val paramSpec = javax.crypto.spec.GCMParameterSpec(128, iv)
         cipher.init(Cipher.DECRYPT_MODE, keySpec, paramSpec)
-        return String(cipher.doFinal(encrypted), Charsets.UTF_8)
+        return cipher.doFinal(encrypted)
+    }
+
+    /**
+     * Chiffre un texte avec une clé fournie ou la clé de session (AES-256-GCM)
+     */
+    fun encryptText(plaintext: String, key: ByteArray? = null): ByteArray {
+        return encryptBytes(plaintext.toByteArray(Charsets.UTF_8), key)
+    }
+
+    /**
+     * Déchiffre un texte
+     */
+    fun decryptText(ciphertext: ByteArray, key: ByteArray? = null): String {
+        return String(decryptBytes(ciphertext, key), Charsets.UTF_8)
     }
 
     fun encrypt(text: String): String {

@@ -44,6 +44,7 @@ fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
         "locationName" to locationName,
         "pactId" to pactId,
         "locationId" to locationId,
+        "mediaUrl" to mediaUrl,
         "memoryDate" to memoryDate,
         "memoryDateStart" to memoryDateStart,
         "memoryDateEnd" to memoryDateEnd
