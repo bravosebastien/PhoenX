@@ -45,6 +45,8 @@ fun HomeScreen(
     onNavigateToFil: () -> Unit,
     onNavigateToLetters: () -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToTransmission: () -> Unit,
     onNavigateToEssence: () -> Unit,
     onNavigateToPortraits: () -> Unit,
     onNavigateToWorlds: () -> Unit,
@@ -101,8 +103,6 @@ fun HomeScreen(
     ProfileDrawer(
         userName = uiState.userName,
         userEmail = uiState.userEmail,
-        isBiometricEnabled = isBiometricEnabled,
-        onToggleBiometric = { mainViewModel.toggleBiometric(it) },
         onNavigate = { route -> 
             scope.launch { drawerState.close() }
             if (route == "notification_contacts") onNavigateToNotificationContacts()
@@ -112,10 +112,9 @@ fun HomeScreen(
             scope.launch { drawerState.close() }
             showLogoutDialog = true 
         },
-        onResetVideo = { mainViewModel.resetVideoBanner() },
-        onUpdateRhythm = { onNavigateToSettings() },
         onNavigateToSettings = onNavigateToSettings,
-        mainViewModel = mainViewModel,
+        onNavigateToProfile = onNavigateToProfile,
+        onNavigateToTransmission = onNavigateToTransmission,
         drawerState = drawerState
     ) {
         Scaffold(

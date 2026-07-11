@@ -228,6 +228,8 @@ fun PhoenXNavGraph(
                 onNavigateToFil = { navController.navigate(Screen.Fil.route) },
                 onNavigateToLetters = { navController.navigate(Screen.YoungSelfLetters.route) },
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
+                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
+                onNavigateToTransmission = { navController.navigate(Screen.Recipients.route) }, // Pour l'instant on va vers les destinataires
                 onNavigateToEssence = { navController.navigate(Screen.Essence.route) },
                 onNavigateToPortraits = { navController.navigate(Screen.Portraits.createRoute()) },
                 onNavigateToWorlds = { navController.navigate(Screen.Worlds.route) },
