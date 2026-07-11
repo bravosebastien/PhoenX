@@ -166,10 +166,11 @@ fun PhoenXNavGraph(
         composable(Screen.Home.route) {
             val silenceStatus by mainViewModel.silenceStatus.collectAsState()
             val isSilenceOnboardingDone by mainViewModel.isSilenceOnboardingDone.collectAsState()
+            val isDepositaryAccount by mainViewModel.isDepositaryAccount.collectAsState()
             val isLoggedIn = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser != null
             val isEmailVerified = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.isEmailVerified ?: false
 
-            if (isLoggedIn && isEmailVerified && (silenceStatus == null || isSilenceOnboardingDone == null)) {
+            if (isLoggedIn && isEmailVerified && isDepositaryAccount == false && (silenceStatus == null || isSilenceOnboardingDone == null)) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -185,14 +186,16 @@ fun PhoenXNavGraph(
                 return@composable
             }
 
-            LaunchedEffect(silenceStatus, isSilenceOnboardingDone) {
-                if (isSilenceOnboardingDone == false) {
-                    navController.navigate(Screen.SilenceOnboarding.route)
-                } else if (isSilenceOnboardingDone == true) {
-                    when (silenceStatus) {
-                        SilenceStatus.CHECK_IN_DUE -> navController.navigate(Screen.SilenceCheckIn.route)
-                        SilenceStatus.BLOCKED -> navController.navigate(Screen.SilenceBlock.route)
-                        else -> {}
+            LaunchedEffect(silenceStatus, isSilenceOnboardingDone, isDepositaryAccount) {
+                if (isDepositaryAccount == false) {
+                    if (isSilenceOnboardingDone == false) {
+                        navController.navigate(Screen.SilenceOnboarding.route)
+                    } else if (isSilenceOnboardingDone == true) {
+                        when (silenceStatus) {
+                            SilenceStatus.CHECK_IN_DUE -> navController.navigate(Screen.SilenceCheckIn.route)
+                            SilenceStatus.BLOCKED -> navController.navigate(Screen.SilenceBlock.route)
+                            else -> {}
+                        }
                     }
                 }
             }

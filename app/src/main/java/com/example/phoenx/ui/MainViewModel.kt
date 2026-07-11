@@ -40,6 +40,9 @@ class MainViewModel @Inject constructor(
     private val _silenceStatus = MutableStateFlow<SilenceStatus?>(null)
     val silenceStatus: StateFlow<SilenceStatus?> = _silenceStatus.asStateFlow()
 
+    private val _isDepositaryAccount = MutableStateFlow<Boolean?>(null)
+    val isDepositaryAccount: StateFlow<Boolean?> = _isDepositaryAccount.asStateFlow()
+
     private val _daysSinceLastCheckIn = MutableStateFlow(0)
     val daysSinceLastCheckIn: StateFlow<Int> = _daysSinceLastCheckIn.asStateFlow()
     
@@ -106,10 +109,12 @@ class MainViewModel @Inject constructor(
 
                 // PROBLÈME 2 : On arrête tout si c'est un profil Dépositaire uniquement
                 if (doc.getBoolean("isDepositaryOnly") == true) {
+                    _isDepositaryAccount.value = true
                     android.util.Log.d("MainViewModel", "Profil Dépositaire détecté. Skip sync Créateur.")
                     return@launch
                 }
 
+                _isDepositaryAccount.value = false
                 val status = silenceManager.checkSilenceStatus(userId)
                 _silenceStatus.value = status
 
