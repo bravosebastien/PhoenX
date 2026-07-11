@@ -47,6 +47,11 @@ class MainViewModel @Inject constructor(
     private val _isDepositaryAccount = MutableStateFlow<Boolean?>(null)
     val isDepositaryAccount: StateFlow<Boolean?> = _isDepositaryAccount.asStateFlow()
 
+    private val _protectedCreatorIds = MutableStateFlow<List<String>>(emptyList())
+    val firstProtectedCreatorId: StateFlow<String?> = _protectedCreatorIds
+        .map { it.firstOrNull() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     private val _daysSinceLastCheckIn = MutableStateFlow(0)
     val daysSinceLastCheckIn: StateFlow<Int> = _daysSinceLastCheckIn.asStateFlow()
     
@@ -123,7 +128,12 @@ class MainViewModel @Inject constructor(
                 // PROBLÈME 2 : On arrête tout si c'est un profil Dépositaire uniquement
                 if (doc.getBoolean("isDepositaryOnly") == true) {
                     _isDepositaryAccount.value = true
-                    android.util.Log.d("MainViewModel", "Profil Dépositaire détecté. Skip sync Créateur.")
+                    
+                    // Récupérer la liste des créateurs protégés
+                    val creatorIds = doc.get("protectedCreatorIds") as? List<String> ?: emptyList()
+                    _protectedCreatorIds.value = creatorIds
+                    
+                    android.util.Log.d("MainViewModel", "Profil Dépositaire détecté. Protected creators: $creatorIds")
                     return@launch
                 }
 

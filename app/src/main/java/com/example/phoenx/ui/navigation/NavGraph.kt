@@ -167,9 +167,13 @@ fun PhoenXNavGraph(
             val silenceStatus by mainViewModel.silenceStatus.collectAsState()
             val isSilenceOnboardingDone by mainViewModel.isSilenceOnboardingDone.collectAsState()
             val isDepositaryAccount by mainViewModel.isDepositaryAccount.collectAsState()
+            val firstCreatorId by mainViewModel.firstProtectedCreatorId.collectAsState()
             val isLoggedIn = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser != null
             val isEmailVerified = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.isEmailVerified ?: false
             val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+
+            // Flag pour empêcher les redirections multiples (Stabilité)
+            var hasNavigated by remember { mutableStateOf(false) }
 
             if (isLoggedIn && isEmailVerified && isDepositaryAccount == false && (silenceStatus == null || isSilenceOnboardingDone == null)) {
                 Box(
@@ -187,19 +191,29 @@ fun PhoenXNavGraph(
                 return@composable
             }
 
-            LaunchedEffect(silenceStatus, isSilenceOnboardingDone, isDepositaryAccount) {
-                if (isDepositaryAccount == true && currentUser != null) {
-                    // Redirection automatique des Dépositaires vers leur Dashboard
-                    navController.navigate(Screen.DepositaryDashboard.createRoute(currentUser.uid)) {
+            LaunchedEffect(isDepositaryAccount, firstCreatorId, silenceStatus, isSilenceOnboardingDone) {
+                if (hasNavigated) return@LaunchedEffect
+
+                if (isDepositaryAccount == true && firstCreatorId != null) {
+                    hasNavigated = true
+                    // Redirection automatique UNIQUE vers le Dashboard du Créateur
+                    navController.navigate(Screen.DepositaryDashboard.createRoute(firstCreatorId!!)) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
                 } else if (isDepositaryAccount == false) {
                     if (isSilenceOnboardingDone == false) {
+                        hasNavigated = true
                         navController.navigate(Screen.SilenceOnboarding.route)
                     } else if (isSilenceOnboardingDone == true) {
                         when (silenceStatus) {
-                            SilenceStatus.CHECK_IN_DUE -> navController.navigate(Screen.SilenceCheckIn.route)
-                            SilenceStatus.BLOCKED -> navController.navigate(Screen.SilenceBlock.route)
+                            SilenceStatus.CHECK_IN_DUE -> {
+                                hasNavigated = true
+                                navController.navigate(Screen.SilenceCheckIn.route)
+                            }
+                            SilenceStatus.BLOCKED -> {
+                                hasNavigated = true
+                                navController.navigate(Screen.SilenceBlock.route)
+                            }
                             else -> {}
                         }
                     }
@@ -627,12 +641,15 @@ fun PhoenXNavGraph(
 
         composable("depositary_onboarding") {
             val user = FirebaseAuth.getInstance().currentUser
+            val firstCreatorId by mainViewModel.firstProtectedCreatorId.collectAsState()
+            
             DepositaryOnboardingScreen(
                 creatorName = "Ton proche", 
                 onFinish = {
                     user?.uid?.let { uid ->
                         mainViewModel.markDepositaryOnboardingSeen(uid)
-                        navController.navigate(Screen.DepositaryDashboard.createRoute(uid)) {
+                        val targetId = firstCreatorId ?: uid // Fallback sur soi-même si pas encore de liaison (cas rare)
+                        navController.navigate(Screen.DepositaryDashboard.createRoute(targetId)) {
                             popUpTo("depositary_onboarding") { inclusive = true }
                         }
                     }

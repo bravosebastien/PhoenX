@@ -144,39 +144,92 @@ class DepositaryViewModel @Inject constructor(
     }
 
     fun loadCreatorStatus(creatorId: String) {
+        val myUid = auth.currentUser?.uid ?: return
+        android.util.Log.d("PHOENX_DEBUG", "Entrée dans loadCreatorStatus avec ID=$creatorId")
+        
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                // 1. Charger le profil du créateur
+                // 1. CHARGEMENT PRIORITAIRE DU CRÉATEUR (Pour débloquer l'UI immédiatement)
                 val doc = db.collection("users").document(creatorId).get().await()
                 val name = doc.getString("displayName") ?: "Proche"
                 val missedCycles = doc.get("silenceConfig.missedCycles")?.toString()?.toInt() ?: 0
+                val threshold = doc.get("silenceConfig.thresholdHours")?.toString()?.toInt() ?: 72
                 val lastCheckInAt = doc.getTimestamp("silenceConfig.lastCheckInAt")
                 
                 val daysSince = if (lastCheckInAt != null) {
                     (System.currentTimeMillis() - lastCheckInAt.toDate().time) / (1000 * 60 * 60 * 24)
                 } else 0
-                
-                // 2. Charger mon propre profil (Dépositaire connecté)
-                val myUid = auth.currentUser?.uid
-                var myName = ""
-                var myEmail = auth.currentUser?.email ?: ""
-                
-                if (myUid != null) {
-                    val myDoc = db.collection("users").document(myUid).get().await()
-                    myName = myDoc.getString("displayName") ?: myEmail.substringBefore("@")
-                }
 
+                // Mise à jour immédiate des données vitales
                 _uiState.update { it.copy(
                     creatorName = name,
                     missedCycles = missedCycles,
                     daysSinceLastCheckIn = daysSince.toInt(),
-                    personalName = myName,
-                    personalEmail = myEmail
+                    thresholdHours = threshold
                 ) }
+                android.util.Log.d("PHOENX_DEBUG", "UI débloquée pour $name")
+
+                // 2. REQUÊTES SECONDAIRES (Isolées pour ne pas faire planter l'UI en cas d'erreur)
+                
+                // Notifications de base
+                val dynamicNotifications = mutableListOf<PhoenXNotification>()
+                dynamicNotifications.add(PhoenXNotification(
+                    id = "role_info",
+                    message = "Rappel : Tu es le Dépositaire de $name.",
+                    timestamp = System.currentTimeMillis(),
+                    type = "info"
+                ))
+
+                if (missedCycles > 0) {
+                    dynamicNotifications.add(PhoenXNotification(
+                        id = "silence_alert",
+                        message = "Alerte de silence : $name n'a pas répondu depuis $daysSince jours.",
+                        timestamp = lastCheckInAt?.toDate()?.time ?: System.currentTimeMillis(),
+                        type = "alert"
+                    ))
+                }
+
+                // Vérification du protocole (Corrigée avec filter depositaryId)
+                try {
+                    val protocolSnap = db.collection("activationProtocols")
+                        .whereEqualTo("creatorId", creatorId)
+                        .whereEqualTo("depositaryId", myUid) // Obligatoire pour les règles Firestore
+                        .whereEqualTo("status", "pending_contest")
+                        .get().await()
+                    
+                    if (!protocolSnap.isEmpty) {
+                        dynamicNotifications.add(0, PhoenXNotification(
+                            id = "protocol_active",
+                            message = "Activation confirmée. Délai de ${threshold}h en cours.",
+                            timestamp = System.currentTimeMillis(),
+                            type = "alert"
+                        ))
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("PHOENX_DEBUG", "Erreur check protocole: ${e.message}")
+                }
+
+                // Profil personnel
+                var myName = ""
+                val myEmail = auth.currentUser?.email ?: ""
+                try {
+                    val myDoc = db.collection("users").document(myUid).get().await()
+                    myName = myDoc.getString("displayName") ?: myEmail.substringBefore("@")
+                } catch (e: Exception) {
+                    android.util.Log.e("PHOENX_DEBUG", "Erreur profil perso: ${e.message}")
+                }
+
+                // Mise à jour finale
+                _uiState.update { it.copy(
+                    personalName = myName,
+                    personalEmail = myEmail,
+                    notifications = dynamicNotifications,
+                    isLoading = false
+                ) }
+
             } catch (e: Exception) {
                 android.util.Log.e("DepositaryVM", "Error loading status", e)
-            } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
@@ -232,11 +285,20 @@ class DepositaryViewModel @Inject constructor(
     }
 }
 
+data class PhoenXNotification(
+    val id: String,
+    val message: String,
+    val timestamp: Long,
+    val type: String // "alert" | "info" | "success"
+)
+
 data class DepositaryUiState(
     val creatorName: String = "",
     val missedCycles: Int = 0,
     val daysSinceLastCheckIn: Int = 0,
+    val thresholdHours: Int = 72,
     val isLoading: Boolean = true,
     val personalName: String = "",
-    val personalEmail: String = ""
+    val personalEmail: String = "",
+    val notifications: List<PhoenXNotification> = emptyList()
 )

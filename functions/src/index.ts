@@ -460,10 +460,30 @@ export const joinAsDepositary = onCall(async (request) => {
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
     const { creatorId, depositaryId, token } = request.data;
+    const depositaryUid = request.auth.uid;
     const ref = admin.firestore().collection("users").doc(creatorId).collection("depositaries").doc(depositaryId);
     const doc = await ref.get();
-    if (!doc.exists || doc.data()?.inviteToken !== token || doc.data()?.inviteTokenUsed) throw new HttpsError("permission-denied", "Invalide");
-    await ref.update({ depositaryUid: request.auth?.uid, inviteTokenUsed: true });
+
+    if (!doc.exists || doc.data()?.inviteToken !== token || doc.data()?.inviteTokenUsed) {
+        throw new HttpsError("permission-denied", "Invalide");
+    }
+
+    const batch = admin.firestore().batch();
+
+    // 1. Liaison sur le document du Créateur
+    batch.update(ref, {
+        depositaryUid: depositaryUid,
+        inviteTokenUsed: true
+    });
+
+    // 2. Lien inverse sur le document du Dépositaire (Approche 2 - Liste)
+    const depositaryUserRef = admin.firestore().collection("users").doc(depositaryUid);
+    batch.set(depositaryUserRef, {
+        protectedCreatorIds: admin.firestore.FieldValue.arrayUnion(creatorId)
+    }, { merge: true });
+
+    await batch.commit();
+
     return { success: true };
 });
 

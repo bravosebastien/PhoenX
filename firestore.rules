@@ -5,9 +5,17 @@ service cloud.firestore {
 
     // ═══ USERS — Le Créateur lui-même ═══
     match /users/{userId} {
-      // Seul le propriétaire authentifié peut lire/écrire son profil
-      allow read, write: if request.auth != null
-                          && request.auth.uid == userId;
+      // Le propriétaire peut tout faire.
+      // Le Dépositaire peut lire le profil (nom, silenceConfig) pour son Dashboard.
+      allow read: if request.auth != null
+                  && (request.auth.uid == userId
+                      || (exists(/databases/$(database)/documents/users/$(userId)/depositaries/primary)
+                          && get(/databases/$(database)/documents/users/$(userId)/depositaries/primary).data.depositaryUid == request.auth.uid)
+                      || (exists(/databases/$(database)/documents/users/$(userId)/depositaries/secondary)
+                          && get(/databases/$(database)/documents/users/$(userId)/depositaries/secondary).data.depositaryUid == request.auth.uid));
+
+      allow write: if request.auth != null
+                    && request.auth.uid == userId;
 
       // ═══ ENTRIES — Souvenirs du Créateur ═══
       match /entries/{entryId} {

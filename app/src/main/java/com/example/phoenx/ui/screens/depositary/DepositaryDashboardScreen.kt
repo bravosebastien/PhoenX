@@ -32,6 +32,7 @@ fun DepositaryDashboardScreen(
     onNavigateToInfo: () -> Unit,
     viewModel: DepositaryViewModel = hiltViewModel()
 ) {
+    android.util.Log.d("PHOENX_DEBUG", "DepositaryDashboardScreen rendu avec creatorId=$creatorId")
     val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(creatorId) {
