@@ -23,21 +23,45 @@ fun ProtocolSettingsScreen(
     viewModel: ProtocolViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
     
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var threshold by remember { mutableFloatStateOf(72f) }
 
+    // Synchronisation initiale uniquement (Évite d'écraser la saisie en cours)
+    var hasInitialized by remember { mutableStateOf(false) }
     LaunchedEffect(uiState) {
-        name = uiState.name
-        email = uiState.email
-        phone = uiState.phone
-        threshold = uiState.thresholdHours.toFloat()
+        if (!hasInitialized && uiState.name.isNotEmpty()) {
+            name = uiState.name
+            email = uiState.email
+            phone = uiState.phone
+            threshold = uiState.thresholdHours.toFloat()
+            hasInitialized = true
+        }
+    }
+
+    // Gestion du succès
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            snackbarHostState.showSnackbar("Réglages enregistrés avec succès.")
+            kotlinx.coroutines.delay(1500)
+            onNavigateBack()
+        }
+    }
+
+    // Gestion des erreurs
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
     }
 
     Scaffold(
         containerColor = BackgroundPrimary,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Protocole d'activation", style = MaterialTheme.typography.labelLarge) },
@@ -124,6 +148,7 @@ fun ProtocolSettingsScreen(
             Slider(
                 value = threshold,
                 onValueChange = { threshold = it },
+                enabled = !uiState.isLoading,
                 valueRange = 24f..72f,
                 steps = 2,
                 colors = SliderDefaults.colors(thumbColor = AccentPrimary, activeTrackColor = AccentPrimary)
@@ -134,10 +159,15 @@ fun ProtocolSettingsScreen(
 
             Button(
                 onClick = { viewModel.saveProtocol(name, email, phone, threshold.toInt()) },
+                enabled = !uiState.isLoading && name.isNotBlank() && email.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                 colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
             ) {
-                Text("Enregistrer les réglages", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BackgroundPrimary, strokeWidth = 2.dp)
+                } else {
+                    Text("Enregistrer les réglages", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

@@ -194,6 +194,12 @@ export const activateProtocol = onCall(async (request) => {
         throw new HttpsError("permission-denied", "Accès refusé");
     }
 
+    // Récupérer le délai de contestation personnalisé du Créateur
+    const creatorDoc = await admin.firestore()
+        .collection("users").doc(creatorId).get();
+    const thresholdHours = creatorDoc.data()?.silenceConfig?.thresholdHours ?? 72;
+    const thresholdMillis = thresholdHours * 60 * 60 * 1000;
+
     // Vérifier la preuve de tentative de contact (Étape 0)
     const checkedCount = Object.values(contactAttemptDetails || {})
         .filter((v) => v === true).length;
@@ -207,7 +213,7 @@ export const activateProtocol = onCall(async (request) => {
 
     const now = admin.firestore.Timestamp.now();
     const contestDeadline = admin.firestore.Timestamp.fromMillis(
-        now.toMillis() + 72 * 60 * 60 * 1000
+        now.toMillis() + thresholdMillis
     );
 
     const ref = await admin.firestore()
@@ -224,7 +230,7 @@ export const activateProtocol = onCall(async (request) => {
     await admin.firestore().collection("tasks").add({
         type: "notifyDeathContacts",
         creatorId: creatorId,
-        scheduledFor: admin.firestore.Timestamp.fromMillis(Date.now() + 72 * 60 * 60 * 1000),
+        scheduledFor: admin.firestore.Timestamp.fromMillis(Date.now() + thresholdMillis),
         status: "pending"
     });
 

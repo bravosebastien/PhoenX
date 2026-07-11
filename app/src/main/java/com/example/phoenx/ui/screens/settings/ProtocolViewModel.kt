@@ -79,6 +79,8 @@ class ProtocolViewModel @Inject constructor(
 
     fun saveProtocol(name: String, email: String, phone: String, threshold: Int) {
         val userId = auth.currentUser?.uid ?: return
+        _uiState.update { it.copy(isLoading = true, error = null, isSuccess = false) }
+
         viewModelScope.launch {
             try {
                 // 1. Sauvegarde locale
@@ -99,6 +101,10 @@ class ProtocolViewModel @Inject constructor(
                     .collection("depositaries").document(depositaryId)
                     .set(depositaryData).await()
 
+                // Enregistrement du délai de contestation (Seuil de sécurité)
+                db.collection("users").document(userId)
+                    .update("silenceConfig.thresholdHours", threshold).await()
+
                 // 3. Génération du Token
                 val result = functions.getHttpsCallable("generateDepositaryInviteToken")
                     .call(mapOf("creatorId" to userId, "depositaryId" to depositaryId))
@@ -114,12 +120,21 @@ class ProtocolViewModel @Inject constructor(
                 
                 _shortCode.value = (codeResult.data as Map<*, *>)["shortCode"] as String
                 
-                _uiState.update { it.copy(isSuccess = true) }
+                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
 
             } catch (e: Exception) {
                 android.util.Log.e("PHOENX_PROTO", "Erreur sauvegarde primaire: ${e.message}")
+                _uiState.update { it.copy(isLoading = false, error = e.message ?: "Erreur de sauvegarde") }
             }
         }
+    }
+
+    fun loadCreatorStatus(creatorId: String) {
+        // ... (Non modifié ici)
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
     }
 
     /**
@@ -127,6 +142,7 @@ class ProtocolViewModel @Inject constructor(
      */
     fun saveSecondaryDepositary(name: String, email: String, phone: String) {
         val userId = auth.currentUser?.uid ?: return
+        _uiState.update { it.copy(isLoading = true, error = null, isSuccess = false) }
         viewModelScope.launch {
             try {
                 val depositaryId = "secondary"
@@ -161,11 +177,13 @@ class ProtocolViewModel @Inject constructor(
                     secondaryName = name,
                     secondaryEmail = email,
                     secondaryPhone = phone,
+                    isLoading = false,
                     isSuccess = true
                 ) }
 
             } catch (e: Exception) {
                 android.util.Log.e("PHOENX_PROTO", "Erreur sauvegarde secondaire: ${e.message}")
+                _uiState.update { it.copy(isLoading = false, error = e.message ?: "Erreur de sauvegarde") }
             }
         }
     }
@@ -177,7 +195,9 @@ data class ProtocolUiState(
     val phone: String = "",
     val status: String = "Dormant",
     val thresholdHours: Int = 72,
+    val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
+    val error: String? = null,
     val hasSecondaryDepositary: Boolean = false,
     val secondaryName: String = "",
     val secondaryEmail: String = "",
