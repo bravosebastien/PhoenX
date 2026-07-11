@@ -451,8 +451,19 @@ export const redeemDepositaryShortCode = onCall(async (request) => {
     const doc = await ref.get();
     if (!doc.exists || doc.data()?.expiresAt.toMillis() < Date.now() || doc.data()?.used) throw new HttpsError("permission-denied", "Invalide");
     await ref.update({ used: true });
-    const dDoc = await admin.firestore().collection("users").doc(doc.data()?.creatorId).collection("depositaries").doc(doc.data()?.depositaryId).get();
-    return { creatorId: doc.data()?.creatorId, depositaryId: doc.data()?.depositaryId, token: dDoc.data()?.inviteToken };
+
+    const creatorId = doc.data()?.creatorId;
+    const depositaryId = doc.data()?.depositaryId;
+
+    const creatorDoc = await admin.firestore().collection("users").doc(creatorId).get();
+    const dDoc = await admin.firestore().collection("users").doc(creatorId).collection("depositaries").doc(depositaryId).get();
+
+    return {
+        creatorId: creatorId,
+        depositaryId: depositaryId,
+        token: dDoc.data()?.inviteToken,
+        creatorName: creatorDoc.data()?.displayName || "Ton proche"
+    };
 });
 
 export const joinAsDepositary = onCall(async (request) => {
@@ -510,5 +521,10 @@ export const verifyWitnessToken = onCall(async (request) => {
     const { creatorId, witnessId, token } = request.data;
     const doc = await admin.firestore().collection("users").doc(creatorId).collection("witnesses").doc(witnessId).get();
     if (!doc.exists || doc.data()?.inviteToken !== token || doc.data()?.submittedAt) throw new HttpsError("permission-denied", "Invalide");
-    return { creatorName: doc.data()?.creatorName || "Ton proche" };
+
+    // Récupérer le nom du créateur depuis le profil (Admin SDK permet de contourner les rules)
+    const creatorDoc = await admin.firestore().collection("users").doc(creatorId).get();
+    const creatorName = creatorDoc.data()?.displayName || doc.data()?.creatorName || "Ton proche";
+
+    return { creatorName: creatorName };
 });

@@ -50,6 +50,11 @@ fun WitnessResponseScreen(
     var isRitualPlaying by remember { mutableStateOf(false) }
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val creatorName by viewModel.creatorName.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.verifyToken(creatorId, witnessId, token)
+    }
 
     LaunchedEffect(error) {
         error?.let {
@@ -113,7 +118,7 @@ fun WitnessResponseScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    "Un témoignage précieux",
+                    "Un témoignage pour ${creatorName ?: "ton proche"}",
                     style = MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold),
                     color = TextPrimary,
                     textAlign = TextAlign.Center,
@@ -123,7 +128,7 @@ fun WitnessResponseScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    "Raconte un moment où ton proche t'a surpris. Ce souvenir sera gardé précieusement et transmis à ses héritiers.",
+                    "Raconte un moment où ${creatorName ?: "ton proche"} t'a surpris. Ce souvenir sera gardé précieusement et transmis à ses héritiers.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,

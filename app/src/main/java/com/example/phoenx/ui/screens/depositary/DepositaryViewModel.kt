@@ -51,6 +51,7 @@ class DepositaryViewModel @Inject constructor(
     fun redeemShortCode(shortCode: String) {
         // Garde : si on a déjà les données (retour de login), on ne rappelle pas la Cloud Function
         if (pendingJoinData != null) {
+            _uiState.update { it.copy(creatorName = savedStateHandle.get<String>("pending_creator_name") ?: "Ton proche") }
             _redeemState.value = RedeemState.Success
             return
         }
@@ -67,10 +68,13 @@ class DepositaryViewModel @Inject constructor(
                 val creatorId = data["creatorId"] as String
                 val depositaryId = data["depositaryId"] as String
                 val token = data["token"] as String
+                val creatorName = data["creatorName"] as? String ?: "Ton proche"
                 
                 // Mémoriser de façon persistante pour la liaison finale après auth
                 pendingJoinData = Triple(creatorId, depositaryId, token)
-                
+                savedStateHandle.set("pending_creator_name", creatorName)
+
+                _uiState.update { it.copy(creatorName = creatorName) }
                 _redeemState.value = RedeemState.Success
                 
             } catch (e: Exception) {

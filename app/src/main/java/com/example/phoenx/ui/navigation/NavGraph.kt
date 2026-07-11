@@ -574,7 +574,10 @@ fun PhoenXNavGraph(
 
         // Côté Créateur
         composable("witness_invite") {
-            WitnessInviteScreen(navController = navController)
+            WitnessInviteScreen(
+                navController = navController,
+                mainViewModel = mainViewModel
+            )
         }
 
         // Côté Témoin (deeplink depuis email)
@@ -876,7 +879,15 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.DepositaryInfo.route) {
-            DepositaryInfoScreen(onNavigateBack = { navController.popBackStack() })
+            DepositaryInfoScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onLogoutSuccess = {
+                    navController.navigate(Screen.Splash.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                mainViewModel = mainViewModel
+            )
         }
     }
 }

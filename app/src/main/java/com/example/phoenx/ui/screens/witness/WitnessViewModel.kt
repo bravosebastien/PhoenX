@@ -41,8 +41,32 @@ class WitnessViewModel @Inject constructor(
     private val _inviteSuccess = MutableSharedFlow<Boolean>()
     val inviteSuccess: SharedFlow<Boolean> = _inviteSuccess.asSharedFlow()
 
+    private val _creatorName = MutableStateFlow<String?>(null)
+    val creatorName: StateFlow<String?> = _creatorName.asStateFlow()
+
     init {
         loadWitnesses()
+    }
+
+    fun verifyToken(creatorId: String, witnessId: String, token: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val data = hashMapOf(
+                    "creatorId" to creatorId,
+                    "witnessId" to witnessId,
+                    "token" to token
+                )
+                val result = functions.getHttpsCallable("verifyWitnessToken").call(data).await()
+                val name = (result.data as Map<*, *>)["creatorName"] as? String
+                _creatorName.value = name
+            } catch (e: Exception) {
+                android.util.Log.e("WitnessVM", "Error verifying token", e)
+                _error.value = "Lien invalide ou expiré."
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 
     fun loadWitnesses() {

@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.theme.*
@@ -107,7 +108,17 @@ fun ProfileScreen(
                     color = TextSecondary
                 )
 
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text(
+                    text = "Ce nom sera visible par les personnes que vous invitez (Dépositaires, Témoins, Destinataires).",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextTertiary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 32.dp)
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
 
                 // BOUTON DE RETOUR
                 Button(

@@ -32,6 +32,7 @@ fun DepositaryWelcomeScreen(
 ) {
     val context = LocalContext.current
     val redeemState by viewModel.redeemState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
 
     // État local pour éviter les tentatives de liaison multiples
@@ -123,7 +124,7 @@ fun DepositaryWelcomeScreen(
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 Text(
-                    text = "Un proche t'a désigné(e) comme Dépositaire. Ce rôle ne demande rien aujourd'hui. Il te demandera, un jour, de confirmer une absence. Et de laisser une présence parler.",
+                    text = "${uiState.creatorName} t'a désigné(e) comme Dépositaire. Ce rôle ne demande rien aujourd'hui. Il te demandera, un jour, de confirmer une absence. Et de laisser une présence parler.",
                     style = MaterialTheme.typography.bodyLarge,
                     color = TextSecondary,
                     textAlign = TextAlign.Center,

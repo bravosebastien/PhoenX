@@ -61,6 +61,12 @@ class MainViewModel @Inject constructor(
     private val _silenceRhythmDays = MutableStateFlow(30)
     val silenceRhythmDays: StateFlow<Int> = _silenceRhythmDays.asStateFlow()
 
+    private val _userName = MutableStateFlow("")
+    val userName: StateFlow<String> = _userName.asStateFlow()
+
+    private val _userEmail = MutableStateFlow("")
+    val userEmail: StateFlow<String> = _userEmail.asStateFlow()
+
     val accentColor: StateFlow<Int> = preferenceManager.accentColor
         .map { it ?: AccentPrimary.toArgb() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AccentPrimary.toArgb())
@@ -124,6 +130,9 @@ class MainViewModel @Inject constructor(
             try {
                 // 1. Récupérer le document utilisateur UNE SEULE FOIS
                 val doc = db.collection("users").document(userId).get().await()
+                val name = doc.getString("displayName") ?: doc.getString("email")?.substringBefore("@") ?: "Ami"
+                _userName.value = name
+                _userEmail.value = doc.getString("email") ?: ""
 
                 // PROBLÈME 2 : On arrête tout si c'est un profil Dépositaire uniquement
                 if (doc.getBoolean("isDepositaryOnly") == true) {

@@ -30,9 +30,11 @@ import com.example.phoenx.ui.theme.*
 @Composable
 fun WitnessInviteScreen(
     navController: NavController,
+    mainViewModel: com.example.phoenx.ui.MainViewModel,
     viewModel: WitnessViewModel = hiltViewModel()
 ) {
     val witnesses by viewModel.witnesses.collectAsState()
+    val creatorName by mainViewModel.userName.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val accent = LocalAccentColor.current
     val backgroundBrush = LocalBackgroundBrush.current
@@ -135,7 +137,7 @@ fun WitnessInviteScreen(
             InviteWitnessDialog(
                 onDismiss = { showDialog = false },
                 onConfirm = { name, email, allowRead ->
-                    viewModel.inviteWitness(name, email, allowRead, "Ton proche")
+                    viewModel.inviteWitness(name, email, allowRead, creatorName)
                     showDialog = false
                 }
             )
