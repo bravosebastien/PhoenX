@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.*
@@ -27,6 +28,9 @@ fun DepositaryInfoScreen(
     viewModel: DepositaryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    var showEditDialog by remember { mutableStateOf(false) }
+    var newName by remember { mutableStateOf("") }
 
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -64,12 +68,29 @@ fun DepositaryInfoScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // IDENTITÉ
-            Text(
-                text = uiState.personalName.ifEmpty { "Utilisateur" },
-                style = MaterialTheme.typography.headlineMedium,
-                color = TextPrimary,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = uiState.personalName.ifEmpty { "Utilisateur" },
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = TextPrimary,
+                    fontWeight = FontWeight.Bold
+                )
+                IconButton(onClick = { 
+                    newName = uiState.personalName
+                    showEditDialog = true 
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Modifier le nom",
+                        tint = AccentPrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+            
             Text(
                 text = uiState.personalEmail,
                 style = MaterialTheme.typography.bodyMedium,
@@ -124,5 +145,43 @@ fun DepositaryInfoScreen(
                 Text("Retour au tableau de bord", color = TextPrimary)
             }
         }
+    }
+
+    if (showEditDialog) {
+        AlertDialog(
+            onDismissRequest = { showEditDialog = false },
+            containerColor = BackgroundSecondary,
+            title = { Text("Modifier mon nom", color = TextPrimary) },
+            text = {
+                OutlinedTextField(
+                    value = newName,
+                    onValueChange = { newName = it },
+                    label = { Text("Nom d'usage") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = AccentPrimary,
+                        unfocusedBorderColor = TextTertiary,
+                        focusedLabelColor = AccentPrimary,
+                        cursorColor = AccentPrimary
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    if (newName.isNotBlank()) {
+                        viewModel.updateMyDisplayName(newName)
+                        showEditDialog = false
+                    }
+                }) {
+                    Text("Enregistrer", color = AccentPrimary)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditDialog = false }) {
+                    Text("Annuler", color = TextPrimary)
+                }
+            }
+        )
     }
 }

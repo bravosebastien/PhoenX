@@ -254,6 +254,21 @@ class DepositaryViewModel @Inject constructor(
         }
     }
 
+    fun updateMyDisplayName(newName: String) {
+        val uid = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(uid)
+                    .set(mapOf("displayName" to newName), com.google.firebase.firestore.SetOptions.merge())
+                    .await()
+                
+                _uiState.update { it.copy(personalName = newName) }
+            } catch (e: Exception) {
+                android.util.Log.e("DepositaryVM", "Error updating display name", e)
+            }
+        }
+    }
+
     fun activateProtocol(
         creatorId: String,
         depositaryId: String,

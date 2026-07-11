@@ -31,6 +31,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToProfile: () -> Unit,
     onNavigateToProtocol: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
     onNavigateToNotificationContacts: () -> Unit,
@@ -106,6 +107,18 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
+            Text("MON COMPTE", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(
+                title = "Mon Profil",
+                subtitle = "Gère ton nom d'usage et tes infos",
+                icon = Icons.Default.AccountCircle,
+                onClick = onNavigateToProfile
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             Text("SÉCURITÉ ET TRANSMISSION", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
             Spacer(modifier = Modifier.height(16.dp))
             

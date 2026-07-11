@@ -42,6 +42,7 @@ import com.example.phoenx.ui.screens.witness.WitnessInviteScreen
 import com.example.phoenx.ui.screens.witness.WitnessResponseScreen
 import com.example.phoenx.ui.screens.portraits.PortraitProcheScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
+import com.example.phoenx.ui.screens.profile.ProfileScreen
 import com.example.phoenx.ui.screens.questions.HundredQuestionsScreen
 import com.example.phoenx.ui.screens.questions.HundredQuestionsViewModel
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
@@ -724,6 +725,7 @@ fun PhoenXNavGraph(
         composable(Screen.Settings.route) {
             SettingsScreen(
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                 onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
                 onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
                 onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
@@ -742,6 +744,10 @@ fun PhoenXNavGraph(
 
         composable(Screen.Reconciliation.route) {
             ReconciliationScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.Profile.route) {
+            ProfileScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.SilenceOnboarding.route) {
