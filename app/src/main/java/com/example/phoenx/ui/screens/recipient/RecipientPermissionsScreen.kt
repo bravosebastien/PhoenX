@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,7 +38,8 @@ fun RecipientPermissionsScreen(
     var maxQuestions by remember { mutableIntStateOf(10) }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = Color.Transparent,
+        modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
                 title = { Text("${recipient?.name ?: "Proche"} — Droits d'accès", style = MaterialTheme.typography.labelLarge) },
@@ -46,7 +48,7 @@ fun RecipientPermissionsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { padding ->

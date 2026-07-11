@@ -42,24 +42,37 @@ import kotlinx.coroutines.tasks.await
 fun PortraitProcheScreen(
     initialRecipientId: String? = null,
     navController: NavController,
-    recipientViewModel: RecipientViewModel = hiltViewModel()
+    viewModel: PortraitViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val db = FirebaseFirestore.getInstance()
-    val auth = FirebaseAuth.getInstance()
     
-    val uiState by recipientViewModel.uiState.collectAsState()
-    val recipients = (uiState as? RecipientUiState.Success)?.recipients ?: emptyList()
+    val recipients by viewModel.recipients.collectAsState()
+    val existingPortrait by viewModel.existingPortrait.collectAsState()
     
     var selectedRecipient by remember { mutableStateOf(recipients.find { it.id == initialRecipientId }) }
     var text by remember { mutableStateOf("") }
     var expanded by remember { mutableStateOf(false) }
-    var isSaving by remember { mutableStateOf(false) }
+    
+    val uiState by viewModel.uiState.collectAsState()
 
     LaunchedEffect(recipients) {
         if (selectedRecipient == null && initialRecipientId != null) {
             selectedRecipient = recipients.find { it.id == initialRecipientId }
+        }
+    }
+
+    LaunchedEffect(initialRecipientId) {
+        viewModel.setRecipient(initialRecipientId)
+    }
+
+    LaunchedEffect(selectedRecipient) {
+        viewModel.setRecipient(selectedRecipient?.id)
+    }
+
+    LaunchedEffect(existingPortrait) {
+        if (existingPortrait != null && text.isEmpty()) {
+            text = existingPortrait!!
         }
     }
 
@@ -68,7 +81,7 @@ fun PortraitProcheScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("", style = MaterialTheme.typography.labelLarge) },
+                title = { Text("Miroir du proche", style = MaterialTheme.typography.labelLarge) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
@@ -214,48 +227,22 @@ fun PortraitProcheScreen(
 
             Button(
                 onClick = {
-                    val userId = auth.currentUser?.uid ?: return@Button
                     val recipient = selectedRecipient ?: return@Button
-                    isSaving = true
-                    scope.launch {
-                        try {
-                            // Enregistrement Firestore
-                            // Note: On utilise EncryptionManager via injection normalement, ici on simule
-                            val encryptedContent = text // TODO: Tink Encrypt
-                            
-                            val userDoc = db.collection("users").document(userId).get().await()
-                            val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: java.util.Date()
-                            val ageAtCreation = AgeUtils.calculateAge(birthDate)
-                            val ageJson = "{\"years\":${ageAtCreation.years},\"months\":${ageAtCreation.months},\"days\":${ageAtCreation.days}}"
-
-                            val entryData = hashMapOf(
-                                "type" to "TEXT",
-                                "encryptedContent" to encryptedContent,
-                                "isPortraitOfRecipient" to true,
-                                "recipientId" to recipient.id,
-                                "ageAtCreation" to ageJson,
-                                "emotionalCategory" to "Amour",
-                                "visibility" to "specific",
-                                "specificRecipientIds" to listOf(recipient.id),
-                                "aiSummary" to "",
-                                "createdAt" to com.google.firebase.Timestamp.now()
-                            )
-                            
-                            db.collection("users").document(userId).collection("entries").add(entryData).await()
-                            
-                            Toast.makeText(context, "Portrait scellé. Il/elle le découvrira en temps voulu.", Toast.LENGTH_SHORT).show()
-                            navController.popBackStack()
-                        } catch (e: Exception) {
-                            isSaving = false
-                        }
-                    }
+                    viewModel.savePortrait(recipient.id, text)
                 },
-                enabled = text.isNotBlank() && selectedRecipient != null && !isSaving,
+                enabled = text.isNotBlank() && selectedRecipient != null && uiState !is PortraitUiState.Loading,
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                 colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
             ) {
-                if (isSaving) CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+                if (uiState is PortraitUiState.Loading) CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
                 else Text("Sceller ce portrait", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+            }
+
+            if (uiState is PortraitUiState.Success) {
+                LaunchedEffect(Unit) {
+                    Toast.makeText(context, "Portrait scellé et synchronisé.", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack()
+                }
             }
         }
     }

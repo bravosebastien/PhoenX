@@ -137,7 +137,10 @@ fun PortraitScreen(
                         )
                         
                         if (answers.any { it.isNotEmpty() }) {
-                            TextButton(onClick = { viewModel.savePortrait(selectedRecipientId!!, answers.toList()) }) {
+                            TextButton(onClick = { 
+                                val fullContent = answers.filter { it.isNotBlank() }.joinToString("\n\n")
+                                viewModel.savePortrait(selectedRecipientId!!, fullContent) 
+                            }) {
                                 Text("Terminer maintenant", color = AccentSecondary, style = MaterialTheme.typography.labelSmall)
                             }
                         }
@@ -197,7 +200,8 @@ fun PortraitScreen(
                             onClick = { 
                                 if (step < questions.size - 1) step++ 
                                 else { 
-                                    viewModel.savePortrait(selectedRecipientId!!, answers.toList())
+                                    val fullContent = answers.filter { it.isNotBlank() }.joinToString("\n\n")
+                                    viewModel.savePortrait(selectedRecipientId!!, fullContent)
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),

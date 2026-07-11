@@ -2,12 +2,14 @@ package com.example.phoenx.ui.screens.recipient
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.RecipientEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -29,6 +31,12 @@ class RecipientViewModel @Inject constructor(
     init {
         loadRecipients()
     }
+
+    fun getEntriesForRecipient(recipientId: String): Flow<List<OfflineEntry>> = 
+        offlineEntryDao.getEntriesForRecipient(recipientId)
+
+    fun getPortraitForRecipient(recipientId: String): Flow<OfflineEntry?> = 
+        offlineEntryDao.getPortraitEntryForRecipient(recipientId)
 
     private fun loadRecipients() {
         viewModelScope.launch {

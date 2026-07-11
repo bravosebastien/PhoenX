@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,7 +35,8 @@ fun PactDetailScreen(
     val entries by viewModel.getEntriesForPact(pactId).collectAsState(initial = emptyList())
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = Color.Transparent,
+        modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
                 title = { Text(pact?.partnerName?.let { "Pacte avec $it" } ?: "Détails du Pacte") },
@@ -43,7 +45,7 @@ fun PactDetailScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
         floatingActionButton = {
@@ -56,9 +58,7 @@ fun PactDetailScreen(
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(BackgroundSecondary, BackgroundPrimary))
-        )) {
+        Box(modifier = Modifier.fillMaxSize()) {
             if (pact == null) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else {

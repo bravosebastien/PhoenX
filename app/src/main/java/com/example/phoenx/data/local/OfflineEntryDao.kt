@@ -96,6 +96,12 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM offline_entries WHERE id = :entryId")
     fun getEntryById(entryId: String): Flow<OfflineEntry?>
 
+    @Query("SELECT * FROM offline_entries WHERE recipientIds LIKE '%' || :recipientId || '%'")
+    fun getEntriesForRecipient(recipientId: String): Flow<List<OfflineEntry>>
+
+    @Query("SELECT * FROM offline_entries WHERE recipientIds LIKE '%' || :recipientId || '%' AND entryType = 'PORTRAIT' LIMIT 1")
+    fun getPortraitEntryForRecipient(recipientId: String): Flow<OfflineEntry?>
+
     @Query("SELECT * FROM offline_entries WHERE id IN (:ids)")
     fun getEntriesByIds(ids: List<String>): Flow<List<OfflineEntry>>
 

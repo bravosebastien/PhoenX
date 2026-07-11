@@ -1,6 +1,5 @@
 package com.example.phoenx.ui.screens.witness
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,7 +9,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -81,98 +80,103 @@ fun WitnessResponseScreen(
         return
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(backgroundBrush)) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Spacer(modifier = Modifier.height(48.dp))
-
-            Icon(
-                imageVector = Icons.Default.AutoAwesome,
-                contentDescription = null,
-                tint = accent,
-                modifier = Modifier.size(40.dp).align(Alignment.CenterHorizontally)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                "Un témoignage précieux",
-                style = MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold),
-                color = TextPrimary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                "Raconte un moment où ton proche t'a surpris. Ce souvenir sera gardé précieusement et transmis à ses héritiers.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = TextSecondary,
-                textAlign = TextAlign.Center,
-                lineHeight = 26.sp
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            // ZONE PAPIER SACRÉ
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF242429)),
-                shape = RoundedCornerShape(12.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+    Scaffold(
+        containerColor = Color.Transparent,
+        modifier = Modifier.background(backgroundBrush)
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp)
             ) {
-                Box(modifier = Modifier.padding(24.dp)) {
-                    if (testimonyText.isEmpty()) {
-                        Text(
-                            "Écris ton histoire ici...",
-                            style = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 18.sp, color = TextTertiary)
+                Spacer(modifier = Modifier.height(48.dp))
+
+                Icon(
+                    imageVector = Icons.Default.AutoAwesome,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.size(40.dp).align(Alignment.CenterHorizontally)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    "Un témoignage précieux",
+                    style = MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold),
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    "Raconte un moment où ton proche t'a surpris. Ce souvenir sera gardé précieusement et transmis à ses héritiers.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 26.sp
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                // ZONE PAPIER SACRÉ
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242429)),
+                    shape = RoundedCornerShape(12.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                ) {
+                    Box(modifier = Modifier.padding(24.dp)) {
+                        if (testimonyText.isEmpty()) {
+                            Text(
+                                "Écris ton histoire ici...",
+                                style = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 18.sp, color = TextTertiary)
+                            )
+                        }
+                        BasicTextField(
+                            value = testimonyText,
+                            onValueChange = { testimonyText = it },
+                            textStyle = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 18.sp, color = TextPrimary, lineHeight = 30.sp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 300.dp)
                         )
                     }
-                    BasicTextField(
-                        value = testimonyText,
-                        onValueChange = { testimonyText = it },
-                        textStyle = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 18.sp, color = TextPrimary, lineHeight = 30.sp),
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 300.dp)
-                    )
                 }
-            }
 
-            Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(48.dp))
 
-            Button(
-                onClick = {
-                    viewModel.submitTestimony(creatorId, witnessId, token, testimonyText) {
-                        isRitualPlaying = true
+                Button(
+                    onClick = {
+                        viewModel.submitTestimony(creatorId, witnessId, token, testimonyText) {
+                            isRitualPlaying = true
+                        }
+                    },
+                    enabled = testimonyText.isNotBlank() && !isLoading,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = accent),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+                    } else {
+                        Icon(Icons.AutoMirrored.Filled.Send, null, tint = BackgroundPrimary)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Sceller mon témoignage", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
                     }
-                },
-                enabled = testimonyText.isNotBlank() && !isLoading,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = accent),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
-                } else {
-                    Icon(Icons.Default.Send, null, tint = BackgroundPrimary)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Sceller mon témoignage", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
                 }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                Text(
+                    "Ton témoignage est chiffré. Seul ton proche (s'il l'a autorisé) et ses héritiers pourront le lire.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextTertiary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Text(
-                "Ton témoignage est chiffré. Seul ton proche (s'il l'a autorisé) et ses héritiers pourront le lire.",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextTertiary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
         }
     }
 }
