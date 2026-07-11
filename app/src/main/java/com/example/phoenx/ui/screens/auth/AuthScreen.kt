@@ -17,6 +17,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.theme.*
@@ -54,12 +57,15 @@ fun AuthScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
+    var isVerifying by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState) {
         if (uiState is AuthState.Success) {
             onAuthSuccess()
         } else if (uiState is AuthState.PasswordResetSent) {
             android.widget.Toast.makeText(context, "Un email de réinitialisation a été envoyé.", android.widget.Toast.LENGTH_SHORT).show()
+        } else if (uiState is AuthState.EmailVerificationSent) {
+            isVerifying = false
         }
     }
 
@@ -72,14 +78,23 @@ fun AuthScreen(
             EmailVerificationContent(
                 email = email,
                 isNotVerifiedError = uiState is AuthState.EmailNotVerified,
+                isLoading = isVerifying,
                 onConfirmedClick = { 
+                    isVerifying = true
                     com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.reload()?.addOnCompleteListener {
+                        isVerifying = false
                         if (com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.isEmailVerified == true) {
                             onAuthSuccess()
+                        } else {
+                            android.widget.Toast.makeText(context, "Email pas encore vérifié, vérifie ta boîte mail.", android.widget.Toast.LENGTH_LONG).show()
                         }
                     }
                 },
-                onResendClick = { viewModel.resendVerificationEmail() }
+                onResendClick = { 
+                    isVerifying = true
+                    viewModel.resendVerificationEmail() 
+                    android.widget.Toast.makeText(context, "Email renvoyé !", android.widget.Toast.LENGTH_SHORT).show()
+                }
             )
         } else {
             Column(
@@ -147,6 +162,7 @@ fun AuthScreen(
 fun EmailVerificationContent(
     email: String,
     isNotVerifiedError: Boolean,
+    isLoading: Boolean,
     onConfirmedClick: () -> Unit,
     onResendClick: () -> Unit
 ) {
@@ -183,13 +199,21 @@ fun EmailVerificationContent(
         Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = onConfirmedClick,
+            enabled = !isLoading,
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
             colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
         ) {
-            Text("J'ai confirmé mon email", color = BackgroundPrimary)
+            if (isLoading) {
+                CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+            } else {
+                Text("J'ai confirmé mon email", color = BackgroundPrimary)
+            }
         }
         Spacer(modifier = Modifier.height(16.dp))
-        TextButton(onClick = onResendClick) {
+        TextButton(
+            onClick = onResendClick,
+            enabled = !isLoading
+        ) {
             Text("Renvoyer l'email", color = TextSecondary)
         }
     }
@@ -212,7 +236,9 @@ fun LoginContent(
         OutlinedTextField(
             value = email, onValueChange = onEmailChange,
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentType = ContentType.EmailAddress },
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentPrimary)
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -227,7 +253,9 @@ fun LoginContent(
                     Icon(imageVector = icon, contentDescription = null, tint = TextSecondary)
                 }
             },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentType = ContentType.Password },
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentPrimary)
         )
         
@@ -276,7 +304,9 @@ fun SignupStepA(
         OutlinedTextField(
             value = email, onValueChange = onEmailChange,
             label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentType = ContentType.EmailAddress }
         )
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -335,7 +365,9 @@ fun SignupStepA(
             value = password, onValueChange = onPasswordChange,
             label = { Text("Mot de passe (12+ caractères)") },
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentType = ContentType.Password }
         )
         LinearProgressIndicator(
             progress = { strength },

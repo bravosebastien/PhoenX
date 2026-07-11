@@ -96,7 +96,7 @@ fun PhoenXNavGraph(
 
         composable(Screen.Onboarding.route) {
             OnboardingScreen { isSignup ->
-                val nextRoute = if (isSignup) Screen.Auth.Signup.route else Screen.Auth.Login.route
+                val nextRoute = if (isSignup) Screen.Auth.Signup.createRoute() else Screen.Auth.Login.createRoute()
                 navController.navigate(nextRoute)
             }
         }
@@ -205,7 +205,7 @@ fun PhoenXNavGraph(
                 onNavigateToLetters = { navController.navigate(Screen.YoungSelfLetters.route) },
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                 onNavigateToEssence = { navController.navigate(Screen.Essence.route) },
-                onNavigateToPortraits = { navController.navigate(Screen.Portraits.route) },
+                onNavigateToPortraits = { navController.navigate(Screen.Portraits.createRoute()) },
                 onNavigateToWorlds = { navController.navigate(Screen.Worlds.route) },
                 onNavigateToFavorites = { navController.navigate(Screen.Favorites.route) },
                 onNavigateToQuestions = { navController.navigate(Screen.Questions.route) },
@@ -213,11 +213,16 @@ fun PhoenXNavGraph(
                 onNavigateToMailbox = { navController.navigate(Screen.RecipientMailbox.route) },
                 onNavigateToLegacy = { navController.navigate(Screen.NewLegacy.route) },
                 onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
-                onNavigateToMap = { navController.navigate(Screen.Map.route) },
+                onNavigateToMap = { navController.navigate(Screen.Map.createRoute()) },
                 onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.route) },
                 onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
                 onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
                 onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
+                onLogoutSuccess = {
+                    navController.navigate(Screen.Splash.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
                 mainViewModel = mainViewModel
             )
         }
@@ -638,6 +643,9 @@ fun PhoenXNavGraph(
                 },
                 onNavigateToOnboarding = {
                     navController.navigate("depositary_onboarding")
+                },
+                onNavigateToNotifications = {
+                    navController.navigate(Screen.DepositaryNotifications.route)
                 }
             )
         }

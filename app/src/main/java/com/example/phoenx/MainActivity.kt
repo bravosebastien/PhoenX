@@ -1,5 +1,6 @@
 package com.example.phoenx
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.accessibility.VoiceAccessibilityManager
@@ -28,12 +30,19 @@ import javax.inject.Inject
 class MainActivity : FragmentActivity() {
 
     private val mainViewModel: MainViewModel by viewModels()
+    private var navController: NavHostController? = null
     
     @Inject
     lateinit var voiceManager: VoiceAccessibilityManager
 
     @Inject
     lateinit var biometricManager: PhoenXBiometricManager
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        navController?.handleDeepLink(intent)
+    }
 
     @androidx.media3.common.util.UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -146,6 +155,7 @@ class MainActivity : FragmentActivity() {
         val isVoiceActive by mainViewModel.isVoiceModeActive.collectAsState()
         // val showRecoveryReminder by mainViewModel.showRecoveryReminder.collectAsState() // Mis en veille
         val navController = rememberNavController()
+        this.navController = navController
 
         /*
         if (showRecoveryReminder) {
@@ -173,12 +183,15 @@ class MainActivity : FragmentActivity() {
                         1001
                     )
                 } else {
-                    voiceManager.startListening { command ->
-                        mainViewModel.handleVoiceCommand(command) { route ->
-                            if (route == "back") navController.popBackStack()
-                            else navController.navigate(route)
+                        voiceManager.startListening { command ->
+                            mainViewModel.handleVoiceCommand(command) { route ->
+                                val nav = navController
+                                if (nav != null) {
+                                    if (route == "back") nav.popBackStack()
+                                    else nav.navigate(route)
+                                }
+                            }
                         }
-                    }
                 }
             } else {
                 voiceManager.stopListening()
@@ -190,11 +203,13 @@ class MainActivity : FragmentActivity() {
                 .fillMaxSize()
                 .background(com.example.phoenx.ui.theme.LocalBackgroundBrush.current)
         ) {
-            PhoenXNavGraph(
-                navController = navController,
-                mainViewModel = mainViewModel,
-                onVerifyBiometrics = onVerifyBiometrics
-            )
+            navController?.let {
+                PhoenXNavGraph(
+                    navController = it,
+                    mainViewModel = mainViewModel,
+                    onVerifyBiometrics = onVerifyBiometrics
+                )
+            }
         }
     }
 }

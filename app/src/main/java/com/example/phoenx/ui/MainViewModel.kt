@@ -89,18 +89,29 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun logout() {
+        auth.signOut()
+        encryptionManager.setSessionKey(null)
+    }
+
     /**
      * Appelé au démarrage ou après connexion.
      * Gère la présence du Créateur et la synchronisation des clés de sécurité (AES et RSA).
      */
     fun checkSilenceOnLaunch(userId: String) {
         viewModelScope.launch {
-            val status = silenceManager.checkSilenceStatus(userId)
-            _silenceStatus.value = status
-            
             try {
                 // 1. Récupérer le document utilisateur UNE SEULE FOIS
                 val doc = db.collection("users").document(userId).get().await()
+
+                // PROBLÈME 2 : On arrête tout si c'est un profil Dépositaire uniquement
+                if (doc.getBoolean("isDepositaryOnly") == true) {
+                    android.util.Log.d("MainViewModel", "Profil Dépositaire détecté. Skip sync Créateur.")
+                    return@launch
+                }
+
+                val status = silenceManager.checkSilenceStatus(userId)
+                _silenceStatus.value = status
 
                 // 2. RÉCUPÉRATION ET ACTIVATION DE LA CLÉ DE SESSION AES
                 if (encryptionManager.getSessionKey() == null) {

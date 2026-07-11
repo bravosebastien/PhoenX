@@ -59,6 +59,7 @@ fun HomeScreen(
     onNavigateToDetective: () -> Unit,
     onNavigateToNotificationContacts: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
+    onLogoutSuccess: () -> Unit,
     mainViewModel: MainViewModel,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -82,10 +83,8 @@ fun HomeScreen(
             text = { Text("Es-tu sûr de vouloir fermer ta session ?", color = TextSecondary) },
             confirmButton = {
                 TextButton(onClick = {
-                    com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
-                    // La navigation sera gérée par le NavGraph (onAuthStateChanged) ou manuellement
-                    // Ici on force un retour au splash/auth
-                    onNavigateToSettings() // Placeholder pour déclencher un refresh si besoin, mais signOut suffit
+                    mainViewModel.logout()
+                    onLogoutSuccess()
                     showLogoutDialog = false
                 }) {
                     Text("Déconnexion", color = Error)

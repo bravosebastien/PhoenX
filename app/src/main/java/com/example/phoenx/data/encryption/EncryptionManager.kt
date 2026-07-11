@@ -27,7 +27,7 @@ class EncryptionManager @Inject constructor() {
         AeadConfig.register()
     }
 
-    fun setSessionKey(key: ByteArray) {
+    fun setSessionKey(key: ByteArray?) {
         this.sessionKey = key
     }
 

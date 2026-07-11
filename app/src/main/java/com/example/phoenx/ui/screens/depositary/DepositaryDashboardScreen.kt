@@ -28,6 +28,7 @@ fun DepositaryDashboardScreen(
     creatorId: String,
     onNavigateToActivation: (String) -> Unit,
     onNavigateToOnboarding: () -> Unit,
+    onNavigateToNotifications: () -> Unit,
     viewModel: DepositaryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -93,7 +94,11 @@ fun DepositaryDashboardScreen(
                 }
                 
                 item {
-                    DepositarySection("NOTIFICATIONS", Icons.Default.Notifications)
+                    DepositarySection(
+                        title = "NOTIFICATIONS",
+                        icon = Icons.Default.Notifications,
+                        onClick = onNavigateToNotifications
+                    )
                 }
 
                 item {
