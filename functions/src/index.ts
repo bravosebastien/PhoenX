@@ -524,7 +524,35 @@ export const verifyWitnessToken = onCall(async (request) => {
 
     // Récupérer le nom du créateur depuis le profil (Admin SDK permet de contourner les rules)
     const creatorDoc = await admin.firestore().collection("users").doc(creatorId).get();
-    const creatorName = creatorDoc.data()?.displayName || doc.data()?.creatorName || "Ton proche";
+    const creatorData = creatorDoc.data();
+    const witnessData = doc.data()!;
 
-    return { creatorName: creatorName };
+    return {
+        creatorName: creatorData?.displayName || witnessData.creatorName || "Ton proche",
+        allowCreatorToRead: witnessData.allowCreatorToRead || false,
+        allowCreatorToReject: witnessData.allowCreatorToReject || false,
+        publicEncryptionKey: creatorData?.publicEncryptionKey || null
+    };
+});
+
+export const submitWitnessTestimony = onCall(async (request) => {
+    const { creatorId, witnessId, token, encryptedContent } = request.data;
+    const ref = admin.firestore().collection("users").doc(creatorId).collection("witnesses").doc(witnessId);
+    const doc = await ref.get();
+
+    if (!doc.exists || doc.data()?.inviteToken !== token) {
+        throw new HttpsError("permission-denied", "Jeton invalide");
+    }
+
+    const allowReject = doc.data()?.allowCreatorToReject || false;
+    const finalStatus = allowReject ? "submitted" : "validated";
+
+    await ref.update({
+        content: encryptedContent,
+        status: finalStatus,
+        submittedAt: admin.firestore.FieldValue.serverTimestamp(),
+        inviteToken: admin.firestore.FieldValue.delete()
+    });
+
+    return { success: true };
 });

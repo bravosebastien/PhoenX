@@ -51,6 +51,7 @@ fun WitnessResponseScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val error by viewModel.error.collectAsState()
     val creatorName by viewModel.creatorName.collectAsState()
+    val witnessConfig by viewModel.witnessConfig.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.verifyToken(creatorId, witnessId, token)
@@ -184,8 +185,24 @@ fun WitnessResponseScreen(
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
+                val (transparencyTitle, transparencyDesc) = if (witnessConfig?.allowReject == true) {
+                    "Validation préalable" to "Ton proche pourra lire ce témoignage avant de le transmettre, et pourra choisir de ne pas le transmettre s'il le juge inapproprié."
+                } else if (witnessConfig?.allowRead == true) {
+                    "Témoignage ouvert" to "Ton proche a demandé à pouvoir lire ce témoignage de son vivant. Il sera également transmis à ses héritiers."
+                } else {
+                    "Confidentialité totale" to "Ton témoignage est chiffré. Seul ton proche et ses héritiers pourront le lire après l'activation du protocole."
+                }
+
                 Text(
-                    "Ton témoignage est chiffré. Seul ton proche (s'il l'a autorisé) et ses héritiers pourront le lire.",
+                    text = transparencyTitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = accent,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = transparencyDesc,
                     style = MaterialTheme.typography.labelSmall,
                     color = TextTertiary,
                     textAlign = TextAlign.Center,

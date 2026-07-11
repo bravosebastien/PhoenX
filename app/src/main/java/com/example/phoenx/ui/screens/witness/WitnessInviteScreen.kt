@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.witness
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,6 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,9 +41,13 @@ fun WitnessInviteScreen(
     val accent = LocalAccentColor.current
     val backgroundBrush = LocalBackgroundBrush.current
     val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     
     var showDialog by remember { mutableStateOf(false) }
     var witnessToDelete by remember { mutableStateOf<WitnessEntity?>(null) }
+    var witnessToReview by remember { mutableStateOf<WitnessEntity?>(null) }
+    var reviewText by remember { mutableStateOf<String?>(null) }
+    var isReading by remember { mutableStateOf(false) }
 
     val error by viewModel.error.collectAsState()
     LaunchedEffect(error) {
@@ -125,7 +131,17 @@ fun WitnessInviteScreen(
                         items(witnesses) { witness ->
                             WitnessCard(
                                 witness = witness,
-                                onDelete = { witnessToDelete = witness }
+                                onDelete = { witnessToDelete = witness },
+                                onReview = {
+                                    if (witness.status == "submitted" || witness.allowCreatorToRead) {
+                                        witnessToReview = witness
+                                        isReading = true
+                                        scope.launch {
+                                            reviewText = viewModel.getTestimonyContent(witness.id)
+                                            isReading = false
+                                        }
+                                    }
+                                }
                             )
                         }
                     }
@@ -133,11 +149,63 @@ fun WitnessInviteScreen(
             }
         }
 
+        if (witnessToReview != null) {
+            AlertDialog(
+                onDismissRequest = { 
+                    witnessToReview = null
+                    reviewText = null
+                },
+                containerColor = BackgroundSecondary,
+                title = { Text("Témoignage de ${witnessToReview?.name}", color = TextPrimary) },
+                text = {
+                    Box(modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp), contentAlignment = Alignment.Center) {
+                        if (isReading) {
+                            CircularProgressIndicator(color = accent)
+                        } else if (reviewText != null) {
+                            Text(reviewText!!, color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
+                        } else {
+                            Text("Impossible de lire le témoignage.", color = Error)
+                        }
+                    }
+                },
+                confirmButton = {
+                    if (witnessToReview?.status == "submitted") {
+                        Row {
+                            TextButton(onClick = {
+                                viewModel.reviewTestimony(witnessToReview!!.id, false)
+                                witnessToReview = null
+                                reviewText = null
+                            }) {
+                                Text("Refuser", color = Error)
+                            }
+                            Button(
+                                onClick = {
+                                    viewModel.reviewTestimony(witnessToReview!!.id, true)
+                                    witnessToReview = null
+                                    reviewText = null
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = Success)
+                            ) {
+                                Text("Valider", color = BackgroundPrimary)
+                            }
+                        }
+                    } else {
+                        TextButton(onClick = { 
+                            witnessToReview = null
+                            reviewText = null
+                        }) {
+                            Text("Fermer", color = TextPrimary)
+                        }
+                    }
+                }
+            )
+        }
+
         if (showDialog) {
             InviteWitnessDialog(
                 onDismiss = { showDialog = false },
-                onConfirm = { name, email, allowRead ->
-                    viewModel.inviteWitness(name, email, allowRead, creatorName)
+                onConfirm = { name, email, allowRead, allowReject ->
+                    viewModel.inviteWitness(name, email, allowRead, allowReject, creatorName)
                     showDialog = false
                 }
             )
@@ -168,10 +236,10 @@ fun WitnessInviteScreen(
 }
 
 @Composable
-fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit) {
+fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit, onReview: () -> Unit) {
     val accent = LocalAccentColor.current
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onReview() },
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
         shape = RoundedCornerShape(14.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
@@ -197,8 +265,12 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit) {
                 Text(witness.email, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
             }
 
-            val statusColor = if (witness.status == "submitted") Success else Warning
-            val statusText = if (witness.status == "submitted") "Reçu" else "Invité"
+            val (statusColor, statusText) = when (witness.status) {
+                "submitted" -> Warning to "À vérifier"
+                "validated" -> Success to "Validé"
+                "rejected" -> Error to "Refusé"
+                else -> AccentPrimary to "Invité"
+            }
 
             Column(horizontalAlignment = Alignment.End) {
                 Surface(
@@ -214,7 +286,7 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit) {
                     )
                 }
                 
-                if (witness.status != "submitted") {
+                if (witness.status == "invited") {
                     IconButton(onClick = onDelete, modifier = Modifier.padding(top = 4.dp).size(24.dp)) {
                         Icon(Icons.Default.Delete, null, tint = TextTertiary.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                     }
@@ -225,11 +297,12 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit) {
 }
 
 @Composable
-fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boolean) -> Unit) {
+fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boolean, Boolean) -> Unit) {
     val accent = LocalAccentColor.current
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var allowRead by remember { mutableStateOf(false) }
+    var allowReject by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -252,19 +325,30 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
                 )
                 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = allowRead,
-                        onCheckedChange = { allowRead = it },
-                        colors = CheckboxDefaults.colors(checkedColor = accent)
-                    )
-                    Text("M'autoriser à lire ce témoignage de mon vivant", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = allowRead,
+                            onCheckedChange = { allowRead = it },
+                            colors = CheckboxDefaults.colors(checkedColor = accent)
+                        )
+                        Text("M'autoriser à lire ce témoignage de mon vivant", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    }
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = allowReject,
+                            onCheckedChange = { allowReject = it },
+                            colors = CheckboxDefaults.colors(checkedColor = accent)
+                        )
+                        Text("Droit de regard : pouvoir refuser le témoignage si inapproprié", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    }
                 }
             }
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(name, email, allowRead) },
+                onClick = { onConfirm(name, email, allowRead, allowReject) },
                 enabled = name.isNotBlank() && email.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {

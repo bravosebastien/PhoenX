@@ -16,9 +16,10 @@ data class WitnessEntity(
     val id: String = "",
     val name: String = "",
     val email: String = "",
-    val status: String = "pending", // "pending" | "submitted"
+    val status: String = "invited", // "invited" | "submitted" | "validated" | "rejected"
     val submittedAt: Long? = null,
-    val allowCreatorToRead: Boolean = false
+    val allowCreatorToRead: Boolean = false,
+    val allowCreatorToReject: Boolean = false
 )
 
 @HiltViewModel
@@ -44,6 +45,15 @@ class WitnessViewModel @Inject constructor(
     private val _creatorName = MutableStateFlow<String?>(null)
     val creatorName: StateFlow<String?> = _creatorName.asStateFlow()
 
+    private val _witnessConfig = MutableStateFlow<WitnessConfig?>(null)
+    val witnessConfig: StateFlow<WitnessConfig?> = _witnessConfig.asStateFlow()
+
+    data class WitnessConfig(
+        val allowRead: Boolean,
+        val allowReject: Boolean,
+        val publicKey: String?
+    )
+
     init {
         loadWitnesses()
     }
@@ -58,8 +68,14 @@ class WitnessViewModel @Inject constructor(
                     "token" to token
                 )
                 val result = functions.getHttpsCallable("verifyWitnessToken").call(data).await()
-                val name = (result.data as Map<*, *>)["creatorName"] as? String
-                _creatorName.value = name
+                val resData = result.data as Map<*, *>
+                
+                _creatorName.value = resData["creatorName"] as? String
+                _witnessConfig.value = WitnessConfig(
+                    allowRead = resData["allowCreatorToRead"] as? Boolean ?: false,
+                    allowReject = resData["allowCreatorToReject"] as? Boolean ?: false,
+                    publicKey = resData["publicEncryptionKey"] as? String
+                )
             } catch (e: Exception) {
                 android.util.Log.e("WitnessVM", "Error verifying token", e)
                 _error.value = "Lien invalide ou expiré."
@@ -85,9 +101,10 @@ class WitnessViewModel @Inject constructor(
                         id = doc.id,
                         name = doc.getString("name") ?: "",
                         email = doc.getString("email") ?: "",
-                        status = if (doc.getTimestamp("submittedAt") != null) "submitted" else "pending",
+                        status = doc.getString("status") ?: (if (doc.getTimestamp("submittedAt") != null) "submitted" else "invited"),
                         submittedAt = doc.getTimestamp("submittedAt")?.toDate()?.time,
-                        allowCreatorToRead = doc.getBoolean("allowCreatorToRead") ?: false
+                        allowCreatorToRead = doc.getBoolean("allowCreatorToRead") ?: false,
+                        allowCreatorToReject = doc.getBoolean("allowCreatorToReject") ?: false
                     )
                 }
                 _witnesses.value = list
@@ -99,7 +116,7 @@ class WitnessViewModel @Inject constructor(
         }
     }
 
-    fun inviteWitness(name: String, email: String, allowRead: Boolean, creatorName: String) {
+    fun inviteWitness(name: String, email: String, allowRead: Boolean, allowReject: Boolean, creatorName: String) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             _isLoading.value = true
@@ -109,6 +126,8 @@ class WitnessViewModel @Inject constructor(
                     "name" to name,
                     "email" to email,
                     "allowCreatorToRead" to allowRead,
+                    "allowCreatorToReject" to allowReject,
+                    "status" to "invited",
                     "submittedAt" to null,
                     "createdAt" to com.google.firebase.Timestamp.now()
                 )
@@ -158,6 +177,43 @@ class WitnessViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Récupère et déchiffre le contenu d'un témoignage (si autorisé).
+     */
+    suspend fun getTestimonyContent(witnessId: String): String? {
+        val userId = auth.currentUser?.uid ?: return null
+        return try {
+            val doc = db.collection("users").document(userId)
+                .collection("witnesses").document(witnessId).get().await()
+            
+            val encryptedBase64 = doc.getString("content") ?: return null
+            val encryptedBytes = android.util.Base64.decode(encryptedBase64, android.util.Base64.DEFAULT)
+            
+            // On tente le déchiffrement RSA (car droit de regard/lecture implique RSA)
+            encryptionManager.decryptWithPrivateKey(encryptedBytes)
+        } catch (e: Exception) {
+            android.util.Log.e("WitnessVM", "Erreur lecture témoignage", e)
+            null
+        }
+    }
+
+    fun reviewTestimony(witnessId: String, accept: Boolean) {
+        val userId = auth.currentUser?.uid ?: return
+        val newStatus = if (accept) "validated" else "rejected"
+        
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(userId)
+                    .collection("witnesses").document(witnessId)
+                    .update("status", newStatus)
+                    .await()
+                loadWitnesses()
+            } catch (e: Exception) {
+                _error.value = "Erreur lors de la mise à jour du statut."
+            }
+        }
+    }
+
     // --- CÔTÉ TÉMOIN (Réponse) ---
 
     fun submitTestimony(
@@ -167,26 +223,32 @@ class WitnessViewModel @Inject constructor(
         testimonyText: String,
         onSuccess: () -> Unit
     ) {
+        val config = witnessConfig.value
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // 1. Chiffrer le témoignage (E2EE Tink)
-                val encrypted = android.util.Base64.encodeToString(
-                    encryptionManager.encryptText(testimonyText),
-                    android.util.Base64.DEFAULT
-                )
+                // 1. Chiffrement conditionnel (RSA si droit de regard ou de lecture)
+                val encryptedBytes = if (config?.allowRead == true || config?.allowReject == true) {
+                    val pubKeyBase64 = config.publicKey 
+                        ?: throw Exception("Clé publique du Créateur manquante")
+                    val pubKeyBytes = android.util.Base64.decode(pubKeyBase64, android.util.Base64.NO_WRAP)
+                    encryptionManager.encryptWithPublicKey(testimonyText, pubKeyBytes)
+                } else {
+                    // Chiffrement AES standard (héritiers)
+                    encryptionManager.encryptText(testimonyText)
+                }
 
-                // 2. Sauvegarder et verrouiller
-                val witnessRef = db.collection("users").document(creatorId)
-                    .collection("witnesses").document(witnessId)
+                val encryptedBase64 = android.util.Base64.encodeToString(encryptedBytes, android.util.Base64.DEFAULT)
+
+                // 2. Appel de la Cloud Function pour sauvegarder (Sécurité v7.1)
+                val data = hashMapOf(
+                    "creatorId" to creatorId,
+                    "witnessId" to witnessId,
+                    "token" to token,
+                    "encryptedContent" to encryptedBase64
+                )
                 
-                db.runBatch { batch ->
-                    batch.update(witnessRef, mapOf(
-                        "content" to encrypted,
-                        "submittedAt" to com.google.firebase.Timestamp.now(),
-                        "inviteToken" to com.google.firebase.firestore.FieldValue.delete()
-                    ))
-                }.await()
+                functions.getHttpsCallable("submitWitnessTestimony").call(data).await()
                 
                 onSuccess()
             } catch (e: Exception) {
