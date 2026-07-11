@@ -25,14 +25,16 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.R
 import com.example.phoenx.ui.components.InfoButton
-import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.draw.scale
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -306,14 +308,27 @@ fun ReconciliationScreen(
             }
 
             if (isRitualPlaying) {
+                val infiniteTransition = rememberInfiniteTransition(label = "ritual_pulse")
+                val scale by infiniteTransition.animateFloat(
+                    initialValue = 0.9f,
+                    targetValue = 1.1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1000, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "scale"
+                )
+
                 Box(
                     modifier = Modifier.fillMaxSize().background(BackgroundPrimary),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        PhoenXRiveAnimation(
-                            resId = R.raw.depot,
-                            modifier = Modifier.size(320.dp)
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = null,
+                            modifier = Modifier.size(120.dp).scale(scale),
+                            tint = AccentPrimary
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(

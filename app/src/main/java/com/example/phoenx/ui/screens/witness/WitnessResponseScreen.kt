@@ -15,8 +15,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -27,9 +29,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.R
-import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
+import androidx.compose.animation.core.*
+import androidx.compose.material.icons.filled.CheckCircle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,9 +51,25 @@ fun WitnessResponseScreen(
     val isLoading by viewModel.isLoading.collectAsState()
 
     if (isRitualPlaying) {
+        val infiniteTransition = rememberInfiniteTransition(label = "ritual_pulse")
+        val scale by infiniteTransition.animateFloat(
+            initialValue = 0.9f,
+            targetValue = 1.1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "scale"
+        )
+
         Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                PhoenXRiveAnimation(resId = R.raw.depot, modifier = Modifier.size(300.dp))
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(120.dp).scale(scale),
+                    tint = accent
+                )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text("Témoignage scellé.\nMerci pour ce souvenir.", style = MaterialTheme.typography.displaySmall, color = accent, textAlign = TextAlign.Center)
             }

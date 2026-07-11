@@ -23,7 +23,6 @@ datastore = "1.1.1"
 workManager = "2.9.1"
 room = "2.7.0-alpha11"
 ksp = "2.1.10-1.0.29"
-rive = "0.13.0"
 biometric = "1.2.0-alpha05"
 argon2 = "2.11"
 mapsComposeUtils = "4.3.0"
@@ -78,9 +77,6 @@ biometric = { group = "androidx.biometric", name = "biometric-ktx", version.ref 
 
 # Gemini Nano (On-Device AI)
 google-aicore = { group = "com.google.ai.edge.aicore", name = "aicore", version.ref = "googleAiEdge" }
-
-# Rive (Animations interactives)
-rive-android = "app.rive:rive-android:11.7.0"
 
 # CameraX
 androidx-camera-core = { group = "androidx.camera", name = "camera-core", version.ref = "camerax" }
