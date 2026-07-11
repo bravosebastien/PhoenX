@@ -13,7 +13,9 @@ import com.example.phoenx.service.SilenceStatus
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.phoenx.data.encryption.EncryptionManager
+import com.example.phoenx.data.local.PhoenXDatabase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,6 +25,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,7 +37,8 @@ class MainViewModel @Inject constructor(
     private val livenessManager: LivenessManager,
     private val preferenceManager: PreferenceManager,
     private val silenceManager: SilenceManager,
-    private val encryptionManager: EncryptionManager
+    private val encryptionManager: EncryptionManager,
+    private val database: PhoenXDatabase
 ) : ViewModel() {
 
     private val _silenceStatus = MutableStateFlow<SilenceStatus?>(null)
@@ -93,8 +97,17 @@ class MainViewModel @Inject constructor(
     }
 
     fun logout() {
-        auth.signOut()
-        encryptionManager.setSessionKey(null)
+        viewModelScope.launch {
+            auth.signOut()
+            encryptionManager.setSessionKey(null)
+            _isDepositaryAccount.value = null
+            _silenceStatus.value = null
+            
+            // Nettoyage de la base de données Room pour éviter les données résiduelles
+            withContext(Dispatchers.IO) {
+                database.clearAllTables()
+            }
+        }
     }
 
     /**

@@ -169,6 +169,7 @@ fun PhoenXNavGraph(
             val isDepositaryAccount by mainViewModel.isDepositaryAccount.collectAsState()
             val isLoggedIn = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser != null
             val isEmailVerified = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.isEmailVerified ?: false
+            val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
 
             if (isLoggedIn && isEmailVerified && isDepositaryAccount == false && (silenceStatus == null || isSilenceOnboardingDone == null)) {
                 Box(
@@ -187,7 +188,12 @@ fun PhoenXNavGraph(
             }
 
             LaunchedEffect(silenceStatus, isSilenceOnboardingDone, isDepositaryAccount) {
-                if (isDepositaryAccount == false) {
+                if (isDepositaryAccount == true && currentUser != null) {
+                    // Redirection automatique des Dépositaires vers leur Dashboard
+                    navController.navigate(Screen.DepositaryDashboard.createRoute(currentUser.uid)) {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                } else if (isDepositaryAccount == false) {
                     if (isSilenceOnboardingDone == false) {
                         navController.navigate(Screen.SilenceOnboarding.route)
                     } else if (isSilenceOnboardingDone == true) {

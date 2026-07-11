@@ -7,16 +7,19 @@ import com.example.phoenx.data.preferences.PreferenceManager
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import android.content.Context
+import com.example.phoenx.data.local.PhoenXDatabase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.Date
-import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,6 +28,7 @@ class AuthViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val encryptionManager: EncryptionManager,
     private val preferenceManager: PreferenceManager,
+    private val database: PhoenXDatabase,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -52,6 +56,11 @@ class AuthViewModel @Inject constructor(
         _uiState.value = AuthState.Loading
         viewModelScope.launch {
             try {
+                // Avant toute nouvelle connexion, on vide Room pour éviter les données résiduelles
+                withContext(Dispatchers.IO) {
+                    database.clearAllTables()
+                }
+
                 val result = auth.signInWithEmailAndPassword(email, password).await()
                 val user = result.user ?: throw Exception("Utilisateur introuvable")
 
@@ -104,6 +113,11 @@ class AuthViewModel @Inject constructor(
         _uiState.value = AuthState.Loading
         viewModelScope.launch {
             try {
+                // Nettoyage préventif
+                withContext(Dispatchers.IO) {
+                    database.clearAllTables()
+                }
+
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
                 val user = result.user ?: return@launch
 
@@ -146,6 +160,11 @@ class AuthViewModel @Inject constructor(
         _uiState.value = AuthState.Loading
         viewModelScope.launch {
             try {
+                // Nettoyage préventif
+                withContext(Dispatchers.IO) {
+                    database.clearAllTables()
+                }
+
                 val result = auth.createUserWithEmailAndPassword(email, password).await()
                 val user = result.user ?: return@launch
 
