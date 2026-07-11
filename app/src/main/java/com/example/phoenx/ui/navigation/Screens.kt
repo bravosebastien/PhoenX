@@ -10,8 +10,22 @@ sealed class Screen(val route: String) {
     object Onboarding : Screen("onboarding")
     
     object Auth : Screen("auth") {
-        object Login : Screen("auth/login")
-        object Signup : Screen("auth/signup")
+        object Login : Screen("auth/login?redirectTo={redirectTo}") {
+            fun createRoute(redirectTo: String? = null): String {
+                return if (redirectTo != null) {
+                    val encoded = URLEncoder.encode(redirectTo, StandardCharsets.UTF_8.toString())
+                    "auth/login?redirectTo=$encoded"
+                } else "auth/login"
+            }
+        }
+        object Signup : Screen("auth/signup?redirectTo={redirectTo}") {
+            fun createRoute(redirectTo: String? = null): String {
+                return if (redirectTo != null) {
+                    val encoded = URLEncoder.encode(redirectTo, StandardCharsets.UTF_8.toString())
+                    "auth/signup?redirectTo=$encoded"
+                } else "auth/signup"
+            }
+        }
         object Recovery : Screen("auth/recovery")
     }
     

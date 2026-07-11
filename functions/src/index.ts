@@ -48,6 +48,9 @@ async function sendSMSViaPartner(params: { to: string; body: string }): Promise<
 
 // 1. Analyse approfondie
 export const analyzeEntry = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
     const { summary } = request.data;
     if (!summary) throw new HttpsError("invalid-argument", "Résumé manquant");
 
@@ -76,6 +79,9 @@ export const analyzeEntry = onCall(async (request) => {
 
 // 2. Question du Biographe
 export const generateBiographerQuestion = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
     const { themes } = request.data;
     const prompt = `${AI_RULES} Génère UNE question de biographe (15 mots max). Thèmes : ${themes || "vie"}.`;
     const result = await generativeModel.generateContent(prompt);
@@ -84,6 +90,9 @@ export const generateBiographerQuestion = onCall(async (request) => {
 
 // 3. Portrait d'Essence
 export const generateEssencePortrait = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
     const { summaries } = request.data;
     if (!summaries?.length) return "Continue à déposer tes pensées...";
     const prompt = `${AI_RULES} Portrait d'Essence au CONDITIONNEL. Données : ${summaries.join(" | ")}`;
@@ -93,6 +102,9 @@ export const generateEssencePortrait = onCall(async (request) => {
 
 // 4. Détection d'Évolution
 export const detectThoughtEvolution = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
     const { entriesByAge } = request.data;
     const prompt = `${AI_RULES} Transitions thématiques par âge en JSON. Données : ${JSON.stringify(entriesByAge)}`;
     const result = await generativeModel.generateContent(prompt);
@@ -102,6 +114,9 @@ export const detectThoughtEvolution = onCall(async (request) => {
 
 // 5. Suggestions Jeune Moi
 export const generateYoungSelfSuggestions = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
     const { targetAge, summariesAtThatAge } = request.data;
     const prompt = `${AI_RULES} Suggestions pour lettre à soi-même à ${targetAge} ans. Résumés: ${summariesAtThatAge.join(" | ")}`;
     const result = await generativeModel.generateContent(prompt);
@@ -110,6 +125,9 @@ export const generateYoungSelfSuggestions = onCall(async (request) => {
 
 // 8. Génération du livre
 export const generateBookChapters = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
     const { summaries, tags, ageMin, ageMax } = request.data;
     const prompt = `${AI_RULES} Rédige un livre de vie structuré. ${summaries.length} souvenirs, de ${ageMin} à ${ageMax} ans.`;
     const result = await generativeModel.generateContent(prompt);
@@ -398,6 +416,9 @@ export const sealPendingQuestion = onCall(async (request) => {
 
 // Fonctions d'invitation Dépositaire
 export const generateDepositaryInviteToken = onCall(async (request) => {
+    if (request.auth?.uid !== request.data.creatorId) {
+        throw new HttpsError("permission-denied", "Accès refusé");
+    }
     const { creatorId, depositaryId } = request.data;
     const token = crypto.randomBytes(32).toString('hex');
     await admin.firestore().collection("users").doc(creatorId).collection("depositaries").doc(depositaryId).update({ inviteToken: token, inviteTokenUsed: false });
@@ -405,6 +426,9 @@ export const generateDepositaryInviteToken = onCall(async (request) => {
 });
 
 export const generateDepositaryShortCode = onCall(async (request) => {
+    if (request.auth?.uid !== request.data.creatorId) {
+        throw new HttpsError("permission-denied", "Accès refusé");
+    }
     const { creatorId, depositaryId } = request.data;
     const code = crypto.randomBytes(4).toString('hex');
     await admin.firestore().collection("depositaryInviteCodes").doc(code).set({ creatorId, depositaryId, expiresAt: admin.firestore.Timestamp.fromMillis(Date.now() + 900000), used: false });
@@ -422,6 +446,9 @@ export const redeemDepositaryShortCode = onCall(async (request) => {
 });
 
 export const joinAsDepositary = onCall(async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
     const { creatorId, depositaryId, token } = request.data;
     const ref = admin.firestore().collection("users").doc(creatorId).collection("depositaries").doc(depositaryId);
     const doc = await ref.get();
@@ -432,6 +459,9 @@ export const joinAsDepositary = onCall(async (request) => {
 
 // Témoins
 export const sendWitnessInvitation = onCall(async (request) => {
+    if (request.auth?.uid !== request.data.creatorId) {
+        throw new HttpsError("permission-denied", "Accès refusé");
+    }
     const { creatorId, witnessId, witnessEmail, witnessName, creatorName } = request.data;
     const token = crypto.randomBytes(32).toString('hex');
     await admin.firestore().collection("users").doc(creatorId).collection("witnesses").doc(witnessId).update({ inviteToken: token });

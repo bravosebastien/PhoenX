@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.depositary
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
@@ -22,7 +23,8 @@ sealed class RedeemState {
 class DepositaryViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val auth: FirebaseAuth,
-    private val functions: FirebaseFunctions
+    private val functions: FirebaseFunctions,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DepositaryUiState())
@@ -37,11 +39,26 @@ class DepositaryViewModel @Inject constructor(
     private val _redeemState = MutableStateFlow<RedeemState>(RedeemState.Loading)
     val redeemState: StateFlow<RedeemState> = _redeemState.asStateFlow()
 
+    // Persistance des données de liaison via SavedStateHandle (survit à la navigation)
+    private var pendingJoinData: Triple<String, String, String>?
+        get() = savedStateHandle.get<List<String>>("pending_join_data")?.let { 
+            Triple(it[0], it[1], it[2]) 
+        }
+        set(value) = savedStateHandle.set("pending_join_data", value?.let { 
+            listOf(it.first, it.second, it.third) 
+        })
+
     fun redeemShortCode(shortCode: String) {
+        // Garde : si on a déjà les données (retour de login), on ne rappelle pas la Cloud Function
+        if (pendingJoinData != null) {
+            _redeemState.value = RedeemState.Success
+            return
+        }
+
         _redeemState.value = RedeemState.Loading
         viewModelScope.launch {
             try {
-                // 1. Échange du code court contre le token
+                // 1. Échange du code court contre le token (SANS AUTH requise sur cette CF)
                 val result = functions.getHttpsCallable("redeemDepositaryShortCode")
                     .call(mapOf("shortCode" to shortCode))
                     .await()
@@ -51,18 +68,10 @@ class DepositaryViewModel @Inject constructor(
                 val depositaryId = data["depositaryId"] as String
                 val token = data["token"] as String
                 
-                // 2. Liaison effective du compte
-                val joinData = hashMapOf(
-                    "creatorId" to creatorId,
-                    "depositaryId" to depositaryId,
-                    "token" to token
-                )
-                functions.getHttpsCallable("joinAsDepositary")
-                    .call(joinData)
-                    .await()
+                // Mémoriser de façon persistante pour la liaison finale après auth
+                pendingJoinData = Triple(creatorId, depositaryId, token)
                 
                 _redeemState.value = RedeemState.Success
-                _joinSuccess.emit(true)
                 
             } catch (e: Exception) {
                 val message = if (e is FirebaseFunctionsException) {
@@ -83,6 +92,33 @@ class DepositaryViewModel @Inject constructor(
                 android.util.Log.e("PHOENX_AUTH", "Erreur rachat code: ${e.message}")
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    /**
+     * Liaison effective entre le Dépositaire (connecté) et le Créateur.
+     * Nécessite request.auth côté serveur.
+     */
+    fun confirmJoin(onSuccess: () -> Unit) {
+        val data = pendingJoinData ?: return
+        val user = auth.currentUser ?: return
+
+        viewModelScope.launch {
+            try {
+                val joinData = hashMapOf(
+                    "creatorId" to data.first,
+                    "depositaryId" to data.second,
+                    "token" to data.third
+                )
+                functions.getHttpsCallable("joinAsDepositary")
+                    .call(joinData)
+                    .await()
+                
+                _joinSuccess.emit(true)
+                onSuccess()
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_AUTH", "Erreur liaison finale: ${e.message}")
             }
         }
     }

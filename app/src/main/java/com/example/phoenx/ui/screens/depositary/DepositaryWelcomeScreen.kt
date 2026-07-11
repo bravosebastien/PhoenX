@@ -8,10 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,18 +19,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.R
+import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun DepositaryWelcomeScreen(
     shortCode: String,
     onUnderstood: () -> Unit,
+    onNavigateToAuth: (String) -> Unit, // Nouvelle action pour rediriger vers Login/Signup
     viewModel: DepositaryViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val redeemState by viewModel.redeemState.collectAsState()
+    val isLoggedIn = FirebaseAuth.getInstance().currentUser != null
 
-    // Liaison automatique à l'UID via l'échange du code court
+    // État local pour éviter les tentatives de liaison multiples
+    var joinAttempted by remember { mutableStateOf(false) }
+
+    // Tentative automatique de liaison si l'utilisateur se connecte pendant que le jeton est prêt
+    LaunchedEffect(isLoggedIn, redeemState) {
+        if (isLoggedIn && redeemState is RedeemState.Success && !joinAttempted) {
+            joinAttempted = true
+            viewModel.confirmJoin { onUnderstood() }
+        }
+    }
+
+    // Liaison initiale : échange du code court (seulement si pas déjà fait)
     LaunchedEffect(Unit) {
         viewModel.redeemShortCode(shortCode)
     }
@@ -120,13 +132,24 @@ fun DepositaryWelcomeScreen(
 
                 Spacer(modifier = Modifier.height(64.dp))
 
-                Button(
-                    onClick = onUnderstood,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Text("Je comprends ce rôle", color = BackgroundPrimary)
+                if (isLoggedIn) {
+                    Button(
+                        onClick = { viewModel.confirmJoin { onUnderstood() } },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Text("Je comprends ce rôle", color = BackgroundPrimary)
+                    }
+                } else {
+                    Button(
+                        onClick = { onNavigateToAuth(shortCode) },
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Text("Se connecter pour accepter", color = BackgroundPrimary)
+                    }
                 }
             }
         }

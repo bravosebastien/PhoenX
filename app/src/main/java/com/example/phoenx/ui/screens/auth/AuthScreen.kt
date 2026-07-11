@@ -31,6 +31,7 @@ fun AuthScreen(
     isSignup: Boolean,
     onAuthSuccess: () -> Unit,
     onNavigateToRecovery: () -> Unit,
+    isDepositaryFlow: Boolean = false,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
     var currentStep by remember { mutableStateOf(if (isSignup) SignupStep.StepA else SignupStep.Login) }
@@ -114,9 +115,14 @@ fun AuthScreen(
                             password = password,
                             onPasswordChange = { password = it },
                             birthDate = birthDate,
-                            onBirthDateChange = { birthDate = it }
+                            onBirthDateChange = { birthDate = it },
+                            isDepositaryFlow = isDepositaryFlow
                         ) { 
-                            viewModel.signUp(email, password, birthDate)
+                            if (isDepositaryFlow) {
+                                viewModel.signUpDepositary(email, password)
+                            } else {
+                                viewModel.signUp(email, password, birthDate)
+                            }
                         }
                         SignupStep.StepB -> Text("Système avancé en veille")
                         SignupStep.StepC -> Text("Système avancé en veille")
@@ -259,10 +265,12 @@ fun SignupStepA(
     email: String, onEmailChange: (String) -> Unit,
     password: String, onPasswordChange: (String) -> Unit,
     birthDate: LocalDate, onBirthDateChange: (LocalDate) -> Unit,
+    isDepositaryFlow: Boolean = false,
     onNext: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Ton espace commence ici", style = MaterialTheme.typography.displayMedium, color = TextPrimary, textAlign = TextAlign.Center)
+        val title = if (isDepositaryFlow) "Ton rôle de Dépositaire commence ici" else "Ton espace commence ici"
+        Text(title, style = MaterialTheme.typography.displayMedium, color = TextPrimary, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
@@ -272,50 +280,52 @@ fun SignupStepA(
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Date de naissance
-        Text(
-            "POUR TON FIL DE PENSÉE", 
-            style = MaterialTheme.typography.labelSmall, 
-            color = AccentPrimary,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        var showDatePicker by remember { mutableStateOf(value = false) }
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = birthDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
-        )
-
-        OutlinedCard(
-            onClick = { showDatePicker = true },
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-            colors = CardDefaults.outlinedCardColors(containerColor = SurfaceCard),
-            border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary)
-        ) {
+        if (!isDepositaryFlow) {
+            // Date de naissance (Masquée pour le flux Dépositaire)
             Text(
-                birthDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy", java.util.Locale.FRENCH)),
-                modifier = Modifier.padding(16.dp),
-                color = TextPrimary
+                "POUR TON FIL DE PENSÉE", 
+                style = MaterialTheme.typography.labelSmall, 
+                color = AccentPrimary,
+                modifier = Modifier.align(Alignment.Start)
             )
-        }
+            var showDatePicker by remember { mutableStateOf(value = false) }
+            val datePickerState = rememberDatePickerState(
+                initialSelectedDateMillis = birthDate.atStartOfDay(java.time.ZoneId.of("UTC")).toInstant().toEpochMilli()
+            )
 
-        if (showDatePicker) {
-            DatePickerDialog(
-                onDismissRequest = { showDatePicker = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        datePickerState.selectedDateMillis?.let {
-                            onBirthDateChange(
-                                java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.of("UTC")).toLocalDate()
-                            )
-                        }
-                        showDatePicker = false
-                    }) { Text("OK", color = AccentPrimary) }
-                }
+            OutlinedCard(
+                onClick = { showDatePicker = true },
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                colors = CardDefaults.outlinedCardColors(containerColor = SurfaceCard),
+                border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary)
             ) {
-                DatePicker(state = datePickerState)
+                Text(
+                    birthDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy", java.util.Locale.FRENCH)),
+                    modifier = Modifier.padding(16.dp),
+                    color = TextPrimary
+                )
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            if (showDatePicker) {
+                DatePickerDialog(
+                    onDismissRequest = { showDatePicker = false },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            datePickerState.selectedDateMillis?.let {
+                                onBirthDateChange(
+                                    java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.of("UTC")).toLocalDate()
+                                )
+                            }
+                            showDatePicker = false
+                        }) { Text("OK", color = AccentPrimary) }
+                    }
+                ) {
+                    DatePicker(state = datePickerState)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+        }
         
         // Password strength simulation
         val strength = if (password.length < 8) 0.3f else if (password.length < 12) 0.6f else 1f

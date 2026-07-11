@@ -113,31 +113,12 @@ class AuthViewModel @Inject constructor(
                 // ETAPE 2 - Écriture de la clé à l'inscription
                 val newKey = encryptionManager.generateNewSessionKey()
                 val encryptionKeyBase64 = android.util.Base64.encodeToString(newKey, android.util.Base64.NO_WRAP)
-
-                /*
-                // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
-                // Générer un sel aléatoire unique de 32 bytes
-                val salt = ByteArray(32)
-                java.security.SecureRandom().nextBytes(salt)
-                val saltBase64 = android.util.Base64.encodeToString(salt, android.util.Base64.DEFAULT)
-
-                // Dériver la clé avec ce sel
-                val key = encryptionManager.deriveKeyFromPassword(password, salt)
-                sessionKey = key
-                encryptionManager.setSessionKey(key)
-
-                // Sauvegarder la phrase de récupération localement
-                val phraseString = _recoveryPhrase.value.joinToString(" ")
-                preferenceManager.setRecoveryPhrase(phraseString)
-                preferenceManager.updateLastRecoveryReminder(System.currentTimeMillis())
-                */
                 
                 val birthDateInstant = birthDate.atStartOfDay(ZoneId.systemDefault()).toInstant()
                 
                 val userProfile = hashMapOf(
                     "uid" to user.uid,
                     "email" to email,
-                    //"encryptionSalt" to saltBase64, // Stockage du sel unique
                     "encryptionKey" to encryptionKeyBase64, // Nouvelle clé de chiffrement
                     "dateOfBirth" to Timestamp(Date.from(birthDateInstant)),
                     "createdAt" to Timestamp.now(),
@@ -153,6 +134,44 @@ class AuthViewModel @Inject constructor(
                 _uiState.value = AuthState.EmailVerificationSent
             } catch (e: Exception) {
                 _uiState.value = AuthState.Error(e.message ?: "Erreur d'inscription")
+            }
+        }
+    }
+
+    /**
+     * Inscription allégée pour les Dépositaires uniquement.
+     * Pas de date de naissance requise, profil minimal.
+     */
+    fun signUpDepositary(email: String, password: String) {
+        _uiState.value = AuthState.Loading
+        viewModelScope.launch {
+            try {
+                val result = auth.createUserWithEmailAndPassword(email, password).await()
+                val user = result.user ?: return@launch
+
+                // Envoyer l'email de vérification
+                user.sendEmailVerification().await()
+
+                // Génération systématique de la clé AES pour cohérence future
+                val newKey = encryptionManager.generateNewSessionKey()
+                val encryptionKeyBase64 = android.util.Base64.encodeToString(newKey, android.util.Base64.NO_WRAP)
+                
+                val userProfile = hashMapOf(
+                    "uid" to user.uid,
+                    "email" to email,
+                    "encryptionKey" to encryptionKeyBase64,
+                    "createdAt" to Timestamp.now(),
+                    "isDepositaryOnly" to true
+                )
+                
+                db.collection("users").document(user.uid).set(userProfile).await()
+                
+                // Activer la clé immédiatement
+                encryptionManager.setSessionKey(newKey)
+
+                _uiState.value = AuthState.EmailVerificationSent
+            } catch (e: Exception) {
+                _uiState.value = AuthState.Error(e.message ?: "Erreur d'inscription Dépositaire")
             }
         }
     }

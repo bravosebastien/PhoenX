@@ -101,29 +101,63 @@ fun PhoenXNavGraph(
             }
         }
         
-        composable(Screen.Auth.Signup.route) {
+        composable(
+            route = Screen.Auth.Signup.route,
+            arguments = listOf(navArgument("redirectTo") { nullable = true; type = NavType.StringType })
+        ) { backStackEntry ->
+            val redirectTo = backStackEntry.arguments?.getString("redirectTo")
+            val isDepositaryFlow = redirectTo?.contains("depositary") == true
+
             AuthScreen(
                 isSignup = true, 
+                isDepositaryFlow = isDepositaryFlow,
                 onAuthSuccess = {
                     val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
                     if (uid != null) {
                         mainViewModel.checkSilenceOnLaunch(uid)
                     }
-                    navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
+                    
+                    if (redirectTo != null) {
+                        // Tenter de revenir à l'écran appelant si redirectTo est défini
+                        if (!navController.popBackStack()) {
+                            navController.navigate(redirectTo) {
+                                popUpTo(Screen.Splash.route) { inclusive = true }
+                            }
+                        }
+                    } else {
+                        navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
+                    }
                 },
                 onNavigateToRecovery = { navController.navigate(Screen.Auth.Recovery.route) }
             )
         }
         
-        composable(Screen.Auth.Login.route) {
+        composable(
+            route = Screen.Auth.Login.route,
+            arguments = listOf(navArgument("redirectTo") { nullable = true; type = NavType.StringType })
+        ) { backStackEntry ->
+            val redirectTo = backStackEntry.arguments?.getString("redirectTo")
+            val isDepositaryFlow = redirectTo?.contains("depositary") == true
+            
             AuthScreen(
                 isSignup = false, 
+                isDepositaryFlow = isDepositaryFlow,
                 onAuthSuccess = {
                     val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
                     if (uid != null) {
                         mainViewModel.checkSilenceOnLaunch(uid)
                     }
-                    navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
+                    
+                    if (redirectTo != null) {
+                        // Tenter de revenir à l'écran appelant
+                        if (!navController.popBackStack()) {
+                            navController.navigate(redirectTo) {
+                                popUpTo(Screen.Splash.route) { inclusive = true }
+                            }
+                        }
+                    } else {
+                        navController.navigate(Screen.Home.route) { popUpTo(Screen.Onboarding.route) { inclusive = true } }
+                    }
                 },
                 onNavigateToRecovery = { navController.navigate(Screen.Auth.Recovery.route) }
             )
@@ -569,6 +603,10 @@ fun PhoenXNavGraph(
                     } else {
                         navController.navigate(Screen.Home.route)
                     }
+                },
+                onNavigateToAuth = { code ->
+                    // On envoie vers le login avec un redirect vers cet écran précis
+                    navController.navigate(Screen.Auth.Login.createRoute(Screen.DepositaryWelcome.createRoute(code)))
                 }
             )
         }
