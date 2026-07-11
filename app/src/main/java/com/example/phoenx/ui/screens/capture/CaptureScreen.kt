@@ -54,7 +54,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.example.phoenx.R
 import com.example.phoenx.ui.components.InfoPoint
-import com.example.phoenx.ui.components.PhoenXRiveAnimation
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
