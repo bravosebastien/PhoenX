@@ -29,7 +29,7 @@ object FirebaseModule {
 
     @Provides
     @Singleton
-    fun provideFirebaseFunctions(): FirebaseFunctions = Firebase.functions("europe-west1")
+    fun provideFirebaseFunctions(): FirebaseFunctions = Firebase.functions("us-central1")
 
     @Provides
     @Singleton

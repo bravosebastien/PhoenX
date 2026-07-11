@@ -45,14 +45,20 @@ class ProtocolViewModel @Inject constructor(
         
         // 1. Charger le primaire (priorité locale pour réactivité)
         viewModelScope.launch {
+            val userDoc = db.collection("users").document(userId).get().await()
+            val threshold = userDoc.getLong("silenceConfig.thresholdHours")?.toInt() ?: 72
+
             offlineEntryDao.getDepositary().collectLatest { dep ->
                 if (dep != null) {
                     _uiState.update { it.copy(
                         name = dep.name,
                         email = dep.email,
                         phone = dep.phone,
-                        status = dep.status
+                        status = dep.status,
+                        thresholdHours = threshold
                     ) }
+                } else {
+                    _uiState.update { it.copy(thresholdHours = threshold) }
                 }
             }
         }
@@ -103,7 +109,10 @@ class ProtocolViewModel @Inject constructor(
 
                 // Enregistrement du délai de contestation (Seuil de sécurité)
                 db.collection("users").document(userId)
-                    .update("silenceConfig.thresholdHours", threshold).await()
+                    .set(
+                        mapOf("silenceConfig" to mapOf("thresholdHours" to threshold)),
+                        com.google.firebase.firestore.SetOptions.merge()
+                    ).await()
 
                 // 3. Génération du Token
                 val result = functions.getHttpsCallable("generateDepositaryInviteToken")
