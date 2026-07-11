@@ -427,7 +427,7 @@ export const generateDepositaryInviteToken = onCall(async (request) => {
     }
     const { creatorId, depositaryId } = request.data;
     const token = crypto.randomBytes(32).toString('hex');
-    await admin.firestore().collection("users").doc(creatorId).collection("depositaries").doc(depositaryId).update({ inviteToken: token, inviteTokenUsed: false });
+    await admin.firestore().collection("users").doc(creatorId).collection("depositaries").doc(depositaryId).set({ inviteToken: token, inviteTokenUsed: false }, { merge: true });
     return { token };
 });
 
@@ -470,7 +470,7 @@ export const sendWitnessInvitation = onCall(async (request) => {
     }
     const { creatorId, witnessId, witnessEmail, witnessName, creatorName } = request.data;
     const token = crypto.randomBytes(32).toString('hex');
-    await admin.firestore().collection("users").doc(creatorId).collection("witnesses").doc(witnessId).update({ inviteToken: token });
+    await admin.firestore().collection("users").doc(creatorId).collection("witnesses").doc(witnessId).set({ inviteToken: token }, { merge: true });
     const link = `https://phoenx.app/witness?creator=${creatorId}&witness=${witnessId}&token=${token}`;
     await admin.firestore().collection("mail").add({ to: witnessEmail, message: { subject: `${creatorName} demande ton témoignage`, text: `Lien: ${link}` } });
     return { success: true };

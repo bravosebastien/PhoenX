@@ -36,13 +36,23 @@ fun WitnessInviteScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val accent = LocalAccentColor.current
     val backgroundBrush = LocalBackgroundBrush.current
+    val snackbarHostState = remember { SnackbarHostState() }
     
     var showDialog by remember { mutableStateOf(false) }
     var witnessToDelete by remember { mutableStateOf<WitnessEntity?>(null) }
 
+    val error by viewModel.error.collectAsState()
+    LaunchedEffect(error) {
+        error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
+
     Scaffold(
         containerColor = Color.Transparent,
         modifier = Modifier.background(backgroundBrush),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {

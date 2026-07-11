@@ -44,10 +44,19 @@ fun WitnessResponseScreen(
 ) {
     val accent = LocalAccentColor.current
     val backgroundBrush = LocalBackgroundBrush.current
+    val snackbarHostState = remember { SnackbarHostState() }
     
     var testimonyText by remember { mutableStateOf("") }
     var isRitualPlaying by remember { mutableStateOf(false) }
     val isLoading by viewModel.isLoading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    LaunchedEffect(error) {
+        error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
 
     if (isRitualPlaying) {
         val infiniteTransition = rememberInfiniteTransition(label = "ritual_pulse")
@@ -82,7 +91,8 @@ fun WitnessResponseScreen(
 
     Scaffold(
         containerColor = Color.Transparent,
-        modifier = Modifier.background(backgroundBrush)
+        modifier = Modifier.background(backgroundBrush),
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             Column(

@@ -81,8 +81,13 @@ class PactViewModel @Inject constructor(
                 offlineEntryDao.insertPact(pact)
             } catch (e: Exception) {
                 android.util.Log.e("PactVM", "Error creating pact", e)
+                _uiState.update { it.copy(error = "Impossible de créer le pacte. Vérifie ta connexion.") }
             }
         }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
     }
 
     fun getEntriesForPact(pactId: String): Flow<List<OfflineEntry>> {
@@ -92,5 +97,6 @@ class PactViewModel @Inject constructor(
 
 data class PactUiState(
     val pacts: List<PactEntity> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val error: String? = null
 )

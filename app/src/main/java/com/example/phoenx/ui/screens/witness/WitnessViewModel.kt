@@ -35,6 +35,9 @@ class WitnessViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
     private val _inviteSuccess = MutableSharedFlow<Boolean>()
     val inviteSuccess: SharedFlow<Boolean> = _inviteSuccess.asSharedFlow()
 
@@ -101,10 +104,15 @@ class WitnessViewModel @Inject constructor(
                 loadWitnesses()
             } catch (e: Exception) {
                 android.util.Log.e("WitnessVM", "Error inviting witness", e)
+                _error.value = "Impossible d'envoyer l'invitation. Vérifie ta connexion."
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    fun clearError() {
+        _error.value = null
     }
 
     fun deleteWitness(witnessId: String) {
@@ -159,6 +167,7 @@ class WitnessViewModel @Inject constructor(
                 onSuccess()
             } catch (e: Exception) {
                 android.util.Log.e("WitnessVM", "Error submitting testimony", e)
+                _error.value = "Échec de l'envoi du témoignage. Réessaie plus tard."
             } finally {
                 _isLoading.value = false
             }

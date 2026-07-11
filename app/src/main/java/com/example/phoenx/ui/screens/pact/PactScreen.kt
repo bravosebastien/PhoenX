@@ -34,10 +34,19 @@ fun PactScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showInviteDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            snackbarHostState.showSnackbar(it)
+            viewModel.clearError()
+        }
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
         modifier = Modifier.background(LocalBackgroundBrush.current),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Le Pacte", style = MaterialTheme.typography.displaySmall) },
