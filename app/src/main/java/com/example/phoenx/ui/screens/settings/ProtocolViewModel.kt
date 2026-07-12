@@ -178,6 +178,41 @@ class ProtocolViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Supprime un dépositaire (primaire ou secondaire).
+     */
+    fun deleteDepositary(depositaryId: String) {
+        val userId = auth.currentUser?.uid ?: return
+        _uiState.update { it.copy(isLoading = true) }
+        
+        viewModelScope.launch {
+            try {
+                // 1. Suppression Firestore
+                db.collection("users").document(userId)
+                    .collection("depositaries").document(depositaryId)
+                    .delete().await()
+
+                // 2. Mise à jour Room / État local
+                if (depositaryId == "primary") {
+                    offlineEntryDao.clearDepositaries()
+                    _uiState.update { it.copy(
+                        name = "", email = "", phone = "", status = "Dormant",
+                        isLoading = false, isSuccess = true
+                    ) }
+                } else {
+                    _uiState.update { it.copy(
+                        hasSecondaryDepositary = false,
+                        secondaryName = "", secondaryEmail = "", secondaryPhone = "",
+                        isLoading = false, isSuccess = true
+                    ) }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_PROTO", "Erreur suppression dépositaire: ${e.message}")
+                _uiState.update { it.copy(isLoading = false, error = "Erreur lors de la suppression") }
+            }
+        }
+    }
+
     fun loadCreatorStatus(creatorId: String) {
         // ... (Non modifié ici)
     }

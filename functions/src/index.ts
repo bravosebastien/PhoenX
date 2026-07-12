@@ -1,6 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentDeleted } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
 import { VertexAI } from "@google-cloud/vertexai";
 import axios from "axios";
@@ -763,4 +763,64 @@ export const migrateLegacyRoles = onCall(async (request) => {
     });
 
     return { status: "success", count: legacyIds.length };
+});
+
+/**
+ * TRIGGERS DE NETTOYAGE (v7.2)
+ * Se déclenchent à la suppression d'un membre du cercle pour nettoyer son profil
+ * et invalider les invitations en attente.
+ */
+
+async function cleanupMemberRoles(creatorId: string, memberId: string, role: string, linkedUid?: string) {
+    const db = admin.firestore();
+    const collectionName = role === "depositary" ? "depositaries" : role === "witness" ? "witnesses" : "recipients";
+    const sourcePath = `users/${creatorId}/${collectionName}/${memberId}`;
+
+    // 1. Nettoyage myRoles sur le profil de l'invité
+    if (linkedUid) {
+        const roleKey = `${creatorId}_${role}`;
+        await db.collection("users").doc(linkedUid).update({
+            [`myRoles.${roleKey}`]: admin.firestore.FieldValue.delete()
+        });
+    }
+
+    // 2. Invalidation des invitations en attente pour ce membre
+    const invitesSnap = await db.collection("invitations")
+        .where("sourcePath", "==", sourcePath)
+        .where("used", "==", false)
+        .get();
+
+    if (!invitesSnap.empty) {
+        const batch = db.batch();
+        invitesSnap.forEach(doc => {
+            batch.update(doc.ref, {
+                used: true,
+                invalidatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                invalidationReason: "member_removed"
+            });
+        });
+        await batch.commit();
+    }
+}
+
+export const onWitnessDeleted = onDocumentDeleted("users/{creatorId}/witnesses/{witnessId}", async (event) => {
+    const { creatorId, witnessId } = event.params;
+    const data = event.data?.data();
+    if (!data) return;
+    await cleanupMemberRoles(creatorId, witnessId, "witness", data.linkedUid);
+});
+
+export const onRecipientDeleted = onDocumentDeleted("users/{creatorId}/recipients/{recipientId}", async (event) => {
+    const { creatorId, recipientId } = event.params;
+    const data = event.data?.data();
+    if (!data) return;
+    await cleanupMemberRoles(creatorId, recipientId, "recipient", data.linkedUid);
+});
+
+export const onDepositaryDeleted = onDocumentDeleted("users/{creatorId}/depositaries/{depositaryId}", async (event) => {
+    const { creatorId, depositaryId } = event.params;
+    const data = event.data?.data();
+    if (!data) return;
+    const uid = data.linkedUid || data.depositaryUid; // Support historique et v7.2
+    await cleanupMemberRoles(creatorId, depositaryId, "depositary", uid);
 });
