@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.data.local.WitnessEntity
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.launch
