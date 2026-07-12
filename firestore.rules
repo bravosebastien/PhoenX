@@ -85,20 +85,16 @@ service cloud.firestore {
 
       // ═══ WITNESSES — Témoignages ═══
       match /witnesses/{witnessId} {
-        // Le Créateur peut lire le document si autorisé (lecture de son vivant)
-        // OU s'il doit le valider (droit de regard)
-        allow read: if request.auth != null
-                     && request.auth.uid == userId
-                     && (resource.data.allowCreatorToRead == true || resource.data.allowCreatorToReject == true);
-
+        // Le Créateur peut toujours lire la liste de ses propres témoins (nom, email, statut)
         // Les Destinataires peuvent lire UNIQUEMENT si le témoignage est validé
         allow read: if request.auth != null
-                     && resource.data.status == "validated"
-                     && exists(/databases/$(database)/documents/users/$(userId)/recipients/$(request.auth.uid));
+                     && (request.auth.uid == userId
+                         || (resource.data.status == "validated"
+                             && exists(/databases/$(database)/documents/users/$(userId)/recipients/$(request.auth.uid))));
 
         allow create: if request.auth != null;
         allow update: if request.auth != null && request.auth.uid == userId; // Pour valider/rejeter
-        allow delete: if false;
+        allow delete: if request.auth != null && request.auth.uid == userId; // Le Créateur peut retirer un Témoin
       }
 
       // ═══ SILENCE NOTIFICATIONS — Historique ═══

@@ -185,6 +185,7 @@ class WitnessViewModel @Inject constructor(
 
     fun deleteWitness(witnessId: String) {
         val userId = auth.currentUser?.uid ?: return
+        android.util.Log.d("WitnessVM", "Suppression demandée pour id=$witnessId")
         viewModelScope.launch {
             _isLoading.value = true
             try {
@@ -194,6 +195,8 @@ class WitnessViewModel @Inject constructor(
                     .document(witnessId)
                     .delete()
                     .await()
+                
+                android.util.Log.d("WitnessVM", "Suppression Firestore réussie pour id=$witnessId")
                 
                 // Supprimer localement
                 offlineEntryDao.deleteWitness(witnessId)

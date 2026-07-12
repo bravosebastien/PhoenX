@@ -130,12 +130,15 @@ class RecipientViewModel @Inject constructor(
 
     fun deleteRecipient(recipient: RecipientEntity) {
         val userId = auth.currentUser?.uid ?: return
+        android.util.Log.d("RecipientVM", "Suppression demandée pour id=${recipient.id}")
         viewModelScope.launch {
             try {
                 // 1. Suppression Firestore
                 db.collection("users").document(userId)
                     .collection("recipients").document(recipient.id)
                     .delete().await()
+
+                android.util.Log.d("RecipientVM", "Suppression Firestore réussie pour id=${recipient.id}")
 
                 // 2. Suppression Room local
                 offlineEntryDao.deleteRecipient(recipient)
