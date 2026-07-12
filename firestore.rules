@@ -14,8 +14,13 @@ service cloud.firestore {
                       || (exists(/databases/$(database)/documents/users/$(userId)/depositaries/secondary)
                           && get(/databases/$(database)/documents/users/$(userId)/depositaries/secondary).data.depositaryUid == request.auth.uid));
 
-      allow write: if request.auth != null
-                    && request.auth.uid == userId;
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && !request.resource.data.keys().hasAny(['myRoles', 'isCreator']);
+
+      allow update: if request.auth != null
+                    && request.auth.uid == userId
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['myRoles', 'isCreator']);
 
       // ═══ ENTRIES — Souvenirs du Créateur ═══
       match /entries/{entryId} {
@@ -154,6 +159,15 @@ service cloud.firestore {
     match /depositaryInviteCodes/{codeId} {
        // Lecture via Cloud Function uniquement (Admin SDK)
        allow read, write: if false;
+    }
+
+    // ═══ MAIL — Envoi d'invitations ═══
+    match /mail/{mailId} {
+      allow create: if request.auth != null
+                    && request.resource.data.to is string
+                    && request.resource.data.message.subject is string
+                    && request.resource.data.message.text.size() > 10;
+      allow read, update, delete: if false;
     }
 
     // ═══ TOUT LE RESTE EST BLOQUÉ PAR DÉFAUT ═══

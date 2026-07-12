@@ -129,8 +129,19 @@ class RecipientViewModel @Inject constructor(
     }
 
     fun deleteRecipient(recipient: RecipientEntity) {
+        val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            offlineEntryDao.deleteRecipient(recipient)
+            try {
+                // 1. Suppression Firestore
+                db.collection("users").document(userId)
+                    .collection("recipients").document(recipient.id)
+                    .delete().await()
+
+                // 2. Suppression Room local
+                offlineEntryDao.deleteRecipient(recipient)
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientVM", "Erreur suppression destinataire", e)
+            }
         }
     }
 

@@ -154,8 +154,21 @@ class ProtocolViewModel @Inject constructor(
                 val tokenId = (result.data as Map<*, *>)["tokenId"] as String
                 
                 _inviteToken.value = tokenId
-                _shortCode.value = tokenId // On utilise le tokenId comme lien (unification)
+                _shortCode.value = tokenId
                 
+                // 4. Envoi automatique de l'email d'invitation (v7.2)
+                val userDoc = db.collection("users").document(userId).get().await()
+                val creatorName = userDoc.getString("displayName") ?: "Votre proche"
+                
+                val emailData = hashMapOf(
+                    "to" to email,
+                    "message" to hashMapOf(
+                        "subject" to "$creatorName vous a désigné comme Gardien de confiance",
+                        "text" to "Lien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
+                    )
+                )
+                db.collection("mail").add(emailData).await()
+
                 _uiState.update { it.copy(isLoading = false, isSuccess = true) }
 
             } catch (e: Exception) {
@@ -206,6 +219,19 @@ class ProtocolViewModel @Inject constructor(
                 _secondaryInviteToken.value = tokenId
                 _secondaryShortCode.value = tokenId
                 
+                // Envoi automatique de l'email d'invitation (v7.2)
+                val userDoc = db.collection("users").document(userId).get().await()
+                val creatorName = userDoc.getString("displayName") ?: "Votre proche"
+                
+                val emailData = hashMapOf(
+                    "to" to email,
+                    "message" to hashMapOf(
+                        "subject" to "$creatorName vous a désigné comme Gardien de confiance",
+                        "text" to "Lien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
+                    )
+                )
+                db.collection("mail").add(emailData).await()
+
                 _uiState.update { it.copy(
                     hasSecondaryDepositary = true,
                     secondaryName = name,
