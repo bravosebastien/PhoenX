@@ -556,3 +556,170 @@ export const submitWitnessTestimony = onCall(async (request) => {
 
     return { success: true };
 });
+
+/**
+ * PHOEN-X v7.2 - Liaison Universelle
+ * Permet à un utilisateur (Dépositaire, Témoin, Destinataire) d'accepter son rôle
+ * au sein d'une transaction atomique sécurisée.
+ */
+export const generateUniversalInvitation = onCall(async (request) => {
+    const { email, role, sourceId, label, expiresHours } = request.data;
+    const auth = request.auth;
+    if (!auth) throw new HttpsError("unauthenticated", "Non authentifié");
+    if (!sourceId) throw new HttpsError("invalid-argument", "sourceId manquant");
+
+    // Sécurisation v7.2 : On construit le chemin nous-mêmes pour éviter les injections
+    let sourcePath = "";
+    if (role === "depositary") sourcePath = `users/${auth.uid}/depositaries/${sourceId}`;
+    else if (role === "witness") sourcePath = `users/${auth.uid}/witnesses/${sourceId}`;
+    else if (role === "recipient") sourcePath = `users/${auth.uid}/recipients/${sourceId}`;
+    else throw new HttpsError("invalid-argument", "Rôle invalide");
+
+    const tokenId = crypto.randomBytes(32).toString('hex');
+    const expiresAt = admin.firestore.Timestamp.fromMillis(Date.now() + (expiresHours || 168) * 3600000);
+
+    const inviteData = {
+        email: email.toLowerCase(),
+        creatorId: auth.uid,
+        role,
+        sourceId,
+        sourcePath,
+        label,
+        expiresAt,
+        used: false,
+        createdAt: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    await admin.firestore().collection("invitations").doc(tokenId).set(inviteData);
+
+    return { tokenId };
+});
+
+export const acceptUniversalInvitation = onCall(async (request) => {
+    const { tokenId, creatorId, role } = request.data;
+    const auth = request.auth;
+
+    if (!auth || !auth.token.email) {
+        throw new HttpsError("unauthenticated", "Vous devez être connecté avec un email valide.");
+    }
+
+    const userEmail = auth.token.email.toLowerCase();
+    const db = admin.firestore();
+    const inviteRef = db.collection("invitations").doc(tokenId);
+    const userRef = db.collection("users").doc(auth.uid);
+
+    try {
+        return await db.runTransaction(async (transaction) => {
+            const inviteDoc = await transaction.get(inviteRef);
+
+            // 1. Existence
+            if (!inviteDoc.exists) {
+                throw new HttpsError("not-found", "Invitation introuvable.");
+            }
+
+            const inviteData = inviteDoc.data()!;
+
+            // 2. Expiration
+            if (inviteData.expiresAt && inviteData.expiresAt.toDate() < new Date()) {
+                throw new HttpsError("permission-denied", "Cette invitation a expiré.");
+            }
+
+            // 3. Idempotence & Réutilisation
+            if (inviteData.used) {
+                if (inviteData.acceptedByUid === auth.uid) {
+                    return { status: "already_accepted", message: "Vous avez déjà accepté ce rôle." };
+                } else {
+                    throw new HttpsError("already-exists", "Cette invitation a déjà été utilisée par un autre compte.");
+                }
+            }
+
+            // 4. Vérification Identitaire (Normalisée)
+            if (inviteData.email.toLowerCase() !== userEmail) {
+                throw new HttpsError("permission-denied", `Cette invitation est destinée à ${inviteData.email}.`);
+            }
+
+            // 5. Cohérence des données (Context check)
+            if (inviteData.creatorId !== creatorId || inviteData.role !== role) {
+                throw new HttpsError("invalid-argument", "Le contenu de l'invitation ne correspond pas à la demande.");
+            }
+
+            // 6. FIX isCreator : On vérifie si l'utilisateur est déjà Créateur
+            const userDoc = await transaction.get(userRef);
+            const userData = userDoc.data();
+            const currentIsCreator = userData?.isCreator === true;
+
+            // 7. MISE À JOUR ATOMIQUE
+            const roleKey = `${creatorId}_${role}`;
+            const newRoleData = {
+                creatorId: creatorId,
+                role: role,
+                status: "active",
+                label: inviteData.label || role,
+                joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+                sourceId: inviteData.sourceId || null
+            };
+
+            // Mise à jour du profil de l'invité
+            transaction.set(userRef, {
+                myRoles: { [roleKey]: newRoleData },
+                isCreator: currentIsCreator // On préserve le statut true s'il existe
+            }, { merge: true });
+
+            // Marquage du token comme consommé
+            transaction.update(inviteRef, {
+                used: true,
+                acceptedByUid: auth.uid,
+                acceptedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 8. Mise à jour du statut dans la liste du Créateur
+            if (inviteData.sourcePath) {
+                const sourceRef = db.doc(inviteData.sourcePath);
+                transaction.update(sourceRef, {
+                    status: "active",
+                    linkedUid: auth.uid,
+                    linkedAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+            }
+
+            return { status: "success", role: role };
+        });
+    } catch (error: any) {
+        if (error instanceof HttpsError) throw error;
+        console.error("Erreur acceptUniversalInvitation:", error);
+        throw new HttpsError("internal", error.message || "Erreur lors de l'acceptation de l'invitation");
+    }
+});
+
+export const migrateLegacyRoles = onCall(async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Utilisateur non connecté");
+
+    const userRef = admin.firestore().collection("users").doc(uid);
+    const doc = await userRef.get();
+    const data = doc.data();
+
+    if (!doc.exists || data?.myRoles) return { status: "already_migrated" };
+
+    const legacyIds = data?.protectedCreatorIds || [];
+    const newRoles: any = {};
+
+    legacyIds.forEach((creatorId: string) => {
+        newRoles[`${creatorId}_depositary`] = {
+            creatorId: creatorId,
+            role: "depositary",
+            status: "active",
+            label: "Gardien de confiance",
+            joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+            migratedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+    });
+
+    await userRef.update({
+        myRoles: newRoles,
+        isCreator: !data?.isDepositaryOnly, // v7.2 Correct logic for existing creators
+        migrationVersion: 7.2
+    });
+
+    return { status: "success", count: legacyIds.length };
+});

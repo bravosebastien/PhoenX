@@ -14,6 +14,8 @@ import com.example.phoenx.ui.theme.AccentPrimary
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.PhoenXDatabase
+import com.example.phoenx.domain.model.UserRole
+import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -38,11 +40,18 @@ class MainViewModel @Inject constructor(
     private val preferenceManager: PreferenceManager,
     private val silenceManager: SilenceManager,
     private val encryptionManager: EncryptionManager,
+    private val functions: FirebaseFunctions,
     private val database: PhoenXDatabase
 ) : ViewModel() {
 
     private val _silenceStatus = MutableStateFlow<SilenceStatus?>(null)
     val silenceStatus: StateFlow<SilenceStatus?> = _silenceStatus.asStateFlow()
+
+    private val _isCreator = MutableStateFlow<Boolean?>(null)
+    val isCreator: StateFlow<Boolean?> = _isCreator.asStateFlow()
+
+    private val _myRoles = MutableStateFlow<Map<String, UserRole>>(emptyMap())
+    val myRoles: StateFlow<Map<String, UserRole>> = _myRoles.asStateFlow()
 
     private val _isDepositaryAccount = MutableStateFlow<Boolean?>(null)
     val isDepositaryAccount: StateFlow<Boolean?> = _isDepositaryAccount.asStateFlow()
@@ -134,19 +143,63 @@ class MainViewModel @Inject constructor(
                 _userName.value = name
                 _userEmail.value = doc.getString("email") ?: ""
 
-                // PROBLÈME 2 : On arrête tout si c'est un profil Dépositaire uniquement
-                if (doc.getBoolean("isDepositaryOnly") == true) {
-                    _isDepositaryAccount.value = true
-                    
-                    // Récupérer la liste des créateurs protégés
-                    val creatorIds = doc.get("protectedCreatorIds") as? List<String> ?: emptyList()
-                    _protectedCreatorIds.value = creatorIds
-                    
-                    android.util.Log.d("MainViewModel", "Profil Dépositaire détecté. Protected creators: $creatorIds")
+                // GESTION v7.2 - Rôles Unifiés et Migration
+                val rolesData = doc.get("myRoles") as? Map<String, Any>
+                val legacyIds = doc.get("protectedCreatorIds") as? List<String> ?: emptyList()
+
+                if (rolesData == null && legacyIds.isNotEmpty()) {
+                    android.util.Log.d("MainViewModel", "Migration requise pour l'utilisateur $userId")
+                    try {
+                        functions.getHttpsCallable("migrateLegacyRoles").call().await()
+                        checkSilenceOnLaunch(userId) 
+                        return@launch
+                    } catch (e: Exception) {
+                        android.util.Log.e("MainViewModel", "Échec migration Firestore, passage en mode dégradé (mémoire)", e)
+                    }
+                }
+
+                // Mapping des rôles (avec fallback mémoire si migration échouée)
+                val parsedRoles = mutableMapOf<String, UserRole>()
+                if (rolesData != null) {
+                    rolesData.forEach { (key, value) ->
+                        val map = value as? Map<String, Any> ?: return@forEach
+                        parsedRoles[key] = UserRole(
+                            creatorId = map["creatorId"] as? String ?: "",
+                            role = map["role"] as? String ?: "",
+                            status = map["status"] as? String ?: "",
+                            label = map["label"] as? String ?: "",
+                            sourceId = map["sourceId"] as? String,
+                            joinedAt = (map["joinedAt"] as? com.google.firebase.Timestamp)?.toDate()?.time
+                        )
+                    }
+                } else if (legacyIds.isNotEmpty()) {
+                    // Reconstruction en mémoire pour cette session (v7.2 Resilience)
+                    legacyIds.forEach { creatorId ->
+                        parsedRoles["${creatorId}_depositary"] = UserRole(
+                            creatorId = creatorId,
+                            role = "depositary",
+                            status = "active",
+                            label = "Gardien de confiance"
+                        )
+                    }
+                }
+                _myRoles.value = parsedRoles
+
+                // Détermination du statut Créateur
+                val isCreatorVal = doc.getBoolean("isCreator") ?: (doc.getBoolean("isDepositaryOnly") != true)
+                _isCreator.value = isCreatorVal
+                _isDepositaryAccount.value = !isCreatorVal // Maintenir compatibilité temporaire
+
+                if (!isCreatorVal) {
+                    android.util.Log.d("MainViewModel", "Profil Invité détecté (isCreator: false)")
+                    // Récupérer le premier ID créateur pour la compatibilité avec l'ancien dashboard
+                    val firstRole = parsedRoles.values.firstOrNull()
+                    if (firstRole != null) {
+                        _protectedCreatorIds.value = listOf(firstRole.creatorId)
+                    }
                     return@launch
                 }
 
-                _isDepositaryAccount.value = false
                 val status = silenceManager.checkSilenceStatus(userId)
                 _silenceStatus.value = status
 

@@ -16,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.example.phoenx.domain.model.UserRole
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.screens.auth.AuthScreen
 import com.example.phoenx.ui.screens.capture.CaptureScreen
@@ -168,16 +169,17 @@ fun PhoenXNavGraph(
         composable(Screen.Home.route) {
             val silenceStatus by mainViewModel.silenceStatus.collectAsState()
             val isSilenceOnboardingDone by mainViewModel.isSilenceOnboardingDone.collectAsState()
-            val isDepositaryAccount by mainViewModel.isDepositaryAccount.collectAsState()
+            val isCreator by mainViewModel.isCreator.collectAsState()
+            val myRoles by mainViewModel.myRoles.collectAsState()
             val firstCreatorId by mainViewModel.firstProtectedCreatorId.collectAsState()
+            
             val isLoggedIn = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser != null
             val isEmailVerified = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.isEmailVerified ?: false
-            val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
 
-            // Flag pour empêcher les redirections multiples (Stabilité)
+            // Flag pour empêcher les redirections multiples
             var hasNavigated by remember { mutableStateOf(false) }
 
-            if (isLoggedIn && isEmailVerified && isDepositaryAccount == false && (silenceStatus == null || isSilenceOnboardingDone == null)) {
+            if (isLoggedIn && isEmailVerified && isCreator == null) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -193,16 +195,11 @@ fun PhoenXNavGraph(
                 return@composable
             }
 
-            LaunchedEffect(isDepositaryAccount, firstCreatorId, silenceStatus, isSilenceOnboardingDone) {
+            LaunchedEffect(isCreator, myRoles, silenceStatus, isSilenceOnboardingDone) {
                 if (hasNavigated) return@LaunchedEffect
 
-                if (isDepositaryAccount == true && firstCreatorId != null) {
-                    hasNavigated = true
-                    // Redirection automatique UNIQUE vers le Dashboard du Créateur
-                    navController.navigate(Screen.DepositaryDashboard.createRoute(firstCreatorId!!)) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
-                } else if (isDepositaryAccount == false) {
+                if (isCreator == true) {
+                    // ROUTAGE CRÉATEUR
                     if (isSilenceOnboardingDone == false) {
                         hasNavigated = true
                         navController.navigate(Screen.SilenceOnboarding.route)
@@ -217,6 +214,30 @@ fun PhoenXNavGraph(
                                 navController.navigate(Screen.SilenceBlock.route)
                             }
                             else -> {}
+                        }
+                    }
+                } else if (isCreator == false) {
+                    // ROUTAGE INVITÉ (Multi-rôles v7.2)
+                    hasNavigated = true
+                    if (myRoles.isEmpty()) {
+                        // REPLI : Utilisateur sans rôle -> Onboarding (choix Créateur/Code)
+                        navController.navigate(Screen.Onboarding.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    } else {
+                        // TODO: Étape 3 - Écran "Espace Proches" unifié
+                        // En attendant, on garde le comportement Dépositaire si c'est le seul rôle
+                        val rolesList = myRoles.values.toList()
+                        val firstRole = rolesList.first()
+                        if (firstRole.role == "depositary") {
+                            navController.navigate(Screen.DepositaryDashboard.createRoute(firstRole.creatorId)) {
+                                popUpTo(Screen.Home.route) { inclusive = true }
+                            }
+                        } else {
+                            // Placeholder pour les autres rôles unifiés
+                            navController.navigate("guest_dashboard") {
+                                popUpTo(Screen.Home.route) { inclusive = true }
+                            }
                         }
                     }
                 }
