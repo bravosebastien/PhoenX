@@ -34,6 +34,7 @@ fun RecipientScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
+    var recipientToDelete by remember { mutableStateOf<RecipientEntity?>(null) }
 
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -75,7 +76,7 @@ fun RecipientScreen(
                             items(state.recipients) { recipient ->
                                 RecipientCard(
                                     recipient = recipient,
-                                    onDelete = { viewModel.deleteRecipient(recipient) },
+                                    onDelete = { recipientToDelete = recipient },
                                     onClick = { onNavigateToDetail(recipient.id) }
                                 )
                             }
@@ -83,6 +84,30 @@ fun RecipientScreen(
                     }
                 }
             }
+        }
+
+        if (recipientToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { recipientToDelete = null },
+                containerColor = BackgroundSecondary,
+                title = { Text("Supprimer ce proche ?", color = TextPrimary) },
+                text = { Text("Veux-tu vraiment retirer ${recipientToDelete?.name} de ton Cercle de Confiance ? Cette personne n'aura plus accès à ton héritage.", color = TextSecondary) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            recipientToDelete?.let { viewModel.deleteRecipient(it) }
+                            recipientToDelete = null
+                        }
+                    ) {
+                        Text("Supprimer", color = Error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { recipientToDelete = null }) {
+                        Text("Annuler", color = TextSecondary)
+                    }
+                }
+            )
         }
 
         if (showAddDialog) {
