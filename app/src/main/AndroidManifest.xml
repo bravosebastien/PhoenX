@@ -52,13 +52,10 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="https" android:host="phoenx.app" android:pathPrefix="/join" />
+                <data android:scheme="https" android:host="phoenx.app" android:pathPrefix="/witness" />
+                <data android:scheme="https" android:host="phoenx.app" android:pathPrefix="/ask" />
                 <data android:scheme="https" android:host="phoenx.app" android:pathPrefix="/depositary-alert" />
-            </intent-filter>
-
-            <intent-filter android:autoVerify="true">
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="phoenx.app" android:pathPrefix="/invite" />
             </intent-filter>
         </activity>

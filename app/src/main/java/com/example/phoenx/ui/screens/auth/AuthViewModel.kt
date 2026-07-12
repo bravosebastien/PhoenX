@@ -180,8 +180,7 @@ class AuthViewModel @Inject constructor(
                     "email" to email,
                     "encryptionKey" to encryptionKeyBase64,
                     "createdAt" to Timestamp.now(),
-                    "isCreator" to false, // v7.2 Standard
-                    "isDepositaryOnly" to true // Maintenir compatibilité migration
+                    "isDepositaryOnly" to true // Définit par défaut isCreator=false via fallback MainViewModel
                 )
                 
                 db.collection("users").document(user.uid).set(userProfile).await()
