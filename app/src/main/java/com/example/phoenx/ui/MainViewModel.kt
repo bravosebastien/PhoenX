@@ -165,6 +165,7 @@ class MainViewModel @Inject constructor(
                         val map = value as? Map<String, Any> ?: return@forEach
                         parsedRoles[key] = UserRole(
                             creatorId = map["creatorId"] as? String ?: "",
+                            creatorName = map["creatorName"] as? String ?: "Votre proche",
                             role = map["role"] as? String ?: "",
                             status = map["status"] as? String ?: "",
                             label = map["label"] as? String ?: "",

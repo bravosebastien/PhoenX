@@ -153,10 +153,10 @@ class AuthViewModel @Inject constructor(
     }
 
     /**
-     * Inscription allégée pour les Dépositaires uniquement.
+     * Inscription allégée pour les invités (Dépositaires, Témoins, Destinataires).
      * Pas de date de naissance requise, profil minimal.
      */
-    fun signUpDepositary(email: String, password: String) {
+    fun signUpGuest(email: String, password: String) {
         _uiState.value = AuthState.Loading
         viewModelScope.launch {
             try {
@@ -180,7 +180,8 @@ class AuthViewModel @Inject constructor(
                     "email" to email,
                     "encryptionKey" to encryptionKeyBase64,
                     "createdAt" to Timestamp.now(),
-                    "isDepositaryOnly" to true
+                    "isCreator" to false, // v7.2 Standard
+                    "isDepositaryOnly" to true // Maintenir compatibilité migration
                 )
                 
                 db.collection("users").document(user.uid).set(userProfile).await()
@@ -190,7 +191,7 @@ class AuthViewModel @Inject constructor(
 
                 _uiState.value = AuthState.EmailVerificationSent
             } catch (e: Exception) {
-                _uiState.value = AuthState.Error(e.message ?: "Erreur d'inscription Dépositaire")
+                _uiState.value = AuthState.Error(e.message ?: "Erreur d'inscription")
             }
         }
     }

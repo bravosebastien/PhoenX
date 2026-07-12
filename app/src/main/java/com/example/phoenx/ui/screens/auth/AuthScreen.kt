@@ -34,7 +34,7 @@ fun AuthScreen(
     isSignup: Boolean,
     onAuthSuccess: () -> Unit,
     onNavigateToRecovery: () -> Unit,
-    isDepositaryFlow: Boolean = false,
+    isGuestFlow: Boolean = false,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
     var currentStep by remember { mutableStateOf(if (isSignup) SignupStep.StepA else SignupStep.Login) }
@@ -131,10 +131,10 @@ fun AuthScreen(
                             onPasswordChange = { password = it },
                             birthDate = birthDate,
                             onBirthDateChange = { birthDate = it },
-                            isDepositaryFlow = isDepositaryFlow
+                            isGuestFlow = isGuestFlow
                         ) { 
-                            if (isDepositaryFlow) {
-                                viewModel.signUpDepositary(email, password)
+                            if (isGuestFlow) {
+                                viewModel.signUpGuest(email, password)
                             } else {
                                 viewModel.signUp(email, password, birthDate)
                             }
@@ -293,11 +293,11 @@ fun SignupStepA(
     email: String, onEmailChange: (String) -> Unit,
     password: String, onPasswordChange: (String) -> Unit,
     birthDate: LocalDate, onBirthDateChange: (LocalDate) -> Unit,
-    isDepositaryFlow: Boolean = false,
+    isGuestFlow: Boolean = false,
     onNext: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        val title = if (isDepositaryFlow) "Ton rôle de Dépositaire commence ici" else "Ton espace commence ici"
+        val title = if (isGuestFlow) "Votre espace commence ici" else "Ton espace commence ici"
         Text(title, style = MaterialTheme.typography.displayMedium, color = TextPrimary, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -310,8 +310,8 @@ fun SignupStepA(
         )
         Spacer(modifier = Modifier.height(24.dp))
 
-        if (!isDepositaryFlow) {
-            // Date de naissance (Masquée pour le flux Dépositaire)
+        if (!isGuestFlow) {
+            // Date de naissance (Masquée pour le flux Invité)
             Text(
                 "POUR TON FIL DE PENSÉE", 
                 style = MaterialTheme.typography.labelSmall, 

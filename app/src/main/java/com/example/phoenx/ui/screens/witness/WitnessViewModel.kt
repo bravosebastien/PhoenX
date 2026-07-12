@@ -44,22 +44,26 @@ class WitnessViewModel @Inject constructor(
     data class WitnessConfig(
         val allowRead: Boolean,
         val allowReject: Boolean,
-        val publicKey: String?
+        val publicKey: String?,
+        val submittedAt: Long? = null
     )
 
     init {
         loadWitnesses()
     }
 
-    fun verifyToken(creatorId: String, witnessId: String, token: String) {
+    fun verifyToken(creatorId: String, witnessId: String, token: String?) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val data = hashMapOf(
+                val data = mutableMapOf(
                     "creatorId" to creatorId,
-                    "witnessId" to witnessId,
-                    "token" to token
+                    "witnessId" to witnessId
                 )
+                if (token != null && token != "none") {
+                    data["token"] = token
+                }
+                
                 val result = functions.getHttpsCallable("verifyWitnessToken").call(data).await()
                 val resData = result.data as Map<*, *>
                 
@@ -67,11 +71,12 @@ class WitnessViewModel @Inject constructor(
                 _witnessConfig.value = WitnessConfig(
                     allowRead = resData["allowCreatorToRead"] as? Boolean ?: false,
                     allowReject = resData["allowCreatorToReject"] as? Boolean ?: false,
-                    publicKey = resData["publicEncryptionKey"] as? String
+                    publicKey = resData["publicEncryptionKey"] as? String,
+                    submittedAt = (resData["submittedAt"] as? com.google.firebase.Timestamp)?.toDate()?.time
                 )
             } catch (e: Exception) {
-                android.util.Log.e("WitnessVM", "Error verifying token", e)
-                _error.value = "Lien invalide ou expiré."
+                android.util.Log.e("WitnessVM", "Error verifying token/UID", e)
+                _error.value = "Lien invalide ou accès refusé."
             } finally {
                 _isLoading.value = false
             }
@@ -144,15 +149,25 @@ class WitnessViewModel @Inject constructor(
                     status = "invited"
                 ))
 
-                // 3. Appeler la Cloud Function pour générer le lien et envoyer l'email
-                val data = hashMapOf(
-                    "creatorId" to userId,
-                    "witnessId" to docRef.id,
-                    "witnessEmail" to email,
-                    "witnessName" to name,
-                    "creatorName" to creatorName
+                // 3. Appeler la Cloud Function Universelle (v7.2)
+                val inviteData = hashMapOf(
+                    "email" to email,
+                    "role" to "witness",
+                    "sourceId" to docRef.id,
+                    "label" to "Témoin"
                 )
-                functions.getHttpsCallable("sendWitnessInvitation").call(data).await()
+                val result = functions.getHttpsCallable("generateUniversalInvitation").call(inviteData).await()
+                val tokenId = (result.data as Map<*, *>)["tokenId"] as String
+
+                // 4. Envoi de l'email (on garde la structure mais avec le nouveau lien)
+                val emailData = hashMapOf(
+                    "to" to email,
+                    "message" to hashMapOf(
+                        "subject" to "$creatorName demande ton témoignage",
+                        "text" to "Lien pour rejoindre son cercle : https://phoenx.app/join/$tokenId"
+                    )
+                )
+                db.collection("mail").add(emailData).await()
                 
                 _inviteSuccess.emit(true)
             } catch (e: Exception) {
@@ -238,7 +253,7 @@ class WitnessViewModel @Inject constructor(
     fun submitTestimony(
         creatorId: String,
         witnessId: String,
-        token: String,
+        token: String?,
         testimonyText: String,
         onSuccess: () -> Unit
     ) {
@@ -259,13 +274,15 @@ class WitnessViewModel @Inject constructor(
 
                 val encryptedBase64 = android.util.Base64.encodeToString(encryptedBytes, android.util.Base64.DEFAULT)
 
-                // 2. Appel de la Cloud Function pour sauvegarder (Sécurité v7.1)
-                val data = hashMapOf(
+                // 2. Appel de la Cloud Function pour sauvegarder (Sécurité v7.2 Hybride)
+                val data = mutableMapOf(
                     "creatorId" to creatorId,
                     "witnessId" to witnessId,
-                    "token" to token,
                     "encryptedContent" to encryptedBase64
                 )
+                if (token != null && token != "none") {
+                    data["token"] = token
+                }
                 
                 functions.getHttpsCallable("submitWitnessTestimony").call(data).await()
                 

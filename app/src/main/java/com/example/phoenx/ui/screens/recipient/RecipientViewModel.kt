@@ -77,13 +77,54 @@ class RecipientViewModel @Inject constructor(
     }
 
     fun addRecipient(name: String, email: String, relationship: String) {
+        val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            val recipient = RecipientEntity(
-                name = name,
-                email = email,
-                relationship = relationship
-            )
-            offlineEntryDao.insertRecipient(recipient)
+            try {
+                // 1. Sauvegarde Firestore
+                val recipientData = hashMapOf(
+                    "name" to name,
+                    "email" to email,
+                    "relationship" to relationship,
+                    "status" to "invited"
+                )
+                val docRef = db.collection("users").document(userId)
+                    .collection("recipients").add(recipientData).await()
+
+                // 2. Room local
+                val recipient = RecipientEntity(
+                    id = docRef.id,
+                    name = name,
+                    email = email,
+                    relationship = relationship
+                )
+                offlineEntryDao.insertRecipient(recipient)
+
+                // 3. Invitation Universelle (v7.2)
+                val inviteData = hashMapOf(
+                    "email" to email,
+                    "role" to "recipient",
+                    "sourceId" to docRef.id,
+                    "label" to "Héritier"
+                )
+                val result = functions.getHttpsCallable("generateUniversalInvitation").call(inviteData).await()
+                val tokenId = (result.data as Map<*, *>)["tokenId"] as String
+
+                // 4. Envoi Email
+                val userDoc = db.collection("users").document(userId).get().await()
+                val creatorName = userDoc.getString("displayName") ?: "Ton proche"
+                
+                val emailData = hashMapOf(
+                    "to" to email,
+                    "message" to hashMapOf(
+                        "subject" to "$creatorName t'a choisi comme héritier",
+                        "text" to "Lien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
+                    )
+                )
+                db.collection("mail").add(emailData).await()
+
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientVM", "Erreur ajout destinataire", e)
+            }
         }
     }
 

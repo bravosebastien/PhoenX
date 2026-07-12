@@ -520,18 +520,26 @@ export const sendWitnessInvitation = onCall(async (request) => {
 export const verifyWitnessToken = onCall(async (request) => {
     const { creatorId, witnessId, token } = request.data;
     const doc = await admin.firestore().collection("users").doc(creatorId).collection("witnesses").doc(witnessId).get();
-    if (!doc.exists || doc.data()?.inviteToken !== token || doc.data()?.submittedAt) throw new HttpsError("permission-denied", "Invalide");
+    if (!doc.exists) throw new HttpsError("not-found", "Invitation introuvable");
 
-    // Récupérer le nom du créateur depuis le profil (Admin SDK permet de contourner les rules)
+    const witnessData = doc.data()!;
+
+    // Vérification hybride v7.2 : Token valide OU UID lié
+    const isAuthorized = (token && witnessData.inviteToken === token) ||
+                         (request.auth && witnessData.linkedUid === request.auth.uid);
+
+    if (!isAuthorized) throw new HttpsError("permission-denied", "Accès refusé");
+
+    // Récupérer le nom du créateur depuis le profil
     const creatorDoc = await admin.firestore().collection("users").doc(creatorId).get();
     const creatorData = creatorDoc.data();
-    const witnessData = doc.data()!;
 
     return {
         creatorName: creatorData?.displayName || witnessData.creatorName || "Ton proche",
         allowCreatorToRead: witnessData.allowCreatorToRead || false,
         allowCreatorToReject: witnessData.allowCreatorToReject || false,
-        publicEncryptionKey: creatorData?.publicEncryptionKey || null
+        publicEncryptionKey: creatorData?.publicEncryptionKey || null,
+        submittedAt: witnessData.submittedAt || null
     };
 });
 
@@ -540,11 +548,16 @@ export const submitWitnessTestimony = onCall(async (request) => {
     const ref = admin.firestore().collection("users").doc(creatorId).collection("witnesses").doc(witnessId);
     const doc = await ref.get();
 
-    if (!doc.exists || doc.data()?.inviteToken !== token) {
-        throw new HttpsError("permission-denied", "Jeton invalide");
-    }
+    if (!doc.exists) throw new HttpsError("not-found", "Document introuvable");
+    const witnessData = doc.data()!;
 
-    const allowReject = doc.data()?.allowCreatorToReject || false;
+    // Vérification hybride v7.2
+    const isAuthorized = (token && witnessData.inviteToken === token) ||
+                         (request.auth && witnessData.linkedUid === request.auth.uid);
+
+    if (!isAuthorized) throw new HttpsError("permission-denied", "Accès refusé");
+
+    const allowReject = witnessData.allowCreatorToReject || false;
     const finalStatus = allowReject ? "submitted" : "validated";
 
     await ref.update({
@@ -568,6 +581,10 @@ export const generateUniversalInvitation = onCall(async (request) => {
     if (!auth) throw new HttpsError("unauthenticated", "Non authentifié");
     if (!sourceId) throw new HttpsError("invalid-argument", "sourceId manquant");
 
+    // Récupérer le nom du créateur pour dénormalisation
+    const creatorDoc = await admin.firestore().collection("users").doc(auth.uid).get();
+    const creatorName = creatorDoc.data()?.displayName || "Votre proche";
+
     // Sécurisation v7.2 : On construit le chemin nous-mêmes pour éviter les injections
     let sourcePath = "";
     if (role === "depositary") sourcePath = `users/${auth.uid}/depositaries/${sourceId}`;
@@ -581,6 +598,7 @@ export const generateUniversalInvitation = onCall(async (request) => {
     const inviteData = {
         email: email.toLowerCase(),
         creatorId: auth.uid,
+        creatorName,
         role,
         sourceId,
         sourcePath,
@@ -595,8 +613,30 @@ export const generateUniversalInvitation = onCall(async (request) => {
     return { tokenId };
 });
 
+export const getInvitationDetails = onCall(async (request) => {
+    const { tokenId } = request.data;
+    if (!tokenId) throw new HttpsError("invalid-argument", "Token manquant");
+
+    const inviteDoc = await admin.firestore().collection("invitations").doc(tokenId).get();
+    if (!inviteDoc.exists) throw new HttpsError("not-found", "Invitation introuvable");
+
+    const inviteData = inviteDoc.data()!;
+    if (inviteData.expiresAt.toDate() < new Date()) throw new HttpsError("permission-denied", "Invitation expirée");
+    if (inviteData.used) throw new HttpsError("already-exists", "Invitation déjà utilisée");
+
+    const creatorDoc = await admin.firestore().collection("users").doc(inviteData.creatorId).get();
+
+    return {
+        creatorName: creatorDoc.data()?.displayName || "Votre proche",
+        creatorId: inviteData.creatorId,
+        role: inviteData.role,
+        label: inviteData.label,
+        targetEmail: inviteData.email
+    };
+});
+
 export const acceptUniversalInvitation = onCall(async (request) => {
-    const { tokenId, creatorId, role } = request.data;
+    const { tokenId } = request.data;
     const auth = request.auth;
 
     if (!auth || !auth.token.email) {
@@ -618,6 +658,7 @@ export const acceptUniversalInvitation = onCall(async (request) => {
             }
 
             const inviteData = inviteDoc.data()!;
+            const { creatorId, role } = inviteData;
 
             // 2. Expiration
             if (inviteData.expiresAt && inviteData.expiresAt.toDate() < new Date()) {
@@ -638,11 +679,6 @@ export const acceptUniversalInvitation = onCall(async (request) => {
                 throw new HttpsError("permission-denied", `Cette invitation est destinée à ${inviteData.email}.`);
             }
 
-            // 5. Cohérence des données (Context check)
-            if (inviteData.creatorId !== creatorId || inviteData.role !== role) {
-                throw new HttpsError("invalid-argument", "Le contenu de l'invitation ne correspond pas à la demande.");
-            }
-
             // 6. FIX isCreator : On vérifie si l'utilisateur est déjà Créateur
             const userDoc = await transaction.get(userRef);
             const userData = userDoc.data();
@@ -652,6 +688,7 @@ export const acceptUniversalInvitation = onCall(async (request) => {
             const roleKey = `${creatorId}_${role}`;
             const newRoleData = {
                 creatorId: creatorId,
+                creatorName: inviteData.creatorName || "Votre proche",
                 role: role,
                 status: "active",
                 label: inviteData.label || role,
@@ -704,16 +741,20 @@ export const migrateLegacyRoles = onCall(async (request) => {
     const legacyIds = data?.protectedCreatorIds || [];
     const newRoles: any = {};
 
-    legacyIds.forEach((creatorId: string) => {
+    for (const creatorId of legacyIds) {
+        const creatorDoc = await admin.firestore().collection("users").doc(creatorId).get();
+        const creatorName = creatorDoc.data()?.displayName || "Votre proche";
+
         newRoles[`${creatorId}_depositary`] = {
             creatorId: creatorId,
+            creatorName: creatorName,
             role: "depositary",
             status: "active",
             label: "Gardien de confiance",
             joinedAt: admin.firestore.FieldValue.serverTimestamp(),
             migratedAt: admin.firestore.FieldValue.serverTimestamp()
         };
-    });
+    }
 
     await userRef.update({
         myRoles: newRoles,

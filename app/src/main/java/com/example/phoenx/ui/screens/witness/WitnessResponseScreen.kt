@@ -38,7 +38,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 fun WitnessResponseScreen(
     creatorId: String,
     witnessId: String,
-    token: String,
+    token: String?,
     navController: NavController,
     viewModel: WitnessViewModel = hiltViewModel()
 ) {
@@ -62,6 +62,28 @@ fun WitnessResponseScreen(
             snackbarHostState.showSnackbar(it)
             viewModel.clearError()
         }
+    }
+
+    // GESTION ÉTAT : DÉJÀ SOUMIS
+    if (witnessConfig?.submittedAt != null && !isRitualPlaying) {
+        Box(modifier = Modifier.fillMaxSize().background(backgroundBrush), contentAlignment = Alignment.Center) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
+                Icon(Icons.Default.CheckCircle, null, tint = Success, modifier = Modifier.size(64.dp))
+                Spacer(modifier = Modifier.height(24.dp))
+                Text("Témoignage déjà scellé", style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Vous avez déjà envoyé votre témoignage pour $creatorName. Il est maintenant en sécurité.",
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                Button(onClick = { navController.popBackStack() }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
+                    Text("Retour", color = BackgroundPrimary)
+                }
+            }
+        }
+        return
     }
 
     if (isRitualPlaying) {

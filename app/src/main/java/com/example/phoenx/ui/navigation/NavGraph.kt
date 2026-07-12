@@ -57,6 +57,8 @@ import com.example.phoenx.ui.screens.quiz.QuizLeaderboardScreen
 import com.example.phoenx.ui.screens.quiz.QuizPlayScreen
 import com.example.phoenx.ui.screens.universal.UniversalMessageScreen
 import com.example.phoenx.ui.screens.universal.UniversalFeedScreen
+import com.example.phoenx.ui.screens.universal.UniversalJoinScreen
+import com.example.phoenx.ui.screens.universal.GuestDashboardScreen
 import com.example.phoenx.ui.screens.recipient.*
 import com.example.phoenx.ui.screens.silence.SilenceBlockScreen
 import com.example.phoenx.ui.screens.silence.SilenceCheckInScreen
@@ -109,11 +111,11 @@ fun PhoenXNavGraph(
             arguments = listOf(navArgument("redirectTo") { nullable = true; type = NavType.StringType })
         ) { backStackEntry ->
             val redirectTo = backStackEntry.arguments?.getString("redirectTo")
-            val isDepositaryFlow = redirectTo?.contains("depositary") == true
+            val isGuestFlow = redirectTo?.contains("depositary") == true || redirectTo?.startsWith("join/") == true
 
             AuthScreen(
                 isSignup = true, 
-                isDepositaryFlow = isDepositaryFlow,
+                isGuestFlow = isGuestFlow,
                 onAuthSuccess = {
                     val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
                     if (uid != null) {
@@ -140,11 +142,11 @@ fun PhoenXNavGraph(
             arguments = listOf(navArgument("redirectTo") { nullable = true; type = NavType.StringType })
         ) { backStackEntry ->
             val redirectTo = backStackEntry.arguments?.getString("redirectTo")
-            val isDepositaryFlow = redirectTo?.contains("depositary") == true
+            val isGuestFlow = redirectTo?.contains("depositary") == true || redirectTo?.startsWith("join/") == true
             
             AuthScreen(
                 isSignup = false, 
-                isDepositaryFlow = isDepositaryFlow,
+                isGuestFlow = isGuestFlow,
                 onAuthSuccess = {
                     val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
                     if (uid != null) {
@@ -171,7 +173,6 @@ fun PhoenXNavGraph(
             val isSilenceOnboardingDone by mainViewModel.isSilenceOnboardingDone.collectAsState()
             val isCreator by mainViewModel.isCreator.collectAsState()
             val myRoles by mainViewModel.myRoles.collectAsState()
-            val firstCreatorId by mainViewModel.firstProtectedCreatorId.collectAsState()
             
             val isLoggedIn = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser != null
             val isEmailVerified = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.isEmailVerified ?: false
@@ -217,24 +218,21 @@ fun PhoenXNavGraph(
                         }
                     }
                 } else if (isCreator == false) {
-                    // ROUTAGE INVITÉ (Multi-rôles v7.2)
+                    // ROUTAGE INVITÉ (v7.2)
                     hasNavigated = true
                     if (myRoles.isEmpty()) {
-                        // REPLI : Utilisateur sans rôle -> Onboarding (choix Créateur/Code)
                         navController.navigate(Screen.Onboarding.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                     } else {
-                        // TODO: Étape 3 - Écran "Espace Proches" unifié
-                        // En attendant, on garde le comportement Dépositaire si c'est le seul rôle
+                        // Un seul rôle de dépositaire -> On garde l'ancien dashboard direct par confort
                         val rolesList = myRoles.values.toList()
-                        val firstRole = rolesList.first()
-                        if (firstRole.role == "depositary") {
-                            navController.navigate(Screen.DepositaryDashboard.createRoute(firstRole.creatorId)) {
+                        if (rolesList.size == 1 && rolesList.first().role == "depositary") {
+                            navController.navigate(Screen.DepositaryDashboard.createRoute(rolesList.first().creatorId)) {
                                 popUpTo(Screen.Home.route) { inclusive = true }
                             }
                         } else {
-                            // Placeholder pour les autres rôles unifiés
+                            // Plusieurs rôles ou rôle différent -> Dashboard unifié
                             navController.navigate("guest_dashboard") {
                                 popUpTo(Screen.Home.route) { inclusive = true }
                             }
@@ -396,6 +394,19 @@ fun PhoenXNavGraph(
 
         composable("universal_feed") {
             UniversalFeedScreen(navController = navController)
+        }
+
+        composable("guest_dashboard") {
+            GuestDashboardScreen(
+                navController = navController,
+                mainViewModel = mainViewModel,
+                onLogout = {
+                    mainViewModel.logout()
+                    navController.navigate(Screen.Splash.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
         }
 
         composable("questions_room") {
@@ -602,19 +613,29 @@ fun PhoenXNavGraph(
             )
         }
 
-        // Côté Témoin (deeplink depuis email)
+        // Côté Témoin (deeplink depuis email OU accès authentifié v7.2)
         composable(
             route = "witness_response/{creatorId}/{witnessId}/{token}",
+            arguments = listOf(
+                navArgument("creatorId") { type = NavType.StringType },
+                navArgument("witnessId") { type = NavType.StringType },
+                navArgument("token") { nullable = true; defaultValue = "none" }
+            ),
             deepLinks = listOf(
                 navDeepLink {
                     uriPattern = "https://phoenx.app/witness?creator={creatorId}&witness={witnessId}&token={token}"
                 }
             )
         ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+            val witnessId = backStackEntry.arguments?.getString("witnessId") ?: ""
+            val token = backStackEntry.arguments?.getString("token")
+            val finalToken = if (token == "none") null else token
+
             WitnessResponseScreen(
-                creatorId = backStackEntry.arguments?.getString("creatorId") ?: "",
-                witnessId = backStackEntry.arguments?.getString("witnessId") ?: "",
-                token = backStackEntry.arguments?.getString("token") ?: "",
+                creatorId = creatorId,
+                witnessId = witnessId,
+                token = finalToken,
                 navController = navController
             )
         }
@@ -782,6 +803,24 @@ fun PhoenXNavGraph(
                 onNavigateToWitnesses = { navController.navigate(Screen.WitnessInvite.route) },
                 onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
                 onNavigateToNotifications = { navController.navigate(Screen.NotificationContacts.route) }
+            )
+        }
+
+        composable(
+            route = Screen.UniversalJoin.route,
+            deepLinks = listOf(navDeepLink { uriPattern = "https://phoenx.app/join/{token}" })
+        ) { backStackEntry ->
+            val token = backStackEntry.arguments?.getString("token") ?: ""
+            UniversalJoinScreen(
+                token = token,
+                onNavigateToAuth = { t ->
+                    navController.navigate(Screen.Auth.Login.createRoute(Screen.UniversalJoin.createRoute(t)))
+                },
+                onSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.UniversalJoin.route) { inclusive = true }
+                    }
+                }
             )
         }
 

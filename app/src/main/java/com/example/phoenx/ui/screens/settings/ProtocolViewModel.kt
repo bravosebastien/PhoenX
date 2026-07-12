@@ -143,20 +143,18 @@ class ProtocolViewModel @Inject constructor(
                         com.google.firebase.firestore.SetOptions.merge()
                     ).await()
 
-                // 3. Génération du Token
-                val result = functions.getHttpsCallable("generateDepositaryInviteToken")
-                    .call(mapOf("creatorId" to userId, "depositaryId" to depositaryId))
-                    .await()
+                // 3. Génération du Token Universel (v7.2)
+                val inviteData = hashMapOf(
+                    "email" to email,
+                    "role" to "depositary",
+                    "sourceId" to depositaryId,
+                    "label" to "Gardien de confiance"
+                )
+                val result = functions.getHttpsCallable("generateUniversalInvitation").call(inviteData).await()
+                val tokenId = (result.data as Map<*, *>)["tokenId"] as String
                 
-                val token = (result.data as Map<*, *>)["token"] as String
-                _inviteToken.value = token
-
-                // 4. Génération du Short Code (pour le lien email)
-                val codeResult = functions.getHttpsCallable("generateDepositaryShortCode")
-                    .call(mapOf("creatorId" to userId, "depositaryId" to depositaryId))
-                    .await()
-                
-                _shortCode.value = (codeResult.data as Map<*, *>)["shortCode"] as String
+                _inviteToken.value = tokenId
+                _shortCode.value = tokenId // On utilise le tokenId comme lien (unification)
                 
                 _uiState.update { it.copy(isLoading = false, isSuccess = true) }
 
@@ -195,20 +193,18 @@ class ProtocolViewModel @Inject constructor(
                     .collection("depositaries").document(depositaryId)
                     .set(depositaryData).await()
 
-                // Génération du token pour le secondaire
-                val result = functions.getHttpsCallable("generateDepositaryInviteToken")
-                    .call(mapOf("creatorId" to userId, "depositaryId" to depositaryId))
-                    .await()
-                
-                val token = (result.data as Map<*, *>)["token"] as String
-                _secondaryInviteToken.value = token
+                // Génération du token universel pour le secondaire
+                val inviteData = hashMapOf(
+                    "email" to email,
+                    "role" to "depositary",
+                    "sourceId" to depositaryId,
+                    "label" to "Gardien de confiance"
+                )
+                val result = functions.getHttpsCallable("generateUniversalInvitation").call(inviteData).await()
+                val tokenId = (result.data as Map<*, *>)["tokenId"] as String
 
-                // Génération du Short Code pour le secondaire
-                val codeResult = functions.getHttpsCallable("generateDepositaryShortCode")
-                    .call(mapOf("creatorId" to userId, "depositaryId" to depositaryId))
-                    .await()
-                
-                _secondaryShortCode.value = (codeResult.data as Map<*, *>)["shortCode"] as String
+                _secondaryInviteToken.value = tokenId
+                _secondaryShortCode.value = tokenId
                 
                 _uiState.update { it.copy(
                     hasSecondaryDepositary = true,
