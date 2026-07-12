@@ -182,7 +182,7 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
                     Text("DIALOGUE TEMPOREL", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
                 }
                 Surface(color = BackgroundPrimary, shape = CircleShape, border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))) {
-                    Text(text = "${latestAmendment.ageAtAmendment.years}a ${latestAmendment.ageAtAmendment.months}m", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = AccentPrimary, fontSize = 9.sp)
+                    Text(text = "${latestAmendment.ageAtAmendment.years}a ${latestAmendment.ageAtAmendment.months}m ${latestAmendment.ageAtAmendment.days}j", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = AccentPrimary, fontSize = 9.sp)
                 }
             }
             
@@ -292,7 +292,7 @@ fun TimelineEntryItem(entry: PhoenXEntry, onClick: () -> Unit) {
                     }
                 }
                 Surface(color = BackgroundPrimary, shape = CircleShape, border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))) {
-                    Text(text = "${entry.ageAtCreation.months}m ${entry.ageAtCreation.days}j", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = AccentPrimary, fontSize = 10.sp)
+                    Text(text = "${entry.ageAtCreation.years}a ${entry.ageAtCreation.months}m ${entry.ageAtCreation.days}j", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = AccentPrimary, fontSize = 10.sp)
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
