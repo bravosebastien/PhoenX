@@ -30,6 +30,7 @@ object DatabaseModule {
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_14_15,
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_15_16
         )
+            .fallbackToDestructiveMigration()
             .fallbackToDestructiveMigrationOnDowngrade()
             .build()
     }

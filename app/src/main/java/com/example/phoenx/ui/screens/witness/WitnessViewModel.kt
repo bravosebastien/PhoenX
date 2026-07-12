@@ -3,6 +3,8 @@ package com.example.phoenx.ui.screens.witness
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
+import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.local.WitnessEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
@@ -12,22 +14,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-data class WitnessEntity(
-    val id: String = "",
-    val name: String = "",
-    val email: String = "",
-    val status: String = "invited", // "invited" | "submitted" | "validated" | "rejected"
-    val submittedAt: Long? = null,
-    val allowCreatorToRead: Boolean = false,
-    val allowCreatorToReject: Boolean = false
-)
-
 @HiltViewModel
 class WitnessViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
-    private val encryptionManager: EncryptionManager
+    private val encryptionManager: EncryptionManager,
+    private val offlineEntryDao: OfflineEntryDao
 ) : ViewModel() {
 
     private val _witnesses = MutableStateFlow<List<WitnessEntity>>(emptyList())
@@ -87,17 +80,25 @@ class WitnessViewModel @Inject constructor(
 
     fun loadWitnesses() {
         val userId = auth.currentUser?.uid ?: return
+        
+        // 1. Écouter Room (Réactivité)
+        viewModelScope.launch {
+            offlineEntryDao.getAllWitnesses().collectLatest { list ->
+                _witnesses.value = list
+            }
+        }
+
+        // 2. Synchroniser depuis Firestore
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 val snapshot = db.collection("users").document(userId)
                     .collection("witnesses")
-                    .orderBy("name")
                     .get()
                     .await()
                 
-                val list = snapshot.documents.map { doc ->
-                    WitnessEntity(
+                snapshot.documents.forEach { doc ->
+                    val witness = WitnessEntity(
                         id = doc.id,
                         name = doc.getString("name") ?: "",
                         email = doc.getString("email") ?: "",
@@ -106,10 +107,10 @@ class WitnessViewModel @Inject constructor(
                         allowCreatorToRead = doc.getBoolean("allowCreatorToRead") ?: false,
                         allowCreatorToReject = doc.getBoolean("allowCreatorToReject") ?: false
                     )
+                    offlineEntryDao.insertWitness(witness)
                 }
-                _witnesses.value = list
             } catch (e: Exception) {
-                android.util.Log.e("WitnessVM", "Error loading witnesses", e)
+                android.util.Log.e("WitnessVM", "Error syncing witnesses", e)
             } finally {
                 _isLoading.value = false
             }
@@ -121,7 +122,7 @@ class WitnessViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // 1. Créer le document témoin
+                // 1. Créer le document témoin sur Firestore
                 val witnessData = hashMapOf(
                     "name" to name,
                     "email" to email,
@@ -133,7 +134,17 @@ class WitnessViewModel @Inject constructor(
                 )
                 val docRef = db.collection("users").document(userId).collection("witnesses").add(witnessData).await()
                 
-                // 2. Appeler la Cloud Function pour générer le lien et envoyer l'email
+                // 2. Sauvegarde locale immédiate
+                offlineEntryDao.insertWitness(WitnessEntity(
+                    id = docRef.id,
+                    name = name,
+                    email = email,
+                    allowCreatorToRead = allowRead,
+                    allowCreatorToReject = allowReject,
+                    status = "invited"
+                ))
+
+                // 3. Appeler la Cloud Function pour générer le lien et envoyer l'email
                 val data = hashMapOf(
                     "creatorId" to userId,
                     "witnessId" to docRef.id,
@@ -144,7 +155,6 @@ class WitnessViewModel @Inject constructor(
                 functions.getHttpsCallable("sendWitnessInvitation").call(data).await()
                 
                 _inviteSuccess.emit(true)
-                loadWitnesses()
             } catch (e: Exception) {
                 android.util.Log.e("WitnessVM", "Error inviting witness", e)
                 _error.value = "Impossible d'envoyer l'invitation. Vérifie ta connexion."
@@ -163,12 +173,15 @@ class WitnessViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                // Supprimer sur Firestore
                 db.collection("users").document(userId)
                     .collection("witnesses")
                     .document(witnessId)
                     .delete()
                     .await()
-                loadWitnesses()
+                
+                // Supprimer localement
+                offlineEntryDao.deleteWitness(witnessId)
             } catch (e: Exception) {
                 android.util.Log.e("WitnessVM", "Error deleting witness", e)
             } finally {
@@ -203,11 +216,17 @@ class WitnessViewModel @Inject constructor(
         
         viewModelScope.launch {
             try {
+                // Mettre à jour Firestore
                 db.collection("users").document(userId)
                     .collection("witnesses").document(witnessId)
                     .update("status", newStatus)
                     .await()
-                loadWitnesses()
+                
+                // Mettre à jour Room
+                val current = _witnesses.value.find { it.id == witnessId }
+                current?.let {
+                    offlineEntryDao.insertWitness(it.copy(status = newStatus))
+                }
             } catch (e: Exception) {
                 _error.value = "Erreur lors de la mise à jour du statut."
             }

@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.data.local.NotificationContactEntity
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 
@@ -33,7 +34,7 @@ fun NotificationContactsScreen(
     val contacts by viewModel.contacts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
-    var contactToDelete by remember { mutableStateOf<NotificationContact?>(null) }
+    var contactToDelete by remember { mutableStateOf<NotificationContactEntity?>(null) }
 
     Scaffold(
         containerColor = BackgroundPrimary,
@@ -178,7 +179,7 @@ fun NotificationContactsScreen(
 }
 
 @Composable
-fun ContactCard(contact: NotificationContact, onDelete: () -> Unit) {
+fun ContactCard(contact: NotificationContactEntity, onDelete: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = SurfaceCard),

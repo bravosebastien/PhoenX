@@ -57,6 +57,26 @@ interface OfflineEntryDao {
     @Delete
     suspend fun deleteRecipient(recipient: RecipientEntity)
 
+    // Witnesses
+    @Query("SELECT * FROM witnesses ORDER BY name ASC")
+    fun getAllWitnesses(): Flow<List<WitnessEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWitness(witness: WitnessEntity)
+
+    @Query("DELETE FROM witnesses WHERE id = :witnessId")
+    suspend fun deleteWitness(witnessId: String)
+
+    // Notification Contacts
+    @Query("SELECT * FROM notification_contacts ORDER BY addedAt ASC")
+    fun getAllNotificationContacts(): Flow<List<NotificationContactEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertNotificationContact(contact: NotificationContactEntity)
+
+    @Query("DELETE FROM notification_contacts WHERE id = :contactId")
+    suspend fun deleteNotificationContact(contactId: String)
+
     // Depositaries
     @Query("SELECT * FROM depositaries LIMIT 1")
     fun getDepositary(): Flow<DepositaryEntity?>
