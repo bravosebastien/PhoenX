@@ -136,6 +136,8 @@ sealed class Screen(val route: String) {
     object UniqueKey : Screen("uniquekey")
     object Reconciliation : Screen("reconciliation")
     object Profile : Screen("profile")
+    object TrustCircle : Screen("trust_circle")
+    object WitnessInvite : Screen("witness_invite")
     object Settings : Screen("settings") {
         fun createRoute(showRecovery: Boolean = false) = "settings?showRecovery=$showRecovery"
     }

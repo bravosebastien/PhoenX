@@ -43,6 +43,7 @@ import com.example.phoenx.ui.screens.witness.WitnessResponseScreen
 import com.example.phoenx.ui.screens.portraits.PortraitProcheScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.profile.ProfileScreen
+import com.example.phoenx.ui.screens.trustcircle.CercleConfianceScreen
 import com.example.phoenx.ui.screens.questions.HundredQuestionsScreen
 import com.example.phoenx.ui.screens.questions.HundredQuestionsViewModel
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
@@ -229,7 +230,7 @@ fun PhoenXNavGraph(
                 onNavigateToLetters = { navController.navigate(Screen.YoungSelfLetters.route) },
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                 onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
-                onNavigateToTransmission = { navController.navigate(Screen.Recipients.route) }, // Pour l'instant on va vers les destinataires
+                onNavigateToTrustCircle = { navController.navigate(Screen.TrustCircle.route) },
                 onNavigateToEssence = { navController.navigate(Screen.Essence.route) },
                 onNavigateToPortraits = { navController.navigate(Screen.Portraits.createRoute()) },
                 onNavigateToWorlds = { navController.navigate(Screen.Worlds.route) },
@@ -237,8 +238,6 @@ fun PhoenXNavGraph(
                 onNavigateToQuestions = { navController.navigate(Screen.Questions.route) },
                 onNavigateToPendingQuestions = { navController.navigate(Screen.PendingQuestions.route) },
                 onNavigateToMailbox = { navController.navigate(Screen.RecipientMailbox.route) },
-                onNavigateToLegacy = { navController.navigate(Screen.NewLegacy.route) },
-                onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
                 onNavigateToMap = { navController.navigate(Screen.Map.createRoute()) },
                 onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.route) },
                 onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
@@ -753,6 +752,16 @@ fun PhoenXNavGraph(
 
         composable(Screen.Profile.route) {
             ProfileScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
+        composable(Screen.TrustCircle.route) {
+            CercleConfianceScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
+                onNavigateToWitnesses = { navController.navigate(Screen.WitnessInvite.route) },
+                onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
+                onNavigateToNotifications = { navController.navigate(Screen.NotificationContacts.route) }
+            )
         }
 
         composable(Screen.SilenceOnboarding.route) {

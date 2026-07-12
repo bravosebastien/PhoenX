@@ -46,7 +46,7 @@ fun HomeScreen(
     onNavigateToLetters: () -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    onNavigateToTransmission: () -> Unit,
+    onNavigateToTrustCircle: () -> Unit,
     onNavigateToEssence: () -> Unit,
     onNavigateToPortraits: () -> Unit,
     onNavigateToWorlds: () -> Unit,
@@ -54,8 +54,6 @@ fun HomeScreen(
     onNavigateToQuestions: () -> Unit,
     onNavigateToPendingQuestions: () -> Unit,
     onNavigateToMailbox: () -> Unit,
-    onNavigateToLegacy: () -> Unit,
-    onNavigateToRecipients: () -> Unit,
     onNavigateToMap: () -> Unit,
     onNavigateToLibrary: () -> Unit,
     onNavigateToDetective: () -> Unit,
@@ -114,7 +112,7 @@ fun HomeScreen(
         },
         onNavigateToSettings = onNavigateToSettings,
         onNavigateToProfile = onNavigateToProfile,
-        onNavigateToTransmission = onNavigateToTransmission,
+        onNavigateToTransmission = onNavigateToTrustCircle,
         drawerState = drawerState
     ) {
         Scaffold(
@@ -123,7 +121,7 @@ fun HomeScreen(
             bottomBar = {
                 HomeNavigationBar(
                     onNavigateToHome = { },
-                    onNavigateToLegacy = onNavigateToLegacy,
+                    onNavigateToTrustCircle = onNavigateToTrustCircle,
                     onNavigateToIA = onNavigateToEssence,
                     onOpenProfile = { scope.launch { drawerState.open() } }
                 )
@@ -455,7 +453,7 @@ fun QuickActionCard(
 @Composable
 fun HomeNavigationBar(
     onNavigateToHome: () -> Unit,
-    onNavigateToLegacy: () -> Unit,
+    onNavigateToTrustCircle: () -> Unit,
     onNavigateToIA: () -> Unit,
     onOpenProfile: () -> Unit
 ) {
@@ -469,7 +467,7 @@ fun HomeNavigationBar(
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             NavItem(Icons.Outlined.Home, "Accueil", true, onNavigateToHome)
-            NavItem(Icons.Outlined.Send, "Transmettre", false, onNavigateToLegacy)
+            NavItem(Icons.Outlined.People, "Mon Cercle", false, onNavigateToTrustCircle)
             NavItem(Icons.Outlined.AutoAwesome, "L'IA", false, onNavigateToIA)
             NavItem(Icons.Outlined.AccountCircle, "Profil", false, onOpenProfile)
         }
