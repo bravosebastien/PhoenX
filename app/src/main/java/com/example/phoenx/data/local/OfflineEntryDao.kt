@@ -61,6 +61,9 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM depositaries LIMIT 1")
     fun getDepositary(): Flow<DepositaryEntity?>
 
+    @Query("SELECT * FROM depositaries LIMIT 1")
+    suspend fun getDepositarySync(): DepositaryEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDepositary(depositary: DepositaryEntity)
 

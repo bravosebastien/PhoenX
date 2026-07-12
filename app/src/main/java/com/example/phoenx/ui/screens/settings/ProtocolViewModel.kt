@@ -43,27 +43,56 @@ class ProtocolViewModel @Inject constructor(
     private fun loadDepositaries() {
         val userId = auth.currentUser?.uid ?: return
         
-        // 1. Charger le primaire (priorité locale pour réactivité)
+        // 1. Écouter les changements locaux pour l'UI (Réactivité maximale)
         viewModelScope.launch {
-            val userDoc = db.collection("users").document(userId).get().await()
-            val threshold = userDoc.getLong("silenceConfig.thresholdHours")?.toInt() ?: 72
-
             offlineEntryDao.getDepositary().collectLatest { dep ->
                 if (dep != null) {
                     _uiState.update { it.copy(
                         name = dep.name,
                         email = dep.email,
                         phone = dep.phone,
-                        status = dep.status,
-                        thresholdHours = threshold
+                        status = dep.status
                     ) }
-                } else {
-                    _uiState.update { it.copy(thresholdHours = threshold) }
                 }
             }
         }
 
-        // 2. Vérifier le secondaire sur Firestore
+        // 2. Synchroniser depuis Firestore (Source de vérité)
+        viewModelScope.launch {
+            try {
+                // Charger la config de silence
+                val userDoc = db.collection("users").document(userId).get().await()
+                val threshold = userDoc.getLong("silenceConfig.thresholdHours")?.toInt() ?: 72
+                _uiState.update { it.copy(thresholdHours = threshold) }
+
+                // Charger le dépositaire primaire
+                val primaryDoc = db.collection("users").document(userId)
+                    .collection("depositaries").document("primary").get().await()
+                
+                if (primaryDoc.exists()) {
+                    val name = primaryDoc.getString("name") ?: ""
+                    val email = primaryDoc.getString("email") ?: ""
+                    val phone = primaryDoc.getString("phone") ?: ""
+                    val status = primaryDoc.getString("status") ?: "active"
+
+                    // Mettre à jour Room si nécessaire
+                    val local = offlineEntryDao.getDepositarySync()
+                    if (local == null || local.name != name || local.email != email) {
+                        offlineEntryDao.clearDepositaries()
+                        offlineEntryDao.insertDepositary(DepositaryEntity(
+                            name = name, 
+                            email = email, 
+                            phone = phone,
+                            status = status
+                        ))
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_PROTO", "Erreur sync Firestore -> Room: ${e.message}")
+            }
+        }
+
+        // 3. Vérifier le secondaire sur Firestore
         viewModelScope.launch {
             try {
                 val doc = db.collection("users").document(userId)

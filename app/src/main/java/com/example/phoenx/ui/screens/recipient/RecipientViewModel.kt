@@ -39,14 +39,39 @@ class RecipientViewModel @Inject constructor(
         offlineEntryDao.getPortraitEntryForRecipient(recipientId)
 
     private fun loadRecipients() {
+        val userId = auth.currentUser?.uid ?: return
+        
+        // 1. Écouter les changements locaux (Room)
         viewModelScope.launch {
             try {
                 offlineEntryDao.getAllRecipients().collectLatest { recipients ->
                     _uiState.value = RecipientUiState.Success(recipients)
                 }
             } catch (e: Exception) {
-                android.util.Log.e("RecipientVM", "Erreur chargement", e)
+                android.util.Log.e("RecipientVM", "Erreur chargement Room", e)
                 _uiState.value = RecipientUiState.Success(emptyList())
+            }
+        }
+
+        // 2. Synchroniser depuis Firestore
+        viewModelScope.launch {
+            try {
+                val snapshot = db.collection("users").document(userId)
+                    .collection("recipients").get().await()
+                
+                snapshot.documents.forEach { doc ->
+                    val recipient = RecipientEntity(
+                        id = doc.id,
+                        name = doc.getString("name") ?: "",
+                        email = doc.getString("email") ?: "",
+                        relationship = doc.getString("relationship") ?: "",
+                        canAskQuestions = doc.getBoolean("canAskQuestions") ?: false,
+                        maxQuestionsAllowed = doc.getLong("maxQuestionsAllowed")?.toInt()
+                    )
+                    offlineEntryDao.insertRecipient(recipient)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientVM", "Erreur sync Firestore -> Room", e)
             }
         }
     }
