@@ -28,11 +28,10 @@ object DatabaseModule {
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_12_13,
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_13_14,
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_14_15,
-            com.example.phoenx.data.local.RoomMigrations.MIGRATION_15_16
-        )
-            .fallbackToDestructiveMigration()
-            .fallbackToDestructiveMigrationOnDowngrade()
-            .build()
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_15_16,
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_16_17,
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_17_18
+        ).build()
     }
 
     @Provides

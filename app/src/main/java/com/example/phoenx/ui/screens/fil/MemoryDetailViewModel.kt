@@ -42,6 +42,11 @@ class MemoryDetailViewModel @Inject constructor(
         .flatMapLatest { id -> offlineEntryDao.getEntryById(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    val complements: StateFlow<List<OfflineEntry>> = _entryId
+        .filterNotNull()
+        .flatMapLatest { id -> offlineEntryDao.getComplements(id) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val decryptedContent: StateFlow<String> = entry
         .map { it?.let { encryptionManager.decryptText(it.encryptedPayload) } ?: "" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
@@ -81,6 +86,14 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             offlineEntryDao.updateEntryRecipients(newRecipientIds.joinToString(","), id)
+            triggerSync(id)
+        }
+    }
+
+    fun updateVisibility(visibility: String) {
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            offlineEntryDao.updateEntryVisibility(visibility, id)
             triggerSync(id)
         }
     }
@@ -150,7 +163,15 @@ class MemoryDetailViewModel @Inject constructor(
     }
 
     fun deleteMemory() {
-        val entryId = _entryId.value ?: return
+        val id = _entryId.value ?: return
+        deleteEntryById(id, isParent = true)
+    }
+
+    fun deleteComplement(complementId: String) {
+        deleteEntryById(complementId, isParent = false)
+    }
+
+    private fun deleteEntryById(id: String, isParent: Boolean) {
         val uid = auth.currentUser?.uid ?: run {
             _error.value = "Utilisateur non connecté"
             return
@@ -160,19 +181,21 @@ class MemoryDetailViewModel @Inject constructor(
             try {
                 // 1. Suppression Firestore d'abord (Sécurité)
                 db.collection("users").document(uid)
-                    .collection("entries").document(entryId)
+                    .collection("entries").document(id)
                     .delete()
                     .await()
                 
-                android.util.Log.d("MemoryDetailDebug", "Document Firestore supprimé pour id=$entryId")
+                android.util.Log.d("MemoryDetailDebug", "Document Firestore supprimé pour id=$id")
 
                 // 2. Suppression Room seulement après succès Cloud
-                offlineEntryDao.deleteEntry(entryId)
-                android.util.Log.d("MemoryDetailDebug", "Entrée locale supprimée pour id=$entryId")
+                offlineEntryDao.deleteEntry(id)
+                android.util.Log.d("MemoryDetailDebug", "Entrée locale supprimée pour id=$id")
 
-                _deleteSuccess.value = true
+                if (isParent) {
+                    _deleteSuccess.value = true
+                }
             } catch (e: Exception) {
-                android.util.Log.e("MemoryDetailVM", "Erreur lors de la suppression", e)
+                android.util.Log.e("MemoryDetailVM", "Erreur lors de la suppression de $id", e)
                 _error.value = "Échec de la suppression : ${e.message}"
             }
         }

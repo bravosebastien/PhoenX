@@ -31,13 +31,14 @@ sealed class Screen(val route: String) {
     
     object Home : Screen("home")
     
-    object Capture : Screen("capture/{type}?prompt={prompt}&pactId={pactId}&pendingQuestionId={pendingQuestionId}&lat={lat}&lng={lng}&locationName={locationName}&locationId={locationId}") {
+    object Capture : Screen("capture/{type}?prompt={prompt}&pactId={pactId}&pendingQuestionId={pendingQuestionId}&lat={lat}&lng={lng}&locationName={locationName}&locationId={locationId}&parentEntryId={parentEntryId}") {
         fun createRoute(
             type: String, 
             prompt: String? = null, 
             pactId: String? = null, 
             pendingQuestionId: String? = null,
-            locationId: String? = null
+            locationId: String? = null,
+            parentEntryId: String? = null
         ): String {
             val encodedPrompt = prompt?.let { URLEncoder.encode(it, StandardCharsets.UTF_8.toString()) }
             var route = "capture/$type"
@@ -46,6 +47,7 @@ sealed class Screen(val route: String) {
             if (pactId != null) params.add("pactId=$pactId")
             if (pendingQuestionId != null) params.add("pendingQuestionId=$pendingQuestionId")
             if (locationId != null) params.add("locationId=$locationId")
+            if (parentEntryId != null) params.add("parentEntryId=$parentEntryId")
             if (params.isNotEmpty()) route += "?" + params.joinToString("&")
             return route
         }

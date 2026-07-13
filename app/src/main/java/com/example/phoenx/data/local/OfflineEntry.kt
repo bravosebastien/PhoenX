@@ -53,7 +53,10 @@ data class OfflineEntry(
 
     // PÉRIODE (Signature 7.5 - v15)
     val memoryDateStart: Long? = null,
-    val memoryDateEnd: Long? = null
+    val memoryDateEnd: Long? = null,
+
+    // COMPLÉMENTS MULTI-MÉDIA (Signature 7.6 - v18)
+    val parentEntryId: String? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

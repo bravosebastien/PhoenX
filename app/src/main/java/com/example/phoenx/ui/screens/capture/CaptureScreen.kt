@@ -54,6 +54,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.example.phoenx.R
 import com.example.phoenx.ui.components.InfoPoint
+import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
@@ -75,7 +76,9 @@ fun CaptureScreen(
     longitude: Double? = null,
     locationName: String? = null,
     locationId: String? = null,
+    parentEntryId: String? = null,
     onNavigateBack: () -> Unit,
+    onNavigateToDetail: (String) -> Unit = {},
     viewModel: CaptureViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -122,7 +125,7 @@ fun CaptureScreen(
 
     var text by remember { mutableStateOf(initialText) }
     var selectedCategory by remember { mutableStateOf("Sagesse") }
-    var visibility by remember { mutableStateOf("private") }
+    var visibility by remember { mutableStateOf("RESTRICTED") }
     val selectedRecipientIds = remember { mutableStateListOf<String>() }
     val recipients by viewModel.recipients.collectAsState()
     val isSttListening by viewModel.isSttListening.collectAsState()
@@ -143,16 +146,38 @@ fun CaptureScreen(
 
     val isNightMode = initialType == Screen.Capture.TYPE_NIGHT
     var capturedPhotoFile by remember { mutableStateOf<File?>(null) }
+    
+    // Reset file if we get the "clear" signal
+    LaunchedEffect(capturedPhotoFile) {
+        if (capturedPhotoFile?.name == "clear") {
+            capturedPhotoFile = null
+        }
+    }
     var isRitualPlaying by remember { mutableStateOf(false) }
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.newEntryId.collect { id ->
+            if (isNightMode || parentEntryId != null) {
+                // Rien de plus
+            } else {
+                // Souvenir racine : on redirige vers l'atelier de détail
+                delay(3500)
+                onNavigateToDetail(id)
+            }
+        }
+    }
 
     LaunchedEffect(uiState) {
         if (uiState is CaptureUiState.Success) {
             android.util.Log.d("RitualDebug", "isRitualPlaying positionné à true")
             isRitualPlaying = true
-            delay(3500)
-            android.util.Log.d("RitualDebug", "Fin du delay, navigation retour")
-            onNavigateBack()
+            
+            if (isNightMode || parentEntryId != null) {
+                delay(3500)
+                onNavigateBack()
+            }
+            // Pour le mode racine, la redirection est gérée dans le LaunchedEffect(newEntryId)
         }
     }
 
@@ -169,9 +194,10 @@ fun CaptureScreen(
                         mediaFile = null,
                         type = initialType,
                         category = "Sagesse",
-                        visibility = "private",
+                        visibility = visibility,
                         pendingQuestionId = pendingQuestionId,
-                        locationId = locationId
+                        locationId = locationId,
+                        parentEntryId = parentEntryId
                     )
                     return@onKeyEvent true
                 }
@@ -246,7 +272,8 @@ fun CaptureScreen(
                                     latitude = latitude,
                                     longitude = longitude,
                                     locationName = locationName,
-                                    locationId = locationId
+                                    locationId = locationId,
+                                    parentEntryId = parentEntryId
                                 )
                             },
                             enabled = (text.isNotEmpty() || capturedPhotoFile != null || selectedGalleryUri != null || initialType == Screen.Capture.TYPE_PHOTO) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
@@ -315,11 +342,14 @@ fun CaptureScreen(
                                         visibility = visibility,
                                         recipientIds = selectedRecipientIds.toList(),
                                         pendingQuestionId = pendingQuestionId,
-                                        locationId = locationId
+                                        locationId = locationId,
+                                        parentEntryId = parentEntryId
                                     )
                                 },
                                 recipients = recipients,
-                                selectedRecipientIds = selectedRecipientIds
+                                selectedRecipientIds = selectedRecipientIds,
+                                visibility = visibility,
+                                onVisibilityChange = { visibility = it }
                             )
                         }
                         Screen.Capture.TYPE_PHOTO -> {
@@ -331,7 +361,9 @@ fun CaptureScreen(
                                 onPhotoCaptured = { capturedPhotoFile = it },
                                 preselectedName = preselectedName,
                                 recipients = recipients,
-                                selectedRecipientIds = selectedRecipientIds
+                                selectedRecipientIds = selectedRecipientIds,
+                                visibility = visibility,
+                                onVisibilityChange = { visibility = it }
                             )
                         }
                         Screen.Capture.TYPE_GALLERY -> {
@@ -343,6 +375,8 @@ fun CaptureScreen(
                                 onCategoryChange = { selectedCategory = it },
                                 recipients = recipients,
                                 selectedRecipientIds = selectedRecipientIds,
+                                visibility = visibility,
+                                onVisibilityChange = { visibility = it },
                                 isListening = false,
                                 onMicClick = { },
                                 preselectedName = preselectedName,
@@ -358,12 +392,16 @@ fun CaptureScreen(
                                 onCategoryChange = { selectedCategory = it },
                                 recipients = recipients,
                                 selectedRecipientIds = selectedRecipientIds,
+                                visibility = visibility,
+                                onVisibilityChange = { visibility = it },
                                 isListening = isSttListening,
                                 onMicClick = {
                                     if (isSttListening) viewModel.stopVocalCapture()
                                     else viewModel.startVocalCapture(text)
                                 },
-                                preselectedName = preselectedName
+                                preselectedName = preselectedName,
+                                galleryUri = selectedGalleryUri,
+                                isComplement = parentEntryId != null
                             )
                         }
                     }
@@ -399,13 +437,17 @@ fun CaptureScreen(
                         )
                         
                         if (!isNightMode) {
-                            val recipientNames = selectedRecipientIds.mapNotNull { id -> 
-                                recipients.find { it.id == id }?.name 
-                            }
-                            val summary = if (recipientNames.isNotEmpty()) {
-                                "Rangé dans $selectedCategory, destiné à ${recipientNames.joinToString(", ")}."
+                            val summary = if (visibility == "EVERYONE") {
+                                "Rangé dans $selectedCategory, partagé avec tout le monde."
                             } else {
-                                "Rangé dans $selectedCategory. Aucun destinataire choisi pour l'instant."
+                                val recipientNames = selectedRecipientIds.mapNotNull { id -> 
+                                    recipients.find { it.id == id }?.name 
+                                }
+                                if (recipientNames.isNotEmpty()) {
+                                    "Rangé dans $selectedCategory, destiné à ${recipientNames.joinToString(", ")}."
+                                } else {
+                                    "Rangé dans $selectedCategory. Aucun destinataire choisi pour l'instant."
+                                }
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
@@ -567,7 +609,9 @@ fun PhotoCaptureContent(
     onPhotoCaptured: (File) -> Unit,
     preselectedName: String? = null,
     recipients: List<com.example.phoenx.data.local.RecipientEntity> = emptyList(),
-    selectedRecipientIds: MutableList<String> = mutableStateListOf()
+    selectedRecipientIds: MutableList<String>,
+    visibility: String,
+    onVisibilityChange: (String) -> Unit
 ) {
     val context = LocalContext.current
     val accent = LocalAccentColor.current
@@ -621,7 +665,7 @@ fun PhotoCaptureContent(
                     )
                     
                     IconButton(
-                        onClick = { onPhotoCaptured(null as File) },
+                        onClick = { onPhotoCaptured(File("clear")) },
                         modifier = Modifier
                             .align(Alignment.TopEnd)
                             .padding(16.dp)
@@ -665,6 +709,8 @@ fun PhotoCaptureContent(
                     RecipientSelector(
                         recipients = recipients,
                         selectedIds = selectedRecipientIds,
+                        visibility = visibility,
+                        onVisibilityChange = onVisibilityChange,
                         accent = LocalAccentColor.current
                     )
                 }
@@ -713,11 +759,14 @@ fun TextCaptureContent(
     selectedCategory: String,
     onCategoryChange: (String) -> Unit,
     recipients: List<com.example.phoenx.data.local.RecipientEntity>,
-    selectedRecipientIds: MutableList<String>,
+    selectedRecipientIds: androidx.compose.runtime.snapshots.SnapshotStateList<String>,
+    visibility: String,
+    onVisibilityChange: (String) -> Unit,
     isListening: Boolean,
     onMicClick: () -> Unit,
     preselectedName: String? = null,
-    galleryUri: Uri? = null
+    galleryUri: Uri? = null,
+    isComplement: Boolean = false
 ) {
     Column(
         modifier = Modifier
@@ -727,16 +776,25 @@ fun TextCaptureContent(
             .verticalScroll(rememberScrollState())
     ) {
         Text(
-            text = "DÉPOSE TA PENSÉE",
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+            text = if (isComplement) "AJOUTE UN MÉDIA" else "ÉTAPPE 1 : L'ÉTINCELLE",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
             color = AccentPrimary
         )
+        
+        if (!isComplement) {
+            Text(
+                text = "Donne un nom ou un sujet à ce souvenir. Tu l'enrichiras à l'étape suivante.",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextTertiary,
+                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+            )
+        }
 
         if (preselectedName != null) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = LocalAccentColor.current.copy(alpha = 0.1f)),
                 shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.padding(bottom = 16.dp, top = 12.dp)
+                modifier = Modifier.padding(bottom = 16.dp, top = 4.dp)
             ) {
                 Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.LocationOn, null, tint = LocalAccentColor.current, modifier = Modifier.size(14.dp))
@@ -752,15 +810,21 @@ fun TextCaptureContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         
         Box(modifier = Modifier.fillMaxWidth()) {
             TextField(
                 value = text,
                 onValueChange = onTextChange,
-                placeholder = { Text("Écris tes mots ici...", style = MaterialTheme.typography.bodyLarge, color = TextTertiary) },
-                modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp),
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = TextPrimary, fontFamily = FontFamily.Serif),
+                placeholder = { 
+                    Text(
+                        text = if (isComplement) "Écris tes mots ici..." else "Quel est le sujet de ce souvenir ?", 
+                        style = MaterialTheme.typography.headlineSmall, 
+                        color = TextTertiary.copy(alpha = 0.5f)
+                    ) 
+                },
+                modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
+                textStyle = MaterialTheme.typography.headlineSmall.copy(color = TextPrimary, fontFamily = FontFamily.Serif),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
@@ -781,9 +845,16 @@ fun TextCaptureContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Text("DANS QUEL TIROIR ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+        HorizontalDivider(color = TextTertiary.copy(alpha = 0.2f), thickness = 1.dp, modifier = Modifier.padding(vertical = 16.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("QUELLE TONALITÉ ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+            Spacer(modifier = Modifier.width(8.dp))
+            InfoPoint(
+                title = "L'Esprit du Souvenir",
+                content = "Cette catégorie aide l'IA à comprendre le sens profond de ton récit. Elle influence la rédaction de ton Livre de Vie et permet de regrouper tes souvenirs par 'humeur' dans ta Bibliothèque."
+            )
+        }
         Spacer(modifier = Modifier.height(12.dp))
         
         val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour")
@@ -803,54 +874,17 @@ fun TextCaptureContent(
         Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
         Spacer(modifier = Modifier.height(12.dp))
         
-        RecipientSelector(recipients = recipients, selectedIds = selectedRecipientIds, accent = LocalAccentColor.current)
+        RecipientSelector(
+            recipients = recipients, 
+            selectedIds = selectedRecipientIds, 
+            visibility = visibility,
+            onVisibilityChange = onVisibilityChange,
+            accent = LocalAccentColor.current
+        )
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
-@Composable
-fun RecipientSelector(
-    recipients: List<com.example.phoenx.data.local.RecipientEntity>,
-    selectedIds: MutableList<String>,
-    accent: Color
-) {
-    Column {
-        TextButton(
-            onClick = {
-                if (selectedIds.size == recipients.size) selectedIds.clear()
-                else {
-                    selectedIds.clear()
-                    selectedIds.addAll(recipients.map { it.id })
-                }
-            },
-            contentPadding = PaddingValues(0.dp)
-        ) {
-            val allSelected = selectedIds.size == recipients.size && recipients.isNotEmpty()
-            Text(if (allSelected) "Tout désélectionner" else "Ajouter tous les destinataires", style = MaterialTheme.typography.labelSmall, color = accent)
-        }
-
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            recipients.forEach { recipient ->
-                val isSelected = selectedIds.contains(recipient.id)
-                FilterChip(
-                    selected = isSelected,
-                    onClick = {
-                        if (isSelected) selectedIds.remove(recipient.id)
-                        else selectedIds.add(recipient.id)
-                    },
-                    label = { Text(recipient.name) },
-                    leadingIcon = { if (isSelected) Icon(Icons.Default.Check, null, modifier = Modifier.size(14.dp)) },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = BackgroundPrimary)
-                )
-            }
-        }
-    }
-}
-
 @Composable
 fun AudioCaptureContent(
     isRecording: Boolean,
@@ -860,7 +894,9 @@ fun AudioCaptureContent(
     onStop: () -> Unit,
     onSave: () -> Unit,
     recipients: List<com.example.phoenx.data.local.RecipientEntity> = emptyList(),
-    selectedRecipientIds: MutableList<String> = mutableStateListOf()
+    selectedRecipientIds: MutableList<String>,
+    visibility: String,
+    onVisibilityChange: (String) -> Unit
 ) {
     val accent = LocalAccentColor.current
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -941,7 +977,13 @@ fun AudioCaptureContent(
             Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
             Spacer(modifier = Modifier.height(12.dp))
 
-            RecipientSelector(recipients = recipients, selectedIds = selectedRecipientIds, accent = accent)
+            RecipientSelector(
+                recipients = recipients, 
+                selectedIds = selectedRecipientIds, 
+                visibility = visibility,
+                onVisibilityChange = onVisibilityChange,
+                accent = accent
+            )
 
             Spacer(modifier = Modifier.height(32.dp))
 

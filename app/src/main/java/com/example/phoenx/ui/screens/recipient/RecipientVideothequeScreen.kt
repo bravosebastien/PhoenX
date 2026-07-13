@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.Add
@@ -18,7 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,10 +30,10 @@ import com.example.phoenx.ui.theme.*
 fun RecipientVideothequeScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCapture: () -> Unit,
+    onNavigateToDetail: (String) -> Unit,
     viewModel: RecipientMediaViewModel = hiltViewModel(),
 ) {
     val entries by viewModel.videoEntries.collectAsState()
-    var selectedVideo by remember { mutableStateOf<PhoenXEntry?>(null) }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -54,7 +52,7 @@ fun RecipientVideothequeScreen(
                     }
                     InfoPoint(
                         title = "La Vidéothèque",
-                        content = "Vos souvenirs les plus vivants sont conservés ici sous forme de cassettes VHS. Cliquez sur une cassette pour lancer le projecteur."
+                        content = "Vos souvenirs les plus vivants sont conservés ici sous forme de cassettes VHS. Cliquez sur une cassette pour voir le souvenir."
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -79,57 +77,7 @@ fun RecipientVideothequeScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     items(entries) { entry ->
-                        VHSCard(entry) { selectedVideo = entry }
-                    }
-                }
-            }
-
-            // Lecteur Vidéo Immersif Overlay
-            if (selectedVideo != null) {
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        // Simulation Lecteur Vidéo
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(16/9f)
-                                .background(Color.DarkGray)
-                                .border(1.dp, AccentPrimary.copy(alpha = 0.3f)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.PlayCircle, null, tint = AccentPrimary, modifier = Modifier.size(64.dp))
-                            Text(
-                                "Chargement du souvenir...", 
-                                modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp),
-                                color = Color.White,
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                        
-                        Spacer(modifier = Modifier.height(32.dp))
-                        
-                        Text(
-                            text = selectedVideo!!.aiSummary,
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = TextPrimary,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = "Enregistré à ${selectedVideo!!.ageAtCreation.years} ans",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AccentPrimary
-                        )
-                    }
-
-                    IconButton(
-                        onClick = { selectedVideo = null },
-                        modifier = Modifier.align(Alignment.TopEnd).padding(24.dp)
-                    ) {
-                        Icon(Icons.Default.Close, null, tint = Color.White)
+                        VHSCard(entry) { onNavigateToDetail(entry.id) }
                     }
                 }
             }

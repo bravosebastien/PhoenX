@@ -34,6 +34,9 @@ import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import androidx.navigation.NavController
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,6 +46,10 @@ fun FilScreen(
     viewModel: FilViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val recipients by viewModel.recipients.collectAsState()
+    val selectedRecipientId by viewModel.selectedRecipientId.collectAsState()
+    val sortByCreationDate by viewModel.sortByCreationDate.collectAsState()
+
     var showFilters by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
@@ -136,21 +143,44 @@ fun FilScreen(
                     Text("FILTRER LE FIL", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
                     Spacer(modifier = Modifier.height(24.dp))
                     
-                    Text("Par année d'âge", style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Text("Ordre d'affichage", style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(12.dp))
                     
-                    // Liste simple des années disponibles
-                    val years = uiState.entries.map { it.ageAtCreation.years }.distinct().sortedDescending()
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        years.forEach { year ->
+                        FilterChip(
+                            selected = !sortByCreationDate,
+                            onClick = { if (sortByCreationDate) viewModel.toggleSortOrder() },
+                            label = { Text("Par âge") },
+                            leadingIcon = { if (!sortByCreationDate) Icon(Icons.Default.Psychology, null, modifier = Modifier.size(16.dp)) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentPrimary, selectedLabelColor = BackgroundPrimary)
+                        )
+                        FilterChip(
+                            selected = sortByCreationDate,
+                            onClick = { if (!sortByCreationDate) viewModel.toggleSortOrder() },
+                            label = { Text("Par date de création") },
+                            leadingIcon = { if (sortByCreationDate) Icon(Icons.Default.Event, null, modifier = Modifier.size(16.dp)) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentPrimary, selectedLabelColor = BackgroundPrimary)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Text("Filtrer par destinataire", style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(
+                            selected = selectedRecipientId == null,
+                            onClick = { viewModel.setRecipientFilter(null) },
+                            label = { Text("Tous") },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentPrimary, selectedLabelColor = BackgroundPrimary)
+                        )
+                        recipients.forEach { recipient ->
                             FilterChip(
-                                selected = false, // TODO: Link to state
-                                onClick = { /* TODO: Filter logic in VM */ },
-                                label = { Text("$year ans") },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    labelColor = TextSecondary,
-                                    selectedLabelColor = AccentPrimary
-                                )
+                                selected = selectedRecipientId == recipient.id,
+                                onClick = { viewModel.setRecipientFilter(if (selectedRecipientId == recipient.id) null else recipient.id) },
+                                label = { Text(recipient.name) },
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentPrimary, selectedLabelColor = BackgroundPrimary)
                             )
                         }
                     }
@@ -250,6 +280,9 @@ fun YearSeparator(year: Int, count: Int) {
 
 @Composable
 fun TimelineEntryItem(entry: PhoenXEntry, onClick: () -> Unit) {
+    val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH).withZone(ZoneId.systemDefault()) }
+    val formattedDate = dateFormatter.format(entry.timestamp)
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -266,7 +299,11 @@ fun TimelineEntryItem(entry: PhoenXEntry, onClick: () -> Unit) {
                     val icon = if (entry.type == EntryType.THOUGHT) Icons.Default.Psychology else Icons.Default.HistoryEdu
                     Icon(imageVector = icon, contentDescription = null, tint = TextTertiary, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = entry.type.name, style = MaterialTheme.typography.labelSmall, color = TextSecondary, letterSpacing = 1.sp)
+                    
+                    Column {
+                        Text(text = entry.type.name, style = MaterialTheme.typography.labelSmall, color = TextSecondary, letterSpacing = 1.sp)
+                        Text(text = "Créé le $formattedDate", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = TextTertiary)
+                    }
                     
                     if (entry.isYoungSelfLetter) {
                         Spacer(modifier = Modifier.width(8.dp))

@@ -28,8 +28,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.domain.model.CompartmentIds
+import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.navigation.Screen
-import com.example.phoenx.ui.screens.capture.RecipientSelector
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -46,6 +46,7 @@ fun MemoryDetailScreen(
     viewModel: MemoryDetailViewModel = hiltViewModel()
 ) {
     val entry by viewModel.entry.collectAsState()
+    val complements by viewModel.complements.collectAsState()
     val content by viewModel.decryptedContent.collectAsState()
     val recipients by viewModel.recipients.collectAsState()
     val deleteSuccess by viewModel.deleteSuccess.collectAsState()
@@ -67,6 +68,7 @@ fun MemoryDetailScreen(
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showLocationMenu by remember { mutableStateOf(false) }
+    var showAddMediaMenu by remember { mutableStateOf(false) }
 
     android.util.Log.d("MemoryDetailDebug", "MemoryDetailScreen composé, entryId=$entryId")
 
@@ -340,9 +342,138 @@ fun MemoryDetailScreen(
                     }
                 }
 
-                // CATÉGORIE ÉMOTIONNELLE
+                // COMPLÉMENTS MÉDIA (Signature 7.6)
                 Column {
-                    Text("QUELLE ÉMOTION ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("COMPLÉMENTS MÉDIA", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Box {
+                            IconButton(
+                                onClick = { showAddMediaMenu = true },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(Icons.Default.AddCircle, null, tint = accent)
+                            }
+
+                            DropdownMenu(
+                                expanded = showAddMediaMenu,
+                                onDismissRequest = { showAddMediaMenu = false },
+                                containerColor = BackgroundSecondary
+                            ) {
+                                val types = listOf(
+                                    Triple("Texte", Icons.Default.Description, "TEXT"),
+                                    Triple("Photo", Icons.Default.PhotoCamera, "PHOTO"),
+                                    Triple("Galerie", Icons.Default.Collections, "GALLERY"),
+                                    Triple("Vocal", Icons.Default.Mic, "AUDIO")
+                                )
+                                types.forEach { (label, icon, type) ->
+                                    DropdownMenuItem(
+                                        text = { Text(label, color = TextPrimary) },
+                                        leadingIcon = { Icon(icon, null, tint = accent) },
+                                        onClick = {
+                                            showAddMediaMenu = false
+                                            navController.navigate(Screen.Capture.createRoute(type = type, parentEntryId = entryId))
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    if (complements.isEmpty()) {
+                        Text("Aucun média complémentaire rattaché.", style = MaterialTheme.typography.bodySmall, color = TextTertiary)
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            complements.forEach { complement ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        // VRAIE MINIATURE SI PHOTO
+                                        if (complement.entryType == "PHOTO" || complement.entryType == "GALLERY") {
+                                            Box(modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp)).background(Color.Black)) {
+                                                coil3.compose.AsyncImage(
+                                                    model = complement.localMediaPath ?: complement.mediaUrl,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                                )
+                                            }
+                                        } else {
+                                            // ICÔNE STYLISÉE SI AUTRE
+                                            Surface(
+                                                modifier = Modifier.size(60.dp),
+                                                shape = RoundedCornerShape(8.dp),
+                                                color = accent.copy(alpha = 0.1f)
+                                            ) {
+                                                val icon = when(complement.entryType) {
+                                                    "VIDEO" -> Icons.Default.Videocam
+                                                    "AUDIO" -> Icons.Default.Mic
+                                                    else -> Icons.Default.Description
+                                                }
+                                                Box(contentAlignment = Alignment.Center) {
+                                                    Icon(icon, null, tint = accent, modifier = Modifier.size(24.dp))
+                                                }
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.width(16.dp))
+
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = complement.aiSummary.ifEmpty { "Média ${complement.entryType.lowercase()}" },
+                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                                color = TextPrimary,
+                                                maxLines = 1,
+                                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                            )
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Icon(
+                                                    imageVector = if (complement.visibility == "EVERYONE") Icons.Default.Public else Icons.Default.Lock,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(10.dp),
+                                                    tint = TextTertiary
+                                                )
+                                                Spacer(Modifier.width(4.dp))
+                                                Text(
+                                                    text = if (complement.visibility == "EVERYONE") "Public" else "Restreint",
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = TextTertiary
+                                                )
+                                            }
+                                        }
+
+                                        IconButton(onClick = { viewModel.deleteComplement(complement.id) }) {
+                                            Icon(Icons.Default.DeleteOutline, null, tint = Error.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // CATÉGORIE ÉMOTIONNELLE (Tonalité)
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("QUELLE TONALITÉ ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        com.example.phoenx.ui.components.InfoPoint(
+                            title = "L'Esprit du Souvenir",
+                            content = "La tonalité influence l'écriture de ton Livre de Vie par l'IA et permet de filtrer tes souvenirs par émotion dans ta Bibliothèque."
+                        )
+                    }
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour")
@@ -375,6 +506,8 @@ fun MemoryDetailScreen(
                     RecipientSelector(
                         recipients = recipients,
                         selectedIds = selectedRecipientIds,
+                        visibility = entry!!.visibility,
+                        onVisibilityChange = { viewModel.updateVisibility(it) },
                         accent = accent
                     )
                     

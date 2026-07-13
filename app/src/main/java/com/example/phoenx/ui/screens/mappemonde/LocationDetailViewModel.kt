@@ -111,6 +111,16 @@ class LocationDetailViewModel @Inject constructor(
         }
     }
 
+    fun updateEntryVisibility(entryId: String, visibility: String) {
+        viewModelScope.launch {
+            try {
+                offlineEntryDao.updateEntryVisibility(visibility, entryId)
+            } catch (e: Exception) {
+                android.util.Log.e("LocationDetailVM", "Error updating visibility", e)
+            }
+        }
+    }
+
     fun deleteEntry(entryId: String) {
         viewModelScope.launch {
             try {

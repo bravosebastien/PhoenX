@@ -119,6 +119,9 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM offline_entries WHERE id = :entryId")
     fun getEntryById(entryId: String): Flow<OfflineEntry?>
 
+    @Query("SELECT * FROM offline_entries WHERE parentEntryId = :parentId ORDER BY createdAt ASC")
+    fun getComplements(parentId: String): Flow<List<OfflineEntry>>
+
     @Query("SELECT * FROM offline_entries WHERE recipientIds LIKE '%' || :recipientId || '%'")
     fun getEntriesForRecipient(recipientId: String): Flow<List<OfflineEntry>>
 
@@ -130,6 +133,9 @@ interface OfflineEntryDao {
 
     @Query("UPDATE offline_entries SET aiSummary = :newSummary WHERE id = :entryId")
     suspend fun updateEntrySummary(newSummary: String, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET visibility = :visibility WHERE id = :entryId")
+    suspend fun updateEntryVisibility(visibility: String, entryId: String): Int
 
     @Query("UPDATE offline_entries SET recipientIds = :newIds WHERE id = :entryId")
     suspend fun updateEntryRecipients(newIds: String, entryId: String): Int

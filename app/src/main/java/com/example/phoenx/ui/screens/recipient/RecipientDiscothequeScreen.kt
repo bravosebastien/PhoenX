@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.recipient
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -29,6 +30,7 @@ import com.example.phoenx.ui.theme.*
 fun RecipientDiscothequeScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCapture: () -> Unit,
+    onNavigateToDetail: (String) -> Unit,
     viewModel: RecipientMediaViewModel = hiltViewModel()
 ) {
     val entries by viewModel.discothequeEntries.collectAsState()
@@ -67,7 +69,7 @@ fun RecipientDiscothequeScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     items(entries) { entry ->
-                        VinylItem(entry)
+                        VinylItem(entry) { onNavigateToDetail(entry.id) }
                     }
                 }
             }
@@ -76,7 +78,7 @@ fun RecipientDiscothequeScreen(
 }
 
 @Composable
-fun VinylItem(entry: PhoenXEntry) {
+fun VinylItem(entry: PhoenXEntry, onClick: () -> Unit) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
@@ -84,6 +86,7 @@ fun VinylItem(entry: PhoenXEntry) {
                 .fillMaxWidth()
                 .clip(MaterialTheme.shapes.medium)
                 .background(Color(0xFF121215)) // Pochette noire
+                .clickable(onClick = onClick)
                 .phoenXMatiere(),
             contentAlignment = Alignment.Center
         ) {

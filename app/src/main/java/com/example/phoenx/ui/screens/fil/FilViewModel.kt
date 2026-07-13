@@ -12,12 +12,11 @@ import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXAmendment
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.domain.util.AgeUtils
+import com.example.phoenx.data.local.RecipientEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.time.Instant
@@ -37,27 +36,63 @@ class FilViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<FilUiState>(FilUiState(isLoading = true))
     val uiState: StateFlow<FilUiState> = _uiState
 
+    private val _selectedRecipientId = MutableStateFlow<String?>(null)
+    val selectedRecipientId: StateFlow<String?> = _selectedRecipientId
+
+    private val _sortByCreationDate = MutableStateFlow(false)
+    val sortByCreationDate: StateFlow<Boolean> = _sortByCreationDate
+
+    val recipients: StateFlow<List<RecipientEntity>> = offlineEntryDao.getAllRecipients()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     init {
         observeEntries()
     }
 
     private fun observeEntries() {
-        viewModelScope.launch {
-            offlineEntryDao.getAllEntries().collectLatest { offlineEntries ->
-                val decodedEntries = offlineEntries.map { entry ->
-                    val amendments = offlineEntryDao.getAmendmentsForEntrySync(entry.id).map { it.toDomain() }
-                    entry.toDomain(encryptionManager, amendments)
+        combine(
+            offlineEntryDao.getAllEntries(),
+            _selectedRecipientId,
+            _sortByCreationDate
+        ) { offlineEntries, recipientId, sortByDate ->
+            // 1. Filtrage par destinataire (on fait le filtrage AVANT le décodage pour la performance)
+            val filteredOffline = if (recipientId != null) {
+                offlineEntries.filter { 
+                    it.recipientIds.split(",").contains(recipientId) || it.visibility == "EVERYONE"
                 }
-                
-                _uiState.value = FilUiState(
-                    entries = decodedEntries,
-                    totalCount = decodedEntries.size,
-                    minAge = decodedEntries.minOfOrNull { it.ageAtCreation.years } ?: 0,
-                    maxAge = decodedEntries.maxOfOrNull { it.ageAtCreation.years } ?: 0,
-                    isLoading = false
-                )
+            } else {
+                offlineEntries
             }
-        }
+
+            // 2. Décodage et chargement des amendements
+            val decodedEntries = filteredOffline.map { entry ->
+                val amendments = offlineEntryDao.getAmendmentsForEntrySync(entry.id).map { it.toDomain() }
+                entry.toDomain(encryptionManager, amendments)
+            }
+
+            // 3. Tri final
+            val finalEntries = if (sortByDate) {
+                decodedEntries.sortedByDescending { it.timestamp }
+            } else {
+                decodedEntries.sortedByDescending { it.ageAtCreation.years }
+            }
+            
+            _uiState.value = FilUiState(
+                entries = finalEntries,
+                totalCount = finalEntries.size,
+                minAge = finalEntries.minOfOrNull { it.ageAtCreation.years } ?: 0,
+                maxAge = finalEntries.maxOfOrNull { it.ageAtCreation.years } ?: 0,
+                isLoading = false
+            )
+        }.launchIn(viewModelScope)
+    }
+
+    fun setRecipientFilter(id: String?) {
+        _selectedRecipientId.value = id
+    }
+
+    fun toggleSortOrder() {
+        _sortByCreationDate.value = !_sortByCreationDate.value
     }
 
     fun addAmendment(entryId: String, content: String, originalContent: String) {

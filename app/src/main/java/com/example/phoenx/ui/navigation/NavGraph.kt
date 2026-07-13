@@ -288,7 +288,8 @@ fun PhoenXNavGraph(
                 navArgument("lat") { nullable = true },
                 navArgument("lng") { nullable = true },
                 navArgument("locationName") { nullable = true },
-                navArgument("locationId") { nullable = true }
+                navArgument("locationId") { nullable = true },
+                navArgument("parentEntryId") { nullable = true }
             )
         ) { backStackEntry ->
             val type = backStackEntry.arguments?.getString("type") ?: Screen.Capture.TYPE_TEXT
@@ -299,6 +300,7 @@ fun PhoenXNavGraph(
             val lng = backStackEntry.arguments?.getString("lng")?.toDoubleOrNull()
             val locationName = backStackEntry.arguments?.getString("locationName")
             val locationId = backStackEntry.arguments?.getString("locationId")
+            val parentEntryId = backStackEntry.arguments?.getString("parentEntryId")
 
             CaptureScreen(
                 initialType = type, 
@@ -309,7 +311,14 @@ fun PhoenXNavGraph(
                 longitude = lng,
                 locationName = locationName,
                 locationId = locationId,
-                onNavigateBack = { navController.popBackStack() }
+                parentEntryId = parentEntryId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDetail = { id -> 
+                    navController.navigate(Screen.MemoryDetail.createRoute(id)) {
+                        // Nettoyage de la pile pour que "Retour" depuis le détail ramène à l'accueil
+                        popUpTo(Screen.Home.route)
+                    }
+                }
             )
         }
         
@@ -548,13 +557,15 @@ fun PhoenXNavGraph(
         composable("library_music") {
             RecipientDiscothequeScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToCapture = { navController.navigate("capture/AUDIO") }
+                onNavigateToCapture = { navController.navigate("capture/AUDIO") },
+                onNavigateToDetail = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }
             )
         }
         composable("library_video") {
             RecipientVideothequeScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToCapture = { navController.navigate("capture/VIDEO") }
+                onNavigateToCapture = { navController.navigate("capture/VIDEO") },
+                onNavigateToDetail = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }
             )
         }
         composable("fil_pensee") {
@@ -570,7 +581,11 @@ fun PhoenXNavGraph(
             FavoritesScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable("photos") {
-            RecipientArchiveScreen(onNavigateBack = { navController.popBackStack() })
+            RecipientPhotosScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCapture = { navController.navigate("capture/PHOTO") },
+                onNavigateToDetail = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }
+            )
         }
         composable("mappemonde") {
             MappamondeScreen(navController = navController, mode = MapMode.CREATOR)

@@ -16,8 +16,10 @@ import com.example.phoenx.ui.navigation.Screen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -190,6 +192,9 @@ class CaptureViewModel @Inject constructor(
         }
     }
 
+    private val _newEntryId = MutableSharedFlow<String>()
+    val newEntryId = _newEntryId.asSharedFlow()
+
     fun saveEntry(
         content: String?,
         mediaFile: File?,
@@ -207,7 +212,8 @@ class CaptureViewModel @Inject constructor(
         latitude: Double? = null,
         longitude: Double? = null,
         locationName: String? = null,
-        locationId: String? = null
+        locationId: String? = null,
+        parentEntryId: String? = null
     ) {
         Toast.makeText(context, "saveEntry() appelée !", Toast.LENGTH_LONG).show()
         Log.d("SaveEntryDebug", "saveEntry() appelée, uid actuel = ${auth.currentUser?.uid}")
@@ -215,7 +221,7 @@ class CaptureViewModel @Inject constructor(
         val user = auth.currentUser ?: return
         Log.d("SaveEntryDebug", "Utilisateur confirmé, entrée dans viewModelScope.launch")
 
-        val rawText = content ?: if (type == Screen.Capture.TYPE_AUDIO) "Message vocal" else "Photo souvenir"
+        val rawText = content ?: if (type == Screen.Capture.TYPE_AUDIO) "Message vocal" else if (type == Screen.Capture.TYPE_NIGHT) "Capture nocturne à compléter" else "Photo souvenir"
         _uiState.value = CaptureUiState.Loading
 
         viewModelScope.launch {
@@ -278,7 +284,8 @@ class CaptureViewModel @Inject constructor(
                     longitude = longitude,
                     locationName = locationName,
                     locationId = locationId,
-                    localMediaPath = finalLocalPath
+                    localMediaPath = finalLocalPath,
+                    parentEntryId = parentEntryId
                 )
                 offlineEntryDao.insertEntry(entry)
                 Log.d("SaveEntryDebug", "Entrée insérée en local avec id = $entryId")
@@ -305,11 +312,11 @@ class CaptureViewModel @Inject constructor(
                         )).await()
                 }
                 
-                // 6. SIGNAL PHYSIQUE
                 android.util.Log.d("SaveEntryDebug", "Avant signal haptique, uiState va passer à Success")
                 hapticManager.signalSaveSuccess()
                 _uiState.value = CaptureUiState.Success
-                android.util.Log.d("SaveEntryDebug", "uiState positionné à Success")
+                _newEntryId.emit(entryId)
+                android.util.Log.d("SaveEntryDebug", "uiState positionné à Success et ID émis: $entryId")
             } catch (e: Exception) {
                 Log.e("SaveEntryDebug", "EXCEPTION dans saveEntry: ${e.javaClass.simpleName} - ${e.message}")
                 Log.e("SaveEntryDebug", "Exception complète", e)

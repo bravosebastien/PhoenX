@@ -34,6 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.phoenx.data.local.OfflineEntry
+import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import com.google.android.gms.maps.model.CameraPosition
@@ -167,6 +168,7 @@ fun LocationDetailScreen(
                                         recipients = recipients,
                                         onUpdate = { viewModel.updateEntrySummary(entry.id, it) },
                                         onUpdateRecipients = { viewModel.updateEntryRecipients(entry.id, it) },
+                                        onUpdateVisibility = { viewModel.updateEntryVisibility(entry.id, it) },
                                         onDelete = { viewModel.deleteEntry(entry.id) },
                                         onDetach = { viewModel.detachEntry(entry.id) }
                                     )
@@ -246,6 +248,7 @@ fun EditableMemoryCard(
     recipients: List<com.example.phoenx.data.local.RecipientEntity>,
     onUpdate: (String) -> Unit,
     onUpdateRecipients: (List<String>) -> Unit,
+    onUpdateVisibility: (String) -> Unit,
     onDelete: () -> Unit,
     onDetach: () -> Unit
 ) {
@@ -341,9 +344,11 @@ fun EditableMemoryCard(
             containerColor = BackgroundSecondary,
             title = { Text("Destinataires", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, color = TextPrimary) },
             text = {
-                com.example.phoenx.ui.screens.capture.RecipientSelector(
+                RecipientSelector(
                     recipients = recipients,
                     selectedIds = selectedIds,
+                    visibility = entry.visibility,
+                    onVisibilityChange = { onUpdateVisibility(it) },
                     accent = accent
                 )
             },

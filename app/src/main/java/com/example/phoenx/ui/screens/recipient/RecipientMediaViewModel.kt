@@ -8,11 +8,14 @@ import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.domain.model.AgeSnapshot
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
 import java.time.Instant
 import javax.inject.Inject
@@ -21,6 +24,8 @@ import javax.inject.Inject
 class RecipientMediaViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
+    private val auth: FirebaseAuth,
+    private val db: FirebaseFirestore
 ) : ViewModel() {
 
     private val _libraryEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
@@ -37,21 +42,52 @@ class RecipientMediaViewModel @Inject constructor(
     }
 
     private fun loadAllMedia() {
+        val currentUid = auth.currentUser?.uid ?: ""
         viewModelScope.launch {
-            offlineEntryDao.getAllEntries().collectLatest { offlineEntries ->
-                val decoded = offlineEntries.map { it.toDomain(encryptionManager) }
-                
-                _libraryEntries.value = decoded.filter { 
-                    (it.type == EntryType.THOUGHT) || it.isYoungSelfLetter || (it.type == EntryType.LEGACY) 
+            // On récupère d'abord si on est en mode Créateur ou Destinataire
+            // (Simplification : si isCreator est sur Firestore, on l'utilise, sinon on assume Creator par défaut)
+            val isCreator = try {
+                val doc = db.collection("users").document(currentUid).get().await()
+                doc.getBoolean("isCreator") ?: true
+            } catch(e: Exception) { true }
+
+            offlineEntryDao.getAllEntries().collectLatest { allOfflineEntries ->
+                // 1. On sépare parents et compléments
+                val parents = allOfflineEntries.filter { it.parentEntryId == null }
+                val complements = allOfflineEntries.filter { it.parentEntryId != null }
+
+                // 2. Filtrage par ACCÈS STRICT (si pas Créateur)
+                val accessibleParents = if (isCreator) parents else parents.filter { parent ->
+                    parent.visibility == "EVERYONE" || parent.recipientIds.split(",").contains(currentUid)
                 }
-                _discothequeEntries.value = decoded.filter { 
-                    (it.type == EntryType.AUDIO) || (it.type == EntryType.NIGHT_CAPTURE) || (it.type == EntryType.EMOTION) 
+
+                // 3. Conversion en domaine
+                val decodedParents = accessibleParents.map { it.toDomain(encryptionManager) }
+
+                // 4. Indexation automatique par type (incluant compléments)
+                _libraryEntries.value = decodedParents.filter { parent ->
+                    val hasMatch = parent.type == EntryType.THOUGHT || parent.type == EntryType.LEGACY || parent.isYoungSelfLetter ||
+                        complements.any { it.parentEntryId == parent.id && it.entryType == "TEXT" }
+                    hasMatch
                 }
-                _archiveEntries.value = decoded.filter { 
-                    it.type == EntryType.PHOTO 
+
+                _videoEntries.value = decodedParents.filter { parent ->
+                    val hasMatch = parent.type == EntryType.VIDEO || 
+                        complements.any { it.parentEntryId == parent.id && it.entryType == "VIDEO" }
+                    hasMatch
                 }
-                _videoEntries.value = decoded.filter {
-                    it.type == EntryType.VIDEO
+
+                _discothequeEntries.value = decodedParents.filter { parent ->
+                    // Maintien du mélange actuel (AUDIO, NIGHT, EMOTION) comme demandé
+                    val mainMatches = parent.type == EntryType.AUDIO || parent.type == EntryType.NIGHT_CAPTURE || parent.type == EntryType.EMOTION
+                    val compMatches = complements.any { it.parentEntryId == parent.id && (it.entryType == "AUDIO" || it.entryType == "NIGHT" || it.entryType == "EMOTION") }
+                    mainMatches || compMatches
+                }
+
+                _archiveEntries.value = decodedParents.filter { parent ->
+                    val hasMatch = parent.type == EntryType.PHOTO || 
+                        complements.any { it.parentEntryId == parent.id && it.entryType == "PHOTO" }
+                    hasMatch
                 }
             }
         }
