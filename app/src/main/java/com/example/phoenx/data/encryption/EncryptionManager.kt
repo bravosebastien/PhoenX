@@ -141,7 +141,7 @@ class EncryptionManager @Inject constructor() {
     }
 
     /**
-     * Chiffre un texte avec une clé publique RSA (RSA-OAEP)
+     * Chiffre un texte avec une clé publique RSA (RSA-OAEP avec SHA-256 partout)
      */
     fun encryptWithPublicKey(plaintext: String, publicKeyBytes: ByteArray): ByteArray {
         val publicKey = KeyFactory
@@ -150,7 +150,12 @@ class EncryptionManager @Inject constructor() {
                 java.security.spec.X509EncodedKeySpec(publicKeyBytes)
             )
         val cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey)
+        // Force SHA-256 pour le digest principal ET pour le masque MGF1 (Exigence Android Keystore)
+        val spec = javax.crypto.spec.OAEPParameterSpec(
+            "SHA-256", "MGF1", java.security.spec.MGF1ParameterSpec.SHA256,
+            javax.crypto.spec.PSource.PSpecified.DEFAULT
+        )
+        cipher.init(Cipher.ENCRYPT_MODE, publicKey, spec)
         return cipher.doFinal(plaintext.toByteArray(Charsets.UTF_8))
     }
 
@@ -193,7 +198,7 @@ class EncryptionManager @Inject constructor() {
     }
 
     /**
-     * Déchiffre un texte avec la clé privée RSA du Keystore (RSA-OAEP).
+     * Déchiffre un texte avec la clé privée RSA du Keystore (RSA-OAEP avec SHA-256 partout).
      * Auto-réparation : si la clé est absente (ex: changement d'appareil),
      * elle est générée (mais les anciens messages resteront indéchiffrables).
      */
@@ -203,7 +208,12 @@ class EncryptionManager @Inject constructor() {
         }
         val privateKey = getPrivateKeyForDecryption()
         val cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
-        cipher.init(Cipher.DECRYPT_MODE, privateKey)
+        // Force SHA-256 pour le digest principal ET pour le masque MGF1 (Exigence Android Keystore)
+        val spec = javax.crypto.spec.OAEPParameterSpec(
+            "SHA-256", "MGF1", java.security.spec.MGF1ParameterSpec.SHA256,
+            javax.crypto.spec.PSource.PSpecified.DEFAULT
+        )
+        cipher.init(Cipher.DECRYPT_MODE, privateKey, spec)
         return String(cipher.doFinal(ciphertext), Charsets.UTF_8)
     }
 }

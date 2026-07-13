@@ -120,6 +120,9 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             auth.signOut()
             encryptionManager.setSessionKey(null)
+            _isCreator.value = null
+            _myRoles.value = emptyMap()
+            _protectedCreatorIds.value = emptyList()
             _isDepositaryAccount.value = null
             _silenceStatus.value = null
             

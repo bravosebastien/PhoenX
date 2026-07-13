@@ -287,10 +287,8 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit, onReview: () -> Un
                     )
                 }
                 
-                if (witness.status == "invited") {
-                    IconButton(onClick = onDelete, modifier = Modifier.padding(top = 4.dp).size(24.dp)) {
-                        Icon(Icons.Default.Delete, null, tint = TextTertiary.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
-                    }
+                IconButton(onClick = onDelete, modifier = Modifier.padding(top = 4.dp).size(24.dp)) {
+                    Icon(Icons.Default.Delete, null, tint = TextTertiary.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                 }
             }
         }

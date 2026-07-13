@@ -817,6 +817,10 @@ fun PhoenXNavGraph(
                     navController.navigate(Screen.Auth.Login.createRoute(Screen.UniversalJoin.createRoute(t)))
                 },
                 onSuccess = {
+                    val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+                    if (uid != null) {
+                        mainViewModel.checkSilenceOnLaunch(uid)
+                    }
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.UniversalJoin.route) { inclusive = true }
                     }
