@@ -45,7 +45,8 @@ class WitnessViewModel @Inject constructor(
         val allowRead: Boolean,
         val allowReject: Boolean,
         val publicKey: String?,
-        val submittedAt: Long? = null
+        val submittedAt: Long? = null,
+        val requestPrompt: String? = null
     )
 
     init {
@@ -72,7 +73,8 @@ class WitnessViewModel @Inject constructor(
                     allowRead = resData["allowCreatorToRead"] as? Boolean ?: false,
                     allowReject = resData["allowCreatorToReject"] as? Boolean ?: false,
                     publicKey = resData["publicEncryptionKey"] as? String,
-                    submittedAt = (resData["submittedAt"] as? com.google.firebase.Timestamp)?.toDate()?.time
+                    submittedAt = (resData["submittedAt"] as? com.google.firebase.Timestamp)?.toDate()?.time,
+                    requestPrompt = resData["requestPrompt"] as? String
                 )
             } catch (e: Exception) {
                 android.util.Log.e("WitnessVM", "Error verifying token/UID", e)
@@ -121,7 +123,8 @@ class WitnessViewModel @Inject constructor(
                         status = doc.getString("status") ?: (if (doc.getTimestamp("submittedAt") != null) "submitted" else "invited"),
                         submittedAt = doc.getTimestamp("submittedAt")?.toDate()?.time,
                         allowCreatorToRead = doc.getBoolean("allowCreatorToRead") ?: false,
-                        allowCreatorToReject = doc.getBoolean("allowCreatorToReject") ?: false
+                        allowCreatorToReject = doc.getBoolean("allowCreatorToReject") ?: false,
+                        requestPrompt = doc.getString("requestPrompt")
                     )
                     offlineEntryDao.insertWitness(witness)
                 }
@@ -133,7 +136,7 @@ class WitnessViewModel @Inject constructor(
         }
     }
 
-    fun inviteWitness(name: String, email: String, allowRead: Boolean, allowReject: Boolean, creatorName: String) {
+    fun inviteWitness(name: String, email: String, allowRead: Boolean, allowReject: Boolean, creatorName: String, requestPrompt: String?) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             _isLoading.value = true
@@ -144,6 +147,7 @@ class WitnessViewModel @Inject constructor(
                     "email" to email,
                     "allowCreatorToRead" to allowRead,
                     "allowCreatorToReject" to allowReject,
+                    "requestPrompt" to requestPrompt,
                     "status" to "invited",
                     "submittedAt" to null,
                     "createdAt" to com.google.firebase.Timestamp.now()
@@ -157,6 +161,7 @@ class WitnessViewModel @Inject constructor(
                     email = email,
                     allowCreatorToRead = allowRead,
                     allowCreatorToReject = allowReject,
+                    requestPrompt = requestPrompt,
                     status = "invited"
                 ))
 

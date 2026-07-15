@@ -11,5 +11,6 @@ data class WitnessEntity(
     val status: String = "invited", // "invited" | "submitted" | "validated" | "rejected"
     val submittedAt: Long? = null,
     val allowCreatorToRead: Boolean = false,
-    val allowCreatorToReject: Boolean = false
+    val allowCreatorToReject: Boolean = false,
+    val requestPrompt: String? = null
 )

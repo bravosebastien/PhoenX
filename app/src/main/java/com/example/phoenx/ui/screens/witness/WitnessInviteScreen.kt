@@ -5,7 +5,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -205,8 +207,8 @@ fun WitnessInviteScreen(
         if (showDialog) {
             InviteWitnessDialog(
                 onDismiss = { showDialog = false },
-                onConfirm = { name, email, allowRead, allowReject ->
-                    viewModel.inviteWitness(name, email, allowRead, allowReject, creatorName)
+                onConfirm = { name, email, allowRead, allowReject, prompt ->
+                    viewModel.inviteWitness(name, email, allowRead, allowReject, creatorName, prompt)
                     showDialog = false
                 }
             )
@@ -296,10 +298,11 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit, onReview: () -> Un
 }
 
 @Composable
-fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boolean, Boolean) -> Unit) {
+fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boolean, Boolean, String?) -> Unit) {
     val accent = LocalAccentColor.current
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var requestPrompt by remember { mutableStateOf("") }
     var allowRead by remember { mutableStateOf(false) }
     var allowReject by remember { mutableStateOf(false) }
 
@@ -308,7 +311,10 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
         containerColor = BackgroundSecondary,
         title = { Text("Inviter un témoin", color = TextPrimary, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -323,6 +329,26 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
                 )
+
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("ORIENTATION DU TÉMOIGNAGE", style = MaterialTheme.typography.labelSmall, color = accent)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        com.example.phoenx.ui.components.InfoPoint(
+                            title = "Guider le témoin",
+                            content = "Tu peux poser une question précise ou suggérer un thème (ex: 'Raconte notre voyage en Italie', 'Qu'est-ce qui t'a le plus marqué dans mon caractère ?'). Cela aide le témoin à savoir par où commencer."
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = requestPrompt,
+                        onValueChange = { requestPrompt = it },
+                        placeholder = { Text("Ex: Quel est ton souvenir le plus drôle avec moi ?", fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        maxLines = 3,
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                    )
+                }
                 
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -347,7 +373,7 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(name, email, allowRead, allowReject) },
+                onClick = { onConfirm(name, email, allowRead, allowReject, if (requestPrompt.isNotBlank()) requestPrompt else null) },
                 enabled = name.isNotBlank() && email.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {

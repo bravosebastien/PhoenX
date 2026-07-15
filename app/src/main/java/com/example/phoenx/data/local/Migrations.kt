@@ -82,4 +82,10 @@ object RoomMigrations {
             db.execSQL("UPDATE offline_entries SET visibility = 'EVERYONE' WHERE visibility = 'public'")
         }
     }
+
+    val MIGRATION_18_19 = object : Migration(18, 19) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE witnesses ADD COLUMN requestPrompt TEXT")
+        }
+    }
 }

@@ -343,7 +343,7 @@ export const notifyQuestionRightGranted = onCall(async (request) => {
 
 // 18. Notification au Créateur d'une nouvelle question
 export const notifyNewPendingQuestion = onDocumentCreated(
-    "users/{userId}/pendingQuestions/{questionId}",
+    { document: "users/{userId}/pendingQuestions/{questionId}", region: "us-central1" },
     async (event) => {
         const snapshot = event.data;
         if (!snapshot) return;
@@ -367,7 +367,7 @@ export const notifyNewPendingQuestion = onDocumentCreated(
  * PHOEN-X v7.2 - Notification de nouveau témoignage
  */
 export const notifyNewTestimony = onDocumentCreated(
-    "users/{creatorId}/witnesses/{witnessId}",
+    { document: "users/{creatorId}/witnesses/{witnessId}", region: "us-central1" },
     async (event) => {
         // Note: On peut aussi utiliser onDocumentUpdated si on veut détecter le passage à "submitted"
         // Mais comme le contenu est souvent ajouté à la création ou juste après, on surveille les deux.
@@ -570,6 +570,7 @@ export const verifyWitnessToken = onCall(async (request) => {
         creatorName: creatorData?.displayName || witnessData.creatorName || "Ton proche",
         allowCreatorToRead: witnessData.allowCreatorToRead || false,
         allowCreatorToReject: witnessData.allowCreatorToReject || false,
+        requestPrompt: witnessData.requestPrompt || null,
         publicEncryptionKey: creatorData?.publicEncryptionKey || null,
         submittedAt: witnessData.submittedAt || null
     };
@@ -835,21 +836,27 @@ async function cleanupMemberRoles(creatorId: string, memberId: string, role: str
     }
 }
 
-export const onWitnessDeleted = onDocumentDeleted("users/{creatorId}/witnesses/{witnessId}", async (event) => {
+export const onWitnessDeleted = onDocumentDeleted(
+    { document: "users/{creatorId}/witnesses/{witnessId}", region: "us-central1" },
+    async (event) => {
     const { creatorId, witnessId } = event.params;
     const data = event.data?.data();
     if (!data) return;
     await cleanupMemberRoles(creatorId, witnessId, "witness", data.linkedUid);
 });
 
-export const onRecipientDeleted = onDocumentDeleted("users/{creatorId}/recipients/{recipientId}", async (event) => {
+export const onRecipientDeleted = onDocumentDeleted(
+    { document: "users/{creatorId}/recipients/{recipientId}", region: "us-central1" },
+    async (event) => {
     const { creatorId, recipientId } = event.params;
     const data = event.data?.data();
     if (!data) return;
     await cleanupMemberRoles(creatorId, recipientId, "recipient", data.linkedUid);
 });
 
-export const onDepositaryDeleted = onDocumentDeleted("users/{creatorId}/depositaries/{depositaryId}", async (event) => {
+export const onDepositaryDeleted = onDocumentDeleted(
+    { document: "users/{creatorId}/depositaries/{depositaryId}", region: "us-central1" },
+    async (event) => {
     const { creatorId, depositaryId } = event.params;
     const data = event.data?.data();
     if (!data) return;

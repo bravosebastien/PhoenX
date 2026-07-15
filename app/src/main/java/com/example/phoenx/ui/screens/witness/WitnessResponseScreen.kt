@@ -150,12 +150,19 @@ fun WitnessResponseScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                val instructionText = if (!witnessConfig?.requestPrompt.isNullOrBlank()) {
+                    witnessConfig!!.requestPrompt!!
+                } else {
+                    "Raconte un moment où ${creatorName ?: "ton proche"} t'a surpris. Ce souvenir sera gardé précieusement et transmis à ses héritiers."
+                }
+
                 Text(
-                    "Raconte un moment où ${creatorName ?: "ton proche"} t'a surpris. Ce souvenir sera gardé précieusement et transmis à ses héritiers.",
+                    text = instructionText,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = TextSecondary,
+                    color = if (!witnessConfig?.requestPrompt.isNullOrBlank()) accent else TextSecondary,
                     textAlign = TextAlign.Center,
-                    lineHeight = 26.sp
+                    lineHeight = 26.sp,
+                    fontStyle = if (!witnessConfig?.requestPrompt.isNullOrBlank()) FontStyle.Italic else FontStyle.Normal
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
