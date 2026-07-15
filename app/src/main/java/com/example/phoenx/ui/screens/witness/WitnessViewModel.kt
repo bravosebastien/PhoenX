@@ -102,6 +102,17 @@ class WitnessViewModel @Inject constructor(
                     .get()
                     .await()
                 
+                val remoteIds = snapshot.documents.map { it.id }.toSet()
+                
+                // Nettoyage local : supprimer les témoins qui ne sont plus sur Firestore
+                val currentLocal = _witnesses.value
+                currentLocal.forEach { local ->
+                    if (!remoteIds.contains(local.id)) {
+                        offlineEntryDao.deleteWitness(local.id)
+                    }
+                }
+                
+                // Mise à jour / Ajout des témoins distants
                 snapshot.documents.forEach { doc ->
                     val witness = WitnessEntity(
                         id = doc.id,
@@ -213,17 +224,40 @@ class WitnessViewModel @Inject constructor(
      */
     suspend fun getTestimonyContent(witnessId: String): String? {
         val userId = auth.currentUser?.uid ?: return null
+        android.util.Log.d("WitnessDecrypt", "Début de lecture pour witnessId=$witnessId (UserId=$userId)")
+        
         return try {
             val doc = db.collection("users").document(userId)
                 .collection("witnesses").document(witnessId).get().await()
             
-            val encryptedBase64 = doc.getString("content") ?: return null
-            val encryptedBytes = android.util.Base64.decode(encryptedBase64, android.util.Base64.DEFAULT)
+            if (!doc.exists()) {
+                android.util.Log.e("WitnessDecrypt", "Document Firestore introuvable pour $witnessId")
+                return null
+            }
+
+            val encryptedBase64 = doc.getString("content")
+            if (encryptedBase64 == null) {
+                android.util.Log.e("WitnessDecrypt", "Champ 'content' absent dans le document Firestore")
+                return null
+            }
             
-            // On tente le déchiffrement RSA (car droit de regard/lecture implique RSA)
-            encryptionManager.decryptWithPrivateKey(encryptedBytes)
+            android.util.Log.d("WitnessDecrypt", "Base64 récupéré (Taille: ${encryptedBase64.length})")
+
+            val encryptedBytes = try {
+                android.util.Base64.decode(encryptedBase64, android.util.Base64.DEFAULT)
+            } catch (e: Exception) {
+                android.util.Log.e("WitnessDecrypt", "Erreur lors du décodage Base64", e)
+                return null
+            }
+
+            android.util.Log.d("WitnessDecrypt", "Tentative de déchiffrement RSA...")
+            val decrypted = encryptionManager.decryptWithPrivateKey(encryptedBytes)
+            
+            android.util.Log.d("WitnessDecrypt", "Déchiffrement réussi !")
+            decrypted
+            
         } catch (e: Exception) {
-            android.util.Log.e("WitnessVM", "Erreur lecture témoignage", e)
+            android.util.Log.e("WitnessDecrypt", "Échec critique de la chaîne de lecture témoignage", e)
             null
         }
     }

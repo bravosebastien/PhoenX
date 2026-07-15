@@ -141,7 +141,7 @@ class EncryptionManager @Inject constructor() {
     }
 
     /**
-     * Chiffre un texte avec une clé publique RSA (RSA-OAEP avec SHA-256 partout)
+     * Chiffre un texte avec une clé publique RSA (RSA-OAEP avec SHA-256 et masque MGF1-SHA1)
      */
     fun encryptWithPublicKey(plaintext: String, publicKeyBytes: ByteArray): ByteArray {
         val publicKey = KeyFactory
@@ -150,9 +150,9 @@ class EncryptionManager @Inject constructor() {
                 java.security.spec.X509EncodedKeySpec(publicKeyBytes)
             )
         val cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
-        // Force SHA-256 pour le digest principal ET pour le masque MGF1 (Exigence Android Keystore)
+        // Force SHA-256 pour le digest principal ET MGF1-SHA1 pour le masque (Compatibilité Keystore par défaut)
         val spec = javax.crypto.spec.OAEPParameterSpec(
-            "SHA-256", "MGF1", java.security.spec.MGF1ParameterSpec.SHA256,
+            "SHA-256", "MGF1", java.security.spec.MGF1ParameterSpec.SHA1,
             javax.crypto.spec.PSource.PSpecified.DEFAULT
         )
         cipher.init(Cipher.ENCRYPT_MODE, publicKey, spec)
@@ -203,17 +203,23 @@ class EncryptionManager @Inject constructor() {
      * elle est générée (mais les anciens messages resteront indéchiffrables).
      */
     fun decryptWithPrivateKey(ciphertext: ByteArray): String {
-        if (!hasLocalRsaKey()) {
-            ensureRsaKeyPairExists()
+        return try {
+            if (!hasLocalRsaKey()) {
+                android.util.Log.w("WitnessDecrypt", "Clé RSA manquante, tentative de génération auto")
+                ensureRsaKeyPairExists()
+            }
+            val privateKey = getPrivateKeyForDecryption()
+            val cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
+            // Force SHA-256 pour le digest principal ET MGF1-SHA1 pour le masque (Compatibilité Keystore par défaut)
+            val spec = javax.crypto.spec.OAEPParameterSpec(
+                "SHA-256", "MGF1", java.security.spec.MGF1ParameterSpec.SHA1,
+                javax.crypto.spec.PSource.PSpecified.DEFAULT
+            )
+            cipher.init(Cipher.DECRYPT_MODE, privateKey, spec)
+            String(cipher.doFinal(ciphertext), Charsets.UTF_8)
+        } catch (e: Exception) {
+            android.util.Log.e("WitnessDecrypt", "ERREUR NATIVE RSA (Keystore/Cipher)", e)
+            throw e // On laisse remonter au ViewModel pour l'affichage UI
         }
-        val privateKey = getPrivateKeyForDecryption()
-        val cipher = Cipher.getInstance("RSA/ECB/OAEPWithSHA-256AndMGF1Padding")
-        // Force SHA-256 pour le digest principal ET pour le masque MGF1 (Exigence Android Keystore)
-        val spec = javax.crypto.spec.OAEPParameterSpec(
-            "SHA-256", "MGF1", java.security.spec.MGF1ParameterSpec.SHA256,
-            javax.crypto.spec.PSource.PSpecified.DEFAULT
-        )
-        cipher.init(Cipher.DECRYPT_MODE, privateKey, spec)
-        return String(cipher.doFinal(ciphertext), Charsets.UTF_8)
     }
 }

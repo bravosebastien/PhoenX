@@ -133,14 +133,17 @@ class AuthViewModel @Inject constructor(
                 val userProfile = hashMapOf(
                     "uid" to user.uid,
                     "email" to email,
-                    "encryptionKey" to encryptionKeyBase64, // Nouvelle clé de chiffrement
+                    "isCreator" to true, // AFFIRMATION EXPLICITE DU RÔLE (Signature 7.6)
+                    "encryptionKey" to encryptionKeyBase64,
                     "dateOfBirth" to Timestamp(Date.from(birthDateInstant)),
                     "createdAt" to Timestamp.now(),
                     "onboardingCompleted" to true,
                     "lastAliveConfirmedAt" to Timestamp.now()
                 )
                 
-                db.collection("users").document(user.uid).set(userProfile).await()
+                db.collection("users").document(user.uid)
+                    .set(userProfile, com.google.firebase.firestore.SetOptions.merge())
+                    .await()
                 
                 // Activer la clé immédiatement pour la session en cours
                 encryptionManager.setSessionKey(newKey)
@@ -179,11 +182,13 @@ class AuthViewModel @Inject constructor(
                     "uid" to user.uid,
                     "email" to email,
                     "encryptionKey" to encryptionKeyBase64,
-                    "createdAt" to Timestamp.now(),
-                    "isDepositaryOnly" to true // Définit par défaut isCreator=false via fallback MainViewModel
+                    "createdAt" to Timestamp.now()
+                    // signUpGuest reste neutre (isCreator sera défini par la Cloud Function de liaison)
                 )
                 
-                db.collection("users").document(user.uid).set(userProfile).await()
+                db.collection("users").document(user.uid)
+                    .set(userProfile, com.google.firebase.firestore.SetOptions.merge())
+                    .await()
                 
                 // Activer la clé immédiatement
                 encryptionManager.setSessionKey(newKey)

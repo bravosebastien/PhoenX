@@ -55,22 +55,26 @@ class FilViewModel @Inject constructor(
             _selectedRecipientId,
             _sortByCreationDate
         ) { offlineEntries, recipientId, sortByDate ->
-            // 1. Filtrage par destinataire (on fait le filtrage AVANT le décodage pour la performance)
+            // 1. FILTRAGE DES RACINES : On ne garde que les souvenirs qui n'ont pas de parent (parentEntryId == null)
+            // Les compléments ne doivent pas apparaître dans le fil principal.
+            val rootEntries = offlineEntries.filter { it.parentEntryId == null }
+
+            // 2. Filtrage par destinataire
             val filteredOffline = if (recipientId != null) {
-                offlineEntries.filter { 
+                rootEntries.filter { 
                     it.recipientIds.split(",").contains(recipientId) || it.visibility == "EVERYONE"
                 }
             } else {
-                offlineEntries
+                rootEntries
             }
 
-            // 2. Décodage et chargement des amendements
+            // 3. Décodage et chargement des amendements
             val decodedEntries = filteredOffline.map { entry ->
                 val amendments = offlineEntryDao.getAmendmentsForEntrySync(entry.id).map { it.toDomain() }
                 entry.toDomain(encryptionManager, amendments)
             }
 
-            // 3. Tri final
+            // 4. Tri final
             val finalEntries = if (sortByDate) {
                 decodedEntries.sortedByDescending { it.timestamp }
             } else {

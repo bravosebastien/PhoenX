@@ -134,113 +134,98 @@ class MainViewModel @Inject constructor(
     }
 
     /**
-     * Appelé au démarrage ou après connexion.
-     * Gère la présence du Créateur et la synchronisation des clés de sécurité (AES et RSA).
+     * Écoute le profil utilisateur en temps réel pour gérer le routage et les clés.
      */
     fun checkSilenceOnLaunch(userId: String) {
-        viewModelScope.launch {
-            try {
-                // 1. Récupérer le document utilisateur UNE SEULE FOIS
-                val doc = db.collection("users").document(userId).get().await()
-                val name = doc.getString("displayName") ?: doc.getString("email")?.substringBefore("@") ?: "Ami"
-                _userName.value = name
-                _userEmail.value = doc.getString("email") ?: ""
+        db.collection("users").document(userId).addSnapshotListener { doc, error ->
+            if (error != null || doc == null || !doc.exists()) {
+                android.util.Log.e("MainViewModel", "Erreur écoute profil", error)
+                return@addSnapshotListener
+            }
 
-                // GESTION v7.2 - Rôles Unifiés et Migration
-                val rolesData = doc.get("myRoles") as? Map<String, Any>
-                val legacyIds = doc.get("protectedCreatorIds") as? List<String> ?: emptyList()
+            val name = doc.getString("displayName") ?: doc.getString("email")?.substringBefore("@") ?: "Ami"
+            _userName.value = name
+            _userEmail.value = doc.getString("email") ?: ""
 
-                if (rolesData == null && legacyIds.isNotEmpty()) {
-                    android.util.Log.d("MainViewModel", "Migration requise pour l'utilisateur $userId")
+            // --- 1. GESTION DES RÔLES ET MIGRATION (Restauration v7.2) ---
+            val rolesData = doc.get("myRoles") as? Map<String, Any>
+            val legacyIds = doc.get("protectedCreatorIds") as? List<String> ?: emptyList()
+
+            // Si besoin, on déclenche la migration Firestore en arrière-plan
+            if (rolesData == null && legacyIds.isNotEmpty()) {
+                viewModelScope.launch {
                     try {
                         functions.getHttpsCallable("migrateLegacyRoles").call().await()
-                        checkSilenceOnLaunch(userId) 
-                        return@launch
                     } catch (e: Exception) {
-                        android.util.Log.e("MainViewModel", "Échec migration Firestore, passage en mode dégradé (mémoire)", e)
+                        android.util.Log.e("MainViewModel", "Échec migration auto", e)
                     }
                 }
+            }
 
-                // Mapping des rôles (avec fallback mémoire si migration échouée)
-                val parsedRoles = mutableMapOf<String, UserRole>()
-                if (rolesData != null) {
-                    rolesData.forEach { (key, value) ->
-                        val map = value as? Map<String, Any> ?: return@forEach
-                        parsedRoles[key] = UserRole(
-                            creatorId = map["creatorId"] as? String ?: "",
-                            creatorName = map["creatorName"] as? String ?: "Votre proche",
-                            role = map["role"] as? String ?: "",
-                            status = map["status"] as? String ?: "",
-                            label = map["label"] as? String ?: "",
-                            sourceId = map["sourceId"] as? String,
-                            joinedAt = (map["joinedAt"] as? com.google.firebase.Timestamp)?.toDate()?.time
-                        )
-                    }
-                } else if (legacyIds.isNotEmpty()) {
-                    // Reconstruction en mémoire pour cette session (v7.2 Resilience)
-                    legacyIds.forEach { creatorId ->
-                        parsedRoles["${creatorId}_depositary"] = UserRole(
-                            creatorId = creatorId,
-                            role = "depositary",
-                            status = "active",
-                            label = "Gardien de confiance"
-                        )
-                    }
+            val parsedRoles = mutableMapOf<String, UserRole>()
+            if (rolesData != null) {
+                rolesData.forEach { (key, value) ->
+                    val map = value as? Map<String, Any> ?: return@forEach
+                    parsedRoles[key] = UserRole(
+                        creatorId = map["creatorId"] as? String ?: "",
+                        creatorName = map["creatorName"] as? String ?: "Votre proche",
+                        role = map["role"] as? String ?: "",
+                        status = map["status"] as? String ?: "",
+                        label = map["label"] as? String ?: "",
+                        sourceId = map["sourceId"] as? String,
+                        joinedAt = (map["joinedAt"] as? com.google.firebase.Timestamp)?.toDate()?.time
+                    )
                 }
-                _myRoles.value = parsedRoles
-
-                // Détermination du statut Créateur
-                val isCreatorVal = doc.getBoolean("isCreator") ?: (doc.getBoolean("isDepositaryOnly") != true)
-                _isCreator.value = isCreatorVal
-                _isDepositaryAccount.value = !isCreatorVal // Maintenir compatibilité temporaire
-
-                if (!isCreatorVal) {
-                    android.util.Log.d("MainViewModel", "Profil Invité détecté (isCreator: false)")
-                    // Récupérer le premier ID créateur pour la compatibilité avec l'ancien dashboard
-                    val firstRole = parsedRoles.values.firstOrNull()
-                    if (firstRole != null) {
-                        _protectedCreatorIds.value = listOf(firstRole.creatorId)
-                    }
-                    return@launch
+            } else if (legacyIds.isNotEmpty()) {
+                // Fallback mémoire pendant la migration (v7.2 Resilience)
+                legacyIds.forEach { cId ->
+                    parsedRoles["${cId}_depositary"] = UserRole(creatorId = cId, role = "depositary", status = "active", label = "Gardien")
                 }
+            }
+            _myRoles.value = parsedRoles
 
-                val status = silenceManager.checkSilenceStatus(userId)
-                _silenceStatus.value = status
+            // --- 2. DÉTERMINATION DU STATUT (v7.6 Résilient) ---
+            val isCreatorVal = if (doc.contains("isCreator")) {
+                doc.getBoolean("isCreator") == true
+            } else if (doc.contains("isDepositaryOnly")) {
+                doc.getBoolean("isDepositaryOnly") != true
+            } else {
+                parsedRoles.isEmpty() // true si rien, false si invité
+            }
+            
+            _isCreator.value = isCreatorVal
+            _isDepositaryAccount.value = !isCreatorVal
 
-                // 2. RÉCUPÉRATION ET ACTIVATION DE LA CLÉ DE SESSION AES
-                if (encryptionManager.getSessionKey() == null) {
-                    val encryptionKeyBase64 = doc.getString("encryptionKey")
-                    if (encryptionKeyBase64 != null) {
-                        val decodedKey = android.util.Base64.decode(encryptionKeyBase64, android.util.Base64.NO_WRAP)
-                        encryptionManager.setSessionKey(decodedKey)
-                        android.util.Log.d("MainViewModel", "Clé de session AES restaurée au démarrage")
-                    } else {
-                        android.util.Log.w("MainViewModel", "Aucune clé de chiffrement 'encryptionKey' trouvée sur Firestore")
+            if (isCreatorVal) {
+                viewModelScope.launch {
+                    val status = silenceManager.checkSilenceStatus(userId)
+                    _silenceStatus.value = status
+
+                    // Sync AES
+                    if (encryptionManager.getSessionKey() == null) {
+                        doc.getString("encryptionKey")?.let {
+                            encryptionManager.setSessionKey(android.util.Base64.decode(it, android.util.Base64.NO_WRAP))
+                        }
+                    }
+
+                    // Sync RSA
+                    val localPublicKey = encryptionManager.ensureRsaKeyPairExists()
+                    if (doc.getString("publicEncryptionKey") != localPublicKey) {
+                        db.collection("users").document(userId).update("publicEncryptionKey", localPublicKey)
                     }
                 }
-
-                // 3. GESTION DES CLÉS RSA (Keystore local vs Firestore)
-                val localPublicKey = encryptionManager.ensureRsaKeyPairExists()
-                val firestoreKey = doc.getString("publicEncryptionKey")
-                
-                if (firestoreKey != localPublicKey) {
-                    db.collection("users").document(userId)
-                        .update("publicEncryptionKey", localPublicKey)
-                        .await()
-                    android.util.Log.d("PHOENX_RSA", "Clé RSA synchronisée (Nouvel appareil détecté)")
+            } else {
+                parsedRoles.values.firstOrNull()?.let {
+                    _protectedCreatorIds.value = listOf(it.creatorId)
                 }
+            }
 
-                // 4. CHARGEMENT CONFIGURATION SILENCE
-                val rhythm = doc.getLong("silenceConfig.rhythmDays")?.toInt() ?: 30
-                _silenceRhythmDays.value = rhythm
-
-                val lastCheckIn = doc.getTimestamp("silenceConfig.lastCheckInAt")
-                if (lastCheckIn != null) {
-                    val diff = System.currentTimeMillis() - lastCheckIn.toDate().time
-                    _daysSinceLastCheckIn.value = (diff / (1000 * 60 * 60 * 24)).toInt()
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("MainViewModel", "Erreur Sync RSA/AES/Silence", e)
+            // --- 3. CONFIG ET STATS SILENCE (Restauration v7.5) ---
+            _silenceRhythmDays.value = doc.getLong("silenceConfig.rhythmDays")?.toInt() ?: 30
+            val lastCheckIn = doc.getTimestamp("silenceConfig.lastCheckInAt")
+            if (lastCheckIn != null) {
+                val diff = System.currentTimeMillis() - lastCheckIn.toDate().time
+                _daysSinceLastCheckIn.value = (diff / (1000 * 60 * 60 * 24)).toInt()
             }
         }
     }

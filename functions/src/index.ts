@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onDocumentCreated, onDocumentDeleted } from "firebase-functions/v2/firestore";
+import * as functionsV1 from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 import { VertexAI } from "@google-cloud/vertexai";
 import axios from "axios";
@@ -359,6 +360,37 @@ export const notifyNewPendingQuestion = onDocumentCreated(
                     body: "Quelqu'un t'a posé une question dans PHOEN-X."
                 }
             });
+        }
+    });
+
+/**
+ * PHOEN-X v7.2 - Notification de nouveau témoignage
+ */
+export const notifyNewTestimony = onDocumentCreated(
+    "users/{creatorId}/witnesses/{witnessId}",
+    async (event) => {
+        // Note: On peut aussi utiliser onDocumentUpdated si on veut détecter le passage à "submitted"
+        // Mais comme le contenu est souvent ajouté à la création ou juste après, on surveille les deux.
+        const snapshot = event.data;
+        if (!snapshot) return;
+
+        const creatorId = event.params.creatorId;
+        const witnessData = snapshot.data();
+
+        // On ne notifie que si le témoignage est scellé (status submitted ou content présent)
+        if (witnessData.status === "submitted" || witnessData.content) {
+            const userDoc = await admin.firestore().collection("users").doc(creatorId).get();
+            const fcmToken = userDoc.data()?.fcmToken;
+
+            if (fcmToken) {
+                await admin.messaging().send({
+                    token: fcmToken,
+                    notification: {
+                        title: "Un nouveau témoignage est arrivé",
+                        body: `${witnessData.name} vient de sceller son message dans ton Cercle.`
+                    }
+                });
+            }
         }
     });
 
@@ -823,4 +855,65 @@ export const onDepositaryDeleted = onDocumentDeleted("users/{creatorId}/deposita
     if (!data) return;
     const uid = data.linkedUid || data.depositaryUid; // Support historique et v7.2
     await cleanupMemberRoles(creatorId, depositaryId, "depositary", uid);
+});
+
+/**
+ * PHOEN-X v7.2 - Nettoyage intégral après suppression Auth
+ * Déclenchée manuellement via la console Auth ou API Admin.
+ */
+export const onUserDeletedCleanup = functionsV1.auth.user().onDelete(async (user) => {
+    const { uid, email } = user;
+    const db = admin.firestore();
+
+    console.log(`[AUTH DELETE] Début du nettoyage pour ${uid} (${email})`);
+
+    try {
+        // 1. SUPPRESSION DU PROFIL (Priorité absolue)
+        // On le fait en premier pour que même si le reste plante, le profil disparaisse.
+        const userRef = db.collection("users").doc(uid);
+        await db.recursiveDelete(userRef);
+        console.log(`[AUTH DELETE] Profil users/${uid} supprimé.`);
+
+        const batch = db.batch();
+        let deletedCount = 0;
+
+        // 2. RECHERCHE DES LIENS (Try/Catch interne car nécessite des index)
+        try {
+            const witnessSnap = await db.collectionGroup("witnesses").where("linkedUid", "==", uid).get();
+            const recipientSnap = await db.collectionGroup("recipients").where("linkedUid", "==", uid).get();
+            const depositarySnap = await db.collectionGroup("depositaries").where("linkedUid", "==", uid).get();
+
+            [...witnessSnap.docs, ...recipientSnap.docs, ...depositarySnap.docs].forEach(doc => {
+                batch.delete(doc.ref);
+                deletedCount++;
+            });
+        } catch (e) {
+            console.warn("[AUTH DELETE] Les recherches groupées ont échoué (index manquants ?)", e);
+        }
+
+        // 3. RECHERCHE PAR EMAIL (Try/Catch car nécessite aussi des index)
+        if (email) {
+            try {
+                const wEmail = await db.collectionGroup("witnesses").where("email", "==", email.toLowerCase()).get();
+                const rEmail = await db.collectionGroup("recipients").where("email", "==", email.toLowerCase()).get();
+                wEmail.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
+                rEmail.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
+            } catch (e) {
+                console.warn("[AUTH DELETE] La recherche par email a échoué.", e);
+            }
+        }
+
+        // 4. SUPPRESSION DES INVITATIONS & TÂCHES
+        const invitesByCreator = await db.collection("invitations").where("creatorId", "==", uid).get();
+        const tasksSnap = await db.collection("tasks").where("creatorId", "==", uid).get();
+
+        invitesByCreator.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
+        tasksSnap.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
+
+        await batch.commit();
+        console.log(`[AUTH DELETE] ${deletedCount} documents liés nettoyés. Fin de procédure.`);
+
+    } catch (error) {
+        console.error(`[AUTH ERROR] Échec du nettoyage critique pour ${uid}:`, error);
+    }
 });
