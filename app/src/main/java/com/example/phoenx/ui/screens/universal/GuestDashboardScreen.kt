@@ -39,6 +39,7 @@ fun GuestDashboardScreen(
     onLogout: () -> Unit
 ) {
     val myRoles by mainViewModel.myRoles.collectAsState()
+    val pendingByEmail by mainViewModel.pendingInvitations.collectAsState()
     val accent = LocalAccentColor.current
     val backgroundBrush = LocalBackgroundBrush.current
 
@@ -77,7 +78,22 @@ fun GuestDashboardScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            if (myRoles.isEmpty()) {
+            if (pendingByEmail.isNotEmpty()) {
+                Text(
+                    "INVITATIONS EN ATTENTE",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = accent,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                pendingByEmail.forEach { invite ->
+                    PendingInviteCard(invite, accent) {
+                        navController.navigate(Screen.UniversalJoin.createRoute(invite.id))
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
+            }
+
+            if (myRoles.isEmpty() && pendingByEmail.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Aucun rôle actif pour le moment.", color = TextTertiary)
                 }
@@ -130,6 +146,33 @@ fun GuestDashboardScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun PendingInviteCard(
+    invite: com.example.phoenx.ui.MainViewModel.PendingInvitation,
+    accent: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.15f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Default.People, null, tint = accent, modifier = Modifier.size(24.dp))
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(invite.creatorName, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                Text("Vous invite à être : ${invite.label}", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            }
+            Text("Accepter", style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.Bold)
         }
     }
 }

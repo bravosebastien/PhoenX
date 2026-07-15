@@ -67,6 +67,8 @@ fun HomeScreen(
     val daysSincePresence by viewModel.daysSincePresence.collectAsState()
     val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
     val isVideoBannerDismissed by mainViewModel.isVideoBannerDismissed.collectAsState()
+    val pendingInvites by mainViewModel.pendingInvitations.collectAsState()
+    val isCreator by mainViewModel.isCreator.collectAsState()
     val accent = LocalAccentColor.current
     
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -139,6 +141,36 @@ fun HomeScreen(
                     date = uiState.currentDate,
                     onProfileClick = { scope.launch { drawerState.open() } }
                 )
+
+                // ALERTE INVITATION EN ATTENTE (v7.6)
+                if (pendingInvites.isNotEmpty()) {
+                    Card(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.15f)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f)),
+                        onClick = {
+                            if (isCreator == true) {
+                                // Rediriger vers l'espace proche si créateur
+                                onNavigateToTrustCircle() // Ou une route spécifique
+                            } else {
+                                // Rediriger vers le dashboard invité
+                                // navController.navigate("guest_dashboard")
+                            }
+                        }
+                    ) {
+                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Outlined.People, null, tint = accent, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                "Tu as ${pendingInvites.size} invitation(s) en attente.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextPrimary,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(Icons.Outlined.ArrowForward, null, tint = accent, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                }
 
                 // BANNIÈRE VIDÉO
                 if (!isVideoBannerDismissed) {

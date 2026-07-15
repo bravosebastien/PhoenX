@@ -157,6 +157,16 @@ service cloud.firestore {
        allow read, write: if false;
     }
 
+    // ═══ INVITATIONS — Liaison Universelle (v7.6) ═══
+    match /invitations/{tokenId} {
+      // Un utilisateur peut lire les invitations qui lui sont destinées par email
+      allow read: if request.auth != null
+                  && request.auth.token.email.lower() == resource.data.email.lower();
+
+      // La création et modification se font UNIQUEMENT via Cloud Function (Admin SDK)
+      allow write: if false;
+    }
+
     // ═══ MAIL — Envoi d'invitations ═══
     match /mail/{mailId} {
       allow create: if request.auth != null

@@ -15,6 +15,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.PhoenXDatabase
 import com.example.phoenx.domain.model.UserRole
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +45,9 @@ class MainViewModel @Inject constructor(
     private val database: PhoenXDatabase
 ) : ViewModel() {
 
+    private var userListener: ListenerRegistration? = null
+    private var invitationListener: ListenerRegistration? = null
+
     private val _silenceStatus = MutableStateFlow<SilenceStatus?>(null)
     val silenceStatus: StateFlow<SilenceStatus?> = _silenceStatus.asStateFlow()
 
@@ -52,6 +56,16 @@ class MainViewModel @Inject constructor(
 
     private val _myRoles = MutableStateFlow<Map<String, UserRole>>(emptyMap())
     val myRoles: StateFlow<Map<String, UserRole>> = _myRoles.asStateFlow()
+
+    private val _pendingInvitations = MutableStateFlow<List<PendingInvitation>>(emptyMap<String, Any>().values.toList().filterIsInstance<PendingInvitation>()) // Initialisation typée vide
+    val pendingInvitations: StateFlow<List<PendingInvitation>> = _pendingInvitations.asStateFlow()
+
+    data class PendingInvitation(
+        val id: String,
+        val creatorName: String,
+        val role: String,
+        val label: String
+    )
 
     private val _isDepositaryAccount = MutableStateFlow<Boolean?>(null)
     val isDepositaryAccount: StateFlow<Boolean?> = _isDepositaryAccount.asStateFlow()
@@ -120,8 +134,16 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             auth.signOut()
             encryptionManager.setSessionKey(null)
+            
+            // Détachement des écouteurs temps réel
+            userListener?.remove()
+            userListener = null
+            invitationListener?.remove()
+            invitationListener = null
+
             _isCreator.value = null
             _myRoles.value = emptyMap()
+            _pendingInvitations.value = emptyList()
             _protectedCreatorIds.value = emptyList()
             _isDepositaryAccount.value = null
             _silenceStatus.value = null
@@ -133,11 +155,20 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    override fun onCleared() {
+        super.onCleared()
+        userListener?.remove()
+        invitationListener?.remove()
+    }
+
     /**
      * Écoute le profil utilisateur en temps réel pour gérer le routage et les clés.
      */
     fun checkSilenceOnLaunch(userId: String) {
-        db.collection("users").document(userId).addSnapshotListener { doc, error ->
+        // Nettoyage de l'ancien écouteur si existant
+        userListener?.remove()
+
+        userListener = db.collection("users").document(userId).addSnapshotListener { doc, error ->
             if (error != null || doc == null || !doc.exists()) {
                 android.util.Log.e("MainViewModel", "Erreur écoute profil", error)
                 return@addSnapshotListener
@@ -226,6 +257,28 @@ class MainViewModel @Inject constructor(
             if (lastCheckIn != null) {
                 val diff = System.currentTimeMillis() - lastCheckIn.toDate().time
                 _daysSinceLastCheckIn.value = (diff / (1000 * 60 * 60 * 24)).toInt()
+            }
+
+            // --- 4. RADAR D'INVITATIONS (v7.6) ---
+            val userMail = doc.getString("email")
+            if (userMail != null) {
+                // Nettoyage de l'ancien radar si existant (ex: changement d'email ou re-lancement)
+                invitationListener?.remove()
+
+                invitationListener = db.collection("invitations")
+                    .whereEqualTo("email", userMail.lowercase())
+                    .whereEqualTo("used", false)
+                    .addSnapshotListener { inviteSnap, _ ->
+                        val invites = inviteSnap?.documents?.map { iDoc ->
+                            PendingInvitation(
+                                id = iDoc.id,
+                                creatorName = iDoc.getString("creatorName") ?: "Un proche",
+                                role = iDoc.getString("role") ?: "",
+                                label = iDoc.getString("label") ?: "Nouvelle mission"
+                            )
+                        } ?: emptyList()
+                        _pendingInvitations.value = invites
+                    }
             }
         }
     }
