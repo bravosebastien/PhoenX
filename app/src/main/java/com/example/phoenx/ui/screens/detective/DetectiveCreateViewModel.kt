@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.domain.util.EnigmaUtils
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -88,7 +89,9 @@ class DetectiveCreateViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
             try {
-                val hashedAnswer = hashAnswer(state.secretAnswer)
+                // Normalisation et hachage unifiés (v8.3)
+                val hashedAnswer = EnigmaUtils.hashAnswer(state.secretAnswer)
+                val hashedFallback = EnigmaUtils.hashAnswer(state.fallbackMessage)
                 
                 // Préparation du contenu à chiffrer
                 val contentToEncrypt = when(state.contentType) {
@@ -99,40 +102,15 @@ class DetectiveCreateViewModel @Inject constructor(
                 
                 val encryptedPayload = encryptionManager.encryptText(contentToEncrypt)
                 
-                // Chiffrement du message de révélation (fallbackAnswer)
-                val encryptedFallback = if (state.fallbackMessage.isNotBlank()) {
-                    android.util.Base64.encodeToString(
-                        encryptionManager.encryptText(state.fallbackMessage),
-                        android.util.Base64.DEFAULT
-                    )
-                } else null
-
                 val userDoc = db.collection("users").document(userId).get().await()
                 val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: java.util.Date()
                 val ageAtCreation = AgeUtils.calculateAge(birthDate)
                 val ageJson = "{\"years\":${ageAtCreation.years},\"months\":${ageAtCreation.months},\"days\":${ageAtCreation.days}}"
 
-                /* // ANCIEN CODE - DESACTIVE 2024-05-24 : écriture manuelle Firestore, remplacée par le pipeline standard
-                val entryData = hashMapOf(
-                    "type" to state.contentType.name,
-                    "encryptedContent" to android.util.Base64.encodeToString(encryptedPayload, android.util.Base64.DEFAULT),
-                    "isDetective" to true,
-                    "enigmaText" to state.enigmaText,
-                    "hashedAnswer" to hashedAnswer,
-                    "unlockAfterDays" to state.unlockAfterDays,
-                    "fallbackAnswer" to encryptedFallback,
-                    "ageAtCreation" to ageJson,
-                    "emotionalCategory" to "Sagesse",
-                    "aiSummary" to "",
-                    "createdAt" to com.google.firebase.Timestamp.now()
-                )
-
-                db.collection("users").document(userId).collection("entries").add(entryData).await()
-                */
-                
                 offlineEntryDao.insertEntry(
                     OfflineEntry(
                         id = java.util.UUID.randomUUID().toString(),
+                        creatorUid = userId, // Ajout explicite requis pour le filtrage Room
                         encryptedPayload = encryptedPayload,
                         entryType = state.contentType.name,
                         ageAtCreation = ageJson,
@@ -143,7 +121,7 @@ class DetectiveCreateViewModel @Inject constructor(
                         enigmaQuestion = state.enigmaText,
                         enigmaAnswer = hashedAnswer,
                         unlockAfterDays = state.unlockAfterDays,
-                        fallbackAnswer = encryptedFallback
+                        fallbackAnswer = hashedFallback // Maintenant stocké haché comme réponse secondaire
                     )
                 )
 

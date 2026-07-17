@@ -174,10 +174,35 @@ class MainViewModel @Inject constructor(
      * Écoute le profil utilisateur en temps réel pour gérer le routage et les clés.
      */
     fun checkSilenceOnLaunch(userId: String) {
-        // --- RÉPARATION V20 (Backfill creatorUid) ---
+        // --- RÉPARATIONS V20+ (ADN 5.0) ---
         viewModelScope.launch(Dispatchers.IO) {
-            val count = database.offlineEntryDao().repairEmptyCreatorUids(userId)
-            if (count > 0) android.util.Log.d("PHOENX_V20", "$count souvenirs réparés pour l'UID $userId")
+            // 1. Réparation creatorUid
+            val countUid = database.offlineEntryDao().repairEmptyCreatorUids(userId)
+            if (countUid > 0) android.util.Log.d("PHOENX_V20", "$countUid souvenirs réparés pour l'UID $userId")
+
+            // 2. Réparation Enigmes (Hachage auto de l'existant en clair) - v8.3
+            val allEntries = database.offlineEntryDao().getAllEntriesSync()
+            var repairCount = 0
+            allEntries.forEach { entry ->
+                var updatedEntry = entry
+                var needsUpdate = false
+                
+                if (!entry.enigmaAnswer.isNullOrBlank() && !com.example.phoenx.domain.util.EnigmaUtils.isAlreadyHashed(entry.enigmaAnswer)) {
+                    updatedEntry = updatedEntry.copy(enigmaAnswer = com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(entry.enigmaAnswer))
+                    needsUpdate = true
+                }
+                
+                if (!entry.fallbackAnswer.isNullOrBlank() && !com.example.phoenx.domain.util.EnigmaUtils.isAlreadyHashed(entry.fallbackAnswer)) {
+                    updatedEntry = updatedEntry.copy(fallbackAnswer = com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(entry.fallbackAnswer))
+                    needsUpdate = true
+                }
+
+                if (needsUpdate) {
+                    database.offlineEntryDao().insertEntry(updatedEntry.copy(syncStatus = "pending"))
+                    repairCount++
+                }
+            }
+            if (repairCount > 0) android.util.Log.d("PHOENX_V8.3", "$repairCount énigmes sécurisées et marquées pour re-sync.")
         }
 
         // Nettoyage de l'ancien écouteur si existant
@@ -259,6 +284,9 @@ class MainViewModel @Inject constructor(
                     if (doc.getString("publicEncryptionKey") != localPublicKey) {
                         db.collection("users").document(userId).update("publicEncryptionKey", localPublicKey)
                     }
+
+                    // Miroir de clé Héritage (v8.3)
+                    ensureLegacyKey(userId, doc.getString("encryptionKey"))
                 }
             } else {
                 parsedRoles.values.firstOrNull()?.let {
@@ -294,6 +322,24 @@ class MainViewModel @Inject constructor(
                         } ?: emptyList()
                         _pendingInvitations.value = invites
                     }
+            }
+        }
+    }
+
+    private fun ensureLegacyKey(userId: String, currentKeyBase64: String?) {
+        if (currentKeyBase64 == null) return
+        viewModelScope.launch {
+            try {
+                val legacyKeyRef = db.collection("users").document(userId)
+                    .collection("entry_keys").document("main")
+                
+                val exists = legacyKeyRef.get().await().exists()
+                if (!exists) {
+                    legacyKeyRef.set(mapOf("key" to currentKeyBase64)).await()
+                    android.util.Log.d("PHOENX_KEY", "Miroir de clé Héritage créé.")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_KEY", "Erreur miroir de clé", e)
             }
         }
     }

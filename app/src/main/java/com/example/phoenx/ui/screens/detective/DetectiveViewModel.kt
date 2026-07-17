@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.domain.util.EnigmaUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -88,7 +89,12 @@ class DetectiveViewModel @Inject constructor(
     }
 
     fun attemptUnlock(entry: OfflineEntry, answer: String) {
-        if (entry.enigmaAnswer?.lowercase() == answer.trim().lowercase()) {
+        val hashedInput = EnigmaUtils.hashAnswer(answer)
+        
+        // Vérification multi-réponses (v8.3)
+        // enigmaAnswer = réponse principale hachée
+        // fallbackAnswer = réponse secondaire hachée
+        if (entry.enigmaAnswer == hashedInput || entry.fallbackAnswer == hashedInput) {
             _uiState.update { it.copy(unlockedEntryId = entry.id) }
         } else {
             _uiState.update { it.copy(error = "Mauvaise réponse. Cherche encore...") }

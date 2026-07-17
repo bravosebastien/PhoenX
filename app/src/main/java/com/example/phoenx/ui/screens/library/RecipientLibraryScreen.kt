@@ -195,6 +195,9 @@ fun RecipientLibraryScreen(
                                     } else {
                                         // Côté destinataire
                                     }
+                                } else if (id == "coffre_fort" && !isCreatorMode) {
+                                    // Routage corrigé vers le Player Détective (v8.3)
+                                    navController.navigate(Screen.RecipientDetective.createRoute(targetCreatorId))
                                 } else {
                                     navController.navigate(route)
                                 }

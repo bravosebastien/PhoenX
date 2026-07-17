@@ -12,6 +12,7 @@ import com.example.phoenx.data.haptic.HapticManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.RecipientEntity
+import com.example.phoenx.domain.util.EnigmaUtils
 import com.example.phoenx.domain.util.AgeUtils
 import com.example.phoenx.ui.navigation.Screen
 import com.google.firebase.auth.FirebaseAuth
@@ -294,7 +295,7 @@ class CaptureViewModel @Inject constructor(
                     aiSummary = analysis.summary,
                     aiTags = analysis.tags.joinToString(","),
                     enigmaQuestion = enigmaQuestion,
-                    enigmaAnswer = enigmaAnswer,
+                    enigmaAnswer = EnigmaUtils.hashAnswer(enigmaAnswer), // Sécurité unifiée (v8.3)
                     scheduledTimestamp = scheduledTimestamp,
                     pactId = pactId,
                     latitude = latitude,

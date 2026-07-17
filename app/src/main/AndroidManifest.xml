@@ -57,6 +57,7 @@
                 <data android:scheme="https" android:host="phoenx.app" android:pathPrefix="/ask" />
                 <data android:scheme="https" android:host="phoenx.app" android:pathPrefix="/depositary-alert" />
                 <data android:scheme="https" android:host="phoenx.app" android:pathPrefix="/invite" />
+                <data android:scheme="https" android:host="phoenx.app" android:pathPrefix="/book" />
             </intent-filter>
         </activity>
         

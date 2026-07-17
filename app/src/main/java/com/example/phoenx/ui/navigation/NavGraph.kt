@@ -710,7 +710,10 @@ fun PhoenXNavGraph(
         }
         composable(
             route = "book_viewer_recipient?creatorId={creatorId}",
-            arguments = listOf(navArgument("creatorId") { nullable = true })
+            arguments = listOf(navArgument("creatorId") { nullable = true }),
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "https://phoenx.app/book/{creatorId}" }
+            )
         ) { backStackEntry ->
             val creatorId = backStackEntry.arguments?.getString("creatorId")
             BookViewerScreen(navController = navController, isRecipientMode = true, targetCreatorId = creatorId)

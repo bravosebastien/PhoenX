@@ -9,6 +9,8 @@ import org.bouncycastle.crypto.params.Argon2Parameters
 import com.google.crypto.tink.aead.AeadConfig
 import java.security.*
 import javax.crypto.Cipher
+import javax.crypto.spec.GCMParameterSpec
+import javax.crypto.spec.SecretKeySpec
 import javax.inject.Inject
 import javax.inject.Singleton
 import java.io.File
@@ -63,6 +65,17 @@ class EncryptionManager @Inject constructor() {
     /**
      * Chiffre un tableau d'octets (AES-256-GCM)
      */
+    /**
+     * Retourne un Cipher de déchiffrement configuré (v8.3 Support Streaming)
+     */
+    fun getDecryptionCipher(iv: ByteArray, key: ByteArray? = null): Cipher {
+        val useKey = key ?: sessionKey ?: throw IllegalStateException("Clé de session manquante")
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+        val spec = GCMParameterSpec(128, iv)
+        cipher.init(Cipher.DECRYPT_MODE, SecretKeySpec(useKey, "AES"), spec)
+        return cipher
+    }
+
     fun encryptBytes(data: ByteArray, key: ByteArray? = null): ByteArray {
         val encryptionKey = key ?: sessionKey
             ?: throw IllegalStateException("Clé de session non initialisée.")
@@ -99,10 +112,15 @@ class EncryptionManager @Inject constructor() {
     }
 
     /**
-     * Déchiffre un texte
+     * Déchiffre un texte (v8.3 Support Héritage)
      */
     fun decryptText(ciphertext: ByteArray, key: ByteArray? = null): String {
-        return String(decryptBytes(ciphertext, key), Charsets.UTF_8)
+        return try {
+            val decrypted = decryptBytes(ciphertext, key)
+            String(decrypted, Charsets.UTF_8)
+        } catch (e: Exception) {
+            "Contenu chiffré"
+        }
     }
 
     fun encrypt(text: String): String {

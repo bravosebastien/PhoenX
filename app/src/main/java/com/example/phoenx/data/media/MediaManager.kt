@@ -2,6 +2,7 @@ package com.example.phoenx.data.media
 
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.google.firebase.storage.FirebaseStorage
+import androidx.media3.datasource.DataSource
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import javax.inject.Inject
@@ -47,5 +48,12 @@ class MediaManager @Inject constructor(
         val storageRef = storage.getReferenceFromUrl(url)
         val encryptedBytes = storageRef.getBytes(Long.MAX_VALUE).await()
         return encryptionManager.decryptBytes(encryptedBytes)
+    }
+
+    /**
+     * Fournit une factory de source de données pour ExoPlayer (Streaming Chiffré).
+     */
+    fun getEncryptedDataSourceFactory(explicitKey: ByteArray? = null): androidx.media3.datasource.DataSource.Factory {
+        return EncryptedMediaDataSourceFactory(encryptionManager, explicitKey)
     }
 }
