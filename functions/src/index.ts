@@ -3,21 +3,28 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onDocumentCreated, onDocumentDeleted } from "firebase-functions/v2/firestore";
 import * as functionsV1 from "firebase-functions/v1";
 import * as admin from "firebase-admin";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import axios from "axios";
 import * as crypto from "crypto";
 
 admin.initializeApp();
 
 /**
- * PHOEN-X Intelligence Layer (v7.7 - Nouveau SDK @google/genai)
+ * PHOEN-X Intelligence Layer (v8.2 - Real Migration to SDK @google/genai)
  */
 
 const API_KEY = process.env.GEMINI_API_KEY || "";
-const genAI = new GoogleGenerativeAI(API_KEY);
-const generativeModel = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-});
+const ai = new GoogleGenAI({ apiKey: API_KEY });
+const AI_MODEL = "gemini-2.0-flash";
+
+// Helper pour simplifier les appels avec le nouveau SDK pérenne
+async function generateWithGemini(prompt: string): Promise<string> {
+    const result = await ai.models.generateContent({
+        model: AI_MODEL,
+        contents: [prompt]
+    });
+    return result.text || "";
+}
 
 const AI_RULES = `
 Tu es l'IA de PHOEN-X, une plateforme de mémoire vivante.
@@ -63,8 +70,7 @@ export const analyzeEntry = onCall({
     Choisis les compartiments les plus pertinents où ranger ce souvenir.
     Résumé : ${summary}`;
 
-    const result = await generativeModel.generateContent(prompt);
-    const text = result.response.text() || "{}";
+    const text = await generateWithGemini(prompt) || "{}";
 
     const analysis = JSON.parse(text.replace(/```json|```/g, "").trim());
 
@@ -89,8 +95,7 @@ export const generateBiographerQuestion = onCall({
     }
     const { themes } = request.data;
     const prompt = `${AI_RULES} Génère UNE question de biographe (15 mots max). Thèmes : ${themes || "vie"}.`;
-    const result = await generativeModel.generateContent(prompt);
-    return result.response.text() || "Quel souvenir te fait sourire ?";
+    return await generateWithGemini(prompt) || "Quel souvenir te fait sourire ?";
 });
 
 // 3. Portrait d'Essence
@@ -103,8 +108,7 @@ export const generateEssencePortrait = onCall({
     const { summaries } = request.data;
     if (!summaries?.length) return "Continue à déposer tes pensées...";
     const prompt = `${AI_RULES} Portrait d'Essence au CONDITIONNEL. Données : ${summaries.join(" | ")}`;
-    const result = await generativeModel.generateContent(prompt);
-    return result.response.text() || "";
+    return await generateWithGemini(prompt) || "";
 });
 
 // 4. Détection d'Évolution
@@ -116,8 +120,7 @@ export const detectThoughtEvolution = onCall({
     }
     const { entriesByAge } = request.data;
     const prompt = `${AI_RULES} Transitions thématiques par âge en JSON. Données : ${JSON.stringify(entriesByAge)}`;
-    const result = await generativeModel.generateContent(prompt);
-    const text = result.response.text() || '{"transitions":[]}';
+    const text = await generateWithGemini(prompt) || '{"transitions":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());
 });
 
@@ -130,8 +133,7 @@ export const generateYoungSelfSuggestions = onCall({
     }
     const { targetAge, summariesAtThatAge } = request.data;
     const prompt = `${AI_RULES} Suggestions pour lettre à soi-même à ${targetAge} ans. Résumés: ${summariesAtThatAge.join(" | ")}`;
-    const result = await generativeModel.generateContent(prompt);
-    return result.response.text() || "";
+    return await generateWithGemini(prompt) || "";
 });
 
 // 8. Génération du livre (v7.6 Multimédia)
@@ -155,8 +157,7 @@ export const generateBookChapters = onCall({
     3. Pour chaque enregistrement vocal (id et description), intègre son essence émotionnelle dans le récit. Tu peux aussi insérer une balise [AUDIO:id_exact] si c'est un message clé.
     4. Réponds UNIQUEMENT en JSON avec cette structure : {"chapters": [{"title": "Nom du chapitre", "content": "Texte avec balises [PHOTO:id] incluses", "orderIndex": 0}]}`;
 
-    const result = await generativeModel.generateContent(prompt);
-    const text = result.response.text() || '{"chapters":[]}';
+    const text = await generateWithGemini(prompt) || '{"chapters":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());
 });
 
