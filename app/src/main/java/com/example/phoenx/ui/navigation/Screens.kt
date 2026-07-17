@@ -153,9 +153,13 @@ sealed class Screen(val route: String) {
 
     // GRAPHE DESTINATAIRE
     object RecipientWelcome : Screen("recipient/welcome")
-    object RecipientCube : Screen("recipient/cube")
+    object RecipientCube : Screen("recipient/cube/{creatorId}") {
+        fun createRoute(creatorId: String) = "recipient/cube/$creatorId"
+    }
     object RecipientFil : Screen("recipient/fil")
-    object RecipientLibrary : Screen("recipient/library")
+    object RecipientLibrary : Screen("recipient/library/{creatorId}") {
+        fun createRoute(creatorId: String) = "recipient/library/$creatorId"
+    }
     object RecipientDiscotheque : Screen("recipient/discotheque")
     object RecipientVideotheque : Screen("recipient/videotheque")
     object RecipientFavorites : Screen("recipient/favorites")

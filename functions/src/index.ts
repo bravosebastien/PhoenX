@@ -231,6 +231,7 @@ export const activateProtocol = onCall(async (request) => {
     await admin.firestore().collection("tasks").add({
         type: "notifyDeathContacts",
         creatorId: creatorId,
+        protocolId: ref.id, // LIEN AVEC LE PROTOCOLE (v7.6)
         scheduledFor: admin.firestore.Timestamp.fromMillis(Date.now() + thresholdMillis),
         status: "pending"
     });
@@ -239,11 +240,39 @@ export const activateProtocol = onCall(async (request) => {
 });
 
 // 12. Notification Contacts de Notification (Email sobre après 72h)
-async function notifyDeathContactsInternal(creatorId: string): Promise<void> {
-    const creatorDoc = await admin.firestore().collection("users").doc(creatorId).get();
+async function notifyDeathContactsInternal(creatorId: string, protocolId: string): Promise<void> {
+    const db = admin.firestore();
+
+    // 1. VÉRIFICATION STRICTE DU PROTOCOLE (Logique fermée par défaut v7.6)
+    if (!protocolId) throw new Error("MISSING_PROTOCOL_ID");
+
+    const protocolDoc = await db.collection("activationProtocols").doc(protocolId).get();
+
+    if (!protocolDoc.exists) throw new Error("PROTOCOL_NOT_FOUND");
+
+    const protocolData = protocolDoc.data();
+    const status = protocolData?.status;
+
+    if (status === "contested") throw new Error("PROTOCOL_CONTESTED");
+    if (status !== "pending_contest") throw new Error("UNEXPECTED_STATUS");
+
+    const creatorDoc = await db.collection("users").doc(creatorId).get();
     const creatorName = creatorDoc.data()?.displayName || "Votre proche";
 
-    const contactsSnap = await admin.firestore().collection("users").doc(creatorId)
+    // Action A : Ouverture de l'héritage
+    await db.collection("users").doc(creatorId).update({
+        protocolStatus: "activated"
+    });
+
+    // Action B : Clôture du protocole (Succès)
+    await db.collection("activationProtocols").doc(protocolId).update({
+        status: "completed",
+        completedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    console.log(`[PROTOCOL] Héritage activé pour le créateur ${creatorId}`);
+
+    const contactsSnap = await db.collection("users").doc(creatorId)
         .collection("notificationContacts").get();
 
     if (contactsSnap.empty) return;
@@ -267,7 +296,8 @@ async function notifyDeathContactsInternal(creatorId: string): Promise<void> {
 
 export const scheduledNotifications = onSchedule("every 60 minutes", async () => {
     const now = admin.firestore.Timestamp.now();
-    const tasksSnap = await admin.firestore().collection("tasks")
+    const db = admin.firestore();
+    const tasksSnap = await db.collection("tasks")
         .where("status", "==", "pending")
         .where("scheduledFor", "<=", now)
         .get();
@@ -276,12 +306,26 @@ export const scheduledNotifications = onSchedule("every 60 minutes", async () =>
         const task = taskDoc.data();
         try {
             if (task.type === "notifyDeathContacts") {
-                await notifyDeathContactsInternal(task.creatorId);
+                await notifyDeathContactsInternal(task.creatorId, task.protocolId);
             }
             await taskDoc.ref.update({ status: "done" });
-        } catch (e) {
-            console.error("Erreur tâche:", e);
-            await taskDoc.ref.update({ status: "failed" });
+        } catch (e: any) {
+            const errorMap: Record<string, string> = {
+                "MISSING_PROTOCOL_ID": "missing_protocol_id",
+                "PROTOCOL_NOT_FOUND": "protocol_not_found",
+                "PROTOCOL_CONTESTED": "contested",
+                "UNEXPECTED_STATUS": "unexpected_status"
+            };
+
+            const reason = errorMap[e.message];
+
+            if (reason) {
+                await taskDoc.ref.update({ status: "cancelled", reason: reason });
+                console.warn(`[TASK] Tâche ${taskDoc.id} annulée : ${reason}`);
+            } else {
+                console.error("Erreur tâche:", e);
+                await taskDoc.ref.update({ status: "failed", error: e.message });
+            }
         }
     }
 });
@@ -665,6 +709,35 @@ export const getInvitationDetails = onCall(async (request) => {
         role: inviteData.role,
         label: inviteData.label,
         targetEmail: inviteData.email
+    };
+});
+
+/**
+ * PHOEN-X v7.6 - Récupération sécurisée du statut du livre pour l'héritier
+ */
+export const getCreatorBookStatus = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Non authentifié");
+    const { creatorId } = request.data;
+    if (!creatorId) throw new HttpsError("invalid-argument", "ID Créateur manquant");
+
+    const db = admin.firestore();
+    const requesterUid = request.auth.uid;
+
+    // 1. Vérification du rôle héritier
+    const userDoc = await db.collection("users").doc(requesterUid).get();
+    const myRoles = userDoc.data()?.myRoles || {};
+    const hasRole = `${creatorId}_recipient` in myRoles;
+
+    if (!hasRole) throw new HttpsError("permission-denied", "Vous n'êtes pas héritier de ce créateur.");
+
+    // 2. Récupération des infos minimales du créateur
+    const creatorDoc = await db.collection("users").doc(creatorId).get();
+    if (!creatorDoc.exists) throw new HttpsError("not-found", "Créateur introuvable");
+
+    const data = creatorDoc.data()!;
+    return {
+        displayName: data.displayName || "Votre proche",
+        isBookOpen: data.protocolStatus === "activated"
     };
 });
 

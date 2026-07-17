@@ -55,7 +55,17 @@ fun BookEditorScreen(
     val selectedChapter by viewModel.selectedChapter.collectAsState()
     val isModifyingWithAi by viewModel.isModifyingWithAi.collectAsState()
     val error by viewModel.error.collectAsState()
+    val isUserCreator by viewModel.isUserCreator.collectAsState()
     var showChapterEditor by remember { mutableStateOf(false) }
+
+    // Redirection de sécurité si le destinataire arrive ici par erreur
+    LaunchedEffect(isUserCreator) {
+        if (isUserCreator == false) {
+            navController.navigate("book_viewer_recipient") {
+                popUpTo("book_editor") { inclusive = true }
+            }
+        }
+    }
 
     Box(
         modifier = Modifier

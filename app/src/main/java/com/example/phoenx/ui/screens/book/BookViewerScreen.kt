@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,9 +31,66 @@ import com.example.phoenx.ui.theme.AccentPrimary
 fun BookViewerScreen(
     navController: NavController,
     isRecipientMode: Boolean = false,
+    targetCreatorId: String? = null,
     viewModel: BookViewerViewModel = hiltViewModel()
 ) {
     val bookDraft by viewModel.bookDraft.collectAsState()
+    val isLocked by viewModel.isLocked.collectAsState()
+    val creatorName by viewModel.creatorName.collectAsState()
+
+    LaunchedEffect(targetCreatorId) {
+        viewModel.loadBook(targetCreatorId)
+    }
+
+    if (isLocked && isRecipientMode) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF1C1410)),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(32.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = null,
+                    tint = AccentPrimary.copy(alpha = 0.5f),
+                    modifier = Modifier.size(64.dp)
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Le Livre de $creatorName vous sera ouvert le moment venu.",
+                    style = TextStyle(
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 20.sp,
+                        fontStyle = FontStyle.Italic,
+                        color = Color(0xFFF2EDE8),
+                        textAlign = TextAlign.Center
+                    )
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Ce récit est actuellement scellé. Seul le Gardien pourra lever le sceau.",
+                    style = TextStyle(
+                        fontSize = 14.sp,
+                        color = Color(0xFF9B9590),
+                        textAlign = TextAlign.Center
+                    )
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                Button(
+                    onClick = { navController.popBackStack() },
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                ) {
+                    Text("Retour", color = Color(0xFF1A1A1F))
+                }
+            }
+        }
+        return
+    }
+
     val chapters = bookDraft?.chapters
         ?.sortedBy { it.orderIndex }
         ?: emptyList()

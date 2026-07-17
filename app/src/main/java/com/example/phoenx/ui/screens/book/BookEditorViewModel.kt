@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await as kotlinAwait
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,8 +41,25 @@ class BookEditorViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
+    private val _isUserCreator = MutableStateFlow<Boolean?>(null)
+    val isUserCreator: StateFlow<Boolean?> = _isUserCreator
+
     init {
+        checkCreatorStatus()
         loadExistingBook()
+    }
+
+    private fun checkCreatorStatus() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                val doc = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("users").document(userId).get().kotlinAwait()
+                _isUserCreator.value = doc.getBoolean("isCreator") ?: true
+            } catch (e: Exception) {
+                _isUserCreator.value = true
+            }
+        }
     }
 
     fun loadExistingBook() {

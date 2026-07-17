@@ -530,10 +530,15 @@ fun PhoenXNavGraph(
             )
         }
 
-        composable(Screen.RecipientCube.route) {
+        composable(
+            route = Screen.RecipientCube.route,
+            arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
             RecipientCubeScreen(
+                creatorId = creatorId,
                 onExit = { navController.popBackStack() },
-                onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.route) },
+                onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.createRoute(creatorId)) },
                 onNavigateToDiscotheque = { navController.navigate(Screen.RecipientDiscotheque.route) },
                 onNavigateToArchives = { navController.navigate(Screen.RecipientFavorites.route) }
             )
@@ -543,8 +548,16 @@ fun PhoenXNavGraph(
             RecipientArchiveScreen(onNavigateBack = { navController.popBackStack() })
         }
 
-        composable(Screen.RecipientLibrary.route) {
-            RecipientLibraryScreen(navController = navController)
+        composable(
+            route = Screen.RecipientLibrary.route,
+            arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+            RecipientLibraryScreen(
+                navController = navController, 
+                isCreatorMode = false,
+                targetCreatorId = creatorId
+            )
         }
 
         // --- ROUTES BIBLIOTHÈQUE ---
@@ -662,8 +675,12 @@ fun PhoenXNavGraph(
         composable("book_viewer") {
             BookViewerScreen(navController = navController, isRecipientMode = false)
         }
-        composable("book_viewer_recipient") {
-            BookViewerScreen(navController = navController, isRecipientMode = true)
+        composable(
+            route = "book_viewer_recipient?creatorId={creatorId}",
+            arguments = listOf(navArgument("creatorId") { nullable = true })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId")
+            BookViewerScreen(navController = navController, isRecipientMode = true, targetCreatorId = creatorId)
         }
 
         // --- DEPOSITARY GRAPH ---

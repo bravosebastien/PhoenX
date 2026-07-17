@@ -15,11 +15,29 @@ class ActivationProtocolManager @Inject constructor(
      * Confirme que le Créateur est en vie (Action hebdomadaire).
      */
     suspend fun confirmProofOfLife(userId: String) {
+        // 1. Mettre à jour le statut du profil
         db.collection("users").document(userId)
             .update(
                 "lastAliveConfirmedAt", Timestamp.now(),
                 "protocolStatus", "dormant" // Réinitialise si c'était en attente
             ).await()
+
+        // 2. Chercher et marquer le protocole en cours comme contesté
+        try {
+            val pendingProtocols = db.collection("activationProtocols")
+                .whereEqualTo("creatorId", userId)
+                .whereEqualTo("status", "pending_contest")
+                .get()
+                .await()
+
+            for (doc in pendingProtocols.documents) {
+                db.collection("activationProtocols").document(doc.id)
+                    .update("status", "contested")
+                    .await()
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("ProtocolManager", "Erreur lors de la contestation du protocole", e)
+        }
     }
 
     /**

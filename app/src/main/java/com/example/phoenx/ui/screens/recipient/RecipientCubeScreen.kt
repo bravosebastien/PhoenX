@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.tasks.await as kotlinAwait
 import com.example.phoenx.ui.theme.*
 
 /**
@@ -23,18 +24,29 @@ import com.example.phoenx.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipientCubeScreen(
+    creatorId: String,
     onExit: () -> Unit,
     onNavigateToLibrary: () -> Unit,
     onNavigateToDiscotheque: () -> Unit,
     onNavigateToArchives: () -> Unit
 ) {
+    val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+    var creatorName by remember { mutableStateOf("Ton proche") }
+
+    LaunchedEffect(creatorId) {
+        try {
+            val doc = db.collection("users").document(creatorId).get().kotlinAwait()
+            creatorName = doc.getString("displayName") ?: "Ton proche"
+        } catch (e: Exception) {}
+    }
+
     Scaffold(
         containerColor = Color.Black,
         topBar = {
             TopAppBar(
                 title = { 
                     Column {
-                        Text("L'Armoire de [Nom]", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
+                        Text("L'Armoire de $creatorName", color = TextPrimary, style = MaterialTheme.typography.labelLarge)
                         Text("Explore son héritage", color = TextTertiary, style = MaterialTheme.typography.labelSmall)
                     }
                 },

@@ -37,6 +37,7 @@ import com.example.phoenx.ui.theme.*
 fun RecipientLibraryScreen(
     navController: NavController,
     isCreatorMode: Boolean = true,
+    targetCreatorId: String? = null,
     viewModel: LibraryCoverViewModel = hiltViewModel()
 ) {
     val covers by viewModel.covers.collectAsState()
@@ -104,11 +105,21 @@ fun RecipientLibraryScreen(
         EssentialCard(
             title = "Livre de Ma Vie",
             description = "Co-écrit avec l'IA narrative.",
-            status = "En cours",
+            status = if (isCreatorMode) "En cours" else "Consultation",
             icon = Icons.Outlined.MenuBook,
             cover = covers["livre_vie"],
-            onClick = { navController.navigate("book_editor") },
-            onEdit = { navController.navigate("library_cover_picker/livre_vie/Livre de Ma Vie") }
+            onClick = { 
+                if (isCreatorMode) {
+                    navController.navigate("book_editor") 
+                } else {
+                    navController.navigate("book_viewer_recipient?creatorId=$targetCreatorId")
+                }
+            },
+            onEdit = { 
+                if (isCreatorMode) {
+                    navController.navigate("library_cover_picker/livre_vie/Livre de Ma Vie") 
+                }
+            }
         )
 
         EssentialCard(
