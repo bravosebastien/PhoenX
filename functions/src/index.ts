@@ -3,20 +3,20 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onDocumentCreated, onDocumentDeleted } from "firebase-functions/v2/firestore";
 import * as functionsV1 from "firebase-functions/v1";
 import * as admin from "firebase-admin";
-import { VertexAI } from "@google-cloud/vertexai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import axios from "axios";
 import * as crypto from "crypto";
 
 admin.initializeApp();
 
 /**
- * PHOEN-X Intelligence Layer (v7.1)
+ * PHOEN-X Intelligence Layer (v7.7 - Nouveau SDK @google/genai)
  */
 
-const PROJECT_ID = admin.instanceId().app.options.projectId;
-const vertexAI = new VertexAI({ project: PROJECT_ID || "", location: "us-central1" });
-const generativeModel = vertexAI.getGenerativeModel({
-    model: "gemini-1.5-flash-001",
+const API_KEY = process.env.GEMINI_API_KEY || "";
+const genAI = new GoogleGenerativeAI(API_KEY);
+const generativeModel = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash",
 });
 
 const AI_RULES = `
@@ -48,7 +48,9 @@ async function sendSMSViaPartner(params: { to: string; body: string }): Promise<
 }
 
 // 1. Analyse approfondie
-export const analyzeEntry = onCall(async (request) => {
+export const analyzeEntry = onCall({
+    secrets: ["GEMINI_API_KEY"]
+}, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
@@ -62,7 +64,7 @@ export const analyzeEntry = onCall(async (request) => {
     Résumé : ${summary}`;
 
     const result = await generativeModel.generateContent(prompt);
-    const text = result.response.candidates?.[0]?.content.parts[0]?.text || "{}";
+    const text = result.response.text() || "{}";
 
     const analysis = JSON.parse(text.replace(/```json|```/g, "").trim());
 
@@ -79,18 +81,22 @@ export const analyzeEntry = onCall(async (request) => {
 });
 
 // 2. Question du Biographe
-export const generateBiographerQuestion = onCall(async (request) => {
+export const generateBiographerQuestion = onCall({
+    secrets: ["GEMINI_API_KEY"]
+}, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
     const { themes } = request.data;
     const prompt = `${AI_RULES} Génère UNE question de biographe (15 mots max). Thèmes : ${themes || "vie"}.`;
     const result = await generativeModel.generateContent(prompt);
-    return result.response.candidates?.[0]?.content.parts[0]?.text || "Quel souvenir te fait sourire ?";
+    return result.response.text() || "Quel souvenir te fait sourire ?";
 });
 
 // 3. Portrait d'Essence
-export const generateEssencePortrait = onCall(async (request) => {
+export const generateEssencePortrait = onCall({
+    secrets: ["GEMINI_API_KEY"]
+}, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
@@ -98,41 +104,59 @@ export const generateEssencePortrait = onCall(async (request) => {
     if (!summaries?.length) return "Continue à déposer tes pensées...";
     const prompt = `${AI_RULES} Portrait d'Essence au CONDITIONNEL. Données : ${summaries.join(" | ")}`;
     const result = await generativeModel.generateContent(prompt);
-    return result.response.candidates?.[0]?.content.parts[0]?.text || "";
+    return result.response.text() || "";
 });
 
 // 4. Détection d'Évolution
-export const detectThoughtEvolution = onCall(async (request) => {
+export const detectThoughtEvolution = onCall({
+    secrets: ["GEMINI_API_KEY"]
+}, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
     const { entriesByAge } = request.data;
     const prompt = `${AI_RULES} Transitions thématiques par âge en JSON. Données : ${JSON.stringify(entriesByAge)}`;
     const result = await generativeModel.generateContent(prompt);
-    const text = result.response.candidates?.[0]?.content.parts[0]?.text || '{"transitions":[]}';
+    const text = result.response.text() || '{"transitions":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());
 });
 
 // 5. Suggestions Jeune Moi
-export const generateYoungSelfSuggestions = onCall(async (request) => {
+export const generateYoungSelfSuggestions = onCall({
+    secrets: ["GEMINI_API_KEY"]
+}, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
     const { targetAge, summariesAtThatAge } = request.data;
     const prompt = `${AI_RULES} Suggestions pour lettre à soi-même à ${targetAge} ans. Résumés: ${summariesAtThatAge.join(" | ")}`;
     const result = await generativeModel.generateContent(prompt);
-    return result.response.candidates?.[0]?.content.parts[0]?.text || "";
+    return result.response.text() || "";
 });
 
-// 8. Génération du livre
-export const generateBookChapters = onCall(async (request) => {
+// 8. Génération du livre (v7.6 Multimédia)
+export const generateBookChapters = onCall({
+    secrets: ["GEMINI_API_KEY"]
+}, async (request) => {
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
-    const { summaries, tags, ageMin, ageMax } = request.data;
-    const prompt = `${AI_RULES} Rédige un livre de vie structuré. ${summaries.length} souvenirs, de ${ageMin} à ${ageMax} ans.`;
+
+    const { scenes, ageMin, ageMax } = request.data;
+    if (!scenes || scenes.length === 0) throw new HttpsError("invalid-argument", "Pas de souvenirs à traiter");
+
+    const prompt = `${AI_RULES}
+    Tu es le biographe attitré de l'utilisateur. Tu dois rédiger un Livre de Vie structuré en chapitres.
+    Données source (Scènes) : ${JSON.stringify(scenes)}
+
+    Instructions :
+    1. Rédige un récit fluide, à la première personne du singulier ("Je"), en couvrant la période de ${ageMin} à ${ageMax} ans.
+    2. Pour chaque photo fournie (avec id et description), insère la balise [PHOTO:id_exact] à l'endroit le plus opportun dans ton texte. Utilise la description uniquement pour comprendre le contexte, ne l'affiche pas.
+    3. Pour chaque enregistrement vocal (id et description), intègre son essence émotionnelle dans le récit. Tu peux aussi insérer une balise [AUDIO:id_exact] si c'est un message clé.
+    4. Réponds UNIQUEMENT en JSON avec cette structure : {"chapters": [{"title": "Nom du chapitre", "content": "Texte avec balises [PHOTO:id] incluses", "orderIndex": 0}]}`;
+
     const result = await generativeModel.generateContent(prompt);
-    const text = result.response.candidates?.[0]?.content.parts[0]?.text || '{"chapters":[]}';
+    const text = result.response.text() || '{"chapters":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());
 });
 

@@ -46,55 +46,48 @@ class BookGeneratorService @Inject constructor(
     }
 
     /**
-     * Extrait les métadonnées IA de tous les souvenirs locaux.
+     * Extrait les "Scènes de Vie" (Souvenirs groupés avec leurs médias)
      */
-    suspend fun extractMetadata(): BookMetadata {
-        val entries = offlineEntryDao.getAllEntriesSync()
+    suspend fun extractScenes(): List<Map<String, Any?>> {
+        val allEntries = offlineEntryDao.getAllEntriesSync()
+        val parents = allEntries.filter { it.parentEntryId == null }
         
-        val summaries = entries.map { it.aiSummary }.filter { it.isNotEmpty() }
-        val tags = entries.flatMap { it.aiTags.split(",") }.map { it.trim() }.filter { it.isNotEmpty() }
-        val ages = entries.map { AgeUtils.parseAgeJson(it.ageAtCreation).years }
-        val categories = entries.map { it.emotionalCategory }
-        
-        // Extraction des lieux mentionnés dans les métadonnées
-        val places = entries.map { it.aiSummary }
-            .filter { it.contains("à ") || it.contains("en ") } 
-            // Amélioration future : utiliser un détecteur d'entités nommées
-
-        val categoryCounts = categories.groupingBy { it }.eachCount()
-
-        return BookMetadata(
-            summaries = summaries,
-            tags = tags.distinct(),
-            ages = ages,
-            categories = categories.distinct(),
-            places = places,
-            categoryCounts = categoryCounts
-        )
+        return parents.map { parent ->
+            val complements = allEntries.filter { it.parentEntryId == parent.id }
+            val age = AgeUtils.parseAgeJson(parent.ageAtCreation)
+            
+            mapOf(
+                "summary" to parent.aiSummary,
+                "age" to age.years,
+                "category" to parent.emotionalCategory,
+                "photos" to complements.filter { it.entryType == "PHOTO" || it.entryType == "GALLERY" }
+                    .map { mapOf("id" to it.id, "description" to it.aiSummary) },
+                "vocal_essence" to complements.filter { it.entryType == "AUDIO" }
+                    .map { mapOf("id" to it.id, "description" to it.aiSummary) }
+            )
+        }.sortedBy { it["age"] as Int }
     }
 
     /**
-     * Lance la génération complète du manuscrit.
-     * @param onProgress Callback pour mettre à jour l'UI pendant les étapes.
+     * Lance la génération complète du manuscrit multimédia.
      */
     suspend fun generateBook(userId: String, onProgress: (String) -> Unit): BookDraft {
-        onProgress("Analyse de tes souvenirs...")
-        val metadata = extractMetadata()
+        onProgress("Préparation des scènes de ta vie...")
+        val scenes = extractScenes()
         
-        if (metadata.summaries.isEmpty()) {
+        if (scenes.isEmpty()) {
             throw Exception("Pas assez de souvenirs pour écrire ton livre.")
         }
 
-        onProgress("Rédaction des chapitres par l'IA...")
+        onProgress("Rédaction des chapitres illustrés par l'IA...")
         
+        val ageMin = scenes.minOf { it["age"] as Int }
+        val ageMax = scenes.maxOf { it["age"] as Int }
+
         val data = hashMapOf(
-            "summaries" to metadata.summaries,
-            "tags" to metadata.tags,
-            "categoryCounts" to metadata.categoryCounts,
-            "ageMin" to (metadata.ages.minOrNull() ?: 0),
-            "ageMax" to (metadata.ages.maxOrNull() ?: 0),
-            "totalEntries" to metadata.summaries.size,
-            "places" to metadata.places
+            "scenes" to scenes,
+            "ageMin" to ageMin,
+            "ageMax" to ageMax
         )
 
         val result = functions.getHttpsCallable("generateBookChapters")
@@ -121,7 +114,7 @@ class BookGeneratorService @Inject constructor(
             id = java.util.UUID.randomUUID().toString(),
             userId = userId,
             chapters = chapters,
-            totalEntries = metadata.summaries.size
+            totalEntries = scenes.size
         )
 
         onProgress("Sauvegarde finale...")
