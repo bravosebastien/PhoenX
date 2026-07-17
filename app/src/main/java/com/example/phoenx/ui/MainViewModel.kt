@@ -54,6 +54,15 @@ class MainViewModel @Inject constructor(
     private val _isCreator = MutableStateFlow<Boolean?>(null)
     val isCreator: StateFlow<Boolean?> = _isCreator.asStateFlow()
 
+    private val _currentPerspective = MutableStateFlow(Perspective.MY_MEMORY)
+    val currentPerspective: StateFlow<Perspective> = _currentPerspective.asStateFlow()
+
+    enum class Perspective { MY_MEMORY, HERITAGE, MISSIONS }
+
+    fun switchPerspective(perspective: Perspective) {
+        _currentPerspective.value = perspective
+    }
+
     private val _myRoles = MutableStateFlow<Map<String, UserRole>>(emptyMap())
     val myRoles: StateFlow<Map<String, UserRole>> = _myRoles.asStateFlow()
 

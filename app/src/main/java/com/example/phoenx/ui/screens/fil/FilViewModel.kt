@@ -50,16 +50,19 @@ class FilViewModel @Inject constructor(
     }
 
     private fun observeEntries() {
+        val currentUid = auth.currentUser?.uid ?: ""
         combine(
             offlineEntryDao.getAllEntries(),
             _selectedRecipientId,
             _sortByCreationDate
         ) { offlineEntries, recipientId, sortByDate ->
-            // 1. FILTRAGE DES RACINES : On ne garde que les souvenirs qui n'ont pas de parent (parentEntryId == null)
-            // Les compléments ne doivent pas apparaître dans le fil principal.
-            val rootEntries = offlineEntries.filter { it.parentEntryId == null }
+            // 1. FILTRAGE DE SÉCURITÉ : Uniquement mes propres souvenirs dans MON fil
+            val myOwnEntries = offlineEntries.filter { it.creatorUid == currentUid }
 
-            // 2. Filtrage par destinataire
+            // 2. FILTRAGE DES RACINES : Pas de compléments dans le fil principal
+            val rootEntries = myOwnEntries.filter { it.parentEntryId == null }
+
+            // 3. Filtrage par destinataire
             val filteredOffline = if (recipientId != null) {
                 rootEntries.filter { 
                     it.recipientIds.split(",").contains(recipientId) || it.visibility == "EVERYONE"

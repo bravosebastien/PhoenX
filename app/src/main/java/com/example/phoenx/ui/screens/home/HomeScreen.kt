@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.components.ProfileDrawer
 import com.example.phoenx.ui.components.VideoPlayerBanner
@@ -47,7 +48,7 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToTrustCircle: () -> Unit,
-    onNavigateToEssence: () -> Unit,
+    onNavigateToIA: () -> Unit,
     onNavigateToPortraits: () -> Unit,
     onNavigateToWorlds: () -> Unit,
     onNavigateToFavorites: () -> Unit,
@@ -59,6 +60,8 @@ fun HomeScreen(
     onNavigateToDetective: () -> Unit,
     onNavigateToNotificationContacts: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
+    onNavigateToCube: (String) -> Unit,
+    onAcceptInvite: (String) -> Unit,
     onLogoutSuccess: () -> Unit,
     mainViewModel: MainViewModel,
     viewModel: HomeViewModel = hiltViewModel()
@@ -69,6 +72,8 @@ fun HomeScreen(
     val isVideoBannerDismissed by mainViewModel.isVideoBannerDismissed.collectAsState()
     val pendingInvites by mainViewModel.pendingInvitations.collectAsState()
     val isCreator by mainViewModel.isCreator.collectAsState()
+    val myRoles by mainViewModel.myRoles.collectAsState()
+    val currentPerspective by mainViewModel.currentPerspective.collectAsState()
     val accent = LocalAccentColor.current
     
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -124,7 +129,7 @@ fun HomeScreen(
                 HomeNavigationBar(
                     onNavigateToHome = { },
                     onNavigateToTrustCircle = onNavigateToTrustCircle,
-                    onNavigateToIA = onNavigateToEssence,
+                    onNavigateToIA = onNavigateToIA,
                     onOpenProfile = { scope.launch { drawerState.open() } }
                 )
             }
@@ -142,191 +147,237 @@ fun HomeScreen(
                     onProfileClick = { scope.launch { drawerState.open() } }
                 )
 
-                // ALERTE INVITATION EN ATTENTE (v7.6)
-                if (pendingInvites.isNotEmpty()) {
-                    Card(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.15f)),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f)),
-                        onClick = {
-                            if (isCreator == true) {
-                                // Rediriger vers l'espace proche si créateur
-                                onNavigateToTrustCircle() // Ou une route spécifique
-                            } else {
-                                // Rediriger vers le dashboard invité
-                                // navController.navigate("guest_dashboard")
-                            }
-                        }
-                    ) {
-                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Outlined.People, null, tint = accent, modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.width(12.dp))
-                            Text(
-                                "Tu as ${pendingInvites.size} invitation(s) en attente.",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextPrimary,
-                                modifier = Modifier.weight(1f)
-                            )
-                            Icon(Icons.Outlined.ArrowForward, null, tint = accent, modifier = Modifier.size(16.dp))
-                        }
-                    }
-                }
-
-                // BANNIÈRE VIDÉO
-                if (!isVideoBannerDismissed) {
-                    VideoPlayerBanner(
-                        modifier = Modifier.padding(horizontal = 12.dp).clip(RoundedCornerShape(16.dp)),
-                        onDismiss = { mainViewModel.dismissVideoBanner() }
+                // SÉLECTEUR DE PERSPECTIVE (v7.7 Multi-rôles)
+                if (myRoles.isNotEmpty()) {
+                    PerspectiveSwitcher(
+                        current = currentPerspective,
+                        onSwitch = { mainViewModel.switchPerspective(it) },
+                        accent = accent
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // BADGES STATUT
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    StatusBadge(
-                        title = "Sécurité",
-                        subtitle = "Active",
-                        dotColor = Color(0xFF4CAF50),
-                        modifier = Modifier.weight(1f)
-                    )
-                    StatusBadge(
-                        title = "Présence",
-                        subtitle = "il y a $daysSincePresence jours",
-                        dotColor = accent,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                // BOUTONS PRINCIPAUX
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Button(
-                        onClick = { onNavigateToCapture(Screen.Capture.TYPE_TEXT, null) },
-                        modifier = Modifier.weight(1.3f).height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = accent),
-                        shape = RoundedCornerShape(14.dp),
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Surface(
-                                modifier = Modifier.size(20.dp),
-                                shape = CircleShape,
-                                color = Color.Black.copy(alpha = 0.25f)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text("+", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                }
+                if (currentPerspective == MainViewModel.Perspective.MY_MEMORY) {
+                    // --- VUE CRÉATEUR ---
+                    
+                    // ALERTE INVITATION EN ATTENTE (v7.6)
+                    if (pendingInvites.isNotEmpty()) {
+                        Card(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.15f)),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f)),
+                            onClick = { onNavigateToTrustCircle() }
+                        ) {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Outlined.People, null, tint = accent, modifier = Modifier.size(20.dp))
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    "Tu as ${pendingInvites.size} invitation(s) en attente.",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = TextPrimary,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Icon(Icons.Outlined.ArrowForward, null, tint = accent, modifier = Modifier.size(16.dp))
                             }
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Déposer", color = BackgroundPrimary, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold))
                         }
                     }
 
-                    Card(
-                        modifier = Modifier.weight(0.85f).height(56.dp).clickable { onNavigateToLibrary() },
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
-                        shape = RoundedCornerShape(14.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(Icons.Outlined.AutoStories, null, tint = accent, modifier = Modifier.size(18.dp))
-                            Text("Ma biblio", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp))
-                        }
+                    // BANNIÈRE VIDÉO
+                    if (!isVideoBannerDismissed) {
+                        VideoPlayerBanner(
+                            modifier = Modifier.padding(horizontal = 12.dp).clip(RoundedCornerShape(16.dp)),
+                            onDismiss = { mainViewModel.dismissVideoBanner() }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
 
-                    Card(
-                        modifier = Modifier.weight(0.85f).height(56.dp).clickable { onNavigateToFil() },
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
-                        shape = RoundedCornerShape(14.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(Icons.Outlined.HistoryEdu, null, tint = accent, modifier = Modifier.size(18.dp))
-                            Text("Mon Fil", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp))
-                        }
-                    }
-                }
-
-                // DERNIER SOUVENIR
-                LastMemoryCard(uiState.latestEntries.firstOrNull())
-
-                // CARTE PROGRESSION
-                ProgressionCard(
-                    memoriesCount = uiState.entryCount,
-                    questionsCount = uiState.answeredQuestionsCount,
-                    chaptersCount = uiState.validatedChaptersCount
-                )
-
-                // ACTIONS RAPIDES
-                Text(
-                    "ACTIONS RAPIDES",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp),
-                    color = TextTertiary,
-                    modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 6.dp)
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(7.dp)
-                ) {
-                    QuickActionCard(
-                        icon = Icons.Outlined.Public,
-                        name = "Mappemonde",
-                        modifier = Modifier.weight(1f),
-                        onClick = onNavigateToMap
-                    )
-                    QuickActionCard(
-                        icon = Icons.Outlined.QuestionAnswer,
-                        name = "Questions reçues",
-                        modifier = Modifier.weight(1f),
-                        badgeCount = uiState.pendingQuestionsCount,
-                        onClick = onNavigateToPendingQuestions
-                    )
-                    QuickActionCard(
-                        icon = Icons.Outlined.Fingerprint,
-                        name = "Mode Détective",
-                        modifier = Modifier.weight(1f),
-                        onClick = onNavigateToDetective
-                    )
-                }
-
-                // PRÉSENCE
-                Card(
-                    modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 12.dp).fillMaxWidth().clickable { viewModel.updateProofOfLife() },
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1A221A)),
-                    shape = RoundedCornerShape(10.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2D3D22))
-                ) {
+                    // BADGES STATUT
                     Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Box(modifier = Modifier.size(6.dp).background(Color(0xFF4CAF50), CircleShape))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Ma présence · confirmée il y a $daysSincePresence jours",
-                            color = Color(0xFF7CB87C),
-                            style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp)
+                        StatusBadge(
+                            title = "Sécurité",
+                            subtitle = "Active",
+                            dotColor = Color(0xFF4CAF50),
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatusBadge(
+                            title = "Présence",
+                            subtitle = "il y a $daysSincePresence jours",
+                            dotColor = accent,
+                            modifier = Modifier.weight(1f)
                         )
                     }
+
+                    // BOUTONS PRINCIPAUX
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { onNavigateToCapture(Screen.Capture.TYPE_TEXT, null) },
+                            modifier = Modifier.weight(1.3f).height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = accent),
+                            shape = RoundedCornerShape(14.dp),
+                            contentPadding = PaddingValues(0.dp)
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Surface(
+                                    modifier = Modifier.size(20.dp),
+                                    shape = CircleShape,
+                                    color = Color.Black.copy(alpha = 0.25f)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text("+", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Déposer", color = BackgroundPrimary, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold))
+                            }
+                        }
+
+                        Card(
+                            modifier = Modifier.weight(0.85f).height(56.dp).clickable { onNavigateToLibrary() },
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+                            shape = RoundedCornerShape(14.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(Icons.Outlined.AutoStories, null, tint = accent, modifier = Modifier.size(18.dp))
+                                Text("Ma biblio", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp))
+                            }
+                        }
+
+                        Card(
+                            modifier = Modifier.weight(0.85f).height(56.dp).clickable { onNavigateToFil() },
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+                            shape = RoundedCornerShape(14.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(Icons.Outlined.HistoryEdu, null, tint = accent, modifier = Modifier.size(18.dp))
+                                Text("Mon Fil", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp))
+                            }
+                        }
+                    }
+
+                    // DERNIER SOUVENIR
+                    LastMemoryCard(uiState.latestEntries.firstOrNull())
+
+                    // CARTE PROGRESSION
+                    ProgressionCard(
+                        memoriesCount = uiState.entryCount,
+                        questionsCount = uiState.answeredQuestionsCount,
+                        chaptersCount = uiState.validatedChaptersCount
+                    )
+
+                    // ACTIONS RAPIDES
+                    Text(
+                        "ACTIONS RAPIDES",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp),
+                        color = TextTertiary,
+                        modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 6.dp)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(7.dp)
+                    ) {
+                        QuickActionCard(
+                            icon = Icons.Outlined.Public,
+                            name = "Mappemonde",
+                            modifier = Modifier.weight(1f),
+                            onClick = onNavigateToMap
+                        )
+                        QuickActionCard(
+                            icon = Icons.Outlined.QuestionAnswer,
+                            name = "Questions reçues",
+                            modifier = Modifier.weight(1f),
+                            badgeCount = uiState.pendingQuestionsCount,
+                            onClick = onNavigateToPendingQuestions
+                        )
+                        QuickActionCard(
+                            icon = Icons.Outlined.Fingerprint,
+                            name = "Mode Détective",
+                            modifier = Modifier.weight(1f),
+                            onClick = onNavigateToDetective
+                        )
+                    }
+
+                    // PRÉSENCE
+                    Card(
+                        modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 12.dp).fillMaxWidth().clickable { viewModel.updateProofOfLife() },
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A221A)),
+                        shape = RoundedCornerShape(10.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2D3D22))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(modifier = Modifier.size(6.dp).background(Color(0xFF4CAF50), CircleShape))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                "Ma présence · confirmée il y a $daysSincePresence jours",
+                                color = Color(0xFF7CB87C),
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp)
+                            )
+                        }
+                    }
+                } else {
+                    // --- VUE INVITÉ (Héritages) ---
+                    com.example.phoenx.ui.screens.universal.GuestPerspectiveContent(
+                        myRoles = myRoles,
+                        pendingInvites = pendingInvites,
+                        accent = accent,
+                        onNavigateToCube = onNavigateToCube,
+                        onAcceptInvite = onAcceptInvite
+                    )
                 }
             }
         }
+    }
+}
+
+@Composable
+fun PerspectiveSwitcher(
+    current: MainViewModel.Perspective,
+    onSwitch: (MainViewModel.Perspective) -> Unit,
+    accent: Color
+) {
+    TabRow(
+        selectedTabIndex = current.ordinal,
+        containerColor = Color.Transparent,
+        contentColor = accent,
+        indicator = { tabPositions ->
+            TabRowDefaults.SecondaryIndicator(
+                Modifier.tabIndicatorOffset(tabPositions[current.ordinal]),
+                color = accent
+            )
+        },
+        divider = {}
+    ) {
+        Tab(
+            selected = current == MainViewModel.Perspective.MY_MEMORY,
+            onClick = { onSwitch(MainViewModel.Perspective.MY_MEMORY) },
+            text = { Text("MA MÉMOIRE", style = MaterialTheme.typography.labelSmall) }
+        )
+        Tab(
+            selected = current == MainViewModel.Perspective.HERITAGE,
+            onClick = { onSwitch(MainViewModel.Perspective.HERITAGE) },
+            text = { Text("PROCHES", style = MaterialTheme.typography.labelSmall) }
+        )
     }
 }
 

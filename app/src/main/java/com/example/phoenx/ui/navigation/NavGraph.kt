@@ -250,7 +250,7 @@ fun PhoenXNavGraph(
                 onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                 onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
                 onNavigateToTrustCircle = { navController.navigate(Screen.TrustCircle.route) },
-                onNavigateToEssence = { navController.navigate(Screen.Essence.route) },
+                onNavigateToIA = { navController.navigate(Screen.Essence.route) },
                 onNavigateToPortraits = { navController.navigate(Screen.Portraits.createRoute()) },
                 onNavigateToWorlds = { navController.navigate(Screen.Worlds.route) },
                 onNavigateToFavorites = { navController.navigate(Screen.Favorites.route) },
@@ -262,6 +262,20 @@ fun PhoenXNavGraph(
                 onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
                 onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
                 onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
+                onNavigateToCube = { id -> 
+                    // Logique de routage intelligente selon le rôle (v7.7)
+                    val role = myRoles.values.find { it.creatorId == id }
+                    if (role?.role == "depositary") {
+                        navController.navigate(Screen.DepositaryDashboard.createRoute(id))
+                    } else if (role?.role == "witness") {
+                        navController.navigate("witness_response/$id/${role.sourceId}/none")
+                    } else {
+                        navController.navigate(Screen.RecipientCube.createRoute(id))
+                    }
+                },
+                onAcceptInvite = { token -> 
+                    navController.navigate(Screen.UniversalJoin.createRoute(token))
+                },
                 onLogoutSuccess = {
                     navController.navigate(Screen.Splash.route) {
                         popUpTo(0) { inclusive = true }

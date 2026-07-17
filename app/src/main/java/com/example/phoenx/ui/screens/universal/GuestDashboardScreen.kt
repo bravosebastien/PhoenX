@@ -230,3 +230,56 @@ fun RoleCard(
         }
     }
 }
+
+@Composable
+fun GuestPerspectiveContent(
+    myRoles: Map<String, UserRole>,
+    pendingInvites: List<com.example.phoenx.ui.MainViewModel.PendingInvitation>,
+    accent: Color,
+    onNavigateToCube: (String) -> Unit,
+    onAcceptInvite: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp)
+    ) {
+        Text(
+            "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextSecondary,
+            lineHeight = 22.sp
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        if (pendingInvites.isNotEmpty()) {
+            Text(
+                "INVITATIONS EN ATTENTE",
+                style = MaterialTheme.typography.labelSmall,
+                color = accent,
+                modifier = Modifier.padding(bottom = 12.dp)
+            )
+            pendingInvites.forEach { invite ->
+                PendingInviteCard(invite, accent) {
+                    onAcceptInvite(invite.id)
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            val sortedRoles = myRoles.values.toList().sortedBy { it.creatorName }
+            items(sortedRoles) { role ->
+                RoleCard(
+                    role = role,
+                    accent = accent,
+                    onClick = {
+                        // Ici la logique de navigation simplifiée
+                        onNavigateToCube(role.creatorId)
+                    }
+                )
+            }
+        }
+    }
+}
