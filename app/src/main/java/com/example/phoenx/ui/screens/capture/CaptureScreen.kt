@@ -331,6 +331,7 @@ fun CaptureScreen(
                                 isRecording = isSttListening,
                                 transcript = text,
                                 partialText = sttPartialText,
+                                onTranscriptChange = { text = it },
                                 onStart = { viewModel.startVocalCapture(text) },
                                 onStop = { viewModel.stopVocalCapture() },
                                 onSave = {
@@ -691,15 +692,22 @@ fun PhotoCaptureContent(
                     TextField(
                         value = caption,
                         onValueChange = onCaptionChange,
-                        placeholder = { Text("Ajoute une légende...", style = MaterialTheme.typography.bodyLarge, color = Color.White.copy(alpha = 0.6f)) },
-                        modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(24.dp),
+                        placeholder = { 
+                            Text(
+                                "Donne une âme à cette photo...", 
+                                style = MaterialTheme.typography.bodyLarge, 
+                                color = Color.White.copy(alpha = 0.6f)
+                            ) 
+                        },
+                        modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(24.dp).padding(bottom = 40.dp),
                         textStyle = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic, color = Color.White),
                         colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Black.copy(alpha = 0.4f),
+                            focusedContainerColor = Color.Black.copy(alpha = 0.6f),
                             unfocusedContainerColor = Color.Black.copy(alpha = 0.4f),
-                            focusedIndicatorColor = Color.Transparent,
+                            focusedIndicatorColor = accent,
                             unfocusedIndicatorColor = Color.Transparent
-                        )
+                        ),
+                        shape = RoundedCornerShape(12.dp)
                     )
                 }
 
@@ -890,6 +898,7 @@ fun AudioCaptureContent(
     isRecording: Boolean,
     transcript: String,
     partialText: String,
+    onTranscriptChange: (String) -> Unit,
     onStart: () -> Unit,
     onStop: () -> Unit,
     onSave: () -> Unit,
@@ -913,19 +922,19 @@ fun AudioCaptureContent(
         verticalArrangement = Arrangement.Center
     ) {
         if (!isRecording && transcript.isNotEmpty()) {
-            Text("Voici ce que j'ai compris :", style = MaterialTheme.typography.labelSmall, color = accent)
+            Text("Donne une âme à cet enregistrement :", style = MaterialTheme.typography.labelSmall, color = accent)
             Spacer(modifier = Modifier.height(16.dp))
-            Card(
+            OutlinedTextField(
+                value = transcript,
+                onValueChange = onTranscriptChange,
                 modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
-                colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.5f))
-            ) {
-                Text(
-                    text = transcript,
-                    modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState()),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = TextPrimary
-                )
-            }
+                textStyle = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = accent.copy(alpha = 0.3f)
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
             Spacer(modifier = Modifier.height(24.dp))
         }
 

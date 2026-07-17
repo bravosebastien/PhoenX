@@ -3,6 +3,7 @@ package com.example.phoenx.ui.screens.capture
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.ai.AIManager
+import com.example.phoenx.data.ai.LocalAnalysis
 import com.example.phoenx.data.ai.OnDeviceAIManager
 import com.example.phoenx.data.audio.PhoenXAudioRecorder
 import com.example.phoenx.data.audio.SpeechToTextManager
@@ -227,9 +228,24 @@ class CaptureViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 Log.d("SaveEntryDebug", "Début du bloc try, lancement de l'analyse IA locale")
-                // 1. ANALYSE IA LOCALE (Avant chiffrement)
-                val analysis = onDeviceAIManager.analyzeLocally(rawText)
-                Log.d("SaveEntryDebug", "Analyse IA locale terminée : ${analysis.summary}")
+                
+                // 1. ANALYSE IA LOCALE OU LÉGENDE MANUELLE (Signature 7.7)
+                // Si c'est un complément et que l'utilisateur a saisi du texte, on le garde tel quel
+                // comme "âme" du média pour l'IA Narrative.
+                val manualSoul = if (parentEntryId != null && !content.isNullOrBlank()) content else null
+                
+                val analysis = if (manualSoul != null) {
+                    com.example.phoenx.data.ai.LocalAnalysis(
+                        summary = manualSoul, 
+                        tags = emptyList<String>(), 
+                        emotionalTone = "Manual", 
+                        lifePeriod = "Current"
+                    )
+                } else {
+                    onDeviceAIManager.analyzeLocally(rawText)
+                }
+                
+                Log.d("SaveEntryDebug", "Analyse/Légende terminée : ${analysis.summary}")
 
                 // 2. CALCUL DE L'ÂGE
                 val userDoc = db.collection("users").document(user.uid).get().await()
