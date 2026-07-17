@@ -165,6 +165,12 @@ class MainViewModel @Inject constructor(
      * Écoute le profil utilisateur en temps réel pour gérer le routage et les clés.
      */
     fun checkSilenceOnLaunch(userId: String) {
+        // --- RÉPARATION V20 (Backfill creatorUid) ---
+        viewModelScope.launch(Dispatchers.IO) {
+            val count = database.offlineEntryDao().repairEmptyCreatorUids(userId)
+            if (count > 0) android.util.Log.d("PHOENX_V20", "$count souvenirs réparés pour l'UID $userId")
+        }
+
         // Nettoyage de l'ancien écouteur si existant
         userListener?.remove()
 

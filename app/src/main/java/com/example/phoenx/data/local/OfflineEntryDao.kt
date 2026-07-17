@@ -169,4 +169,7 @@ interface OfflineEntryDao {
 
     @Query("UPDATE offline_entries SET syncStatus = 'pending' WHERE syncStatus = 'synced'")
     suspend fun resetFalseSyncedEntries(): Int
+
+    @Query("UPDATE offline_entries SET creatorUid = :uid WHERE creatorUid = '' OR creatorUid IS NULL")
+    suspend fun repairEmptyCreatorUids(uid: String): Int
 }
