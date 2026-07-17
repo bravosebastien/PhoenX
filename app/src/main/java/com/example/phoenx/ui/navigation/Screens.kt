@@ -160,8 +160,12 @@ sealed class Screen(val route: String) {
     object RecipientLibrary : Screen("recipient/library/{creatorId}") {
         fun createRoute(creatorId: String) = "recipient/library/$creatorId"
     }
-    object RecipientDiscotheque : Screen("recipient/discotheque")
-    object RecipientVideotheque : Screen("recipient/videotheque")
+    object RecipientDiscotheque : Screen("recipient/discotheque/{creatorId}") {
+        fun createRoute(creatorId: String) = "recipient/discotheque/$creatorId"
+    }
+    object RecipientVideotheque : Screen("recipient/videotheque/{creatorId}") {
+        fun createRoute(creatorId: String) = "recipient/videotheque/$creatorId"
+    }
     object RecipientFavorites : Screen("recipient/favorites/{creatorId}") {
         fun createRoute(creatorId: String) = "recipient/favorites/$creatorId"
     }

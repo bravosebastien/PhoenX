@@ -143,8 +143,12 @@ fun RecipientCubeScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     DrawerShortCut("BIBLIOTHÈQUE", "Ses mots", Modifier.weight(1f), onNavigateToLibrary)
-                    DrawerShortCut("DISCOTHÈQUE", "Ses sons", Modifier.weight(1f), onNavigateToDiscotheque)
-                    DrawerShortCut("ARCHIVES", "Ses images", Modifier.weight(1f), onNavigateToArchives)
+                    DrawerShortCut("DISCOTHÈQUE", "Ses sons", Modifier.weight(1f)) {
+                        onNavigateToDiscotheque()
+                    }
+                    DrawerShortCut("ARCHIVES", "Ses images", Modifier.weight(1f)) {
+                        onNavigateToArchives()
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(32.dp))

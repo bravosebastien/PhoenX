@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.phoenx.ui.navigation.Screen
+import com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,13 +40,22 @@ fun RecipientLibraryScreen(
     navController: NavController,
     isCreatorMode: Boolean = true,
     targetCreatorId: String? = null,
-    viewModel: LibraryCoverViewModel = hiltViewModel()
+    viewModel: LibraryCoverViewModel = hiltViewModel(),
+    mediaViewModel: com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel = hiltViewModel()
 ) {
     val covers by viewModel.covers.collectAsState()
+    val libraryEntries by mediaViewModel.libraryEntries.collectAsState()
+    val videoEntries by mediaViewModel.videoEntries.collectAsState()
+    val discothequeEntries by mediaViewModel.discothequeEntries.collectAsState()
+    val archiveEntries by mediaViewModel.archiveEntries.collectAsState()
+    
     val accent = LocalAccentColor.current
     
-    // Simulation des stats (à lier au VM si besoin)
-    val totalSouvenirs = 42 
+    LaunchedEffect(targetCreatorId) {
+        mediaViewModel.setTargetCreator(targetCreatorId)
+    }
+
+    val totalSouvenirs = libraryEntries.size + videoEntries.size + discothequeEntries.size + archiveEntries.size
 
     android.util.Log.d("LibraryCover", "Covers chargées : ${covers.keys}")
 

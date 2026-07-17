@@ -575,15 +575,26 @@ fun PhoenXNavGraph(
                 onNavigateToCapture = { navController.navigate("capture/TEXT") }
             )
         }
-        composable("library_music") {
+        composable(
+            route = Screen.RecipientDiscotheque.route,
+            arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
             RecipientDiscothequeScreen(
+                creatorId = creatorId,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToCapture = { navController.navigate("capture/AUDIO") },
                 onNavigateToDetail = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }
             )
         }
-        composable("library_video") {
+
+        composable(
+            route = Screen.RecipientVideotheque.route,
+            arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
             RecipientVideothequeScreen(
+                creatorId = creatorId,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToCapture = { navController.navigate("capture/VIDEO") },
                 onNavigateToDetail = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }

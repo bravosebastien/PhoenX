@@ -28,12 +28,17 @@ import com.example.phoenx.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipientDiscothequeScreen(
+    creatorId: String? = null,
     onNavigateBack: () -> Unit,
     onNavigateToCapture: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
     viewModel: RecipientMediaViewModel = hiltViewModel()
 ) {
     val entries by viewModel.discothequeEntries.collectAsState()
+
+    LaunchedEffect(creatorId) {
+        viewModel.setTargetCreator(creatorId)
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
