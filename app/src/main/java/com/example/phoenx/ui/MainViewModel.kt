@@ -300,6 +300,7 @@ class MainViewModel @Inject constructor(
         try {
             db.collection("users").document(userId).update(
                 mapOf(
+                    "isCreator" to true, // S'assure que le rôle est validé
                     "silenceConfig.rhythmDays" to rhythmDays,
                     "silenceConfig.lastCheckInAt" to com.google.firebase.Timestamp.now(),
                     "silenceConfig.missedCycles" to 0,

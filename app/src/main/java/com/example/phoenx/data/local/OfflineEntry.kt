@@ -7,6 +7,7 @@ import java.util.UUID
 @Entity(tableName = "offline_entries")
 data class OfflineEntry(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    val creatorUid: String = "",
     val encryptedPayload: ByteArray,
     val entryType: String,
     val ageAtCreation: String, // Stocké en JSON
@@ -65,6 +66,7 @@ data class OfflineEntry(
         other as OfflineEntry
 
         if (id != other.id) return false
+        if (creatorUid != other.creatorUid) return false
         if (!encryptedPayload.contentEquals(other.encryptedPayload)) return false
         if (entryType != other.entryType) return false
         if (ageAtCreation != other.ageAtCreation) return false
@@ -96,6 +98,7 @@ data class OfflineEntry(
 
     override fun hashCode(): Int {
         var result = id.hashCode()
+        result = 31 * result + creatorUid.hashCode()
         result = 31 * result + encryptedPayload.contentHashCode()
         result = 31 * result + entryType.hashCode()
         result = 31 * result + ageAtCreation.hashCode()

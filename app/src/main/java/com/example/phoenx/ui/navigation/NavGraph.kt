@@ -540,12 +540,20 @@ fun PhoenXNavGraph(
                 onExit = { navController.popBackStack() },
                 onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.createRoute(creatorId)) },
                 onNavigateToDiscotheque = { navController.navigate(Screen.RecipientDiscotheque.route) },
-                onNavigateToArchives = { navController.navigate(Screen.RecipientFavorites.route) }
+                onNavigateToArchives = { navController.navigate(Screen.RecipientFavorites.createRoute(creatorId)) },
+                onBecomeCreator = { navController.navigate(Screen.SilenceOnboarding.route) }
             )
         }
 
-        composable(Screen.RecipientFavorites.route) {
-            RecipientArchiveScreen(onNavigateBack = { navController.popBackStack() })
+        composable(
+            route = Screen.RecipientFavorites.route,
+            arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+            RecipientArchiveScreen(
+                creatorId = creatorId,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(

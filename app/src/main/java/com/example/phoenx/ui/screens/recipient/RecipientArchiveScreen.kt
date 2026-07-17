@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,20 +30,26 @@ import com.example.phoenx.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipientArchiveScreen(
+    creatorId: String? = null,
     onNavigateBack: () -> Unit,
     viewModel: RecipientMediaViewModel = hiltViewModel(),
 ) {
     val entries by viewModel.archiveEntries.collectAsState()
+    val accent = LocalAccentColor.current
+
+    LaunchedEffect(creatorId) {
+        viewModel.setTargetCreator(creatorId)
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Grande Archive", style = MaterialTheme.typography.displaySmall) },
+                title = { Text("Grande Archive", style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -61,7 +68,7 @@ fun RecipientArchiveScreen(
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(3),
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(12.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)

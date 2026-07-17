@@ -125,7 +125,7 @@ fun GuestDashboardScreen(
             
             // Encouragement à devenir Créateur
             Card(
-                onClick = { /* TODO: Vers Onboarding Créateur */ },
+                onClick = { navController.navigate(Screen.SilenceOnboarding.route) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
                 border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))

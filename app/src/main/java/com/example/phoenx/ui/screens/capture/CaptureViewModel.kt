@@ -265,6 +265,7 @@ class CaptureViewModel @Inject constructor(
                 val entryId = UUID.randomUUID().toString()
                 val entry = OfflineEntry(
                     id = entryId,
+                    creatorUid = user.uid,
                     encryptedPayload = encrypted,
                     entryType = type,
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",

@@ -21,6 +21,7 @@ fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
     }
 
     return mapOf(
+        "uid" to creatorUid,
         "encryptedContent" to Blob.fromBytes(encryptedPayload),
         "type" to entryType,
         "ageAtCreation" to ageMap,

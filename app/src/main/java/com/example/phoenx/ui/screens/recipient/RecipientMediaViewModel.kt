@@ -11,9 +11,7 @@ import com.example.phoenx.domain.model.PhoenXEntry
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
@@ -37,28 +35,47 @@ class RecipientMediaViewModel @Inject constructor(
     private val _archiveEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
     val archiveEntries: StateFlow<List<PhoenXEntry>> = _archiveEntries
 
+    private val _videoEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
+    val videoEntries: StateFlow<List<PhoenXEntry>> = _videoEntries
+
+    private val _targetCreatorId = MutableStateFlow<String?>(null)
+
     init {
         loadAllMedia()
+    }
+
+    fun setTargetCreator(creatorId: String?) {
+        _targetCreatorId.value = creatorId
     }
 
     private fun loadAllMedia() {
         val currentUid = auth.currentUser?.uid ?: ""
         viewModelScope.launch {
             // On récupère d'abord si on est en mode Créateur ou Destinataire
-            // (Simplification : si isCreator est sur Firestore, on l'utilise, sinon on assume Creator par défaut)
             val isCreator = try {
                 val doc = db.collection("users").document(currentUid).get().await()
                 doc.getBoolean("isCreator") ?: true
             } catch(e: Exception) { true }
 
-            offlineEntryDao.getAllEntries().collectLatest { allOfflineEntries ->
+            combine(
+                offlineEntryDao.getAllEntries(),
+                _targetCreatorId
+            ) { allOfflineEntries, targetId ->
+                Pair(allOfflineEntries, targetId)
+            }.collectLatest { (allOfflineEntries, targetId) ->
                 // 1. On sépare parents et compléments
                 val parents = allOfflineEntries.filter { it.parentEntryId == null }
                 val complements = allOfflineEntries.filter { it.parentEntryId != null }
 
-                // 2. Filtrage par ACCÈS STRICT (si pas Créateur)
-                val accessibleParents = if (isCreator) parents else parents.filter { parent ->
-                    parent.visibility == "EVERYONE" || parent.recipientIds.split(",").contains(currentUid)
+                // 2. Filtrage par ACCÈS STRICT et par CRÉATEUR CIBLE
+                val accessibleParents = if (isCreator) {
+                    parents 
+                } else {
+                    parents.filter { parent ->
+                        val isForMe = parent.visibility == "EVERYONE" || parent.recipientIds.split(",").contains(currentUid)
+                        val isFromTarget = targetId == null || parent.creatorUid == targetId
+                        isForMe && isFromTarget
+                    }
                 }
 
                 // 3. Conversion en domaine
@@ -93,9 +110,6 @@ class RecipientMediaViewModel @Inject constructor(
         }
     }
 
-    private val _videoEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
-    val videoEntries: StateFlow<List<PhoenXEntry>> = _videoEntries
-
     private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager): PhoenXEntry {
         val decryptedText = try { 
             encryptionManager.decryptText(encryptedPayload)
@@ -119,6 +133,7 @@ class RecipientMediaViewModel @Inject constructor(
 
         return PhoenXEntry(
             id = id,
+            creatorUid = creatorUid,
             ageAtCreation = age,
             encryptedContent = decryptedText.toByteArray(),
             type = domainType,

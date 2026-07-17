@@ -88,4 +88,10 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE witnesses ADD COLUMN requestPrompt TEXT")
         }
     }
+
+    val MIGRATION_19_20 = object : Migration(19, 20) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN creatorUid TEXT NOT NULL DEFAULT ''")
+        }
+    }
 }
