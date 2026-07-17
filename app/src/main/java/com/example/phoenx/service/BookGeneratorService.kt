@@ -99,12 +99,18 @@ class BookGeneratorService @Inject constructor(
 
         onProgress("Chiffrement et sécurisation...")
 
+        // 1. GÉNÉRATION D'UNE CLÉ DÉDIÉE AU LIVRE (Pour transmission future)
+        val bookKey = encryptionManager.generateNewSessionKey()
+        val bookKeyBase64 = android.util.Base64.encodeToString(bookKey, android.util.Base64.NO_WRAP)
+
         val chapters = rawChapters.map { ch ->
             val content = ch["content"] as String
             BookChapter(
                 id = java.util.UUID.randomUUID().toString(),
                 title = ch["title"] as String,
-                content = encryptionManager.encrypt(content), // Chiffrage Tink simulé ou réel
+                content = encryptionManager.encryptText(content, bookKey).let { 
+                    android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT) 
+                },
                 status = ChapterStatus.DRAFT,
                 orderIndex = (ch["orderIndex"] as Number).toInt()
             )
@@ -119,6 +125,12 @@ class BookGeneratorService @Inject constructor(
 
         onProgress("Sauvegarde finale...")
         saveBookDraft(userId, draft)
+        
+        // Sauvegarde de la clé du livre
+        db.collection("users").document(userId)
+            .collection("book_keys").document("main")
+            .set(mapOf("key" to bookKeyBase64))
+            .await()
 
         return draft
     }

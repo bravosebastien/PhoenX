@@ -8,14 +8,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -25,6 +29,8 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.theme.AccentPrimary
 
 @Composable
@@ -35,6 +41,8 @@ fun BookViewerScreen(
     viewModel: BookViewerViewModel = hiltViewModel()
 ) {
     val bookDraft by viewModel.bookDraft.collectAsState()
+    val decryptedChapters by viewModel.decryptedChapters.collectAsState()
+    val mediaMap by viewModel.mediaMap.collectAsState()
     val isLocked by viewModel.isLocked.collectAsState()
     val creatorName by viewModel.creatorName.collectAsState()
 
@@ -193,15 +201,8 @@ fun BookViewerScreen(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Text(
-                    text = chapter.content,
-                    style = TextStyle(
-                        fontFamily = FontFamily.Serif,
-                        fontSize = 17.sp,
-                        color = Color(0xFFF2EDE8),
-                        lineHeight = 28.sp
-                    )
-                )
+                val decryptedText = decryptedChapters[chapter.id] ?: ""
+                IllustrableText(decryptedText, mediaMap)
 
                 Spacer(modifier = Modifier.height(80.dp))
             }
@@ -292,6 +293,78 @@ fun BookViewerScreen(
                         color = Color(0xFF9B9590),
                         fontSize = 12.sp
                     )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun IllustrableText(
+    text: String,
+    mediaMap: Map<String, OfflineEntry>
+) {
+    val accent = com.example.phoenx.ui.theme.LocalAccentColor.current
+    // Regex pour détecter [PHOTO:uuid] ou [AUDIO:uuid]
+    val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9\\-]+)\\]")
+    val parts = text.split(regex)
+    val matches = regex.findAll(text).toList()
+
+    Column {
+        parts.forEachIndexed { index, part ->
+            if (part.isNotBlank()) {
+                Text(
+                    text = part.trim(),
+                    style = TextStyle(
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 17.sp,
+                        color = Color(0xFFF2EDE8),
+                        lineHeight = 30.sp
+                    ),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+            }
+            
+            if (index < matches.size) {
+                val type = matches[index].groupValues[1]
+                val id = matches[index].groupValues[2]
+                val entry = mediaMap[id]
+
+                if (type == "PHOTO" && entry != null) {
+                    val mediaSource = entry.localMediaPath ?: entry.mediaUrl
+                    if (mediaSource != null) {
+                        AsyncImage(
+                            model = mediaSource,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 400.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .padding(vertical = 16.dp),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                } else if (type == "AUDIO" && entry != null) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                    ) {
+                        Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Surface(
+                                modifier = Modifier.size(40.dp),
+                                shape = CircleShape,
+                                color = accent.copy(alpha = 0.2f)
+                            ) {
+                                Icon(Icons.Default.PlayArrow, null, tint = accent, modifier = Modifier.padding(8.dp))
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column {
+                                Text("FRAGMENT VOCAL", style = MaterialTheme.typography.labelSmall, color = accent)
+                                Text("L'essence de ce souvenir", style = MaterialTheme.typography.bodySmall, color = Color(0xFF9B9590))
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -110,10 +110,10 @@ class EncryptionManager @Inject constructor() {
         return Base64.encodeToString(encrypted, Base64.DEFAULT)
     }
 
-    fun decrypt(encryptedBase64: String): String {
+    fun decrypt(encryptedBase64: String, key: ByteArray? = null): String {
         return try {
             val bytes = Base64.decode(encryptedBase64, Base64.DEFAULT)
-            decryptText(bytes)
+            decryptText(bytes, key)
         } catch (e: Exception) {
             android.util.Log.e("EncryptionManager", "Déchiffrement échoué", e)
             ""
