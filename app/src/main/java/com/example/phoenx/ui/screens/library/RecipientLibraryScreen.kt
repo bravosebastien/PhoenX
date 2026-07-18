@@ -55,7 +55,13 @@ fun RecipientLibraryScreen(
         mediaViewModel.setTargetCreator(targetCreatorId)
     }
 
-    val totalSouvenirs = libraryEntries.size + videoEntries.size + discothequeEntries.size + archiveEntries.size
+    // Filtrer pour ne compter que les souvenirs racines (v8.3.4)
+    val rootLibrary = libraryEntries.filter { it.parentEntryId == null }
+    val rootVideo = videoEntries.filter { it.parentEntryId == null }
+    val rootDisco = discothequeEntries.filter { it.parentEntryId == null }
+    val rootArchive = archiveEntries.filter { it.parentEntryId == null }
+    
+    val totalSouvenirs = rootLibrary.size + rootVideo.size + rootDisco.size + rootArchive.size
 
     android.util.Log.d("LibraryCover", "Covers chargées : ${covers.keys}")
 

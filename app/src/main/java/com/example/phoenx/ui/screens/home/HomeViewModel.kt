@@ -139,11 +139,14 @@ class HomeViewModel @Inject constructor(
     private fun observeLatestEntries() {
         viewModelScope.launch {
             offlineEntryDao.getAllEntries().collectLatest { entries ->
-                val minAgeVal = if (entries.isEmpty()) 0 else entries.minOf { AgeUtils.parseAgeJson(it.ageAtCreation).years }
+                // Filtrer pour ne compter que les souvenirs racines (v8.3.4)
+                val rootEntries = entries.filter { it.parentEntryId == null }
+                
+                val minAgeVal = if (rootEntries.isEmpty()) 0 else rootEntries.minOf { AgeUtils.parseAgeJson(it.ageAtCreation).years }
                 
                 _uiState.value = _uiState.value.copy(
-                    latestEntries = entries.take(5),
-                    entryCount = entries.size,
+                    latestEntries = rootEntries.take(5),
+                    entryCount = rootEntries.size,
                     minAge = minAgeVal
                 )
             }

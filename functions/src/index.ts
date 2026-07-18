@@ -15,15 +15,34 @@ admin.initializeApp();
 
 const API_KEY = process.env.GEMINI_API_KEY || "";
 const ai = new GoogleGenAI({ apiKey: API_KEY });
-const AI_MODEL = "gemini-2.0-flash";
+const AI_MODEL = "gemini-3.5-flash";
 
 // Helper pour simplifier les appels avec le nouveau SDK pérenne
 async function generateWithGemini(prompt: string): Promise<string> {
-    const result = await ai.models.generateContent({
-        model: AI_MODEL,
-        contents: [prompt]
-    });
-    return result.text || "";
+    try {
+        const result = await ai.models.generateContent({
+            model: AI_MODEL,
+            contents: [prompt]
+        });
+        return result.text || "";
+    } catch (e: any) {
+        console.error(`[GEMINI ERROR] sur modèle ${AI_MODEL}:`, e.message);
+
+        // Diagnostic : Liste des modèles si 404 détectée
+        if (e.message.includes("404") || e.message.includes("not found")) {
+            try {
+                const modelsPager = await ai.models.list();
+                console.log("[GEMINI DIAGNOSTIC] Modèles disponibles pour cette clé :");
+                for await (const m of modelsPager) {
+                    console.log(` - ${m.name} (${m.displayName})`);
+                }
+            } catch (listError) {
+                console.error("[GEMINI DIAGNOSTIC] Impossible de lister les modèles:", listError);
+            }
+        }
+
+        return ""; // Fallback propre
+    }
 }
 
 const AI_RULES = `

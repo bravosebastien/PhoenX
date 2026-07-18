@@ -24,7 +24,10 @@ data class PhoenXEntry(
     
     // DÉTECTIVE & PROGRAMMATION (ADN 5.0)
     val hasEnigma: Boolean = false,
-    val scheduledDate: Instant? = null
+    val scheduledDate: Instant? = null,
+
+    // GESTION STRUCTURELLE (Signature 7.6)
+    val parentEntryId: String? = null
 )
 
 data class PhoenXAmendment(

@@ -140,7 +140,8 @@ class RecipientMediaViewModel @Inject constructor(
             isYoungSelfLetter = isYoungSelfLetter,
             targetAge = targetAge,
             timestamp = Instant.ofEpochMilli(createdAt),
-            aiSummary = aiSummary
+            aiSummary = aiSummary,
+            parentEntryId = parentEntryId
         )
     }
 }
