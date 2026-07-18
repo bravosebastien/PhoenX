@@ -7,16 +7,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -26,12 +27,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.domain.util.EnigmaUtils
 import com.example.phoenx.data.model.Quiz
 import com.example.phoenx.data.model.QuizQuestion
+import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.theme.*
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun QuizCreateScreen(
     navController: NavController,
@@ -46,6 +49,9 @@ fun QuizCreateScreen(
     var availableNow by remember { mutableStateOf(false) }
     var availableAfterDeath by remember { mutableStateOf(true) }
     var showNames by remember { mutableStateOf(false) }
+    val selectedRecipientIds = remember { mutableStateListOf<String>() }
+    val recipients by viewModel.recipients.collectAsState()
+
     var numQuestionsGoal by remember { mutableIntStateOf(5) }
     val questions = remember { mutableStateListOf<QuizQuestion>() }
 
@@ -123,6 +129,17 @@ fun QuizCreateScreen(
                             Switch(checked = showNames, onCheckedChange = { showNames = it }, colors = SwitchDefaults.colors(checkedThumbColor = accent))
                         }
                         Text("Si désactivé, seuls les rangs seront visibles.", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = TextTertiary)
+
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("QUI PEUT JOUER ?", style = MaterialTheme.typography.labelSmall, color = accent, fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        RecipientSelector(
+                            recipients = recipients,
+                            selectedIds = selectedRecipientIds,
+                            visibility = "RESTRICTED", // Quiz est restreint par défaut
+                            onVisibilityChange = {},
+                            accent = accent
+                        )
                     }
                 }
 
@@ -175,7 +192,8 @@ fun QuizCreateScreen(
                         index = index,
                         question = question,
                         onDelete = { questions.removeAt(index) },
-                        onUpdate = { updated -> questions[index] = updated }
+                        onUpdate = { updated -> questions[index] = updated },
+                        viewModel = viewModel
                     )
                 }
 
@@ -195,7 +213,7 @@ fun QuizCreateScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 val canPublish = questions.size > 0 && 
-                                 questions.all { q -> q.question.isNotBlank() && q.answers.all { it.isNotBlank() } } &&
+                                 questions.all { q -> q.text.isNotBlank() && q.correctAnswer.isNotBlank() } &&
                                  (availableNow || availableAfterDeath)
 
                 Button(
@@ -205,6 +223,7 @@ fun QuizCreateScreen(
                             availableNow = availableNow,
                             availableAfterDeath = availableAfterDeath,
                             showNames = showNames,
+                            recipientIds = selectedRecipientIds.toList(),
                             finalMessage = finalMessage,
                             questions = questions.toList()
                         )
@@ -225,12 +244,16 @@ fun QuizCreateScreen(
             InspirationBottomSheet(
                 onDismiss = { showInspiration = false },
                 onSelect = { inspiration ->
+                    val correct = inspiration.exampleAnswers.firstOrNull() ?: ""
+                    val others = if (inspiration.exampleAnswers.size > 1) inspiration.exampleAnswers.drop(1) else emptyList()
+                    
                     questions.add(
                         QuizQuestion(
                             id = UUID.randomUUID().toString(),
-                            question = inspiration.question,
-                            answers = inspiration.exampleAnswers,
-                            correctIndex = 0
+                            text = inspiration.question,
+                            correctAnswer = correct,
+                            correctHash = EnigmaUtils.hashAnswer(correct) ?: "",
+                            distractors = others
                         )
                     )
                     showInspiration = false
@@ -245,9 +268,20 @@ fun QuestionItemCard(
     index: Int,
     question: QuizQuestion,
     onDelete: () -> Unit,
-    onUpdate: (QuizQuestion) -> Unit
+    onUpdate: (QuizQuestion) -> Unit,
+    viewModel: QuizViewModel
 ) {
     val accent = LocalAccentColor.current
+    val context = androidx.compose.ui.platform.LocalContext.current
+    
+    val photoLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            onUpdate(question.copy(mediaUrl = uri.toString(), mediaType = "PHOTO"))
+        }
+    }
+
     Card(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp).fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
@@ -264,9 +298,45 @@ fun QuestionItemCard(
                     }
                 }
 
+                // SUPPORT MÉDIA (PHOTO/VIDÉO/SON)
+                if (question.mediaUrl != null) {
+                    Box(modifier = Modifier.fillMaxWidth().height(120.dp).padding(vertical = 8.dp).clip(RoundedCornerShape(8.dp))) {
+                        if (question.mediaType == "PHOTO") {
+                            coil3.compose.AsyncImage(
+                                model = question.mediaUrl,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                            )
+                        } else {
+                            Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+                                Text(question.mediaType ?: "MÉDIA", color = Color.White, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                        IconButton(
+                            onClick = { onUpdate(question.copy(mediaUrl = null, mediaType = null)) },
+                            modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).size(24.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                        ) {
+                            Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        TextButton(onClick = { photoLauncher.launch("image/*") }) {
+                            Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Ajouter une photo", fontSize = 11.sp)
+                        }
+                        // Autres types simplifiés pour l'instant
+                    }
+                }
+
                 OutlinedTextField(
-                    value = question.question,
-                    onValueChange = { onUpdate(question.copy(question = it)) },
+                    value = question.text,
+                    onValueChange = { onUpdate(question.copy(text = it)) },
                     label = { Text("La question") },
                     placeholder = { Text("Ex: Dans quelle ville suis-je né(e) ?", style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)) },
                     modifier = Modifier.fillMaxWidth(),
@@ -274,29 +344,70 @@ fun QuestionItemCard(
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Les 4 réponses possibles", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                
+                OutlinedTextField(
+                    value = question.correctAnswer,
+                    onValueChange = { 
+                        onUpdate(question.copy(
+                            correctAnswer = it,
+                            correctHash = EnigmaUtils.hashAnswer(it) ?: ""
+                        )) 
+                    },
+                    label = { Text("La bonne réponse (Sera chiffrée)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Success, unfocusedBorderColor = Success.copy(alpha = 0.3f))
+                )
 
-                question.answers.forEachIndexed { aIndex, answer ->
-                    Row(modifier = Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        RadioButton(
-                            selected = question.correctIndex == aIndex,
-                            onClick = { onUpdate(question.copy(correctIndex = aIndex)) },
-                            colors = RadioButtonDefaults.colors(selectedColor = accent)
-                        )
-                        OutlinedTextField(
-                            value = answer,
-                            onValueChange = { 
-                                val newAnswers = question.answers.toMutableList()
-                                newAnswers[aIndex] = it
-                                onUpdate(question.copy(answers = newAnswers))
-                            },
-                            placeholder = { Text("Réponse ${'A' + aIndex}") },
-                            modifier = Modifier.weight(1f),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = accent.copy(alpha = 0.3f))
-                        )
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text("Les pièges (distracteurs)", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                    
+                    // BOUTON MAGIE IA
+                    TextButton(
+                        onClick = {
+                            if (question.text.isNotBlank() && question.correctAnswer.isNotBlank()) {
+                                viewModel.generateDistractorsForQuestion(question.text, question.correctAnswer) { distractors ->
+                                    if (distractors.isNotEmpty()) {
+                                        onUpdate(question.copy(distractors = distractors))
+                                    }
+                                }
+                            } else {
+                                Toast.makeText(context, "Saisis d'abord la question et la réponse.", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = accent)
+                    ) {
+                        Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(14.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Magie IA", fontSize = 11.sp)
                     }
                 }
-                Text("Sélectionne le bouton radio de la bonne réponse.", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = TextTertiary, modifier = Modifier.padding(top = 6.dp))
+
+                // On s'assure d'avoir au moins 1 champ de distracteur si on veut le mode QCM
+                val currentDistractors = if (question.distractors.isEmpty()) listOf("") else question.distractors
+                
+                currentDistractors.forEachIndexed { dIndex, distractor ->
+                    OutlinedTextField(
+                        value = distractor,
+                        onValueChange = { 
+                            val newList = currentDistractors.toMutableList()
+                            newList[dIndex] = it
+                            onUpdate(question.copy(distractors = newList.filter { it.isNotBlank() }))
+                        },
+                        placeholder = { Text("Fausse réponse ${dIndex + 1}") },
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = accent.copy(alpha = 0.2f))
+                    )
+                }
+                
+                if (currentDistractors.size < 3) {
+                    TextButton(onClick = { 
+                        val newList = currentDistractors + ""
+                        onUpdate(question.copy(distractors = newList))
+                    }) {
+                        Text("+ Ajouter un piège", fontSize = 12.sp, color = accent)
+                    }
+                }
             }
         }
     }

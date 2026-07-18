@@ -10,8 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.domain.util.EnigmaUtils
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -88,7 +88,7 @@ fun QuizPlayScreen(
                     ) {
                         Row(modifier = Modifier.padding(16.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                             StatItem(totalQuestions.toString(), "QUESTIONS", accent)
-                            StatItem(totalQuestions.toString(), "POINTS MAX", accent)
+                            StatItem((totalQuestions * 3).toString(), "POINTS MAX", accent)
                             StatItem("?", "CLASSÉS", accent)
                         }
                     }
@@ -105,6 +105,13 @@ fun QuizPlayScreen(
                 // ÉCRAN DE JEU
                 val currentQuestion = quiz!!.questions[currentIndex]
                 val progress by animateFloatAsState(targetValue = (currentIndex.toFloat() / totalQuestions.toFloat()))
+                
+                var isHelpMode by remember(currentIndex) { mutableStateOf(false) }
+                var hardAnswer by remember(currentIndex) { mutableStateOf("") }
+                val choices = remember(currentIndex, isHelpMode) {
+                    if (isHelpMode) viewModel.getDisplayChoices(currentQuestion, currentQuestion.correctAnswer)
+                    else emptyList()
+                }
 
                 Column(modifier = Modifier.fillMaxSize()) {
                     LinearProgressIndicator(
@@ -127,39 +134,85 @@ fun QuizPlayScreen(
                         ) {
                             Box(modifier = Modifier.fillMaxWidth()) {
                                 Box(modifier = Modifier.align(Alignment.CenterStart).width(3.dp).fillMaxHeight().background(accent))
-                                Text(
-                                    currentQuestion.question,
-                                    modifier = Modifier.padding(20.dp),
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, fontSize = 18.sp, lineHeight = 28.sp),
-                                    color = TextPrimary
-                                )
+                                Column(modifier = Modifier.padding(20.dp)) {
+                                    // SUPPORT MÉDIA (v8.3)
+                                    if (currentQuestion.mediaUrl != null) {
+                                        Box(modifier = Modifier.fillMaxWidth().height(180.dp).padding(bottom = 16.dp).clip(RoundedCornerShape(8.dp))) {
+                                            if (currentQuestion.mediaType == "PHOTO") {
+                                                coil3.compose.AsyncImage(
+                                                    model = currentQuestion.mediaUrl,
+                                                    contentDescription = null,
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                                                )
+                                            } else {
+                                                // TODO: Video 10s / Audio via EncryptedMediaDataSource
+                                                Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+                                                    Icon(Icons.Default.PlayArrow, null, tint = accent, modifier = Modifier.size(48.dp))
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    Text(
+                                        currentQuestion.text,
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, fontSize = 18.sp, lineHeight = 28.sp),
+                                        color = TextPrimary
+                                    )
+                                }
                             }
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        currentQuestion.answers.forEachIndexed { index, answer ->
-                            AnswerCard(
-                                index = index,
-                                text = answer,
-                                isSelected = selectedAnswerIndex == index,
-                                isCorrect = currentQuestion.correctIndex == index,
-                                showResult = selectedAnswerIndex != null,
-                                onClick = {
-                                    if (selectedAnswerIndex == null) {
-                                        selectedAnswerIndex = index
-                                        scope.launch {
-                                            delay(1500)
-                                            viewModel.answerQuestion(index)
-                                            selectedAnswerIndex = null
+                        if (!isHelpMode) {
+                            // MODE HARD
+                            OutlinedTextField(
+                                value = hardAnswer,
+                                onValueChange = { hardAnswer = it },
+                                label = { Text("Ta réponse") },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = { viewModel.answerQuestion(hardAnswer, usedHelp = false) },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = accent)
+                            ) {
+                                Text("Vérifier", color = BackgroundPrimary)
+                            }
+                            if (currentQuestion.difficultyAllowed) {
+                                TextButton(onClick = { isHelpMode = true }) {
+                                    Text("Donne-moi un indice (QCM)", color = TextSecondary, fontSize = 12.sp)
+                                }
+                            }
+                        } else {
+                            // MODE AIDE (QCM)
+                            choices.forEachIndexed { index, answer ->
+                                val isCorrect = EnigmaUtils.hashAnswer(answer) == currentQuestion.correctHash
+                                AnswerCard(
+                                    index = index,
+                                    text = answer,
+                                    isSelected = selectedAnswerIndex == index,
+                                    isCorrect = isCorrect,
+                                    showResult = selectedAnswerIndex != null,
+                                    onClick = {
+                                        if (selectedAnswerIndex == null) {
+                                            selectedAnswerIndex = index
+                                            scope.launch {
+                                                delay(1500)
+                                                viewModel.answerQuestion(answer, usedHelp = true)
+                                                selectedAnswerIndex = null
+                                            }
                                         }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.weight(1f))
-                        Text("$score / $totalQuestions points", style = MaterialTheme.typography.labelLarge, color = accent)
+                        Text("$score points accumulés", style = MaterialTheme.typography.labelLarge, color = accent)
                     }
                 }
             } else {
@@ -179,7 +232,7 @@ fun QuizPlayScreen(
                         }
                     }
 
-                    val percentage = (score.toFloat() / totalQuestions.toFloat()) * 100
+                    val percentage = (score.toFloat() / (totalQuestions * 3).toFloat()) * 100
                     val resultText = when {
                         percentage >= 80 -> "Tu me connaissais bien."
                         percentage >= 50 -> "Tu savais l'essentiel."
@@ -187,6 +240,16 @@ fun QuizPlayScreen(
                     }
 
                     Text(resultText, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic), color = TextPrimary, modifier = Modifier.padding(top = 16.dp))
+
+                    if (userResult?.helpUsed == true) {
+                        // Petit chambrage si aide utilisée (v8.3)
+                        val randomTease = quiz!!.questions.random().let { viewModel.getRandomTeasing(it) }
+                        Text(
+                            text = "Note : $randomTease",
+                            style = MaterialTheme.typography.bodySmall.copy(color = accent, fontStyle = FontStyle.Italic),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
 
                     if (quiz!!.finalMessage.isNotEmpty()) {
                         Card(

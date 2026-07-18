@@ -141,6 +141,8 @@ fun CaptureScreen(
     var showAdvancedOptions by remember { mutableStateOf(false) }
     var enigmaQuestion by remember { mutableStateOf("") }
     var enigmaAnswer by remember { mutableStateOf("") }
+    var enigmaHint by remember { mutableStateOf("") }
+    var enigmaAutoUnlockDays by remember { mutableStateOf<Int?>(null) }
     var scheduledTimestamp by remember { mutableStateOf<Long?>(null) }
     val sheetState = rememberModalBottomSheetState()
 
@@ -267,6 +269,8 @@ fun CaptureScreen(
                                     pendingQuestionId = pendingQuestionId,
                                     enigmaQuestion = if (enigmaQuestion.isNotBlank()) enigmaQuestion else null,
                                     enigmaAnswer = if (enigmaAnswer.isNotBlank()) enigmaAnswer else null,
+                                    enigmaHint = if (enigmaHint.isNotBlank()) enigmaHint else null,
+                                    enigmaAutoUnlockDays = enigmaAutoUnlockDays,
                                     scheduledTimestamp = scheduledTimestamp,
                                     pactId = pactId,
                                     latitude = latitude,
@@ -496,6 +500,10 @@ fun CaptureScreen(
                     onEnigmaQuestionChange = { enigmaQuestion = it },
                     enigmaAnswer = enigmaAnswer,
                     onEnigmaAnswerChange = { enigmaAnswer = it },
+                    enigmaHint = enigmaHint,
+                    onEnigmaHintChange = { enigmaHint = it },
+                    enigmaAutoUnlockDays = enigmaAutoUnlockDays,
+                    onEnigmaAutoUnlockDaysChange = { enigmaAutoUnlockDays = it },
                     scheduledTimestamp = scheduledTimestamp,
                     onScheduledTimestampChange = { scheduledTimestamp = it }
                 )
@@ -511,6 +519,10 @@ fun AdvancedOptionsContent(
     onEnigmaQuestionChange: (String) -> Unit,
     enigmaAnswer: String,
     onEnigmaAnswerChange: (String) -> Unit,
+    enigmaHint: String,
+    onEnigmaHintChange: (String) -> Unit,
+    enigmaAutoUnlockDays: Int?,
+    onEnigmaAutoUnlockDaysChange: (Int?) -> Unit,
     scheduledTimestamp: Long?,
     onScheduledTimestampChange: (Long?) -> Unit
 ) {
@@ -550,6 +562,56 @@ fun AdvancedOptionsContent(
             label = { Text("La réponse attendue") },
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp)
         )
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = enigmaHint,
+            onValueChange = onEnigmaHintChange,
+            label = { Text("Indice (optionnel, après 3 échecs)") },
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
+            placeholder = { Text("Ex: C'est un animal à poils...") }
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // AUTO UNLOCK DAYS
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text("Auto-déblocage", style = MaterialTheme.typography.bodyMedium)
+            Switch(
+                checked = enigmaAutoUnlockDays != null,
+                onCheckedChange = { 
+                    if (it) onEnigmaAutoUnlockDaysChange(30)
+                    else onEnigmaAutoUnlockDaysChange(null)
+                },
+                colors = SwitchDefaults.colors(checkedThumbColor = AccentPrimary)
+            )
+        }
+        
+        if (enigmaAutoUnlockDays != null) {
+            val delayOptions = listOf(7, 14, 30, 60, 90, 180)
+            var sliderPos by remember { mutableFloatStateOf(delayOptions.indexOf(enigmaAutoUnlockDays).coerceAtLeast(0).toFloat()) }
+            
+            Slider(
+                value = sliderPos,
+                onValueChange = { 
+                    sliderPos = it
+                    onEnigmaAutoUnlockDaysChange(delayOptions[it.toInt()])
+                },
+                valueRange = 0f..(delayOptions.size - 1).toFloat(),
+                steps = delayOptions.size - 2,
+                modifier = Modifier.padding(start = 32.dp),
+                colors = SliderDefaults.colors(thumbColor = AccentPrimary, activeTrackColor = AccentPrimary)
+            )
+            Text(
+                "Ouvrir après $enigmaAutoUnlockDays jours", 
+                style = MaterialTheme.typography.labelSmall, 
+                color = AccentPrimary,
+                modifier = Modifier.padding(start = 32.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.height(32.dp))
 

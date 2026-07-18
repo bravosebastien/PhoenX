@@ -23,7 +23,8 @@ data class DetectiveUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val daysSinceActivation: Int = 0,
-    val creatorName: String = "Ton proche"
+    val creatorName: String = "Ton proche",
+    val attempts: Map<String, Int> = emptyMap() // entryId -> count
 )
 
 @HiltViewModel
@@ -91,13 +92,13 @@ class DetectiveViewModel @Inject constructor(
     fun attemptUnlock(entry: OfflineEntry, answer: String) {
         val hashedInput = EnigmaUtils.hashAnswer(answer)
         
-        // Vérification multi-réponses (v8.3)
-        // enigmaAnswer = réponse principale hachée
-        // fallbackAnswer = réponse secondaire hachée
         if (entry.enigmaAnswer == hashedInput || entry.fallbackAnswer == hashedInput) {
             _uiState.update { it.copy(unlockedEntryId = entry.id) }
         } else {
-            _uiState.update { it.copy(error = "Mauvaise réponse. Cherche encore...") }
+            val newAttempts = _uiState.value.attempts.toMutableMap()
+            val count = (newAttempts[entry.id] ?: 0) + 1
+            newAttempts[entry.id] = count
+            _uiState.update { it.copy(error = "Mauvaise réponse. Cherche encore...", attempts = newAttempts) }
         }
     }
 

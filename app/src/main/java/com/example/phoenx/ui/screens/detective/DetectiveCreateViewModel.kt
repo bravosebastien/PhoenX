@@ -31,7 +31,9 @@ data class DetectiveCreateUiState(
     val audioUri: Uri? = null,
     val photoUri: Uri? = null,
     val isSaving: Boolean = false,
-    val unlockAfterDays: Int = 30,
+    val unlockAfterDays: Int = 30, // Délai actuel (Legacy)
+    val enigmaHint: String = "",
+    val autoUnlockDays: String = "", // Pour le nouveau champ optionnel
     val fallbackMessage: String = ""
 )
 
@@ -73,6 +75,14 @@ class DetectiveCreateViewModel @Inject constructor(
 
     fun updateFallbackMessage(text: String) {
         _uiState.update { it.copy(fallbackMessage = text) }
+    }
+
+    fun updateEnigmaHint(text: String) {
+        _uiState.update { it.copy(enigmaHint = text) }
+    }
+
+    fun updateAutoUnlockDays(days: String) {
+        _uiState.update { it.copy(autoUnlockDays = days) }
     }
 
     fun hashAnswer(answer: String): String {
@@ -121,7 +131,9 @@ class DetectiveCreateViewModel @Inject constructor(
                         enigmaQuestion = state.enigmaText,
                         enigmaAnswer = hashedAnswer,
                         unlockAfterDays = state.unlockAfterDays,
-                        fallbackAnswer = hashedFallback // Maintenant stocké haché comme réponse secondaire
+                        fallbackAnswer = hashedFallback,
+                        enigmaHint = state.enigmaHint.ifBlank { null },
+                        enigmaAutoUnlockDays = state.autoUnlockDays.toIntOrNull()
                     )
                 )
 

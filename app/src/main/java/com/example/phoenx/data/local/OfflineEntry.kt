@@ -57,7 +57,11 @@ data class OfflineEntry(
     val memoryDateEnd: Long? = null,
 
     // COMPLÉMENTS MULTI-MÉDIA (Signature 7.6 - v18)
-    val parentEntryId: String? = null
+    val parentEntryId: String? = null,
+
+    // FINITIONS MODE DÉTECTIVE (Signature 8.3 - v21)
+    val enigmaHint: String? = null,
+    val enigmaAutoUnlockDays: Int? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

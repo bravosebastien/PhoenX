@@ -209,6 +209,8 @@ class CaptureViewModel @Inject constructor(
         pendingQuestionId: String? = null,
         enigmaQuestion: String? = null,
         enigmaAnswer: String? = null,
+        enigmaHint: String? = null,
+        enigmaAutoUnlockDays: Int? = null,
         scheduledTimestamp: Long? = null,
         pactId: String? = null,
         latitude: Double? = null,
@@ -296,6 +298,8 @@ class CaptureViewModel @Inject constructor(
                     aiTags = analysis.tags.joinToString(","),
                     enigmaQuestion = enigmaQuestion,
                     enigmaAnswer = EnigmaUtils.hashAnswer(enigmaAnswer), // Sécurité unifiée (v8.3)
+                    enigmaHint = enigmaHint,
+                    enigmaAutoUnlockDays = enigmaAutoUnlockDays,
                     scheduledTimestamp = scheduledTimestamp,
                     pactId = pactId,
                     latitude = latitude,

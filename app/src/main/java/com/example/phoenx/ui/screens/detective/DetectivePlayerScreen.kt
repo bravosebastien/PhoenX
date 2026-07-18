@@ -78,8 +78,10 @@ fun DetectivePlayerScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                     items(uiState.lockedEntries) { entry ->
-                        val daysRemaining = entry.unlockAfterDays - uiState.daysSinceActivation
-                        val isAutoUnlocked = (uiState.daysSinceActivation >= entry.unlockAfterDays && entry.unlockAfterDays > 0) || entry.unlockedAt != null
+                        val autoDays = entry.enigmaAutoUnlockDays ?: 0
+                        val daysSinceCreation = ((System.currentTimeMillis() - entry.createdAt) / (1000 * 60 * 60 * 24)).toInt()
+                        
+                        val isAutoUnlocked = (entry.enigmaAutoUnlockDays != null && daysSinceCreation >= autoDays) || entry.unlockedAt != null
                         
                         if (isAutoUnlocked && entry.unlockedAt == null && creatorId != null) {
                             LaunchedEffect(entry.id) {
@@ -90,7 +92,7 @@ fun DetectivePlayerScreen(
                         LockedEntryCard(
                             entry = entry,
                             isUnlocked = uiState.unlockedEntryId == entry.id || isAutoUnlocked,
-                            daysRemaining = if (daysRemaining > 0) daysRemaining else 0,
+                            daysRemaining = if (entry.enigmaAutoUnlockDays != null && !isAutoUnlocked) autoDays - daysSinceCreation else 0,
                             isAutoUnlocked = isAutoUnlocked,
                             creatorName = uiState.creatorName,
                             onClick = { 
@@ -117,8 +119,29 @@ fun DetectivePlayerScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         Text(selectedEntry!!.enigmaQuestion ?: "", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
                         
+                        // AFFICHAGE DE L'INDICE (Après 3 tentatives)
+                        val attemptCount = uiState.attempts[selectedEntry!!.id] ?: 0
+                        if (attemptCount >= 3 && !selectedEntry!!.enigmaHint.isNullOrBlank()) {
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = AccentPrimary.copy(alpha = 0.05f)),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f)),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Fingerprint, null, tint = AccentPrimary, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        text = "Indice : ${selectedEntry!!.enigmaHint}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = TextPrimary
+                                    )
+                                }
+                            }
+                        }
+
                         // BANDEAU DÉLAI DE GRÂCE
-                        val daysLeft = selectedEntry!!.unlockAfterDays - uiState.daysSinceActivation
+                        val autoDays = selectedEntry!!.enigmaAutoUnlockDays ?: selectedEntry!!.unlockAfterDays
+                        val daysLeft = autoDays - uiState.daysSinceActivation
                         if (daysLeft > 0) {
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = SurfaceCard),

@@ -49,6 +49,8 @@ fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
         "memoryDate" to memoryDate,
         "memoryDateStart" to memoryDateStart,
         "memoryDateEnd" to memoryDateEnd,
-        "parentEntryId" to parentEntryId
+        "parentEntryId" to parentEntryId,
+        "enigmaHint" to enigmaHint,
+        "enigmaAutoUnlockDays" to enigmaAutoUnlockDays
     )
 }

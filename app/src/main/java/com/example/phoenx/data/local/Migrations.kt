@@ -94,4 +94,11 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN creatorUid TEXT NOT NULL DEFAULT ''")
         }
     }
+
+    val MIGRATION_20_21 = object : Migration(20, 21) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN enigmaHint TEXT")
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN enigmaAutoUnlockDays INTEGER")
+        }
+    }
 }

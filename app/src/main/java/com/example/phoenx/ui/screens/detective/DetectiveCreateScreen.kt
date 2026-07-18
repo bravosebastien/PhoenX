@@ -180,41 +180,84 @@ fun DetectiveCreateScreen(
                 modifier = Modifier.padding(top = 4.dp)
             )
 
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // ÉTAPE 2 bis — L'INDICE
+            Text("INDICE (Affiché après 3 échecs)", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Spacer(modifier = Modifier.height(8.dp))
+            OutlinedTextField(
+                value = uiState.enigmaHint,
+                onValueChange = { viewModel.updateEnigmaHint(it) },
+                placeholder = { Text("Ex : C'est le nom d'un animal...", color = TextTertiary) },
+                modifier = Modifier.fillMaxWidth(),
+                textStyle = TextStyle(fontSize = 15.sp, color = TextPrimary),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = AccentPrimary,
+                    unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f),
+                    unfocusedContainerColor = SurfaceCard,
+                    focusedContainerColor = SurfaceCard
+                )
+            )
+
             Spacer(modifier = Modifier.height(40.dp))
 
             // SECTION DÉLAI DE GRÂCE
-            Text("SI TON PROCHE NE TROUVE PAS LA RÉPONSE...", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            val delayOptions = listOf(7, 14, 30, 60, 90, 180)
-            var sliderPosition by remember { mutableFloatStateOf(delayOptions.indexOf(uiState.unlockAfterDays).coerceAtLeast(0).toFloat()) }
-            
-            Slider(
-                value = sliderPosition,
-                onValueChange = { 
-                    sliderPosition = it
-                    viewModel.updateUnlockDays(delayOptions[it.toInt()])
-                },
-                valueRange = 0f..(delayOptions.size - 1).toFloat(),
-                steps = delayOptions.size - 2,
-                colors = SliderDefaults.colors(
-                    thumbColor = AccentPrimary,
-                    activeTrackColor = AccentPrimary,
-                    inactiveTrackColor = SurfaceCard
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("DÉBLOCAGE AUTOMATIQUE", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                var autoUnlockEnabled by remember { mutableStateOf(uiState.autoUnlockDays.isNotEmpty()) }
+                Switch(
+                    checked = autoUnlockEnabled,
+                    onCheckedChange = { 
+                        autoUnlockEnabled = it
+                        if (!it) viewModel.updateAutoUnlockDays("")
+                        else viewModel.updateAutoUnlockDays("30")
+                    },
+                    colors = SwitchDefaults.colors(checkedThumbColor = AccentPrimary)
                 )
-            )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             
-            Text(
-                text = "Débloquer automatiquement après ${uiState.unlockAfterDays} jours",
-                style = MaterialTheme.typography.bodyMedium,
-                color = TextPrimary
-            )
-            Text(
-                text = "Ton proche pourra voir le contenu automatiquement après ${uiState.unlockAfterDays} jours s'il ne trouve pas la réponse.",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextTertiary,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            if (uiState.autoUnlockDays.isNotEmpty()) {
+                val delayOptions = listOf(7, 14, 30, 60, 90, 180)
+                var sliderPosition by remember { mutableFloatStateOf(delayOptions.indexOf(uiState.autoUnlockDays.toIntOrNull() ?: 30).coerceAtLeast(0).toFloat()) }
+                
+                Slider(
+                    value = sliderPosition,
+                    onValueChange = { 
+                        sliderPosition = it
+                        viewModel.updateAutoUnlockDays(delayOptions[it.toInt()].toString())
+                    },
+                    valueRange = 0f..(delayOptions.size - 1).toFloat(),
+                    steps = delayOptions.size - 2,
+                    colors = SliderDefaults.colors(
+                        thumbColor = AccentPrimary,
+                        activeTrackColor = AccentPrimary,
+                        inactiveTrackColor = SurfaceCard
+                    )
+                )
+                
+                Text(
+                    text = "Ouvrir après ${uiState.autoUnlockDays} jours",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextPrimary
+                )
+                Text(
+                    text = "Ton proche pourra voir le contenu automatiquement après ce délai s'il ne trouve pas la réponse.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextTertiary,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            } else {
+                Text(
+                    text = "Verrouillage permanent tant que la réponse n'est pas trouvée.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextTertiary
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
