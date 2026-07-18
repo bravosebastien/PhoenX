@@ -78,7 +78,6 @@ import com.example.phoenx.ui.screens.settings.ProtocolSettingsScreen
 import com.example.phoenx.ui.theme.TextPrimary
 import com.google.firebase.auth.FirebaseAuth
 
-@androidx.media3.common.util.UnstableApi
 @Composable
 fun PhoenXNavGraph(
     navController: NavHostController,
@@ -614,10 +613,15 @@ fun PhoenXNavGraph(
                 onNavigateToDetail = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }
             )
         }
-        composable("fil_pensee") {
+        composable(
+            route = "fil_pensee?creatorId={creatorId}",
+            arguments = listOf(navArgument("creatorId") { nullable = true })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId")
             FilScreen(
                 navController = navController,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                targetCreatorId = creatorId
             )
         }
         composable("lettres") {

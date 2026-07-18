@@ -23,7 +23,8 @@ class RecipientMediaViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
     private val auth: FirebaseAuth,
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    val mediaManager: com.example.phoenx.data.media.MediaManager
 ) : ViewModel() {
 
     private val _libraryEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
@@ -38,6 +39,9 @@ class RecipientMediaViewModel @Inject constructor(
     private val _videoEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
     val videoEntries: StateFlow<List<PhoenXEntry>> = _videoEntries
 
+    private val _heirKey = MutableStateFlow<ByteArray?>(null)
+    val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
+
     private val _targetCreatorId = MutableStateFlow<String?>(null)
 
     init {
@@ -46,6 +50,20 @@ class RecipientMediaViewModel @Inject constructor(
 
     fun setTargetCreator(creatorId: String?) {
         _targetCreatorId.value = creatorId
+        if (creatorId != null && creatorId != auth.currentUser?.uid) {
+            viewModelScope.launch {
+                try {
+                    val keyDoc = db.collection("users").document(creatorId)
+                        .collection("entry_keys").document("main").get().await()
+                    val keyBase64 = keyDoc.getString("key")
+                    if (keyBase64 != null) {
+                        _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("RecipientMediaVM", "Erreur chargement clé héritage: ${e.message}")
+                }
+            }
+        }
     }
 
     private fun loadAllMedia() {
@@ -141,7 +159,9 @@ class RecipientMediaViewModel @Inject constructor(
             targetAge = targetAge,
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = aiSummary,
-            parentEntryId = parentEntryId
+            parentEntryId = parentEntryId,
+            mediaUrl = mediaUrl,
+            localMediaPath = localMediaPath
         )
     }
 }

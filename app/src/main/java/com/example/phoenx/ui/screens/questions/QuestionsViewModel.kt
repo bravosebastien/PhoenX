@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.io.File
 import java.util.*
 import javax.inject.Inject
 
@@ -45,7 +46,7 @@ class QuestionsViewModel @Inject constructor(
         "Qu'est-ce qui te fait rire à coup sûr ?"
     )
 
-    fun saveAnswer(question: String, answer: String) {
+    fun saveAnswer(question: String, answer: String, mediaFile: File? = null, mediaType: String? = null) {
         val user = auth.currentUser ?: return
         _uiState.value = _uiState.value.copy(isSaving = true)
 
@@ -57,14 +58,30 @@ class QuestionsViewModel @Inject constructor(
                 
                 val encrypted = encryptionManager.encryptText(answer)
                 
+                // GESTION DU MÉDIA LOCAL (Si présent)
+                var finalLocalPath: String? = null
+                if (mediaFile != null && mediaFile.exists()) {
+                    val mediaDir = File(context.filesDir, "media")
+                    if (!mediaDir.exists()) mediaDir.mkdirs()
+                    val destFile = File(mediaDir, "PHX_Q_${UUID.randomUUID()}_${mediaFile.name}")
+                    mediaFile.inputStream().use { input ->
+                        destFile.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    finalLocalPath = destFile.absolutePath
+                }
+
                 val entry = OfflineEntry(
+                    creatorUid = user.uid,
                     encryptedPayload = encrypted,
-                    entryType = "QUESTION_ANSWER",
+                    entryType = mediaType ?: "TEXT",
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",
                     emotionalCategory = "Sagesse",
-                    visibility = "private",
+                    visibility = "RESTRICTED",
                     createdAt = System.currentTimeMillis(),
-                    aiSummary = "Réponse à : $question"
+                    aiSummary = "Réponse à : $question",
+                    localMediaPath = finalLocalPath
                 )
                 offlineEntryDao.insertEntry(entry)
 

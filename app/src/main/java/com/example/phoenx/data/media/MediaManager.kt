@@ -42,12 +42,12 @@ class MediaManager @Inject constructor(
 
     /**
      * Télécharge et déchiffre un média.
-     * Retourne les octets bruts (prêts pour affichage/lecture).
+     * Supporte la clé explicite pour les héritiers (v8.4.5)
      */
-    suspend fun downloadAndDecrypt(url: String): ByteArray {
+    suspend fun downloadAndDecrypt(url: String, explicitKey: ByteArray? = null): ByteArray {
         val storageRef = storage.getReferenceFromUrl(url)
         val encryptedBytes = storageRef.getBytes(Long.MAX_VALUE).await()
-        return encryptionManager.decryptBytes(encryptedBytes)
+        return encryptionManager.decryptBytes(encryptedBytes, explicitKey)
     }
 
     /**

@@ -30,8 +30,32 @@ class FilViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
-    private val aiManager: AIManager
+    private val aiManager: AIManager,
+    val mediaManager: com.example.phoenx.data.media.MediaManager
 ) : ViewModel() {
+
+    private val _targetCreatorId = MutableStateFlow<String?>(null)
+    
+    private val _heirKey = MutableStateFlow<ByteArray?>(null)
+    val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
+
+    fun setTargetCreator(creatorId: String?) {
+        _targetCreatorId.value = creatorId
+        if (creatorId != null && creatorId != auth.currentUser?.uid) {
+            viewModelScope.launch {
+                try {
+                    val keyDoc = db.collection("users").document(creatorId)
+                        .collection("entry_keys").document("main").get().await()
+                    val keyBase64 = keyDoc.getString("key")
+                    if (keyBase64 != null) {
+                        _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("FilVM", "Erreur chargement clé héritage: ${e.message}")
+                }
+            }
+        }
+    }
 
     private val _uiState = MutableStateFlow<FilUiState>(FilUiState(isLoading = true))
     val uiState: StateFlow<FilUiState> = _uiState
@@ -54,15 +78,25 @@ class FilViewModel @Inject constructor(
         combine(
             offlineEntryDao.getAllEntries(),
             _selectedRecipientId,
-            _sortByCreationDate
-        ) { offlineEntries, recipientId, sortByDate ->
-            // 1. FILTRAGE DE SÉCURITÉ : Uniquement mes propres souvenirs dans MON fil
-            val myOwnEntries = offlineEntries.filter { it.creatorUid == currentUid }
+            _sortByCreationDate,
+            _targetCreatorId
+        ) { offlineEntries, recipientId, sortByDate, targetId ->
+            
+            // 1. Filtrage par CRÉATEUR et ACCÈS (v8.4.5)
+            val rootEntries = if (targetId == null || targetId == currentUid) {
+                // Mon propre fil
+                offlineEntries.filter { it.creatorUid == currentUid && it.parentEntryId == null }
+            } else {
+                // Fil d'un proche (Héritage)
+                offlineEntries.filter { entry ->
+                    val isFromTarget = entry.creatorUid == targetId
+                    val isRoot = entry.parentEntryId == null
+                    val isForMe = entry.visibility == "EVERYONE" || entry.recipientIds.split(",").contains(currentUid)
+                    isFromTarget && isRoot && isForMe
+                }
+            }
 
-            // 2. FILTRAGE DES RACINES : Pas de compléments dans le fil principal
-            val rootEntries = myOwnEntries.filter { it.parentEntryId == null }
-
-            // 3. Filtrage par destinataire
+            // 2. Filtrage par destinataire (UI)
             val filteredOffline = if (recipientId != null) {
                 rootEntries.filter { 
                     it.recipientIds.split(",").contains(recipientId) || it.visibility == "EVERYONE"
@@ -146,6 +180,7 @@ class FilViewModel @Inject constructor(
 
         return PhoenXEntry(
             id = id,
+            creatorUid = creatorUid,
             ageAtCreation = age,
             encryptedContent = decryptedText.toByteArray(),
             type = try { EntryType.valueOf(entryType) } catch(e: Exception) { EntryType.THOUGHT },
@@ -161,7 +196,10 @@ class FilViewModel @Inject constructor(
                 "Évolution stylistique détectée par l'IA"
             } else null,
             hasEnigma = enigmaQuestion != null,
-            scheduledDate = scheduledTimestamp?.let { Instant.ofEpochMilli(it) }
+            scheduledDate = scheduledTimestamp?.let { Instant.ofEpochMilli(it) },
+            parentEntryId = parentEntryId,
+            mediaUrl = mediaUrl,
+            localMediaPath = localMediaPath
         )
     }
 }

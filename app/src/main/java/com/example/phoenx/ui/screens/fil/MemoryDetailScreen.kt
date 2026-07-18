@@ -47,6 +47,7 @@ fun MemoryDetailScreen(
 ) {
     val entry by viewModel.entry.collectAsState()
     val complements by viewModel.complements.collectAsState()
+    val textComplements by viewModel.decryptedTextComplements.collectAsState()
     val content by viewModel.decryptedContent.collectAsState()
     val recipients by viewModel.recipients.collectAsState()
     val deleteSuccess by viewModel.deleteSuccess.collectAsState()
@@ -145,7 +146,7 @@ fun MemoryDetailScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Édition du souvenir", style = MaterialTheme.typography.labelLarge) },
+                title = { Text("L'Étincelle & son Récit", style = MaterialTheme.typography.labelLarge) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
@@ -173,37 +174,75 @@ fun MemoryDetailScreen(
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(32.dp)
             ) {
-                // CONTENU DU SOUVENIR (Papier/Parchemin)
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFDFBF7)), // Couleur papier
-                    elevation = CardDefaults.cardElevation(4.dp),
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Column(modifier = Modifier.padding(24.dp)) {
-                        Icon(
-                            Icons.Default.FormatQuote,
-                            contentDescription = null,
-                            tint = Color.LightGray,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        TextField(
-                            value = editableText,
-                            onValueChange = { editableText = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            textStyle = MaterialTheme.typography.bodyLarge.copy(
-                                fontFamily = FontFamily.Serif,
-                                fontStyle = FontStyle.Italic,
-                                color = Color(0xFF2C2C2E),
-                                lineHeight = 28.sp
-                            ),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent,
-                                focusedIndicatorColor = Color.Transparent,
-                                unfocusedIndicatorColor = Color.Transparent
+                // ÉTAPE 1 : LE SUJET (Titre)
+                Column {
+                    Text("LE SUJET", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFDFBF7)), // Couleur papier
+                        elevation = CardDefaults.cardElevation(4.dp),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(20.dp)) {
+                            TextField(
+                                value = editableText,
+                                onValueChange = { editableText = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                placeholder = { Text("Donne un titre à ce souvenir...", style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)) },
+                                textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                    fontFamily = FontFamily.Serif,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF2C2C2E)
+                                ),
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent
+                                )
                             )
-                        )
+                        }
+                    }
+                }
+
+                // ÉTAPE 2 : LE RÉCIT (Compléments Texte) - Signature v8.4
+                if (textComplements.isNotEmpty()) {
+                    Column {
+                        Text("LE RÉCIT", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        textComplements.forEach { (compId, text) ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                                shape = RoundedCornerShape(12.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.FormatQuote, null, tint = accent.copy(alpha = 0.3f), modifier = Modifier.size(20.dp))
+                                        Row {
+                                            IconButton(onClick = { navController.navigate(Screen.MemoryDetail.createRoute(compId)) }, modifier = Modifier.size(24.dp)) {
+                                                Icon(Icons.Default.Edit, null, tint = accent.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
+                                            }
+                                            Spacer(Modifier.width(8.dp))
+                                            IconButton(onClick = { viewModel.deleteComplement(compId) }, modifier = Modifier.size(24.dp)) {
+                                                Icon(Icons.Default.Close, null, tint = TextTertiary, modifier = Modifier.size(14.dp))
+                                            }
+                                        }
+                                    }
+                                    Text(
+                                        text = text,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            fontFamily = FontFamily.Serif,
+                                            lineHeight = 24.sp
+                                        ),
+                                        color = TextPrimary
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -371,7 +410,7 @@ fun MemoryDetailScreen(
                                 )
                                 types.forEach { (label, icon, type) ->
                                     DropdownMenuItem(
-                                        text = { Text(label, color = TextPrimary) },
+                                        text = { Text(if (type == "TEXT") "Ajouter un récit" else label, color = TextPrimary) },
                                         leadingIcon = { Icon(icon, null, tint = accent) },
                                         onClick = {
                                             showAddMediaMenu = false
@@ -431,13 +470,21 @@ fun MemoryDetailScreen(
                                         Spacer(modifier = Modifier.width(16.dp))
 
                                         Column(modifier = Modifier.weight(1f)) {
-                                            Text(
-                                                text = complement.aiSummary.ifEmpty { "Média ${complement.entryType.lowercase()}" },
-                                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                                color = TextPrimary,
-                                                maxLines = 1,
-                                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                                            )
+                                            if (complement.entryType != "TEXT") {
+                                                Text(
+                                                    text = complement.aiSummary.ifEmpty { "Média ${complement.entryType.lowercase()}" },
+                                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                                    color = TextPrimary,
+                                                    maxLines = 1,
+                                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                                )
+                                            } else {
+                                                Text(
+                                                    text = "Récit écrit",
+                                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                                    color = TextPrimary
+                                                )
+                                            }
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 Icon(
                                                     imageVector = if (complement.visibility == "EVERYONE") Icons.Default.Public else Icons.Default.Lock,

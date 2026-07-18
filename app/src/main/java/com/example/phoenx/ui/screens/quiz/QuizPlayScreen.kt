@@ -2,7 +2,6 @@ package com.example.phoenx.ui.screens.quiz
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,20 +17,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.ui.PlayerView
 import com.example.phoenx.domain.util.EnigmaUtils
+import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun QuizPlayScreen(
     creatorId: String,
@@ -46,6 +56,7 @@ fun QuizPlayScreen(
     val score by viewModel.score.collectAsState()
     val userResult by viewModel.userResult.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val heirKey by viewModel.heirKey.collectAsState()
     
     val scope = rememberCoroutineScope()
     var selectedAnswerIndex by remember { mutableStateOf<Int?>(null) }
@@ -139,16 +150,43 @@ fun QuizPlayScreen(
                                     if (currentQuestion.mediaUrl != null) {
                                         Box(modifier = Modifier.fillMaxWidth().height(180.dp).padding(bottom = 16.dp).clip(RoundedCornerShape(8.dp))) {
                                             if (currentQuestion.mediaType == "PHOTO") {
-                                                coil3.compose.AsyncImage(
-                                                    model = currentQuestion.mediaUrl,
-                                                    contentDescription = null,
+                                                SecureAsyncImage(
+                                                    mediaUrl = currentQuestion.mediaUrl,
+                                                    explicitKey = heirKey,
+                                                    mediaManager = viewModel.mediaManager,
                                                     modifier = Modifier.fillMaxSize(),
                                                     contentScale = androidx.compose.ui.layout.ContentScale.Crop
                                                 )
                                             } else {
-                                                // TODO: Video 10s / Audio via EncryptedMediaDataSource
-                                                Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-                                                    Icon(Icons.Default.PlayArrow, null, tint = accent, modifier = Modifier.size(48.dp))
+                                                val context = LocalContext.current
+                                                val exoPlayer = remember(currentQuestion.mediaUrl) {
+                                                    ExoPlayer.Builder(context).build().apply {
+                                                        val factory = viewModel.mediaManager.getEncryptedDataSourceFactory()
+                                                        val mediaSource = ProgressiveMediaSource.Factory(factory)
+                                                            .createMediaSource(MediaItem.fromUri(currentQuestion.mediaUrl.toUri()))
+                                                        
+                                                        setMediaSource(mediaSource)
+                                                        repeatMode = if (currentQuestion.mediaType == "VIDEO") Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
+                                                        prepare()
+                                                    }
+                                                }
+                                                DisposableEffect(exoPlayer) {
+                                                    onDispose { exoPlayer.release() }
+                                                }
+                                                
+                                                if (currentQuestion.mediaType == "VIDEO") {
+                                                    AndroidView(
+                                                        factory = { PlayerView(it).apply { player = exoPlayer; useController = false } },
+                                                        modifier = Modifier.fillMaxSize()
+                                                    )
+                                                    LaunchedEffect(exoPlayer) { exoPlayer.play() }
+                                                } else {
+                                                    // AUDIO
+                                                    Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+                                                        IconButton(onClick = { if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play() }) {
+                                                            Icon(if (exoPlayer.isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle, null, tint = accent, modifier = Modifier.size(64.dp))
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -201,7 +239,7 @@ fun QuizPlayScreen(
                                         if (selectedAnswerIndex == null) {
                                             selectedAnswerIndex = index
                                             scope.launch {
-                                                delay(1500)
+                                                delay(1500.milliseconds)
                                                 viewModel.answerQuestion(answer, usedHelp = true)
                                                 selectedAnswerIndex = null
                                             }
@@ -322,7 +360,7 @@ fun AnswerCard(
             Text("${'A' + index}. $text", style = MaterialTheme.typography.bodyMedium, color = textColor, modifier = Modifier.weight(1f))
             if (showResult) {
                 if (isCorrect) Icon(Icons.Default.Check, null, tint = Success)
-                else if (isSelected) Icon(Icons.Default.Close, null, tint = Error)
+                else Icon(Icons.Default.Close, null, tint = Error)
             }
         }
     }

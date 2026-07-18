@@ -3,6 +3,7 @@ package com.example.phoenx.ui.screens.quiz
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
+import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.model.Quiz
 import com.example.phoenx.data.model.QuizQuestion
 import com.example.phoenx.data.model.QuizResult
@@ -25,7 +26,8 @@ class QuizViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val offlineEntryDao: OfflineEntryDao,
-    private val encryptionManager: EncryptionManager
+    private val encryptionManager: EncryptionManager,
+    val mediaManager: MediaManager
 ) : ViewModel() {
 
     private val _quizzes = MutableStateFlow<List<Quiz>>(emptyList())
@@ -57,6 +59,9 @@ class QuizViewModel @Inject constructor(
 
     private val _recipients = MutableStateFlow<List<com.example.phoenx.data.local.RecipientEntity>>(emptyList())
     val recipients: StateFlow<List<com.example.phoenx.data.local.RecipientEntity>> = _recipients.asStateFlow()
+
+    private val _heirKey = MutableStateFlow<ByteArray?>(null)
+    val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
 
     init {
         loadRecipients()
@@ -102,6 +107,7 @@ class QuizViewModel @Inject constructor(
                         val keyBase64 = keyDoc.getString("key")
                         if (keyBase64 != null) {
                             explicitKey = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                            _heirKey.value = explicitKey
                         }
                     } catch (e: Exception) {
                         android.util.Log.w("QuizVM", "Impossible de récupérer la clé héritage (protocole non activé ?)")

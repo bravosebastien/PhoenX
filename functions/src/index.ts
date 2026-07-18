@@ -1052,12 +1052,21 @@ export const onUserDeletedCleanup = functionsV1.auth.user().onDelete(async (user
             }
         }
 
-        // 4. SUPPRESSION DES INVITATIONS & TÂCHES
+        // 4. SUPPRESSION DES INVITATIONS (ÉMISES & ACCEPTÉES) & TÂCHES
         const invitesByCreator = await db.collection("invitations").where("creatorId", "==", uid).get();
+        const invitesByAccepted = await db.collection("invitations").where("acceptedByUid", "==", uid).get(); // Nouveau (v8.4.4)
         const tasksSnap = await db.collection("tasks").where("creatorId", "==", uid).get();
 
         invitesByCreator.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
+        invitesByAccepted.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
         tasksSnap.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
+
+        // 5. NETTOYAGE DES LOGS MAIL (Nouveau v8.4.4)
+        if (email) {
+            const mailSnap = await db.collection("mail").where("to", "==", email).get();
+            mailSnap.docs.forEach(doc => { batch.delete(doc.ref); deletedCount++; });
+            console.log(`[AUTH DELETE] ${mailSnap.size} logs mail identifiés pour suppression.`);
+        }
 
         await batch.commit();
         console.log(`[AUTH DELETE] ${deletedCount} documents liés nettoyés. Fin de procédure.`);

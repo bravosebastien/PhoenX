@@ -406,7 +406,8 @@ fun CaptureScreen(
                                 },
                                 preselectedName = preselectedName,
                                 galleryUri = selectedGalleryUri,
-                                isComplement = parentEntryId != null
+                                isComplement = parentEntryId != null,
+                                initialType = initialType // v8.4
                             )
                         }
                     }
@@ -836,7 +837,8 @@ fun TextCaptureContent(
     onMicClick: () -> Unit,
     preselectedName: String? = null,
     galleryUri: Uri? = null,
-    isComplement: Boolean = false
+    isComplement: Boolean = false,
+    initialType: String = "TEXT" // v8.4
 ) {
     Column(
         modifier = Modifier
@@ -845,8 +847,12 @@ fun TextCaptureContent(
             .padding(24.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        val label = if (isComplement && initialType == "TEXT") "RÉDIGER TON RÉCIT"
+                   else if (isComplement) "AJOUTE UN MÉDIA"
+                   else "ÉTAPPE 1 : L'ÉTINCELLE"
+        
         Text(
-            text = if (isComplement) "AJOUTE UN MÉDIA" else "ÉTAPPE 1 : L'ÉTINCELLE",
+            text = label,
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
             color = AccentPrimary
         )
@@ -894,7 +900,11 @@ fun TextCaptureContent(
                     ) 
                 },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                textStyle = MaterialTheme.typography.headlineSmall.copy(color = TextPrimary, fontFamily = FontFamily.Serif),
+                textStyle = MaterialTheme.typography.headlineSmall.copy(
+                    color = TextPrimary, 
+                    fontFamily = FontFamily.Serif,
+                    fontSize = if (isComplement && initialType == "TEXT") 18.sp else 24.sp // Taille récit vs titre
+                ),
                 colors = TextFieldDefaults.colors(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
@@ -914,6 +924,13 @@ fun TextCaptureContent(
                 )
             }
         }
+
+        Text(
+            text = "Chaque souvenir enrichit ton futur Livre de Vie",
+            style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
+            color = TextTertiary,
+            modifier = Modifier.padding(top = 8.dp)
+        )
 
         HorizontalDivider(color = TextTertiary.copy(alpha = 0.2f), thickness = 1.dp, modifier = Modifier.padding(vertical = 16.dp))
 

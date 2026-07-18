@@ -47,6 +47,16 @@ class MemoryDetailViewModel @Inject constructor(
         .flatMapLatest { id -> offlineEntryDao.getComplements(id) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /**
+     * Retourne la liste des compléments texte DÉCHIFFRÉS (v8.4)
+     */
+    val decryptedTextComplements: StateFlow<List<Pair<String, String>>> = complements
+        .map { list ->
+            list.filter { it.entryType == "TEXT" || it.entryType == "THOUGHT" }
+                .map { it.id to encryptionManager.decryptText(it.encryptedPayload) }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val decryptedContent: StateFlow<String> = entry
         .map { it?.let { encryptionManager.decryptText(it.encryptedPayload) } ?: "" }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
@@ -70,10 +80,10 @@ class MemoryDetailViewModel @Inject constructor(
                 offlineEntryDao.updateEntryContent(encrypted, id)
                 android.util.Log.d("MemoryDetailDebug", "Contenu mis à jour en local pour id=$id, taille chiffrée=${encrypted.size}")
                 
-                // Régénération de l'analyse IA locale après modification
+                // Régénération de l'analyse IA locale (vitesse et confidentialité)
                 val analysis = onDeviceAIManager.analyzeLocally(newText)
                 offlineEntryDao.updateEntrySummary(analysis.summary, id)
-                android.util.Log.d("MemoryDetailDebug", "Résumé IA mis à jour : ${analysis.summary}")
+                android.util.Log.d("MemoryDetailDebug", "Résumé IA local mis à jour : ${analysis.summary}")
 
                 triggerSync(id)
             } catch (e: Exception) {

@@ -29,7 +29,6 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.phoenx.ui.theme.*
 
-@androidx.media3.common.util.UnstableApi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryCoverPickerScreen(
@@ -184,7 +183,6 @@ fun LibraryCoverPickerScreen(
     }
 }
 
-@androidx.media3.common.util.UnstableApi
 @Composable
 fun VideoPreview(uri: Uri) {
     val context = LocalContext.current

@@ -2,7 +2,6 @@ package com.example.phoenx.ui.screens.capture
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.phoenx.data.ai.AIManager
 import com.example.phoenx.data.ai.LocalAnalysis
 import com.example.phoenx.data.ai.OnDeviceAIManager
 import com.example.phoenx.data.audio.PhoenXAudioRecorder
@@ -49,7 +48,6 @@ class CaptureViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
-    private val aiManager: AIManager,
     private val onDeviceAIManager: OnDeviceAIManager,
     private val audioRecorder: PhoenXAudioRecorder,
     private val hapticManager: HapticManager,

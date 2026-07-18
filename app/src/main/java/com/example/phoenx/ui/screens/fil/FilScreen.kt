@@ -20,6 +20,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
@@ -34,6 +35,7 @@ import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import androidx.navigation.NavController
+import com.example.phoenx.ui.components.SecureAsyncImage
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -43,15 +45,21 @@ import java.util.Locale
 fun FilScreen(
     navController: NavController,
     onNavigateBack: () -> Unit,
+    targetCreatorId: String? = null,
     viewModel: FilViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val recipients by viewModel.recipients.collectAsState()
     val selectedRecipientId by viewModel.selectedRecipientId.collectAsState()
     val sortByCreationDate by viewModel.sortByCreationDate.collectAsState()
+    val heirKey by viewModel.heirKey.collectAsState()
 
     var showFilters by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
+
+    LaunchedEffect(targetCreatorId) {
+        viewModel.setTargetCreator(targetCreatorId)
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -123,6 +131,8 @@ fun FilScreen(
                             } else {
                                 TimelineEntryItem(
                                     entry = entry,
+                                    heirKey = heirKey,
+                                    mediaManager = viewModel.mediaManager,
                                     onClick = { navController.navigate(Screen.MemoryDetail.createRoute(entry.id)) }
                                 )
                             }
@@ -279,7 +289,12 @@ fun YearSeparator(year: Int, count: Int) {
 }
 
 @Composable
-fun TimelineEntryItem(entry: PhoenXEntry, onClick: () -> Unit) {
+fun TimelineEntryItem(
+    entry: PhoenXEntry, 
+    heirKey: ByteArray? = null,
+    mediaManager: com.example.phoenx.data.media.MediaManager? = null,
+    onClick: () -> Unit
+) {
     val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH).withZone(ZoneId.systemDefault()) }
     val formattedDate = dateFormatter.format(entry.timestamp)
 
@@ -333,41 +348,22 @@ fun TimelineEntryItem(entry: PhoenXEntry, onClick: () -> Unit) {
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = String(entry.encryptedContent), style = MaterialTheme.typography.bodyLarge, color = TextPrimary, lineHeight = 26.sp)
             
-            if (entry.aiSummary.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Surface(
-                    color = AccentPrimary.copy(alpha = 0.05f),
-                    shape = MaterialTheme.shapes.small,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Row(
-                        modifier = Modifier.padding(12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.AutoAwesome, null, tint = AccentPrimary.copy(alpha = 0.5f), modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Résumé IA : ${entry.aiSummary}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
-                            fontStyle = FontStyle.Italic,
-                            modifier = Modifier.weight(1f)
-                        )
-                        InfoButton(
-                            title = "Le Résumé IA",
-                            points = listOf(
-                                "Une intelligence artificielle qui vit uniquement sur votre téléphone lit votre texte au moment où vous l'écrivez, sans jamais se connecter à internet.",
-                                "Elle en tire un résumé court, pour vous permettre de reconnaître rapidement vos souvenirs en parcourant votre Fil de Pensée.",
-                                "Si votre texte est déjà court, ce résumé peut lui ressembler beaucoup - c'est normal.",
-                                "Ce résumé pourra aussi, à l'avenir, aider à suggérer automatiquement dans quels tiroirs ranger vos souvenirs.",
-                                "Le texte complet de votre souvenir, lui, reste toujours intact et chiffré - jamais résumé ni modifié."
-                            )
-                        )
-                    }
-                }
+            if (entry.type == EntryType.PHOTO && mediaManager != null) {
+                SecureAsyncImage(
+                    mediaUrl = entry.mediaUrl,
+                    localPath = entry.localMediaPath,
+                    explicitKey = heirKey,
+                    mediaManager = mediaManager,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                        .padding(bottom = 12.dp)
+                )
             }
+
+            Text(text = String(entry.encryptedContent), style = MaterialTheme.typography.bodyLarge, color = TextPrimary, lineHeight = 26.sp)
         }
     }
 }

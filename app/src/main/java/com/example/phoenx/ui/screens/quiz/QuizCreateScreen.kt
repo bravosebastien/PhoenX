@@ -282,6 +282,22 @@ fun QuestionItemCard(
         }
     }
 
+    val videoLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            onUpdate(question.copy(mediaUrl = uri.toString(), mediaType = "VIDEO"))
+        }
+    }
+
+    val audioLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            onUpdate(question.copy(mediaUrl = uri.toString(), mediaType = "AUDIO"))
+        }
+    }
+
     Card(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp).fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
@@ -310,7 +326,16 @@ fun QuestionItemCard(
                             )
                         } else {
                             Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-                                Text(question.mediaType ?: "MÉDIA", color = Color.White, style = MaterialTheme.typography.labelSmall)
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        if (question.mediaType == "VIDEO") Icons.Default.Videocam else Icons.Default.Mic,
+                                        null,
+                                        tint = accent,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(question.mediaType ?: "MÉDIA", color = Color.White, style = MaterialTheme.typography.labelSmall)
+                                }
                             }
                         }
                         IconButton(
@@ -328,9 +353,18 @@ fun QuestionItemCard(
                         TextButton(onClick = { photoLauncher.launch("image/*") }) {
                             Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(4.dp))
-                            Text("Ajouter une photo", fontSize = 11.sp)
+                            Text("Photo", fontSize = 11.sp)
                         }
-                        // Autres types simplifiés pour l'instant
+                        TextButton(onClick = { videoLauncher.launch("video/*") }) {
+                            Icon(Icons.Default.Videocam, null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Vidéo (10s)", fontSize = 11.sp)
+                        }
+                        TextButton(onClick = { audioLauncher.launch("audio/*") }) {
+                            Icon(Icons.Default.Mic, null, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Vocal", fontSize = 11.sp)
+                        }
                     }
                 }
 
@@ -406,6 +440,32 @@ fun QuestionItemCard(
                         onUpdate(question.copy(distractors = newList))
                     }) {
                         Text("+ Ajouter un piège", fontSize = 12.sp, color = accent)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Text("Messages taquins (Si mode aide utilisé)", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                
+                question.teasingMessages.forEachIndexed { tIndex, msg ->
+                    OutlinedTextField(
+                        value = msg,
+                        onValueChange = { 
+                            val newList = question.teasingMessages.toMutableList()
+                            newList[tIndex] = it
+                            onUpdate(question.copy(teasingMessages = newList.filter { it.isNotBlank() }))
+                        },
+                        placeholder = { Text("Ex: On voit qui ne suivait pas à table !") },
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = accent.copy(alpha = 0.2f))
+                    )
+                }
+                
+                if (question.teasingMessages.size < 3) {
+                    TextButton(onClick = { 
+                        val newList = question.teasingMessages + ""
+                        onUpdate(question.copy(teasingMessages = newList))
+                    }) {
+                        Text("+ Ajouter une pique", fontSize = 12.sp, color = accent)
                     }
                 }
             }

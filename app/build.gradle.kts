@@ -39,6 +39,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+        freeCompilerArgs += "-opt-in=androidx.media3.common.util.UnstableApi"
     }
     buildFeatures {
         compose = true
@@ -118,8 +119,11 @@ dependencies {
     implementation(libs.coil.compose)
 
     // Media
-    implementation("androidx.media3:media3-exoplayer:1.3.1")
-    implementation("androidx.media3:media3-ui:1.3.1")
+    val media3Version = "1.3.1"
+    implementation("androidx.media3:media3-exoplayer:$media3Version")
+    implementation("androidx.media3:media3-ui:$media3Version")
+    implementation("androidx.media3:media3-common:$media3Version")
+    implementation("androidx.media3:media3-datasource:$media3Version")
 
     // Firebase Remote Config
     implementation("com.google.firebase:firebase-config-ktx")

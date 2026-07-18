@@ -34,7 +34,6 @@ import com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
-@androidx.media3.common.util.UnstableApi
 @Composable
 fun RecipientLibraryScreen(
     navController: NavController,
@@ -115,7 +114,10 @@ fun RecipientLibraryScreen(
             status = "$totalSouvenirs souvenirs",
             icon = Icons.Outlined.Timeline,
             cover = covers["fil_pensee"],
-            onClick = { navController.navigate("fil_pensee") },
+            onClick = { 
+                val route = if (isCreatorMode) "fil_pensee" else "fil_pensee?creatorId=$targetCreatorId"
+                navController.navigate(route) 
+            },
             onEdit = { navController.navigate("library_cover_picker/fil_pensee/Fil de Pensée") }
         )
 

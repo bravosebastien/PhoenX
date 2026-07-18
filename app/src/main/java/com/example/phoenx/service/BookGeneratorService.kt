@@ -63,6 +63,8 @@ class BookGeneratorService @Inject constructor(
                 "photos" to complements.filter { it.entryType == "PHOTO" || it.entryType == "GALLERY" }
                     .map { mapOf("id" to it.id, "description" to it.aiSummary) },
                 "vocal_essence" to complements.filter { it.entryType == "AUDIO" }
+                    .map { mapOf("id" to it.id, "description" to it.aiSummary) },
+                "stories" to complements.filter { it.entryType == "TEXT" || it.entryType == "THOUGHT" }
                     .map { mapOf("id" to it.id, "description" to it.aiSummary) }
             )
         }.sortedBy { it["age"] as Int }

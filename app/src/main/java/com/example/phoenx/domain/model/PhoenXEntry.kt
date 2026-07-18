@@ -27,7 +27,11 @@ data class PhoenXEntry(
     val scheduledDate: Instant? = null,
 
     // GESTION STRUCTURELLE (Signature 7.6)
-    val parentEntryId: String? = null
+    val parentEntryId: String? = null,
+
+    // MÉDIA (v8.4.5)
+    val mediaUrl: String? = null,
+    val localMediaPath: String? = null
 )
 
 data class PhoenXAmendment(

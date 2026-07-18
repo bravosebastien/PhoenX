@@ -18,8 +18,7 @@ class AIManager @Inject constructor(
 
     suspend fun analyzeEntrySummary(summary: String): Map<String, Any> {
         val data = hashMapOf(
-            "summary" to summary,
-            "model" to "gemini-3.1-flash-lite"
+            "summary" to summary
         )
         val result: HttpsCallableResult = functions.getHttpsCallable("analyzeEntry").call(data).await()
         @Suppress("UNCHECKED_CAST")
@@ -27,15 +26,13 @@ class AIManager @Inject constructor(
     }
 
     suspend fun getBiographerQuestion(): String {
-        val data = hashMapOf("model" to "gemini-3.1-flash-lite")
-        val result: HttpsCallableResult = functions.getHttpsCallable("generateBiographerQuestion").call(data).await()
+        val result: HttpsCallableResult = functions.getHttpsCallable("generateBiographerQuestion").call().await()
         return result.data as String
     }
 
     suspend fun generateEssencePortrait(summaries: List<String>): String {
         val data = hashMapOf(
-            "summaries" to summaries,
-            "model" to "gemini-3.1-flash-lite"
+            "summaries" to summaries
         )
         val result: HttpsCallableResult = functions.getHttpsCallable("generateEssencePortrait").call(data).await()
         return result.data as String
@@ -44,8 +41,7 @@ class AIManager @Inject constructor(
     suspend fun analyzeEvolution(original: String, amendment: String): String {
         val data = hashMapOf(
             "original" to original,
-            "amendment" to amendment,
-            "model" to "gemini-3.1-flash-lite"
+            "amendment" to amendment
         )
         val result: HttpsCallableResult = functions.getHttpsCallable("detectThoughtEvolution").call(data).await()
         // La fonction cloud renvoie un JSON, on extrait la description
