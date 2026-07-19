@@ -216,25 +216,19 @@ fun PhoenXNavGraph(
                             else -> {}
                         }
                     }
-                } else if (isCreator == false) {
-                    // ROUTAGE INVITÉ (v7.2)
+                } else if (isCreator == false && myRoles.isNotEmpty()) {
+                    // FILET DE SÉCURITÉ (v8.4.7) : Uniquement si PUREMENT invité
                     hasNavigated = true
-                    if (myRoles.isEmpty()) {
-                        navController.navigate(Screen.Onboarding.route) {
+                    // Un seul rôle de dépositaire -> On garde l'ancien dashboard direct par confort
+                    val rolesList = myRoles.values.toList()
+                    if (rolesList.size == 1 && rolesList.first().role == "depositary") {
+                        navController.navigate(Screen.DepositaryDashboard.createRoute(rolesList.first().creatorId)) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                     } else {
-                        // Un seul rôle de dépositaire -> On garde l'ancien dashboard direct par confort
-                        val rolesList = myRoles.values.toList()
-                        if (rolesList.size == 1 && rolesList.first().role == "depositary") {
-                            navController.navigate(Screen.DepositaryDashboard.createRoute(rolesList.first().creatorId)) {
-                                popUpTo(Screen.Home.route) { inclusive = true }
-                            }
-                        } else {
-                            // Plusieurs rôles ou rôle différent -> Dashboard unifié
-                            navController.navigate("guest_dashboard") {
-                                popUpTo(Screen.Home.route) { inclusive = true }
-                            }
+                        // Plusieurs rôles ou rôle différent -> Dashboard unifié
+                        navController.navigate("guest_dashboard") {
+                            popUpTo(Screen.Home.route) { inclusive = true }
                         }
                     }
                 }

@@ -369,6 +369,8 @@ class MainViewModel @Inject constructor(
                     "silenceConfig.lastSilenceStatus" to "present"
                 )
             ).await()
+            // Élimination de la course : Mise à jour locale immédiate (v8.4.7)
+            _isCreator.value = true
         } catch (e: Exception) {
             // Si Firestore échoue, on garde quand même le flag local pour ne pas harceler l'utilisateur
         }
