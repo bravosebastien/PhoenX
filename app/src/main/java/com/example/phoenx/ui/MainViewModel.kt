@@ -60,7 +60,11 @@ class MainViewModel @Inject constructor(
     enum class Perspective { MY_MEMORY, HERITAGE, MISSIONS }
 
     fun switchPerspective(perspective: Perspective) {
+        android.util.Log.d("PerspectiveDebug", "MainViewModel: switchPerspective requested to $perspective")
+        val startTime = System.currentTimeMillis()
         _currentPerspective.value = perspective
+        val endTime = System.currentTimeMillis()
+        android.util.Log.d("PerspectiveDebug", "MainViewModel: _currentPerspective updated in ${endTime - startTime}ms")
     }
 
     private val _myRoles = MutableStateFlow<Map<String, UserRole>>(emptyMap())
@@ -359,20 +363,16 @@ class MainViewModel @Inject constructor(
         _silenceRhythmDays.value = rhythmDays
         
         try {
-            db.collection("users").document(userId).update(
-                mapOf(
-                    "isCreator" to true, // S'assure que le rôle est validé
-                    "silenceConfig.rhythmDays" to rhythmDays,
-                    "silenceConfig.lastCheckInAt" to com.google.firebase.Timestamp.now(),
-                    "silenceConfig.missedCycles" to 0,
-                    "silenceConfig.escalationLevel" to 0,
-                    "silenceConfig.lastSilenceStatus" to "present"
-                )
-            ).await()
+            android.util.Log.d("PHOENX_CONVERSION", "Appel becomeCreator Cloud Function...")
+            val data = hashMapOf("rhythmDays" to rhythmDays)
+            functions.getHttpsCallable("becomeCreator").call(data).await()
+            
             // Élimination de la course : Mise à jour locale immédiate (v8.4.7)
             _isCreator.value = true
+            android.util.Log.d("PHOENX_CONVERSION", "Statut Créateur validé localement.")
         } catch (e: Exception) {
-            // Si Firestore échoue, on garde quand même le flag local pour ne pas harceler l'utilisateur
+            android.util.Log.e("PHOENX_CONVERSION", "Échec critique de conversion : ${e.message}", e)
+            // On ne réinitialise pas le flag local pour éviter une boucle, mais l'erreur est visible
         }
     }
 

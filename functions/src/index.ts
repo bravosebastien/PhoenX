@@ -1075,3 +1075,36 @@ export const onUserDeletedCleanup = functionsV1.auth.user().onDelete(async (user
         console.error(`[AUTH ERROR] Échec du nettoyage critique pour ${uid}:`, error);
     }
 });
+
+/**
+ * PHOEN-X v8.4.8 - Conversion sécurisée en Créateur
+ * Seule autorisée à modifier isCreator et la config silence initiale.
+ */
+export const becomeCreator = onCall(async (request) => {
+    const uid = request.auth?.uid;
+    if (!uid) throw new HttpsError("unauthenticated", "Utilisateur non connecté");
+
+    const { rhythmDays } = request.data;
+    if (!rhythmDays || typeof rhythmDays !== "number") {
+        throw new HttpsError("invalid-argument", "Rythme de silence invalide");
+    }
+
+    try {
+        const userRef = admin.firestore().collection("users").doc(uid);
+        await userRef.update({
+            isCreator: true,
+            "silenceConfig.rhythmDays": rhythmDays,
+            "silenceConfig.lastCheckInAt": admin.firestore.FieldValue.serverTimestamp(),
+            "silenceConfig.missedCycles": 0,
+            "silenceConfig.escalationLevel": 0,
+            "silenceConfig.lastSilenceStatus": "present",
+            convertedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        console.log(`[CONVERSION] L'utilisateur ${uid} est maintenant Créateur.`);
+        return { success: true };
+    } catch (error: any) {
+        console.error(`[CONVERSION ERROR] Échec pour ${uid}:`, error);
+        throw new HttpsError("internal", "Impossible de valider le statut Créateur");
+    }
+});

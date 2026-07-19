@@ -268,14 +268,14 @@ fun GuestPerspectiveContent(
             Spacer(modifier = Modifier.height(24.dp))
         }
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        // REMPLACEMENT LAZYCOLUMN PAR COLUMN POUR ÉVITER ANR (v8.5.0)
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             val sortedRoles = myRoles.values.toList().sortedBy { it.creatorName }
-            items(sortedRoles) { role ->
+            sortedRoles.forEach { role ->
                 RoleCard(
                     role = role,
                     accent = accent,
                     onClick = {
-                        // Ici la logique de navigation simplifiée
                         onNavigateToCube(role.creatorId)
                     }
                 )

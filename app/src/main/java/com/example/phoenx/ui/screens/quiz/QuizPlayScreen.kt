@@ -41,7 +41,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(ExperimentalMaterial3Api::class, androidx.media3.common.util.UnstableApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuizPlayScreen(
     creatorId: String,
@@ -336,17 +336,17 @@ fun AnswerCard(
 ) {
     val bgColor = when {
         showResult && isCorrect -> Success.copy(alpha = 0.15f)
-        showResult && isSelected && !isCorrect -> Error.copy(alpha = 0.15f)
+        showResult && isSelected -> Error.copy(alpha = 0.15f)
         else -> Color(0xFF242429)
     }
     val borderColor = when {
         showResult && isCorrect -> Success
-        showResult && isSelected && !isCorrect -> Error
+        showResult && isSelected -> Error
         else -> Color(0xFF2E2E35)
     }
     val textColor = when {
         showResult && isCorrect -> Success
-        showResult && isSelected && !isCorrect -> Error
+        showResult && isSelected -> Error
         else -> TextPrimary
     }
 

@@ -78,6 +78,7 @@ import com.example.phoenx.ui.screens.settings.ProtocolSettingsScreen
 import com.example.phoenx.ui.theme.TextPrimary
 import com.google.firebase.auth.FirebaseAuth
 
+@androidx.media3.common.util.UnstableApi
 @Composable
 fun PhoenXNavGraph(
     navController: NavHostController,

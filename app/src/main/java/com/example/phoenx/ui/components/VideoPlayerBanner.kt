@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -29,6 +31,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 
+@OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun VideoPlayerBanner(
     modifier: Modifier = Modifier,
@@ -78,7 +81,7 @@ fun VideoPlayerBanner(
     // Mise à jour de la vidéo quand l'URL change
     LaunchedEffect(videoUrl) {
         if (videoUrl.isNotEmpty()) {
-            exoPlayer.setMediaItem(MediaItem.fromUri(Uri.parse(videoUrl)))
+            exoPlayer.setMediaItem(MediaItem.fromUri(videoUrl.toUri()))
             exoPlayer.prepare()
         }
     }
@@ -175,7 +178,7 @@ fun VideoPlayerBanner(
                     color = BackgroundPrimary.copy(alpha = 0.6f)
                 ) {
                     Icon(
-                        imageVector = if (isMuted) Icons.Default.VolumeOff else Icons.Default.VolumeUp,
+                        imageVector = if (isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.Default.VolumeUp,
                         contentDescription = "Son",
                         tint = TextPrimary,
                         modifier = Modifier.padding(8.dp).size(20.dp)

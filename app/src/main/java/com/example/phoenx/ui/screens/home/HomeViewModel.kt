@@ -100,19 +100,6 @@ class HomeViewModel @Inject constructor(
                         val birthTimestamp = doc.getTimestamp("dateOfBirth")
                         val lastAlive = doc.getTimestamp("lastAliveConfirmedAt")
                         
-                        // Initialisation silenceConfig si absent
-                        if (!doc.contains("silenceConfig")) {
-                            db.collection("users").document(user.uid).update(
-                                "silenceConfig", mapOf(
-                                    "rhythmDays" to 30,
-                                    "lastCheckInAt" to com.google.firebase.Timestamp.now(),
-                                    "missedCycles" to 0,
-                                    "escalationLevel" to 0,
-                                    "lastSilenceStatus" to "present"
-                                )
-                            )
-                        }
-
                         var currentAge = 0
                         if (birthTimestamp != null) {
                             val birthDate = birthTimestamp.toDate()

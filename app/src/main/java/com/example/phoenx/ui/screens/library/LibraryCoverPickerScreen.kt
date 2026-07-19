@@ -30,6 +30,7 @@ import coil3.compose.AsyncImage
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
+@androidx.media3.common.util.UnstableApi
 @Composable
 fun LibraryCoverPickerScreen(
     compartmentId: String,
@@ -183,6 +184,7 @@ fun LibraryCoverPickerScreen(
     }
 }
 
+@androidx.media3.common.util.UnstableApi
 @Composable
 fun VideoPreview(uri: Uri) {
     val context = LocalContext.current

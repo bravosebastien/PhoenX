@@ -134,6 +134,7 @@ fun HomeScreen(
                 )
             }
         ) { padding ->
+            android.util.Log.d("PerspectiveDebug", "HomeScreen: Recomposing with perspective $currentPerspective")
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -370,12 +371,18 @@ fun PerspectiveSwitcher(
     ) {
         Tab(
             selected = current == MainViewModel.Perspective.MY_MEMORY,
-            onClick = { onSwitch(MainViewModel.Perspective.MY_MEMORY) },
+            onClick = { 
+                android.util.Log.d("PerspectiveDebug", "HomeScreen: Tab MY_MEMORY clicked")
+                onSwitch(MainViewModel.Perspective.MY_MEMORY) 
+            },
             text = { Text("MA MÉMOIRE", style = MaterialTheme.typography.labelSmall) }
         )
         Tab(
             selected = current == MainViewModel.Perspective.HERITAGE,
-            onClick = { onSwitch(MainViewModel.Perspective.HERITAGE) },
+            onClick = { 
+                android.util.Log.d("PerspectiveDebug", "HomeScreen: Tab HERITAGE clicked")
+                onSwitch(MainViewModel.Perspective.HERITAGE) 
+            },
             text = { Text("PROCHES", style = MaterialTheme.typography.labelSmall) }
         )
     }

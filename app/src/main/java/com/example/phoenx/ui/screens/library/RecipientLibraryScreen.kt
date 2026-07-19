@@ -33,6 +33,7 @@ import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel
 import com.example.phoenx.ui.theme.*
 
+@androidx.media3.common.util.UnstableApi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipientLibraryScreen(
