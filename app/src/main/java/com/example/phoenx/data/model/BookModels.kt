@@ -21,7 +21,8 @@ data class BookDraft(
     val lastUpdatedAt: Long = System.currentTimeMillis(),
     val status: BookStatus = BookStatus.DRAFT,
     val chapters: List<BookChapter> = emptyList(),
-    val totalEntries: Int = 0
+    val totalEntries: Int = 0,
+    val recipientIds: List<String> = emptyList() // v8.5.4 Parity of access
 )
 
 data class BookMetadata(

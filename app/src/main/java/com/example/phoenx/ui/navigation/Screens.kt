@@ -81,8 +81,13 @@ sealed class Screen(val route: String) {
     object Questions : Screen("questions")
     object PendingQuestions : Screen("questions/pending")
     object DetectiveHome : Screen("detective/home")
-    object MemoryDetail : Screen("memory_detail/{entryId}") {
-        fun createRoute(entryId: String) = "memory_detail/$entryId"
+    object MemoryDetail : Screen("memory_detail/{entryId}?creatorId={creatorId}") {
+        fun createRoute(entryId: String, creatorId: String? = null) = 
+            if (creatorId != null) "memory_detail/$entryId?creatorId=$creatorId" else "memory_detail/$entryId"
+    }
+    object MediaViewer : Screen("media_viewer/{entryId}?creatorId={creatorId}") {
+        fun createRoute(entryId: String, creatorId: String? = null) = 
+            if (creatorId != null) "media_viewer/$entryId?creatorId=$creatorId" else "media_viewer/$entryId"
     }
     object AskQuestion : Screen("ask_question/{creatorId}/{recipientId}") {
         fun createRoute(creatorId: String, recipientId: String) = "ask_question/$creatorId/$recipientId"
@@ -94,6 +99,9 @@ sealed class Screen(val route: String) {
     }
     object RecipientPermissions : Screen("recipient_permissions/{recipientId}") {
         fun createRoute(recipientId: String) = "recipient_permissions/$recipientId"
+    }
+    object RecipientAllocation : Screen("recipient_allocation/{recipientId}") {
+        fun createRoute(recipientId: String) = "recipient_allocation/$recipientId"
     }
     
     object Portraits : Screen("portraits?recipientId={recipientId}") {
@@ -155,6 +163,9 @@ sealed class Screen(val route: String) {
     object RecipientWelcome : Screen("recipient/welcome")
     object RecipientCube : Screen("recipient/cube/{creatorId}") {
         fun createRoute(creatorId: String) = "recipient/cube/$creatorId"
+    }
+    object HeirHeritage : Screen("recipient/heritage/{creatorId}") {
+        fun createRoute(creatorId: String) = "recipient/heritage/$creatorId"
     }
     object RecipientFil : Screen("recipient/fil")
     object RecipientLibrary : Screen("recipient/library/{creatorId}") {

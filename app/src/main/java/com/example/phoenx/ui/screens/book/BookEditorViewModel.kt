@@ -10,8 +10,7 @@ import com.example.phoenx.data.model.ChapterStatus
 import com.example.phoenx.service.BookGeneratorService
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await as kotlinAwait
 import javax.inject.Inject
@@ -20,7 +19,8 @@ import javax.inject.Inject
 class BookEditorViewModel @Inject constructor(
     private val bookService: BookGeneratorService,
     private val auth: FirebaseAuth,
-    private val encryptionManager: EncryptionManager
+    private val encryptionManager: EncryptionManager,
+    private val offlineEntryDao: com.example.phoenx.data.local.OfflineEntryDao
 ) : ViewModel() {
 
     private val _bookDraft = MutableStateFlow<BookDraft?>(null)
@@ -43,6 +43,9 @@ class BookEditorViewModel @Inject constructor(
 
     private val _isUserCreator = MutableStateFlow<Boolean?>(null)
     val isUserCreator: StateFlow<Boolean?> = _isUserCreator
+
+    val recipients: StateFlow<List<com.example.phoenx.data.local.RecipientEntity>> = offlineEntryDao.getAllRecipients()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         checkCreatorStatus()
@@ -161,6 +164,16 @@ class BookEditorViewModel @Inject constructor(
                 else chapter
             }
         )
+        _bookDraft.value = updated
+        viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
+            bookService.saveBookDraft(userId, updated)
+        }
+    }
+
+    fun updateRecipients(recipientIds: List<String>) {
+        val current = _bookDraft.value ?: return
+        val updated = current.copy(recipientIds = recipientIds)
         _bookDraft.value = updated
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch

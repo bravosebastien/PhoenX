@@ -2,6 +2,7 @@ package com.example.phoenx.data.sync
 
 import com.example.phoenx.data.local.OfflineEntry
 import com.google.firebase.firestore.Blob
+import com.google.firebase.firestore.DocumentSnapshot
 import org.json.JSONObject
 
 /**
@@ -52,5 +53,46 @@ fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
         "parentEntryId" to parentEntryId,
         "enigmaHint" to enigmaHint,
         "enigmaAutoUnlockDays" to enigmaAutoUnlockDays
+    )
+}
+
+/**
+ * Extension pour convertir un DocumentSnapshot Firestore en OfflineEntry (Room).
+ * (v8.5.5 - Support Heritage sans Sync local)
+ */
+fun DocumentSnapshot.toOfflineEntry(): OfflineEntry? {
+    if (!exists()) return null
+    val ageMap = get("ageAtCreation") as? Map<*, *>
+    val ageJson = ageMap?.let { JSONObject(it).toString() } ?: "{}"
+
+    val recIds = (get("recipientIds") as? List<*>)?.joinToString(",") ?: ""
+    val compIds = (get("compartmentIds") as? List<*>)?.let { "," + it.joinToString(",") + "," } ?: ""
+
+    return OfflineEntry(
+        id = id,
+        creatorUid = getString("uid") ?: "",
+        encryptedPayload = (get("encryptedContent") as? Blob)?.toBytes() ?: ByteArray(0),
+        entryType = getString("type") ?: "TEXT",
+        ageAtCreation = ageJson,
+        emotionalCategory = getString("emotionalCategory") ?: "",
+        visibility = getString("visibility") ?: "RESTRICTED",
+        recipientIds = recIds,
+        compartmentIds = compIds,
+        isYoungSelfLetter = getBoolean("isYoungSelfLetter") ?: false,
+        targetAge = getLong("targetAge")?.toInt(),
+        createdAt = getLong("createdAt") ?: 0L,
+        aiSummary = getString("aiSummary") ?: "",
+        aiTags = (get("aiTags") as? List<*>)?.joinToString(",") ?: "",
+        enigmaQuestion = getString("enigmaQuestion"),
+        enigmaAnswer = getString("enigmaAnswer"),
+        fallbackAnswer = getString("fallbackAnswer"),
+        mediaUrl = getString("mediaUrl"),
+        localMediaPath = null,
+        memoryDate = getLong("memoryDate"),
+        memoryDateStart = getLong("memoryDateStart"),
+        memoryDateEnd = getLong("memoryDateEnd"),
+        parentEntryId = getString("parentEntryId"),
+        enigmaHint = getString("enigmaHint"),
+        enigmaAutoUnlockDays = getLong("enigmaAutoUnlockDays")?.toInt()
     )
 }

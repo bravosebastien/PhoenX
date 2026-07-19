@@ -804,6 +804,19 @@ export const getCreatorBookStatus = onCall(async (request) => {
     if (!creatorDoc.exists) throw new HttpsError("not-found", "Créateur introuvable");
 
     const data = creatorDoc.data()!;
+
+    // 3. Vérification des accès restreints au livre (v8.5.4)
+    const bookDoc = await db.collection("users").doc(creatorId)
+        .collection("book").doc("current_draft").get();
+
+    if (bookDoc.exists) {
+        const bookData = bookDoc.data();
+        const recipientIds = bookData?.recipientIds || [];
+        if (recipientIds.length > 0 && !recipientIds.includes(requesterUid)) {
+             throw new HttpsError("permission-denied", "Ce livre ne vous est pas destiné.");
+        }
+    }
+
     return {
         displayName: data.displayName || "Votre proche",
         isBookOpen: data.protocolStatus === "activated"

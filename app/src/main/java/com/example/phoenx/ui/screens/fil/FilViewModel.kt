@@ -19,11 +19,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import com.example.phoenx.data.sync.toOfflineEntry
+import com.google.firebase.firestore.DocumentSnapshot
+import kotlinx.coroutines.channels.awaitClose
 import java.time.Instant
 import java.util.*
 import javax.inject.Inject
 import org.json.JSONObject
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class FilViewModel @Inject constructor(
     private val auth: FirebaseAuth,
@@ -75,57 +79,94 @@ class FilViewModel @Inject constructor(
 
     private fun observeEntries() {
         val currentUid = auth.currentUser?.uid ?: ""
-        combine(
-            offlineEntryDao.getAllEntries(),
-            _selectedRecipientId,
-            _sortByCreationDate,
-            _targetCreatorId
-        ) { offlineEntries, recipientId, sortByDate, targetId ->
-            
-            // 1. Filtrage par CRÉATEUR et ACCÈS (v8.4.5)
-            val rootEntries = if (targetId == null || targetId == currentUid) {
-                // Mon propre fil
-                offlineEntries.filter { it.creatorUid == currentUid && it.parentEntryId == null }
-            } else {
-                // Fil d'un proche (Héritage)
-                offlineEntries.filter { entry ->
-                    val isFromTarget = entry.creatorUid == targetId
-                    val isRoot = entry.parentEntryId == null
-                    val isForMe = entry.visibility == "EVERYONE" || entry.recipientIds.split(",").contains(currentUid)
-                    isFromTarget && isRoot && isForMe
+        viewModelScope.launch {
+            _targetCreatorId.flatMapLatest { targetId ->
+                if (targetId == null || targetId == currentUid) {
+                    // MODE CRÉATEUR : Lecture Room locale (Ma Mémoire)
+                    offlineEntryDao.getAllEntries()
+                } else {
+                    // MODE HÉRITIER : Lecture Firestore directe (v8.5.5)
+                    val publicFlow = callbackFlow {
+                        val listener = db.collection("users").document(targetId)
+                            .collection("entries")
+                            .whereEqualTo("visibility", "EVERYONE")
+                            .addSnapshotListener { snapshot, _ ->
+                                trySend(snapshot?.documents?.mapNotNull { it.toOfflineEntry() } ?: emptyList())
+                            }
+                        awaitClose { listener.remove() }
+                    }
+
+                    val privateFlow = callbackFlow {
+                        val listener = db.collection("users").document(targetId)
+                            .collection("entries")
+                            .whereArrayContains("recipientIds", currentUid)
+                            .addSnapshotListener { snapshot, _ ->
+                                trySend(snapshot?.documents?.mapNotNull { it.toOfflineEntry() } ?: emptyList())
+                            }
+                        awaitClose { listener.remove() }
+                    }
+
+                    combine(publicFlow, privateFlow) { pub, priv ->
+                        (pub + priv).distinctBy { it.id }
+                    }
                 }
-            }
+            }.combine(
+                combine(_selectedRecipientId, _sortByCreationDate) { r, s -> r to s }
+            ) { offlineEntries, (recipientId, sortByDate) ->
+                val targetId = _targetCreatorId.value
+                val isHeirMode = targetId != null && targetId != currentUid
 
-            // 2. Filtrage par destinataire (UI)
-            val filteredOffline = if (recipientId != null) {
-                rootEntries.filter { 
-                    it.recipientIds.split(",").contains(recipientId) || it.visibility == "EVERYONE"
+                // 1. Filtrage par CRÉATEUR et ACCÈS
+                val rootEntries = if (!isHeirMode) {
+                    // Mon propre fil : Uniquement mes propres souvenirs Room (Parents)
+                    offlineEntries.filter { it.parentEntryId == null }
+                } else {
+                    // Fil d'un proche : Filtrage accès héritier
+                    offlineEntries.filter { entry ->
+                        val isRoot = entry.parentEntryId == null
+                        val isForMe = entry.visibility == "EVERYONE" || entry.recipientIds.split(",").contains(currentUid)
+                        isRoot && isForMe
+                    }
                 }
-            } else {
-                rootEntries
-            }
 
-            // 3. Décodage et chargement des amendements
-            val decodedEntries = filteredOffline.map { entry ->
-                val amendments = offlineEntryDao.getAmendmentsForEntrySync(entry.id).map { it.toDomain() }
-                entry.toDomain(encryptionManager, amendments)
-            }
+                // 2. Filtrage par destinataire (UI)
+                val filteredOffline = if (recipientId != null) {
+                    rootEntries.filter { 
+                        it.recipientIds.split(",").contains(recipientId) || it.visibility == "EVERYONE"
+                    }
+                } else {
+                    rootEntries
+                }
 
-            // 4. Tri final
-            val finalEntries = if (sortByDate) {
-                decodedEntries.sortedByDescending { it.timestamp }
-            } else {
-                decodedEntries.sortedByDescending { it.ageAtCreation.years }
+                // 3. Décodage et chargement des amendements
+                val decodedEntries = filteredOffline.map { entry ->
+                    // On ne charge les amendements Room QUE si on est en mode Créateur local
+                    val amendments = if (!isHeirMode) {
+                        offlineEntryDao.getAmendmentsForEntrySync(entry.id).map { it.toDomain() }
+                    } else emptyList()
+                    
+                    entry.toDomain(encryptionManager, amendments)
+                }
+
+                // 4. Tri final
+                if (sortByDate) {
+                    decodedEntries.sortedByDescending { it.timestamp }
+                } else {
+                    decodedEntries.sortedByDescending { it.ageAtCreation.years }
+                }
+            }.collect { list ->
+                val minAgeVal = if (list.isEmpty()) 0 else list.minOfOrNull { it.ageAtCreation.years } ?: 0
+                val maxAgeVal = if (list.isEmpty()) 100 else list.maxOfOrNull { it.ageAtCreation.years } ?: 100
+                
+                _uiState.value = FilUiState(
+                    entries = list,
+                    totalCount = list.size,
+                    minAge = minAgeVal,
+                    maxAge = maxAgeVal,
+                    isLoading = false
+                )
             }
-            
-            _uiState.value = FilUiState(
-                entries = finalEntries,
-                totalCount = finalEntries.size,
-                minAge = finalEntries.minOfOrNull { it.ageAtCreation.years } ?: 0,
-                maxAge = finalEntries.maxOfOrNull { it.ageAtCreation.years } ?: 0,
-                isLoading = false
-            )
-        }.launchIn(viewModelScope)
+        }
     }
 
     fun setRecipientFilter(id: String?) {

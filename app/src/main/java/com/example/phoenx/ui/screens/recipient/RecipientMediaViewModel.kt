@@ -14,10 +14,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.Blob
+import kotlinx.coroutines.channels.awaitClose
 import org.json.JSONObject
 import java.time.Instant
 import javax.inject.Inject
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecipientMediaViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
@@ -38,6 +42,9 @@ class RecipientMediaViewModel @Inject constructor(
 
     private val _videoEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
     val videoEntries: StateFlow<List<PhoenXEntry>> = _videoEntries
+
+    private val _heritageEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
+    val heritageEntries: StateFlow<List<PhoenXEntry>> = _heritageEntries
 
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
@@ -69,30 +76,52 @@ class RecipientMediaViewModel @Inject constructor(
     private fun loadAllMedia() {
         val currentUid = auth.currentUser?.uid ?: ""
         viewModelScope.launch {
-            // On récupère d'abord si on est en mode Créateur ou Destinataire
-            val isCreator = try {
-                val doc = db.collection("users").document(currentUid).get().await()
-                doc.getBoolean("isCreator") ?: true
-            } catch(e: Exception) { true }
+            _targetCreatorId.flatMapLatest { targetId ->
+                if (targetId == null || targetId == currentUid) {
+                    // MODE CRÉATEUR : Lecture Room locale (Ma Mémoire)
+                    offlineEntryDao.getAllEntries()
+                } else {
+                    // MODE HÉRITIER : Lecture Firestore directe (v8.5.5)
+                    // On combine deux requêtes pour gérer le "OU" (visibility OR recipientIds)
+                    val publicFlow = callbackFlow {
+                        val listener = db.collection("users").document(targetId)
+                            .collection("entries")
+                            .whereEqualTo("visibility", "EVERYONE")
+                            .addSnapshotListener { snapshot, _ ->
+                                trySend(snapshot?.documents?.mapNotNull { it.toOfflineEntry() } ?: emptyList())
+                            }
+                        awaitClose { listener.remove() }
+                    }
 
-            combine(
-                offlineEntryDao.getAllEntries(),
-                _targetCreatorId
-            ) { allOfflineEntries, targetId ->
-                Pair(allOfflineEntries, targetId)
-            }.collectLatest { (allOfflineEntries, targetId) ->
+                    val privateFlow = callbackFlow {
+                        val listener = db.collection("users").document(targetId)
+                            .collection("entries")
+                            .whereArrayContains("recipientIds", currentUid)
+                            .addSnapshotListener { snapshot, _ ->
+                                trySend(snapshot?.documents?.mapNotNull { it.toOfflineEntry() } ?: emptyList())
+                            }
+                        awaitClose { listener.remove() }
+                    }
+
+                    combine(publicFlow, privateFlow) { pub, priv ->
+                        (pub + priv).distinctBy { it.id }
+                    }
+                }
+            }.collectLatest { allOfflineEntries ->
+                val targetId = _targetCreatorId.value
+                val isHeirMode = targetId != null && targetId != currentUid
+
                 // 1. On sépare parents et compléments
                 val parents = allOfflineEntries.filter { it.parentEntryId == null }
                 val complements = allOfflineEntries.filter { it.parentEntryId != null }
 
-                // 2. Filtrage par ACCÈS STRICT et par CRÉATEUR CIBLE
-                val accessibleParents = if (isCreator) {
+                // 2. Filtrage par ACCÈS STRICT
+                val accessibleParents = if (!isHeirMode) {
                     parents 
                 } else {
                     parents.filter { parent ->
                         val isForMe = parent.visibility == "EVERYONE" || parent.recipientIds.split(",").contains(currentUid)
-                        val isFromTarget = targetId == null || parent.creatorUid == targetId
-                        isForMe && isFromTarget
+                        isForMe
                     }
                 }
 
@@ -113,7 +142,6 @@ class RecipientMediaViewModel @Inject constructor(
                 }
 
                 _discothequeEntries.value = decodedParents.filter { parent ->
-                    // Maintien du mélange actuel (AUDIO, NIGHT, EMOTION) comme demandé
                     val mainMatches = parent.type == EntryType.AUDIO || parent.type == EntryType.NIGHT_CAPTURE || parent.type == EntryType.EMOTION
                     val compMatches = complements.any { it.parentEntryId == parent.id && (it.entryType == "AUDIO" || it.entryType == "NIGHT" || it.entryType == "EMOTION") }
                     mainMatches || compMatches
@@ -124,8 +152,46 @@ class RecipientMediaViewModel @Inject constructor(
                         complements.any { it.parentEntryId == parent.id && it.entryType == "PHOTO" }
                     hasMatch
                 }
+
+                // 5. Unified Heritage List (v8.5.3)
+                _heritageEntries.value = decodedParents.sortedByDescending { it.timestamp }
             }
         }
+    }
+
+    /**
+     * Helper pour convertir un document Firestore en OfflineEntry (v8.5.5)
+     */
+    private fun DocumentSnapshot.toOfflineEntry(): OfflineEntry? {
+        if (!exists()) return null
+        val ageMap = get("ageAtCreation") as? Map<*, *>
+        val ageJson = ageMap?.let { JSONObject(it).toString() } ?: "{}"
+
+        val recIds = (get("recipientIds") as? List<*>)?.joinToString(",") ?: ""
+        val compIds = (get("compartmentIds") as? List<*>)?.joinToString(",") ?: ""
+
+        return OfflineEntry(
+            id = id,
+            creatorUid = getString("uid") ?: "",
+            encryptedPayload = (get("encryptedContent") as? Blob)?.toBytes() ?: ByteArray(0),
+            entryType = getString("type") ?: "TEXT",
+            ageAtCreation = ageJson,
+            emotionalCategory = getString("emotionalCategory") ?: "",
+            visibility = getString("visibility") ?: "private",
+            recipientIds = recIds,
+            compartmentIds = compIds,
+            isYoungSelfLetter = getBoolean("isYoungSelfLetter") ?: false,
+            targetAge = getLong("targetAge")?.toInt(),
+            createdAt = getLong("createdAt") ?: 0L,
+            aiSummary = getString("aiSummary") ?: "",
+            aiTags = (get("aiTags") as? List<*>)?.joinToString(",") ?: "",
+            mediaUrl = getString("mediaUrl"),
+            localMediaPath = null, // Pas de chemin local pour les entrées héritées
+            memoryDate = getLong("memoryDate"),
+            memoryDateStart = getLong("memoryDateStart"),
+            memoryDateEnd = getLong("memoryDateEnd"),
+            parentEntryId = getString("parentEntryId")
+        )
     }
 
     private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager): PhoenXEntry {

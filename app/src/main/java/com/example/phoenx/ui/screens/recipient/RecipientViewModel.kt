@@ -35,6 +35,9 @@ class RecipientViewModel @Inject constructor(
     fun getEntriesForRecipient(recipientId: String): Flow<List<OfflineEntry>> = 
         offlineEntryDao.getEntriesForRecipient(recipientId)
 
+    fun getEntriesForRecipientUnified(recipientId: String): Flow<List<OfflineEntry>> = 
+        offlineEntryDao.getEntriesForRecipientUnified(recipientId)
+
     fun getPortraitForRecipient(recipientId: String): Flow<OfflineEntry?> = 
         offlineEntryDao.getPortraitEntryForRecipient(recipientId)
 

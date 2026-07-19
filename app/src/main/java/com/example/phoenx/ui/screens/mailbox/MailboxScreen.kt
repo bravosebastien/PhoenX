@@ -39,7 +39,7 @@ fun MailboxScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Boîte aux Lettres", style = MaterialTheme.typography.displaySmall) },
+                title = { Text("Capsules Temporelles", style = MaterialTheme.typography.displaySmall) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)

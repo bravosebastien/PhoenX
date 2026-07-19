@@ -122,6 +122,9 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM offline_entries WHERE parentEntryId = :parentId ORDER BY createdAt ASC")
     fun getComplements(parentId: String): Flow<List<OfflineEntry>>
 
+    @Query("SELECT * FROM offline_entries WHERE (recipientIds LIKE '%' || :recipientId || '%') OR visibility = 'EVERYONE' ORDER BY createdAt DESC")
+    fun getEntriesForRecipientUnified(recipientId: String): Flow<List<OfflineEntry>>
+
     @Query("SELECT * FROM offline_entries WHERE recipientIds LIKE '%' || :recipientId || '%'")
     fun getEntriesForRecipient(recipientId: String): Flow<List<OfflineEntry>>
 

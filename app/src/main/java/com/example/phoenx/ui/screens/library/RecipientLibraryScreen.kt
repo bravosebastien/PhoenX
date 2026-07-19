@@ -163,20 +163,20 @@ fun RecipientLibraryScreen(
         )
 
         val compartments = listOf(
-            // Triple("Label", Icon, "route", "ID pour cover")
-            listOf("Discothèque", Icons.Outlined.Album, "library_music", "discotheque"),
-            listOf("Vidéothèque", Icons.Outlined.Movie, "library_video", "videotheque"),
-            listOf("Mes Meilleurs", Icons.Outlined.StarOutline, "mes_meilleurs", "mes_meilleurs"),
-            listOf("Photos", Icons.Outlined.PhotoCamera, "photos", "photos"),
-            listOf("Mappemonde", Icons.Outlined.Public, "mappemonde", "mappemonde"),
-            listOf("100 Questions", Icons.Outlined.HelpOutline, "cent_questions", "cent_questions"),
-            listOf("Coffre Fort", Icons.Outlined.Lock, "coffre_fort", "coffre_fort"),
-            listOf("Le Pacte", Icons.Outlined.Handshake, "le_pacte", "le_pacte"),
-            listOf("Portrait proche", Icons.Outlined.AccountCircle, "portrait_proche", "portrait_proche"),
-            listOf("Réconciliation", Icons.Outlined.Mail, "reconciliation", "reconciliation"),
-            listOf("Lettres", Icons.Outlined.MailOutline, "lettres", "lettres"),
-            listOf("Tiroir secret", Icons.Outlined.Key, "tiroir_secret", "tiroir_secret"),
-            listOf("Mon Quiz", Icons.Outlined.EmojiEvents, "quiz", "quiz")
+            // Label, Icon, route, ID, Subtitle, InfoText
+            listOf("Discothèque", Icons.Outlined.Album, "library_music", "discotheque", "Tes sons", "Ta bibliothèque musicale personnelle. Dépose les morceaux qui ont marqué ta vie. Tes proches pourront les écouter plus tard."),
+            listOf("Vidéothèque", Icons.Outlined.Movie, "library_video", "videotheque", "Tes moments", "Un espace pour tes souvenirs animés. Stocke tes vidéos les plus précieuses. Accessible à tes héritiers après activation."),
+            listOf("Mes Meilleurs", Icons.Outlined.StarOutline, "mes_meilleurs", "mes_meilleurs", "Tes coups de cœur", "Livres, films, voyages : le best-of de tes goûts. Partage ce qui t'a inspiré. Aide tes proches à te découvrir sous un autre angle."),
+            listOf("Grande Photothèque", Icons.Outlined.PhotoCamera, "photos", "photos", "Tes images", "Tes albums photo chiffrés et sécurisés. Organise tes souvenirs visuels par période. Tes proches y accèderont le moment venu."),
+            listOf("Mappemonde", Icons.Outlined.Public, "mappemonde", "mappemonde", "Tes lieux", "Une carte interactive de tes souvenirs géolocalisés. Marque les endroits qui comptent pour toi. Laisse une trace de tes voyages."),
+            listOf("100 Questions", Icons.Outlined.HelpOutline, "cent_questions", "cent_questions", "Ton histoire", "Réponds à des questions guidées sur ta vie. L'IA utilisera tes réponses pour ton Livre de Vie. Transmets ton vécu simplement."),
+            listOf("Coffre Fort", Icons.Outlined.Lock, "coffre_fort", "coffre_fort", "Mode Détective", "Cache des secrets derrière des énigmes personnelles. Seuls ceux qui te connaissent bien pourront les ouvrir. Transforme ton héritage en exploration."),
+            listOf("Le Pacte", Icons.Outlined.Handshake, "le_pacte", "le_pacte", "Vérités croisées", "Raconte ton histoire en duo avec un proche. Comparez vos points de vue sur les mêmes événements. Une mémoire partagée et symétrique."),
+            listOf("Portrait proche", Icons.Outlined.AccountCircle, "portrait_proche", "portrait_proche", "Ton regard", "Écris ce que tu vois en ceux que tu aimes. Laisse-leur un miroir de ta propre vision. Un cadeau émotionnel inestimable."),
+            listOf("Réconciliation", Icons.Outlined.Mail, "reconciliation", "reconciliation", "Mots de paix", "Un espace pour dire ce qui n'a jamais été dit. Formule tes excuses ou tes vérités. Accessible uniquement 30 jours après ton départ."),
+            listOf("Capsules Temporelles", Icons.Outlined.MailOutline, "lettres", "lettres", "Messages futur", "Programme des messages pour des dates précises. Écris pour le futur de tes proches. Tes mots arriveront au bon moment."),
+            listOf("Tiroir secret", Icons.Outlined.Key, "tiroir_secret", "tiroir_secret", "L'Unique Secret", "Un tiroir scellé dont une seule personne aura la clé physique. Le contenu le plus intime de ton héritage. Une transmission directe et unique."),
+            listOf("Mon Quiz", Icons.Outlined.EmojiEvents, "quiz", "quiz", "Test de complicité", "Crée un quiz sur ta vie pour tes proches. Vois qui te connaît le mieux. Une façon ludique et multimedia de transmettre.")
         )
 
         // Affichage en grille manuelle pour éviter le LazyVerticalGrid dans Scrollable
@@ -191,9 +191,13 @@ fun RecipientLibraryScreen(
                         val icon = comp[1] as androidx.compose.ui.graphics.vector.ImageVector
                         val route = comp[2] as String
                         val id = comp[3] as String
+                        val subtitle = comp[4] as String
+                        val infoText = comp[5] as String
                         
                         CompartmentCard(
                             name = label,
+                            subtitle = subtitle,
+                            infoText = infoText,
                             icon = icon,
                             cover = covers[id],
                             modifier = Modifier.weight(1f),
@@ -331,6 +335,8 @@ fun EssentialCard(
 @Composable
 fun CompartmentCard(
     name: String,
+    subtitle: String? = null,
+    infoText: String? = null,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     cover: LibraryCover?,
     modifier: Modifier = Modifier,
@@ -338,9 +344,24 @@ fun CompartmentCard(
     onEdit: () -> Unit
 ) {
     val accent = LocalAccentColor.current
+    var showInfo by remember { mutableStateOf(false) }
+
+    if (showInfo && infoText != null) {
+        AlertDialog(
+            onDismissRequest = { showInfo = false },
+            title = { Text(name, color = TextPrimary) },
+            text = { Text(infoText, color = TextSecondary) },
+            confirmButton = {
+                TextButton(onClick = { showInfo = false }) {
+                    Text("Compris", color = accent)
+                }
+            },
+            containerColor = BackgroundSecondary
+        )
+    }
     
     Card(
-        modifier = modifier.height(95.dp).clickable { onClick() },
+        modifier = modifier.height(105.dp).clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.25f))
@@ -372,11 +393,21 @@ fun CompartmentCard(
                     )
             )
 
-            IconButton(
-                onClick = onEdit,
-                modifier = Modifier.align(Alignment.TopEnd).padding(6.dp).size(16.dp)
-            ) {
-                Icon(Icons.Outlined.Edit, null, tint = accent.copy(alpha = 0.4f), modifier = Modifier.size(10.dp))
+            Row(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (infoText != null) {
+                    IconButton(
+                        onClick = { showInfo = true },
+                        modifier = Modifier.size(16.dp)
+                    ) {
+                        Icon(Icons.Outlined.Info, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(12.dp))
+                    }
+                }
+                IconButton(
+                    onClick = onEdit,
+                    modifier = Modifier.size(16.dp)
+                ) {
+                    Icon(Icons.Outlined.Edit, null, tint = accent.copy(alpha = 0.4f), modifier = Modifier.size(10.dp))
+                }
             }
 
             Column(
@@ -388,10 +419,18 @@ fun CompartmentCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     name, 
-                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 10.sp), 
-                    color = TextSecondary, 
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 10.sp, fontWeight = FontWeight.Bold), 
+                    color = TextPrimary, 
                     textAlign = TextAlign.Center
                 )
+                if (subtitle != null) {
+                    Text(
+                        subtitle,
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                        color = accent.copy(alpha = 0.8f),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }

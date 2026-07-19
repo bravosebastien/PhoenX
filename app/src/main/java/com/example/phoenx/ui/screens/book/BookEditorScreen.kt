@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -37,6 +38,7 @@ import androidx.navigation.NavController
 import com.example.phoenx.data.model.BookChapter
 import com.example.phoenx.data.model.ChapterStatus
 import com.example.phoenx.ui.components.InfoButton
+import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.example.phoenx.ui.theme.BackgroundPrimary
 import com.example.phoenx.ui.theme.SurfaceCard
@@ -53,6 +55,7 @@ fun BookEditorScreen(
     val isGenerating by viewModel.isGenerating.collectAsState()
     val generationProgress by viewModel.generationProgress.collectAsState()
     val selectedChapter by viewModel.selectedChapter.collectAsState()
+    val recipients by viewModel.recipients.collectAsState()
     val isModifyingWithAi by viewModel.isModifyingWithAi.collectAsState()
     val error by viewModel.error.collectAsState()
     val isUserCreator by viewModel.isUserCreator.collectAsState()
@@ -143,6 +146,31 @@ fun BookEditorScreen(
                     ),
                     modifier = Modifier.padding(top = 4.dp, bottom = 20.dp)
                 )
+
+                // SÉLECTEUR DE DESTINATAIRES (v8.5.4)
+                Text(
+                    "QUI PEUT LIRE CE LIVRE ?", 
+                    style = MaterialTheme.typography.labelSmall, 
+                    color = AccentPrimary, 
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                val selectedRecipientIds = remember(bookDraft!!.recipientIds) {
+                    mutableStateListOf<String>().apply { addAll(bookDraft!!.recipientIds) }
+                }
+                RecipientSelector(
+                    recipients = recipients,
+                    selectedIds = selectedRecipientIds,
+                    visibility = "RESTRICTED",
+                    onVisibilityChange = {},
+                    accent = AccentPrimary
+                )
+                LaunchedEffect(selectedRecipientIds.toList()) {
+                    if (selectedRecipientIds.toList() != bookDraft!!.recipientIds) {
+                        viewModel.updateRecipients(selectedRecipientIds.toList())
+                    }
+                }
+                Spacer(modifier = Modifier.height(24.dp))
             }
 
             // ── ÉTAT 1 : AUCUN LIVRE ──────────────────

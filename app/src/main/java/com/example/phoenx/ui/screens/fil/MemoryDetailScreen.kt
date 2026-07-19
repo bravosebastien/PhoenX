@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.fil
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -43,6 +44,7 @@ fun MemoryDetailScreen(
     entryId: String,
     onNavigateBack: () -> Unit,
     navController: NavController,
+    targetCreatorId: String? = null,
     viewModel: MemoryDetailViewModel = hiltViewModel()
 ) {
     val entry by viewModel.entry.collectAsState()
@@ -78,8 +80,8 @@ fun MemoryDetailScreen(
         mutableStateOf(entry?.memoryDateStart != null || entry?.memoryDateEnd != null)
     }
 
-    LaunchedEffect(entryId) {
-        viewModel.loadEntry(entryId)
+    LaunchedEffect(entryId, targetCreatorId) {
+        viewModel.loadEntry(entryId, targetCreatorId)
     }
 
     LaunchedEffect(content) {
@@ -430,7 +432,15 @@ fun MemoryDetailScreen(
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             complements.forEach { complement ->
                                 Card(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            if (complement.entryType != "TEXT") {
+                                                navController.navigate(
+                                                    Screen.MediaViewer.createRoute(complement.id, targetCreatorId)
+                                                )
+                                            }
+                                        },
                                     colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
                                     shape = RoundedCornerShape(12.dp),
                                     border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))

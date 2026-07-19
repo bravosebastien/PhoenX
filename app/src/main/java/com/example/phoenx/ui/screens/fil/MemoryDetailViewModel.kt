@@ -30,6 +30,8 @@ class MemoryDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _entryId = MutableStateFlow<String?>(null)
+    private val _heirKey = MutableStateFlow<ByteArray?>(null)
+    val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
 
     private val _deleteSuccess = MutableStateFlow(false)
     val deleteSuccess: StateFlow<Boolean> = _deleteSuccess.asStateFlow()
@@ -50,22 +52,34 @@ class MemoryDetailViewModel @Inject constructor(
     /**
      * Retourne la liste des compléments texte DÉCHIFFRÉS (v8.4)
      */
-    val decryptedTextComplements: StateFlow<List<Pair<String, String>>> = complements
-        .map { list ->
-            list.filter { it.entryType == "TEXT" || it.entryType == "THOUGHT" }
-                .map { it.id to encryptionManager.decryptText(it.encryptedPayload) }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val decryptedTextComplements: StateFlow<List<Pair<String, String>>> = combine(complements, _heirKey) { list, key ->
+        list.filter { it.entryType == "TEXT" || it.entryType == "THOUGHT" }
+            .map { it.id to encryptionManager.decryptText(it.encryptedPayload, key) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val decryptedContent: StateFlow<String> = entry
-        .map { it?.let { encryptionManager.decryptText(it.encryptedPayload) } ?: "" }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+    val decryptedContent: StateFlow<String> = combine(entry, _heirKey) { ent, key ->
+        ent?.let { encryptionManager.decryptText(it.encryptedPayload, key) } ?: ""
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     val recipients: StateFlow<List<RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun loadEntry(id: String) {
+    fun loadEntry(id: String, creatorId: String? = null) {
         _entryId.value = id
+        if (creatorId != null && creatorId != auth.currentUser?.uid) {
+            viewModelScope.launch {
+                try {
+                    val keyDoc = db.collection("users").document(creatorId)
+                        .collection("entry_keys").document("main").get().await()
+                    val keyBase64 = keyDoc.getString("key")
+                    if (keyBase64 != null) {
+                        _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("MemoryDetailVM", "Erreur chargement clé héritage", e)
+                }
+            }
+        }
     }
 
     fun clearError() {

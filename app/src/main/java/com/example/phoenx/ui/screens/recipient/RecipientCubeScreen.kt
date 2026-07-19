@@ -32,9 +32,7 @@ import com.example.phoenx.ui.theme.*
 fun RecipientCubeScreen(
     creatorId: String,
     onExit: () -> Unit,
-    onNavigateToLibrary: () -> Unit,
-    onNavigateToDiscotheque: () -> Unit,
-    onNavigateToArchives: () -> Unit,
+    onNavigateToHeritage: () -> Unit,
     onBecomeCreator: () -> Unit
 ) {
     val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
@@ -131,23 +129,25 @@ fun RecipientCubeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "CHOISIS TON TIROIR",
+                    "ACCÉDER À L'HÉRITAGE",
                     style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp),
                     color = TextTertiary,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(20.dp))
                 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                Surface(
+                    onClick = onNavigateToHeritage,
+                    color = accent,
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier.fillMaxWidth().height(64.dp)
                 ) {
-                    DrawerShortCut("BIBLIOTHÈQUE", "Ses mots", Modifier.weight(1f), onNavigateToLibrary)
-                    DrawerShortCut("DISCOTHÈQUE", "Ses sons", Modifier.weight(1f)) {
-                        onNavigateToDiscotheque()
-                    }
-                    DrawerShortCut("ARCHIVES", "Ses images", Modifier.weight(1f)) {
-                        onNavigateToArchives()
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            "ENTRER DANS SES SOUVENIRS", 
+                            color = BackgroundPrimary, 
+                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        )
                     }
                 }
                 

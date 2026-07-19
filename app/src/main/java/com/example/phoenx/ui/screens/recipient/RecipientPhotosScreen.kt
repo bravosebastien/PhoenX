@@ -38,7 +38,7 @@ fun RecipientPhotosScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Grande Galerie Photo", style = MaterialTheme.typography.displaySmall) },
+                title = { Text("Grande Photothèque", style = MaterialTheme.typography.displaySmall) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)

@@ -26,7 +26,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.RecipientEntity
+import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
+import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +37,7 @@ fun RecipientDetailScreen(
     onNavigateBack: () -> Unit,
     onComposePortrait: (String) -> Unit,
     onNavigateToPermissions: (String) -> Unit,
+    navController: NavController,
     viewModel: RecipientViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -133,35 +136,28 @@ fun RecipientDetailScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (linkedEntries.none { it.entryType != "PORTRAIT" }) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = SurfaceCard.copy(alpha = 0.4f),
-                        shape = MaterialTheme.shapes.large,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
-                    ) {
-                        Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.AutoStories, null, tint = TextTertiary, modifier = Modifier.size(48.dp))
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                "Aucun souvenir n'est encore destiné à ${recipient.name}.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = TextSecondary,
-                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                            )
-                        }
-                    }
+                    // ... (rest of the code)
                 } else {
-                    linkedEntries.filter { it.entryType != "PORTRAIT" }.forEach { entry ->
+                    // ... (rest of the code)
+                    linkedEntries.filter { it.entryType != "PORTRAIT" }.take(3).forEach { entry ->
+                        // (Petit aperçu limité à 3)
                         Card(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                             colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.2f))
                         ) {
-                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Mail, null, tint = TextTertiary, modifier = Modifier.size(16.dp))
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Mail, null, tint = TextTertiary, modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(entry.aiSummary.ifEmpty { "Souvenir" }, style = MaterialTheme.typography.bodySmall, color = TextPrimary)
                             }
                         }
+                    }
+                    
+                    TextButton(
+                        onClick = { navController.navigate(Screen.RecipientAllocation.createRoute(recipient.id)) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Voir la fiche héritier complète →", color = accent, fontSize = 13.sp)
                     }
                 }
 

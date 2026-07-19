@@ -489,7 +489,8 @@ fun PhoenXNavGraph(
                 recipientId = recipientId,
                 onNavigateBack = { navController.popBackStack() },
                 onComposePortrait = { id -> navController.navigate(Screen.Portraits.createRoute(id)) },
-                onNavigateToPermissions = { id -> navController.navigate(Screen.RecipientPermissions.createRoute(id)) }
+                onNavigateToPermissions = { id -> navController.navigate(Screen.RecipientPermissions.createRoute(id)) },
+                navController = navController
             )
         }
 
@@ -498,6 +499,14 @@ fun PhoenXNavGraph(
             RecipientPermissionsScreen(
                 recipientId = recipientId,
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.RecipientAllocation.route) { backStackEntry ->
+            val recipientId = backStackEntry.arguments?.getString("recipientId") ?: ""
+            HeirAllocationScreen(
+                recipientId = recipientId,
+                navController = navController
             )
         }
 
@@ -513,13 +522,34 @@ fun PhoenXNavGraph(
 
         composable(
             route = Screen.MemoryDetail.route,
-            arguments = listOf(navArgument("entryId") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("entryId") { type = NavType.StringType },
+                navArgument("creatorId") { nullable = true; type = NavType.StringType }
+            )
         ) { backStackEntry ->
             val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
+            val creatorId = backStackEntry.arguments?.getString("creatorId")
             MemoryDetailScreen(
                 entryId = entryId,
                 onNavigateBack = { navController.popBackStack() },
-                navController = navController
+                navController = navController,
+                targetCreatorId = creatorId
+            )
+        }
+
+        composable(
+            route = Screen.MediaViewer.route,
+            arguments = listOf(
+                navArgument("entryId") { type = NavType.StringType },
+                navArgument("creatorId") { nullable = true; type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
+            val creatorId = backStackEntry.arguments?.getString("creatorId")
+            com.example.phoenx.ui.screens.media.MediaViewerScreen(
+                entryId = entryId,
+                creatorId = creatorId,
+                onExit = { navController.popBackStack() }
             )
         }
 
@@ -546,10 +576,19 @@ fun PhoenXNavGraph(
             RecipientCubeScreen(
                 creatorId = creatorId,
                 onExit = { navController.popBackStack() },
-                onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.createRoute(creatorId)) },
-                onNavigateToDiscotheque = { navController.navigate(Screen.RecipientDiscotheque.route) },
-                onNavigateToArchives = { navController.navigate(Screen.RecipientFavorites.createRoute(creatorId)) },
+                onNavigateToHeritage = { navController.navigate(Screen.HeirHeritage.createRoute(creatorId)) },
                 onBecomeCreator = { navController.navigate(Screen.SilenceOnboarding.route) }
+            )
+        }
+
+        composable(
+            route = Screen.HeirHeritage.route,
+            arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+            HeirHeritageScreen(
+                creatorId = creatorId,
+                navController = navController
             )
         }
 
