@@ -7,9 +7,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
@@ -32,6 +32,7 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.theme.AccentPrimary
+import com.example.phoenx.ui.theme.LocalAccentColor
 
 @Composable
 fun BookViewerScreen(
@@ -229,7 +230,7 @@ fun BookViewerScreen(
                     .padding(start = 8.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Retour",
                     tint = AccentPrimary
                 )
@@ -304,7 +305,7 @@ fun IllustrableText(
     text: String,
     mediaMap: Map<String, OfflineEntry>
 ) {
-    val accent = com.example.phoenx.ui.theme.LocalAccentColor.current
+    val accent = LocalAccentColor.current
     // Regex pour détecter [PHOTO:uuid] ou [AUDIO:uuid]
     val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9\\-]+)\\]")
     val parts = text.split(regex)

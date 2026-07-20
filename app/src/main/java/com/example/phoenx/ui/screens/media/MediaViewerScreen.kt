@@ -1,8 +1,8 @@
 package com.example.phoenx.ui.screens.media
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
+import androidx.core.net.toUri
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -150,7 +150,7 @@ fun VideoPlayer(
         ExoPlayer.Builder(context).build().apply {
             val factory = mediaManager.getEncryptedDataSourceFactory(explicitKey)
             val mediaSource = ProgressiveMediaSource.Factory(factory)
-                .createMediaSource(MediaItem.fromUri(Uri.parse(mediaUrl)))
+                .createMediaSource(MediaItem.fromUri(mediaUrl.toUri()))
             setMediaSource(mediaSource)
             prepare()
             playWhenReady = true
@@ -185,7 +185,7 @@ fun AudioPlayer(
         ExoPlayer.Builder(context).build().apply {
             val factory = mediaManager.getEncryptedDataSourceFactory(explicitKey)
             val mediaSource = ProgressiveMediaSource.Factory(factory)
-                .createMediaSource(MediaItem.fromUri(Uri.parse(mediaUrl)))
+                .createMediaSource(MediaItem.fromUri(mediaUrl.toUri()))
             setMediaSource(mediaSource)
             prepare()
         }

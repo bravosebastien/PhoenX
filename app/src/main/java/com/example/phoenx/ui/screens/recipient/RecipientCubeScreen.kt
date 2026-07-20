@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.tasks.await as kotlinAwait
 import com.example.phoenx.ui.theme.*
 
+import com.google.firebase.firestore.FirebaseFirestore
+
 /**
  * RecipientCubeScreen (Signature PHOEN-X 5.0)
  * L'interface immersive pour les Destinataires.
@@ -35,7 +37,7 @@ fun RecipientCubeScreen(
     onNavigateToHeritage: () -> Unit,
     onBecomeCreator: () -> Unit
 ) {
-    val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+    val db = FirebaseFirestore.getInstance()
     var creatorName by remember { mutableStateOf("Ton proche") }
     val accent = LocalAccentColor.current
     val backgroundBrush = LocalBackgroundBrush.current
@@ -65,7 +67,7 @@ fun RecipientCubeScreen(
                 },
                 actions = {
                     IconButton(onClick = { /* Aide Jeu de Piste */ }) {
-                        Icon(Icons.Default.HelpOutline, null, tint = accent)
+                        Icon(Icons.AutoMirrored.Filled.HelpOutline, null, tint = accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)

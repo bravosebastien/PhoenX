@@ -22,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -45,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.ui.navigation.Screen
+import com.example.phoenx.R
 import coil3.compose.AsyncImage
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
@@ -97,7 +100,7 @@ fun MappamondeScreen(
     }
 
     val mapStyleOptions = remember {
-        MapStyleOptions.loadRawResourceStyle(context, com.example.phoenx.R.raw.map_style_phoenx)
+        MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style_phoenx)
     }
 
     LaunchedEffect(Unit) {
@@ -525,7 +528,7 @@ fun LocationBottomSheet(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                     Button(
                         onClick = { 
-                            navController.navigate(com.example.phoenx.ui.navigation.Screen.Capture.createRoute(com.example.phoenx.ui.navigation.Screen.Capture.TYPE_TEXT, locationId = location.id))
+                            navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, locationId = location.id))
                             onClose() 
                         },
                         modifier = Modifier.weight(1.4f).height(56.dp),
@@ -595,7 +598,7 @@ fun InventoryBottomSheet(locations: List<LocationWithEntries>, onClose: () -> Un
                                     Text(item.location.placeName, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
                                     Text("${item.entries.size} souvenirs", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
                                 }
-                                Icon(Icons.Default.ChevronRight, null, tint = TextTertiary)
+                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = TextTertiary)
                             }
                         }
                     }

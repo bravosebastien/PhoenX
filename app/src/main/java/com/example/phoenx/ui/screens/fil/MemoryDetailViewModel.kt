@@ -14,11 +14,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class MemoryDetailViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
@@ -53,7 +55,7 @@ class MemoryDetailViewModel @Inject constructor(
      * Retourne la liste des compléments texte DÉCHIFFRÉS (v8.4)
      */
     val decryptedTextComplements: StateFlow<List<Pair<String, String>>> = combine(complements, _heirKey) { list, key ->
-        list.filter { it.entryType == "TEXT" || it.entryType == "THOUGHT" }
+        list.filter { (it.entryType == "TEXT") || (it.entryType == "THOUGHT") }
             .map { it.id to encryptionManager.decryptText(it.encryptedPayload, key) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 

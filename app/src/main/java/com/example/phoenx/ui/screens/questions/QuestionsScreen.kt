@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -223,7 +224,7 @@ fun QuestionItem(question: Question, onClick: () -> Unit) {
         border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(androidx.compose.material.icons.Icons.Default.HelpOutline, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+            Icon(Icons.AutoMirrored.Filled.HelpOutline, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = question.text,
@@ -231,7 +232,7 @@ fun QuestionItem(question: Question, onClick: () -> Unit) {
                 color = TextPrimary,
                 modifier = Modifier.weight(1f)
             )
-            Icon(androidx.compose.material.icons.Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = TextTertiary)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = TextTertiary)
         }
     }
 }

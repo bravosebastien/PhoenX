@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import com.example.phoenx.data.sync.toOfflineEntry
-import com.google.firebase.firestore.DocumentSnapshot
 import kotlinx.coroutines.channels.awaitClose
 import java.time.Instant
 import java.util.*
@@ -35,7 +34,7 @@ class FilViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
     private val aiManager: AIManager,
-    val mediaManager: com.example.phoenx.data.media.MediaManager
+    val mediaManager: com.example.phoenx.data.media.MediaManager,
 ) : ViewModel() {
 
     private val _targetCreatorId = MutableStateFlow<String?>(null)
@@ -45,7 +44,7 @@ class FilViewModel @Inject constructor(
 
     fun setTargetCreator(creatorId: String?) {
         _targetCreatorId.value = creatorId
-        if (creatorId != null && creatorId != auth.currentUser?.uid) {
+        if (creatorId != null && (creatorId != auth.currentUser?.uid)) {
             viewModelScope.launch {
                 try {
                     val keyDoc = db.collection("users").document(creatorId)

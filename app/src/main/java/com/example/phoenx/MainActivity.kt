@@ -23,6 +23,9 @@ import com.example.phoenx.ui.navigation.PhoenXNavGraph
 import com.example.phoenx.ui.screens.guide.WelcomeGuideScreen
 import com.example.phoenx.ui.theme.PhoenXTheme
 import com.example.phoenx.ui.theme.ThemeViewModel
+import com.example.phoenx.ui.theme.LocalBackgroundBrush
+import com.example.phoenx.ui.theme.AccentPrimary
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -79,7 +82,7 @@ class MainActivity : FragmentActivity() {
 
                 // LOGIQUE DE DÉVERROUILLAGE BIOMÉTRIQUE
                 LaunchedEffect(isBiometricEnabled) {
-                    val user = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+                    val user = FirebaseAuth.getInstance().currentUser
                     if (user != null && isBiometricEnabled && !isUnlocked) {
                         if (biometricManager.isBiometricAvailable()) {
                             biometricManager.showBiometricPrompt(
@@ -107,11 +110,11 @@ class MainActivity : FragmentActivity() {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(com.example.phoenx.ui.theme.LocalBackgroundBrush.current)
+                            .background(LocalBackgroundBrush.current)
                     ) {
                         Box(contentAlignment = androidx.compose.ui.Alignment.Center, modifier = Modifier.fillMaxSize()) {
                             CircularProgressIndicator(
-                                color = com.example.phoenx.ui.theme.AccentPrimary,
+                                color = AccentPrimary,
                                 modifier = Modifier.size(32.dp),
                                 strokeWidth = 2.dp
                             )
@@ -185,11 +188,8 @@ class MainActivity : FragmentActivity() {
                 } else {
                         voiceManager.startListening { command ->
                             mainViewModel.handleVoiceCommand(command) { route ->
-                                val nav = navController
-                                if (nav != null) {
-                                    if (route == "back") nav.popBackStack()
-                                    else nav.navigate(route)
-                                }
+                                if (route == "back") navController.popBackStack()
+                                else navController.navigate(route)
                             }
                         }
                 }
@@ -201,15 +201,13 @@ class MainActivity : FragmentActivity() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(com.example.phoenx.ui.theme.LocalBackgroundBrush.current)
+                .background(LocalBackgroundBrush.current)
         ) {
-            navController?.let {
-                PhoenXNavGraph(
-                    navController = it,
-                    mainViewModel = mainViewModel,
-                    onVerifyBiometrics = onVerifyBiometrics
-                )
-            }
+            PhoenXNavGraph(
+                navController = navController,
+                mainViewModel = mainViewModel,
+                onVerifyBiometrics = onVerifyBiometrics
+            )
         }
     }
 }

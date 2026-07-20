@@ -75,8 +75,11 @@ import com.example.phoenx.ui.screens.settings.SettingsScreen
 import com.example.phoenx.ui.screens.settings.AccessibilitySettingsScreen
 import com.example.phoenx.ui.screens.settings.NotificationContactsScreen
 import com.example.phoenx.ui.screens.settings.ProtocolSettingsScreen
-import com.example.phoenx.ui.theme.TextPrimary
+import com.example.phoenx.ui.navigation.Screen
+import com.example.phoenx.ui.theme.*
+import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
+import com.example.phoenx.ui.screens.media.MediaViewerScreen
 
 @androidx.media3.common.util.UnstableApi
 @Composable
@@ -546,7 +549,7 @@ fun PhoenXNavGraph(
         ) { backStackEntry ->
             val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
             val creatorId = backStackEntry.arguments?.getString("creatorId")
-            com.example.phoenx.ui.screens.media.MediaViewerScreen(
+            MediaViewerScreen(
                 entryId = entryId,
                 creatorId = creatorId,
                 onExit = { navController.popBackStack() }
@@ -773,7 +776,7 @@ fun PhoenXNavGraph(
             val onboardingSeen by if (user != null) {
                 mainViewModel.isDepositaryOnboardingSeen(user.uid).collectAsState(initial = true)
             } else {
-                remember { mutableStateOf(true) }
+                remember { mutableStateOf<Boolean>(true) }
             }
             
             DepositaryWelcomeScreen(

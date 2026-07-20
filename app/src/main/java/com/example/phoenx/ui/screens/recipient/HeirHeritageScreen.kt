@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.Lock
@@ -31,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
+import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
@@ -165,7 +167,7 @@ fun SpecialAccessCard(
 fun HeritageEntryRow(
     entry: PhoenXEntry,
     heirKey: ByteArray?,
-    mediaManager: com.example.phoenx.data.media.MediaManager,
+    mediaManager: MediaManager,
     onClick: () -> Unit
 ) {
     val accent = LocalAccentColor.current
@@ -234,7 +236,7 @@ fun HeritageEntryRow(
                 )
             }
 
-            Icon(Icons.Default.ChevronRight, null, tint = TextTertiary.copy(alpha = 0.5f))
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = TextTertiary.copy(alpha = 0.5f))
         }
     }
 }

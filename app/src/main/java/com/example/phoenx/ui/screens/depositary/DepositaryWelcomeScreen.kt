@@ -1,7 +1,7 @@
 package com.example.phoenx.ui.screens.depositary
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.R
-import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
 
@@ -96,7 +95,7 @@ fun DepositaryWelcomeScreen(
                 Spacer(modifier = Modifier.height(48.dp))
                 TextButton(onClick = {
                     val intent = Intent(Intent.ACTION_SENDTO).apply {
-                        data = Uri.parse("mailto:")
+                        data = "mailto:".toUri()
                     }
                     context.startActivity(intent)
                 }) {
