@@ -15,6 +15,7 @@ import com.example.phoenx.domain.util.AgeUtils
 import com.example.phoenx.data.local.RecipientEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -31,6 +32,7 @@ import org.json.JSONObject
 class FilViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
+    private val functions: FirebaseFunctions,
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
     private val aiManager: AIManager,
@@ -42,21 +44,37 @@ class FilViewModel @Inject constructor(
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
 
+    private val _isProtocolActivated = MutableStateFlow(true)
+    val isProtocolActivated: StateFlow<Boolean> = _isProtocolActivated.asStateFlow()
+
     fun setTargetCreator(creatorId: String?) {
         _targetCreatorId.value = creatorId
         if (creatorId != null && (creatorId != auth.currentUser?.uid)) {
             viewModelScope.launch {
                 try {
-                    val keyDoc = db.collection("users").document(creatorId)
-                        .collection("entry_keys").document("main").get().await()
-                    val keyBase64 = keyDoc.getString("key")
-                    if (keyBase64 != null) {
-                        _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                    // Check protocol status via Cloud Function (v8.5.9)
+                    val result = functions.getHttpsCallable("getCreatorProtocolStatus")
+                        .call(mapOf("creatorId" to creatorId)).await()
+                    
+                    val data = result.data as? Map<*, *>
+                    _isProtocolActivated.value = data?.get("isActivated") as? Boolean ?: false
+
+                    if (_isProtocolActivated.value) {
+                        val keyDoc = db.collection("users").document(creatorId)
+                            .collection("entry_keys").document("main").get().await()
+                        val keyBase64 = keyDoc.getString("key")
+                        if (keyBase64 != null) {
+                            _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                        }
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("FilVM", "Erreur chargement clé héritage: ${e.message}")
+                    _isProtocolActivated.value = false
                 }
             }
+        } else {
+            _isProtocolActivated.value = true
+            _heirKey.value = null
         }
     }
 
@@ -110,8 +128,8 @@ class FilViewModel @Inject constructor(
                     }
                 }
             }.combine(
-                combine(_selectedRecipientId, _sortByCreationDate) { r, s -> r to s }
-            ) { offlineEntries, (recipientId, sortByDate) ->
+                combine(_selectedRecipientId, _sortByCreationDate, _isProtocolActivated) { r, s, a -> Triple(r, s, a) }
+            ) { offlineEntries, (recipientId, sortByDate, activated) ->
                 val targetId = _targetCreatorId.value
                 val isHeirMode = targetId != null && targetId != currentUid
 
@@ -144,7 +162,12 @@ class FilViewModel @Inject constructor(
                         offlineEntryDao.getAmendmentsForEntrySync(entry.id).map { it.toDomain() }
                     } else emptyList()
                     
-                    entry.toDomain(encryptionManager, amendments)
+                    // GESTION SOUVENIR SCELLÉ (v8.5.9)
+                    if (isHeirMode && !activated) {
+                        entry.toSealedDomain()
+                    } else {
+                        entry.toDomain(encryptionManager, amendments)
+                    }
                 }
 
                 // 4. Tri final
@@ -205,6 +228,29 @@ class FilViewModel @Inject constructor(
             encryptedContent = encryptedContent,
             ageAtAmendment = AgeSnapshot(ageJson.getInt("years"), ageJson.getInt("months"), ageJson.getInt("days")),
             createdAt = Instant.ofEpochMilli(createdAt)
+        )
+    }
+
+    private fun OfflineEntry.toSealedDomain(): PhoenXEntry {
+        val ageJson = JSONObject(ageAtCreation)
+        val age = AgeSnapshot(
+            years = ageJson.getInt("years"),
+            months = ageJson.getInt("months"),
+            days = ageJson.getInt("days")
+        )
+        return PhoenXEntry(
+            id = id,
+            creatorUid = creatorUid,
+            ageAtCreation = age,
+            encryptedContent = "Souvenir scellé".toByteArray(),
+            type = when(entryType) {
+                "PORTRAIT" -> EntryType.PORTRAIT
+                "QUESTION_ANSWER" -> EntryType.QUESTION_ANSWER
+                else -> try { EntryType.valueOf(entryType) } catch(e: Exception) { EntryType.THOUGHT }
+            },
+            timestamp = Instant.ofEpochMilli(createdAt),
+            aiSummary = aiSummary,
+            hasEnigma = enigmaQuestion != null
         )
     }
 

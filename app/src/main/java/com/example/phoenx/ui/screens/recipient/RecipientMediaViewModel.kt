@@ -10,6 +10,7 @@ import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -28,6 +29,7 @@ class RecipientMediaViewModel @Inject constructor(
     private val encryptionManager: EncryptionManager,
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
+    private val functions: FirebaseFunctions,
     val mediaManager: com.example.phoenx.data.media.MediaManager
 ) : ViewModel() {
 
@@ -49,6 +51,9 @@ class RecipientMediaViewModel @Inject constructor(
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
 
+    private val _isProtocolActivated = MutableStateFlow(true)
+    val isProtocolActivated: StateFlow<Boolean> = _isProtocolActivated.asStateFlow()
+
     private val _targetCreatorId = MutableStateFlow<String?>(null)
 
     init {
@@ -60,16 +65,29 @@ class RecipientMediaViewModel @Inject constructor(
         if (creatorId != null && creatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
                 try {
-                    val keyDoc = db.collection("users").document(creatorId)
-                        .collection("entry_keys").document("main").get().await()
-                    val keyBase64 = keyDoc.getString("key")
-                    if (keyBase64 != null) {
-                        _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                    // Check protocol status via Cloud Function (v8.5.9)
+                    val result = functions.getHttpsCallable("getCreatorProtocolStatus")
+                        .call(mapOf("creatorId" to creatorId)).await()
+                    
+                    val data = result.data as? Map<*, *>
+                    _isProtocolActivated.value = data?.get("isActivated") as? Boolean ?: false
+
+                    if (_isProtocolActivated.value) {
+                        val keyDoc = db.collection("users").document(creatorId)
+                            .collection("entry_keys").document("main").get().await()
+                        val keyBase64 = keyDoc.getString("key")
+                        if (keyBase64 != null) {
+                            _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                        }
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("RecipientMediaVM", "Erreur chargement clé héritage: ${e.message}")
+                    _isProtocolActivated.value = false
                 }
             }
+        } else {
+            _isProtocolActivated.value = true
+            _heirKey.value = null
         }
     }
 
@@ -107,7 +125,9 @@ class RecipientMediaViewModel @Inject constructor(
                         (pub + priv).distinctBy { it.id }
                     }
                 }
-            }.collectLatest { allOfflineEntries ->
+            }.combine(_isProtocolActivated) { entries, activated ->
+                entries to activated
+            }.collectLatest { (allOfflineEntries, activated) ->
                 val targetId = _targetCreatorId.value
                 val isHeirMode = targetId != null && targetId != currentUid
 
@@ -126,7 +146,10 @@ class RecipientMediaViewModel @Inject constructor(
                 }
 
                 // 3. Conversion en domaine
-                val decodedParents = accessibleParents.map { it.toDomain(encryptionManager) }
+                val decodedParents = accessibleParents.map { 
+                    if (isHeirMode && !activated) it.toSealedDomain()
+                    else it.toDomain(encryptionManager) 
+                }
 
                 // 4. Indexation automatique par type (incluant compléments)
                 _libraryEntries.value = decodedParents.filter { parent ->
@@ -191,6 +214,29 @@ class RecipientMediaViewModel @Inject constructor(
             memoryDateStart = getLong("memoryDateStart"),
             memoryDateEnd = getLong("memoryDateEnd"),
             parentEntryId = getString("parentEntryId")
+        )
+    }
+
+    private fun OfflineEntry.toSealedDomain(): PhoenXEntry {
+        val ageJson = JSONObject(ageAtCreation)
+        val age = AgeSnapshot(
+            years = ageJson.optInt("years", 0),
+            months = ageJson.optInt("months", 0),
+            days = ageJson.optInt("days", 0)
+        )
+        return PhoenXEntry(
+            id = id,
+            creatorUid = creatorUid,
+            ageAtCreation = age,
+            encryptedContent = "Souvenir scellé".toByteArray(),
+            type = when(entryType) {
+                "PORTRAIT" -> EntryType.PORTRAIT
+                "QUESTION_ANSWER" -> EntryType.QUESTION_ANSWER
+                else -> try { EntryType.valueOf(entryType) } catch(_: Exception) { EntryType.THOUGHT }
+            },
+            timestamp = Instant.ofEpochMilli(createdAt),
+            aiSummary = aiSummary,
+            hasEnigma = enigmaQuestion != null
         )
     }
 

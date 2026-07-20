@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import kotlinx.coroutines.tasks.await
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.UUID
@@ -24,6 +25,8 @@ import java.util.UUID
 class PortraitViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
+    private val auth: com.google.firebase.auth.FirebaseAuth,
+    private val db: com.google.firebase.firestore.FirebaseFirestore,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -59,10 +62,18 @@ class PortraitViewModel @Inject constructor(
         _uiState.value = PortraitUiState.Loading
         viewModelScope.launch {
             try {
-                if (answers.all { it.isBlank() }) {
+                if (answers.all { it.isBlank() } && (questions != null)) {
                     _uiState.value = PortraitUiState.Error("Le portrait est vide. Écris au moins une pensée.")
                     return@launch
                 }
+
+                val user = auth.currentUser ?: return@launch
+                
+                // Calcul de l'âge réel (v8.5.8)
+                val userDoc = db.collection("users").document(user.uid).get().await()
+                val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: java.util.Date()
+                val age = com.example.phoenx.domain.util.AgeUtils.calculateAge(birthDate)
+                val ageJson = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }"
 
                 // 1. GESTION DE L'ENTRÉE PARENTE (Le Sceau du Portrait)
                 val recipients = _recipients.value
@@ -73,10 +84,10 @@ class PortraitViewModel @Inject constructor(
 
                 val parentEntry = OfflineEntry(
                     id = parentId,
-                    creatorUid = existingParent?.creatorUid ?: "",
-                    encryptedPayload = "".toByteArray(), // Le parent ne porte plus le contenu (v8.5.7)
+                    creatorUid = user.uid,
+                    encryptedPayload = "".toByteArray(),
                     entryType = "PORTRAIT",
-                    ageAtCreation = existingParent?.ageAtCreation ?: "{\"years\":0,\"months\":0,\"days\":0}",
+                    ageAtCreation = ageJson, // Fix v8.5.8
                     emotionalCategory = "Amour",
                     visibility = "specific",
                     recipientIds = recipientId,
@@ -85,31 +96,32 @@ class PortraitViewModel @Inject constructor(
                 )
                 offlineEntryDao.insertEntry(parentEntry)
 
-                // 2. GESTION DES RÉPONSES (Entrées Filles Atomiques - v8.5.7)
+                // 2. GESTION DES RÉPONSES (Atomiques)
                 if (questions != null) {
                     questions.forEachIndexed { index, question ->
                         val answer = answers.getOrNull(index) ?: ""
                         if (answer.isNotBlank()) {
-                            // On cherche si cette question a déjà été répondue pour ce portrait
                             val existingAnswers = offlineEntryDao.getComplements(parentId).first()
                             val existingAnswer = existingAnswers.find { it.aiSummary == question }
                             
                             val answerEntry = OfflineEntry(
                                 id = existingAnswer?.id ?: UUID.randomUUID().toString(),
-                                creatorUid = parentEntry.creatorUid,
+                                creatorUid = user.uid,
                                 encryptedPayload = encryptionManager.encryptText(answer),
                                 entryType = "TEXT",
-                                parentEntryId = parentId, // Liaison
-                                ageAtCreation = parentEntry.ageAtCreation,
+                                parentEntryId = parentId,
+                                ageAtCreation = ageJson, // Fix v8.5.8
                                 emotionalCategory = "Amour",
                                 visibility = "specific",
                                 recipientIds = recipientId,
-                                aiSummary = question // La question sert de titre à la réponse
+                                aiSummary = question
                             )
                             offlineEntryDao.insertEntry(answerEntry)
                         }
                     }
-                } else {
+                }
+                // ... (reste de la fonction savePortrait identique)
+else {
                     // Cas "Pensée Libre" (PortraitProcheScreen)
                     val freeText = answers.joinToString("\n\n")
                     val existingAnswers = offlineEntryDao.getComplements(parentId).first()

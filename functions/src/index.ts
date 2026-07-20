@@ -823,6 +823,30 @@ export const getCreatorBookStatus = onCall(async (request) => {
     };
 });
 
+export const getCreatorProtocolStatus = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Non authentifié");
+    const { creatorId } = request.data;
+    if (!creatorId) throw new HttpsError("invalid-argument", "ID Créateur manquant");
+
+    const db = admin.firestore();
+    const requesterUid = request.auth.uid;
+
+    // 1. Vérification du rôle héritier
+    const userDoc = await db.collection("users").doc(requesterUid).get();
+    const myRoles = userDoc.data()?.myRoles || {};
+    const hasRole = `${creatorId}_recipient` in myRoles;
+
+    if (!hasRole) throw new HttpsError("permission-denied", "Accès non autorisé.");
+
+    const creatorDoc = await db.collection("users").doc(creatorId).get();
+    if (!creatorDoc.exists) throw new HttpsError("not-found", "Créateur introuvable");
+
+    return {
+        protocolStatus: creatorDoc.data()?.protocolStatus || "pending",
+        isActivated: creatorDoc.data()?.protocolStatus === "activated"
+    };
+});
+
 export const acceptUniversalInvitation = onCall(async (request) => {
     const { tokenId } = request.data;
     const auth = request.auth;

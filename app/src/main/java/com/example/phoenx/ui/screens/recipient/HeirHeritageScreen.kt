@@ -115,7 +115,10 @@ fun HeirHeritageScreen(
                         title = "Quiz",
                         icon = Icons.Outlined.EmojiEvents,
                         modifier = Modifier.weight(1f),
-                        onClick = { /* Quiz Play Route - v8.3 needs creatorId and quizId usually, assuming one quiz for now or a picker */ }
+                        onClick = { 
+                            // Navigation automatique vers le quiz du créateur (v8.5.9)
+                            navController.navigate("quiz_play/$creatorId/main_quiz") 
+                        }
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))

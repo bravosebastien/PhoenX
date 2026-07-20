@@ -12,6 +12,7 @@ import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.data.sync.SyncWorker
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,12 +32,16 @@ class MemoryDetailViewModel @Inject constructor(
     private val onDeviceAIManager: OnDeviceAIManager,
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
+    private val functions: FirebaseFunctions,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _entryId = MutableStateFlow<String?>(null)
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
+
+    private val _isProtocolActivated = MutableStateFlow(true)
+    val isProtocolActivated: StateFlow<Boolean> = _isProtocolActivated.asStateFlow()
 
     private val _deleteSuccess = MutableStateFlow(false)
     val deleteSuccess: StateFlow<Boolean> = _deleteSuccess.asStateFlow()
@@ -57,12 +62,17 @@ class MemoryDetailViewModel @Inject constructor(
     /**
      * Retourne la liste des compléments texte DÉCHIFFRÉS (v8.4)
      */
-    val decryptedTextComplements: StateFlow<List<Pair<String, String>>> = combine(complements, _heirKey) { list, key ->
+    val decryptedTextComplements: StateFlow<List<Pair<String, String>>> = combine(complements, _heirKey, _isProtocolActivated) { list, key, activated ->
+        if (!activated && key != null) {
+            return@combine list.filter { it.entryType == "TEXT" || it.entryType == "THOUGHT" }
+                .map { it.id to "Souvenir scellé" }
+        }
         list.filter { (it.entryType == "TEXT") || (it.entryType == "THOUGHT") }
             .map { it.id to encryptionManager.decryptText(it.encryptedPayload, key) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val decryptedContent: StateFlow<String> = combine(entry, _heirKey) { ent, key ->
+    val decryptedContent: StateFlow<String> = combine(entry, _heirKey, _isProtocolActivated) { ent, key, activated ->
+        if (!activated && key != null) return@combine "Souvenir scellé"
         ent?.let { encryptionManager.decryptText(it.encryptedPayload, key) } ?: ""
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
@@ -74,30 +84,49 @@ class MemoryDetailViewModel @Inject constructor(
     /**
      * Fusionne le contenu legacy et les nouveaux compléments atomiques (v8.5.7)
      */
-    val structuredPortrait: StateFlow<List<PortraitItem>> = combine(decryptedContent, complements, _heirKey) { content, compList, key ->
+    val structuredPortrait: StateFlow<List<PortraitItem>> = combine(decryptedContent, complements, _heirKey, _isProtocolActivated) { content, compList, key, activated ->
         val list = mutableListOf<PortraitItem>()
         
-        // 1. Parsing Legacy (Ancien bloc JSON ou texte brut)
+        if (!activated && key != null) {
+            // Uniquement les compléments atomiques pour les titres, mais contenu scellé
+            compList.filter { it.parentEntryId == _entryId.value && it.entryType == "TEXT" }.forEach { comp ->
+                list.add(PortraitItem(comp.id, comp.aiSummary, "Souvenir scellé"))
+            }
+            return@combine list
+        }
+
+        // 1. Parsing Legacy (v8.5.9 - Titres intelligents)
+        // NOTE : Il s'agit d'un COMPROMIS pour données manquantes (anciens portraits). 
+        // On ne peut pas reconstruire la question réelle, donc on utilise le début du texte comme titre de bandeau.
         if (content.isNotBlank()) {
             if (content.startsWith("[")) {
                 try {
                     val arr = JSONArray(content)
                     for (i in 0 until arr.length()) {
                         val obj = arr.getJSONObject(i)
-                        list.add(PortraitItem(null, obj.getString("q"), obj.getString("a")))
+                        val q = obj.getString("q")
+                        val a = obj.getString("a")
+                        // Si pas de question, on prend le début de la réponse pour le titre
+                        val displayQ = q.ifBlank { if (a.length > 30) a.take(30) + "..." else a }
+                        list.add(PortraitItem(null, displayQ, a))
                     }
                 } catch (e: Exception) {
-                    content.split("\n\n").forEach { list.add(PortraitItem(null, "", it)) }
+                    content.split("\n\n").forEach { 
+                        val title = if (it.length > 30) it.take(30) + "..." else it
+                        list.add(PortraitItem(null, title, it)) 
+                    }
                 }
             } else {
-                content.split("\n\n").forEach { list.add(PortraitItem(null, "", it)) }
+                content.split("\n\n").forEach { 
+                    val title = if (it.length > 30) it.take(30) + "..." else it
+                    list.add(PortraitItem(null, title, it)) 
+                }
             }
         }
         
         // 2. Standard Atomique (Compléments liés)
         compList.filter { it.parentEntryId == _entryId.value && it.entryType == "TEXT" }.forEach { comp ->
             val decrypted = encryptionManager.decryptText(comp.encryptedPayload, key)
-            // On évite les doublons si on est en transition
             if (list.none { it.answer == decrypted && it.question == comp.aiSummary }) {
                 list.add(PortraitItem(comp.id, comp.aiSummary, decrypted))
             }
@@ -114,16 +143,29 @@ class MemoryDetailViewModel @Inject constructor(
         if (creatorId != null && creatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
                 try {
-                    val keyDoc = db.collection("users").document(creatorId)
-                        .collection("entry_keys").document("main").get().await()
-                    val keyBase64 = keyDoc.getString("key")
-                    if (keyBase64 != null) {
-                        _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                    // Check protocol status via Cloud Function (v8.5.9)
+                    val result = functions.getHttpsCallable("getCreatorProtocolStatus")
+                        .call(mapOf("creatorId" to creatorId)).await()
+                    
+                    val data = result.data as? Map<*, *>
+                    _isProtocolActivated.value = data?.get("isActivated") as? Boolean ?: false
+
+                    if (_isProtocolActivated.value) {
+                        val keyDoc = db.collection("users").document(creatorId)
+                            .collection("entry_keys").document("main").get().await()
+                        val keyBase64 = keyDoc.getString("key")
+                        if (keyBase64 != null) {
+                            _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                        }
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("MemoryDetailVM", "Erreur chargement clé héritage", e)
+                    _isProtocolActivated.value = false
                 }
             }
+        } else {
+            _isProtocolActivated.value = true
+            _heirKey.value = null
         }
     }
 
