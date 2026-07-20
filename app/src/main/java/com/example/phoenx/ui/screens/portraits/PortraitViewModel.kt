@@ -16,6 +16,10 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import org.json.JSONArray
+import org.json.JSONObject
+import java.util.UUID
+
 @HiltViewModel
 class PortraitViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
@@ -51,51 +55,98 @@ class PortraitViewModel @Inject constructor(
         _currentRecipientId.value = recipientId
     }
 
-    fun savePortrait(recipientId: String, content: String) {
+    fun savePortrait(recipientId: String, questions: List<String>?, answers: List<String>) {
         _uiState.value = PortraitUiState.Loading
         viewModelScope.launch {
             try {
-                if (content.isBlank()) {
+                if (answers.all { it.isBlank() }) {
                     _uiState.value = PortraitUiState.Error("Le portrait est vide. Écris au moins une pensée.")
                     return@launch
                 }
 
-                val encrypted = encryptionManager.encryptText(content)
+                // 1. GESTION DE L'ENTRÉE PARENTE (Le Sceau du Portrait)
+                val recipients = _recipients.value
+                val recipientName = recipients.find { it.id == recipientId }?.name ?: "un proche"
+                
+                val existingParent = offlineEntryDao.getPortraitEntryForRecipient(recipientId).first()
+                val parentId = existingParent?.id ?: UUID.randomUUID().toString()
 
-                // On cherche s'il existe déjà un portrait pour ce destinataire
-                val existing = offlineEntryDao.getPortraitEntryForRecipient(recipientId).first()
-                
-                val entryId = existing?.id ?: java.util.UUID.randomUUID().toString()
-                
-                val portraitEntry = OfflineEntry(
-                    id = entryId,
-                    encryptedPayload = encrypted,
+                val parentEntry = OfflineEntry(
+                    id = parentId,
+                    creatorUid = existingParent?.creatorUid ?: "",
+                    encryptedPayload = "".toByteArray(), // Le parent ne porte plus le contenu (v8.5.7)
                     entryType = "PORTRAIT",
-                    ageAtCreation = existing?.ageAtCreation ?: "{\"years\":0,\"months\":0,\"days\":0}", // Idéalement calculer l'âge actuel
+                    ageAtCreation = existingParent?.ageAtCreation ?: "{\"years\":0,\"months\":0,\"days\":0}",
                     emotionalCategory = "Amour",
                     visibility = "specific",
                     recipientIds = recipientId,
-                    createdAt = existing?.createdAt ?: System.currentTimeMillis(),
-                    syncStatus = "pending",
-                    aiSummary = "Portrait de proche"
+                    createdAt = existingParent?.createdAt ?: System.currentTimeMillis(),
+                    aiSummary = "Portrait de $recipientName"
                 )
-                
-                offlineEntryDao.insertEntry(portraitEntry)
-                
-                // Déclenchement de la synchro
-                val constraints = Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-                val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
-                    .setConstraints(constraints)
-                    .build()
-                WorkManager.getInstance(context).enqueue(syncRequest)
+                offlineEntryDao.insertEntry(parentEntry)
 
+                // 2. GESTION DES RÉPONSES (Entrées Filles Atomiques - v8.5.7)
+                if (questions != null) {
+                    questions.forEachIndexed { index, question ->
+                        val answer = answers.getOrNull(index) ?: ""
+                        if (answer.isNotBlank()) {
+                            // On cherche si cette question a déjà été répondue pour ce portrait
+                            val existingAnswers = offlineEntryDao.getComplements(parentId).first()
+                            val existingAnswer = existingAnswers.find { it.aiSummary == question }
+                            
+                            val answerEntry = OfflineEntry(
+                                id = existingAnswer?.id ?: UUID.randomUUID().toString(),
+                                creatorUid = parentEntry.creatorUid,
+                                encryptedPayload = encryptionManager.encryptText(answer),
+                                entryType = "TEXT",
+                                parentEntryId = parentId, // Liaison
+                                ageAtCreation = parentEntry.ageAtCreation,
+                                emotionalCategory = "Amour",
+                                visibility = "specific",
+                                recipientIds = recipientId,
+                                aiSummary = question // La question sert de titre à la réponse
+                            )
+                            offlineEntryDao.insertEntry(answerEntry)
+                        }
+                    }
+                } else {
+                    // Cas "Pensée Libre" (PortraitProcheScreen)
+                    val freeText = answers.joinToString("\n\n")
+                    val existingAnswers = offlineEntryDao.getComplements(parentId).first()
+                    val existingAnswer = existingAnswers.find { it.aiSummary == "Pensée libre" }
+
+                    val answerEntry = OfflineEntry(
+                        id = existingAnswer?.id ?: UUID.randomUUID().toString(),
+                        creatorUid = parentEntry.creatorUid,
+                        encryptedPayload = encryptionManager.encryptText(freeText),
+                        entryType = "TEXT",
+                        parentEntryId = parentId,
+                        ageAtCreation = parentEntry.ageAtCreation,
+                        emotionalCategory = "Amour",
+                        visibility = "specific",
+                        recipientIds = recipientId,
+                        aiSummary = "Pensée libre"
+                    )
+                    offlineEntryDao.insertEntry(answerEntry)
+                }
+
+                // 3. SYNCHRONISATION
+                triggerSync()
                 _uiState.value = PortraitUiState.Success
             } catch (e: Exception) {
                 _uiState.value = PortraitUiState.Error(e.message ?: "Erreur de sauvegarde")
             }
         }
+    }
+
+    private fun triggerSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+            .setConstraints(constraints)
+            .build()
+        WorkManager.getInstance(context).enqueue(syncRequest)
     }
 }
 

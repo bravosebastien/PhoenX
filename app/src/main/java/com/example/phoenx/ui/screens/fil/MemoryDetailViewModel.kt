@@ -20,6 +20,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+import org.json.JSONArray
+import org.json.JSONObject
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class MemoryDetailViewModel @Inject constructor(
@@ -62,6 +65,46 @@ class MemoryDetailViewModel @Inject constructor(
     val decryptedContent: StateFlow<String> = combine(entry, _heirKey) { ent, key ->
         ent?.let { encryptionManager.decryptText(it.encryptedPayload, key) } ?: ""
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    /**
+     * Modèle structuré pour les items du Portrait (v8.5.7)
+     */
+    data class PortraitItem(val id: String?, val question: String, val answer: String)
+
+    /**
+     * Fusionne le contenu legacy et les nouveaux compléments atomiques (v8.5.7)
+     */
+    val structuredPortrait: StateFlow<List<PortraitItem>> = combine(decryptedContent, complements, _heirKey) { content, compList, key ->
+        val list = mutableListOf<PortraitItem>()
+        
+        // 1. Parsing Legacy (Ancien bloc JSON ou texte brut)
+        if (content.isNotBlank()) {
+            if (content.startsWith("[")) {
+                try {
+                    val arr = JSONArray(content)
+                    for (i in 0 until arr.length()) {
+                        val obj = arr.getJSONObject(i)
+                        list.add(PortraitItem(null, obj.getString("q"), obj.getString("a")))
+                    }
+                } catch (e: Exception) {
+                    content.split("\n\n").forEach { list.add(PortraitItem(null, "", it)) }
+                }
+            } else {
+                content.split("\n\n").forEach { list.add(PortraitItem(null, "", it)) }
+            }
+        }
+        
+        // 2. Standard Atomique (Compléments liés)
+        compList.filter { it.parentEntryId == _entryId.value && it.entryType == "TEXT" }.forEach { comp ->
+            val decrypted = encryptionManager.decryptText(comp.encryptedPayload, key)
+            // On évite les doublons si on est en transition
+            if (list.none { it.answer == decrypted && it.question == comp.aiSummary }) {
+                list.add(PortraitItem(comp.id, comp.aiSummary, decrypted))
+            }
+        }
+        
+        list
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val recipients: StateFlow<List<RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

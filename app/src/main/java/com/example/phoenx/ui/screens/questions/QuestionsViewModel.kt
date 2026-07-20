@@ -75,12 +75,12 @@ class QuestionsViewModel @Inject constructor(
                 val entry = OfflineEntry(
                     creatorUid = user.uid,
                     encryptedPayload = encrypted,
-                    entryType = mediaType ?: "TEXT",
+                    entryType = "QUESTION_ANSWER", // Type spécifique v8.5.6
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",
                     emotionalCategory = "Sagesse",
                     visibility = "RESTRICTED",
                     createdAt = System.currentTimeMillis(),
-                    aiSummary = "Réponse à : $question",
+                    aiSummary = question, // Juste la question pour le titre (v8.5.6)
                     localMediaPath = finalLocalPath
                 )
                 offlineEntryDao.insertEntry(entry)

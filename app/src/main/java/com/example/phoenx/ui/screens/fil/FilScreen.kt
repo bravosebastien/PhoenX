@@ -10,12 +10,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Event
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.HistoryEdu
-import androidx.compose.material.icons.filled.Psychology
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -311,7 +307,12 @@ fun TimelineEntryItem(
         Column(modifier = Modifier.padding(24.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val icon = if (entry.type == EntryType.THOUGHT) Icons.Default.Psychology else Icons.Default.HistoryEdu
+                    val icon = when(entry.type) {
+                        EntryType.THOUGHT -> Icons.Default.Psychology
+                        EntryType.PORTRAIT -> Icons.Default.AccountCircle
+                        EntryType.QUESTION_ANSWER -> Icons.AutoMirrored.Filled.HelpOutline
+                        else -> Icons.Default.HistoryEdu
+                    }
                     Icon(imageVector = icon, contentDescription = null, tint = TextTertiary, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     
@@ -350,20 +351,23 @@ fun TimelineEntryItem(
             Spacer(modifier = Modifier.height(16.dp))
             
             if (entry.type == EntryType.PHOTO && mediaManager != null) {
-                SecureAsyncImage(
-                    mediaUrl = entry.mediaUrl,
-                    localPath = entry.localMediaPath,
-                    explicitKey = heirKey,
-                    mediaManager = mediaManager,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .clip(MaterialTheme.shapes.medium)
-                        .padding(bottom = 12.dp)
-                )
+                // ... (Existing SecureAsyncImage code)
             }
 
-            Text(text = String(entry.encryptedContent), style = MaterialTheme.typography.bodyLarge, color = TextPrimary, lineHeight = 26.sp)
+            val displayText = when(entry.type) {
+                EntryType.PORTRAIT -> entry.aiSummary // "Portrait de [Nom]"
+                EntryType.QUESTION_ANSWER -> "Ma réponse à : ${entry.aiSummary}"
+                else -> String(entry.encryptedContent)
+            }
+
+            Text(
+                text = if (entry.type == EntryType.PORTRAIT || entry.type == EntryType.QUESTION_ANSWER) displayText 
+                       else String(entry.encryptedContent), 
+                style = if (entry.type == EntryType.PORTRAIT || entry.type == EntryType.QUESTION_ANSWER) MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold) 
+                       else MaterialTheme.typography.bodyLarge,
+                color = TextPrimary, 
+                lineHeight = 26.sp
+            )
         }
     }
 }

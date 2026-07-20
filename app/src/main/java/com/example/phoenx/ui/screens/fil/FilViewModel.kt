@@ -223,7 +223,11 @@ class FilViewModel @Inject constructor(
             creatorUid = creatorUid,
             ageAtCreation = age,
             encryptedContent = decryptedText.toByteArray(),
-            type = try { EntryType.valueOf(entryType) } catch(e: Exception) { EntryType.THOUGHT },
+            type = when(entryType) {
+                "PORTRAIT" -> EntryType.PORTRAIT
+                "QUESTION_ANSWER" -> EntryType.QUESTION_ANSWER
+                else -> try { EntryType.valueOf(entryType) } catch(e: Exception) { EntryType.THOUGHT }
+            },
             isYoungSelfLetter = isYoungSelfLetter,
             targetAge = targetAge,
             timestamp = Instant.ofEpochMilli(createdAt),

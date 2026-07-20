@@ -51,6 +51,7 @@ fun MemoryDetailScreen(
     val complements by viewModel.complements.collectAsState()
     val textComplements by viewModel.decryptedTextComplements.collectAsState()
     val content by viewModel.decryptedContent.collectAsState()
+    val structuredPortrait by viewModel.structuredPortrait.collectAsState()
     val recipients by viewModel.recipients.collectAsState()
     val deleteSuccess by viewModel.deleteSuccess.collectAsState()
     val error by viewModel.error.collectAsState()
@@ -148,7 +149,14 @@ fun MemoryDetailScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("L'Étincelle & son Récit", style = MaterialTheme.typography.labelLarge) },
+                title = { 
+                    val titleText = when(entry?.entryType) {
+                        "PORTRAIT" -> entry?.aiSummary ?: "Portrait"
+                        "QUESTION_ANSWER" -> "Question : ${entry?.aiSummary}"
+                        else -> "L'Étincelle & son Récit"
+                    }
+                    Text(titleText, style = MaterialTheme.typography.labelLarge) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
@@ -177,73 +185,126 @@ fun MemoryDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(32.dp)
             ) {
                 // ÉTAPE 1 : LE SUJET (Titre)
-                Column {
-                    Text("LE SUJET", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFFDFBF7)), // Couleur papier
-                        elevation = CardDefaults.cardElevation(4.dp),
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Column(modifier = Modifier.padding(20.dp)) {
-                            TextField(
-                                value = editableText,
-                                onValueChange = { editableText = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("Donne un titre à ce souvenir...", style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)) },
-                                textStyle = MaterialTheme.typography.bodyLarge.copy(
-                                    fontFamily = FontFamily.Serif,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF2C2C2E)
-                                ),
-                                colors = TextFieldDefaults.colors(
-                                    focusedContainerColor = Color.Transparent,
-                                    unfocusedContainerColor = Color.Transparent,
-                                    focusedIndicatorColor = Color.Transparent,
-                                    unfocusedIndicatorColor = Color.Transparent
+                if (entry!!.entryType != "PORTRAIT") {
+                    Column {
+                        Text("LE SUJET", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFDFBF7)), // Couleur papier
+                            elevation = CardDefaults.cardElevation(4.dp),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(20.dp)) {
+                                TextField(
+                                    value = if (entry!!.entryType == "QUESTION_ANSWER") "Ma réponse à : ${entry!!.aiSummary}" else editableText,
+                                    onValueChange = { if (entry!!.entryType != "QUESTION_ANSWER") editableText = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    enabled = entry!!.entryType != "QUESTION_ANSWER",
+                                    placeholder = { Text("Donne un titre à ce souvenir...", style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)) },
+                                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                        fontFamily = FontFamily.Serif,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF2C2C2E)
+                                    ),
+                                    colors = TextFieldDefaults.colors(
+                                        focusedContainerColor = Color.Transparent,
+                                        unfocusedContainerColor = Color.Transparent,
+                                        focusedIndicatorColor = Color.Transparent,
+                                        unfocusedIndicatorColor = Color.Transparent,
+                                        disabledContainerColor = Color.Transparent,
+                                        disabledIndicatorColor = Color.Transparent
+                                    )
                                 )
-                            )
+                            }
                         }
+                    }
+                } else {
+                    // Titre fixe pour le Portrait
+                    Column {
+                        Text("LE SUJET", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = entry!!.aiSummary,
+                            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold),
+                            color = TextPrimary
+                        )
                     }
                 }
 
-                // ÉTAPE 2 : LE RÉCIT (Compléments Texte) - Signature v8.4
-                if (textComplements.isNotEmpty()) {
+                // ÉTAPE 2 : LE RÉCIT / LES RÉPONSES
+                if (entry!!.entryType == "PORTRAIT") {
+                    PortraitAccordion(
+                        items = structuredPortrait, 
+                        accent = accent,
+                        onEditItem = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }
+                    )
+                } else if (entry!!.entryType == "QUESTION_ANSWER") {
                     Column {
-                        Text("LE RÉCIT", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Text("LA QUESTION", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
                         Spacer(modifier = Modifier.height(12.dp))
-                        
-                        textComplements.forEach { (compId, text) ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
-                                shape = RoundedCornerShape(12.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
-                            ) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.FormatQuote, null, tint = accent.copy(alpha = 0.3f), modifier = Modifier.size(20.dp))
-                                        Row {
-                                            IconButton(onClick = { navController.navigate(Screen.MemoryDetail.createRoute(compId)) }, modifier = Modifier.size(24.dp)) {
-                                                Icon(Icons.Default.Edit, null, tint = accent.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
-                                            }
-                                            Spacer(Modifier.width(8.dp))
-                                            IconButton(onClick = { viewModel.deleteComplement(compId) }, modifier = Modifier.size(24.dp)) {
-                                                Icon(Icons.Default.Close, null, tint = TextTertiary, modifier = Modifier.size(14.dp))
+                        Surface(
+                            color = accent.copy(alpha = 0.05f),
+                            shape = RoundedCornerShape(12.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                        ) {
+                            Text(
+                                text = entry!!.aiSummary,
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic),
+                                color = accent
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Text("MA RÉPONSE", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(text = content, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, lineHeight = 26.sp)
+                    }
+                } else {
+                    // Affichage standard pour THOUGHT, etc.
+                    if (textComplements.isNotEmpty()) {
+                        Column {
+                            Text("LE RÉCIT", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            textComplements.forEach { (compId, text) ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                                ) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                            Icon(Icons.Default.FormatQuote, null, tint = accent.copy(alpha = 0.3f), modifier = Modifier.size(20.dp))
+                                            Row {
+                                                IconButton(onClick = { navController.navigate(Screen.MemoryDetail.createRoute(compId)) }, modifier = Modifier.size(24.dp)) {
+                                                    Icon(Icons.Default.Edit, null, tint = accent.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
+                                                }
+                                                Spacer(Modifier.width(8.dp))
+                                                IconButton(onClick = { viewModel.deleteComplement(compId) }, modifier = Modifier.size(24.dp)) {
+                                                    Icon(Icons.Default.Close, null, tint = TextTertiary, modifier = Modifier.size(14.dp))
+                                                }
                                             }
                                         }
+                                        Text(
+                                            text = text,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontFamily = FontFamily.Serif,
+                                                lineHeight = 24.sp
+                                            ),
+                                            color = TextPrimary
+                                        )
                                     }
-                                    Text(
-                                        text = text,
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            fontFamily = FontFamily.Serif,
-                                            lineHeight = 24.sp
-                                        ),
-                                        color = TextPrimary
-                                    )
                                 }
                             }
+                        }
+                    } else {
+                        // Récit principal si pas de compléments texte
+                        Column {
+                            Text("LE RÉCIT", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(text = content, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, lineHeight = 26.sp)
                         }
                     }
                 }
@@ -636,6 +697,77 @@ fun MemoryDetailScreen(
                 }
                 
                 Spacer(modifier = Modifier.height(40.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun PortraitAccordion(
+    items: List<MemoryDetailViewModel.PortraitItem>, 
+    accent: Color,
+    onEditItem: (String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text("RÉPONSES DU PORTRAIT", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+        
+        items.forEachIndexed { index, item ->
+            var expanded by remember { mutableStateOf(index == 0) } // Premier ouvert par défaut
+            
+            Card(
+                onClick = { expanded = !expanded },
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                shape = RoundedCornerShape(12.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, if (expanded) accent.copy(alpha = 0.3f) else Color.Transparent)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            modifier = Modifier.size(24.dp),
+                            shape = CircleShape,
+                            color = accent.copy(alpha = 0.1f)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text((index + 1).toString(), style = MaterialTheme.typography.labelSmall, color = accent)
+                            }
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = item.question.ifBlank { "Pensée libre" },
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = if (expanded) accent else TextPrimary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        
+                        if (item.id != null) {
+                            IconButton(
+                                onClick = { onEditItem(item.id) },
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(Icons.Default.Edit, null, tint = accent.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
+                            }
+                            Spacer(Modifier.width(8.dp))
+                        }
+
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            tint = TextTertiary
+                        )
+                    }
+                    
+                    if (expanded) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        HorizontalDivider(color = accent.copy(alpha = 0.1f))
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = item.answer,
+                            style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, lineHeight = 26.sp),
+                            color = TextPrimary
+                        )
+                    }
+                }
             }
         }
     }

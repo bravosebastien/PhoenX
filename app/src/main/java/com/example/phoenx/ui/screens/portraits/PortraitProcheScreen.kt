@@ -228,7 +228,7 @@ fun PortraitProcheScreen(
             Button(
                 onClick = {
                     val recipient = selectedRecipient ?: return@Button
-                    viewModel.savePortrait(recipient.id, text)
+                    viewModel.savePortrait(recipient.id, null, listOf(text))
                 },
                 enabled = text.isNotBlank() && selectedRecipient != null && uiState !is PortraitUiState.Loading,
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),

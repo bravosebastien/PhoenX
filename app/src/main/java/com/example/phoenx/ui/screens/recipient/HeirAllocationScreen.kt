@@ -8,10 +8,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material.icons.filled.Videocam
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -116,6 +115,8 @@ fun AllocationEntryRow(
                 "PHOTO", "GALLERY" -> Icons.Default.PhotoCamera
                 "AUDIO" -> Icons.Default.Mic
                 "VIDEO" -> Icons.Default.Videocam
+                "PORTRAIT" -> Icons.Outlined.AccountCircle
+                "QUESTION_ANSWER" -> Icons.AutoMirrored.Filled.HelpOutline
                 else -> Icons.Default.Description
             }
             
@@ -133,8 +134,13 @@ fun AllocationEntryRow(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
+                val title = when(entry.entryType) {
+                    "PORTRAIT" -> entry.aiSummary
+                    "QUESTION_ANSWER" -> "Ma réponse à : ${entry.aiSummary}"
+                    else -> entry.aiSummary.ifEmpty { "Souvenir sans titre" }
+                }
                 Text(
-                    text = entry.aiSummary.ifEmpty { "Souvenir sans titre" },
+                    text = title,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = TextPrimary,
                     maxLines = 1,

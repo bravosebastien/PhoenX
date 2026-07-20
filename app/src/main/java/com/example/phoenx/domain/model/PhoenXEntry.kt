@@ -48,5 +48,7 @@ enum class EntryType {
     NIGHT_CAPTURE,
     PHOTO,
     AUDIO,
-    VIDEO
+    VIDEO,
+    PORTRAIT,
+    QUESTION_ANSWER
 }
