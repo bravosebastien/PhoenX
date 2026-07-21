@@ -337,7 +337,10 @@ fun PhoenXNavGraph(
         }
         
         composable(Screen.YoungSelfLetters.route) {
-            YoungSelfLetterScreen(onNavigateBack = { navController.popBackStack() })
+            YoungSelfLetterScreen(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() }
+            )
         }
 
         composable(Screen.Favorites.route) {

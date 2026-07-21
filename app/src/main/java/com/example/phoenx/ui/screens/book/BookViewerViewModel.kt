@@ -43,6 +43,9 @@ class BookViewerViewModel @Inject constructor(
     private val _isLocked = MutableStateFlow(false)
     val isLocked: StateFlow<Boolean> = _isLocked.asStateFlow()
 
+    private val _sealedMessage = MutableStateFlow<String?>(null)
+    val sealedMessage: StateFlow<String?> = _sealedMessage.asStateFlow()
+
     private val _creatorName = MutableStateFlow("Ton proche")
     val creatorName: StateFlow<String> = _creatorName.asStateFlow()
 
@@ -66,6 +69,7 @@ class BookViewerViewModel @Inject constructor(
                         val data = result.data as Map<*, *>
                         _creatorName.value = data["displayName"] as? String ?: "Ton proche"
                         val isBookOpen = data["isBookOpen"] as? Boolean ?: false
+                        _sealedMessage.value = data["sealedMessage"] as? String
                         
                         if (!isBookOpen) {
                             _isLocked.value = true

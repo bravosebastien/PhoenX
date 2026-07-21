@@ -61,6 +61,7 @@ fun BookEditorScreen(
     val isModifyingWithAi by viewModel.isModifyingWithAi.collectAsState()
     val error by viewModel.error.collectAsState()
     val isUserCreator by viewModel.isUserCreator.collectAsState()
+    val userName by viewModel.userName.collectAsState()
     var showChapterEditor by remember { mutableStateOf(false) }
 
     // Redirection de sécurité si le destinataire arrive ici par erreur
@@ -111,20 +112,6 @@ fun BookEditorScreen(
                         )
                     )
                 }
-                if (bookDraft != null) {
-                    TextButton(
-                        onClick = { navController.navigate("book_viewer") }
-                    ) {
-                        Text(
-                            text = "Lire le livre →",
-                            style = TextStyle(
-                                fontFamily = FontFamily.SansSerif,
-                                fontSize = 13.sp,
-                                color = AccentPrimary
-                            )
-                        )
-                    }
-                }
             }
 
             Text(
@@ -146,10 +133,36 @@ fun BookEditorScreen(
                         fontSize = 13.sp,
                         color = TextSecondary
                     ),
-                    modifier = Modifier.padding(top = 4.dp, bottom = 20.dp)
+                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
                 )
 
-                // SÉLECTEUR DE DESTINATAIRES (v8.5.4)
+                // ── ACTIONS PRIORITAIRES (v8.6.2) ──────────
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Button(
+                        onClick = { navController.navigate("book_viewer") },
+                        modifier = Modifier.weight(1.5f).height(48.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Default.PlayArrow, null, tint = BackgroundPrimary, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("LIRE MON LIVRE", color = BackgroundPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    }
+
+                    OutlinedButton(
+                        onClick = { viewModel.generateBook() },
+                        modifier = Modifier.weight(1f).height(48.dp),
+                        border = BorderStroke(1.dp, Color(0xFF3E3E45)),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Régénérer", color = TextSecondary, fontSize = 12.sp)
+                    }
+                }
+
+                // ── SÉLECTEUR DE DESTINATAIRES ────────────
                 Text(
                     "QUI PEUT LIRE CE LIVRE ?", 
                     style = MaterialTheme.typography.labelSmall, 
@@ -172,6 +185,16 @@ fun BookEditorScreen(
                         viewModel.updateRecipients(selectedRecipientIds.toList())
                     }
                 }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // ── LE SCEAU PERSONNALISÉ (v8.6.2) ─────────
+                SealedMessageSection(
+                    userName = userName,
+                    currentMessage = bookDraft!!.sealedMessage,
+                    onMessageSelected = { viewModel.updateSealedMessage(it) }
+                )
+
                 Spacer(modifier = Modifier.height(24.dp))
             }
 
@@ -225,24 +248,6 @@ fun BookEditorScreen(
                             }
                         )
                     }
-                    item {
-                        // Bouton régénérer en bas
-                        OutlinedButton(
-                            onClick = { viewModel.generateBook() },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = TextSecondary
-                            ),
-                            border = BorderStroke(1.dp, Color(0xFF3E3E45))
-                        ) {
-                            Text(
-                                "Régénérer le livre",
-                                fontSize = 13.sp
-                            )
-                        }
-                    }
                 }
             }
         }
@@ -278,6 +283,98 @@ fun BookEditorScreen(
                     viewModel.unvalidateChapter(selectedChapter!!.id)
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun SealedMessageSection(
+    userName: String,
+    currentMessage: String,
+    onMessageSelected: (String) -> Unit
+) {
+    val options = listOf(
+        "$userName a décidé de vous partager le livre de sa vie. Visible le moment venu.",
+        "$userName a préparé un précieux cadeau pour vous : le récit de sa vie, protégé avec tendresse jusqu'au moment de vous être transmis.",
+        "Un trésor de mots et de souvenirs vous attend : le Livre de Vie de $userName, scellé pour éclairer votre chemin le moment venu."
+    )
+
+    var isCustomMode by remember(currentMessage) { 
+        mutableStateOf(currentMessage.isNotEmpty() && !options.contains(currentMessage)) 
+    }
+    var customText by remember(currentMessage) { 
+        mutableStateOf(if (isCustomMode) currentMessage else "") 
+    }
+
+    Column {
+        Text(
+            "MESSAGE DE TRANSMISSION", 
+            style = MaterialTheme.typography.labelSmall, 
+            color = AccentPrimary, 
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            "Ce message apparaîtra à vos héritiers avant l'ouverture du livre.",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextTertiary,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        options.forEach { phrase ->
+            val isSelected = currentMessage == phrase
+            Card(
+                onClick = { 
+                    isCustomMode = false
+                    onMessageSelected(phrase) 
+                },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isSelected) AccentPrimary.copy(alpha = 0.15f) else SurfaceCard.copy(alpha = 0.5f)
+                ),
+                border = BorderStroke(1.dp, if (isSelected) AccentPrimary else Color.Transparent)
+            ) {
+                Text(
+                    text = phrase,
+                    style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                    modifier = Modifier.padding(12.dp),
+                    color = if (isSelected) TextPrimary else TextSecondary
+                )
+            }
+        }
+
+        // Option Personnalisée
+        Card(
+            onClick = { isCustomMode = true },
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = if (isCustomMode) AccentPrimary.copy(alpha = 0.15f) else SurfaceCard.copy(alpha = 0.5f)
+            ),
+            border = BorderStroke(1.dp, if (isCustomMode) AccentPrimary else Color.Transparent)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    "Écrire mon propre message...",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isCustomMode) TextPrimary else TextSecondary
+                )
+                if (isCustomMode) {
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = customText,
+                        onValueChange = { 
+                            customText = it
+                            onMessageSelected(it)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = MaterialTheme.typography.bodySmall,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = AccentPrimary,
+                            unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f)
+                        ),
+                        placeholder = { Text("Votre message personnel...", fontSize = 12.sp) }
+                    )
+                }
+            }
         }
     }
 }

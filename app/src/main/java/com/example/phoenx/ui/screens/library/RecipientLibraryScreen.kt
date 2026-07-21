@@ -189,10 +189,15 @@ fun RecipientLibraryScreen(
                     rowItems.forEach { comp ->
                         val label = comp[0] as String
                         val icon = comp[1] as androidx.compose.ui.graphics.vector.ImageVector
-                        val route = comp[2] as String
                         val id = comp[3] as String
                         val subtitle = comp[4] as String
                         val infoText = comp[5] as String
+                        
+                        val route = when(id) {
+                            "discotheque" -> if (isCreatorMode) "library_music" else Screen.RecipientDiscotheque.createRoute(targetCreatorId ?: "")
+                            "videotheque" -> if (isCreatorMode) "library_video" else Screen.RecipientVideotheque.createRoute(targetCreatorId ?: "")
+                            else -> comp[2] as String
+                        }
                         
                         CompartmentCard(
                             name = label,

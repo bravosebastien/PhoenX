@@ -25,6 +25,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,6 +50,9 @@ fun HeirHeritageScreen(
 ) {
     val heritageEntries by viewModel.heritageEntries.collectAsState()
     val heirKey by viewModel.heirKey.collectAsState()
+    val bookMessage by viewModel.bookSealedMessage.collectAsState()
+    val creatorName by viewModel.creatorName.collectAsState()
+    val isActivated by viewModel.isProtocolActivated.collectAsState()
     val accent = LocalAccentColor.current
     val backgroundBrush = LocalBackgroundBrush.current
 
@@ -101,8 +105,9 @@ fun HeirHeritageScreen(
                 ) {
                     SpecialAccessCard(
                         title = "Livre",
+                        subtitle = if (!isActivated) bookMessage ?: "$creatorName a décidé de vous partager le livre de sa vie. Visible le moment venu." else "Récit de vie",
                         icon = Icons.Outlined.MenuBook,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1.3f),
                         onClick = { navController.navigate("book_viewer_recipient?creatorId=$creatorId") }
                     )
                     SpecialAccessCard(
@@ -142,6 +147,7 @@ fun HeirHeritageScreen(
 @Composable
 fun SpecialAccessCard(
     title: String,
+    subtitle: String? = null,
     icon: ImageVector,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
@@ -152,16 +158,27 @@ fun SpecialAccessCard(
         color = SurfaceCard.copy(alpha = 0.4f),
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f)),
-        modifier = modifier.height(80.dp)
+        modifier = modifier.heightIn(min = 80.dp)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.padding(12.dp).fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Icon(icon, null, tint = accent, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(title, style = MaterialTheme.typography.labelSmall, color = TextPrimary)
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(title, style = MaterialTheme.typography.labelSmall, color = TextPrimary, fontWeight = FontWeight.Bold)
+            if (subtitle != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = subtitle, 
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), 
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

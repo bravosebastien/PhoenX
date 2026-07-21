@@ -47,6 +47,9 @@ class BookEditorViewModel @Inject constructor(
     private val _isUserCreator = MutableStateFlow<Boolean?>(null)
     val isUserCreator: StateFlow<Boolean?> = _isUserCreator
 
+    private val _userName = MutableStateFlow("")
+    val userName: StateFlow<String> = _userName
+
     val recipients: StateFlow<List<com.example.phoenx.data.local.RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -62,8 +65,10 @@ class BookEditorViewModel @Inject constructor(
                 val doc = com.google.firebase.firestore.FirebaseFirestore.getInstance()
                     .collection("users").document(userId).get().kotlinAwait()
                 _isUserCreator.value = doc.getBoolean("isCreator") ?: true
+                _userName.value = doc.getString("displayName") ?: "Votre proche"
             } catch (e: Exception) {
                 _isUserCreator.value = true
+                _userName.value = "Votre proche"
             }
         }
     }
@@ -197,6 +202,16 @@ class BookEditorViewModel @Inject constructor(
     fun updateRecipients(recipientIds: List<String>) {
         val current = _bookDraft.value ?: return
         val updated = current.copy(recipientIds = recipientIds)
+        _bookDraft.value = updated
+        viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
+            bookService.saveBookDraft(userId, updated)
+        }
+    }
+
+    fun updateSealedMessage(message: String) {
+        val current = _bookDraft.value ?: return
+        val updated = current.copy(sealedMessage = message)
         _bookDraft.value = updated
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch

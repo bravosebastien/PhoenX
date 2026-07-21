@@ -303,15 +303,10 @@ class QuizViewModel @Inject constructor(
                     finalMessage = encryptedMessage
                 )
                 
-                if (quiz.id.isEmpty()) {
-                    db.collection("users").document(userId)
-                        .collection("quizzes")
-                        .add(quizToSave).await()
-                } else {
-                    db.collection("users").document(userId)
-                        .collection("quizzes").document(quiz.id)
-                        .set(quizToSave).await()
-                }
+                // On force l'ID à 'main_quiz' pour faciliter l'accès héritier (v8.6.2)
+                db.collection("users").document(userId)
+                    .collection("quizzes").document("main_quiz")
+                    .set(quizToSave).await()
             } catch (e: Exception) {
                 android.util.Log.e("QuizVM", "Error saving quiz", e)
             } finally {

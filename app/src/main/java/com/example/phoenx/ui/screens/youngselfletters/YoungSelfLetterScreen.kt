@@ -3,12 +3,15 @@ package com.example.phoenx.ui.screens.youngselfletters
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,16 +27,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.phoenx.ui.components.InfoButton
+import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YoungSelfLetterScreen(
+    navController: NavController,
     onNavigateBack: () -> Unit,
     viewModel: YoungSelfLetterViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val existingLetters by viewModel.existingLetters.collectAsState()
     var showSuggestions by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
@@ -42,7 +49,7 @@ fun YoungSelfLetterScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("", style = MaterialTheme.typography.labelLarge) },
+                title = { Text("Lettre à mon Jeune Moi", style = MaterialTheme.typography.labelLarge) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)
@@ -59,6 +66,39 @@ fun YoungSelfLetterScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
+            // ── HISTORIQUE (v8.6.2) ──────────────────
+            if (existingLetters.isNotEmpty()) {
+                Text(
+                    "VOS LETTRES SCELLÉES", 
+                    style = MaterialTheme.typography.labelSmall, 
+                    color = AccentPrimary, 
+                    letterSpacing = 2.sp
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                androidx.compose.foundation.lazy.LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp)
+                ) {
+                    items(existingLetters) { letter ->
+                        Card(
+                            onClick = { navController.navigate(Screen.MemoryDetail.createRoute(letter.id)) },
+                            modifier = Modifier.width(160.dp).height(100.dp),
+                            colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Icon(Icons.Default.HistoryEdu, null, tint = AccentPrimary, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("À mes ${letter.targetAge} ans", style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+                                val year = uiState.birthYear + (letter.targetAge ?: 0)
+                                Text("Écrit pour $year", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                            }
+                        }
+                    }
+                }
+                HorizontalDivider(color = TextTertiary.copy(alpha = 0.1f), modifier = Modifier.padding(bottom = 32.dp))
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

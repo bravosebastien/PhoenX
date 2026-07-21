@@ -45,6 +45,7 @@ fun BookViewerScreen(
     val decryptedChapters by viewModel.decryptedChapters.collectAsState()
     val mediaMap by viewModel.mediaMap.collectAsState()
     val isLocked by viewModel.isLocked.collectAsState()
+    val sealedMessage by viewModel.sealedMessage.collectAsState()
     val creatorName by viewModel.creatorName.collectAsState()
 
     LaunchedEffect(targetCreatorId) {
@@ -70,7 +71,7 @@ fun BookViewerScreen(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "Le Livre de $creatorName vous sera ouvert le moment venu.",
+                    text = sealedMessage ?: "Le Livre de $creatorName vous sera ouvert le moment venu.",
                     style = TextStyle(
                         fontFamily = FontFamily.Serif,
                         fontSize = 20.sp,
@@ -81,7 +82,7 @@ fun BookViewerScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Ce récit est actuellement scellé. Seul le Gardien pourra lever le sceau.",
+                    text = if (sealedMessage != null) "Ce récit est actuellement scellé." else "Ce récit est actuellement scellé. Seul le Gardien pourra lever le sceau.",
                     style = TextStyle(
                         fontSize = 14.sp,
                         color = Color(0xFF9B9590),

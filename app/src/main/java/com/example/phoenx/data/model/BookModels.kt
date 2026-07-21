@@ -22,7 +22,8 @@ data class BookDraft(
     val status: BookStatus = BookStatus.DRAFT,
     val chapters: List<BookChapter> = emptyList(),
     val totalEntries: Int = 0,
-    val recipientIds: List<String> = emptyList() // v8.5.4 Parity of access
+    val recipientIds: List<String> = emptyList(), // v8.5.4 Parity of access
+    val sealedMessage: String = "" // v8.6.2 Message personnalisé pour l'héritier
 )
 
 data class BookMetadata(

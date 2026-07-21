@@ -14,10 +14,7 @@ import androidx.work.*
 import com.example.phoenx.data.sync.SyncWorker
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.util.Date
@@ -36,6 +33,10 @@ class YoungSelfLetterViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(YoungSelfLetterUiState())
     val uiState: StateFlow<YoungSelfLetterUiState> = _uiState.asStateFlow()
+
+    val existingLetters: StateFlow<List<OfflineEntry>> = offlineEntryDao.getAllEntries()
+        .map { entries -> entries.filter { it.isYoungSelfLetter } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         loadUserBirthYear()
@@ -128,6 +129,7 @@ class YoungSelfLetterViewModel @Inject constructor(
                 offlineEntryDao.insertEntry(
                     OfflineEntry(
                         id = java.util.UUID.randomUUID().toString(),
+                        creatorUid = userId, // FIX: Toujours spécifier l'UID (v8.6.2)
                         encryptedPayload = encryptedPayload,
                         entryType = "TEXT",
                         ageAtCreation = ageJson,

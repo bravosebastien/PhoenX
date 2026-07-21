@@ -66,10 +66,10 @@ class DetectiveViewModel @Inject constructor(
                     
                     _uiState.update { it.copy(creatorName = name, daysSinceActivation = days) }
 
-                    // 2. Charger les énigmes
+                    // 2. Charger les énigmes (v8.6.2 Fix: Filtre par enigmaQuestion != null)
                     val snapshot = db.collection("users").document(targetCreatorId)
                         .collection("entries")
-                        .whereEqualTo("isDetective", true)
+                        .whereNotEqualTo("enigmaQuestion", null)
                         .get().await()
                     
                     val entries = snapshot.documents.mapNotNull { doc ->

@@ -54,6 +54,12 @@ class RecipientMediaViewModel @Inject constructor(
     private val _isProtocolActivated = MutableStateFlow(true)
     val isProtocolActivated: StateFlow<Boolean> = _isProtocolActivated.asStateFlow()
 
+    private val _bookSealedMessage = MutableStateFlow<String?>(null)
+    val bookSealedMessage: StateFlow<String?> = _bookSealedMessage.asStateFlow()
+
+    private val _creatorName = MutableStateFlow("Votre proche")
+    val creatorName: StateFlow<String> = _creatorName.asStateFlow()
+
     private val _targetCreatorId = MutableStateFlow<String?>(null)
 
     init {
@@ -65,12 +71,17 @@ class RecipientMediaViewModel @Inject constructor(
         if (creatorId != null && creatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
                 try {
+                    // Fetch Creator Name (v8.6.2)
+                    val creatorDoc = db.collection("users").document(creatorId).get().await()
+                    _creatorName.value = creatorDoc.getString("displayName") ?: "Votre proche"
+
                     // Check protocol status via Cloud Function (v8.5.9)
                     val result = functions.getHttpsCallable("getCreatorProtocolStatus")
                         .call(mapOf("creatorId" to creatorId)).await()
                     
                     val data = result.data as? Map<*, *>
                     _isProtocolActivated.value = data?.get("isActivated") as? Boolean ?: false
+                    _bookSealedMessage.value = data?.get("sealedMessage") as? String
 
                     if (_isProtocolActivated.value) {
                         val keyDoc = db.collection("users").document(creatorId)
