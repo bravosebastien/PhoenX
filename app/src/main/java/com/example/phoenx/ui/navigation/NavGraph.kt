@@ -273,6 +273,9 @@ fun PhoenXNavGraph(
                 onAcceptInvite = { token -> 
                     navController.navigate(Screen.UniversalJoin.createRoute(token))
                 },
+                onBecomeCreator = {
+                    navController.navigate(Screen.SilenceOnboarding.route)
+                },
                 onLogoutSuccess = {
                     navController.navigate(Screen.Splash.route) {
                         popUpTo(0) { inclusive = true }
@@ -397,15 +400,7 @@ fun PhoenXNavGraph(
         }
 
         composable(Screen.Questions.route) {
-            HundredQuestionsScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onAnswerQuestion = { id, text ->
-                    navController.navigate(Screen.Capture.createRoute(
-                        type = Screen.Capture.TYPE_TEXT,
-                        prompt = text
-                    ))
-                }
-            )
+            QuestionsScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable("universal_message") {
@@ -430,15 +425,7 @@ fun PhoenXNavGraph(
         }
 
         composable("questions_room") {
-            QuestionsRoomScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onAnswerQuestion = { id, text ->
-                    navController.navigate(com.example.phoenx.ui.navigation.Screen.Capture.createRoute(
-                        type = com.example.phoenx.ui.navigation.Screen.Capture.TYPE_TEXT,
-                        prompt = text
-                    ))
-                }
-            )
+            QuestionsScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         composable(Screen.Worlds.route) {
@@ -576,10 +563,13 @@ fun PhoenXNavGraph(
             arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
         ) { backStackEntry ->
             val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+            val isCreator by mainViewModel.isCreator.collectAsState()
+            
             RecipientCubeScreen(
                 creatorId = creatorId,
                 onExit = { navController.popBackStack() },
                 onNavigateToHeritage = { navController.navigate(Screen.HeirHeritage.createRoute(creatorId)) },
+                isUserCreator = isCreator ?: true,
                 onBecomeCreator = { navController.navigate(Screen.SilenceOnboarding.route) }
             )
         }
@@ -678,15 +668,7 @@ fun PhoenXNavGraph(
             MappamondeScreen(navController = navController, mode = MapMode.CREATOR)
         }
         composable("cent_questions") {
-            QuestionsRoomScreen(
-                onNavigateBack = { navController.popBackStack() },
-                onAnswerQuestion = { id, text ->
-                    navController.navigate(com.example.phoenx.ui.navigation.Screen.Capture.createRoute(
-                        type = com.example.phoenx.ui.navigation.Screen.Capture.TYPE_TEXT,
-                        prompt = text
-                    ))
-                }
-            )
+            QuestionsScreen(onNavigateBack = { navController.popBackStack() })
         }
         composable("coffre_fort") {
             DetectiveHomeScreen(navController = navController)
@@ -789,8 +771,8 @@ fun PhoenXNavGraph(
                     }
                 },
                 onNavigateToAuth = { code ->
-                    // On envoie vers le login avec un redirect vers cet écran précis
-                    navController.navigate(Screen.Auth.Login.createRoute(Screen.DepositaryWelcome.createRoute(code)))
+                    // On oriente vers la création de compte par défaut pour les invitations (v8.5.9)
+                    navController.navigate(Screen.Auth.Signup.createRoute(Screen.DepositaryWelcome.createRoute(code)))
                 }
             )
         }
@@ -923,7 +905,7 @@ fun PhoenXNavGraph(
             UniversalJoinScreen(
                 token = token,
                 onNavigateToAuth = { t ->
-                    navController.navigate(Screen.Auth.Login.createRoute(Screen.UniversalJoin.createRoute(t)))
+                    navController.navigate(Screen.Auth.Signup.createRoute(Screen.UniversalJoin.createRoute(t)))
                 },
                 onSuccess = {
                     val uid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid

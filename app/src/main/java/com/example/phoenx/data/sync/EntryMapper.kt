@@ -52,7 +52,8 @@ fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
         "memoryDateEnd" to memoryDateEnd,
         "parentEntryId" to parentEntryId,
         "enigmaHint" to enigmaHint,
-        "enigmaAutoUnlockDays" to enigmaAutoUnlockDays
+        "enigmaAutoUnlockDays" to enigmaAutoUnlockDays,
+        "questionId" to questionId
     )
 }
 
@@ -93,6 +94,7 @@ fun DocumentSnapshot.toOfflineEntry(): OfflineEntry? {
         memoryDateEnd = getLong("memoryDateEnd"),
         parentEntryId = getString("parentEntryId"),
         enigmaHint = getString("enigmaHint"),
-        enigmaAutoUnlockDays = getLong("enigmaAutoUnlockDays")?.toInt()
+        enigmaAutoUnlockDays = getLong("enigmaAutoUnlockDays")?.toInt(),
+        questionId = getString("questionId")
     )
 }

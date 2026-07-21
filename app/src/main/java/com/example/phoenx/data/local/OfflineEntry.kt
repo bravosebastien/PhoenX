@@ -61,8 +61,13 @@ data class OfflineEntry(
 
     // FINITIONS MODE DÉTECTIVE (Signature 8.3 - v21)
     val enigmaHint: String? = null,
-    val enigmaAutoUnlockDays: Int? = null
+    val enigmaAutoUnlockDays: Int? = null,
+
+    // LES 100 QUESTIONS (Signature 8.5 - v22)
+    val questionId: String? = null
 ) {
+    fun isChild(): Boolean = parentEntryId != null
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

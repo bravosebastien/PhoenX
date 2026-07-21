@@ -13,13 +13,21 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.util.*
 import javax.inject.Inject
+
+data class QuestionsUiState(
+    val questions: List<Question> = emptyList(),
+    val answeredQuestionIds: Set<String> = emptySet(),
+    val selectedCategory: String = "Toutes",
+    val isLoading: Boolean = false,
+    val isSaving: Boolean = false,
+    val isSuccess: Boolean = false
+)
 
 @HiltViewModel
 class QuestionsViewModel @Inject constructor(
@@ -30,25 +38,46 @@ class QuestionsViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow<QuestionsUiState>(QuestionsUiState())
-    val uiState: StateFlow<QuestionsUiState> = _uiState
+    private val _uiState = MutableStateFlow(QuestionsUiState())
+    val uiState: StateFlow<QuestionsUiState> = _uiState.asStateFlow()
 
-    val questions = listOf(
-        "Quel est le repas que tu aimerais manger une dernière fois ?",
-        "Quelle décision as-tu prise dont tu es le plus fier ?",
-        "Qu'est-ce que tu aurais voulu qu'on te dise à 20 ans ?",
-        "Qui t'a le plus appris sans jamais te faire cours ?",
-        "Si tu pouvais revivre une journée, laquelle ?",
-        "Quelle est la chose dont tu parles le moins mais qui compte le plus ?",
-        "Quel est ton plus beau souvenir de voyage ?",
-        "Quelle est ta plus grande peur aujourd'hui ?",
-        "Quel est le trait de caractère que tu préfères chez toi ?",
-        "Qu'est-ce qui te fait rire à coup sûr ?"
-    )
+    init {
+        loadAnsweredQuestions()
+        filterQuestions("Toutes")
+    }
 
-    fun saveAnswer(question: String, answer: String, mediaFile: File? = null, mediaType: String? = null) {
+    fun loadAnsweredQuestions() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                // Charger les questionId déjà répondus depuis Firestore (v8.5.9)
+                val snapshot = db.collection("users").document(userId)
+                    .collection("entries")
+                    .whereNotEqualTo("questionId", null)
+                    .get().await()
+                
+                val ids = snapshot.documents.mapNotNull { it.getString("questionId") }.toSet()
+                _uiState.update { it.copy(answeredQuestionIds = ids, isLoading = false) }
+            } catch (e: Exception) {
+                android.util.Log.e("QuestionsVM", "Erreur chargement réponses: ${e.message}")
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
+
+    fun filterQuestions(category: String) {
+        val filtered = if (category == "Toutes") {
+            QuestionsData.allQuestions
+        } else {
+            QuestionsData.allQuestions.filter { it.category == category }
+        }
+        _uiState.update { it.copy(questions = filtered, selectedCategory = category) }
+    }
+
+    fun saveAnswer(questionObj: Question, answer: String, mediaFile: File? = null) {
         val user = auth.currentUser ?: return
-        _uiState.value = _uiState.value.copy(isSaving = true)
+        _uiState.update { it.copy(isSaving = true) }
 
         viewModelScope.launch {
             try {
@@ -75,12 +104,13 @@ class QuestionsViewModel @Inject constructor(
                 val entry = OfflineEntry(
                     creatorUid = user.uid,
                     encryptedPayload = encrypted,
-                    entryType = "QUESTION_ANSWER", // Type spécifique v8.5.6
+                    entryType = "QUESTION_ANSWER",
+                    questionId = questionObj.id, // v8.5.9 tracking
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",
                     emotionalCategory = "Sagesse",
                     visibility = "RESTRICTED",
                     createdAt = System.currentTimeMillis(),
-                    aiSummary = question, // Juste la question pour le titre (v8.5.6)
+                    aiSummary = questionObj.text,
                     localMediaPath = finalLocalPath
                 )
                 offlineEntryDao.insertEntry(entry)
@@ -94,19 +124,17 @@ class QuestionsViewModel @Inject constructor(
                     .build()
                 WorkManager.getInstance(context).enqueue(syncRequest)
 
-                _uiState.value = _uiState.value.copy(isSaving = false, isSuccess = true)
-            } catch (_: Exception) {
-                _uiState.value = _uiState.value.copy(isSaving = false)
+                // Mise à jour locale immédiate de l'état
+                val newAnsweredIds = _uiState.value.answeredQuestionIds + questionObj.id
+                _uiState.update { it.copy(isSaving = false, isSuccess = true, answeredQuestionIds = newAnsweredIds) }
+            } catch (e: Exception) {
+                android.util.Log.e("QuestionsVM", "Erreur sauvegarde: ${e.message}")
+                _uiState.update { it.copy(isSaving = false) }
             }
         }
     }
 
     fun resetSuccess() {
-        _uiState.value = _uiState.value.copy(isSuccess = false)
+        _uiState.update { it.copy(isSuccess = false) }
     }
 }
-
-data class QuestionsUiState(
-    val isSaving: Boolean = false,
-    val isSuccess: Boolean = false
-)

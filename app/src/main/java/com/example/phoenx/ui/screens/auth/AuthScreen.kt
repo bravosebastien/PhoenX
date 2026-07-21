@@ -131,7 +131,8 @@ fun AuthScreen(
                             onPasswordChange = { password = it },
                             birthDate = birthDate,
                             onBirthDateChange = { birthDate = it },
-                            isGuestFlow = isGuestFlow
+                            isGuestFlow = isGuestFlow,
+                            onNavigateToLogin = { currentStep = SignupStep.Login }
                         ) { 
                             if (isGuestFlow) {
                                 viewModel.signUpGuest(email, password)
@@ -294,6 +295,7 @@ fun SignupStepA(
     password: String, onPasswordChange: (String) -> Unit,
     birthDate: LocalDate, onBirthDateChange: (LocalDate) -> Unit,
     isGuestFlow: Boolean = false,
+    onNavigateToLogin: () -> Unit,
     onNext: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -391,6 +393,10 @@ fun SignupStepA(
             colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
         ) {
             Text("Continuer", color = BackgroundPrimary)
+        }
+
+        TextButton(onClick = onNavigateToLogin) {
+            Text("J'ai déjà un compte ? Se connecter", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
         }
     }
 }

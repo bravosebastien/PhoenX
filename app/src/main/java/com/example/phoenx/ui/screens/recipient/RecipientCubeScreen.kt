@@ -35,6 +35,7 @@ fun RecipientCubeScreen(
     creatorId: String,
     onExit: () -> Unit,
     onNavigateToHeritage: () -> Unit,
+    isUserCreator: Boolean = false,
     onBecomeCreator: () -> Unit
 ) {
     val db = FirebaseFirestore.getInstance()
@@ -153,25 +154,27 @@ fun RecipientCubeScreen(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                // DEVENIR CRÉATEUR
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
-                    shape = RoundedCornerShape(12.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                if (!isUserCreator) {
+                    Spacer(modifier = Modifier.height(32.dp))
+                    
+                    // DEVENIR CRÉATEUR
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
+                        shape = RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = TextPrimary)
-                            Text("Commencez à sceller vos souvenirs.", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-                        }
-                        TextButton(onClick = onBecomeCreator) {
-                            Text("DEVENIR CRÉATEUR", color = accent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = TextPrimary)
+                                Text("Commencez à sceller vos souvenirs.", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                            }
+                            TextButton(onClick = onBecomeCreator) {
+                                Text("DEVENIR CRÉATEUR", color = accent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            }
                         }
                     }
                 }

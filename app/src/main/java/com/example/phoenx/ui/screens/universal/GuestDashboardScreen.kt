@@ -40,6 +40,7 @@ fun GuestDashboardScreen(
 ) {
     val myRoles by mainViewModel.myRoles.collectAsState()
     val pendingByEmail by mainViewModel.pendingInvitations.collectAsState()
+    val isCreator by mainViewModel.isCreator.collectAsState()
     val accent = LocalAccentColor.current
     val backgroundBrush = LocalBackgroundBrush.current
 
@@ -123,27 +124,29 @@ fun GuestDashboardScreen(
             
             Spacer(modifier = Modifier.weight(1f))
             
-            // Encouragement à devenir Créateur
-            Card(
-                onClick = { navController.navigate(Screen.SilenceOnboarding.route) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = TextPrimary)
-                    Text(
-                        "Vous aussi, commencez à sceller vos souvenirs pour ceux que vous aimez.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
-                    )
-                    Text(
-                        "Devenir Créateur →",
-                        modifier = Modifier.padding(top = 8.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = accent,
-                        fontWeight = FontWeight.Bold
-                    )
+            // Encouragement à devenir Créateur (Uniquement si pas déjà Créateur)
+            if (isCreator == false) {
+                Card(
+                    onClick = { navController.navigate(Screen.SilenceOnboarding.route) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = TextPrimary)
+                        Text(
+                            "Vous aussi, commencez à sceller vos souvenirs pour ceux que vous aimez.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary
+                        )
+                        Text(
+                            "Devenir Créateur →",
+                            modifier = Modifier.padding(top = 8.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = accent,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
         }
@@ -235,9 +238,11 @@ fun RoleCard(
 fun GuestPerspectiveContent(
     myRoles: Map<String, UserRole>,
     pendingInvites: List<com.example.phoenx.ui.MainViewModel.PendingInvitation>,
+    isCreator: Boolean,
     accent: Color,
     onNavigateToCube: (String) -> Unit,
-    onAcceptInvite: (String) -> Unit
+    onAcceptInvite: (String) -> Unit,
+    onBecomeCreator: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -279,6 +284,34 @@ fun GuestPerspectiveContent(
                         onNavigateToCube(role.creatorId)
                     }
                 )
+            }
+        }
+
+        if (!isCreator) {
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Encouragement à devenir Créateur (v8.5.9)
+            Card(
+                onClick = onBecomeCreator,
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = TextPrimary)
+                    Text(
+                        "Vous aussi, commencez à sceller vos souvenirs pour ceux que vous aimez.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary
+                    )
+                    Text(
+                        "Devenir Créateur →",
+                        modifier = Modifier.padding(top = 8.dp),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = accent,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }

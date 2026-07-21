@@ -7,7 +7,6 @@ import androidx.work.*
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
-import com.example.phoenx.data.local.PortraitEntity
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.data.sync.SyncWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,10 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 import kotlinx.coroutines.tasks.await
-import org.json.JSONArray
-import org.json.JSONObject
 import java.util.UUID
 
 @HiltViewModel
@@ -76,8 +72,8 @@ class PortraitViewModel @Inject constructor(
                 val ageJson = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }"
 
                 // 1. GESTION DE L'ENTRÉE PARENTE (Le Sceau du Portrait)
-                val recipients = _recipients.value
-                val recipientName = recipients.find { it.id == recipientId }?.name ?: "un proche"
+                val recipientsList = _recipients.value
+                val recipientName = recipientsList.find { it.id == recipientId }?.name ?: "un proche"
                 
                 val existingParent = offlineEntryDao.getPortraitEntryForRecipient(recipientId).first()
                 val parentId = existingParent?.id ?: UUID.randomUUID().toString()
@@ -87,16 +83,17 @@ class PortraitViewModel @Inject constructor(
                     creatorUid = user.uid,
                     encryptedPayload = "".toByteArray(),
                     entryType = "PORTRAIT",
-                    ageAtCreation = ageJson, // Fix v8.5.8
+                    ageAtCreation = ageJson,
                     emotionalCategory = "Amour",
                     visibility = "specific",
                     recipientIds = recipientId,
                     createdAt = existingParent?.createdAt ?: System.currentTimeMillis(),
-                    aiSummary = "Portrait de $recipientName"
+                    aiSummary = "Portrait de $recipientName",
+                    syncStatus = "pending"
                 )
                 offlineEntryDao.insertEntry(parentEntry)
 
-                // 2. GESTION DES RÉPONSES (Atomiques)
+                // 2. GESTION DES RÉPONSES (Atomiques - v8.5.7)
                 if (questions != null) {
                     questions.forEachIndexed { index, question ->
                         val answer = answers.getOrNull(index) ?: ""
@@ -110,18 +107,17 @@ class PortraitViewModel @Inject constructor(
                                 encryptedPayload = encryptionManager.encryptText(answer),
                                 entryType = "TEXT",
                                 parentEntryId = parentId,
-                                ageAtCreation = ageJson, // Fix v8.5.8
+                                ageAtCreation = ageJson,
                                 emotionalCategory = "Amour",
                                 visibility = "specific",
                                 recipientIds = recipientId,
-                                aiSummary = question
+                                aiSummary = question,
+                                syncStatus = "pending"
                             )
                             offlineEntryDao.insertEntry(answerEntry)
                         }
                     }
-                }
-                // ... (reste de la fonction savePortrait identique)
-else {
+                } else {
                     // Cas "Pensée Libre" (PortraitProcheScreen)
                     val freeText = answers.joinToString("\n\n")
                     val existingAnswers = offlineEntryDao.getComplements(parentId).first()
@@ -129,15 +125,16 @@ else {
 
                     val answerEntry = OfflineEntry(
                         id = existingAnswer?.id ?: UUID.randomUUID().toString(),
-                        creatorUid = parentEntry.creatorUid,
+                        creatorUid = user.uid,
                         encryptedPayload = encryptionManager.encryptText(freeText),
                         entryType = "TEXT",
                         parentEntryId = parentId,
-                        ageAtCreation = parentEntry.ageAtCreation,
+                        ageAtCreation = ageJson,
                         emotionalCategory = "Amour",
                         visibility = "specific",
                         recipientIds = recipientId,
-                        aiSummary = "Pensée libre"
+                        aiSummary = "Pensée libre",
+                        syncStatus = "pending"
                     )
                     offlineEntryDao.insertEntry(answerEntry)
                 }
@@ -146,6 +143,7 @@ else {
                 triggerSync()
                 _uiState.value = PortraitUiState.Success
             } catch (e: Exception) {
+                android.util.Log.e("PortraitVM", "Erreur sauvegarde: ${e.message}")
                 _uiState.value = PortraitUiState.Error(e.message ?: "Erreur de sauvegarde")
             }
         }

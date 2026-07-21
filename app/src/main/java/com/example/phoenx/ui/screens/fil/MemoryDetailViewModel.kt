@@ -177,18 +177,32 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             try {
+                val currentEntry = entry.value ?: return@launch
                 val encrypted = encryptionManager.encryptText(newText)
                 offlineEntryDao.updateEntryContent(encrypted, id)
-                android.util.Log.d("MemoryDetailDebug", "Contenu mis à jour en local pour id=$id, taille chiffrée=${encrypted.size}")
                 
-                // Régénération de l'analyse IA locale (vitesse et confidentialité)
-                val analysis = onDeviceAIManager.analyzeLocally(newText)
-                offlineEntryDao.updateEntrySummary(analysis.summary, id)
-                android.util.Log.d("MemoryDetailDebug", "Résumé IA local mis à jour : ${analysis.summary}")
+                // On ne met à jour le résumé que pour les souvenirs "racines" (Étincelles)
+                // Les réponses au portrait et aux questions gardent leur titre (la question) (v8.5.9)
+                if (currentEntry.parentEntryId == null && currentEntry.entryType != "QUESTION_ANSWER") {
+                    val analysis = onDeviceAIManager.analyzeLocally(newText)
+                    offlineEntryDao.updateEntrySummary(analysis.summary, id)
+                }
 
                 triggerSync(id)
             } catch (e: Exception) {
                 android.util.Log.e("MemoryDetailVM", "Error updating content", e)
+            }
+        }
+    }
+
+    fun updateTitle(newTitle: String) {
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            try {
+                offlineEntryDao.updateEntrySummary(newTitle, id)
+                triggerSync(id)
+            } catch (e: Exception) {
+                android.util.Log.e("MemoryDetailVM", "Error updating title", e)
             }
         }
     }

@@ -62,6 +62,7 @@ fun HomeScreen(
     onNavigateToAccessibility: () -> Unit,
     onNavigateToCube: (String) -> Unit,
     onAcceptInvite: (String) -> Unit,
+    onBecomeCreator: () -> Unit,
     onLogoutSuccess: () -> Unit,
     mainViewModel: MainViewModel,
     viewModel: HomeViewModel = hiltViewModel()
@@ -341,9 +342,11 @@ fun HomeScreen(
                     com.example.phoenx.ui.screens.universal.GuestPerspectiveContent(
                         myRoles = myRoles,
                         pendingInvites = pendingInvites,
+                        isCreator = isCreator ?: true,
                         accent = accent,
                         onNavigateToCube = onNavigateToCube,
-                        onAcceptInvite = onAcceptInvite
+                        onAcceptInvite = onAcceptInvite,
+                        onBecomeCreator = onBecomeCreator
                     )
                 }
             }
