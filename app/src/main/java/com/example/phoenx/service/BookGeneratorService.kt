@@ -45,6 +45,39 @@ class BookGeneratorService @Inject constructor(
         }
     }
 
+    suspend fun getBookKey(userId: String): ByteArray? {
+        return try {
+            val keyDoc = db.collection("users").document(userId)
+                .collection("book_keys").document("main").get().await()
+            val keyBase64 = keyDoc.getString("key")
+            if (keyBase64 != null) {
+                android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+            } else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun decryptChapter(encryptedBase64: String, bookKey: ByteArray?): String {
+        return try {
+            val bytes = android.util.Base64.decode(encryptedBase64, android.util.Base64.DEFAULT)
+            encryptionManager.decryptText(bytes, bookKey)
+        } catch (e: Exception) {
+            android.util.Log.e("PHOENX_BOOK", "Déchiffrement chapitre échoué", e)
+            encryptedBase64 // Retourne le code si échec pour diagnostic
+        }
+    }
+
+    fun encryptChapter(plainText: String, bookKey: ByteArray?): String {
+        return try {
+            val encrypted = encryptionManager.encryptText(plainText, bookKey)
+            android.util.Base64.encodeToString(encrypted, android.util.Base64.DEFAULT)
+        } catch (e: Exception) {
+            android.util.Log.e("PHOENX_BOOK", "Chiffrement chapitre échoué", e)
+            plainText
+        }
+    }
+
     /**
      * Extrait les "Scènes de Vie" (Souvenirs groupés avec leurs médias)
      */

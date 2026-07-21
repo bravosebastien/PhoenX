@@ -26,6 +26,9 @@ class BookEditorViewModel @Inject constructor(
     private val _bookDraft = MutableStateFlow<BookDraft?>(null)
     val bookDraft: StateFlow<BookDraft?> = _bookDraft
 
+    private val _decryptedContents = MutableStateFlow<Map<String, String>>(emptyMap())
+    val decryptedContents: StateFlow<Map<String, String>> = _decryptedContents
+
     private val _selectedChapter = MutableStateFlow<BookChapter?>(null)
     val selectedChapter: StateFlow<BookChapter?> = _selectedChapter
 
@@ -68,8 +71,18 @@ class BookEditorViewModel @Inject constructor(
     fun loadExistingBook() {
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
-            _bookDraft.value = bookService.loadBookDraft(userId)
+            val draft = bookService.loadBookDraft(userId)
+            _bookDraft.value = draft
+            if (draft != null) {
+                decryptAllChapters(userId, draft)
+            }
         }
+    }
+
+    private suspend fun decryptAllChapters(userId: String, draft: BookDraft) {
+        val bookKey = bookService.getBookKey(userId)
+        val decrypted = draft.chapters.associate { it.id to bookService.decryptChapter(it.content, bookKey) }
+        _decryptedContents.value = decrypted
     }
 
     fun generateBook() {
@@ -82,6 +95,7 @@ class BookEditorViewModel @Inject constructor(
                     _generationProgress.value = progress
                 }
                 _bookDraft.value = draft
+                decryptAllChapters(userId, draft)
             } catch (e: Exception) {
                 _error.value = e.message ?: "Erreur lors de la génération."
             } finally {
@@ -96,35 +110,44 @@ class BookEditorViewModel @Inject constructor(
 
     fun updateChapterContent(chapterId: String, newContent: String) {
         val current = _bookDraft.value ?: return
-        val updated = current.copy(
-            chapters = current.chapters.map { chapter ->
-                if (chapter.id == chapterId)
-                    chapter.copy(
-                        content = newContent,
-                        status = ChapterStatus.IN_REVIEW
-                    )
-                else chapter
-            }
-        )
-        _bookDraft.value = updated
+        val userId = auth.currentUser?.uid ?: return
+        
+        // Mise à jour de la version déchiffrée en mémoire (UI)
+        val updatedMap = _decryptedContents.value.toMutableMap()
+        updatedMap[chapterId] = newContent
+        _decryptedContents.value = updatedMap
+
         viewModelScope.launch {
-            val userId = auth.currentUser?.uid ?: return@launch
-            bookService.saveBookDraft(userId, updated)
+            try {
+                val bookKey = bookService.getBookKey(userId)
+                val encryptedContent = bookService.encryptChapter(newContent, bookKey)
+
+                val updatedDraft = current.copy(
+                    chapters = current.chapters.map { chapter ->
+                        if (chapter.id == chapterId)
+                            chapter.copy(
+                                content = encryptedContent,
+                                status = ChapterStatus.IN_REVIEW
+                            )
+                        else chapter
+                    }
+                )
+                _bookDraft.value = updatedDraft
+                bookService.saveBookDraft(userId, updatedDraft)
+            } catch (e: Exception) {
+                android.util.Log.e("BookEditorVM", "Erreur lors du chiffrement et sauvegarde")
+            }
         }
     }
 
     fun askAiToModify(chapterId: String, instruction: String) {
         viewModelScope.launch {
             _isModifyingWithAi.value = true
-            val chapter = _bookDraft.value
-                ?.chapters
-                ?.find { it.id == chapterId }
-                ?: return@launch
+            val decryptedContent = _decryptedContents.value[chapterId] ?: return@launch
             try {
-                // Pour modification IA on déchiffre d'abord
-                val currentContent = chapter.content
+                // Pour modification IA on utilise le texte en clair (déjà déchiffré dans le VM)
                 val newContent = bookService.askAiToModifyChapter(
-                    currentContent = currentContent,
+                    currentContent = decryptedContent,
                     instruction = instruction
                 )
                 updateChapterContent(

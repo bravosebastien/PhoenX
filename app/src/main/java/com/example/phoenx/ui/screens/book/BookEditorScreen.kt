@@ -53,6 +53,7 @@ fun BookEditorScreen(
     viewModel: BookEditorViewModel = hiltViewModel()
 ) {
     val bookDraft by viewModel.bookDraft.collectAsState()
+    val decryptedContents by viewModel.decryptedContents.collectAsState()
     val isGenerating by viewModel.isGenerating.collectAsState()
     val generationProgress by viewModel.generationProgress.collectAsState()
     val selectedChapter by viewModel.selectedChapter.collectAsState()
@@ -250,6 +251,7 @@ fun BookEditorScreen(
         if (showChapterEditor && selectedChapter != null) {
             ChapterEditorSheet(
                 chapter = selectedChapter!!,
+                decryptedContent = decryptedContents[selectedChapter!!.id] ?: "",
                 isModifyingWithAi = isModifyingWithAi,
                 onDismiss = {
                     showChapterEditor = false
@@ -559,6 +561,7 @@ private fun ChapterCard(
 @Composable
 private fun ChapterEditorSheet(
     chapter: BookChapter,
+    decryptedContent: String,
     isModifyingWithAi: Boolean,
     onDismiss: () -> Unit,
     onContentChange: (String) -> Unit,
@@ -566,8 +569,8 @@ private fun ChapterEditorSheet(
     onValidate: () -> Unit,
     onUnvalidate: () -> Unit
 ) {
-    var editableContent by remember(chapter.id) {
-        mutableStateOf(chapter.content)
+    var editableContent by remember(chapter.id, decryptedContent) {
+        mutableStateOf(decryptedContent)
     }
     var showAiPanel by remember { mutableStateOf(false) }
     var aiInstruction by remember { mutableStateOf("") }
