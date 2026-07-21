@@ -62,6 +62,8 @@ class RecipientMediaViewModel @Inject constructor(
 
     private val _targetCreatorId = MutableStateFlow<String?>(null)
 
+    val currentUid: String get() = auth.currentUser?.uid ?: ""
+
     init {
         loadAllMedia()
     }
@@ -235,18 +237,28 @@ class RecipientMediaViewModel @Inject constructor(
             months = ageJson.optInt("months", 0),
             days = ageJson.optInt("days", 0)
         )
+        
+        val typeLabel = when(entryType) {
+            "PHOTO" -> "Photo scellée"
+            "VIDEO" -> "Vidéo scellée"
+            "AUDIO" -> "Souvenir vocal scellé"
+            "PORTRAIT" -> "Portrait scellé"
+            "QUESTION_ANSWER" -> "Réponse scellée"
+            else -> "Pensée scellée"
+        }
+
         return PhoenXEntry(
             id = id,
             creatorUid = creatorUid,
             ageAtCreation = age,
-            encryptedContent = "Souvenir scellé".toByteArray(),
+            encryptedContent = "Ce contenu sera déchiffré lors de l'activation du protocole.".toByteArray(),
             type = when(entryType) {
                 "PORTRAIT" -> EntryType.PORTRAIT
                 "QUESTION_ANSWER" -> EntryType.QUESTION_ANSWER
                 else -> try { EntryType.valueOf(entryType) } catch(_: Exception) { EntryType.THOUGHT }
             },
             timestamp = Instant.ofEpochMilli(createdAt),
-            aiSummary = aiSummary,
+            aiSummary = aiSummary.ifBlank { typeLabel },
             hasEnigma = enigmaQuestion != null
         )
     }

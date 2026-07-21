@@ -643,6 +643,19 @@ fun PhoenXNavGraph(
                 onNavigateToDetail = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }
             )
         }
+
+        composable(
+            route = Screen.RecipientPhotos.route,
+            arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+            RecipientPhotosScreen(
+                creatorId = creatorId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCapture = { navController.navigate("capture/PHOTO") },
+                onNavigateToDetail = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }
+            )
+        }
         composable(
             route = "fil_pensee?creatorId={creatorId}",
             arguments = listOf(navArgument("creatorId") { nullable = true })

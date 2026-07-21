@@ -194,8 +194,10 @@ fun RecipientLibraryScreen(
                         val infoText = comp[5] as String
                         
                         val route = when(id) {
-                            "discotheque" -> if (isCreatorMode) "library_music" else Screen.RecipientDiscotheque.createRoute(targetCreatorId ?: "")
-                            "videotheque" -> if (isCreatorMode) "library_video" else Screen.RecipientVideotheque.createRoute(targetCreatorId ?: "")
+                            "discotheque" -> Screen.RecipientDiscotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)
+                            "videotheque" -> Screen.RecipientVideotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)
+                            "photos" -> Screen.RecipientPhotos.createRoute(targetCreatorId ?: mediaViewModel.currentUid)
+                            "mes_meilleurs" -> Screen.RecipientFavorites.createRoute(targetCreatorId ?: mediaViewModel.currentUid)
                             else -> comp[2] as String
                         }
                         

@@ -177,6 +177,9 @@ sealed class Screen(val route: String) {
     object RecipientVideotheque : Screen("recipient/videotheque/{creatorId}") {
         fun createRoute(creatorId: String) = "recipient/videotheque/$creatorId"
     }
+    object RecipientPhotos : Screen("recipient/photos/{creatorId}") {
+        fun createRoute(creatorId: String) = "recipient/photos/$creatorId"
+    }
     object RecipientFavorites : Screen("recipient/favorites/{creatorId}") {
         fun createRoute(creatorId: String) = "recipient/favorites/$creatorId"
     }

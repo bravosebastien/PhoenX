@@ -19,8 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -355,18 +357,20 @@ fun TimelineEntryItem(
             }
 
             val displayText = when(entry.type) {
-                EntryType.PORTRAIT -> entry.aiSummary // "Portrait de [Nom]"
-                EntryType.QUESTION_ANSWER -> "Ma réponse à : ${entry.aiSummary}"
-                else -> String(entry.encryptedContent)
+                EntryType.PORTRAIT -> entry.aiSummary
+                EntryType.QUESTION_ANSWER -> entry.aiSummary
+                else -> entry.aiSummary.ifBlank { "Souvenir sans titre" }
             }
 
             Text(
-                text = if (entry.type == EntryType.PORTRAIT || entry.type == EntryType.QUESTION_ANSWER) displayText 
-                       else String(entry.encryptedContent), 
-                style = if (entry.type == EntryType.PORTRAIT || entry.type == EntryType.QUESTION_ANSWER) MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold) 
-                       else MaterialTheme.typography.bodyLarge,
-                color = TextPrimary, 
-                lineHeight = 26.sp
+                text = displayText,
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Serif
+                ),
+                color = TextPrimary,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }

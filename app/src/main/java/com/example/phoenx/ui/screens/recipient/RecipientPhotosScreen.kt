@@ -26,11 +26,16 @@ import com.example.phoenx.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipientPhotosScreen(
+    creatorId: String? = null,
     onNavigateBack: () -> Unit,
     onNavigateToCapture: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
     viewModel: RecipientMediaViewModel = hiltViewModel(),
 ) {
+    LaunchedEffect(creatorId) {
+        viewModel.setTargetCreator(creatorId)
+    }
+
     val entries by viewModel.archiveEntries.collectAsState()
 
     Scaffold(

@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
@@ -40,12 +41,7 @@ import com.example.phoenx.data.model.BookChapter
 import com.example.phoenx.data.model.ChapterStatus
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.RecipientSelector
-import com.example.phoenx.ui.theme.AccentPrimary
-import com.example.phoenx.ui.theme.BackgroundPrimary
-import com.example.phoenx.ui.theme.SurfaceCard
-import com.example.phoenx.ui.theme.TextPrimary
-import com.example.phoenx.ui.theme.TextSecondary
-import com.example.phoenx.ui.theme.TextTertiary
+import com.example.phoenx.ui.theme.*
 
 @Composable
 fun BookEditorScreen(
@@ -64,7 +60,21 @@ fun BookEditorScreen(
     val userName by viewModel.userName.collectAsState()
     var showChapterEditor by remember { mutableStateOf(false) }
 
-    // Redirection de sécurité si le destinataire arrive ici par erreur
+    // ÉTAPE 1 : Stabilisation de l'état au sommet (v8.6.3)
+    val selectedRecipientIds = remember(bookDraft?.recipientIds) {
+        mutableStateListOf<String>().apply { 
+            bookDraft?.recipientIds?.let { addAll(it) } 
+        }
+    }
+
+    // ÉTAPE 2 : Sauvegarde auto vers Firestore (v8.6.3)
+    LaunchedEffect(selectedRecipientIds.toList()) {
+        if (bookDraft != null && selectedRecipientIds.toList() != bookDraft!!.recipientIds) {
+            viewModel.updateRecipients(selectedRecipientIds.toList())
+        }
+    }
+
+    // Redirection de sécurité
     LaunchedEffect(isUserCreator) {
         if (isUserCreator == false) {
             navController.navigate("book_viewer_recipient") {
@@ -78,174 +88,181 @@ fun BookEditorScreen(
             .fillMaxSize()
             .background(BackgroundPrimary)
     ) {
-
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 20.dp),
+            contentPadding = PaddingValues(bottom = 100.dp)
         ) {
-
-            Spacer(modifier = Modifier.height(24.dp))
+            item { Spacer(modifier = Modifier.height(24.dp)) }
 
             // ── EN-TÊTE ───────────────────────────────
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Retour",
-                            tint = AccentPrimary
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Retour",
+                                tint = AccentPrimary
+                            )
+                        }
+                        InfoButton(
+                            title = "Le Livre de Ma Vie",
+                            points = listOf(
+                                "L'IA génère un livre narratif à partir de tes souvenirs.",
+                                "Chaque chapitre arrive en brouillon — tu peux le valider, le modifier, ou demander à l'IA de le réécrire.",
+                                "L'IA ne lit jamais tes vrais souvenirs — uniquement les résumés anonymisés.",
+                                "Un chapitre validé est verrouillé mais tu peux le déverrouiller à tout moment.",
+                                "Tes proches liront ce livre comme un vrai livre, page par page."
+                            )
                         )
                     }
-                    InfoButton(
-                        title = "Le Livre de Ma Vie",
-                        points = listOf(
-                            "L'IA génère un livre narratif à partir de tes souvenirs.",
-                            "Chaque chapitre arrive en brouillon — tu peux le valider, le modifier, ou demander à l'IA de le réécrire.",
-                            "L'IA ne lit jamais tes vrais souvenirs — uniquement les résumés anonymisés.",
-                            "Un chapitre validé est verrouillé mais tu peux le déverrouiller à tout moment.",
-                            "Tes proches liront ce livre comme un vrai livre, page par page."
-                        )
-                    )
                 }
             }
 
-            Text(
-                text = "Mon Livre de Vie",
-                style = TextStyle(
-                    fontFamily = FontFamily.Serif,
-                    fontSize = 28.sp,
-                    color = TextPrimary
-                ),
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            item {
+                Text(
+                    text = "Mon Livre de Vie",
+                    style = TextStyle(
+                        fontFamily = FontFamily.Serif,
+                        fontSize = 28.sp,
+                        color = TextPrimary
+                    ),
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
 
             if (bookDraft != null) {
-                Text(
-                    text = "${bookDraft!!.chapters.size} chapitres · " +
-                           "${bookDraft!!.totalEntries} souvenirs intégrés",
-                    style = TextStyle(
-                        fontFamily = FontFamily.SansSerif,
-                        fontSize = 13.sp,
-                        color = TextSecondary
-                    ),
-                    modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
-                )
+                item {
+                    Text(
+                        text = "${bookDraft!!.chapters.size} chapitres · " +
+                               "${bookDraft!!.totalEntries} souvenirs intégrés",
+                        style = TextStyle(
+                            fontFamily = FontFamily.SansSerif,
+                            fontSize = 13.sp,
+                            color = TextSecondary
+                        ),
+                        modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                    )
+                }
 
                 // ── ACTIONS PRIORITAIRES (v8.6.2) ──────────
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Button(
-                        onClick = { navController.navigate("book_viewer") },
-                        modifier = Modifier.weight(1.5f).height(48.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
-                        shape = RoundedCornerShape(12.dp)
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Icon(Icons.Default.PlayArrow, null, tint = BackgroundPrimary, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("LIRE MON LIVRE", color = BackgroundPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    }
+                        Button(
+                            onClick = { navController.navigate("book_viewer") },
+                            modifier = Modifier.weight(1.5f).height(56.dp).phoenXMatiere(),
+                            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.PlayArrow, null, tint = BackgroundPrimary, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("LIRE MON LIVRE", color = BackgroundPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                        }
 
-                    OutlinedButton(
-                        onClick = { viewModel.generateBook() },
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        border = BorderStroke(1.dp, Color(0xFF3E3E45)),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Text("Régénérer", color = TextSecondary, fontSize = 12.sp)
+                        OutlinedButton(
+                            onClick = { viewModel.generateBook() },
+                            modifier = Modifier.weight(1f).height(56.dp),
+                            border = BorderStroke(1.dp, Color(0xFF3E3E45)),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Régénérer", color = TextSecondary, fontSize = 12.sp)
+                        }
                     }
                 }
 
-                // ── SÉLECTEUR DE DESTINATAIRES ────────────
-                Text(
-                    "QUI PEUT LIRE CE LIVRE ?", 
-                    style = MaterialTheme.typography.labelSmall, 
-                    color = AccentPrimary, 
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                val selectedRecipientIds = remember(bookDraft!!.recipientIds) {
-                    mutableStateListOf<String>().apply { addAll(bookDraft!!.recipientIds) }
+                // ── SÉLECTEUR DE DESTINATAIRES (Fix v8.6.3) ────────────
+                item {
+                    RecipientSelector(
+                        recipients = recipients,
+                        selectedIds = selectedRecipientIds,
+                        visibility = if (selectedRecipientIds.isEmpty()) "EVERYONE" else "RESTRICTED",
+                        onVisibilityChange = { newVis -> 
+                            if (newVis == "EVERYONE") selectedRecipientIds.clear()
+                        },
+                        accent = AccentPrimary
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
-                RecipientSelector(
-                    recipients = recipients,
-                    selectedIds = selectedRecipientIds,
-                    visibility = "RESTRICTED",
-                    onVisibilityChange = {},
-                    accent = AccentPrimary
-                )
-                LaunchedEffect(selectedRecipientIds.toList()) {
-                    if (selectedRecipientIds.toList() != bookDraft!!.recipientIds) {
-                        viewModel.updateRecipients(selectedRecipientIds.toList())
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
 
                 // ── LE SCEAU PERSONNALISÉ (v8.6.2) ─────────
-                SealedMessageSection(
-                    userName = userName,
-                    currentMessage = bookDraft!!.sealedMessage,
-                    onMessageSelected = { viewModel.updateSealedMessage(it) }
-                )
+                item {
+                    SealedMessageSection(
+                        userName = userName,
+                        currentMessage = bookDraft!!.sealedMessage,
+                        onMessageSelected = { viewModel.updateSealedMessage(it) }
+                    )
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                // ── LISTE DES CHAPITRES (v8.6.3: Master List) ──────────
+                item {
+                    Text(
+                        text = "SOMMAIRE DU MANUSCRIT", 
+                        style = MaterialTheme.typography.labelSmall, 
+                        color = TextTertiary, 
+                        letterSpacing = 2.sp
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                
+                items(
+                    items = bookDraft!!.chapters.sortedBy { it.orderIndex },
+                    key = { it.id }
+                ) { chapter ->
+                    ChapterCard(
+                        chapter = chapter,
+                        onClick = {
+                            viewModel.selectChapter(chapter)
+                            showChapterEditor = true
+                        }
+                    )
+                    Spacer(Modifier.height(12.dp))
+                }
             }
 
             // ── ÉTAT 1 : AUCUN LIVRE ──────────────────
             if (!isGenerating && bookDraft == null) {
-                EmptyBookState(
-                    onGenerate = { viewModel.generateBook() }
-                )
-            }
-
-            // ── ÉTAT 2 : GÉNÉRATION EN COURS ──────────
-            if (isGenerating) {
-                GeneratingBookState(progress = generationProgress)
-            }
-
-            // ── ÉTAT 3 : ERREUR ───────────────────────
-            error?.let { errorMsg ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            Color(0xFFE57373).copy(alpha = 0.15f),
-                            RoundedCornerShape(12.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = errorMsg,
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            color = Color(0xFFE57373)
-                        )
+                item {
+                    EmptyBookState(
+                        onGenerate = { viewModel.generateBook() }
                     )
                 }
             }
 
-            // ── ÉTAT 4 : LISTE DES CHAPITRES ──────────
-            if (!isGenerating && bookDraft != null) {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(bottom = 100.dp)
-                ) {
-                    items(
-                        bookDraft!!.chapters.sortedBy { it.orderIndex }
-                    ) { chapter ->
-                        ChapterCard(
-                            chapter = chapter,
-                            onClick = {
-                                viewModel.selectChapter(chapter)
-                                showChapterEditor = true
-                            }
+            // ── ÉTAT 2 : GÉNÉRATION EN COURS ──────────
+            if (isGenerating) {
+                item {
+                    GeneratingBookState(progress = generationProgress)
+                }
+            }
+
+            // ── ÉTAT 3 : ERREUR ───────────────────────
+            error?.let { errorMsg ->
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Color(0xFFE57373).copy(alpha = 0.15f),
+                                RoundedCornerShape(12.dp)
+                            )
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = errorMsg,
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                color = Color(0xFFE57373)
+                            )
                         )
                     }
                 }
@@ -293,6 +310,7 @@ fun SealedMessageSection(
     currentMessage: String,
     onMessageSelected: (String) -> Unit
 ) {
+    var expanded by remember { mutableStateOf(false) }
     val options = listOf(
         "$userName a décidé de vous partager le livre de sa vie. Visible le moment venu.",
         "$userName a préparé un précieux cadeau pour vous : le récit de sa vie, protégé avec tendresse jusqu'au moment de vous être transmis.",
@@ -307,77 +325,109 @@ fun SealedMessageSection(
     }
 
     Column {
-        Text(
-            "MESSAGE DE TRANSMISSION", 
-            style = MaterialTheme.typography.labelSmall, 
-            color = AccentPrimary, 
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            "Ce message apparaîtra à vos héritiers avant l'ouverture du livre.",
-            style = MaterialTheme.typography.bodySmall,
-            color = TextTertiary,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
-        options.forEach { phrase ->
-            val isSelected = currentMessage == phrase
-            Card(
-                onClick = { 
-                    isCustomMode = false
-                    onMessageSelected(phrase) 
-                },
-                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (isSelected) AccentPrimary.copy(alpha = 0.15f) else SurfaceCard.copy(alpha = 0.5f)
-                ),
-                border = BorderStroke(1.dp, if (isSelected) AccentPrimary else Color.Transparent)
+        // BANDEAU DÉROULANT (v8.6.3)
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { expanded = !expanded },
+            color = SurfaceCard.copy(alpha = 0.3f),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, if (expanded) AccentPrimary.copy(alpha = 0.4f) else Color.Transparent)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = phrase,
-                    style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
-                    modifier = Modifier.padding(12.dp),
-                    color = if (isSelected) TextPrimary else TextSecondary
+                Icon(Icons.Default.Lock, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "MESSAGE DE TRANSMISSION", 
+                        style = MaterialTheme.typography.labelSmall, 
+                        color = AccentPrimary, 
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Modifier le message d'attente", 
+                        style = MaterialTheme.typography.bodySmall, 
+                        color = TextTertiary
+                    )
+                }
+                Icon(
+                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, 
+                    null, 
+                    tint = TextTertiary
                 )
             }
         }
 
-        // Option Personnalisée
-        Card(
-            onClick = { isCustomMode = true },
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = if (isCustomMode) AccentPrimary.copy(alpha = 0.15f) else SurfaceCard.copy(alpha = 0.5f)
-            ),
-            border = BorderStroke(1.dp, if (isCustomMode) AccentPrimary else Color.Transparent)
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(
-                    "Écrire mon propre message...",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isCustomMode) TextPrimary else TextSecondary
-                )
-                if (isCustomMode) {
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
-                        value = customText,
-                        onValueChange = { 
-                            customText = it
-                            onMessageSelected(it)
+        AnimatedVisibility(visible = expanded) {
+            Column(modifier = Modifier.padding(top = 12.dp)) {
+                options.forEach { phrase ->
+                    val isSelected = !isCustomMode && currentMessage == phrase
+                    Card(
+                        onClick = { 
+                            isCustomMode = false
+                            onMessageSelected(phrase) 
                         },
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = MaterialTheme.typography.bodySmall,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AccentPrimary,
-                            unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f)
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) AccentPrimary.copy(alpha = 0.15f) else SurfaceCard.copy(alpha = 0.5f)
                         ),
-                        placeholder = { Text("Votre message personnel...", fontSize = 12.sp) }
-                    )
+                        border = BorderStroke(1.dp, if (isSelected) AccentPrimary else Color.Transparent)
+                    ) {
+                        Text(
+                            text = phrase,
+                            style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                            modifier = Modifier.padding(12.dp),
+                            color = if (isSelected) TextPrimary else TextSecondary
+                        )
+                    }
+                }
+
+                // Option Personnalisée
+                Card(
+                    onClick = { 
+                        isCustomMode = true 
+                        if (customText.isNotBlank()) onMessageSelected(customText)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isCustomMode) AccentPrimary.copy(alpha = 0.15f) else SurfaceCard.copy(alpha = 0.5f)
+                    ),
+                    border = BorderStroke(1.dp, if (isCustomMode) AccentPrimary else Color.Transparent)
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            "Écrire mon propre message...",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (isCustomMode) TextPrimary else TextSecondary
+                        )
+                        if (isCustomMode) {
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = customText,
+                                onValueChange = { 
+                                    customText = it
+                                    onMessageSelected(it)
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                textStyle = MaterialTheme.typography.bodySmall,
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = AccentPrimary,
+                                    unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f)
+                                ),
+                                placeholder = { Text("Votre message personnel...", fontSize = 12.sp) }
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
+
+// ── FONCTIONS DE DESSIN CANVAS (STAND-BY v8.6.3) ──
 
 @Composable
 private fun EmptyBookState(onGenerate: () -> Unit) {
