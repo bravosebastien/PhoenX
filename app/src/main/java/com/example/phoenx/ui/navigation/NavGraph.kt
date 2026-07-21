@@ -255,7 +255,7 @@ fun PhoenXNavGraph(
                 onNavigateToPendingQuestions = { navController.navigate(Screen.PendingQuestions.route) },
                 onNavigateToMailbox = { navController.navigate(Screen.RecipientMailbox.route) },
                 onNavigateToMap = { navController.navigate(Screen.Map.createRoute()) },
-                onNavigateToLibrary = { navController.navigate(Screen.RecipientLibrary.route) },
+                onNavigateToLibrary = { navController.navigate(Screen.Library.route) },
                 onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
                 onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
                 onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
