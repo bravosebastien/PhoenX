@@ -149,6 +149,23 @@ fun HomeScreen(
                     onProfileClick = { scope.launch { drawerState.open() } }
                 )
 
+                if (currentPerspective == MainViewModel.Perspective.MY_MEMORY) {
+                    val welcomeNudge = remember { com.example.phoenx.ui.components.NudgePhrases.getRandomPhrase() }
+                    Text(
+                        text = welcomeNudge,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontStyle = FontStyle.Italic,
+                            fontFamily = FontFamily.Serif,
+                            fontSize = 13.sp
+                        ),
+                        color = accent.copy(alpha = 0.7f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 8.dp)
+                    )
+                }
+
                 // SÉLECTEUR DE PERSPECTIVE (v7.7 Multi-rôles)
                 if (myRoles.isNotEmpty()) {
                     PerspectiveSwitcher(

@@ -925,8 +925,9 @@ fun TextCaptureContent(
             }
         }
 
+        val nudgePhrase = remember { com.example.phoenx.ui.components.NudgePhrases.getRandomPhrase() }
         Text(
-            text = "Chaque souvenir enrichit ton futur Livre de Vie",
+            text = nudgePhrase,
             style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
             color = TextTertiary,
             modifier = Modifier.padding(top = 8.dp)

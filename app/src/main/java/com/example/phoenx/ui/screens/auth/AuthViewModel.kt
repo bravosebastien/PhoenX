@@ -133,6 +133,7 @@ class AuthViewModel @Inject constructor(
                 val userProfile = hashMapOf(
                     "uid" to user.uid,
                     "email" to email,
+                    "termsAcceptedAt" to Timestamp.now(), // v8.6.0
                     "isCreator" to true, // AFFIRMATION EXPLICITE DU RÔLE (Signature 7.6)
                     "encryptionKey" to encryptionKeyBase64,
                     "dateOfBirth" to Timestamp(Date.from(birthDateInstant)),
@@ -181,6 +182,7 @@ class AuthViewModel @Inject constructor(
                 val userProfile = hashMapOf(
                     "uid" to user.uid,
                     "email" to email,
+                    "termsAcceptedAt" to Timestamp.now(), // v8.6.0
                     "encryptionKey" to encryptionKeyBase64,
                     "createdAt" to Timestamp.now()
                     // signUpGuest reste neutre (isCreator sera défini par la Cloud Function de liaison)

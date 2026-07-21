@@ -3,6 +3,7 @@ package com.example.phoenx.ui.screens.auth
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -385,10 +386,46 @@ fun SignupStepA(
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+
+        var termsAccepted by remember { mutableStateOf(false) }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = termsAccepted,
+                onCheckedChange = { termsAccepted = it },
+                colors = CheckboxDefaults.colors(checkedColor = AccentPrimary)
+            )
+            Column {
+                Text(
+                    text = "J'accepte les Conditions Générales d'Utilisation et la Politique de Confidentialité",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextPrimary
+                )
+                Row {
+                    Text(
+                        "Lire les CGU",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AccentPrimary,
+                        modifier = Modifier.clickable { /* Navigation placeholder */ }
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        "Politique de Confidentialité",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AccentPrimary,
+                        modifier = Modifier.clickable { /* Navigation placeholder */ }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
         Button(
             onClick = onNext,
-            enabled = (email.isNotEmpty() && password.length >= 12),
+            enabled = (email.isNotEmpty() && password.length >= 12 && termsAccepted),
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
         ) {
