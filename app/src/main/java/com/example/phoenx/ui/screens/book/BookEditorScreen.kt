@@ -52,6 +52,8 @@ fun BookEditorScreen(
     val decryptedContents by viewModel.decryptedContents.collectAsState()
     val isGenerating by viewModel.isGenerating.collectAsState()
     val generationProgress by viewModel.generationProgress.collectAsState()
+    val decryptedGlobalIntro by viewModel.decryptedGlobalIntro.collectAsState()
+    val isGeneratingGlobalIntro by viewModel.isGeneratingGlobalIntro.collectAsState()
     val selectedChapter by viewModel.selectedChapter.collectAsState()
     val recipients by viewModel.recipients.collectAsState()
     val isModifyingWithAi by viewModel.isModifyingWithAi.collectAsState()
@@ -64,14 +66,16 @@ fun BookEditorScreen(
     var forceRestricted by remember { mutableStateOf(false) } // v8.6.3: État indépendant pour le toggle visibilité
     var showRegenerateConfirm by remember { mutableStateOf(false) }
     var showOnboarding by remember { mutableStateOf(false) }
+    var showAiExplanation by remember { mutableStateOf(false) }
+    var showIntroEditor by remember { mutableStateOf(false) }
 
     // Onboarding automatique (v8.6.3)
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { context.getSharedPreferences("phoenx_prefs", android.content.Context.MODE_PRIVATE) }
     
     LaunchedEffect(Unit) {
-        val hasSeen = prefs.getBoolean("seen_book_onboarding", false)
-        if (!hasSeen) showOnboarding = true
+        if (!prefs.getBoolean("seen_book_onboarding", false)) showOnboarding = true
+        else if (!prefs.getBoolean("seen_book_ai_explanation", false)) showAiExplanation = true
     }
 
     // ÉTAPE 1 : Stabilisation de l'état au sommet (v8.6.3)
@@ -228,6 +232,40 @@ fun BookEditorScreen(
                         currentMessage = bookDraft!!.sealedMessage,
                         onMessageSelected = { viewModel.updateSealedMessage(it) }
                     )
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
+
+                // ── STYLE DU LIVRE (v8.7.0) ───────────────
+                item {
+                    Text(
+                        text = "STYLE ET ATMOSPHÈRE", 
+                        style = MaterialTheme.typography.labelSmall, 
+                        color = TextTertiary, 
+                        letterSpacing = 2.sp
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    BookThemeSelector(
+                        currentTheme = bookDraft!!.theme,
+                        onThemeChange = { bg, font -> viewModel.updateTheme(bg, font) }
+                    )
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
+
+                // ── INTRODUCTION GÉNÉRALE (v8.7.0) ────────
+                item {
+                    Text(
+                        text = "INTRODUCTION DU MANUSCRIT", 
+                        style = MaterialTheme.typography.labelSmall, 
+                        color = TextTertiary, 
+                        letterSpacing = 2.sp
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    GlobalIntroCard(
+                        content = decryptedGlobalIntro,
+                        isGenerating = isGeneratingGlobalIntro,
+                        onEdit = { showIntroEditor = true },
+                        onGenerate = { viewModel.generateGlobalIntro() }
+                    )
                     Spacer(modifier = Modifier.height(32.dp))
                 }
 
@@ -336,6 +374,29 @@ fun BookEditorScreen(
                 onDismiss = { 
                     showOnboarding = false 
                     prefs.edit().putBoolean("seen_book_onboarding", true).apply()
+                    // Après le 1er popup, on propose le 2e s'il n'a pas été vu
+                    if (!prefs.getBoolean("seen_book_ai_explanation", false)) showAiExplanation = true
+                }
+            )
+        }
+
+        if (showAiExplanation) {
+            BookAiExplanationDialog(
+                onDismiss = {
+                    showAiExplanation = false
+                    prefs.edit().putBoolean("seen_book_ai_explanation", true).apply()
+                }
+            )
+        }
+
+        // ── BOTTOMSHEET ÉDITEUR D'INTRODUCTION ──
+        if (showIntroEditor) {
+            GlobalIntroEditorSheet(
+                currentContent = decryptedGlobalIntro,
+                onDismiss = { showIntroEditor = false },
+                onSave = { 
+                    viewModel.updateGlobalIntro(it)
+                    showIntroEditor = false
                 }
             )
         }
@@ -689,6 +750,206 @@ private fun GeneratingBookState(progress: String) {
                 textAlign = TextAlign.Center
             )
         )
+    }
+}
+
+@Composable
+private fun BookAiExplanationDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = BackgroundSecondary,
+        shape = RoundedCornerShape(24.dp),
+        title = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.Psychology, null, tint = AccentPrimary, modifier = Modifier.size(40.dp))
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    "Retouches vs Réécriture", 
+                    color = TextPrimary, 
+                    fontFamily = FontFamily.Serif,
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp
+                )
+            }
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(verticalAlignment = Alignment.Top) {
+                    Icon(Icons.Default.EditNote, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text("Modifier un chapitre", style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.Bold)
+                        Text("L'action 'Demander à l'IA' à l'intérieur d'un chapitre ne modifie QUE ce chapitre. C'est idéal pour corriger un détail sans toucher au reste.", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    }
+                }
+                Row(verticalAlignment = Alignment.Top) {
+                    Icon(Icons.Default.AutoFixHigh, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Column {
+                        Text("Régénérer le livre", style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.Bold)
+                        Text("Le bouton 'Régénérer' (en haut) relance l'écriture de TOUS les chapitres. Utilisez-le uniquement si vous voulez un manuscrit totalement nouveau.", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("C'est très clair", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+            }
+        }
+    )
+}
+
+@Composable
+private fun BookThemeSelector(
+    currentTheme: com.example.phoenx.data.model.BookTheme,
+    onThemeChange: (String, String) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        // Sélecteur de Fond
+        Text("Papier", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(BookThemeOptions.backgrounds) { bg ->
+                val isSelected = currentTheme.backgroundId == bg.id
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        modifier = Modifier
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(bg.color)
+                            .border(2.dp, if (isSelected) AccentPrimary else Color.Transparent, RoundedCornerShape(8.dp))
+                            .clickable { onThemeChange(bg.id, currentTheme.fontId) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (isSelected) Icon(Icons.Default.Check, null, tint = if (bg.darkText) Color.Black else Color.White)
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = bg.name.substringBefore(" "), // Premier mot pour rester compact
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = if (isSelected) AccentPrimary else TextTertiary
+                    )
+                }
+            }
+        }
+
+        // Sélecteur de Police
+        Text("Plume", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            items(BookThemeOptions.fonts) { font ->
+                val isSelected = currentTheme.fontId == font.id
+                Card(
+                    modifier = Modifier
+                        .width(100.dp)
+                        .height(50.dp)
+                        .clickable { onThemeChange(currentTheme.backgroundId, font.id) },
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isSelected) AccentPrimary.copy(alpha = 0.2f) else SurfaceCard
+                    ),
+                    border = BorderStroke(1.dp, if (isSelected) AccentPrimary else Color.Transparent)
+                ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "Abc",
+                            style = TextStyle(fontFamily = font.fontFamily, fontSize = 16.sp, color = if (isSelected) AccentPrimary else TextPrimary)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GlobalIntroCard(
+    content: String,
+    isGenerating: Boolean,
+    onEdit: () -> Unit,
+    onGenerate: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.5f)),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            if (isGenerating) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.width(12.dp))
+                    Text("L'IA rédige votre introduction...", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                }
+            } else if (content.isEmpty()) {
+                Text(
+                    "Votre manuscrit n'a pas encore de préface.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextTertiary
+                )
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    onClick = onGenerate,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary.copy(alpha = 0.2f), contentColor = AccentPrimary)
+                ) {
+                    Icon(Icons.Default.AutoFixHigh, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Générer avec l'IA")
+                }
+            } else {
+                Text(
+                    text = content,
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 14.sp, fontStyle = FontStyle.Italic, color = TextSecondary)
+                )
+                Spacer(Modifier.height(12.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
+                        Text("Modifier", color = AccentPrimary)
+                    }
+                    IconButton(onClick = onGenerate) {
+                        Icon(Icons.Default.Refresh, null, tint = TextTertiary, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun GlobalIntroEditorSheet(
+    currentContent: String,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit
+) {
+    var text by remember { mutableStateOf(currentContent) }
+    
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = BackgroundPrimary) {
+        Column(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.8f).padding(24.dp)) {
+            Text("Introduction du Livre", style = MaterialTheme.typography.headlineSmall, fontFamily = FontFamily.Serif)
+            Spacer(Modifier.height(16.dp))
+            OutlinedTextField(
+                value = text,
+                onValueChange = { text = it },
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                textStyle = TextStyle(fontFamily = FontFamily.Serif, fontSize = 16.sp, lineHeight = 24.sp)
+            )
+            Spacer(Modifier.height(24.dp))
+            Button(
+                onClick = { onSave(text) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+            ) {
+                Text("Enregistrer l'introduction", color = BackgroundPrimary)
+            }
+        }
     }
 }
 

@@ -69,6 +69,7 @@ import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.recovery.RecoveryScreen
 import com.example.phoenx.ui.screens.worlds.WorldsScreen
 import com.example.phoenx.ui.screens.book.BookEditorScreen
+import com.example.phoenx.ui.screens.book.BookReaderFlowScreen
 import com.example.phoenx.ui.screens.book.BookViewerScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
 import com.example.phoenx.ui.screens.settings.SettingsScreen
@@ -745,7 +746,8 @@ fun PhoenXNavGraph(
             BookEditorScreen(navController = navController)
         }
         composable("book_viewer") {
-            BookViewerScreen(navController = navController, isRecipientMode = false)
+            // v8.7.0 : Nouveau moteur de lecture continue
+            BookReaderFlowScreen(navController = navController)
         }
         composable(
             route = "book_viewer_recipient?creatorId={creatorId}",
@@ -755,7 +757,8 @@ fun PhoenXNavGraph(
             )
         ) { backStackEntry ->
             val creatorId = backStackEntry.arguments?.getString("creatorId")
-            BookViewerScreen(navController = navController, isRecipientMode = true, targetCreatorId = creatorId)
+            // v8.7.0 : Nouveau moteur de lecture continue côté destinataire
+            BookReaderFlowScreen(navController = navController, targetCreatorId = creatorId)
         }
 
         // --- DEPOSITARY GRAPH ---

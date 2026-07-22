@@ -1171,3 +1171,28 @@ export const modifyBookChapter = onCall({
     const newContent = await generateWithGemini(prompt);
     return { newContent: newContent || currentContent };
 });
+
+// 21. Génération de l'introduction globale (v8.7.0)
+export const generateGlobalIntro = onCall({
+    secrets: ["GEMINI_API_KEY"],
+    region: "us-central1",
+    invoker: "public"
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
+
+    const { chapterTitles } = request.data;
+    if (!chapterTitles || !Array.isArray(chapterTitles)) throw new HttpsError("invalid-argument", "Liste de chapitres manquante");
+
+    const prompt = `${AI_RULES}
+    Tu es le biographe de l'utilisateur. Tu as rédigé un livre avec les chapitres suivants : ${chapterTitles.join(", ")}.
+    Rédige une introduction globale chaleureuse et poétique pour ce livre de vie.
+    L'introduction doit donner envie de lire la suite et souligner l'importance de la transmission.
+    Utilise la première personne du singulier ("Je").
+
+    Réponds UNIQUEMENT avec le texte de l'introduction.`;
+
+    const content = await generateWithGemini(prompt);
+    return { content: content || "" };
+});

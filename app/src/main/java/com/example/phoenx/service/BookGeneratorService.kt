@@ -200,4 +200,16 @@ class BookGeneratorService @Inject constructor(
         val response = result.data as Map<*, *>
         return response["newContent"] as String
     }
+
+    /**
+     * Génère une introduction globale pour le livre entier (v8.7.0).
+     */
+    suspend fun generateGlobalIntro(chapterTitles: List<String>): String {
+        val data = hashMapOf("chapterTitles" to chapterTitles)
+        val result = functions.getHttpsCallable("generateGlobalIntro")
+            .call(data)
+            .await()
+        val response = result.data as Map<*, *>
+        return response["content"] as String
+    }
 }

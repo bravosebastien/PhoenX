@@ -37,6 +37,9 @@ class BookViewerViewModel @Inject constructor(
     private val _decryptedChapters = MutableStateFlow<Map<String, String>>(emptyMap())
     val decryptedChapters: StateFlow<Map<String, String>> = _decryptedChapters.asStateFlow()
 
+    private val _decryptedGlobalIntro = MutableStateFlow("")
+    val decryptedGlobalIntro: StateFlow<String> = _decryptedGlobalIntro.asStateFlow()
+
     private val _mediaMap = MutableStateFlow<Map<String, OfflineEntry>>(emptyMap())
     val mediaMap: StateFlow<Map<String, OfflineEntry>> = _mediaMap.asStateFlow()
 
@@ -52,12 +55,22 @@ class BookViewerViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    // v8.7.0 : Progrès de lecture et Confort
+    private val _readingProgress = MutableStateFlow<ReadingPosition?>(null)
+    val readingProgress: StateFlow<ReadingPosition?> = _readingProgress.asStateFlow()
+
+    private val _fontSizeScale = MutableStateFlow(1.0f)
+    val fontSizeScale: StateFlow<Float> = _fontSizeScale.asStateFlow()
+
     fun loadBook(targetCreatorId: String? = null) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 val userId = targetCreatorId ?: auth.currentUser?.uid
                 if (userId == null) return@launch
+
+                // Charger le progrès de lecture en parallèle (v8.7.0)
+                loadReadingProgress(userId)
 
                 // 1. Vérification de sécurité via Cloud Function (si c'est un proche)
                 if (targetCreatorId != null) {
@@ -117,7 +130,12 @@ class BookViewerViewModel @Inject constructor(
             android.util.Log.e("PHOENX_BOOK", "Impossible de récupérer la clé du livre", e)
         }
 
-        // 2. Déchiffrement des chapitres
+        // 2. Déchiffrement de l'intro globale (v8.7.0)
+        if (draft.globalIntroduction.isNotEmpty()) {
+            _decryptedGlobalIntro.value = encryptionManager.decrypt(draft.globalIntroduction, bookKey)
+        }
+
+        // 3. Déchiffrement des chapitres
         draft.chapters.forEach { chapter ->
             val decrypted = encryptionManager.decrypt(chapter.content, bookKey)
             chapterContents[chapter.id] = decrypted
@@ -130,7 +148,7 @@ class BookViewerViewModel @Inject constructor(
         }
         _decryptedChapters.value = chapterContents
 
-        // 3. Résolution des médias
+        // 4. Résolution des médias
         val resolvedMedia = mutableMapOf<String, OfflineEntry>()
         mediaIds.forEach { mediaId ->
             try {
@@ -162,4 +180,55 @@ class BookViewerViewModel @Inject constructor(
         }
         _mediaMap.value = resolvedMedia
     }
+
+    // --- v8.7.0 : GESTION DU MARQUE-PAGE & CONFORT ---
+
+    fun loadReadingProgress(creatorId: String) {
+        val readerId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                val doc = db.collection("users").document(readerId)
+                    .collection("reading_progress").document("${creatorId}_book").get().kotlinAwait()
+                
+                if (doc.exists()) {
+                    _readingProgress.value = ReadingPosition(
+                        itemIndex = doc.getLong("itemIndex")?.toInt() ?: 0,
+                        offset = doc.getLong("offset")?.toInt() ?: 0,
+                        savedAtScale = doc.getDouble("savedAtScale")?.toFloat() ?: 1.0f
+                    )
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_READING", "Erreur chargement progrès")
+            }
+        }
+    }
+
+    fun saveReadingProgress(creatorId: String, index: Int, offset: Int) {
+        val readerId = auth.currentUser?.uid ?: return
+        val currentScale = _fontSizeScale.value
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(readerId)
+                    .collection("reading_progress").document("${creatorId}_book")
+                    .set(mapOf(
+                        "itemIndex" to index,
+                        "offset" to offset,
+                        "savedAtScale" to currentScale,
+                        "timestamp" to System.currentTimeMillis()
+                    )).kotlinAwait()
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_READING", "Erreur sauvegarde progrès")
+            }
+        }
+    }
+
+    fun updateFontSize(scale: Float) {
+        _fontSizeScale.value = scale.coerceIn(0.8f, 1.5f)
+    }
 }
+
+data class ReadingPosition(
+    val itemIndex: Int,
+    val offset: Int,
+    val savedAtScale: Float
+)

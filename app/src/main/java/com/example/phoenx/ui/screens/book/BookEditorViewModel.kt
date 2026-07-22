@@ -3,10 +3,7 @@ package com.example.phoenx.ui.screens.book
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
-import com.example.phoenx.data.model.BookChapter
-import com.example.phoenx.data.model.BookDraft
-import com.example.phoenx.data.model.BookStatus
-import com.example.phoenx.data.model.ChapterStatus
+import com.example.phoenx.data.model.*
 import com.example.phoenx.service.BookGeneratorService
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,11 +26,17 @@ class BookEditorViewModel @Inject constructor(
     private val _decryptedContents = MutableStateFlow<Map<String, String>>(emptyMap())
     val decryptedContents: StateFlow<Map<String, String>> = _decryptedContents
 
+    private val _decryptedGlobalIntro = MutableStateFlow("")
+    val decryptedGlobalIntro: StateFlow<String> = _decryptedGlobalIntro
+
     private val _selectedChapter = MutableStateFlow<BookChapter?>(null)
     val selectedChapter: StateFlow<BookChapter?> = _selectedChapter
 
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating
+
+    private val _isGeneratingGlobalIntro = MutableStateFlow(false)
+    val isGeneratingGlobalIntro: StateFlow<Boolean> = _isGeneratingGlobalIntro
 
     private val _generationProgress = MutableStateFlow("")
     val generationProgress: StateFlow<String> = _generationProgress
@@ -86,6 +89,11 @@ class BookEditorViewModel @Inject constructor(
             _bookDraft.value = draft
             if (draft != null) {
                 decryptAllChapters(userId, draft)
+                // v8.7.0 : Déchiffrement de l'intro globale
+                if (draft.globalIntroduction.isNotEmpty()) {
+                    val bookKey = bookService.getBookKey(userId)
+                    _decryptedGlobalIntro.value = bookService.decryptChapter(draft.globalIntroduction, bookKey)
+                }
             }
         }
     }
@@ -245,6 +253,67 @@ class BookEditorViewModel @Inject constructor(
                 triggerSuccess()
             } catch (e: Exception) {
                 _error.value = "Erreur lors de la sauvegarde"
+            } finally {
+                _isSaving.value = false
+            }
+        }
+    }
+
+    // --- v8.7.0 : ÉVOLUTIONS LECTURE CONTINUE ---
+
+    fun generateGlobalIntro() {
+        val current = _bookDraft.value ?: return
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            _isGeneratingGlobalIntro.value = true
+            try {
+                val chapterTitles = current.chapters.sortedBy { it.orderIndex }.map { it.title }
+                val content = bookService.generateGlobalIntro(chapterTitles)
+                updateGlobalIntro(content)
+            } catch (e: Exception) {
+                _error.value = "Erreur génération intro : ${e.message}"
+            } finally {
+                _isGeneratingGlobalIntro.value = false
+            }
+        }
+    }
+
+    fun updateGlobalIntro(newContent: String) {
+        val current = _bookDraft.value ?: return
+        val userId = auth.currentUser?.uid ?: return
+        
+        _decryptedGlobalIntro.value = newContent
+
+        viewModelScope.launch {
+            _isSaving.value = true
+            try {
+                val bookKey = bookService.getBookKey(userId)
+                val encrypted = bookService.encryptChapter(newContent, bookKey)
+                val updatedDraft = current.copy(globalIntroduction = encrypted)
+                _bookDraft.value = updatedDraft
+                bookService.saveBookDraft(userId, updatedDraft)
+                triggerSuccess()
+            } catch (e: Exception) {
+                _error.value = "Erreur sauvegarde intro"
+            } finally {
+                _isSaving.value = false
+            }
+        }
+    }
+
+    fun updateTheme(backgroundId: String, fontId: String) {
+        val current = _bookDraft.value ?: return
+        val userId = auth.currentUser?.uid ?: return
+        val updatedTheme = BookTheme(backgroundId, fontId)
+        val updatedDraft = current.copy(theme = updatedTheme)
+        _bookDraft.value = updatedDraft
+        viewModelScope.launch {
+            _isSaving.value = true
+            try {
+                bookService.saveBookDraft(userId, updatedDraft)
+                triggerSuccess()
+            } catch (e: Exception) {
+                _error.value = "Erreur sauvegarde thème"
             } finally {
                 _isSaving.value = false
             }

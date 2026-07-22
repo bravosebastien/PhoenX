@@ -14,6 +14,11 @@ data class BookChapter(
     val orderIndex: Int = 0
 )
 
+data class BookTheme(
+    val backgroundId: String = "classic_ivory",
+    val fontId: String = "eb_garamond"
+)
+
 data class BookDraft(
     val id: String = "",
     val userId: String = "",
@@ -23,7 +28,9 @@ data class BookDraft(
     val chapters: List<BookChapter> = emptyList(),
     val totalEntries: Int = 0,
     val recipientIds: List<String> = emptyList(), // v8.5.4 Parity of access
-    val sealedMessage: String = "" // v8.6.2 Message personnalisé pour l'héritier
+    val sealedMessage: String = "", // v8.6.2 Message personnalisé pour l'héritier
+    val globalIntroduction: String = "", // v8.7.0 Intro globale du livre (Chiffrée)
+    val theme: BookTheme = BookTheme() // v8.7.0 Thème visuel choisi par le Créateur
 )
 
 data class BookMetadata(
