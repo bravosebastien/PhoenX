@@ -1044,10 +1044,23 @@ fun TextCaptureContent(
                 FilterChip(
                     selected = selectedCategory == cat,
                     onClick = { onCategoryChange(cat) },
-                    label = { Text(cat) },
+                    label = { 
+                        Text(
+                            text = cat,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = if (selectedCategory == cat) FontWeight.Bold else FontWeight.Medium
+                            )
+                        ) 
+                    },
                     colors = FilterChipDefaults.filterChipColors(
+                        containerColor = theme.contentColor.copy(alpha = 0.05f),
+                        labelColor = theme.contentColor.copy(alpha = 0.6f),
                         selectedContainerColor = theme.accentColor,
                         selectedLabelColor = theme.backgroundColor
+                    ),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = if (selectedCategory == cat) theme.accentColor else theme.contentColor.copy(alpha = 0.1f)
                     )
                 )
             }

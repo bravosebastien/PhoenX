@@ -1,16 +1,19 @@
 package com.example.phoenx.ui.screens.youngselfletters
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material3.*
@@ -47,6 +50,8 @@ fun YoungSelfLetterScreen(
     val accent = theme.accentColor
 
     var showSuggestions by remember { mutableStateOf(false) }
+    var showCustomAgeDialog by remember { mutableStateOf(false) }
+    var customAgeInput by remember { mutableStateOf("") }
     val sheetState = rememberModalBottomSheetState()
 
     Scaffold(
@@ -133,28 +138,121 @@ fun YoungSelfLetterScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // SÉLECTEUR D'ÂGE
-            Text(
-                text = "À mes ${uiState.targetAge} ans",
-                style = MaterialTheme.typography.headlineSmall,
-                color = accent
-            )
-            Text(
-                text = "C'était en ${uiState.calculatedYear}",
-                style = MaterialTheme.typography.bodySmall,
-                color = theme.contentColor.copy(alpha = 0.6f)
-            )
-            
-            Slider(
-                value = uiState.targetAge.toFloat(),
-                onValueChange = { viewModel.updateTargetAge(it.toInt()) },
-                valueRange = 10f..80f,
-                colors = SliderDefaults.colors(
-                    thumbColor = accent,
-                    activeTrackColor = accent,
-                    inactiveTrackColor = theme.contentColor.copy(alpha = 0.1f)
+            // SÉLECTEUR D'ÂGE (v8.9.1 : Remplacement Slider par Puces)
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Bottom
+                ) {
+                    Column {
+                        Text(
+                            text = "À mes ${uiState.targetAge} ans",
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontFamily = theme.fontFamily,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = theme.contentColor
+                        )
+                        Text(
+                            text = "C'était en ${uiState.calculatedYear}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = theme.contentColor.copy(alpha = 0.6f)
+                        )
+                    }
+                    
+                    Icon(
+                        Icons.Default.HistoryEdu, 
+                        null, 
+                        tint = accent.copy(alpha = 0.2f),
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                val ageSteps = listOf(5, 10, 15, 18, 20, 25, 30, 35, 40, 50, 60, 70, 80)
+                androidx.compose.foundation.lazy.LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(end = 24.dp)
+                ) {
+                    items(ageSteps) { age ->
+                        val isSelected = uiState.targetAge == age
+                        Surface(
+                            onClick = { viewModel.updateTargetAge(age) },
+                            shape = CircleShape,
+                            color = if (isSelected) accent else theme.contentColor.copy(alpha = 0.05f),
+                            border = BorderStroke(
+                                1.dp, 
+                                if (isSelected) accent else theme.contentColor.copy(alpha = 0.1f)
+                            ),
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = age.toString(),
+                                    style = MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    ),
+                                    color = if (isSelected) theme.backgroundColor else theme.contentColor
+                                )
+                            }
+                        }
+                    }
+
+                    // Puce "+" pour âge personnalisé (v8.9.1)
+                    item {
+                        val isCustomSelected = !ageSteps.contains(uiState.targetAge)
+                        Surface(
+                            onClick = { 
+                                customAgeInput = uiState.targetAge.toString()
+                                showCustomAgeDialog = true 
+                            },
+                            shape = CircleShape,
+                            color = if (isCustomSelected) accent else theme.contentColor.copy(alpha = 0.05f),
+                            border = BorderStroke(1.dp, if (isCustomSelected) accent else theme.contentColor.copy(alpha = 0.1f)),
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Default.Add, 
+                                    null, 
+                                    modifier = Modifier.size(16.dp),
+                                    tint = if (isCustomSelected) theme.backgroundColor else theme.contentColor
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (showCustomAgeDialog) {
+                AlertDialog(
+                    onDismissRequest = { showCustomAgeDialog = false },
+                    containerColor = theme.backgroundColor,
+                    title = { Text("Quel âge avais-tu ?", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
+                    text = {
+                        OutlinedTextField(
+                            value = customAgeInput,
+                            onValueChange = { if (it.length <= 2 && it.all { c -> c.isDigit() }) customAgeInput = it },
+                            label = { Text("Âge exact") },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f))
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            val age = customAgeInput.toIntOrNull() ?: uiState.targetAge
+                            viewModel.updateTargetAge(age)
+                            showCustomAgeDialog = false
+                        }) { Text("Valider", color = accent, fontWeight = FontWeight.Bold) }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showCustomAgeDialog = false }) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f)) }
+                    }
                 )
-            )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 

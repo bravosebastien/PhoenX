@@ -68,6 +68,7 @@ fun BookEditorScreen(
     var showOnboarding by remember { mutableStateOf(false) }
     var showAiExplanation by remember { mutableStateOf(false) }
     var showIntroEditor by remember { mutableStateOf(false) }
+    var isStyleExpanded by remember { mutableStateOf(false) }
     
     // v8.9.0 : Thème Global
     val theme = LocalAppTheme.current
@@ -240,21 +241,46 @@ fun BookEditorScreen(
                     Spacer(modifier = Modifier.height(24.dp))
                 }
 
-                // ── STYLE DU LIVRE (v8.7.0) ───────────────
+                // ── STYLE DU LIVRE (v8.9.1 : Masqué par défaut) ───────────────
                 item {
-                    Text(
-                        text = "STYLE ET ATMOSPHÈRE", 
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
-                        color = theme.contentColor.copy(alpha = 0.4f), 
-                        letterSpacing = 2.sp
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    com.example.phoenx.ui.components.GlobalThemeSelector(
-                        currentBackgroundId = bookDraft!!.theme.backgroundId,
-                        currentFontId = bookDraft!!.theme.fontId,
-                        onThemeChange = { bg, font -> viewModel.updateTheme(bg, font) }
-                    )
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { isStyleExpanded = !isStyleExpanded },
+                        color = Color.Transparent
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "STYLE ET ATMOSPHÈRE", 
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                                color = theme.contentColor.copy(alpha = 0.4f), 
+                                letterSpacing = 2.sp
+                            )
+                            Icon(
+                                imageVector = if (isStyleExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                contentDescription = null,
+                                tint = theme.contentColor.copy(alpha = 0.3f),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                    
+                    AnimatedVisibility(visible = isStyleExpanded) {
+                        Column {
+                            Spacer(Modifier.height(8.dp))
+                            com.example.phoenx.ui.components.GlobalThemeSelector(
+                                currentBackgroundId = bookDraft!!.theme.backgroundId,
+                                currentFontId = bookDraft!!.theme.fontId,
+                                onThemeChange = { bg, font -> viewModel.updateTheme(bg, font) }
+                            )
+                            Spacer(Modifier.height(24.dp))
+                        }
+                    }
+                    if (!isStyleExpanded) Spacer(modifier = Modifier.height(8.dp))
                 }
 
                 // ── INTRODUCTION GÉNÉRALE (v8.7.0) ────────
@@ -827,54 +853,65 @@ private fun GlobalIntroCard(
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
-    Card(
+    
+    // Rendu style "Page de Préface"
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = theme.contentColor.copy(alpha = 0.05f)
-        ),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
+        color = theme.contentColor.copy(alpha = 0.03f),
+        shape = RoundedCornerShape(2.dp), // Coins presque carrés pour le papier
+        border = BorderStroke(0.5.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             if (isGenerating) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = accent)
-                    Spacer(Modifier.width(12.dp))
-                    Text("L'IA rédige votre introduction...", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, color = theme.contentColor)
-                }
+                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = accent)
+                Spacer(Modifier.height(12.dp))
+                Text("Inspiration en cours...", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, color = theme.contentColor)
             } else if (content.isEmpty()) {
                 Text(
-                    "Votre manuscrit n'a pas encore de préface.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = theme.contentColor.copy(alpha = 0.4f)
+                    "« Ton livre attend ses premiers mots d'ouverture. »",
+                    style = TextStyle(fontFamily = theme.fontFamily, fontSize = 16.sp, fontStyle = FontStyle.Italic),
+                    color = theme.contentColor.copy(alpha = 0.4f),
+                    textAlign = TextAlign.Center
                 )
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(20.dp))
                 Button(
                     onClick = onGenerate,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = accent.copy(alpha = 0.15f), 
-                        contentColor = accent
-                    )
+                    colors = ButtonDefaults.buttonColors(containerColor = accent),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(Icons.Default.AutoFixHigh, null, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Générer avec l'IA")
+                    Text("RÉDIGER LA PRÉFACE", color = theme.backgroundColor, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             } else {
+                // Ornement haut
+                Box(modifier = Modifier.width(40.dp).height(1.dp).background(accent.copy(alpha = 0.3f)))
+                Spacer(Modifier.height(20.dp))
+                
                 Text(
                     text = content,
-                    maxLines = 3,
-                    overflow = TextOverflow.Ellipsis,
-                    style = TextStyle(fontFamily = theme.fontFamily, fontSize = 14.sp, fontStyle = FontStyle.Italic, color = theme.contentColor.copy(alpha = 0.8f))
+                    style = TextStyle(
+                        fontFamily = theme.fontFamily, 
+                        fontSize = 15.sp, 
+                        fontStyle = FontStyle.Italic, 
+                        lineHeight = 24.sp,
+                        textAlign = TextAlign.Center
+                    ),
+                    color = theme.contentColor.copy(alpha = 0.9f)
                 )
-                Spacer(Modifier.height(12.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
-                        Text("Modifier", color = accent)
+                
+                Spacer(Modifier.height(20.dp))
+                // Ornement bas
+                Box(modifier = Modifier.width(40.dp).height(1.dp).background(accent.copy(alpha = 0.3f)))
+                
+                Spacer(Modifier.height(16.dp))
+                Row(horizontalArrangement = Arrangement.Center) {
+                    TextButton(onClick = onEdit) {
+                        Text("Modifier le texte", color = accent, fontSize = 12.sp)
                     }
                     IconButton(onClick = onGenerate) {
-                        Icon(Icons.Default.Refresh, null, tint = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.AutoFixHigh, null, tint = accent.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                     }
                 }
             }
@@ -938,77 +975,62 @@ private fun ChapterCard(
         ChapterStatus.IN_REVIEW -> accent
         ChapterStatus.VALIDATED -> Color(0xFF4CAF50)
     }
-    val statusLabel = when (chapter.status) {
-        ChapterStatus.DRAFT     -> "Brouillon"
-        ChapterStatus.IN_REVIEW -> "En attente de validation"
-        ChapterStatus.VALIDATED -> "Validé ✓"
-    }
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(theme.contentColor.copy(alpha = 0.05f))
             .clickable { onClick() }
+            .padding(vertical = 12.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .width(4.dp)
-                .height(90.dp)
-                .background(statusColor)
-        )
-
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .weight(1f)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = "Chapitre ${chapter.orderIndex + 1}",
-                style = TextStyle(
-                    fontFamily = FontFamily.SansSerif,
-                    fontSize = 11.sp,
-                    color = theme.contentColor.copy(alpha = 0.4f),
-                    letterSpacing = 0.08.em
+            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                // Indicateur de statut (petit cercle)
+                Box(
+                    modifier = Modifier
+                        .size(8.dp)
+                        .background(statusColor, CircleShape)
                 )
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = chapter.title,
-                style = TextStyle(
-                    fontFamily = theme.fontFamily,
-                    fontSize = 16.sp,
-                    color = theme.contentColor,
-                    fontWeight = FontWeight.Bold
-                )
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Box(
-                modifier = Modifier
-                    .background(
-                        statusColor.copy(alpha = 0.15f),
-                        RoundedCornerShape(20.dp)
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                
+                Column {
+                    Text(
+                        text = "Chapitre ${chapter.orderIndex + 1}",
+                        style = TextStyle(
+                            fontFamily = FontFamily.SansSerif,
+                            fontSize = 10.sp,
+                            color = theme.contentColor.copy(alpha = 0.4f),
+                            letterSpacing = 0.05.em
+                        )
                     )
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
-            ) {
-                Text(
-                    text = statusLabel,
-                    style = TextStyle(
-                        fontSize = 11.sp,
-                        color = statusColor
+                    Text(
+                        text = chapter.title,
+                        style = TextStyle(
+                            fontFamily = theme.fontFamily,
+                            fontSize = 16.sp,
+                            color = theme.contentColor,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
-                )
+                }
             }
-        }
 
-        Icon(
-            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = theme.contentColor.copy(alpha = 0.3f),
-            modifier = Modifier
-                .align(Alignment.CenterVertically)
-                .padding(end = 16.dp)
-        )
+            Icon(
+                imageVector = if (chapter.status == ChapterStatus.VALIDATED) Icons.Default.CheckCircle else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = if (chapter.status == ChapterStatus.VALIDATED) statusColor else theme.contentColor.copy(alpha = 0.2f),
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+        Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(theme.contentColor.copy(alpha = 0.1f)))
     }
 }
 
