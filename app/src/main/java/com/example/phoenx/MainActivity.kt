@@ -66,12 +66,14 @@ class MainActivity : FragmentActivity() {
         setContent {
             val themeViewModel: ThemeViewModel = hiltViewModel()
             val accentColor by themeViewModel.accentColor.collectAsState()
-            val backgroundColor by themeViewModel.backgroundColor.collectAsState()
+            val backgroundId by themeViewModel.globalBackgroundId.collectAsState()
+            val fontId by themeViewModel.globalFontId.collectAsState()
             val backgroundStyle by themeViewModel.backgroundStyle.collectAsState()
             
             PhoenXTheme(
                 accentColor = accentColor,
-                backgroundColor = backgroundColor,
+                backgroundId = backgroundId,
+                fontId = fontId,
                 backgroundStyle = backgroundStyle
             ) {
                 val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()

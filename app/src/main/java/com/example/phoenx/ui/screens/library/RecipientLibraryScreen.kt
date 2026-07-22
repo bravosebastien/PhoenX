@@ -49,7 +49,9 @@ fun RecipientLibraryScreen(
     val discothequeEntries by mediaViewModel.discothequeEntries.collectAsState()
     val archiveEntries by mediaViewModel.archiveEntries.collectAsState()
     
-    val accent = LocalAccentColor.current
+    // v8.9.0 : Thème Global
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     
     LaunchedEffect(targetCreatorId) {
         mediaViewModel.setTargetCreator(targetCreatorId)
@@ -68,7 +70,7 @@ fun RecipientLibraryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalBackgroundBrush.current)
+            .background(theme.backgroundColor)
             .verticalScroll(rememberScrollState())
     ) {
         // HEADER
@@ -84,8 +86,13 @@ fun RecipientLibraryScreen(
             }
             Text(
                 text = "Ma Bibliothèque",
-                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 20.sp),
-                color = TextPrimary
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontFamily = theme.fontFamily, 
+                    fontStyle = FontStyle.Italic, 
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = theme.contentColor
             )
             Row {
                 Icon(Icons.Outlined.Info, null, tint = accent, modifier = Modifier.size(20.dp))
@@ -97,7 +104,7 @@ fun RecipientLibraryScreen(
         Text(
             text = "15 compartiments · $totalSouvenirs souvenirs déposés",
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-            color = TextTertiary,
+            color = theme.contentColor.copy(alpha = 0.5f),
             modifier = Modifier.padding(start = 16.dp, bottom = 14.dp)
         )
 
@@ -157,8 +164,8 @@ fun RecipientLibraryScreen(
         // TOUS LES COMPARTIMENTS
         Text(
             "TOUS LES COMPARTIMENTS",
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp),
-            color = TextTertiary,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
+            color = theme.contentColor.copy(alpha = 0.4f),
             modifier = Modifier.padding(start = 14.dp, bottom = 6.dp)
         )
 
@@ -252,16 +259,19 @@ fun EssentialCard(
     onClick: () -> Unit,
     onEdit: () -> Unit
 ) {
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 4.dp)
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF211E1A)),
+        colors = CardDefaults.cardColors(
+            containerColor = theme.contentColor.copy(alpha = 0.05f)
+        ),
         shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.33f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
     ) {
         Box(modifier = Modifier.fillMaxWidth().height(100.dp)) {
             if (cover != null) {
@@ -271,7 +281,7 @@ fun EssentialCard(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)))
+                Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor.copy(alpha = 0.4f)))
             }
             
             // Halo coin supérieur droit
@@ -283,19 +293,6 @@ fun EssentialCard(
                         Brush.radialGradient(
                             colors = listOf(accent.copy(alpha = 0.15f), Color.Transparent),
                             radius = 120f
-                        )
-                    )
-            )
-            
-            // Halo dégradé en bas
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(Color.Transparent, accent.copy(alpha = 0.08f)),
-                            start = Offset(0f, 0f),
-                            end = Offset(0f, Float.POSITIVE_INFINITY)
                         )
                     )
             )
@@ -315,8 +312,17 @@ fun EssentialCard(
                 Spacer(modifier = Modifier.width(14.dp))
                 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 16.sp), color = TextPrimary)
-                    Text(description, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, lineHeight = 14.sp), color = TextSecondary)
+                    Text(
+                        title, 
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontFamily = theme.fontFamily, 
+                            fontStyle = FontStyle.Italic, 
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        ), 
+                        color = theme.contentColor
+                    )
+                    Text(description, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, lineHeight = 14.sp), color = theme.contentColor.copy(alpha = 0.7f))
                     Spacer(modifier = Modifier.height(4.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(modifier = Modifier.size(4.dp).background(accent, CircleShape))
@@ -350,28 +356,32 @@ fun CompartmentCard(
     onClick: () -> Unit,
     onEdit: () -> Unit
 ) {
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var showInfo by remember { mutableStateOf(false) }
 
     if (showInfo && infoText != null) {
         AlertDialog(
             onDismissRequest = { showInfo = false },
-            title = { Text(name, color = TextPrimary) },
-            text = { Text(infoText, color = TextSecondary) },
+            title = { Text(name, color = theme.contentColor) },
+            text = { Text(infoText, color = theme.contentColor.copy(alpha = 0.8f)) },
             confirmButton = {
                 TextButton(onClick = { showInfo = false }) {
                     Text("Compris", color = accent)
                 }
             },
-            containerColor = BackgroundSecondary
+            containerColor = theme.backgroundColor,
+            tonalElevation = 6.dp
         )
     }
     
     Card(
         modifier = modifier.height(105.dp).clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+        colors = CardDefaults.cardColors(
+            containerColor = theme.contentColor.copy(alpha = 0.05f)
+        ),
         shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.25f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             if (cover != null) {
@@ -381,7 +391,7 @@ fun CompartmentCard(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f)))
+                Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor.copy(alpha = 0.4f)))
             }
             
             // Liseré top
@@ -406,14 +416,14 @@ fun CompartmentCard(
                         onClick = { showInfo = true },
                         modifier = Modifier.size(16.dp)
                     ) {
-                        Icon(Icons.Outlined.Info, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(12.dp))
+                        Icon(Icons.Outlined.Info, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(12.dp))
                     }
                 }
                 IconButton(
                     onClick = onEdit,
                     modifier = Modifier.size(16.dp)
                 ) {
-                    Icon(Icons.Outlined.Edit, null, tint = accent.copy(alpha = 0.4f), modifier = Modifier.size(10.dp))
+                    Icon(Icons.Outlined.Edit, null, tint = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.size(10.dp))
                 }
             }
 
@@ -426,8 +436,8 @@ fun CompartmentCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     name, 
-                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 10.sp, fontWeight = FontWeight.Bold), 
-                    color = TextPrimary, 
+                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontSize = 10.sp, fontWeight = FontWeight.Bold), 
+                    color = theme.contentColor,
                     textAlign = TextAlign.Center
                 )
                 if (subtitle != null) {

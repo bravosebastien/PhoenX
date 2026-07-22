@@ -41,18 +41,22 @@ fun YoungSelfLetterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val existingLetters by viewModel.existingLetters.collectAsState()
+    
+    // v8.9.0 : Thème Global
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+
     var showSuggestions by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
     Scaffold(
-        containerColor = Color.Transparent,
-        modifier = Modifier.background(LocalBackgroundBrush.current),
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Lettre à mon Jeune Moi", style = MaterialTheme.typography.labelLarge) },
+                title = { Text("Lettre à mon Jeune Moi", style = MaterialTheme.typography.labelLarge, fontFamily = theme.fontFamily, color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -71,7 +75,7 @@ fun YoungSelfLetterScreen(
                 Text(
                     "VOS LETTRES SCELLÉES", 
                     style = MaterialTheme.typography.labelSmall, 
-                    color = AccentPrimary, 
+                    color = accent, 
                     letterSpacing = 2.sp
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -83,20 +87,20 @@ fun YoungSelfLetterScreen(
                         Card(
                             onClick = { navController.navigate(Screen.MemoryDetail.createRoute(letter.id)) },
                             modifier = Modifier.width(160.dp).height(100.dp),
-                            colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
+                            colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
-                                Icon(Icons.Default.HistoryEdu, null, tint = AccentPrimary, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.HistoryEdu, null, tint = accent, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text("À mes ${letter.targetAge} ans", style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+                                Text("À mes ${letter.targetAge} ans", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
                                 val year = uiState.birthYear + (letter.targetAge ?: 0)
-                                Text("Écrit pour $year", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                                Text("Écrit pour $year", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                             }
                         }
                     }
                 }
-                HorizontalDivider(color = TextTertiary.copy(alpha = 0.1f), modifier = Modifier.padding(bottom = 32.dp))
+                HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f), modifier = Modifier.padding(bottom = 32.dp))
             }
 
             Row(
@@ -107,10 +111,10 @@ fun YoungSelfLetterScreen(
                 Text(
                     text = "Qu'aurais-tu voulu entendre, à l'âge où tout semblait encore incertain ?",
                     style = TextStyle(
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = theme.fontFamily,
                         fontSize = 24.sp,
                         fontStyle = FontStyle.Italic,
-                        color = TextPrimary,
+                        color = theme.contentColor,
                         lineHeight = 32.sp
                     ),
                     modifier = Modifier.weight(1f)
@@ -133,12 +137,12 @@ fun YoungSelfLetterScreen(
             Text(
                 text = "À mes ${uiState.targetAge} ans",
                 style = MaterialTheme.typography.headlineSmall,
-                color = AccentPrimary
+                color = accent
             )
             Text(
                 text = "C'était en ${uiState.calculatedYear}",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
+                color = theme.contentColor.copy(alpha = 0.6f)
             )
             
             Slider(
@@ -146,9 +150,9 @@ fun YoungSelfLetterScreen(
                 onValueChange = { viewModel.updateTargetAge(it.toInt()) },
                 valueRange = 10f..80f,
                 colors = SliderDefaults.colors(
-                    thumbColor = AccentPrimary,
-                    activeTrackColor = AccentPrimary,
-                    inactiveTrackColor = SurfaceCard
+                    thumbColor = accent,
+                    activeTrackColor = accent,
+                    inactiveTrackColor = theme.contentColor.copy(alpha = 0.1f)
                 )
             )
 
@@ -160,17 +164,17 @@ fun YoungSelfLetterScreen(
                     .fillMaxWidth()
                     .heightIn(min = 300.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF242429))
+                    .background(theme.contentColor.copy(alpha = 0.05f))
                     .padding(20.dp)
             ) {
                 if (uiState.letterContent.isEmpty()) {
                     Text(
                         text = "Cher moi de ${uiState.targetAge} ans...",
                         style = TextStyle(
-                            fontFamily = FontFamily.Serif,
+                            fontFamily = theme.fontFamily,
                             fontSize = 18.sp,
                             fontStyle = FontStyle.Italic,
-                            color = Color(0xFF5C5855)
+                            color = theme.contentColor.copy(alpha = 0.3f)
                         )
                     )
                 }
@@ -179,10 +183,10 @@ fun YoungSelfLetterScreen(
                     value = uiState.letterContent,
                     onValueChange = { viewModel.updateContent(it) },
                     textStyle = TextStyle(
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = theme.fontFamily,
                         fontSize = 18.sp,
                         fontStyle = FontStyle.Italic,
-                        color = TextPrimary,
+                        color = theme.contentColor,
                         lineHeight = 28.sp
                     ),
                     modifier = Modifier.fillMaxSize()
@@ -199,9 +203,9 @@ fun YoungSelfLetterScreen(
                 },
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Icon(Icons.Default.Lightbulb, null, tint = TextSecondary, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Lightbulb, null, tint = theme.contentColor.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Voir des pistes d'inspiration", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                Text("Voir des pistes d'inspiration", color = theme.contentColor.copy(alpha = 0.5f), style = MaterialTheme.typography.bodySmall)
             }
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -214,12 +218,15 @@ fun YoungSelfLetterScreen(
                 },
                 enabled = uiState.letterContent.isNotBlank() && !uiState.isSaving,
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = accent,
+                    contentColor = theme.backgroundColor
+                )
             ) {
                 if (uiState.isSaving) {
-                    CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Sceller cette lettre", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                    Text("Sceller cette lettre", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -228,16 +235,17 @@ fun YoungSelfLetterScreen(
             ModalBottomSheet(
                 onDismissRequest = { showSuggestions = false },
                 sheetState = sheetState,
-                containerColor = BackgroundSecondary
+                containerColor = theme.backgroundColor,
+                contentColor = theme.contentColor
             ) {
                 Column(modifier = Modifier.padding(24.dp).fillMaxWidth().padding(bottom = 32.dp)) {
-                    Text("PISTES D'INSPIRATION", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+                    Text("PISTES D'INSPIRATION", style = MaterialTheme.typography.labelSmall, color = accent)
                     Spacer(modifier = Modifier.height(24.dp))
                     
                     if (uiState.isLoadingSuggestions) {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = AccentPrimary)
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = accent)
                     } else if (uiState.suggestions.isEmpty()) {
-                        Text("Aucune suggestion pour le moment. Continue à remplir ton héritage !", color = TextSecondary)
+                        Text("Aucune suggestion pour le moment. Continue à remplir ton héritage !", color = theme.contentColor.copy(alpha = 0.6f))
                     } else {
                         uiState.suggestions.forEach { suggestion ->
                             Card(
@@ -248,13 +256,13 @@ fun YoungSelfLetterScreen(
                                         viewModel.updateContent(uiState.letterContent + "\n" + suggestion)
                                         showSuggestions = false
                                     },
-                                colors = CardDefaults.cardColors(containerColor = SurfaceCard)
+                                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f))
                             ) {
                                 Text(
                                     text = suggestion,
                                     modifier = Modifier.padding(16.dp),
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = TextPrimary
+                                    color = theme.contentColor
                                 )
                             }
                         }

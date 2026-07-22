@@ -75,7 +75,10 @@ fun HomeScreen(
     val isCreator by mainViewModel.isCreator.collectAsState()
     val myRoles by mainViewModel.myRoles.collectAsState()
     val currentPerspective by mainViewModel.currentPerspective.collectAsState()
-    val accent = LocalAccentColor.current
+    
+    // v8.9.0 : Thème Global
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -146,7 +149,8 @@ fun HomeScreen(
                 HomeHeader(
                     name = uiState.userName,
                     date = uiState.currentDate,
-                    onProfileClick = { scope.launch { drawerState.open() } }
+                    onProfileClick = { scope.launch { drawerState.open() } },
+                    theme = theme
                 )
 
                 if (currentPerspective == MainViewModel.Perspective.MY_MEMORY) {
@@ -155,10 +159,10 @@ fun HomeScreen(
                         text = welcomeNudge,
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontStyle = FontStyle.Italic,
-                            fontFamily = FontFamily.Serif,
+                            fontFamily = theme.fontFamily,
                             fontSize = 13.sp
                         ),
-                        color = accent.copy(alpha = 0.7f),
+                        color = theme.contentColor.copy(alpha = 0.6f),
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -258,9 +262,11 @@ fun HomeScreen(
 
                         Card(
                             modifier = Modifier.weight(0.85f).height(56.dp).clickable { onNavigateToLibrary() },
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+                            colors = CardDefaults.cardColors(
+                                containerColor = theme.contentColor.copy(alpha = 0.05f)
+                            ),
                             shape = RoundedCornerShape(14.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -268,15 +274,17 @@ fun HomeScreen(
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(Icons.Outlined.AutoStories, null, tint = accent, modifier = Modifier.size(18.dp))
-                                Text("Ma biblio", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp))
+                                Text("Ma biblio", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Medium))
                             }
                         }
 
                         Card(
                             modifier = Modifier.weight(0.85f).height(56.dp).clickable { onNavigateToFil() },
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+                            colors = CardDefaults.cardColors(
+                                containerColor = theme.contentColor.copy(alpha = 0.05f)
+                            ),
                             shape = RoundedCornerShape(14.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -284,7 +292,7 @@ fun HomeScreen(
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(Icons.Outlined.HistoryEdu, null, tint = accent, modifier = Modifier.size(18.dp))
-                                Text("Mon Fil", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp))
+                                Text("Mon Fil", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Medium))
                             }
                         }
                     }
@@ -302,8 +310,8 @@ fun HomeScreen(
                     // ACTIONS RAPIDES
                     Text(
                         "ACTIONS RAPIDES",
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp),
-                        color = TextTertiary,
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
+                        color = theme.contentColor.copy(alpha = 0.4f),
                         modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 6.dp)
                     )
 
@@ -337,20 +345,22 @@ fun HomeScreen(
                     // PRÉSENCE
                     Card(
                         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 12.dp).fillMaxWidth().clickable { viewModel.updateProofOfLife() },
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A221A)),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Success.copy(alpha = 0.1f)
+                        ),
                         shape = RoundedCornerShape(10.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2D3D22))
+                        border = androidx.compose.foundation.BorderStroke(1.dp, Success.copy(alpha = 0.2f))
                     ) {
                         Row(
                             modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Box(modifier = Modifier.size(6.dp).background(Color(0xFF4CAF50), CircleShape))
+                            Box(modifier = Modifier.size(6.dp).background(Success, CircleShape))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 "Ma présence · confirmée il y a $daysSincePresence jours",
-                                color = Color(0xFF7CB87C),
-                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp)
+                                color = Success,
+                                style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium)
                             )
                         }
                     }
@@ -409,8 +419,8 @@ fun PerspectiveSwitcher(
 }
 
 @Composable
-fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit) {
-    val accent = LocalAccentColor.current
+fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit, theme: AppThemeState) {
+    val accent = theme.accentColor
     Row(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -419,10 +429,19 @@ fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit) {
         Column {
             Text(
                 text = "Bonsoir, $name",
-                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 18.sp),
-                color = TextPrimary
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontFamily = theme.fontFamily, 
+                    fontStyle = FontStyle.Italic, 
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = theme.contentColor
             )
-            Text(text = date, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = TextTertiary)
+            Text(
+                text = date, 
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), 
+                color = theme.contentColor.copy(alpha = 0.5f)
+            )
         }
         Surface(
             modifier = Modifier.size(34.dp).clickable { onProfileClick() },
@@ -439,18 +458,28 @@ fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit) {
 
 @Composable
 fun StatusBadge(title: String, subtitle: String, dotColor: Color, modifier: Modifier = Modifier) {
+    val theme = LocalAppTheme.current
     Card(
         modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+        colors = CardDefaults.cardColors(
+            containerColor = theme.contentColor.copy(alpha = 0.05f)
+        ),
         shape = RoundedCornerShape(10.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(6.dp).background(dotColor, CircleShape).shadow(4.dp, CircleShape, spotColor = dotColor))
             Spacer(modifier = Modifier.width(8.dp))
             Column {
-                Text(title, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
-                Text(subtitle, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = TextSecondary)
+                Text(
+                    title, 
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = theme.fontFamily
+                    ), 
+                    color = theme.contentColor
+                )
+                Text(subtitle, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = theme.contentColor.copy(alpha = 0.6f))
             }
         }
     }
@@ -458,31 +487,50 @@ fun StatusBadge(title: String, subtitle: String, dotColor: Color, modifier: Modi
 
 @Composable
 fun LastMemoryCard(entry: com.example.phoenx.data.local.OfflineEntry?) {
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     Card(
         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 4.dp).fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+        colors = CardDefaults.cardColors(
+            containerColor = theme.contentColor.copy(alpha = 0.05f)
+        ),
         shape = RoundedCornerShape(14.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
             Box(modifier = Modifier.width(3.dp).fillMaxHeight().background(Brush.verticalGradient(listOf(accent, Color.Transparent))))
             Column(modifier = Modifier.padding(13.dp, 14.dp)) {
-                Text("DERNIER SOUVENIR", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = TextTertiary)
+                Text(
+                    "DERNIER SOUVENIR", 
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold), 
+                    color = theme.contentColor.copy(alpha = 0.4f)
+                )
                 Spacer(modifier = Modifier.height(4.dp))
                 if (entry == null) {
-                    Text("Aucun souvenir déposé pour l'instant.", style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 12.sp), color = TextSecondary)
-                    Text("— Commence dès maintenant", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp))
+                    Text(
+                        "Aucun souvenir déposé pour l'instant.", 
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontStyle = FontStyle.Italic, 
+                            fontFamily = theme.fontFamily,
+                            fontSize = 12.sp
+                        ), 
+                        color = theme.contentColor.copy(alpha = 0.7f)
+                    )
+                    Text("— Commence dès maintenant", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold))
                 } else {
                     Text(
                         entry.aiSummary,
-                        style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 12.sp),
-                        color = TextSecondary,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontStyle = FontStyle.Italic, 
+                            fontFamily = theme.fontFamily,
+                            fontSize = 12.sp
+                        ),
+                        color = theme.contentColor.copy(alpha = 0.8f),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                     val age = com.example.phoenx.domain.util.AgeUtils.parseAgeJson(entry.ageAtCreation)
-                    Text("— À ${age.years} ans", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp))
+                    Text("— À ${age.years} ans", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold))
                 }
             }
         }
@@ -491,17 +539,20 @@ fun LastMemoryCard(entry: com.example.phoenx.data.local.OfflineEntry?) {
 
 @Composable
 fun ProgressionCard(memoriesCount: Int, questionsCount: Int, chaptersCount: Int) {
+    val theme = LocalAppTheme.current
     Card(
         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 4.dp).fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+        colors = CardDefaults.cardColors(
+            containerColor = theme.contentColor.copy(alpha = 0.05f)
+        ),
         shape = RoundedCornerShape(14.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
             StatItem(count = memoriesCount, label = "SOUVENIRS", modifier = Modifier.weight(1f))
-            Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color(0xFF2E2E35)).align(Alignment.CenterVertically))
+            Box(modifier = Modifier.width(1.dp).height(40.dp).background(theme.contentColor.copy(alpha = 0.1f)).align(Alignment.CenterVertically))
             StatItem(count = questionsCount, label = "QUESTIONS", modifier = Modifier.weight(1f))
-            Box(modifier = Modifier.width(1.dp).height(40.dp).background(Color(0xFF2E2E35)).align(Alignment.CenterVertically))
+            Box(modifier = Modifier.width(1.dp).height(40.dp).background(theme.contentColor.copy(alpha = 0.1f)).align(Alignment.CenterVertically))
             StatItem(count = chaptersCount, label = "CHAPITRES", modifier = Modifier.weight(1f))
         }
     }
@@ -509,10 +560,23 @@ fun ProgressionCard(memoriesCount: Int, questionsCount: Int, chaptersCount: Int)
 
 @Composable
 fun StatItem(count: Int, label: String, modifier: Modifier = Modifier) {
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(count.toString(), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontSize = 22.sp), color = accent)
-        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = TextTertiary)
+        Text(
+            count.toString(), 
+            style = MaterialTheme.typography.headlineSmall.copy(
+                fontFamily = theme.fontFamily, 
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
+            ), 
+            color = accent
+        )
+        Text(
+            label, 
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold), 
+            color = theme.contentColor.copy(alpha = 0.4f)
+        )
     }
 }
 
@@ -524,10 +588,13 @@ fun QuickActionCard(
     badgeCount: Int = 0, 
     onClick: () -> Unit
 ) {
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     Card(
         modifier = modifier.height(80.dp).clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+        colors = CardDefaults.cardColors(
+            containerColor = theme.contentColor.copy(alpha = 0.05f)
+        ),
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
     ) {
@@ -540,7 +607,7 @@ fun QuickActionCard(
                     shape = CircleShape,
                     color = accent
                 ) {
-                    Text(badgeCount.toString(), color = BackgroundPrimary, fontSize = 8.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
+                    Text(badgeCount.toString(), color = theme.backgroundColor, fontSize = 8.sp, textAlign = TextAlign.Center, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -551,7 +618,17 @@ fun QuickActionCard(
             ) {
                 Icon(icon, null, tint = accent, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(name, style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 10.sp), color = TextSecondary, textAlign = TextAlign.Center)
+                Text(
+                    name, 
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontFamily = theme.fontFamily,
+                        fontStyle = FontStyle.Italic, 
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold
+                    ), 
+                    color = theme.contentColor.copy(alpha = 0.8f), 
+                    textAlign = TextAlign.Center
+                )
             }
             
             // Halo bottom
@@ -567,10 +644,11 @@ fun HomeNavigationBar(
     onNavigateToIA: () -> Unit,
     onOpenProfile: () -> Unit
 ) {
+    val theme = LocalAppTheme.current
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = Color(0xFF111116),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+        color = theme.backgroundColor.copy(alpha = 0.95f),
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 14.dp),

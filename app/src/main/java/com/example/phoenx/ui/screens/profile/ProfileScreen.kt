@@ -11,13 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.AccountTree
-import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,23 +31,17 @@ fun ProfileScreen(
     themeViewModel: com.example.phoenx.ui.theme.ThemeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val accent by themeViewModel.accentColor.collectAsState()
-    val backgroundColor by themeViewModel.backgroundColor.collectAsState()
-    val backgroundStyle by themeViewModel.backgroundStyle.collectAsState()
+    
+    // v8.9.0 : Thème Global
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    val backgroundId by themeViewModel.globalBackgroundId.collectAsState()
+    val fontId by themeViewModel.globalFontId.collectAsState()
 
     var showEditDialog by remember { mutableStateOf(false) }
     var isAppearingExpanded by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
-
-    val colors = listOf(
-        Color(0xFFC97B3A), Color(0xFFFFD700), Color(0xFFFFBF00), Color(0xFFFF9800),
-        Color(0xFFFF4500), Color(0xFFFF4E11), Color(0xFFF44336), Color(0xFFE91E63),
-        Color(0xFFFF00FF), Color(0xFF9C27B0), Color(0xFF673AB7), Color(0xFF3F51B5),
-        Color(0xFF2196F3), Color(0xFF03A9F4), Color(0xFF00FFFF), Color(0xFF00BCD4),
-        Color(0xFF009688), Color(0xFF2ECC71), Color(0xFF4CAF50), Color(0xFF8BC34A),
-        Color(0xFFC0C0C0), Color(0xFF607D8B)
-    )
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -63,15 +51,14 @@ fun ProfileScreen(
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
-        modifier = Modifier.background(LocalBackgroundBrush.current),
+        containerColor = theme.backgroundColor,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Mon Profil", color = TextPrimary) },
+                title = { Text("Mon Profil", color = theme.contentColor, fontFamily = theme.fontFamily) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -113,7 +100,7 @@ fun ProfileScreen(
                     Text(
                         text = uiState.displayName.ifEmpty { "Utilisateur" },
                         style = MaterialTheme.typography.headlineMedium,
-                        color = TextPrimary,
+                        color = theme.contentColor,
                         fontWeight = FontWeight.Bold
                     )
                     IconButton(onClick = { 
@@ -132,7 +119,7 @@ fun ProfileScreen(
                 Text(
                     text = uiState.email,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = theme.contentColor.copy(alpha = 0.6f)
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -140,17 +127,17 @@ fun ProfileScreen(
                 Text(
                     text = "Ce nom sera visible par les personnes que vous invitez (Dépositaires, Témoins, Destinataires).",
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary,
+                    color = theme.contentColor.copy(alpha = 0.4f),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 32.dp)
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
 
-                // --- ACCORDÉON APPARENCE ---
+                // --- ACCORDÉON APPARENCE (v8.9.0 Global) ---
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.5f)),
+                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                     shape = MaterialTheme.shapes.large,
                     border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
                 ) {
@@ -165,107 +152,33 @@ fun ProfileScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Palette, null, tint = accent)
                                 Spacer(modifier = Modifier.width(12.dp))
-                                Text("Apparence & Style", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+                                Text("Apparence & Style", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor)
                             }
                             Icon(
                                 if (isAppearingExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                                 null,
-                                tint = TextTertiary
+                                tint = theme.contentColor.copy(alpha = 0.4f)
                             )
                         }
 
                         if (isAppearingExpanded) {
                             Spacer(modifier = Modifier.height(24.dp))
                             
-                            // 1. COULEUR DE FOND
-                            Text("COULEUR DE FOND", style = MaterialTheme.typography.labelSmall, color = accent, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            colors.chunked(6).forEach { rowColors ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    rowColors.forEach { color ->
-                                        val isSelected = color == backgroundColor
-                                        Box(
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .background(color, CircleShape)
-                                                .border(
-                                                    width = if (isSelected) 2.dp else 0.dp,
-                                                    color = if (isSelected) TextPrimary else Color.Transparent,
-                                                    shape = CircleShape
-                                                )
-                                                .clickable { themeViewModel.setBackground(color) }
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
+                            com.example.phoenx.ui.components.GlobalThemeSelector(
+                                currentBackgroundId = backgroundId,
+                                currentFontId = fontId,
+                                onThemeChange = { bg, font -> themeViewModel.setGlobalTheme(bg, font) }
+                            )
 
                             Spacer(modifier = Modifier.height(24.dp))
 
-                            // 2. COULEUR D'ÉCRITURE
-                            Text("COULEUR D'ÉCRITURE", style = MaterialTheme.typography.labelSmall, color = accent, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            colors.chunked(6).forEach { rowColors ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    rowColors.forEach { color ->
-                                        val isSelected = color == accent
-                                        Box(
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .background(color, CircleShape)
-                                                .border(
-                                                    width = if (isSelected) 2.dp else 0.dp,
-                                                    color = if (isSelected) TextPrimary else Color.Transparent,
-                                                    shape = CircleShape
-                                                )
-                                                .clickable { themeViewModel.setAccent(color) }
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(8.dp))
-                            }
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // 3. STYLE DE FOND
-                            Text("STYLE DE FOND", style = MaterialTheme.typography.labelSmall, color = accent, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                listOf("RADIAL", "LINEAR", "SOLID").forEach { style ->
-                                    val isSelected = backgroundStyle == style
-                                    val label = when(style) {
-                                        "RADIAL" -> "Profondeur (Radial)"
-                                        "LINEAR" -> "Élégance (Linéaire)"
-                                        "SOLID" -> "Sobre (Uni)"
-                                        else -> style
-                                    }
-                                    Surface(
-                                        onClick = { themeViewModel.setBackgroundStyle(style) },
-                                        color = if (isSelected) accent.copy(alpha = 0.15f) else Color.Transparent,
-                                        shape = RoundedCornerShape(8.dp),
-                                        border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, accent) else null,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Row(
-                                            modifier = Modifier.padding(12.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            RadioButton(
-                                                selected = isSelected,
-                                                onClick = null,
-                                                colors = RadioButtonDefaults.colors(selectedColor = accent)
-                                            )
-                                            Spacer(modifier = Modifier.width(12.dp))
-                                            Text(label, color = if (isSelected) TextPrimary else TextSecondary)
-                                        }
-                                    }
-                                }
+                            TextButton(
+                                onClick = { themeViewModel.resetToDefaults() },
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            ) {
+                                Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text("Réinitialiser les réglages par défaut")
                             }
                         }
                     }
@@ -276,7 +189,9 @@ fun ProfileScreen(
                 Card(
                     onClick = { /* TODO: Navigation vers Arbre */ },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.3f)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = theme.contentColor.copy(alpha = 0.05f)
+                    ),
                     shape = MaterialTheme.shapes.large,
                     border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
                 ) {
@@ -287,10 +202,10 @@ fun ProfileScreen(
                         Icon(Icons.Default.AccountTree, null, tint = accent)
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Ma Généalogie", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
-                            Text("Visualise ton cercle de confiance", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                            Text("Ma Généalogie", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor)
+                            Text("Visualise ton cercle de confiance", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
                         }
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = TextTertiary)
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.4f))
                     }
                 }
 
@@ -317,9 +232,12 @@ fun ProfileScreen(
                 Button(
                     onClick = onNavigateBack,
                     modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = theme.contentColor.copy(alpha = 0.1f),
+                        contentColor = theme.contentColor
+                    )
                 ) {
-                    Text("Retour aux réglages", color = TextPrimary)
+                    Text("Retour aux réglages", color = theme.contentColor)
                 }
             }
         }
@@ -328,8 +246,8 @@ fun ProfileScreen(
     if (showEditDialog) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            containerColor = BackgroundSecondary,
-            title = { Text("Modifier mon nom", color = TextPrimary) },
+            containerColor = theme.backgroundColor,
+            title = { Text("Modifier mon nom", color = theme.contentColor) },
             text = {
                 OutlinedTextField(
                     value = newName,
@@ -338,10 +256,13 @@ fun ProfileScreen(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AccentPrimary,
-                        unfocusedBorderColor = TextTertiary,
-                        focusedLabelColor = AccentPrimary,
-                        cursorColor = AccentPrimary
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.4f),
+                        focusedLabelColor = accent,
+                        cursorColor = accent,
+                        unfocusedLabelColor = theme.contentColor.copy(alpha = 0.6f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
                     )
                 )
             },
@@ -352,12 +273,12 @@ fun ProfileScreen(
                         showEditDialog = false
                     }
                 }) {
-                    Text("Enregistrer", color = AccentPrimary)
+                    Text("Enregistrer", color = accent)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditDialog = false }) {
-                    Text("Annuler", color = TextPrimary)
+                    Text("Annuler", color = theme.contentColor)
                 }
             }
         )

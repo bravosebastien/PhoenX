@@ -32,6 +32,10 @@ class PreferenceManager @Inject constructor(
     private val BACKGROUND_COLOR_KEY = androidx.datastore.preferences.core.intPreferencesKey("background_color")
     private val BACKGROUND_STYLE_KEY = androidx.datastore.preferences.core.stringPreferencesKey("background_style")
     private val SYNC_MIGRATION_V1_DONE_KEY = booleanPreferencesKey("sync_migration_v1_done")
+    
+    // v8.9.0 : Thème Global (Plume & Papier)
+    private val GLOBAL_BACKGROUND_ID_KEY = androidx.datastore.preferences.core.stringPreferencesKey("global_background_id")
+    private val GLOBAL_FONT_ID_KEY = androidx.datastore.preferences.core.stringPreferencesKey("global_font_id")
 
     fun isSyncMigrationV1Done(): Flow<Boolean> = context.dataStore.data
         .map { it[SYNC_MIGRATION_V1_DONE_KEY] ?: false }
@@ -83,6 +87,16 @@ class PreferenceManager @Inject constructor(
     val backgroundStyle: Flow<String> = context.dataStore.data
         .map { preferences ->
             preferences[BACKGROUND_STYLE_KEY] ?: "RADIAL"
+        }
+
+    val globalBackgroundId: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[GLOBAL_BACKGROUND_ID_KEY] ?: "classic_ivory"
+        }
+
+    val globalFontId: Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[GLOBAL_FONT_ID_KEY] ?: "eb_garamond"
         }
 
     // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
@@ -159,6 +173,13 @@ class PreferenceManager @Inject constructor(
     suspend fun setBackgroundStyle(style: String) {
         context.dataStore.edit { preferences ->
             preferences[BACKGROUND_STYLE_KEY] = style
+        }
+    }
+
+    suspend fun setGlobalTheme(backgroundId: String, fontId: String) {
+        context.dataStore.edit { preferences ->
+            preferences[GLOBAL_BACKGROUND_ID_KEY] = backgroundId
+            preferences[GLOBAL_FONT_ID_KEY] = fontId
         }
     }
 

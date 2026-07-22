@@ -16,6 +16,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -151,6 +152,10 @@ fun CaptureScreen(
     val isNightMode = initialType == Screen.Capture.TYPE_NIGHT
     var capturedPhotoFile by remember { mutableStateOf<File?>(null) }
     
+    // v8.9.0 : Thème Global
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    
     // Reset file if we get the "clear" signal
     LaunchedEffect(capturedPhotoFile) {
         if (capturedPhotoFile?.name == "clear") {
@@ -185,7 +190,8 @@ fun CaptureScreen(
         }
     }
 
-    val backgroundColor = if (isNightMode) Color.Black else BackgroundPrimary
+    // Exception v8.9.0 : Le mode nuit ignore le thème global pour préserver le confort visuel nocturne.
+    val backgroundColor = if (isNightMode) Color.Black else theme.backgroundColor
 
     Scaffold(
         containerColor = backgroundColor,
@@ -219,20 +225,26 @@ fun CaptureScreen(
                                 Screen.Capture.TYPE_GALLERY -> "Galerie"
                                 else -> "Nouvelle Pensée"
                             },
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            fontFamily = theme.fontFamily
                         )
                     },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Default.Close, contentDescription = null, tint = TextPrimary)
+                            Icon(Icons.Default.Close, contentDescription = null, tint = theme.contentColor)
                         }
                     },
                     actions = {
                         IconButton(onClick = { showAdvancedOptions = true }) {
-                            Icon(Icons.Default.Tune, null, tint = AccentPrimary)
+                            Icon(Icons.Default.Tune, null, tint = accent)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = backgroundColor,
+                        titleContentColor = theme.contentColor
+                    )
                 )
             }
         },
@@ -248,7 +260,7 @@ fun CaptureScreen(
                             Log.d("ClickDebug", "Clic détecté sur le bouton Annuler")
                             onNavigateBack()
                         }) {
-                            Text("Annuler", color = TextSecondary)
+                            Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
                         }
                         Button(
                             onClick = {
@@ -283,13 +295,13 @@ fun CaptureScreen(
                                 )
                             },
                             enabled = (text.isNotEmpty() || capturedPhotoFile != null || selectedGalleryUri != null || initialType == Screen.Capture.TYPE_PHOTO) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                            colors = ButtonDefaults.buttonColors(containerColor = accent),
                             shape = MaterialTheme.shapes.medium
                         ) {
                             if (uiState is CaptureUiState.Loading) {
-                                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = BackgroundPrimary, strokeWidth = 2.dp)
+                                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = theme.backgroundColor, strokeWidth = 2.dp)
                             } else {
-                                Text("Déposer", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                                Text("Déposer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -319,9 +331,7 @@ fun CaptureScreen(
                         }
                     }
                 } else {
-                    Modifier.fillMaxSize().background(
-                        Brush.radialGradient(listOf(BackgroundSecondary, BackgroundPrimary), radius = 2000f)
-                    )
+                    Modifier.fillMaxSize().background(theme.backgroundColor)
                 }
 
                 Box(modifier = boxModifier) {
@@ -452,20 +462,21 @@ fun CaptureScreen(
                     label = "scale"
                 )
 
-                Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = null,
                             modifier = Modifier.size(120.dp).scale(scale),
-                            tint = AccentPrimary
+                            tint = accent
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
                             text = if (isNightMode) "Capturé. Dors bien." else "Souvenir déposé.",
                             style = MaterialTheme.typography.displaySmall,
-                            color = AccentPrimary,
-                            textAlign = TextAlign.Center
+                            color = accent,
+                            textAlign = TextAlign.Center,
+                            fontFamily = theme.fontFamily
                         )
                         
                         if (!isNightMode) {
@@ -485,7 +496,7 @@ fun CaptureScreen(
                             Text(
                                 text = summary,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = TextSecondary,
+                                color = theme.contentColor.copy(alpha = 0.7f),
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(horizontal = 40.dp)
                             )
@@ -553,14 +564,17 @@ fun AdvancedOptionsContent(
     scheduledTimestamp: Long?,
     onScheduledTimestampChange: (Long?) -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    
     Column(modifier = Modifier.padding(24.dp).fillMaxWidth().padding(bottom = 32.dp)) {
-        Text("OPTIONS AVANCÉES", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
+        Text("OPTIONS AVANCÉES", style = MaterialTheme.typography.labelSmall, color = accent, letterSpacing = 2.sp)
         Spacer(modifier = Modifier.height(32.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Fingerprint, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+            Icon(Icons.Default.Fingerprint, null, tint = accent, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
-            Text("Mode Détective", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            Text("Mode Détective", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
             Spacer(modifier = Modifier.weight(1f))
             InfoPoint(
                 title = "Le Jeu de Piste",
@@ -570,7 +584,7 @@ fun AdvancedOptionsContent(
         Text(
             "Verrouille ce souvenir derrière une énigme personnelle.",
             style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary,
+            color = theme.contentColor.copy(alpha = 0.6f),
             modifier = Modifier.padding(start = 32.dp)
         )
         
@@ -580,14 +594,16 @@ fun AdvancedOptionsContent(
             onValueChange = onEnigmaQuestionChange,
             label = { Text("Ta question secrète") },
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
-            placeholder = { Text("Ex: Quel était le nom de notre premier chien ?") }
+            placeholder = { Text("Ex: Quel était le nom de notre premier chien ?") },
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f))
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = enigmaAnswer,
             onValueChange = onEnigmaAnswerChange,
             label = { Text("La réponse attendue") },
-            modifier = Modifier.fillMaxWidth().padding(start = 32.dp)
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f))
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
@@ -595,7 +611,8 @@ fun AdvancedOptionsContent(
             onValueChange = onEnigmaHintChange,
             label = { Text("Indice (optionnel, après 3 échecs)") },
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
-            placeholder = { Text("Ex: C'est un animal à poils...") }
+            placeholder = { Text("Ex: C'est un animal à poils...") },
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f))
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -606,14 +623,14 @@ fun AdvancedOptionsContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Auto-déblocage", style = MaterialTheme.typography.bodyMedium)
+            Text("Auto-déblocage", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
             Switch(
                 checked = enigmaAutoUnlockDays != null,
                 onCheckedChange = { 
                     if (it) onEnigmaAutoUnlockDaysChange(30)
                     else onEnigmaAutoUnlockDaysChange(null)
                 },
-                colors = SwitchDefaults.colors(checkedThumbColor = AccentPrimary)
+                colors = SwitchDefaults.colors(checkedThumbColor = accent)
             )
         }
         
@@ -630,12 +647,12 @@ fun AdvancedOptionsContent(
                 valueRange = 0f..(delayOptions.size - 1).toFloat(),
                 steps = delayOptions.size - 2,
                 modifier = Modifier.padding(start = 32.dp),
-                colors = SliderDefaults.colors(thumbColor = AccentPrimary, activeTrackColor = AccentPrimary)
+                colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent)
             )
             Text(
                 "Ouvrir après $enigmaAutoUnlockDays jours", 
                 style = MaterialTheme.typography.labelSmall, 
-                color = AccentPrimary,
+                color = accent,
                 modifier = Modifier.padding(start = 32.dp)
             )
         }
@@ -643,14 +660,14 @@ fun AdvancedOptionsContent(
         Spacer(modifier = Modifier.height(32.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Event, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+            Icon(Icons.Default.Event, null, tint = accent, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
-            Text("Ouverture Programmée", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            Text("Ouverture Programmée", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
         }
         Text(
             "Ce souvenir ne sera visible qu'à partir d'une date précise.",
             style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary,
+            color = theme.contentColor.copy(alpha = 0.6f),
             modifier = Modifier.padding(start = 32.dp)
         )
         
@@ -667,7 +684,9 @@ fun AdvancedOptionsContent(
 
         OutlinedButton(
             onClick = { showDatePicker = true },
-            modifier = Modifier.fillMaxWidth().padding(start = 32.dp)
+            modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
+            border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
         ) {
             Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp))
             Spacer(modifier = Modifier.width(12.dp))
@@ -681,8 +700,9 @@ fun AdvancedOptionsContent(
                     TextButton(onClick = {
                         onScheduledTimestampChange(datePickerState.selectedDateMillis)
                         showDatePicker = false
-                    }) { Text("Confirmer", color = AccentPrimary) }
-                }
+                    }) { Text("Confirmer", color = accent) }
+                },
+                colors = DatePickerDefaults.colors(containerColor = theme.backgroundColor)
             ) {
                 DatePicker(state = datePickerState)
             }
@@ -710,8 +730,10 @@ fun PhotoCaptureContent(
     onCreatePerson: (String, String?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> },
     onRemovePerson: (String) -> Unit = {}
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    
     val context = LocalContext.current
-    val accent = LocalAccentColor.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val imageCapture = remember { ImageCapture.Builder().build() }
     
@@ -801,7 +823,8 @@ fun PhotoCaptureContent(
                             focusedContainerColor = Color.Black.copy(alpha = 0.6f),
                             unfocusedContainerColor = Color.Black.copy(alpha = 0.4f),
                             focusedIndicatorColor = accent,
-                            unfocusedIndicatorColor = Color.Transparent
+                            unfocusedIndicatorColor = Color.Transparent,
+                            cursorColor = accent
                         ),
                         shape = RoundedCornerShape(12.dp)
                     )
@@ -893,7 +916,8 @@ fun TextCaptureContent(
     onCreatePerson: (String, String?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> },
     onRemovePerson: (String) -> Unit = {}
 ) {
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     Column(
         modifier = Modifier
@@ -956,8 +980,8 @@ fun TextCaptureContent(
                 },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
                 textStyle = MaterialTheme.typography.headlineSmall.copy(
-                    color = TextPrimary, 
-                    fontFamily = FontFamily.Serif,
+                    color = theme.contentColor, 
+                    fontFamily = theme.fontFamily,
                     fontSize = if (isComplement && initialType == "TEXT") 18.sp else 24.sp // Taille récit vs titre
                 ),
                 colors = TextFieldDefaults.colors(
@@ -1016,11 +1040,15 @@ fun TextCaptureContent(
         val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour")
         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             categories.forEach { cat ->
+                val theme = LocalAppTheme.current
                 FilterChip(
                     selected = selectedCategory == cat,
                     onClick = { onCategoryChange(cat) },
                     label = { Text(cat) },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = LocalAccentColor.current, selectedLabelColor = BackgroundPrimary)
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = theme.accentColor,
+                        selectedLabelColor = theme.backgroundColor
+                    )
                 )
             }
         }
@@ -1077,26 +1105,28 @@ fun AudioCaptureContent(
         verticalArrangement = Arrangement.Center
     ) {
         if (!isRecording && transcript.isNotEmpty()) {
-            Text("Donne une âme à cet enregistrement :", style = MaterialTheme.typography.labelSmall, color = accent)
+            val theme = LocalAppTheme.current
+            Text("Donne une âme à cet enregistrement :", style = MaterialTheme.typography.labelSmall, color = theme.accentColor)
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = transcript,
                 onValueChange = onTranscriptChange,
                 modifier = Modifier.fillMaxWidth().heightIn(max = 200.dp),
-                textStyle = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic),
+                textStyle = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic, color = theme.contentColor),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = accent,
-                    unfocusedBorderColor = accent.copy(alpha = 0.3f)
+                    focusedBorderColor = theme.accentColor,
+                    unfocusedBorderColor = theme.accentColor.copy(alpha = 0.3f)
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
             Spacer(modifier = Modifier.height(24.dp))
         }
 
+        val theme = LocalAppTheme.current
         Text(
             text = if (isRecording) "On t'écoute..." else if (transcript.isEmpty()) "Parle, nous écrivons pour toi" else "Continuer l'enregistrement ?",
-            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-            color = TextPrimary,
+            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily),
+            color = theme.contentColor,
             textAlign = TextAlign.Center
         )
         
@@ -1167,9 +1197,12 @@ fun AudioCaptureContent(
             Button(
                 onClick = onSave,
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                colors = ButtonDefaults.buttonColors(containerColor = accent)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = theme.accentColor,
+                    contentColor = theme.backgroundColor
+                )
             ) {
-                Text("Sceller ce souvenir", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                Text("Sceller ce souvenir", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     }

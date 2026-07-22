@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.phoenx.ui.theme.*
@@ -32,23 +33,27 @@ fun CercleConfianceScreen(
     onNavigateToRecipients: () -> Unit,
     onNavigateToNotifications: () -> Unit
 ) {
-    val accent = LocalAccentColor.current
-    val backgroundBrush = LocalBackgroundBrush.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     Scaffold(
-        containerColor = Color.Transparent,
-        modifier = Modifier.background(backgroundBrush),
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { 
                     Text(
                         "Cercle de Confiance", 
-                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic)
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontFamily = theme.fontFamily, 
+                            fontStyle = FontStyle.Italic,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = theme.contentColor
                     ) 
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -65,7 +70,7 @@ fun CercleConfianceScreen(
             Text(
                 "Ceux qui t'entourent et qui porteront ton héritage. Gère ici tes liens de confiance.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.7f),
                 lineHeight = 22.sp
             )
 
@@ -131,7 +136,7 @@ fun CercleConfianceScreen(
                     Text(
                         "Personne dans ton cercle n'a accès à tes contenus aujourd'hui. Ton héritage reste scellé jusqu'à l'activation du protocole par tes dépositaires.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
+                        color = theme.contentColor.copy(alpha = 0.7f),
                         lineHeight = 18.sp
                     )
                 }
@@ -148,10 +153,13 @@ fun TrustHubItem(
     accent: Color,
     onClick: () -> Unit
 ) {
+    val theme = LocalAppTheme.current
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.4f)),
+        colors = CardDefaults.cardColors(
+            containerColor = theme.contentColor.copy(alpha = 0.05f)
+        ),
         shape = MaterialTheme.shapes.large,
         border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.15f))
     ) {
@@ -172,11 +180,18 @@ fun TrustHubItem(
             Spacer(modifier = Modifier.width(16.dp))
             
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
-                Text(subtitle, style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                Text(
+                    title, 
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontFamily = theme.fontFamily,
+                        fontWeight = FontWeight.Bold
+                    ), 
+                    color = theme.contentColor
+                )
+                Text(subtitle, style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
             }
             
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = TextTertiary)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.3f))
         }
     }
 }

@@ -52,6 +52,10 @@ fun FilScreen(
     val sortByCreationDate by viewModel.sortByCreationDate.collectAsState()
     val heirKey by viewModel.heirKey.collectAsState()
 
+    // v8.9.0 : Thème Global
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+
     var showFilters by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
@@ -60,8 +64,7 @@ fun FilScreen(
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
-        modifier = Modifier.background(LocalBackgroundBrush.current),
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = {
@@ -71,8 +74,15 @@ fun FilScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text(text = "Mon Fil de Pensée", style = MaterialTheme.typography.displaySmall, color = TextPrimary)
-                            Text(text = "${uiState.totalCount} fragments de vie", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                            Text(
+                                text = "Mon Fil de Pensée", 
+                                style = MaterialTheme.typography.displaySmall.copy(
+                                    fontWeight = FontWeight.Bold
+                                ), 
+                                color = theme.contentColor, 
+                                fontFamily = theme.fontFamily
+                            )
+                            Text(text = "${uiState.totalCount} fragments de vie", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
                         }
                         InfoButton(
                             title = "Le Fil de Pensée",
@@ -88,12 +98,12 @@ fun FilScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = theme.contentColor)
                     }
                 },
                 actions = {
                     IconButton(onClick = { showFilters = true }) {
-                        Icon(Icons.Default.FilterList, contentDescription = null, tint = AccentPrimary)
+                        Icon(Icons.Default.FilterList, contentDescription = null, tint = accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -102,13 +112,13 @@ fun FilScreen(
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
             if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = AccentPrimary)
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
             } else if (uiState.entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                     Text(
                         text = "Aucun souvenir pour le moment.\nCapture ta première pensée.",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = TextTertiary,
+                        color = theme.contentColor.copy(alpha = 0.4f),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
@@ -144,11 +154,11 @@ fun FilScreen(
             ModalBottomSheet(
                 onDismissRequest = { showFilters = false },
                 sheetState = sheetState,
-                containerColor = BackgroundSecondary,
-                contentColor = TextPrimary
+                containerColor = theme.backgroundColor,
+                contentColor = theme.contentColor
             ) {
                 Column(modifier = Modifier.padding(24.dp).fillMaxWidth().padding(bottom = 32.dp)) {
-                    Text("FILTRER LE FIL", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
+                    Text("FILTRER LE FIL", style = MaterialTheme.typography.labelSmall, color = accent, letterSpacing = 2.sp)
                     Spacer(modifier = Modifier.height(24.dp))
                     
                     Text("Ordre d'affichage", style = MaterialTheme.typography.bodyLarge)
@@ -160,14 +170,14 @@ fun FilScreen(
                             onClick = { if (sortByCreationDate) viewModel.toggleSortOrder() },
                             label = { Text("Par âge") },
                             leadingIcon = { if (!sortByCreationDate) Icon(Icons.Default.Psychology, null, modifier = Modifier.size(16.dp)) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentPrimary, selectedLabelColor = BackgroundPrimary)
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
                         )
                         FilterChip(
                             selected = sortByCreationDate,
                             onClick = { if (!sortByCreationDate) viewModel.toggleSortOrder() },
                             label = { Text("Par date de création") },
                             leadingIcon = { if (sortByCreationDate) Icon(Icons.Default.Event, null, modifier = Modifier.size(16.dp)) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentPrimary, selectedLabelColor = BackgroundPrimary)
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
                         )
                     }
 
@@ -181,14 +191,14 @@ fun FilScreen(
                             selected = selectedRecipientId == null,
                             onClick = { viewModel.setRecipientFilter(null) },
                             label = { Text("Tous") },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentPrimary, selectedLabelColor = BackgroundPrimary)
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
                         )
                         recipients.forEach { recipient ->
                             FilterChip(
                                 selected = selectedRecipientId == recipient.id,
                                 onClick = { viewModel.setRecipientFilter(if (selectedRecipientId == recipient.id) null else recipient.id) },
                                 label = { Text(recipient.name) },
-                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = AccentPrimary, selectedLabelColor = BackgroundPrimary)
+                                colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
                             )
                         }
                     }
@@ -201,6 +211,8 @@ fun FilScreen(
 @Composable
 fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
     val latestAmendment = entry.amendments.last()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     
     Card(
         modifier = Modifier
@@ -208,19 +220,26 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
             .padding(horizontal = 24.dp, vertical = 12.dp)
             .clickable { onClick() }
             .phoenXMatiere(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        colors = CardDefaults.cardColors(
+            containerColor = theme.contentColor.copy(alpha = 0.05f)
+        ),
         shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.AutoAwesome, null, tint = AccentPrimary, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("DIALOGUE TEMPOREL", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
+                    Text(
+                        "DIALOGUE TEMPOREL", 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                        color = accent, 
+                        letterSpacing = 2.sp
+                    )
                 }
-                Surface(color = BackgroundPrimary, shape = CircleShape, border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))) {
-                    Text(text = "${latestAmendment.ageAtAmendment.years}a ${latestAmendment.ageAtAmendment.months}m ${latestAmendment.ageAtAmendment.days}j", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = AccentPrimary, fontSize = 9.sp)
+                Surface(color = theme.backgroundColor, shape = CircleShape, border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))) {
+                    Text(text = "${latestAmendment.ageAtAmendment.years}a ${latestAmendment.ageAtAmendment.months}m ${latestAmendment.ageAtAmendment.days}j", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = accent, fontSize = 9.sp)
                 }
             }
             
@@ -228,25 +247,33 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
             
             Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("À ${entry.ageAtCreation.years} ans", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                    Text(
+                        text = "À ${entry.ageAtCreation.years} ans", 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                        color = theme.contentColor.copy(alpha = 0.4f)
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = String(entry.encryptedContent),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary,
+                        color = theme.contentColor.copy(alpha = 0.7f),
                         fontStyle = FontStyle.Italic
                     )
                 }
                 
-                Box(modifier = Modifier.padding(horizontal = 12.dp).fillMaxHeight().width(1.dp).background(TextTertiary.copy(alpha = 0.2f)))
+                Box(modifier = Modifier.padding(horizontal = 12.dp).fillMaxHeight().width(1.dp).background(theme.contentColor.copy(alpha = 0.1f)))
                 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("À ${latestAmendment.ageAtAmendment.years} ans", style = MaterialTheme.typography.labelSmall, color = AccentSecondary)
+                    Text(
+                        text = "À ${latestAmendment.ageAtAmendment.years} ans", 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                        color = AccentSecondary
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = String(latestAmendment.encryptedContent),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary,
+                        color = theme.contentColor,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -255,17 +282,17 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
             Spacer(modifier = Modifier.height(20.dp))
             
             Surface(
-                color = BackgroundPrimary.copy(alpha = 0.5f),
+                color = theme.backgroundColor.copy(alpha = 0.5f),
                 shape = CircleShape,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Psychology, null, tint = TextTertiary, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Default.Psychology, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = entry.temporalEvolution ?: "Évolution : Ton apaisement est visible à ${latestAmendment.ageAtAmendment.years - entry.ageAtCreation.years} ans d'intervalle.",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextSecondary,
+                        color = theme.contentColor.copy(alpha = 0.7f),
                         fontSize = 10.sp
                     )
                 }
@@ -276,13 +303,14 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
 
 @Composable
 fun YearSeparator(year: Int, count: Int) {
+    val theme = LocalAppTheme.current
     Column(
         modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(modifier = Modifier.width(1.dp).height(20.dp).background(TextTertiary.copy(alpha = 0.3f)))
-        Text(text = "$year ANS", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
-        Text(text = "$count pensées", style = MaterialTheme.typography.labelSmall, color = TextTertiary, fontSize = 10.sp)
+        Box(modifier = Modifier.width(1.dp).height(20.dp).background(theme.contentColor.copy(alpha = 0.2f)))
+        Text(text = "$year ANS", style = MaterialTheme.typography.labelSmall, color = theme.accentColor, fontWeight = FontWeight.Bold, letterSpacing = 4.sp)
+        Text(text = "$count pensées", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f), fontSize = 10.sp)
     }
 }
 
@@ -293,6 +321,8 @@ fun TimelineEntryItem(
     mediaManager: com.example.phoenx.data.media.MediaManager? = null,
     onClick: () -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.FRENCH).withZone(ZoneId.systemDefault()) }
     val formattedDate = dateFormatter.format(entry.timestamp)
 
@@ -302,9 +332,9 @@ fun TimelineEntryItem(
             .padding(horizontal = 24.dp, vertical = 10.dp)
             .clickable { onClick() }
             .phoenXMatiere(),
-        color = SurfaceCard.copy(alpha = 0.5f),
+        color = theme.contentColor.copy(alpha = 0.05f),
         shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -315,17 +345,17 @@ fun TimelineEntryItem(
                         EntryType.QUESTION_ANSWER -> Icons.AutoMirrored.Filled.HelpOutline
                         else -> Icons.Default.HistoryEdu
                     }
-                    Icon(imageVector = icon, contentDescription = null, tint = TextTertiary, modifier = Modifier.size(16.dp))
+                    Icon(imageVector = icon, contentDescription = null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     
                     Column {
-                        Text(text = entry.type.name, style = MaterialTheme.typography.labelSmall, color = TextSecondary, letterSpacing = 1.sp)
-                        Text(text = "Créé le $formattedDate", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = TextTertiary)
+                        Text(text = entry.type.name, style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f), letterSpacing = 1.sp)
+                        Text(text = "Créé le $formattedDate", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = theme.contentColor.copy(alpha = 0.3f))
                     }
                     
                     if (entry.isYoungSelfLetter) {
                         Spacer(modifier = Modifier.width(8.dp))
-                        Surface(color = AccentSecondary.copy(alpha = 0.2f), shape = CircleShape) {
+                        Surface(color = AccentSecondary.copy(alpha = 0.15f), shape = CircleShape) {
                             Text(
                                 text = "LETTRE À MES ${entry.targetAge} ANS",
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
@@ -338,7 +368,7 @@ fun TimelineEntryItem(
 
                     if (entry.hasEnigma) {
                         Spacer(modifier = Modifier.width(8.dp))
-                        Icon(Icons.Default.Fingerprint, null, tint = AccentPrimary, modifier = Modifier.size(12.dp))
+                        Icon(Icons.Default.Fingerprint, null, tint = accent, modifier = Modifier.size(12.dp))
                     }
 
                     if (entry.scheduledDate != null) {
@@ -346,8 +376,8 @@ fun TimelineEntryItem(
                         Icon(Icons.Default.Event, null, tint = Success, modifier = Modifier.size(12.dp))
                     }
                 }
-                Surface(color = BackgroundPrimary, shape = CircleShape, border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))) {
-                    Text(text = "${entry.ageAtCreation.years}a ${entry.ageAtCreation.months}m ${entry.ageAtCreation.days}j", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = AccentPrimary, fontSize = 10.sp)
+                Surface(color = theme.backgroundColor, shape = CircleShape, border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))) {
+                    Text(text = "${entry.ageAtCreation.years}a ${entry.ageAtCreation.months}m ${entry.ageAtCreation.days}j", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = accent, fontSize = 10.sp)
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -366,9 +396,9 @@ fun TimelineEntryItem(
                 text = displayText,
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.Bold,
-                    fontFamily = FontFamily.Serif
+                    fontFamily = theme.fontFamily
                 ),
-                color = TextPrimary,
+                color = theme.contentColor,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )

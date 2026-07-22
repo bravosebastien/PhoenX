@@ -68,6 +68,10 @@ fun BookEditorScreen(
     var showOnboarding by remember { mutableStateOf(false) }
     var showAiExplanation by remember { mutableStateOf(false) }
     var showIntroEditor by remember { mutableStateOf(false) }
+    
+    // v8.9.0 : Thème Global
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     // Onboarding automatique (v8.6.3)
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -104,7 +108,7 @@ fun BookEditorScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary)
+            .background(theme.backgroundColor)
     ) {
         LazyColumn(
             modifier = Modifier
@@ -126,7 +130,7 @@ fun BookEditorScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Retour",
-                                tint = AccentPrimary
+                                tint = accent
                             )
                         }
                         InfoButton(
@@ -144,9 +148,9 @@ fun BookEditorScreen(
                     // Indicateur de sauvegarde (v8.6.3)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (isSaving) {
-                            CircularProgressIndicator(modifier = Modifier.size(16.dp), color = AccentPrimary, strokeWidth = 2.dp)
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), color = accent, strokeWidth = 2.dp)
                             Spacer(Modifier.width(8.dp))
-                            Text("Sauvegarde...", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                            Text("Sauvegarde...", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                         } else if (saveSuccess) {
                             Icon(Icons.Default.CloudDone, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(8.dp))
@@ -160,9 +164,10 @@ fun BookEditorScreen(
                 Text(
                     text = "Mon Livre de Vie",
                     style = TextStyle(
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = theme.fontFamily,
                         fontSize = 28.sp,
-                        color = TextPrimary
+                        color = theme.contentColor,
+                        fontWeight = FontWeight.Bold
                     ),
                     modifier = Modifier.padding(top = 8.dp)
                 )
@@ -174,9 +179,8 @@ fun BookEditorScreen(
                         text = "${bookDraft!!.chapters.size} chapitres · " +
                                "${bookDraft!!.totalEntries} souvenirs intégrés",
                         style = TextStyle(
-                            fontFamily = FontFamily.SansSerif,
                             fontSize = 13.sp,
-                            color = TextSecondary
+                            color = theme.contentColor.copy(alpha = 0.6f)
                         ),
                         modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
                     )
@@ -191,21 +195,22 @@ fun BookEditorScreen(
                         Button(
                             onClick = { navController.navigate("book_viewer") },
                             modifier = Modifier.weight(1.5f).height(56.dp).phoenXMatiere(),
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                            colors = ButtonDefaults.buttonColors(containerColor = accent),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Icon(Icons.Default.PlayArrow, null, tint = BackgroundPrimary, modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.PlayArrow, null, tint = theme.backgroundColor, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text("LIRE MON LIVRE", color = BackgroundPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            Text("LIRE MON LIVRE", color = theme.backgroundColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
                         }
 
                         OutlinedButton(
                             onClick = { showRegenerateConfirm = true },
                             modifier = Modifier.weight(1f).height(56.dp),
-                            border = BorderStroke(1.dp, Color(0xFF3E3E45)),
-                            shape = RoundedCornerShape(12.dp)
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor.copy(alpha = 0.6f))
                         ) {
-                            Text("Régénérer", color = TextSecondary, fontSize = 12.sp)
+                            Text("Régénérer", fontSize = 12.sp)
                         }
                     }
                 }
@@ -220,7 +225,7 @@ fun BookEditorScreen(
                             forceRestricted = (newVis == "RESTRICTED")
                             if (newVis == "EVERYONE") selectedRecipientIds.clear()
                         },
-                        accent = AccentPrimary
+                        accent = accent
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                 }
@@ -239,13 +244,14 @@ fun BookEditorScreen(
                 item {
                     Text(
                         text = "STYLE ET ATMOSPHÈRE", 
-                        style = MaterialTheme.typography.labelSmall, 
-                        color = TextTertiary, 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                        color = theme.contentColor.copy(alpha = 0.4f), 
                         letterSpacing = 2.sp
                     )
                     Spacer(Modifier.height(12.dp))
-                    BookThemeSelector(
-                        currentTheme = bookDraft!!.theme,
+                    com.example.phoenx.ui.components.GlobalThemeSelector(
+                        currentBackgroundId = bookDraft!!.theme.backgroundId,
+                        currentFontId = bookDraft!!.theme.fontId,
                         onThemeChange = { bg, font -> viewModel.updateTheme(bg, font) }
                     )
                     Spacer(modifier = Modifier.height(32.dp))
@@ -255,8 +261,8 @@ fun BookEditorScreen(
                 item {
                     Text(
                         text = "INTRODUCTION DU MANUSCRIT", 
-                        style = MaterialTheme.typography.labelSmall, 
-                        color = TextTertiary, 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                        color = theme.contentColor.copy(alpha = 0.4f), 
                         letterSpacing = 2.sp
                     )
                     Spacer(Modifier.height(12.dp))
@@ -273,8 +279,8 @@ fun BookEditorScreen(
                 item {
                     Text(
                         text = "SOMMAIRE DU MANUSCRIT", 
-                        style = MaterialTheme.typography.labelSmall, 
-                        color = TextTertiary, 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                        color = theme.contentColor.copy(alpha = 0.4f),
                         letterSpacing = 2.sp
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -442,6 +448,8 @@ fun SealedMessageSection(
     currentMessage: String,
     onMessageSelected: (String) -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var expanded by remember { mutableStateOf(false) }
     val options = listOf(
         "$userName a décidé de vous partager le livre de sa vie. Visible le moment venu.",
@@ -462,33 +470,33 @@ fun SealedMessageSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { expanded = !expanded },
-            color = SurfaceCard.copy(alpha = 0.3f),
+            color = theme.contentColor.copy(alpha = 0.05f),
             shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, if (expanded) AccentPrimary.copy(alpha = 0.4f) else Color.Transparent)
+            border = BorderStroke(1.dp, if (expanded) accent.copy(alpha = 0.4f) else Color.Transparent)
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.Lock, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+                Icon(Icons.Default.Lock, null, tint = accent, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         "MESSAGE DE TRANSMISSION", 
                         style = MaterialTheme.typography.labelSmall, 
-                        color = AccentPrimary, 
+                        color = accent, 
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         "Modifier le message d'attente", 
                         style = MaterialTheme.typography.bodySmall, 
-                        color = TextTertiary
+                        color = theme.contentColor.copy(alpha = 0.4f)
                     )
                 }
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, 
                     null, 
-                    tint = TextTertiary
+                    tint = theme.contentColor.copy(alpha = 0.4f)
                 )
             }
         }
@@ -504,15 +512,15 @@ fun SealedMessageSection(
                         },
                         modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) AccentPrimary.copy(alpha = 0.15f) else SurfaceCard.copy(alpha = 0.5f)
+                            containerColor = if (isSelected) accent.copy(alpha = 0.15f) else theme.contentColor.copy(alpha = 0.05f)
                         ),
-                        border = BorderStroke(1.dp, if (isSelected) AccentPrimary else Color.Transparent)
+                        border = BorderStroke(1.dp, if (isSelected) accent else Color.Transparent)
                     ) {
                         Text(
                             text = phrase,
                             style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
                             modifier = Modifier.padding(12.dp),
-                            color = if (isSelected) TextPrimary else TextSecondary
+                            color = if (isSelected) theme.contentColor else theme.contentColor.copy(alpha = 0.6f)
                         )
                     }
                 }
@@ -525,15 +533,15 @@ fun SealedMessageSection(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = if (isCustomMode) AccentPrimary.copy(alpha = 0.15f) else SurfaceCard.copy(alpha = 0.5f)
+                        containerColor = if (isCustomMode) accent.copy(alpha = 0.15f) else theme.contentColor.copy(alpha = 0.05f)
                     ),
-                    border = BorderStroke(1.dp, if (isCustomMode) AccentPrimary else Color.Transparent)
+                    border = BorderStroke(1.dp, if (isCustomMode) accent else Color.Transparent)
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
                             "Écrire mon propre message...",
                             style = MaterialTheme.typography.bodySmall,
-                            color = if (isCustomMode) TextPrimary else TextSecondary
+                            color = if (isCustomMode) theme.contentColor else theme.contentColor.copy(alpha = 0.6f)
                         )
                         if (isCustomMode) {
                             Spacer(Modifier.height(8.dp))
@@ -546,10 +554,12 @@ fun SealedMessageSection(
                                 modifier = Modifier.fillMaxWidth(),
                                 textStyle = MaterialTheme.typography.bodySmall,
                                 colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = AccentPrimary,
-                                    unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f)
+                                    focusedBorderColor = accent,
+                                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                                    focusedTextColor = theme.contentColor,
+                                    unfocusedTextColor = theme.contentColor
                                 ),
-                                placeholder = { Text("Votre message personnel...", fontSize = 12.sp) }
+                                placeholder = { Text("Votre message personnel...", fontSize = 12.sp, color = theme.contentColor.copy(alpha = 0.3f)) }
                             )
                         }
                     }
@@ -563,6 +573,8 @@ fun SealedMessageSection(
 
 @Composable
 private fun EmptyBookState(onGenerate: () -> Unit) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -574,19 +586,19 @@ private fun EmptyBookState(onGenerate: () -> Unit) {
             val h = size.height
             val stroke = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round)
             drawRect(
-                color = AccentPrimary,
+                color = accent,
                 topLeft = Offset(w * 0.1f, h * 0.1f),
                 size = Size(w * 0.38f, h * 0.8f),
                 style = stroke
             )
             drawRect(
-                color = AccentPrimary,
+                color = accent,
                 topLeft = Offset(w * 0.52f, h * 0.1f),
                 size = Size(w * 0.38f, h * 0.8f),
                 style = stroke
             )
             drawLine(
-                color = AccentPrimary,
+                color = accent,
                 start = Offset(w * 0.5f, h * 0.1f),
                 end = Offset(w * 0.5f, h * 0.9f),
                 strokeWidth = 3.dp.toPx(),
@@ -595,7 +607,7 @@ private fun EmptyBookState(onGenerate: () -> Unit) {
             for (i in 1..3) {
                 val y = h * (0.25f + i * 0.12f)
                 drawLine(
-                    color = AccentPrimary.copy(alpha = 0.4f),
+                    color = accent.copy(alpha = 0.4f),
                     start = Offset(w * 0.16f, y),
                     end = Offset(w * 0.44f, y),
                     strokeWidth = 1.dp.toPx()
@@ -604,7 +616,7 @@ private fun EmptyBookState(onGenerate: () -> Unit) {
             for (i in 1..3) {
                 val y = h * (0.25f + i * 0.12f)
                 drawLine(
-                    color = AccentPrimary.copy(alpha = 0.4f),
+                    color = accent.copy(alpha = 0.4f),
                     start = Offset(w * 0.56f, y),
                     end = Offset(w * 0.84f, y),
                     strokeWidth = 1.dp.toPx()
@@ -617,9 +629,9 @@ private fun EmptyBookState(onGenerate: () -> Unit) {
         Text(
             text = "Ton histoire mérite d'être racontée.",
             style = TextStyle(
-                fontFamily = FontFamily.Serif,
+                fontFamily = theme.fontFamily,
                 fontSize = 20.sp,
-                color = TextPrimary,
+                color = theme.contentColor,
                 textAlign = TextAlign.Center
             ),
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -632,9 +644,8 @@ private fun EmptyBookState(onGenerate: () -> Unit) {
                    "le premier chapitre de ton livre de vie.\n" +
                    "Tu pourras tout relire, modifier et valider.",
             style = TextStyle(
-                fontFamily = FontFamily.SansSerif,
                 fontSize = 14.sp,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
                 lineHeight = 22.sp
             ),
@@ -649,16 +660,17 @@ private fun EmptyBookState(onGenerate: () -> Unit) {
                 .fillMaxWidth()
                 .height(52.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = AccentPrimary
+                containerColor = accent,
+                contentColor = theme.backgroundColor
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
                 text = "Générer mon livre",
                 style = TextStyle(
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = theme.fontFamily,
                     fontSize = 16.sp,
-                    color = BackgroundPrimary
+                    color = theme.backgroundColor
                 )
             )
         }
@@ -667,6 +679,8 @@ private fun EmptyBookState(onGenerate: () -> Unit) {
 
 @Composable
 private fun GeneratingBookState(progress: String) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -699,16 +713,16 @@ private fun GeneratingBookState(progress: String) {
                 .scale(scale)
         ) {
             drawCircle(
-                color = AccentPrimary.copy(alpha = alpha * 0.2f),
+                color = accent.copy(alpha = alpha * 0.2f),
                 radius = size.width / 2f
             )
             drawCircle(
-                color = AccentPrimary.copy(alpha = alpha),
+                color = accent.copy(alpha = alpha),
                 radius = size.width / 3f,
                 style = Stroke(width = 2.dp.toPx())
             )
             drawLine(
-                color = AccentPrimary.copy(alpha = alpha),
+                color = accent.copy(alpha = alpha),
                 start = Offset(size.width / 2f, size.height * 0.25f),
                 end = Offset(size.width / 2f, size.height * 0.75f),
                 strokeWidth = 2.dp.toPx(),
@@ -731,10 +745,10 @@ private fun GeneratingBookState(progress: String) {
         Text(
             text = progress,
             style = TextStyle(
-                fontFamily = FontFamily.Serif,
+                fontFamily = theme.fontFamily,
                 fontSize = 16.sp,
                 fontStyle = FontStyle.Italic,
-                color = TextPrimary.copy(alpha = textAlpha),
+                color = theme.contentColor.copy(alpha = textAlpha),
                 textAlign = TextAlign.Center
             )
         )
@@ -744,9 +758,8 @@ private fun GeneratingBookState(progress: String) {
         Text(
             text = "Cela peut prendre quelques instants...",
             style = TextStyle(
-                fontFamily = FontFamily.SansSerif,
                 fontSize = 12.sp,
-                color = TextTertiary,
+                color = theme.contentColor.copy(alpha = 0.4f),
                 textAlign = TextAlign.Center
             )
         )
@@ -806,96 +819,43 @@ private fun BookAiExplanationDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun BookThemeSelector(
-    currentTheme: com.example.phoenx.data.model.BookTheme,
-    onThemeChange: (String, String) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        // Sélecteur de Fond
-        Text("Papier", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(BookThemeOptions.backgrounds) { bg ->
-                val isSelected = currentTheme.backgroundId == bg.id
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(bg.color)
-                            .border(2.dp, if (isSelected) AccentPrimary else Color.Transparent, RoundedCornerShape(8.dp))
-                            .clickable { onThemeChange(bg.id, currentTheme.fontId) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (isSelected) Icon(Icons.Default.Check, null, tint = if (bg.darkText) Color.Black else Color.White)
-                    }
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = bg.name.substringBefore(" "), // Premier mot pour rester compact
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        color = if (isSelected) AccentPrimary else TextTertiary
-                    )
-                }
-            }
-        }
-
-        // Sélecteur de Police
-        Text("Plume", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(BookThemeOptions.fonts) { font ->
-                val isSelected = currentTheme.fontId == font.id
-                Card(
-                    modifier = Modifier
-                        .width(100.dp)
-                        .height(50.dp)
-                        .clickable { onThemeChange(currentTheme.backgroundId, font.id) },
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isSelected) AccentPrimary.copy(alpha = 0.2f) else SurfaceCard
-                    ),
-                    border = BorderStroke(1.dp, if (isSelected) AccentPrimary else Color.Transparent)
-                ) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "Abc",
-                            style = TextStyle(fontFamily = font.fontFamily, fontSize = 16.sp, color = if (isSelected) AccentPrimary else TextPrimary)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun GlobalIntroCard(
     content: String,
     isGenerating: Boolean,
     onEdit: () -> Unit,
     onGenerate: () -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.5f)),
+        colors = CardDefaults.cardColors(
+            containerColor = theme.contentColor.copy(alpha = 0.05f)
+        ),
         shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.05f))
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             if (isGenerating) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                    CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = accent)
                     Spacer(Modifier.width(12.dp))
-                    Text("L'IA rédige votre introduction...", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic)
+                    Text("L'IA rédige votre introduction...", style = MaterialTheme.typography.bodySmall, fontStyle = FontStyle.Italic, color = theme.contentColor)
                 }
             } else if (content.isEmpty()) {
                 Text(
                     "Votre manuscrit n'a pas encore de préface.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextTertiary
+                    color = theme.contentColor.copy(alpha = 0.4f)
                 )
                 Spacer(Modifier.height(12.dp))
                 Button(
                     onClick = onGenerate,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary.copy(alpha = 0.2f), contentColor = AccentPrimary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = accent.copy(alpha = 0.15f), 
+                        contentColor = accent
+                    )
                 ) {
                     Icon(Icons.Default.AutoFixHigh, null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(8.dp))
@@ -906,15 +866,15 @@ private fun GlobalIntroCard(
                     text = content,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
-                    style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 14.sp, fontStyle = FontStyle.Italic, color = TextSecondary)
+                    style = TextStyle(fontFamily = theme.fontFamily, fontSize = 14.sp, fontStyle = FontStyle.Italic, color = theme.contentColor.copy(alpha = 0.8f))
                 )
                 Spacer(Modifier.height(12.dp))
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     TextButton(onClick = onEdit, modifier = Modifier.weight(1f)) {
-                        Text("Modifier", color = AccentPrimary)
+                        Text("Modifier", color = accent)
                     }
                     IconButton(onClick = onGenerate) {
-                        Icon(Icons.Default.Refresh, null, tint = TextTertiary, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Refresh, null, tint = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.size(20.dp))
                     }
                 }
             }
@@ -929,25 +889,38 @@ private fun GlobalIntroEditorSheet(
     onDismiss: () -> Unit,
     onSave: (String) -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var text by remember { mutableStateOf(currentContent) }
     
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = BackgroundPrimary) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss, 
+        containerColor = theme.backgroundColor
+    ) {
         Column(modifier = Modifier.fillMaxWidth().fillMaxHeight(0.8f).padding(24.dp)) {
-            Text("Introduction du Livre", style = MaterialTheme.typography.headlineSmall, fontFamily = FontFamily.Serif)
+            Text("Introduction du Livre", style = MaterialTheme.typography.headlineSmall, fontFamily = theme.fontFamily, color = theme.contentColor)
             Spacer(Modifier.height(16.dp))
             OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
                 modifier = Modifier.weight(1f).fillMaxWidth(),
-                textStyle = TextStyle(fontFamily = FontFamily.Serif, fontSize = 16.sp, lineHeight = 24.sp)
+                textStyle = TextStyle(fontFamily = theme.fontFamily, fontSize = 16.sp, lineHeight = 24.sp, color = theme.contentColor),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                    cursorColor = accent
+                )
             )
             Spacer(Modifier.height(24.dp))
             Button(
                 onClick = { onSave(text) },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = accent,
+                    contentColor = theme.backgroundColor
+                )
             ) {
-                Text("Enregistrer l'introduction", color = BackgroundPrimary)
+                Text("Enregistrer l'introduction", color = theme.backgroundColor)
             }
         }
     }
@@ -958,9 +931,11 @@ private fun ChapterCard(
     chapter: BookChapter,
     onClick: () -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val statusColor = when (chapter.status) {
         ChapterStatus.DRAFT     -> Color(0xFFFFB74D)
-        ChapterStatus.IN_REVIEW -> AccentPrimary
+        ChapterStatus.IN_REVIEW -> accent
         ChapterStatus.VALIDATED -> Color(0xFF4CAF50)
     }
     val statusLabel = when (chapter.status) {
@@ -973,7 +948,7 @@ private fun ChapterCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(SurfaceCard)
+            .background(theme.contentColor.copy(alpha = 0.05f))
             .clickable { onClick() }
     ) {
         Box(
@@ -993,7 +968,7 @@ private fun ChapterCard(
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
                     fontSize = 11.sp,
-                    color = TextTertiary,
+                    color = theme.contentColor.copy(alpha = 0.4f),
                     letterSpacing = 0.08.em
                 )
             )
@@ -1001,9 +976,10 @@ private fun ChapterCard(
             Text(
                 text = chapter.title,
                 style = TextStyle(
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = theme.fontFamily,
                     fontSize = 16.sp,
-                    color = TextPrimary
+                    color = theme.contentColor,
+                    fontWeight = FontWeight.Bold
                 )
             )
             Spacer(modifier = Modifier.height(6.dp))
@@ -1028,7 +1004,7 @@ private fun ChapterCard(
         Icon(
             imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
             contentDescription = null,
-            tint = TextTertiary,
+            tint = theme.contentColor.copy(alpha = 0.3f),
             modifier = Modifier
                 .align(Alignment.CenterVertically)
                 .padding(end = 16.dp)
