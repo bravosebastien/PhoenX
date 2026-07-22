@@ -41,8 +41,8 @@ fun WitnessInviteScreen(
     val witnesses by viewModel.witnesses.collectAsState()
     val creatorName by mainViewModel.userName.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    val accent = LocalAccentColor.current
-    val backgroundBrush = LocalBackgroundBrush.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     
@@ -61,8 +61,7 @@ fun WitnessInviteScreen(
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
-        modifier = Modifier.background(backgroundBrush),
+        containerColor = theme.backgroundColor,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
@@ -72,7 +71,14 @@ fun WitnessInviteScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Les Témoins", style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic))
+                        Text(
+                            "Les Témoins", 
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontFamily = theme.fontFamily, 
+                                fontStyle = FontStyle.Italic,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
                         InfoButton(
                             title = "Les Témoins",
                             points = listOf(
@@ -87,17 +93,20 @@ fun WitnessInviteScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = theme.backgroundColor,
+                    titleContentColor = theme.contentColor
+                )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showDialog = true },
                 containerColor = accent,
-                contentColor = BackgroundPrimary,
+                contentColor = theme.backgroundColor,
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Add, null)
@@ -113,7 +122,7 @@ fun WitnessInviteScreen(
             Text(
                 "Invite des proches à raconter un souvenir sur toi. Leurs mots enrichiront ton héritage.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.7f),
                 lineHeight = 22.sp
             )
 
@@ -125,8 +134,8 @@ fun WitnessInviteScreen(
                 } else if (witnesses.isEmpty()) {
                     Text(
                         "Aucun témoin pour l'instant.",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic),
-                        color = TextTertiary,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic, fontFamily = theme.fontFamily),
+                        color = theme.contentColor.copy(alpha = 0.4f),
                         modifier = Modifier.align(Alignment.Center)
                     )
                 } else {
@@ -158,14 +167,14 @@ fun WitnessInviteScreen(
                     witnessToReview = null
                     reviewText = null
                 },
-                containerColor = BackgroundSecondary,
-                title = { Text("Témoignage de ${witnessToReview?.name}", color = TextPrimary) },
+                containerColor = theme.backgroundColor,
+                title = { Text("Témoignage de ${witnessToReview?.name}", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
                 text = {
                     Box(modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp), contentAlignment = Alignment.Center) {
                         if (isReading) {
                             CircularProgressIndicator(color = accent)
                         } else if (reviewText != null) {
-                            Text(reviewText!!, color = TextPrimary, style = MaterialTheme.typography.bodyMedium)
+                            Text(reviewText!!, color = theme.contentColor, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = theme.fontFamily))
                         } else {
                             Text("Impossible de lire le témoignage.", color = Error)
                         }
@@ -189,7 +198,7 @@ fun WitnessInviteScreen(
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Success)
                             ) {
-                                Text("Valider", color = BackgroundPrimary)
+                                Text("Valider", color = Color.White)
                             }
                         }
                     } else {
@@ -197,7 +206,7 @@ fun WitnessInviteScreen(
                             witnessToReview = null
                             reviewText = null
                         }) {
-                            Text("Fermer", color = TextPrimary)
+                            Text("Fermer", color = theme.contentColor)
                         }
                     }
                 }
@@ -240,12 +249,13 @@ fun WitnessInviteScreen(
 
 @Composable
 fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit, onReview: () -> Unit) {
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onReview() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
         shape = RoundedCornerShape(14.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -264,8 +274,15 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit, onReview: () -> Un
             Spacer(modifier = Modifier.width(16.dp))
             
             Column(modifier = Modifier.weight(1f)) {
-                Text(witness.name, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Bold)
-                Text(witness.email, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                Text(
+                    witness.name, 
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontFamily = theme.fontFamily,
+                        fontWeight = FontWeight.Bold
+                    ), 
+                    color = theme.contentColor
+                )
+                Text(witness.email, style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
             }
 
             val (statusColor, statusText) = when (witness.status) {
@@ -299,7 +316,8 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit, onReview: () -> Un
 
 @Composable
 fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boolean, Boolean, String?) -> Unit) {
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var requestPrompt by remember { mutableStateOf("") }
@@ -308,8 +326,14 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundSecondary,
-        title = { Text("Inviter un témoin", color = TextPrimary, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif)) },
+        containerColor = theme.backgroundColor,
+        title = { 
+            Text(
+                "Inviter un témoin", 
+                color = theme.contentColor, 
+                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold)
+            ) 
+        },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -320,19 +344,33 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                     onValueChange = { name = it },
                     label = { Text("Nom complet") },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedLabelColor = accent,
+                        unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
+                    )
                 )
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email") },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedLabelColor = accent,
+                        unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
+                    )
                 )
 
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("ORIENTATION DU TÉMOIGNAGE", style = MaterialTheme.typography.labelSmall, color = accent)
+                        Text("ORIENTATION DU TÉMOIGNAGE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                         Spacer(modifier = Modifier.width(8.dp))
                         com.example.phoenx.ui.components.InfoPoint(
                             title = "Guider le témoin",
@@ -346,7 +384,12 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                         placeholder = { Text("Ex: Quel est ton souvenir le plus drôle avec moi ?", fontSize = 14.sp) },
                         modifier = Modifier.fillMaxWidth(),
                         maxLines = 3,
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
+                        )
                     )
                 }
                 
@@ -357,7 +400,7 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                             onCheckedChange = { allowRead = it },
                             colors = CheckboxDefaults.colors(checkedColor = accent)
                         )
-                        Text("M'autoriser à lire ce témoignage de mon vivant", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        Text("M'autoriser à lire ce témoignage de mon vivant", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -366,7 +409,7 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                             onCheckedChange = { allowReject = it },
                             colors = CheckboxDefaults.colors(checkedColor = accent)
                         )
-                        Text("Droit de regard : pouvoir refuser le témoignage si inapproprié", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        Text("Droit de regard : pouvoir refuser le témoignage si inapproprié", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
                     }
                 }
             }
@@ -377,12 +420,12 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                 enabled = name.isNotBlank() && email.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Envoyer l'invitation", color = BackgroundPrimary)
+                Text("Envoyer l'invitation", color = theme.backgroundColor)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler", color = TextPrimary)
+                Text("Annuler", color = theme.contentColor)
             }
         }
     )

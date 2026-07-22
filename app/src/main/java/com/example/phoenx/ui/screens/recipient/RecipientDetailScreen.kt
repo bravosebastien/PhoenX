@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,26 +49,36 @@ fun RecipientDetailScreen(
     val portraitEntry by viewModel.getPortraitForRecipient(recipientId).collectAsState(initial = null)
     val linkedEntries by viewModel.getEntriesForRecipient(recipientId).collectAsState(initial = emptyList())
     
-    val accent = LocalAccentColor.current
-    val backgroundBrush = LocalBackgroundBrush.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     Scaffold(
-        containerColor = Color.Transparent,
-        modifier = Modifier.background(backgroundBrush),
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text(recipient?.name ?: "Détails", style = MaterialTheme.typography.labelLarge) },
+                title = { 
+                    Text(
+                        recipient?.name ?: "Détails", 
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontFamily = theme.fontFamily,
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = theme.backgroundColor,
+                    titleContentColor = theme.contentColor
+                )
             )
         }
     ) { padding ->
         if (recipient == null) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = accent)
             }
         } else {
@@ -75,6 +86,7 @@ fun RecipientDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
+                    .background(theme.backgroundColor)
                     .verticalScroll(rememberScrollState())
                     .padding(24.dp)
             ) {
@@ -89,7 +101,14 @@ fun RecipientDetailScreen(
                     }
                     Spacer(modifier = Modifier.width(20.dp))
                     Column {
-                        Text(recipient.name, style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                        Text(
+                            recipient.name, 
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontFamily = theme.fontFamily,
+                                fontWeight = FontWeight.Bold
+                            ), 
+                            color = theme.contentColor
+                        )
                         Text(recipient.relationship, style = MaterialTheme.typography.labelSmall, color = accent)
                     }
                 }
@@ -97,13 +116,18 @@ fun RecipientDetailScreen(
                 Spacer(modifier = Modifier.height(40.dp))
 
                 // ÉTAT DU PORTRAIT
-                Text("SON PORTRAIT (LE MIROIR)", style = MaterialTheme.typography.labelSmall, color = TextSecondary, letterSpacing = 2.sp)
+                Text(
+                    "SON PORTRAIT (LE MIROIR)", 
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                    color = theme.contentColor.copy(alpha = 0.4f), 
+                    letterSpacing = 2.sp
+                )
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Card(
                     onClick = { onComposePortrait(recipient.id) },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.4f)),
+                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                     shape = MaterialTheme.shapes.large,
                     border = androidx.compose.foundation.BorderStroke(1.dp, if (portraitEntry != null) Success.copy(alpha = 0.3f) else accent.copy(alpha = 0.2f))
                 ) {
@@ -117,14 +141,16 @@ fun RecipientDetailScreen(
                         Column {
                             Text(
                                 text = if (portraitEntry != null) "Portrait complété" else "Portrait non commencé",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = TextPrimary,
-                                fontWeight = FontWeight.Bold
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    fontFamily = theme.fontFamily,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = theme.contentColor
                             )
                             Text(
                                 text = if (portraitEntry != null) "Clique pour modifier tes mots." else "Dis-lui ce que tu vois en lui/elle.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = TextSecondary
+                                color = theme.contentColor.copy(alpha = 0.6f)
                             )
                         }
                     }
@@ -132,23 +158,35 @@ fun RecipientDetailScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                Text("CONTENUS LIÉS (${linkedEntries.filter { it.entryType != "PORTRAIT" }.size})", style = MaterialTheme.typography.labelSmall, color = TextSecondary, letterSpacing = 2.sp)
+                Text(
+                    "CONTENUS LIÉS (${linkedEntries.filter { it.entryType != "PORTRAIT" }.size})", 
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                    color = theme.contentColor.copy(alpha = 0.4f), 
+                    letterSpacing = 2.sp
+                )
                 Spacer(modifier = Modifier.height(16.dp))
 
                 if (linkedEntries.none { it.entryType != "PORTRAIT" }) {
-                    // ... (rest of the code)
+                    Text(
+                        "Aucun souvenir spécifiquement alloué.",
+                        style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                        color = theme.contentColor.copy(alpha = 0.4f)
+                    )
                 } else {
-                    // ... (rest of the code)
                     linkedEntries.filter { it.entryType != "PORTRAIT" }.take(3).forEach { entry ->
-                        // (Petit aperçu limité à 3)
                         Card(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                            colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.2f))
+                            colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
                         ) {
                             Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Mail, null, tint = TextTertiary, modifier = Modifier.size(14.dp))
+                                Icon(Icons.Default.Mail, null, tint = theme.contentColor.copy(alpha = 0.2f), modifier = Modifier.size(14.dp))
                                 Spacer(modifier = Modifier.width(12.dp))
-                                Text(entry.aiSummary.ifEmpty { "Souvenir" }, style = MaterialTheme.typography.bodySmall, color = TextPrimary)
+                                Text(
+                                    entry.aiSummary.ifEmpty { "Souvenir" }, 
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = theme.fontFamily), 
+                                    color = theme.contentColor
+                                )
                             }
                         }
                     }
@@ -157,7 +195,7 @@ fun RecipientDetailScreen(
                         onClick = { navController.navigate(Screen.RecipientAllocation.createRoute(recipient.id)) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Voir la fiche héritier complète →", color = accent, fontSize = 13.sp)
+                        Text("Voir la fiche héritier complète →", color = accent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -166,12 +204,12 @@ fun RecipientDetailScreen(
                 Button(
                     onClick = { onNavigateToPermissions(recipient.id) },
                     modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard),
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                     border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.5f))
                 ) {
                     Icon(Icons.Default.Security, null, tint = accent)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("Gérer les droits d'accès", color = TextPrimary)
+                    Text("Gérer les droits d'accès", color = theme.contentColor, fontWeight = FontWeight.Bold)
                 }
                 
                 Spacer(modifier = Modifier.height(40.dp))

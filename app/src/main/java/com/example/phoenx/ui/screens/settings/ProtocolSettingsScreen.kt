@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -23,6 +24,8 @@ fun ProtocolSettingsScreen(
     viewModel: ProtocolViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val snackbarHostState = remember { SnackbarHostState() }
     
     var name by remember { mutableStateOf("") }
@@ -60,14 +63,22 @@ fun ProtocolSettingsScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Protocole d'activation", style = MaterialTheme.typography.labelLarge) },
+                title = { 
+                    Text(
+                        "Protocole d'activation", 
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontFamily = theme.fontFamily,
+                            fontWeight = FontWeight.Bold
+                        )
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = theme.contentColor)
                     }
                 },
                 actions = {
@@ -76,7 +87,10 @@ fun ProtocolSettingsScreen(
                         content = "C'est ici que tout se joue. Le dépositaire est la seule personne qui pourra confirmer votre départ pour ouvrir l'accès à vos souvenirs. Le délai de contestation est votre sécurité pour annuler une fausse alerte."
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = theme.backgroundColor,
+                    titleContentColor = theme.contentColor
+                )
             )
         }
     ) { padding ->
@@ -89,32 +103,44 @@ fun ProtocolSettingsScreen(
         ) {
             Text(
                 "Gère ton héritage",
-                style = MaterialTheme.typography.displaySmall,
-                color = TextPrimary
+                style = MaterialTheme.typography.displaySmall.copy(
+                    fontFamily = theme.fontFamily,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = theme.contentColor
             )
             
             Spacer(modifier = Modifier.height(24.dp))
 
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-                shape = MaterialTheme.shapes.large
+                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                shape = MaterialTheme.shapes.large,
+                border = BorderStroke(1.dp, accent.copy(alpha = 0.1f))
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text("STATUT ACTUEL", style = MaterialTheme.typography.labelSmall, color = Success)
-                    Text(uiState.status, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Bold)
+                    Text(uiState.status, style = MaterialTheme.typography.bodyLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text("LA PERSONNE DE CONFIANCE", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Text("LA PERSONNE DE CONFIANCE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
                 label = { Text("Nom complet") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                    focusedLabelColor = accent,
+                    unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                    focusedTextColor = theme.contentColor,
+                    unfocusedTextColor = theme.contentColor
+                )
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -123,7 +149,15 @@ fun ProtocolSettingsScreen(
                 value = email,
                 onValueChange = { email = it },
                 label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                    focusedLabelColor = accent,
+                    unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                    focusedTextColor = theme.contentColor,
+                    unfocusedTextColor = theme.contentColor
+                )
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -132,17 +166,25 @@ fun ProtocolSettingsScreen(
                 value = phone,
                 onValueChange = { phone = it },
                 label = { Text("Téléphone") },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                    focusedLabelColor = accent,
+                    unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                    focusedTextColor = theme.contentColor,
+                    unfocusedTextColor = theme.contentColor
+                )
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text("DÉLAI DE CONTESTATION", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Text("DÉLAI DE CONTESTATION", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 "Temps dont tu disposeras pour annuler une activation par erreur.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
+                color = theme.contentColor.copy(alpha = 0.6f)
             )
             
             Slider(
@@ -151,9 +193,9 @@ fun ProtocolSettingsScreen(
                 enabled = !uiState.isLoading,
                 valueRange = 24f..72f,
                 steps = 2,
-                colors = SliderDefaults.colors(thumbColor = AccentPrimary, activeTrackColor = AccentPrimary)
+                colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent)
             )
-            Text("${threshold.toInt()} heures", style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Bold)
+            Text("${threshold.toInt()} heures", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(48.dp))
 
@@ -161,12 +203,12 @@ fun ProtocolSettingsScreen(
                 onClick = { viewModel.saveProtocol(name, email, phone, threshold.toInt()) },
                 enabled = !uiState.isLoading && name.isNotBlank() && email.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
                 if (uiState.isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BackgroundPrimary, strokeWidth = 2.dp)
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = theme.backgroundColor, strokeWidth = 2.dp)
                 } else {
-                    Text("Enregistrer les réglages", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                    Text("Enregistrer les réglages", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -175,7 +217,7 @@ fun ProtocolSettingsScreen(
             Text(
                 "Note : Ce protocole est moral et privé. Il ne remplace pas les dispositions légales de succession.",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextTertiary,
+                color = theme.contentColor.copy(alpha = 0.4f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )

@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.recipient
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -33,37 +34,49 @@ fun RecipientScreen(
     viewModel: RecipientViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var showAddDialog by remember { mutableStateOf(false) }
     var recipientToDelete by remember { mutableStateOf<RecipientEntity?>(null) }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Mon Cercle", style = MaterialTheme.typography.displaySmall) },
+                title = { 
+                    Text(
+                        "Mon Cercle", 
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontFamily = theme.fontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp
+                        )
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = theme.backgroundColor,
+                    titleContentColor = theme.contentColor
+                )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = AccentPrimary,
-                contentColor = BackgroundPrimary
+                containerColor = accent,
+                contentColor = theme.backgroundColor
             ) {
                 Icon(Icons.Default.Add, null)
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.radialGradient(listOf(BackgroundSecondary, BackgroundPrimary), radius = 2000f)
-        )) {
+        Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
             when (val state = uiState) {
-                is RecipientUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                is RecipientUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
                 is RecipientUiState.Success -> {
                     if (state.recipients.isEmpty()) {
                         EmptyRecipients(modifier = Modifier.padding(padding))
@@ -89,9 +102,9 @@ fun RecipientScreen(
         if (recipientToDelete != null) {
             AlertDialog(
                 onDismissRequest = { recipientToDelete = null },
-                containerColor = BackgroundSecondary,
-                title = { Text("Supprimer ce proche ?", color = TextPrimary) },
-                text = { Text("Veux-tu vraiment retirer ${recipientToDelete?.name} de ton Cercle de Confiance ? Cette personne n'aura plus accès à ton héritage.", color = TextSecondary) },
+                containerColor = theme.backgroundColor,
+                title = { Text("Supprimer ce proche ?", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
+                text = { Text("Veux-tu vraiment retirer ${recipientToDelete?.name} de ton Cercle de Confiance ? Cette personne n'aura plus accès à ton héritage.", color = theme.contentColor.copy(alpha = 0.7f)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -104,7 +117,7 @@ fun RecipientScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { recipientToDelete = null }) {
-                        Text("Annuler", color = TextSecondary)
+                        Text("Annuler", color = theme.contentColor)
                     }
                 }
             )
@@ -124,27 +137,37 @@ fun RecipientScreen(
 
 @Composable
 fun RecipientCard(recipient: RecipientEntity, onDelete: () -> Unit, onClick: () -> Unit) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).phoenXMatiere(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-        shape = MaterialTheme.shapes.large
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+        shape = MaterialTheme.shapes.large,
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(
-                color = AccentPrimary.copy(alpha = 0.1f),
+                color = accent.copy(alpha = 0.1f),
                 shape = androidx.compose.foundation.shape.CircleShape,
                 modifier = Modifier.size(48.dp)
             ) {
-                Icon(Icons.Default.Person, null, tint = AccentPrimary, modifier = Modifier.padding(12.dp))
+                Icon(Icons.Default.Person, null, tint = accent, modifier = Modifier.padding(12.dp))
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(recipient.name, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Bold)
-                Text(recipient.relationship, style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
-                Text(recipient.email, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                Text(
+                    recipient.name, 
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontFamily = theme.fontFamily,
+                        fontWeight = FontWeight.Bold
+                    ), 
+                    color = theme.contentColor
+                )
+                Text(recipient.relationship, style = MaterialTheme.typography.labelSmall, color = accent)
+                Text(recipient.email, style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, null, tint = TextTertiary.copy(alpha = 0.5f))
+                Icon(Icons.Default.Delete, null, tint = Error.copy(alpha = 0.7f))
             }
         }
     }
@@ -164,6 +187,8 @@ fun EmptyRecipients(modifier: Modifier = Modifier) {
 
 @Composable
 fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) -> Unit) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var relationship by remember { mutableStateOf("") }
@@ -172,27 +197,51 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
     if (!showInvitationConfirm) {
         AlertDialog(
             onDismissRequest = onDismiss,
-            containerColor = BackgroundSecondary,
-            title = { Text("Ajouter un proche", color = TextPrimary) },
+            containerColor = theme.backgroundColor,
+            title = { Text("Ajouter un proche", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
                         label = { Text("Nom complet") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                            focusedLabelColor = accent,
+                            unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
+                        )
                     )
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
                         label = { Text("Email") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                            focusedLabelColor = accent,
+                            unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
+                        )
                     )
                     OutlinedTextField(
                         value = relationship,
                         onValueChange = { relationship = it },
                         label = { Text("Lien (ex: Fils, Épouse...)") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                            focusedLabelColor = accent,
+                            unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
+                        )
                     )
                 }
             },
@@ -200,42 +249,42 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
                 Button(
                     onClick = { showInvitationConfirm = true },
                     enabled = name.isNotEmpty() && email.isNotEmpty(),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Suivant", color = BackgroundPrimary)
+                    Text("Suivant", color = theme.backgroundColor)
                 }
             },
             dismissButton = {
                 TextButton(onClick = onDismiss) {
-                    Text("Annuler", color = TextSecondary)
+                    Text("Annuler", color = theme.contentColor)
                 }
             }
         )
     } else {
         AlertDialog(
             onDismissRequest = { showInvitationConfirm = false },
-            containerColor = BackgroundSecondary,
-            title = { Text("Confirmer l'invitation", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif), color = TextPrimary) },
+            containerColor = theme.backgroundColor,
+            title = { Text("Confirmer l'invitation", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
             text = {
                 Column {
                     Text(
                         "Un email va être envoyé à $name pour l'informer qu'il/elle fait partie des personnes que tu as choisies dans PHOEN-X. Veux-tu continuer ?",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary
+                        color = theme.contentColor.copy(alpha = 0.7f)
                     )
                     Spacer(modifier = Modifier.height(24.dp))
                     Surface(
-                        color = SurfaceCard,
+                        color = theme.contentColor.copy(alpha = 0.05f),
                         shape = MaterialTheme.shapes.medium,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
-                            Text("APERÇU DE L'EMAIL", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+                            Text("APERÇU DE L'EMAIL", style = MaterialTheme.typography.labelSmall, color = accent)
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 "$name vient d'être ajouté(e) par ton proche.\nTu fais partie des personnes choisies pour recevoir son héritage PHOEN-X.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = TextPrimary,
+                                color = theme.contentColor,
                                 fontStyle = FontStyle.Italic
                             )
                         }
@@ -245,14 +294,14 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
             confirmButton = {
                 Button(
                     onClick = { onConfirm(name, email, relationship) },
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Envoyer l'invitation", color = BackgroundPrimary)
+                    Text("Envoyer l'invitation", color = theme.backgroundColor)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showInvitationConfirm = false }) {
-                    Text("Retour", color = TextSecondary)
+                    Text("Retour", color = theme.contentColor)
                 }
             }
         )

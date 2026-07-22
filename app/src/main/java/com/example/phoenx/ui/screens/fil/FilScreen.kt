@@ -349,7 +349,26 @@ fun TimelineEntryItem(
                     Spacer(modifier = Modifier.width(8.dp))
                     
                     Column {
-                        Text(text = entry.type.name, style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f), letterSpacing = 1.sp)
+                        val typeLabel = when(entry.type) {
+                            EntryType.THOUGHT -> "Pensée"
+                            EntryType.EMOTION -> "Émotion"
+                            EntryType.LEGACY -> "Héritage"
+                            EntryType.PHOTO -> "Photo"
+                            EntryType.AUDIO -> "Audio"
+                            EntryType.VIDEO -> "Vidéo"
+                            EntryType.PORTRAIT -> "Portrait"
+                            EntryType.QUESTION_ANSWER -> "Question"
+                            EntryType.NIGHT_CAPTURE -> "Nuit"
+                        }
+                        Text(
+                            text = typeLabel, 
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Black, // Force le gras maximum
+                                fontFamily = theme.fontFamily
+                            ), 
+                            color = theme.contentColor, // Couleur pleine (alpha 1.0)
+                            letterSpacing = 1.sp
+                        )
                         Text(text = "Créé le $formattedDate", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = theme.contentColor.copy(alpha = 0.3f))
                     }
                     

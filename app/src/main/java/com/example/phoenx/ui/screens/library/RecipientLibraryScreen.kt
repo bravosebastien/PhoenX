@@ -20,6 +20,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -86,11 +87,11 @@ fun RecipientLibraryScreen(
             }
             Text(
                 text = "Ma Bibliothèque",
-                style = MaterialTheme.typography.headlineSmall.copy(
+                style = TextStyle(
                     fontFamily = theme.fontFamily, 
                     fontStyle = FontStyle.Italic, 
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Black // Force Black pour être sûr
                 ),
                 color = theme.contentColor
             )
@@ -314,11 +315,11 @@ fun EssentialCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         title, 
-                        style = MaterialTheme.typography.bodyLarge.copy(
+                        style = TextStyle(
                             fontFamily = theme.fontFamily, 
                             fontStyle = FontStyle.Italic, 
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.ExtraBold // Passage à ExtraBold
                         ), 
                         color = theme.contentColor
                     )
@@ -436,9 +437,14 @@ fun CompartmentCard(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     name, 
-                    style = MaterialTheme.typography.labelSmall.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontSize = 10.sp, fontWeight = FontWeight.Bold), 
-                    color = theme.contentColor,
-                    textAlign = TextAlign.Center
+                    style = TextStyle(
+                        fontFamily = theme.fontFamily, 
+                        fontStyle = FontStyle.Italic, 
+                        fontSize = 11.sp, 
+                        fontWeight = FontWeight.Black, // Force Black
+                        textAlign = TextAlign.Center
+                    ), 
+                    color = theme.contentColor
                 )
                 if (subtitle != null) {
                     Text(

@@ -32,6 +32,8 @@ object BookThemeOptions {
         BookBackgroundOption("classic_ivory", "Ivoire", Color(0xFFFFFDF5), true),
         BookBackgroundOption("antique_parchment", "Parchemin", Color(0xFFF5F2E1), true),
         BookBackgroundOption("natural_linen", "Lin", Color(0xFFE8E4D8), true),
+        BookBackgroundOption("mist_gray", "Brume", Color(0xFFF0F0F0), true),
+        BookBackgroundOption("ash_gray", "Cendré", Color(0xFFDCDCDC), true),
         BookBackgroundOption("velvet_night", "Nuit", Color(0xFF121212), false),
         BookBackgroundOption("dusty_rose", "Poudré", Color(0xFFF2E9E4), true),
         BookBackgroundOption("midnight_forest", "Forêt", Color(0xFF0D1B1E), false)

@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.settings
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,11 +34,13 @@ fun NotificationContactsScreen(
 ) {
     val contacts by viewModel.contacts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var showAddDialog by remember { mutableStateOf(false) }
     var contactToDelete by remember { mutableStateOf<NotificationContactEntity?>(null) }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = {
@@ -49,10 +52,11 @@ fun NotificationContactsScreen(
                         Text(
                             "Contacts à prévenir",
                             style = MaterialTheme.typography.headlineSmall.copy(
-                                fontFamily = FontFamily.Serif,
-                                fontSize = 22.sp
+                                fontFamily = theme.fontFamily,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold
                             ),
-                            color = TextPrimary
+                            color = theme.contentColor
                         )
                         InfoButton(
                             title = "Contacts à prévenir",
@@ -68,10 +72,13 @@ fun NotificationContactsScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = theme.backgroundColor,
+                    titleContentColor = theme.contentColor
+                )
             )
         }
     ) { padding ->
@@ -84,7 +91,7 @@ fun NotificationContactsScreen(
             Text(
                 text = "Ces personnes recevront un email sobre au moment de ton départ. Elles n'auront pas accès à ton héritage — juste une information, avec dignité.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.7f),
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
@@ -93,10 +100,10 @@ fun NotificationContactsScreen(
                     Text(
                         "Aucun contact ajouté pour l'instant.",
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            fontFamily = FontFamily.Serif,
+                            fontFamily = theme.fontFamily,
                             fontStyle = FontStyle.Italic
                         ),
-                        color = TextTertiary,
+                        color = theme.contentColor.copy(alpha = 0.4f),
                         modifier = Modifier.fillMaxWidth().align(Alignment.Center),
                         textAlign = TextAlign.Center
                     )
@@ -117,7 +124,7 @@ fun NotificationContactsScreen(
                 if (isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = AccentPrimary
+                        color = accent
                     )
                 }
             }
@@ -128,16 +135,16 @@ fun NotificationContactsScreen(
                 onClick = { showAddDialog = true },
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AccentPrimary,
-                    disabledContainerColor = AccentPrimary.copy(alpha = 0.3f)
+                    containerColor = accent,
+                    disabledContainerColor = accent.copy(alpha = 0.3f)
                 ),
                 enabled = contacts.size < 2 && !isLoading,
                 shape = RoundedCornerShape(12.dp)
             ) {
                 if (contacts.size >= 2) {
-                    Text("Maximum 2 contacts atteint.", color = BackgroundPrimary)
+                    Text("Maximum 2 contacts atteint.", color = theme.backgroundColor)
                 } else {
-                    Text("+ Ajouter un contact", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                    Text("+ Ajouter un contact", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -180,29 +187,38 @@ fun NotificationContactsScreen(
 
 @Composable
 fun ContactCard(contact: NotificationContactEntity, onDelete: () -> Unit) {
+    val theme = LocalAppTheme.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-        shape = RoundedCornerShape(12.dp)
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(contact.name, style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
-                Text(contact.email, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                Text(
+                    contact.name, 
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontFamily = theme.fontFamily,
+                        fontWeight = FontWeight.Bold
+                    ), 
+                    color = theme.contentColor
+                )
+                Text(contact.email, style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
                 if (contact.relationship.isNotBlank()) {
                     Text(
                         contact.relationship,
                         style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
-                        color = TextTertiary,
+                        color = theme.accentColor,
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, null, tint = Error)
+                Icon(Icons.Default.Delete, null, tint = Error.copy(alpha = 0.7f))
             }
         }
     }
@@ -210,6 +226,8 @@ fun ContactCard(contact: NotificationContactEntity, onDelete: () -> Unit) {
 
 @Composable
 fun AddContactDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) -> Unit) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var relationship by remember { mutableStateOf("") }
@@ -219,12 +237,16 @@ fun AddContactDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) 
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundSecondary,
+        containerColor = theme.backgroundColor,
         title = {
             Text(
                 "Nouveau contact",
-                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontSize = 20.sp),
-                color = TextPrimary
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontFamily = theme.fontFamily, 
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = theme.contentColor
             )
         },
         text = {
@@ -234,7 +256,14 @@ fun AddContactDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) 
                     onValueChange = { name = it },
                     label = { Text("Nom complet") },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentPrimary)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedLabelColor = accent,
+                        unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
+                    )
                 )
                 OutlinedTextField(
                     value = email,
@@ -242,14 +271,28 @@ fun AddContactDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) 
                     label = { Text("Email") },
                     modifier = Modifier.fillMaxWidth(),
                     isError = email.isNotBlank() && !isEmailValid,
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentPrimary)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedLabelColor = accent,
+                        unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
+                    )
                 )
                 OutlinedTextField(
                     value = relationship,
                     onValueChange = { relationship = it },
                     label = { Text("Lien (ex: Fils, Ami...)") },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentPrimary)
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedLabelColor = accent,
+                        unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
+                    )
                 )
             }
         },
@@ -257,14 +300,14 @@ fun AddContactDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) 
             Button(
                 onClick = { onConfirm(name, email, relationship) },
                 enabled = canAdd,
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Ajouter", color = BackgroundPrimary)
+                Text("Ajouter", color = theme.backgroundColor)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler", color = TextSecondary)
+                Text("Annuler", color = theme.contentColor)
             }
         }
     )
