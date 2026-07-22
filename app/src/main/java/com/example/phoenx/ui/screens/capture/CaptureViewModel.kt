@@ -61,6 +61,13 @@ class CaptureViewModel @Inject constructor(
     private val _recipients = MutableStateFlow<List<RecipientEntity>>(emptyList())
     val recipients: StateFlow<List<RecipientEntity>> = _recipients.asStateFlow()
 
+    // Personnes citées (v8.8)
+    private val _suggestedPersons = MutableStateFlow<List<com.example.phoenx.data.local.PersonEntity>>(emptyList())
+    val suggestedPersons: StateFlow<List<com.example.phoenx.data.local.PersonEntity>> = _suggestedPersons.asStateFlow()
+
+    private val _selectedPersons = MutableStateFlow<List<com.example.phoenx.data.local.PersonEntity>>(emptyList())
+    val selectedPersons: StateFlow<List<com.example.phoenx.data.local.PersonEntity>> = _selectedPersons.asStateFlow()
+
     // Vocal
     val isSttListening = sttManager.isListening
     val sttPartialText = sttManager.partialText
@@ -155,6 +162,49 @@ class CaptureViewModel @Inject constructor(
 
     fun appendTranscript(text: String) {
         _transcript.value = text
+    }
+
+    // --- GESTION DES PERSONNES (v8.8) ---
+
+    fun searchPersons(query: String) {
+        if (query.isBlank()) {
+            _suggestedPersons.value = emptyList()
+            return
+        }
+        viewModelScope.launch {
+            _suggestedPersons.value = offlineEntryDao.searchPersonsByFirstName(query)
+        }
+    }
+
+    fun selectPerson(person: com.example.phoenx.data.local.PersonEntity) {
+        if (!_selectedPersons.value.any { it.id == person.id }) {
+            _selectedPersons.value = _selectedPersons.value + person
+        }
+        _suggestedPersons.value = emptyList()
+    }
+
+    fun removePerson(personId: String) {
+        _selectedPersons.value = _selectedPersons.value.filter { it.id != personId }
+    }
+
+    fun createAndSelectPerson(
+        firstName: String,
+        lastName: String?,
+        relationship: String?,
+        distinctionType: String?,
+        distinctionValue: String?
+    ) {
+        viewModelScope.launch {
+            val newPerson = com.example.phoenx.data.local.PersonEntity(
+                firstName = firstName,
+                lastName = lastName,
+                relationship = relationship,
+                distinctionType = distinctionType,
+                distinctionValue = distinctionValue
+            )
+            offlineEntryDao.insertPerson(newPerson)
+            selectPerson(newPerson)
+        }
     }
 
     private var currentAudioFile: File? = null
@@ -289,6 +339,7 @@ class CaptureViewModel @Inject constructor(
                     emotionalCategory = category,
                     visibility = visibility,
                     recipientIds = recipientIds.joinToString(","),
+                    personIds = selectedPersons.value.map { it.id }.joinToString(","), // v8.8
                     isYoungSelfLetter = isYoungSelfLetter,
                     targetAge = targetAge,
                     createdAt = System.currentTimeMillis(),

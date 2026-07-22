@@ -57,6 +57,22 @@ interface OfflineEntryDao {
     @Delete
     suspend fun deleteRecipient(recipient: RecipientEntity)
 
+    // Persons (v8.8)
+    @Query("SELECT * FROM persons ORDER BY firstName ASC")
+    fun getAllPersons(): Flow<List<PersonEntity>>
+
+    @Query("SELECT * FROM persons WHERE firstName LIKE :query || '%'")
+    suspend fun searchPersonsByFirstName(query: String): List<PersonEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPerson(person: PersonEntity)
+
+    @Delete
+    suspend fun deletePerson(person: PersonEntity)
+
+    @Query("SELECT * FROM persons WHERE id IN (:ids)")
+    suspend fun getPersonsByIds(ids: List<String>): List<PersonEntity>
+
     // Witnesses
     @Query("SELECT * FROM witnesses ORDER BY name ASC")
     fun getAllWitnesses(): Flow<List<WitnessEntity>>
@@ -175,4 +191,7 @@ interface OfflineEntryDao {
 
     @Query("UPDATE offline_entries SET creatorUid = :uid WHERE creatorUid = '' OR creatorUid IS NULL")
     suspend fun repairEmptyCreatorUids(uid: String): Int
+
+    @Query("UPDATE offline_entries SET personIds = :newPersonIds WHERE id = :entryId")
+    suspend fun updateEntryPersons(newPersonIds: String, entryId: String): Int
 }

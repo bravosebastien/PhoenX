@@ -107,4 +107,11 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN questionId TEXT")
         }
     }
+
+    val MIGRATION_22_23 = object : Migration(22, 23) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN personIds TEXT NOT NULL DEFAULT ''")
+            db.execSQL("CREATE TABLE IF NOT EXISTS `persons` (`id` TEXT NOT NULL, `firstName` TEXT NOT NULL, `lastName` TEXT, `relationship` TEXT, `distinctionType` TEXT, `distinctionValue` TEXT, `createdAt` INTEGER NOT NULL, `syncStatus` TEXT NOT NULL, PRIMARY KEY(`id`))")
+        }
+    }
 }

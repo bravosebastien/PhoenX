@@ -13,8 +13,9 @@ import androidx.room.RoomDatabase
     LegacyEntity::class, 
     PactEntity::class,
     WitnessEntity::class,
-    NotificationContactEntity::class
-], version = 22, exportSchema = false)
+    NotificationContactEntity::class,
+    PersonEntity::class
+], version = 23, exportSchema = false)
 abstract class PhoenXDatabase : RoomDatabase() {
     abstract fun offlineEntryDao(): OfflineEntryDao
 }

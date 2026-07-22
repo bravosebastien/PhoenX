@@ -131,6 +131,8 @@ fun CaptureScreen(
     val isSttListening by viewModel.isSttListening.collectAsState()
     val sttPartialText by viewModel.sttPartialText.collectAsState()
     val transcript by viewModel.transcript.collectAsState()
+    val suggestedPersons by viewModel.suggestedPersons.collectAsState()
+    val selectedPersons by viewModel.selectedPersons.collectAsState()
 
     LaunchedEffect(transcript) {
         if (transcript.isNotEmpty()) {
@@ -354,7 +356,13 @@ fun CaptureScreen(
                                 recipients = recipients,
                                 selectedRecipientIds = selectedRecipientIds,
                                 visibility = visibility,
-                                onVisibilityChange = { visibility = it }
+                                onVisibilityChange = { visibility = it },
+                                selectedPersons = selectedPersons,
+                                suggestedPersons = suggestedPersons,
+                                onSearchPersons = { viewModel.searchPersons(it) },
+                                onSelectPerson = { viewModel.selectPerson(it) },
+                                onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
+                                onRemovePerson = { viewModel.removePerson(it) }
                             )
                         }
                         Screen.Capture.TYPE_PHOTO -> {
@@ -368,7 +376,13 @@ fun CaptureScreen(
                                 recipients = recipients,
                                 selectedRecipientIds = selectedRecipientIds,
                                 visibility = visibility,
-                                onVisibilityChange = { visibility = it }
+                                onVisibilityChange = { visibility = it },
+                                selectedPersons = selectedPersons,
+                                suggestedPersons = suggestedPersons,
+                                onSearchPersons = { viewModel.searchPersons(it) },
+                                onSelectPerson = { viewModel.selectPerson(it) },
+                                onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
+                                onRemovePerson = { viewModel.removePerson(it) }
                             )
                         }
                         Screen.Capture.TYPE_GALLERY -> {
@@ -385,7 +399,13 @@ fun CaptureScreen(
                                 isListening = false,
                                 onMicClick = { },
                                 preselectedName = preselectedName,
-                                galleryUri = selectedGalleryUri
+                                galleryUri = selectedGalleryUri,
+                                selectedPersons = selectedPersons,
+                                suggestedPersons = suggestedPersons,
+                                onSearchPersons = { viewModel.searchPersons(it) },
+                                onSelectPerson = { viewModel.selectPerson(it) },
+                                onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
+                                onRemovePerson = { viewModel.removePerson(it) }
                             )
                         }
                         else -> {
@@ -407,7 +427,13 @@ fun CaptureScreen(
                                 preselectedName = preselectedName,
                                 galleryUri = selectedGalleryUri,
                                 isComplement = parentEntryId != null,
-                                initialType = initialType // v8.4
+                                initialType = initialType, // v8.4
+                                selectedPersons = selectedPersons,
+                                suggestedPersons = suggestedPersons,
+                                onSearchPersons = { viewModel.searchPersons(it) },
+                                onSelectPerson = { viewModel.selectPerson(it) },
+                                onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
+                                onRemovePerson = { viewModel.removePerson(it) }
                             )
                         }
                     }
@@ -675,7 +701,14 @@ fun PhotoCaptureContent(
     recipients: List<com.example.phoenx.data.local.RecipientEntity> = emptyList(),
     selectedRecipientIds: MutableList<String>,
     visibility: String,
-    onVisibilityChange: (String) -> Unit
+    onVisibilityChange: (String) -> Unit,
+    // Personnes citées (v8.8)
+    selectedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
+    suggestedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
+    onSearchPersons: (String) -> Unit = {},
+    onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
+    onCreatePerson: (String, String?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> },
+    onRemovePerson: (String) -> Unit = {}
 ) {
     val context = LocalContext.current
     val accent = LocalAccentColor.current
@@ -784,6 +817,19 @@ fun PhotoCaptureContent(
                         onVisibilityChange = onVisibilityChange,
                         accent = LocalAccentColor.current
                     )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // v8.8 : Personnes citées
+                    com.example.phoenx.ui.components.PersonSelector(
+                        selectedPersons = selectedPersons,
+                        suggestedPersons = suggestedPersons,
+                        onSearch = onSearchPersons,
+                        onSelect = onSelectPerson,
+                        onCreate = onCreatePerson,
+                        onRemove = onRemovePerson,
+                        accent = accent
+                    )
                 }
             }
         }
@@ -838,8 +884,17 @@ fun TextCaptureContent(
     preselectedName: String? = null,
     galleryUri: Uri? = null,
     isComplement: Boolean = false,
-    initialType: String = "TEXT" // v8.4
+    initialType: String = "TEXT", // v8.4
+    // Personnes citées (v8.8)
+    selectedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
+    suggestedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
+    onSearchPersons: (String) -> Unit = {},
+    onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
+    onCreatePerson: (String, String?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> },
+    onRemovePerson: (String) -> Unit = {}
 ) {
+    val accent = LocalAccentColor.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -933,7 +988,20 @@ fun TextCaptureContent(
             modifier = Modifier.padding(top = 8.dp)
         )
 
-        HorizontalDivider(color = TextTertiary.copy(alpha = 0.2f), thickness = 1.dp, modifier = Modifier.padding(vertical = 16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // v8.8 : Personnes citées
+        com.example.phoenx.ui.components.PersonSelector(
+            selectedPersons = selectedPersons,
+            suggestedPersons = suggestedPersons,
+            onSearch = onSearchPersons,
+            onSelect = onSelectPerson,
+            onCreate = onCreatePerson,
+            onRemove = onRemovePerson,
+            accent = accent
+        )
+
+        HorizontalDivider(color = TextTertiary.copy(alpha = 0.2f), thickness = 1.dp, modifier = Modifier.padding(vertical = 24.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("QUELLE TONALITÉ ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
@@ -985,7 +1053,14 @@ fun AudioCaptureContent(
     recipients: List<com.example.phoenx.data.local.RecipientEntity> = emptyList(),
     selectedRecipientIds: MutableList<String>,
     visibility: String,
-    onVisibilityChange: (String) -> Unit
+    onVisibilityChange: (String) -> Unit,
+    // Personnes citées (v8.8)
+    selectedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
+    suggestedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
+    onSearchPersons: (String) -> Unit = {},
+    onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
+    onCreatePerson: (String, String?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> },
+    onRemovePerson: (String) -> Unit = {}
 ) {
     val accent = LocalAccentColor.current
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -1071,6 +1146,19 @@ fun AudioCaptureContent(
                 selectedIds = selectedRecipientIds, 
                 visibility = visibility,
                 onVisibilityChange = onVisibilityChange,
+                accent = accent
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // v8.8 : Personnes citées
+            com.example.phoenx.ui.components.PersonSelector(
+                selectedPersons = selectedPersons,
+                suggestedPersons = suggestedPersons,
+                onSearch = onSearchPersons,
+                onSelect = onSelectPerson,
+                onCreate = onCreatePerson,
+                onRemove = onRemovePerson,
                 accent = accent
             )
 

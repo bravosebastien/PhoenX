@@ -29,14 +29,29 @@ class SyncWorker @AssistedInject constructor(
 
         // Récupération des entrées en attente
         val pendingEntries = offlineEntryDao.getPendingEntries().first()
+        val pendingPersons = offlineEntryDao.getAllPersons().first().filter { it.syncStatus == "pending" }
         
-        if (pendingEntries.isEmpty()) return Result.success()
+        if (pendingEntries.isEmpty() && pendingPersons.isEmpty()) return Result.success()
 
         val db = FirebaseFirestore.getInstance()
         var hasError = false
 
         return try {
-            // Upload réel vers Firestore
+            // 1. Synchronisation des Personnes (v8.8)
+            pendingPersons.forEach { person ->
+                try {
+                    db.collection("users").document(userId)
+                        .collection("persons").document(person.id)
+                        .set(person.toFirestoreMap())
+                        .await()
+                    offlineEntryDao.insertPerson(person.copy(syncStatus = "synced"))
+                } catch (e: Exception) {
+                    android.util.Log.e("SyncWorker", "Erreur upload pour la personne ${person.id}: ${e.message}")
+                    hasError = true
+                }
+            }
+
+            // 2. Upload réel des entrées vers Firestore
             pendingEntries.forEach { entry ->
                 try {
                     var currentMediaUrl = entry.mediaUrl

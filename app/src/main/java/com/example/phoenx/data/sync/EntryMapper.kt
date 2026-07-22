@@ -53,7 +53,19 @@ fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
         "parentEntryId" to parentEntryId,
         "enigmaHint" to enigmaHint,
         "enigmaAutoUnlockDays" to enigmaAutoUnlockDays,
-        "questionId" to questionId
+        "questionId" to questionId,
+        "personIds" to personIds.split(",").filter { it.isNotBlank() }
+    )
+}
+
+fun com.example.phoenx.data.local.PersonEntity.toFirestoreMap(): Map<String, Any?> {
+    return mapOf(
+        "prenom" to firstName,
+        "nom" to lastName,
+        "lien" to relationship,
+        "distinctionType" to distinctionType,
+        "distinctionValeur" to distinctionValue,
+        "createdAt" to createdAt
     )
 }
 
@@ -95,6 +107,7 @@ fun DocumentSnapshot.toOfflineEntry(): OfflineEntry? {
         parentEntryId = getString("parentEntryId"),
         enigmaHint = getString("enigmaHint"),
         enigmaAutoUnlockDays = getLong("enigmaAutoUnlockDays")?.toInt(),
-        questionId = getString("questionId")
+        questionId = getString("questionId"),
+        personIds = (get("personIds") as? List<*>)?.joinToString(",") ?: ""
     )
 }

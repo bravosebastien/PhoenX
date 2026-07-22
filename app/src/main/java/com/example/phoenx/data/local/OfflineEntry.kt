@@ -64,7 +64,10 @@ data class OfflineEntry(
     val enigmaAutoUnlockDays: Int? = null,
 
     // LES 100 QUESTIONS (Signature 8.5 - v22)
-    val questionId: String? = null
+    val questionId: String? = null,
+
+    // PERSONNES CITÉES (Signature 8.8 - v23)
+    val personIds: String = "" // Stocké en CSV : ,ID1,ID2,
 ) {
     fun isChild(): Boolean = parentEntryId != null
 
