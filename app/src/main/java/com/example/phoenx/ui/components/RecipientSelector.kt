@@ -121,6 +121,33 @@ fun RecipientSelector(
                             )
                         }
                     }
+                } else {
+                    // v8.6.3 : Si "Tout le monde" est actif, on affiche tout de même les noms
+                    // pour confirmer visuellement l'inclusion, mais en mode lecture seule
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        recipients.forEach { recipient ->
+                            FilterChip(
+                                selected = true,
+                                onClick = { 
+                                    // Cliquer sur un nom individuel désactive "Tout le monde" 
+                                    // et ne garde que ce destinataire
+                                    onVisibilityChange("RESTRICTED")
+                                    selectedIds.clear()
+                                    selectedIds.add(recipient.id)
+                                },
+                                label = { Text(recipient.name) },
+                                leadingIcon = { Icon(Icons.Default.Check, null, modifier = Modifier.size(14.dp)) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = accent.copy(alpha = 0.5f), 
+                                    selectedLabelColor = BackgroundPrimary
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }

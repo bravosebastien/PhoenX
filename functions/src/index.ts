@@ -1145,3 +1145,29 @@ export const becomeCreator = onCall(async (request) => {
         throw new HttpsError("internal", "Impossible de valider le statut Créateur");
     }
 });
+
+// 20. Modification d'un chapitre par l'IA (v8.6.3)
+export const modifyBookChapter = onCall({
+    secrets: ["GEMINI_API_KEY"],
+    region: "us-central1",
+    invoker: "public"
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
+
+    const { currentContent, instruction } = request.data;
+    if (!currentContent || !instruction) throw new HttpsError("invalid-argument", "Données manquantes");
+
+    const prompt = `${AI_RULES}
+    Tu es le biographe de l'utilisateur. Tu dois modifier le chapitre suivant selon ses instructions.
+    RÈGLE CRITIQUE : Conserve impérativement les balises de type [PHOTO:uuid] ou [AUDIO:uuid] à leur place ou déplace-les logiquement, mais ne les supprime JAMAIS.
+
+    Chapitre actuel : ${currentContent}
+    Instruction de l'auteur : ${instruction}
+
+    Réponds UNIQUEMENT avec le nouveau texte du chapitre.`;
+
+    const newContent = await generateWithGemini(prompt);
+    return { newContent: newContent || currentContent };
+});

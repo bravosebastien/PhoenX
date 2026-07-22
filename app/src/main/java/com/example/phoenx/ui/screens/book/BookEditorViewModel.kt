@@ -50,6 +50,12 @@ class BookEditorViewModel @Inject constructor(
     private val _userName = MutableStateFlow("")
     val userName: StateFlow<String> = _userName
 
+    private val _isSaving = MutableStateFlow(false)
+    val isSaving: StateFlow<Boolean> = _isSaving
+
+    private val _saveSuccess = MutableStateFlow(false)
+    val saveSuccess: StateFlow<Boolean> = _saveSuccess
+
     val recipients: StateFlow<List<com.example.phoenx.data.local.RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -114,34 +120,43 @@ class BookEditorViewModel @Inject constructor(
     }
 
     fun updateChapterContent(chapterId: String, newContent: String) {
-        val current = _bookDraft.value ?: return
-        val userId = auth.currentUser?.uid ?: return
-        
-        // Mise à jour de la version déchiffrée en mémoire (UI)
-        val updatedMap = _decryptedContents.value.toMutableMap()
-        updatedMap[chapterId] = newContent
-        _decryptedContents.value = updatedMap
-
         viewModelScope.launch {
             try {
-                val bookKey = bookService.getBookKey(userId)
-                val encryptedContent = bookService.encryptChapter(newContent, bookKey)
-
-                val updatedDraft = current.copy(
-                    chapters = current.chapters.map { chapter ->
-                        if (chapter.id == chapterId)
-                            chapter.copy(
-                                content = encryptedContent,
-                                status = ChapterStatus.IN_REVIEW
-                            )
-                        else chapter
-                    }
-                )
-                _bookDraft.value = updatedDraft
-                bookService.saveBookDraft(userId, updatedDraft)
+                saveChapterInternal(chapterId, newContent)
             } catch (e: Exception) {
-                android.util.Log.e("BookEditorVM", "Erreur lors du chiffrement et sauvegarde")
+                // L'erreur est logguée dans saveChapterInternal
             }
+        }
+    }
+
+    private suspend fun saveChapterInternal(chapterId: String, newContent: String) {
+        val current = _bookDraft.value ?: return
+        val userId = auth.currentUser?.uid ?: return
+
+        try {
+            // v8.6.4 : Mise à jour immédiate de la mémoire déchiffrée (UI)
+            val updatedMap = _decryptedContents.value.toMutableMap()
+            updatedMap[chapterId] = newContent
+            _decryptedContents.value = updatedMap
+
+            val bookKey = bookService.getBookKey(userId)
+            val encryptedContent = bookService.encryptChapter(newContent, bookKey)
+
+            val updatedDraft = current.copy(
+                chapters = current.chapters.map { chapter ->
+                    if (chapter.id == chapterId)
+                        chapter.copy(
+                            content = encryptedContent,
+                            status = ChapterStatus.IN_REVIEW
+                        )
+                    else chapter
+                }
+            )
+            _bookDraft.value = updatedDraft
+            bookService.saveBookDraft(userId, updatedDraft)
+        } catch (e: Exception) {
+            android.util.Log.e("BookEditorVM", "Erreur lors du chiffrement et sauvegarde: ${e.message}")
+            throw e
         }
     }
 
@@ -155,12 +170,13 @@ class BookEditorViewModel @Inject constructor(
                     currentContent = decryptedContent,
                     instruction = instruction
                 )
-                updateChapterContent(
+                saveChapterInternal(
                     chapterId,
                     newContent
                 )
+                triggerSuccess()
             } catch (e: Exception) {
-                _error.value = "L'IA n'a pas pu modifier ce chapitre."
+                _error.value = "Erreur IA : ${e.message ?: "Cause inconnue"}"
             } finally {
                 _isModifyingWithAi.value = false
             }
@@ -205,7 +221,15 @@ class BookEditorViewModel @Inject constructor(
         _bookDraft.value = updated
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
-            bookService.saveBookDraft(userId, updated)
+            _isSaving.value = true
+            try {
+                bookService.saveBookDraft(userId, updated)
+                triggerSuccess()
+            } catch (e: Exception) {
+                _error.value = "Erreur lors de la sauvegarde"
+            } finally {
+                _isSaving.value = false
+            }
         }
     }
 
@@ -215,7 +239,23 @@ class BookEditorViewModel @Inject constructor(
         _bookDraft.value = updated
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
-            bookService.saveBookDraft(userId, updated)
+            _isSaving.value = true
+            try {
+                bookService.saveBookDraft(userId, updated)
+                triggerSuccess()
+            } catch (e: Exception) {
+                _error.value = "Erreur lors de la sauvegarde"
+            } finally {
+                _isSaving.value = false
+            }
+        }
+    }
+
+    private fun triggerSuccess() {
+        viewModelScope.launch {
+            _saveSuccess.value = true
+            kotlinx.coroutines.delay(2000)
+            _saveSuccess.value = false
         }
     }
 }

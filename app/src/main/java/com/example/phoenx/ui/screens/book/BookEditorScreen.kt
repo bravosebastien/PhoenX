@@ -56,9 +56,23 @@ fun BookEditorScreen(
     val recipients by viewModel.recipients.collectAsState()
     val isModifyingWithAi by viewModel.isModifyingWithAi.collectAsState()
     val error by viewModel.error.collectAsState()
+    val isSaving by viewModel.isSaving.collectAsState()
+    val saveSuccess by viewModel.saveSuccess.collectAsState()
     val isUserCreator by viewModel.isUserCreator.collectAsState()
     val userName by viewModel.userName.collectAsState()
     var showChapterEditor by remember { mutableStateOf(false) }
+    var forceRestricted by remember { mutableStateOf(false) } // v8.6.3: État indépendant pour le toggle visibilité
+    var showRegenerateConfirm by remember { mutableStateOf(false) }
+    var showOnboarding by remember { mutableStateOf(false) }
+
+    // Onboarding automatique (v8.6.3)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val prefs = remember { context.getSharedPreferences("phoenx_prefs", android.content.Context.MODE_PRIVATE) }
+    
+    LaunchedEffect(Unit) {
+        val hasSeen = prefs.getBoolean("seen_book_onboarding", false)
+        if (!hasSeen) showOnboarding = true
+    }
 
     // ÉTAPE 1 : Stabilisation de l'état au sommet (v8.6.3)
     val selectedRecipientIds = remember(bookDraft?.recipientIds) {
@@ -122,6 +136,19 @@ fun BookEditorScreen(
                             )
                         )
                     }
+
+                    // Indicateur de sauvegarde (v8.6.3)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (isSaving) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp), color = AccentPrimary, strokeWidth = 2.dp)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Sauvegarde...", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                        } else if (saveSuccess) {
+                            Icon(Icons.Default.CloudDone, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Enregistré", style = MaterialTheme.typography.labelSmall, color = Color(0xFF4CAF50))
+                        }
+                    }
                 }
             }
 
@@ -169,7 +196,7 @@ fun BookEditorScreen(
                         }
 
                         OutlinedButton(
-                            onClick = { viewModel.generateBook() },
+                            onClick = { showRegenerateConfirm = true },
                             modifier = Modifier.weight(1f).height(56.dp),
                             border = BorderStroke(1.dp, Color(0xFF3E3E45)),
                             shape = RoundedCornerShape(12.dp)
@@ -184,8 +211,9 @@ fun BookEditorScreen(
                     RecipientSelector(
                         recipients = recipients,
                         selectedIds = selectedRecipientIds,
-                        visibility = if (selectedRecipientIds.isEmpty()) "EVERYONE" else "RESTRICTED",
+                        visibility = if (selectedRecipientIds.isEmpty() && !forceRestricted) "EVERYONE" else "RESTRICTED",
                         onVisibilityChange = { newVis -> 
+                            forceRestricted = (newVis == "RESTRICTED")
                             if (newVis == "EVERYONE") selectedRecipientIds.clear()
                         },
                         accent = AccentPrimary
@@ -237,36 +265,79 @@ fun BookEditorScreen(
                     )
                 }
             }
+        }
 
-            // ── ÉTAT 2 : GÉNÉRATION EN COURS ──────────
-            if (isGenerating) {
-                item {
-                    GeneratingBookState(progress = generationProgress)
+        // ── ÉTAT 2 : GÉNÉRATION EN COURS (Overlay centré - v8.6.3) ──
+        if (isGenerating) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f))
+                    .clickable(enabled = false) {}, // Absorbe les clics
+                contentAlignment = Alignment.Center
+            ) {
+                GeneratingBookState(progress = generationProgress)
+            }
+        }
+
+        // ── ÉTAT 3 : ERREUR (Toujours visible en haut - v8.6.3) ────
+        error?.let { errorMsg ->
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .align(Alignment.TopCenter),
+                color = Color(0xFFD32F2F),
+                shape = RoundedCornerShape(8.dp),
+                shadowElevation = 4.dp
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.ErrorOutline, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = errorMsg,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White
+                    )
                 }
             }
+        }
 
-            // ── ÉTAT 3 : ERREUR ───────────────────────
-            error?.let { errorMsg ->
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                Color(0xFFE57373).copy(alpha = 0.15f),
-                                RoundedCornerShape(12.dp)
-                            )
-                            .padding(16.dp)
-                    ) {
-                        Text(
-                            text = errorMsg,
-                            style = TextStyle(
-                                fontSize = 14.sp,
-                                color = Color(0xFFE57373)
-                            )
-                        )
+        // ── POPUP DE CONFIRMATION RÉGÉNÉRATION ────
+        if (showRegenerateConfirm) {
+            AlertDialog(
+                onDismissRequest = { showRegenerateConfirm = false },
+                containerColor = BackgroundSecondary,
+                title = { Text("Réécrire tout le livre ?", color = TextPrimary, fontFamily = FontFamily.Serif) },
+                text = { Text("L'IA va reprendre l'ensemble de vos souvenirs pour créer un nouveau manuscrit. Vos modifications actuelles seront remplacées.", color = TextSecondary) },
+                confirmButton = {
+                    Button(
+                        onClick = { 
+                            showRegenerateConfirm = false
+                            viewModel.generateBook() 
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                    ) { Text("Confirmer", color = BackgroundPrimary) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRegenerateConfirm = false }) {
+                        Text("Annuler", color = TextPrimary)
                     }
                 }
-            }
+            )
+        }
+
+        // ── POPUP D'ACCUEIL : COMMENT ÇA MARCHE ? (v8.6.3) ──
+        if (showOnboarding) {
+            BookOnboardingDialog(
+                onDismiss = { 
+                    showOnboarding = false 
+                    prefs.edit().putBoolean("seen_book_onboarding", true).apply()
+                }
+            )
         }
 
         // ── BOTTOMSHEET ÉDITEUR DE CHAPITRE ───────
@@ -633,7 +704,7 @@ private fun ChapterCard(
     }
     val statusLabel = when (chapter.status) {
         ChapterStatus.DRAFT     -> "Brouillon"
-        ChapterStatus.IN_REVIEW -> "En révision"
+        ChapterStatus.IN_REVIEW -> "En attente de validation"
         ChapterStatus.VALIDATED -> "Validé ✓"
     }
 
@@ -701,6 +772,102 @@ private fun ChapterCard(
                 .align(Alignment.CenterVertically)
                 .padding(end = 16.dp)
         )
+    }
+}
+
+@Composable
+private fun BookOnboardingDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = BackgroundSecondary,
+        shape = RoundedCornerShape(24.dp),
+        title = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    Icons.Default.AutoStories, 
+                    null, 
+                    tint = AccentPrimary, 
+                    modifier = Modifier.size(40.dp)
+                )
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    "Comment l'IA écrit votre vie", 
+                    color = TextPrimary, 
+                    fontFamily = FontFamily.Serif,
+                    textAlign = TextAlign.Center,
+                    fontSize = 20.sp
+                )
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                OnboardingPoint(
+                    icon = Icons.Default.Timeline,
+                    title = "Respect de votre chronologie",
+                    description = "Chaque souvenir est trié par âge. L'IA utilise ces repères pour tisser un récit fluide, du premier chapitre jusqu'au dernier."
+                )
+                OnboardingPoint(
+                    icon = Icons.Default.People,
+                    title = "Reconnaissance des personnages",
+                    description = "L'IA identifie vos proches (ex: 'Julie', 'mon fils Marc'). Elle fait le lien entre vos différents souvenirs pour raconter l'évolution de vos relations."
+                )
+                OnboardingPoint(
+                    icon = Icons.Default.HistoryEdu,
+                    title = "Une narration personnalisée",
+                    description = "Ce n'est pas une simple liste. L'IA rédige à la première personne ('Je') et adapte le ton (joie, nostalgie) selon l'émotion de vos souvenirs."
+                )
+                
+                Surface(
+                    color = AccentPrimary.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            "💡 Conseil du Biographe",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = AccentPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            "Plus vos souvenirs sont détaillés (prénoms, lieux, sentiments), plus le récit de l'IA sera précis et fidèle à votre réalité.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondary
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("J'ai compris", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+            }
+        }
+    )
+}
+
+@Composable
+private fun OnboardingPoint(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    title: String,
+    description: String
+) {
+    Row(verticalAlignment = Alignment.Top) {
+        Icon(icon, null, tint = AccentPrimary, modifier = Modifier.size(18.dp).padding(top = 2.dp))
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(title, style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.Bold)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = TextSecondary, lineHeight = 18.sp)
+        }
     }
 }
 
