@@ -217,6 +217,12 @@ class BookEditorViewModel @Inject constructor(
             }
         )
         _bookDraft.value = updated
+        
+        // v8.7.1 : Mise à jour du chapitre sélectionné pour débloquer l'UI
+        updated.chapters.find { it.id == chapterId }?.let {
+            _selectedChapter.value = it
+        }
+
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
             bookService.saveBookDraft(userId, updated)
