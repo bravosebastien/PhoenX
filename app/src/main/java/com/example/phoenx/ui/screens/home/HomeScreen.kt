@@ -160,13 +160,14 @@ fun HomeScreen(
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontStyle = FontStyle.Italic,
                             fontFamily = theme.fontFamily,
-                            fontSize = 13.sp
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
                         ),
-                        color = theme.contentColor.copy(alpha = 0.6f),
+                        color = theme.contentColor,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 8.dp)
+                            .padding(horizontal = 24.dp, vertical = 12.dp)
                     )
                 }
 

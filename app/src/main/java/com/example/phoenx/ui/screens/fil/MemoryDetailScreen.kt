@@ -55,7 +55,8 @@ fun MemoryDetailScreen(
     val recipients by viewModel.recipients.collectAsState()
     val deleteSuccess by viewModel.deleteSuccess.collectAsState()
     val error by viewModel.error.collectAsState()
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
@@ -73,6 +74,8 @@ fun MemoryDetailScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showLocationMenu by remember { mutableStateOf(false) }
     var showAddMediaMenu by remember { mutableStateOf(false) }
+    var isTiroirsExpanded by remember { mutableStateOf(false) }
+    var isTonaliteExpanded by remember { mutableStateOf(false) }
 
     var editableTitle by remember { mutableStateOf("") }
     var editableText by remember { mutableStateOf("") }
@@ -200,23 +203,25 @@ fun MemoryDetailScreen(
                 if (entry!!.entryType != "PORTRAIT") {
                     Column {
                         val subjectLabel = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") "LA QUESTION" else "LE SUJET"
-                        Text(subjectLabel, style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Text(subjectLabel, style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
                         Spacer(modifier = Modifier.height(12.dp))
                         Card(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") accent.copy(alpha = 0.05f) else Color(0xFFFDFBF7)),
-                            elevation = CardDefaults.cardElevation(if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") 0.dp else 4.dp),
-                            shape = RoundedCornerShape(if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") 12.dp else 4.dp),
-                            border = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f)) else null
+                            colors = CardDefaults.cardColors(
+                                containerColor = theme.contentColor.copy(alpha = 0.05f)
+                            ),
+                            elevation = CardDefaults.cardElevation(0.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
                         ) {
                             Column(modifier = Modifier.padding(20.dp)) {
                                 if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") {
                                     Text(
                                         text = entry!!.aiSummary,
                                         style = MaterialTheme.typography.bodyLarge.copy(
-                                            fontFamily = FontFamily.Serif,
+                                            fontFamily = theme.fontFamily,
                                             fontStyle = FontStyle.Italic,
-                                            color = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") accent else Color(0xFF2C2C2E)
+                                            color = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") accent else theme.contentColor
                                         )
                                     )
                                 } else {
@@ -224,24 +229,33 @@ fun MemoryDetailScreen(
                                         value = editableTitle,
                                         onValueChange = { editableTitle = it },
                                         modifier = Modifier.fillMaxWidth(),
-                                        placeholder = { Text("Donne un titre à ce souvenir...", style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)) },
+                                        placeholder = { 
+                                            Text(
+                                                "Donne un titre à ce souvenir...", 
+                                                style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic),
+                                                color = theme.contentColor.copy(alpha = 0.4f)
+                                            ) 
+                                        },
                                         textStyle = MaterialTheme.typography.bodyLarge.copy(
-                                            fontFamily = FontFamily.Serif,
+                                            fontFamily = theme.fontFamily,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF2C2C2E)
+                                            color = theme.contentColor
                                         ),
                                         colors = TextFieldDefaults.colors(
                                             focusedContainerColor = Color.Transparent,
                                             unfocusedContainerColor = Color.Transparent,
                                             focusedIndicatorColor = Color.Transparent,
-                                            unfocusedIndicatorColor = Color.Transparent
+                                            unfocusedIndicatorColor = Color.Transparent,
+                                            focusedTextColor = theme.contentColor,
+                                            unfocusedTextColor = theme.contentColor
                                         )
                                     )
                                 }
                             }
                         }
                     }
-                } else {
+                }
+else {
                     // Titre fixe pour le Portrait
                     Column {
                         Text("LE SUJET", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
@@ -329,6 +343,8 @@ fun MemoryDetailScreen(
 
                 // ON CACHE LE RESTE POUR LES RÉPONSES ATOMIQUES (v8.5.9)
                 if (!isChildEntry) {
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp)
+
                     // DATE RÉELLE (MemoryDate / Période)
                     Column {
                         Row(
@@ -434,35 +450,78 @@ fun MemoryDetailScreen(
                         }
                     }
 
-                    // TIROIRS / COMPARTIMENTS
+                    // TIROIRS / COMPARTIMENTS (v8.9.2 : Menu déroulant)
                     Column {
-                        Text("DANS QUELS TIROIRS ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        val currentCompartments = entry!!.compartmentIds.trim(',').split(",").filter { it.isNotBlank() }
-                        
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { isTiroirsExpanded = !isTiroirsExpanded },
+                            color = Color.Transparent
                         ) {
-                            CompartmentIds.ALL.forEach { id ->
-                                val isSelected = currentCompartments.contains(id)
-                                FilterChip(
-                                    selected = isSelected,
-                                    onClick = {
-                                        val newList = if (isSelected) currentCompartments - id else currentCompartments + id
-                                        viewModel.updateCompartments(newList)
-                                    },
-                                    label = { Text(CompartmentIds.getLabel(id)) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = accent,
-                                        selectedLabelColor = BackgroundPrimary
-                                    )
+                            Row(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    "DANS QUELS TIROIRS ?", 
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                                    color = theme.contentColor.copy(alpha = 0.4f)
                                 )
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    val currentCompartments = entry!!.compartmentIds.trim(',').split(",").filter { it.isNotBlank() }
+                                    val count = currentCompartments.size
+                                    val label = if (entry!!.visibility == "EVERYONE") "Tout le monde" else if (count == 0) "Privé" else "$count tiroir(s)"
+                                    
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = accent
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Icon(
+                                        imageVector = if (isTiroirsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = null,
+                                        tint = theme.contentColor.copy(alpha = 0.2f),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+                        
+                        AnimatedVisibility(visible = isTiroirsExpanded) {
+                            Column {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                val currentCompartments = entry!!.compartmentIds.trim(',').split(",").filter { it.isNotBlank() }
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    CompartmentIds.ALL.forEach { id ->
+                                        val isSelected = currentCompartments.contains(id)
+                                        FilterChip(
+                                            selected = isSelected,
+                                            onClick = {
+                                                val newList = if (isSelected) currentCompartments - id else currentCompartments + id
+                                                viewModel.updateCompartments(newList)
+                                            },
+                                            label = { Text(CompartmentIds.getLabel(id)) },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = accent,
+                                                selectedLabelColor = theme.backgroundColor,
+                                                containerColor = theme.contentColor.copy(alpha = 0.05f),
+                                                labelColor = theme.contentColor.copy(alpha = 0.6f)
+                                            )
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
                             }
                         }
                     }
+
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp)
 
                     // COMPLÉMENTS MÉDIA
                     Column {
@@ -590,33 +649,77 @@ fun MemoryDetailScreen(
                         }
                     }
 
-                    // CATÉGORIE ÉMOTIONNELLE
+                    // CATÉGORIE ÉMOTIONNELLE (v8.9.2 : Menu déroulant)
                     Column {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("QUELLE TONALITÉ ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            com.example.phoenx.ui.components.InfoPoint(
-                                title = "L'Esprit du Souvenir",
-                                content = "La tonalité influence l'écriture de ton Livre de Vie par l'IA et permet de filtrer tes souvenirs par émotion dans ta Bibliothèque."
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour")
-                        FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            categories.forEach { cat ->
-                                FilterChip(
-                                    selected = entry!!.emotionalCategory == cat,
-                                    onClick = { viewModel.updateCategory(cat) },
-                                    label = { Text(cat) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = accent,
-                                        selectedLabelColor = BackgroundPrimary
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { isTonaliteExpanded = !isTonaliteExpanded },
+                            color = Color.Transparent
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        "QUELLE TONALITÉ ?", 
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                                        color = theme.contentColor.copy(alpha = 0.4f)
                                     )
-                                )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    com.example.phoenx.ui.components.InfoPoint(
+                                        title = "L'Esprit du Souvenir",
+                                        content = "La tonalité influence l'écriture de ton Livre de Vie par l'IA."
+                                    )
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = entry!!.emotionalCategory,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = accent
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Icon(
+                                        imageVector = if (isTonaliteExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = null,
+                                        tint = theme.contentColor.copy(alpha = 0.2f),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+                        
+                        AnimatedVisibility(visible = isTonaliteExpanded) {
+                            Column {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour", "Nostalgie", "Humour", "Leçon", "Voyage", "Quotidien", "Épreuve")
+                                FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    categories.forEach { cat ->
+                                        FilterChip(
+                                            selected = entry!!.emotionalCategory == cat,
+                                            onClick = { viewModel.updateCategory(cat) },
+                                            label = { Text(cat) },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = accent,
+                                                selectedLabelColor = theme.backgroundColor,
+                                                containerColor = theme.contentColor.copy(alpha = 0.05f),
+                                                labelColor = theme.contentColor.copy(alpha = 0.6f)
+                                            ),
+                                            border = androidx.compose.foundation.BorderStroke(
+                                                1.dp, 
+                                                if (entry!!.emotionalCategory == cat) accent else theme.contentColor.copy(alpha = 0.1f)
+                                            )
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
                             }
                         }
                     }
+
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp)
 
                     // DESTINATAIRES
                     Column {

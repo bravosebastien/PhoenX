@@ -187,37 +187,165 @@ fun BookEditorScreen(
                     )
                 }
 
-                // ── ACTIONS PRIORITAIRES (v8.6.2) ──────────
+                // ── ACTIONS PRIORITAIRES (v8.9.2) ──────────
                 item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Button(
-                            onClick = { navController.navigate("book_viewer") },
-                            modifier = Modifier.weight(1.5f).height(56.dp).phoenXMatiere(),
-                            colors = ButtonDefaults.buttonColors(containerColor = accent),
-                            shape = RoundedCornerShape(12.dp)
+                    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Icon(Icons.Default.PlayArrow, null, tint = theme.backgroundColor, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("LIRE MON LIVRE", color = theme.backgroundColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        }
+                            // Bouton LIRE MON LIVRE (Adouci)
+                            OutlinedButton(
+                                onClick = { navController.navigate("book_viewer") },
+                                modifier = Modifier.weight(1.5f).height(56.dp),
+                                border = BorderStroke(1.5.dp, accent.copy(alpha = 0.5f)),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Default.AutoStories, null, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(10.dp))
+                                Text("LIRE MON LIVRE", fontWeight = FontWeight.Black, fontSize = 13.sp, letterSpacing = 1.sp)
+                            }
 
-                        OutlinedButton(
-                            onClick = { showRegenerateConfirm = true },
-                            modifier = Modifier.weight(1f).height(56.dp),
-                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                            OutlinedButton(
+                                onClick = { showRegenerateConfirm = true },
+                                modifier = Modifier.weight(1f).height(56.dp),
+                                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor.copy(alpha = 0.6f))
+                            ) {
+                                Text("Régénérer", fontSize = 12.sp)
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // PRÉFACE DU MANUSCRIT (Ancienne Introduction déplacée ici)
+                        var isIntroExpanded by remember { mutableStateOf(false) }
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { isIntroExpanded = !isIntroExpanded },
+                            color = theme.contentColor.copy(alpha = 0.03f),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor.copy(alpha = 0.6f))
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
                         ) {
-                            Text("Régénérer", fontSize = 12.sp)
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.HistoryEdu, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(18.dp))
+                                        Spacer(Modifier.width(12.dp))
+                                        Text("PRÉFACE DU MANUSCRIT", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
+                                    }
+                                    Icon(
+                                        imageVector = if (isIntroExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = null,
+                                        tint = theme.contentColor.copy(alpha = 0.2f),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                                
+                                AnimatedVisibility(visible = isIntroExpanded) {
+                                    Column {
+                                        Spacer(modifier = Modifier.height(16.dp))
+                                        GlobalIntroCard(
+                                            content = decryptedGlobalIntro,
+                                            isGenerating = isGeneratingGlobalIntro,
+                                            onEdit = { showIntroEditor = true },
+                                            onGenerate = { viewModel.generateGlobalIntro() }
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
 
-                // ── SÉLECTEUR DE DESTINATAIRES (Fix v8.6.3) ────────────
+                // ── RÉGLAGES CÔTE À CÔTE (v8.9.2) ────────────
                 item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // TRANSMISSION (Gris très clair)
+                        Box(modifier = Modifier.weight(1f)) {
+                            SealedMessageSection(
+                                userName = userName,
+                                currentMessage = bookDraft!!.sealedMessage,
+                                onMessageSelected = { viewModel.updateSealedMessage(it) }
+                            )
+                        }
+                        
+                        // STYLE (Gris très clair)
+                        Box(modifier = Modifier.weight(1f)) {
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp) // Hauteur fixe pour aligner avec l'autre bandeau fermé
+                                    .clickable { isStyleExpanded = !isStyleExpanded },
+                                color = theme.contentColor.copy(alpha = 0.05f),
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(1.dp, if (isStyleExpanded) accent.copy(alpha = 0.4f) else Color.Transparent)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Icon(Icons.Default.Palette, null, tint = accent, modifier = Modifier.size(18.dp))
+                                    Text(
+                                        "STYLE", 
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                                        color = theme.contentColor.copy(alpha = 0.6f)
+                                    )
+                                    Icon(
+                                        imageVector = if (isStyleExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = null,
+                                        tint = theme.contentColor.copy(alpha = 0.2f),
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Overlay Style si ouvert
+                item {
+                    AnimatedVisibility(visible = isStyleExpanded) {
+                        Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                            Text(
+                                "Note : Le choix du Papier et de la Plume définit l'univers visuel que vos proches découvriront lors de la lecture de votre héritage.",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = theme.fontFamily
+                                ),
+                                color = theme.contentColor
+                            )
+                            Spacer(Modifier.height(16.dp))
+                            com.example.phoenx.ui.components.GlobalThemeSelector(
+                                currentBackgroundId = bookDraft!!.theme.backgroundId,
+                                currentFontId = bookDraft!!.theme.fontId,
+                                onThemeChange = { bg, font -> viewModel.updateTheme(bg, font) }
+                            )
+                            HorizontalDivider(modifier = Modifier.padding(top = 24.dp), color = theme.contentColor.copy(alpha = 0.1f))
+                        }
+                    }
+                }
+
+                // ── SÉLECTEUR DE DESTINATAIRES ────────────
+                item {
+                    Text(
+                        text = "DESTINATAIRES DU MANUSCRIT", 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                        color = theme.contentColor.copy(alpha = 0.4f),
+                        letterSpacing = 2.sp
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
                     RecipientSelector(
                         recipients = recipients,
                         selectedIds = selectedRecipientIds,
@@ -226,77 +354,8 @@ fun BookEditorScreen(
                             forceRestricted = (newVis == "RESTRICTED")
                             if (newVis == "EVERYONE") selectedRecipientIds.clear()
                         },
-                        accent = accent
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-
-                // ── LE SCEAU PERSONNALISÉ (v8.6.2) ─────────
-                item {
-                    SealedMessageSection(
-                        userName = userName,
-                        currentMessage = bookDraft!!.sealedMessage,
-                        onMessageSelected = { viewModel.updateSealedMessage(it) }
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                }
-
-                // ── STYLE DU LIVRE (v8.9.1 : Masqué par défaut) ───────────────
-                item {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { isStyleExpanded = !isStyleExpanded },
-                        color = Color.Transparent
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "STYLE ET ATMOSPHÈRE", 
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
-                                color = theme.contentColor.copy(alpha = 0.4f), 
-                                letterSpacing = 2.sp
-                            )
-                            Icon(
-                                imageVector = if (isStyleExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = null,
-                                tint = theme.contentColor.copy(alpha = 0.3f),
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                    
-                    AnimatedVisibility(visible = isStyleExpanded) {
-                        Column {
-                            Spacer(Modifier.height(8.dp))
-                            com.example.phoenx.ui.components.GlobalThemeSelector(
-                                currentBackgroundId = bookDraft!!.theme.backgroundId,
-                                currentFontId = bookDraft!!.theme.fontId,
-                                onThemeChange = { bg, font -> viewModel.updateTheme(bg, font) }
-                            )
-                            Spacer(Modifier.height(24.dp))
-                        }
-                    }
-                    if (!isStyleExpanded) Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                // ── INTRODUCTION GÉNÉRALE (v8.7.0) ────────
-                item {
-                    Text(
-                        text = "INTRODUCTION DU MANUSCRIT", 
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
-                        color = theme.contentColor.copy(alpha = 0.4f), 
-                        letterSpacing = 2.sp
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    GlobalIntroCard(
-                        content = decryptedGlobalIntro,
-                        isGenerating = isGeneratingGlobalIntro,
-                        onEdit = { showIntroEditor = true },
-                        onGenerate = { viewModel.generateGlobalIntro() }
+                        accent = accent,
+                        containerColor = Color(0xFFF0F0F0) // Gris Brume forcé
                     )
                     Spacer(modifier = Modifier.height(32.dp))
                 }
@@ -906,12 +965,16 @@ private fun GlobalIntroCard(
                 Box(modifier = Modifier.width(40.dp).height(1.dp).background(accent.copy(alpha = 0.3f)))
                 
                 Spacer(Modifier.height(16.dp))
-                Row(horizontalArrangement = Arrangement.Center) {
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
                     TextButton(onClick = onEdit) {
-                        Text("Modifier le texte", color = accent, fontSize = 12.sp)
+                        Text("Modifier manuellement", color = accent, fontSize = 12.sp)
                     }
-                    IconButton(onClick = onGenerate) {
-                        Icon(Icons.Default.AutoFixHigh, null, tint = accent.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                    TextButton(onClick = onGenerate) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.AutoFixHigh, null, tint = accent, modifier = Modifier.size(14.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("🤖 Renouveler par l'IA", color = accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }

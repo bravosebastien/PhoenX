@@ -123,14 +123,40 @@ fun FilScreen(
                     )
                 }
             } else {
-                val groupedEntries = uiState.entries.groupBy { it.ageAtCreation.years }
+                // Séparation des souvenirs attribués et non attribués (v8.9.2)
+                val notAttributed = uiState.entries.filter { it.recipientIds.isEmpty() }
+                val attributed = uiState.entries.filter { it.recipientIds.isNotEmpty() }
+                val groupedAttributed = attributed.groupBy { it.ageAtCreation.years }
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(bottom = 80.dp) // Plus de marge en bas pour le confort
+                    contentPadding = PaddingValues(bottom = 80.dp)
                 ) {
-                    groupedEntries.keys.sortedDescending().forEach { year ->
-                        item { YearSeparator(year, groupedEntries[year]?.size ?: 0) }
-                        items(groupedEntries[year] ?: emptyList()) { entry ->
+                    // SECTION 1 : NON ATTRIBUÉS (Priorité)
+                    if (notAttributed.isNotEmpty()) {
+                        item {
+                            YearSeparator(
+                                year = 0, // Code pour "Non attribué"
+                                count = notAttributed.size,
+                                labelOverride = "À ATTRIBUER"
+                            )
+                        }
+                        items(notAttributed) { entry ->
+                            TimelineEntryItem(
+                                entry = entry,
+                                heirKey = heirKey,
+                                mediaManager = viewModel.mediaManager,
+                                isNonAttributed = true,
+                                onClick = { navController.navigate(Screen.MemoryDetail.createRoute(entry.id)) }
+                            )
+                        }
+                        item { Spacer(modifier = Modifier.height(24.dp)) }
+                    }
+
+                    // SECTION 2 : PAR ÂGE
+                    groupedAttributed.keys.sortedDescending().forEach { year ->
+                        item { YearSeparator(year, groupedAttributed[year]?.size ?: 0) }
+                        items(groupedAttributed[year] ?: emptyList()) { entry ->
                             TimelineEntryItem(
                                 entry = entry,
                                 heirKey = heirKey,
@@ -295,7 +321,7 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
 }
 
 @Composable
-fun YearSeparator(year: Int, count: Int) {
+fun YearSeparator(year: Int, count: Int, labelOverride: String? = null) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     
@@ -306,16 +332,16 @@ fun YearSeparator(year: Int, count: Int) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "$year ANS", 
+                text = labelOverride ?: "$year ANS", 
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Black, 
                     letterSpacing = 2.sp,
                     fontFamily = theme.fontFamily
                 ), 
-                color = accent
+                color = if (labelOverride != null) Error else accent
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Box(modifier = Modifier.weight(1f).height(1.dp).background(accent.copy(alpha = 0.15f)))
+            Box(modifier = Modifier.weight(1f).height(1.dp).background(if (labelOverride != null) Error.copy(alpha = 0.2f) else accent.copy(alpha = 0.15f)))
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = "$count ${if (count > 1) "pensées" else "pensée"}", 
@@ -331,6 +357,7 @@ fun TimelineEntryItem(
     entry: PhoenXEntry, 
     heirKey: ByteArray? = null,
     mediaManager: com.example.phoenx.data.media.MediaManager? = null,
+    isNonAttributed: Boolean = false,
     onClick: () -> Unit
 ) {
     val theme = LocalAppTheme.current
@@ -359,7 +386,7 @@ fun TimelineEntryItem(
                     EntryType.QUESTION_ANSWER -> Color(0xFF9C27B0)
                     else -> accent
                 }
-                Box(modifier = Modifier.size(6.dp).background(dotColor, CircleShape))
+                Box(modifier = Modifier.size(6.dp).background(if (isNonAttributed) Error else dotColor, CircleShape))
                 
                 Spacer(modifier = Modifier.width(12.dp))
 
@@ -375,7 +402,7 @@ fun TimelineEntryItem(
                         fontFamily = theme.fontFamily,
                         fontWeight = if (entry.amendments.isNotEmpty()) FontWeight.Black else FontWeight.Medium
                     ),
-                    color = theme.contentColor,
+                    color = if (isNonAttributed) theme.contentColor.copy(alpha = 0.8f) else theme.contentColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -397,9 +424,9 @@ fun TimelineEntryItem(
             // Date / Âge compact
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "${entry.ageAtCreation.years}a ${entry.ageAtCreation.months}m",
+                    text = if (isNonAttributed) "À attribuer" else "${entry.ageAtCreation.years}a ${entry.ageAtCreation.months}m",
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = accent.copy(alpha = 0.7f)
+                    color = if (isNonAttributed) Error else accent.copy(alpha = 0.7f)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(

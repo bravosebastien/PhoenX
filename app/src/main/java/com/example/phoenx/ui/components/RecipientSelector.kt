@@ -30,7 +30,8 @@ fun RecipientSelector(
     selectedIds: MutableList<String>,
     visibility: String,
     onVisibilityChange: (String) -> Unit,
-    accent: Color
+    accent: Color,
+    containerColor: Color? = null
 ) {
     var expanded by remember { mutableStateOf(false) }
     val isEveryone = visibility == "EVERYONE"
@@ -41,7 +42,7 @@ fun RecipientSelector(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { expanded = !expanded },
-            color = SurfaceCard.copy(alpha = 0.3f),
+            color = containerColor ?: SurfaceCard.copy(alpha = 0.3f),
             shape = RoundedCornerShape(12.dp),
             border = BorderStroke(1.dp, if (expanded) accent.copy(alpha = 0.4f) else Color.Transparent)
         ) {

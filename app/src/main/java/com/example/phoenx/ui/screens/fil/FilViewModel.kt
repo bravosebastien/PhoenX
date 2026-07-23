@@ -250,7 +250,9 @@ class FilViewModel @Inject constructor(
             },
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = aiSummary,
-            hasEnigma = enigmaQuestion != null
+            hasEnigma = enigmaQuestion != null,
+            recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
+            visibility = visibility
         )
     }
 
@@ -289,7 +291,9 @@ class FilViewModel @Inject constructor(
             scheduledDate = scheduledTimestamp?.let { Instant.ofEpochMilli(it) },
             parentEntryId = parentEntryId,
             mediaUrl = mediaUrl,
-            localMediaPath = localMediaPath
+            localMediaPath = localMediaPath,
+            recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
+            visibility = visibility
         )
     }
 }

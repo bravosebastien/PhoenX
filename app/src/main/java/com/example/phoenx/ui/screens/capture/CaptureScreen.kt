@@ -128,6 +128,9 @@ fun CaptureScreen(
     var selectedCategory by remember { mutableStateOf("Sagesse") }
     var visibility by remember { mutableStateOf("RESTRICTED") }
     val selectedRecipientIds = remember { mutableStateListOf<String>() }
+    var isTonaliteExpanded by remember { mutableStateOf(false) }
+    var isTiroirsExpanded by remember { mutableStateOf(false) }
+    
     val recipients by viewModel.recipients.collectAsState()
     val isSttListening by viewModel.isSttListening.collectAsState()
     val sttPartialText by viewModel.sttPartialText.collectAsState()
@@ -372,7 +375,13 @@ fun CaptureScreen(
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
                                 onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
-                                onRemovePerson = { viewModel.removePerson(it) }
+                                onRemovePerson = { viewModel.removePerson(it) },
+                                selectedCategory = selectedCategory,
+                                onCategoryChange = { selectedCategory = it },
+                                isTonaliteExpanded = isTonaliteExpanded,
+                                onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
+                                isTiroirsExpanded = isTiroirsExpanded,
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
                             )
                         }
                         Screen.Capture.TYPE_PHOTO -> {
@@ -392,7 +401,13 @@ fun CaptureScreen(
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
                                 onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
-                                onRemovePerson = { viewModel.removePerson(it) }
+                                onRemovePerson = { viewModel.removePerson(it) },
+                                selectedCategory = selectedCategory,
+                                onCategoryChange = { selectedCategory = it },
+                                isTonaliteExpanded = isTonaliteExpanded,
+                                onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
+                                isTiroirsExpanded = isTiroirsExpanded,
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
                             )
                         }
                         Screen.Capture.TYPE_GALLERY -> {
@@ -415,7 +430,11 @@ fun CaptureScreen(
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
                                 onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
-                                onRemovePerson = { viewModel.removePerson(it) }
+                                onRemovePerson = { viewModel.removePerson(it) },
+                                isTonaliteExpanded = isTonaliteExpanded,
+                                onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
+                                isTiroirsExpanded = isTiroirsExpanded,
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
                             )
                         }
                         else -> {
@@ -443,7 +462,11 @@ fun CaptureScreen(
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
                                 onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
-                                onRemovePerson = { viewModel.removePerson(it) }
+                                onRemovePerson = { viewModel.removePerson(it) },
+                                isTonaliteExpanded = isTonaliteExpanded,
+                                onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
+                                isTiroirsExpanded = isTiroirsExpanded,
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
                             )
                         }
                     }
@@ -728,7 +751,14 @@ fun PhotoCaptureContent(
     onSearchPersons: (String) -> Unit = {},
     onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
     onCreatePerson: (String, String?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> },
-    onRemovePerson: (String) -> Unit = {}
+    onRemovePerson: (String) -> Unit = {},
+    // Menus déroulants (v8.9.2)
+    selectedCategory: String = "Sagesse",
+    onCategoryChange: (String) -> Unit = {},
+    isTonaliteExpanded: Boolean = false,
+    onTonaliteToggle: () -> Unit = {},
+    isTiroirsExpanded: Boolean = false,
+    onTiroirsToggle: () -> Unit = {}
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -831,15 +861,125 @@ fun PhotoCaptureContent(
                 }
 
                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 24.dp)) {
-                    Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    RecipientSelector(
-                        recipients = recipients,
-                        selectedIds = selectedRecipientIds,
-                        visibility = visibility,
-                        onVisibilityChange = onVisibilityChange,
-                        accent = LocalAccentColor.current
-                    )
+                    // POUR QUI (v8.9.2 : Menu déroulant)
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onTiroirsToggle() },
+                        color = Color.Transparent
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "DANS QUELS TIROIRS ?", 
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                                color = theme.contentColor.copy(alpha = 0.4f)
+                            )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                val count = selectedRecipientIds.size
+                                val label = if (visibility == "EVERYONE") "Tout le monde" else if (count == 0) "Privé" else "$count choisi(s)"
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = accent
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Icon(
+                                    imageVector = if (isTiroirsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = null,
+                                    tint = theme.contentColor.copy(alpha = 0.2f),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    AnimatedVisibility(visible = isTiroirsExpanded) {
+                        Column {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            RecipientSelector(
+                                recipients = recipients,
+                                selectedIds = selectedRecipientIds,
+                                visibility = visibility,
+                                onVisibilityChange = onVisibilityChange,
+                                accent = accent
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
+
+                    // TONALITÉ (v8.9.2 : Menu déroulant)
+                    Column {
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onTonaliteToggle() },
+                            color = Color.Transparent
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = "QUELLE TONALITÉ ?", 
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                                        color = theme.contentColor.copy(alpha = 0.4f)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = selectedCategory,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = accent
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Icon(
+                                        imageVector = if (isTonaliteExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                        contentDescription = null,
+                                        tint = theme.contentColor.copy(alpha = 0.2f),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        AnimatedVisibility(visible = isTonaliteExpanded) {
+                            Column {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour", "Nostalgie", "Humour", "Leçon", "Voyage", "Quotidien", "Épreuve")
+                                FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    categories.forEach { cat ->
+                                        FilterChip(
+                                            selected = selectedCategory == cat,
+                                            onClick = { onCategoryChange(cat) },
+                                            label = { Text(cat) },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = accent,
+                                                selectedLabelColor = theme.backgroundColor,
+                                                containerColor = theme.contentColor.copy(alpha = 0.05f),
+                                                labelColor = theme.contentColor.copy(alpha = 0.6f)
+                                            ),
+                                            border = BorderStroke(
+                                                1.dp, 
+                                                if (selectedCategory == cat) accent else theme.contentColor.copy(alpha = 0.1f)
+                                            )
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -914,7 +1054,12 @@ fun TextCaptureContent(
     onSearchPersons: (String) -> Unit = {},
     onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
     onCreatePerson: (String, String?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> },
-    onRemovePerson: (String) -> Unit = {}
+    onRemovePerson: (String) -> Unit = {},
+    // Menus déroulants (v8.9.2)
+    isTonaliteExpanded: Boolean = false,
+    onTonaliteToggle: () -> Unit = {},
+    isTiroirsExpanded: Boolean = false,
+    onTiroirsToggle: () -> Unit = {}
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -1025,59 +1170,138 @@ fun TextCaptureContent(
             accent = accent
         )
 
-        HorizontalDivider(color = TextTertiary.copy(alpha = 0.2f), thickness = 1.dp, modifier = Modifier.padding(vertical = 24.dp))
+        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 24.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("QUELLE TONALITÉ ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
-            Spacer(modifier = Modifier.width(8.dp))
-            InfoPoint(
-                title = "L'Esprit du Souvenir",
-                content = "Cette catégorie aide l'IA à comprendre le sens profond de ton récit. Elle influence la rédaction de ton Livre de Vie et permet de regrouper tes souvenirs par 'humeur' dans ta Bibliothèque."
-            )
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour")
-        FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            categories.forEach { cat ->
-                val theme = LocalAppTheme.current
-                FilterChip(
-                    selected = selectedCategory == cat,
-                    onClick = { onCategoryChange(cat) },
-                    label = { 
+        // TONALITÉ (v8.9.2 : Menu déroulant)
+        Column {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onTonaliteToggle() },
+                color = Color.Transparent
+            ) {
+                Row(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = cat,
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = if (selectedCategory == cat) FontWeight.Bold else FontWeight.Medium
+                            text = "QUELLE TONALITÉ ?", 
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                            color = theme.contentColor.copy(alpha = 0.4f)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        InfoPoint(
+                            title = "L'Esprit du Souvenir",
+                            content = "Cette catégorie aide l'IA à comprendre le sens profond de ton récit. Elle influence la rédaction de ton Livre de Vie."
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = selectedCategory,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = accent
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            imageVector = if (isTonaliteExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            tint = theme.contentColor.copy(alpha = 0.2f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+            
+            AnimatedVisibility(visible = isTonaliteExpanded) {
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour", "Nostalgie", "Humour", "Leçon", "Voyage", "Quotidien", "Épreuve")
+                    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        categories.forEach { cat ->
+                            FilterChip(
+                                selected = selectedCategory == cat,
+                                onClick = { onCategoryChange(cat) },
+                                label = { 
+                                    Text(
+                                        text = cat,
+                                        style = MaterialTheme.typography.labelMedium.copy(
+                                            fontWeight = if (selectedCategory == cat) FontWeight.Bold else FontWeight.Medium
+                                        )
+                                    ) 
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = theme.contentColor.copy(alpha = 0.05f),
+                                    labelColor = theme.contentColor.copy(alpha = 0.6f),
+                                    selectedContainerColor = theme.accentColor,
+                                    selectedLabelColor = theme.backgroundColor
+                                ),
+                                border = BorderStroke(
+                                    width = 1.dp,
+                                    color = if (selectedCategory == cat) theme.accentColor else theme.contentColor.copy(alpha = 0.1f)
+                                )
                             )
-                        ) 
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = theme.contentColor.copy(alpha = 0.05f),
-                        labelColor = theme.contentColor.copy(alpha = 0.6f),
-                        selectedContainerColor = theme.accentColor,
-                        selectedLabelColor = theme.backgroundColor
-                    ),
-                    border = BorderStroke(
-                        width = 1.dp,
-                        color = if (selectedCategory == cat) theme.accentColor else theme.contentColor.copy(alpha = 0.1f)
-                    )
-                )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        RecipientSelector(
-            recipients = recipients, 
-            selectedIds = selectedRecipientIds, 
-            visibility = visibility,
-            onVisibilityChange = onVisibilityChange,
-            accent = LocalAccentColor.current
-        )
+        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 12.dp))
+
+        // POUR QUI (v8.9.2 : Menu déroulant)
+        Column {
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onTiroirsToggle() },
+                color = Color.Transparent
+            ) {
+                Row(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "DANS QUELS TIROIRS ?", 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                        color = theme.contentColor.copy(alpha = 0.4f)
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val count = selectedRecipientIds.size
+                        val label = if (visibility == "EVERYONE") "Tout le monde" else if (count == 0) "Privé" else "$count choisi(s)"
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = accent
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            imageVector = if (isTiroirsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            tint = theme.contentColor.copy(alpha = 0.2f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+
+            AnimatedVisibility(visible = isTiroirsExpanded) {
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    RecipientSelector(
+                        recipients = recipients, 
+                        selectedIds = selectedRecipientIds, 
+                        visibility = visibility,
+                        onVisibilityChange = onVisibilityChange,
+                        accent = LocalAccentColor.current
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+        }
     }
 }
 
@@ -1101,7 +1325,14 @@ fun AudioCaptureContent(
     onSearchPersons: (String) -> Unit = {},
     onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
     onCreatePerson: (String, String?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> },
-    onRemovePerson: (String) -> Unit = {}
+    onRemovePerson: (String) -> Unit = {},
+    // Menus déroulants (v8.9.2)
+    selectedCategory: String = "Sagesse",
+    onCategoryChange: (String) -> Unit = {},
+    isTonaliteExpanded: Boolean = false,
+    onTonaliteToggle: () -> Unit = {},
+    isTiroirsExpanded: Boolean = false,
+    onTiroirsToggle: () -> Unit = {}
 ) {
     val accent = LocalAccentColor.current
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -1181,16 +1412,125 @@ fun AudioCaptureContent(
         } else if (transcript.isNotEmpty()) {
             Spacer(modifier = Modifier.height(24.dp))
             
-            Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
-            Spacer(modifier = Modifier.height(12.dp))
+            val theme = LocalAppTheme.current
+            
+            // POUR QUI (v8.9.2 : Menu déroulant)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onTiroirsToggle() },
+                color = Color.Transparent
+            ) {
+                Row(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        "DANS QUELS TIROIRS ?", 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                        color = theme.contentColor.copy(alpha = 0.4f)
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val count = selectedRecipientIds.size
+                        val label = if (visibility == "EVERYONE") "Tout le monde" else if (count == 0) "Privé" else "$count choisi(s)"
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = accent
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            imageVector = if (isTiroirsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            tint = theme.contentColor.copy(alpha = 0.2f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
 
-            RecipientSelector(
-                recipients = recipients, 
-                selectedIds = selectedRecipientIds, 
-                visibility = visibility,
-                onVisibilityChange = onVisibilityChange,
-                accent = accent
-            )
+            AnimatedVisibility(visible = isTiroirsExpanded) {
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    RecipientSelector(
+                        recipients = recipients, 
+                        selectedIds = selectedRecipientIds, 
+                        visibility = visibility,
+                        onVisibilityChange = onVisibilityChange,
+                        accent = accent
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+
+            HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
+
+            // TONALITÉ (v8.9.2 : Menu déroulant)
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onTonaliteToggle() },
+                color = Color.Transparent
+            ) {
+                Row(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "QUELLE TONALITÉ ?", 
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                            color = theme.contentColor.copy(alpha = 0.4f)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = selectedCategory,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = accent
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Icon(
+                            imageVector = if (isTonaliteExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = null,
+                            tint = theme.contentColor.copy(alpha = 0.2f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+
+            AnimatedVisibility(visible = isTonaliteExpanded) {
+                Column {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour", "Nostalgie", "Humour", "Leçon", "Voyage", "Quotidien", "Épreuve")
+                    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        categories.forEach { cat ->
+                            FilterChip(
+                                selected = selectedCategory == cat,
+                                onClick = { onCategoryChange(cat) },
+                                label = { Text(cat) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = accent,
+                                    selectedLabelColor = theme.backgroundColor,
+                                    containerColor = theme.contentColor.copy(alpha = 0.05f),
+                                    labelColor = theme.contentColor.copy(alpha = 0.8f)
+                                ),
+                                border = BorderStroke(
+                                    width = 1.dp, 
+                                    color = if (selectedCategory == cat) accent else theme.contentColor.copy(alpha = 0.1f)
+                                )
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
+
+            HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
 
             Spacer(modifier = Modifier.height(24.dp))
 
