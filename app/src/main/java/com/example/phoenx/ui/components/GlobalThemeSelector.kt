@@ -43,7 +43,7 @@ fun GlobalThemeSelector(
                             .size(56.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(bg.color)
-                            .border(2.dp, if (isSelected) accent else Color.Transparent, RoundedCornerShape(8.dp))
+                            .border(1.dp, if (isSelected) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                             .clickable { onThemeChange(bg.id, currentFontId) },
                         contentAlignment = Alignment.Center
                     ) {
@@ -69,10 +69,8 @@ fun GlobalThemeSelector(
                         .width(100.dp)
                         .height(50.dp)
                         .clickable { onThemeChange(currentBackgroundId, font.id) },
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isSelected) accent.copy(alpha = 0.15f) else theme.contentColor.copy(alpha = 0.05f)
-                    ),
-                    border = BorderStroke(1.dp, if (isSelected) accent else Color.Transparent)
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, if (isSelected) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Text(

@@ -245,7 +245,7 @@ fun AudioCaptureContent(
                                 ),
                                 border = BorderStroke(
                                     width = 1.dp, 
-                                    color = if (selectedCategory == cat) accent else theme.contentColor.copy(alpha = 0.1f)
+                                    color = if (selectedCategory == cat) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f)
                                 )
                             )
                         }

@@ -1,7 +1,9 @@
 package com.example.phoenx.ui.screens.fil
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -262,8 +264,8 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
         colors = CardDefaults.cardColors(
             containerColor = theme.contentColor.copy(alpha = 0.05f)
         ),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -277,7 +279,7 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
                         letterSpacing = 2.sp
                     )
                 }
-                Surface(color = theme.backgroundColor, shape = CircleShape, border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))) {
+                Surface(color = theme.backgroundColor, shape = CircleShape, border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))) {
                     Text(text = "${latestAmendment.ageAtAmendment.years}a ${latestAmendment.ageAtAmendment.months}m ${latestAmendment.ageAtAmendment.days}j", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = accent, fontSize = 9.sp)
                 }
             }
@@ -358,10 +360,10 @@ fun YearSeparator(year: Int, count: Int, labelOverride: String? = null) {
                     letterSpacing = 2.sp,
                     fontFamily = theme.fontFamily
                 ), 
-                color = if (labelOverride != null) Error else accent
+                color = if (labelOverride != null) accent else accent // Standardisation couleur titre
             )
             Spacer(modifier = Modifier.width(12.dp))
-            Box(modifier = Modifier.weight(1f).height(1.dp).background(if (labelOverride != null) Error.copy(alpha = 0.2f) else accent.copy(alpha = 0.15f)))
+            Box(modifier = Modifier.weight(1f).height(1.dp).background(if (labelOverride != null) accent.copy(alpha = 0.5f) else accent.copy(alpha = 0.15f)))
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = "$count ${if (count > 1) "pensées" else "pensée"}", 
@@ -385,80 +387,91 @@ fun TimelineEntryItem(
     val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMM", Locale.FRENCH).withZone(ZoneId.systemDefault()) }
     val formattedDate = dateFormatter.format(entry.timestamp)
 
-    Column(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 20.dp, vertical = 14.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .clickable { onClick() },
+        color = if (isNonAttributed) accent.copy(alpha = 0.03f) else Color.Transparent,
+        shape = RoundedCornerShape(12.dp),
+        border = if (isNonAttributed) BorderStroke(1.dp, accent.copy(alpha = 0.5f)) else null
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                // Petit indicateur de type (point coloré)
-                val dotColor = when(entry.type) {
-                    EntryType.PHOTO -> Color(0xFF4CAF50)
-                    EntryType.AUDIO -> Color(0xFF2196F3)
-                    EntryType.VIDEO -> Color(0xFFFFC107)
-                    EntryType.PORTRAIT -> Color(0xFFE91E63)
-                    EntryType.QUESTION_ANSWER -> Color(0xFF9C27B0)
-                    else -> accent
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                    // Petit indicateur de type (point coloré)
+                    val dotColor = when(entry.type) {
+                        EntryType.PHOTO -> Color(0xFF4CAF50)
+                        EntryType.AUDIO -> Color(0xFF2196F3)
+                        EntryType.VIDEO -> Color(0xFFFFC107)
+                        EntryType.PORTRAIT -> Color(0xFFE91E63)
+                        EntryType.QUESTION_ANSWER -> Color(0xFF9C27B0)
+                        else -> accent
+                    }
+                    Box(modifier = Modifier.size(6.dp).background(if (isNonAttributed) accent else dotColor, CircleShape))
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    val displayText = when(entry.type) {
+                        EntryType.PORTRAIT -> entry.aiSummary
+                        EntryType.QUESTION_ANSWER -> entry.aiSummary
+                        else -> entry.aiSummary.ifBlank { "Souvenir sans titre" }
+                    }
+
+                    Text(
+                        text = displayText,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontFamily = theme.fontFamily,
+                            fontWeight = if (entry.amendments.isNotEmpty()) FontWeight.Black else FontWeight.Medium
+                        ),
+                        color = theme.contentColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    if (entry.amendments.isNotEmpty()) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.AutoAwesome, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(12.dp))
+                    }
+                    
+                    if (entry.hasEnigma) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.Fingerprint, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(12.dp))
+                    }
                 }
-                Box(modifier = Modifier.size(6.dp).background(if (isNonAttributed) Error else dotColor, CircleShape))
-                
-                Spacer(modifier = Modifier.width(12.dp))
 
-                val displayText = when(entry.type) {
-                    EntryType.PORTRAIT -> entry.aiSummary
-                    EntryType.QUESTION_ANSWER -> entry.aiSummary
-                    else -> entry.aiSummary.ifBlank { "Souvenir sans titre" }
-                }
+                Spacer(modifier = Modifier.width(16.dp))
 
-                Text(
-                    text = displayText,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontFamily = theme.fontFamily,
-                        fontWeight = if (entry.amendments.isNotEmpty()) FontWeight.Black else FontWeight.Medium
-                    ),
-                    color = if (isNonAttributed) theme.contentColor.copy(alpha = 0.8f) else theme.contentColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
-
-                if (entry.amendments.isNotEmpty()) {
+                // Date / Âge compact
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = if (isNonAttributed) "À attribuer" else "${entry.ageAtCreation.years}a ${entry.ageAtCreation.months}m",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = if (isNonAttributed) accent else accent.copy(alpha = 0.7f)
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Icon(Icons.Default.AutoAwesome, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(12.dp))
-                }
-                
-                if (entry.hasEnigma) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(Icons.Default.Fingerprint, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(12.dp))
+                    Text(
+                        text = formattedDate,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = theme.contentColor.copy(alpha = 0.3f)
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            // Date / Âge compact
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = if (isNonAttributed) "À attribuer" else "${entry.ageAtCreation.years}a ${entry.ageAtCreation.months}m",
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = if (isNonAttributed) Error else accent.copy(alpha = 0.7f)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = formattedDate,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = theme.contentColor.copy(alpha = 0.3f)
-                )
+            
+            if (!isNonAttributed) {
+                // Ligne de séparation fine uniquement pour les éléments standards
+                Spacer(modifier = Modifier.height(14.dp))
+                Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(theme.contentColor.copy(alpha = 0.05f)))
             }
         }
-        
-        // Ligne de séparation fine
-        Spacer(modifier = Modifier.height(14.dp))
-        Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(theme.contentColor.copy(alpha = 0.05f)))
     }
 }

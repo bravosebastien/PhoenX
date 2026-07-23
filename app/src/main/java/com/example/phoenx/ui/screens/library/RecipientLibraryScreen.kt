@@ -221,7 +221,7 @@ fun RecipientLibraryScreen(
                     modifier = Modifier.size(56.dp),
                     shape = CircleShape,
                     color = accent.copy(alpha = 0.1f),
-                    border = BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
@@ -310,9 +310,9 @@ fun CompactEssentialRow(
         ) {
             Surface(
                 modifier = Modifier.size(50.dp),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(12.dp),
                 color = theme.accentColor.copy(alpha = 0.1f),
-                border = BorderStroke(1.dp, theme.accentColor.copy(alpha = 0.2f))
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(icon, null, tint = theme.accentColor, modifier = Modifier.size(28.dp))
@@ -344,7 +344,7 @@ fun CompactEssentialRow(
         }
         HorizontalDivider(
             modifier = Modifier.padding(horizontal = 20.dp), 
-            color = theme.contentColor.copy(alpha = 0.05f), 
+            color = theme.contentColor.copy(alpha = 0.1f), 
             thickness = 0.5.dp
         )
     }
@@ -370,7 +370,7 @@ fun CompactGridItem(
             modifier = Modifier.size(64.dp),
             shape = CircleShape,
             color = theme.contentColor.copy(alpha = 0.04f),
-            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.08f))
+            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(icon, null, tint = theme.accentColor, modifier = Modifier.size(32.dp))

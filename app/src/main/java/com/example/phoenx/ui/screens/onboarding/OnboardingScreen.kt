@@ -136,7 +136,7 @@ fun StepFounderStory(onNext: () -> Unit, theme: AppThemeState) {
         OutlinedButton(
             onClick = onNext,
             modifier = Modifier.fillMaxWidth().height(56.dp).padding(bottom = 24.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, accent),
+            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.5f)),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = accent)
         ) {
             Text("Continuer", fontWeight = FontWeight.Bold)
@@ -188,7 +188,7 @@ fun StepPromises(onNext: () -> Unit, theme: AppThemeState) {
         OutlinedButton(
             onClick = onNext,
             modifier = Modifier.fillMaxWidth().height(56.dp).padding(bottom = 24.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, accent),
+            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.5f)),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = accent)
         ) {
             Text("Continuer", fontWeight = FontWeight.Bold)
@@ -213,7 +213,7 @@ fun PromiseCard(icon: String, title: String, description: String, delay: Int, th
         Surface(
             modifier = Modifier.fillMaxWidth(),
             color = theme.contentColor.copy(alpha = 0.05f),
-            shape = MaterialTheme.shapes.large,
+            shape = MaterialTheme.shapes.medium,
             border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
         ) {
             Row(

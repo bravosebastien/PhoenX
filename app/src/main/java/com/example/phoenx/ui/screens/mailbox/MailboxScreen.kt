@@ -1,6 +1,8 @@
 package com.example.phoenx.ui.screens.mailbox
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -95,8 +97,8 @@ fun ScheduledItemCard(item: OfflineEntry, theme: AppThemeState, onDelete: () -> 
     Card(
         modifier = Modifier.fillMaxWidth().phoenXMatiere(),
         colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
-        shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Success.copy(alpha = 0.2f))
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(

@@ -231,7 +231,7 @@ fun BookEditorScreen(
                                 .clickable { isIntroExpanded = !isIntroExpanded },
                             color = theme.contentColor.copy(alpha = 0.03f),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                                 Row(
@@ -282,7 +282,7 @@ fun BookEditorScreen(
                                 .clickable { isTransmissionExpanded = !isTransmissionExpanded },
                             color = theme.contentColor.copy(alpha = 0.05f),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, if (isTransmissionExpanded) accent.copy(alpha = 0.4f) else Color.Transparent)
+                            border = BorderStroke(1.dp, if (isTransmissionExpanded) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 12.dp),
@@ -313,7 +313,7 @@ fun BookEditorScreen(
                                 .clickable { isStyleExpanded = !isStyleExpanded },
                             color = theme.contentColor.copy(alpha = 0.05f),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, if (isStyleExpanded) accent.copy(alpha = 0.4f) else Color.Transparent)
+                            border = BorderStroke(1.dp, if (isStyleExpanded) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 12.dp),
@@ -406,7 +406,7 @@ fun BookEditorScreen(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
                         color = accent.copy(alpha = 0.03f),
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                        border = BorderStroke(1.dp, accent.copy(alpha = 0.5f))
                     ) {
                         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
                             Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(18.dp))
@@ -618,7 +618,7 @@ fun SealedMessageOptions(
                 colors = CardDefaults.cardColors(
                     containerColor = if (isSelected) accent.copy(alpha = 0.15f) else theme.contentColor.copy(alpha = 0.05f)
                 ),
-                border = BorderStroke(1.dp, if (isSelected) accent else Color.Transparent)
+                border = BorderStroke(1.dp, if (isSelected) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Text(
                     text = phrase,
@@ -639,7 +639,7 @@ fun SealedMessageOptions(
             colors = CardDefaults.cardColors(
                 containerColor = if (isCustomMode) accent.copy(alpha = 0.15f) else theme.contentColor.copy(alpha = 0.05f)
             ),
-            border = BorderStroke(1.dp, if (isCustomMode) accent else Color.Transparent)
+            border = BorderStroke(1.dp, if (isCustomMode) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
@@ -1059,14 +1059,16 @@ private fun ChapterCard(
         ChapterStatus.VALIDATED -> Color(0xFF4CAF50)
     }
 
-    Column(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 12.dp)
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.padding(16.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -1111,9 +1113,6 @@ private fun ChapterCard(
                 modifier = Modifier.size(18.dp)
             )
         }
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        Box(modifier = Modifier.fillMaxWidth().height(0.5.dp).background(theme.contentColor.copy(alpha = 0.1f)))
     }
 }
 
@@ -1171,7 +1170,7 @@ private fun BookOnboardingDialog(onDismiss: () -> Unit) {
                 Surface(
                     color = accent.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                    border = BorderStroke(1.dp, accent.copy(alpha = 0.5f))
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(

@@ -175,7 +175,7 @@ fun ReconciliationScreen(
                         color = accent.copy(alpha = 0.05f),
                         shape = MaterialTheme.shapes.medium,
                         modifier = Modifier.padding(vertical = 16.dp),
-                        border = BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -281,7 +281,7 @@ fun ReconciliationScreen(
                 Surface(
                     color = Warning.copy(alpha = 0.1f),
                     shape = MaterialTheme.shapes.medium,
-                    border = BorderStroke(1.dp, Warning.copy(alpha = 0.3f))
+                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                 ) {
                     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.LockClock, null, tint = Warning, modifier = Modifier.size(20.dp))

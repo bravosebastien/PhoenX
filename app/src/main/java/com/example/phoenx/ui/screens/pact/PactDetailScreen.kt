@@ -1,6 +1,8 @@
 package com.example.phoenx.ui.screens.pact
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -72,8 +74,8 @@ fun PactDetailScreen(
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
                             color = theme.contentColor.copy(alpha = 0.05f),
-                            shape = MaterialTheme.shapes.large,
-                            border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text("Aucun événement encore raconté.", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall)
@@ -123,9 +125,9 @@ fun PactDetailScreen(
 fun PactEntryCard(entry: OfflineEntry, partnerName: String, theme: AppThemeState) {
     Surface(
         color = theme.contentColor.copy(alpha = 0.03f),
-        shape = MaterialTheme.shapes.medium,
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier.fillMaxWidth(),
-        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.HistoryEdu, null, tint = theme.accentColor)

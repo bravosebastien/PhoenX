@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.recipient
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -125,9 +126,9 @@ fun AllocationEntryRow(
             
             Surface(
                 modifier = Modifier.size(48.dp),
-                shape = RoundedCornerShape(8.dp),
+                shape = RoundedCornerShape(12.dp),
                 color = theme.contentColor.copy(alpha = 0.03f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Icon(icon, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(20.dp))

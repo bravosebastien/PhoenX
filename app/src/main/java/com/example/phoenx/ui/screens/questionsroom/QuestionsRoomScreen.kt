@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.questionsroom
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -161,9 +162,9 @@ fun QuestionCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
         shape = MaterialTheme.shapes.medium,
-        border = androidx.compose.foundation.BorderStroke(
+        border = BorderStroke(
             1.dp, 
-            if (isAnswered) Success.copy(alpha = 0.3f) else theme.contentColor.copy(alpha = 0.1f)
+            if (isAnswered) Success.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f)
         )
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -213,7 +214,7 @@ fun QuestionCard(
                     onClick = { onAnswerClick() },
                     modifier = Modifier.align(Alignment.End),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, accent)
+                    border = BorderStroke(1.dp, accent.copy(alpha = 0.5f))
                 ) {
                     Text("Répondre")
                 }
@@ -229,7 +230,7 @@ fun MyQuestionResultCard(pending: PendingQuestion, creatorName: String, theme: A
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
         shape = MaterialTheme.shapes.medium,
-        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(

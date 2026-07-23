@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.recipient
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -164,7 +165,7 @@ fun SpecialAccessCard(
         onClick = onClick,
         color = theme.contentColor.copy(alpha = 0.03f),
         shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f)),
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
         modifier = modifier.heightIn(min = 80.dp)
     ) {
         Column(

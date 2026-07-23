@@ -246,9 +246,9 @@ fun MappamondeScreen(
             Card(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
                 colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(12.dp),
                 elevation = CardDefaults.cardElevation(10.dp),
-                border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
@@ -306,8 +306,8 @@ fun MappamondeScreen(
             Card(
                 modifier = Modifier.align(Alignment.Center).padding(32.dp),
                 colors = CardDefaults.cardColors(containerColor = theme.backgroundColor.copy(alpha = 0.85f)),
-                shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, accent.copy(alpha = 0.4f))
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.LocationOn, null, tint = accent, modifier = Modifier.size(44.dp))
@@ -535,7 +535,7 @@ fun LocationBottomSheet(
                         Card(
                             modifier = Modifier.width(280.dp).height(140.dp),
                             colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Column(modifier = Modifier.padding(14.dp).fillMaxSize()) {
@@ -583,7 +583,7 @@ fun LocationBottomSheet(
                     OutlinedButton(
                         onClick = { navController.navigate("location_detail/${location.id}"); onClose() },
                         modifier = Modifier.weight(1f).height(56.dp),
-                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.2f)),
+                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text("Détails", color = theme.contentColor)
@@ -630,7 +630,7 @@ fun InventoryBottomSheet(locations: List<LocationWithEntries>, onClose: () -> Un
                         Card(
                             onClick = { onSelect(item) },
                             colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
-                            shape = RoundedCornerShape(14.dp),
+                            shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Row(modifier = Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {

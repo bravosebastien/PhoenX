@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.auth
 
 import android.widget.Toast
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -138,8 +139,8 @@ fun DisplayStep(phrase: List<String>, theme: AppThemeState, onNext: () -> Unit) 
             itemsIndexed(phrase) { index, word ->
                 Card(
                     colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
-                    shape = RoundedCornerShape(8.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),

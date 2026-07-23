@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.fil
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -231,7 +232,7 @@ fun MemoryDetailScreen(
                             ),
                             elevation = CardDefaults.cardElevation(0.dp),
                             shape = RoundedCornerShape(12.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Column(modifier = Modifier.padding(20.dp)) {
                                 if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") {
@@ -305,7 +306,7 @@ fun MemoryDetailScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                                 shape = RoundedCornerShape(12.dp),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                             ) {
                                 TextField(
                                     value = editableText,
@@ -329,7 +330,7 @@ fun MemoryDetailScreen(
                                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
                                     colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                                     shape = RoundedCornerShape(12.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                                 ) {
                                     Column(modifier = Modifier.padding(16.dp)) {
                                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -439,7 +440,7 @@ fun MemoryDetailScreen(
                                     onClick = { showStartPicker = true },
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(8.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
                                     colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f))
                                 ) {
                                     Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
@@ -451,7 +452,7 @@ fun MemoryDetailScreen(
                                     onClick = { showEndPicker = true },
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(8.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
                                     colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f))
                                 ) {
                                     Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
@@ -621,7 +622,7 @@ fun MemoryDetailScreen(
                                             },
                                         colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
                                         shape = RoundedCornerShape(12.dp),
-                                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                                     ) {
                                         Row(
                                             modifier = Modifier.padding(12.dp),
@@ -749,9 +750,9 @@ fun MemoryDetailScreen(
                                                 containerColor = theme.contentColor.copy(alpha = 0.05f),
                                                 labelColor = theme.contentColor.copy(alpha = 0.6f)
                                             ),
-                                            border = androidx.compose.foundation.BorderStroke(
+                                            border = BorderStroke(
                                                 1.dp, 
-                                                if (entry!!.emotionalCategory == cat) accent else theme.contentColor.copy(alpha = 0.1f)
+                                                if (entry!!.emotionalCategory == cat) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f)
                                             )
                                         )
                                     }
@@ -868,7 +869,7 @@ fun PortraitAccordion(
             onClick = { isMasterExpanded = !isMasterExpanded },
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.1f)),
-            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+            border = BorderStroke(1.dp, accent.copy(alpha = 0.5f))
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -905,7 +906,7 @@ fun PortraitAccordion(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                         shape = RoundedCornerShape(12.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, if (expanded) accent.copy(alpha = 0.3f) else Color.Transparent)
+                        border = BorderStroke(1.dp, if (expanded) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {

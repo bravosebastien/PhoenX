@@ -276,7 +276,7 @@ fun PhotoCaptureContent(
                                             ),
                                             border = BorderStroke(
                                                 1.dp, 
-                                                if (selectedCategory == cat) accent else theme.contentColor.copy(alpha = 0.1f)
+                                                if (selectedCategory == cat) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f)
                                             )
                                         )
                                     }

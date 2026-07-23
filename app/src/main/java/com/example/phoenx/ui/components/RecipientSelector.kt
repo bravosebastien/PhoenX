@@ -33,6 +33,7 @@ fun RecipientSelector(
     accent: Color,
     containerColor: Color? = null
 ) {
+    val theme = com.example.phoenx.ui.theme.LocalAppTheme.current
     var expanded by remember { mutableStateOf(false) }
     val isEveryone = visibility == "EVERYONE"
 
@@ -44,7 +45,7 @@ fun RecipientSelector(
                 .clickable { expanded = !expanded },
             color = containerColor ?: SurfaceCard.copy(alpha = 0.3f),
             shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, if (expanded) accent.copy(alpha = 0.4f) else Color.Transparent)
+            border = BorderStroke(1.dp, if (expanded) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
