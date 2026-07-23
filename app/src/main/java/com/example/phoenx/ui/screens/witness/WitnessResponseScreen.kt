@@ -42,7 +42,8 @@ fun WitnessResponseScreen(
     navController: NavController,
     viewModel: WitnessViewModel = hiltViewModel()
 ) {
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
     val snackbarHostState = remember { SnackbarHostState() }
     
@@ -66,20 +67,20 @@ fun WitnessResponseScreen(
 
     // GESTION ÉTAT : DÉJÀ SOUMIS
     if (witnessConfig?.submittedAt != null && !isRitualPlaying) {
-        Box(modifier = Modifier.fillMaxSize().background(backgroundBrush), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
                 Icon(Icons.Default.CheckCircle, null, tint = Success, modifier = Modifier.size(64.dp))
                 Spacer(modifier = Modifier.height(24.dp))
-                Text("Témoignage déjà scellé", style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                Text("Témoignage déjà scellé", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     "Vous avez déjà envoyé votre témoignage pour $creatorName. Il est maintenant en sécurité.",
-                    color = TextSecondary,
+                    color = theme.contentColor.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(32.dp))
-                Button(onClick = { navController.popBackStack() }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
-                    Text("Retour", color = BackgroundPrimary)
+                Button(onClick = { navController.popBackStack() }, colors = ButtonDefaults.buttonColors(containerColor = accent), modifier = Modifier.phoenXMatiere()) {
+                    Text("Retour", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -98,7 +99,7 @@ fun WitnessResponseScreen(
             label = "scale"
         )
 
-        Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(
                     imageVector = Icons.Default.CheckCircle,
@@ -107,7 +108,7 @@ fun WitnessResponseScreen(
                     tint = accent
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                Text("Témoignage scellé.\nMerci pour ce souvenir.", style = MaterialTheme.typography.displaySmall, color = accent, textAlign = TextAlign.Center)
+                Text("Témoignage scellé.\nMerci pour ce souvenir.", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = accent, textAlign = TextAlign.Center)
             }
         }
         LaunchedEffect(Unit) {
@@ -118,8 +119,8 @@ fun WitnessResponseScreen(
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
-        modifier = Modifier.background(backgroundBrush),
+        containerColor = theme.backgroundColor,
+        modifier = Modifier.background(LocalBackgroundBrush.current),
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -142,8 +143,8 @@ fun WitnessResponseScreen(
 
                 Text(
                     "Un témoignage pour ${creatorName ?: "ton proche"}",
-                    style = MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold),
-                    color = TextPrimary,
+                    style = MaterialTheme.typography.headlineMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                    color = theme.contentColor,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -159,7 +160,7 @@ fun WitnessResponseScreen(
                 Text(
                     text = instructionText,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = if (!witnessConfig?.requestPrompt.isNullOrBlank()) accent else TextSecondary,
+                    color = if (!witnessConfig?.requestPrompt.isNullOrBlank()) accent else theme.contentColor.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
                     lineHeight = 26.sp,
                     fontStyle = if (!witnessConfig?.requestPrompt.isNullOrBlank()) FontStyle.Italic else FontStyle.Normal
@@ -170,7 +171,7 @@ fun WitnessResponseScreen(
                 // ZONE PAPIER SACRÉ
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF242429)),
+                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
                     shape = RoundedCornerShape(12.dp),
                     border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
                 ) {
@@ -178,14 +179,15 @@ fun WitnessResponseScreen(
                         if (testimonyText.isEmpty()) {
                             Text(
                                 "Écris ton histoire ici...",
-                                style = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 18.sp, color = TextTertiary)
+                                style = TextStyle(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontSize = 18.sp, color = theme.contentColor.copy(alpha = 0.3f))
                             )
                         }
                         BasicTextField(
                             value = testimonyText,
                             onValueChange = { testimonyText = it },
-                            textStyle = TextStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 18.sp, color = TextPrimary, lineHeight = 30.sp),
-                            modifier = Modifier.fillMaxWidth().heightIn(min = 300.dp)
+                            textStyle = TextStyle(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontSize = 18.sp, color = theme.contentColor, lineHeight = 30.sp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 300.dp),
+                            cursorBrush = Brush.verticalGradient(listOf(accent, accent))
                         )
                     }
                 }
@@ -199,16 +201,16 @@ fun WitnessResponseScreen(
                         }
                     },
                     enabled = testimonyText.isNotBlank() && !isLoading,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                     colors = ButtonDefaults.buttonColors(containerColor = accent),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     if (isLoading) {
-                        CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+                        CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
                     } else {
-                        Icon(Icons.AutoMirrored.Filled.Send, null, tint = BackgroundPrimary)
+                        Icon(Icons.AutoMirrored.Filled.Send, null, tint = theme.backgroundColor)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Sceller mon témoignage", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                        Text("Sceller mon témoignage", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                     }
                 }
                 
@@ -224,7 +226,7 @@ fun WitnessResponseScreen(
 
                 Text(
                     text = transparencyTitle,
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = accent,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
@@ -233,7 +235,7 @@ fun WitnessResponseScreen(
                 Text(
                     text = transparencyDesc,
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary,
+                    color = theme.contentColor.copy(alpha = 0.4f),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )

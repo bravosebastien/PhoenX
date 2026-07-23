@@ -34,13 +34,15 @@ fun DepositaryDashboardScreen(
 ) {
     android.util.Log.d("PHOENX_DEBUG", "DepositaryDashboardScreen rendu avec creatorId=$creatorId")
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     LaunchedEffect(creatorId) {
         viewModel.loadCreatorStatus(creatorId)
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = {
@@ -49,7 +51,7 @@ fun DepositaryDashboardScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Tableau de bord Dépositaire", color = TextPrimary)
+                        Text("Tableau de bord Dépositaire", color = theme.contentColor, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                         InfoButton(
                             title = "Tableau de Bord Dépositaire",
                             points = listOf(
@@ -62,13 +64,13 @@ fun DepositaryDashboardScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
             )
         }
     ) { padding ->
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AccentPrimary)
+                CircularProgressIndicator(color = accent)
             }
         } else {
             LazyColumn(
@@ -83,6 +85,7 @@ fun DepositaryDashboardScreen(
                         name = uiState.creatorName,
                         missedCycles = uiState.missedCycles,
                         days = uiState.daysSinceLastCheckIn,
+                        theme = theme,
                         onAction = { onNavigateToActivation(creatorId) }
                     )
                 }
@@ -91,6 +94,7 @@ fun DepositaryDashboardScreen(
                     DepositarySection(
                         title = "MON RÔLE",
                         icon = Icons.Default.Security,
+                        theme = theme,
                         onClick = onNavigateToOnboarding
                     )
                 }
@@ -99,6 +103,7 @@ fun DepositaryDashboardScreen(
                     DepositarySection(
                         title = "NOTIFICATIONS",
                         icon = Icons.Default.Notifications,
+                        theme = theme,
                         onClick = onNavigateToNotifications
                     )
                 }
@@ -107,6 +112,7 @@ fun DepositaryDashboardScreen(
                     DepositarySection(
                         title = "MES INFORMATIONS",
                         icon = Icons.Default.Person,
+                        theme = theme,
                         onClick = onNavigateToInfo
                     )
                 }
@@ -120,8 +126,10 @@ fun StatusCard(
     name: String,
     missedCycles: Int,
     days: Int,
+    theme: AppThemeState,
     onAction: () -> Unit
 ) {
+    val accent = theme.accentColor
     val statusColor = when {
         missedCycles >= 3 -> Error
         missedCycles > 0 -> Warning
@@ -136,7 +144,7 @@ fun StatusCard(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = SurfaceCard,
+        color = theme.contentColor.copy(alpha = 0.05f),
         shape = MaterialTheme.shapes.medium,
         border = androidx.compose.foundation.BorderStroke(1.dp, statusColor.copy(alpha = 0.3f))
     ) {
@@ -146,7 +154,7 @@ fun StatusCard(
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = statusText,
-                    color = TextPrimary,
+                    color = theme.contentColor,
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -154,7 +162,7 @@ fun StatusCard(
             if (missedCycles >= 3) {
                 Spacer(modifier = Modifier.height(16.dp))
                 TextButton(onClick = onAction) {
-                    Text("Voir les options", color = AccentPrimary)
+                    Text("Voir les options", color = accent)
                 }
             }
         }
@@ -165,22 +173,24 @@ fun StatusCard(
 fun DepositarySection(
     title: String,
     icon: ImageVector,
+    theme: AppThemeState,
     onClick: (() -> Unit)? = null
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
-        color = SurfaceCard.copy(alpha = 0.5f),
-        shape = MaterialTheme.shapes.medium
+        color = theme.contentColor.copy(alpha = 0.03f),
+        shape = MaterialTheme.shapes.medium,
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, null, tint = TextTertiary, modifier = Modifier.size(20.dp))
+            Icon(icon, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(16.dp))
-            Text(title, color = TextSecondary, style = MaterialTheme.typography.labelLarge, letterSpacing = 1.sp)
+            Text(title, color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
         }
     }
 }

@@ -43,23 +43,24 @@ fun HeirAllocationScreen(
     
     val entries by viewModel.getEntriesForRecipientUnified(recipientId).collectAsState(initial = emptyList())
     
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(backgroundBrush),
         topBar = {
             TopAppBar(
                 title = { 
                     Column {
                         Text("Fiche Héritier", style = MaterialTheme.typography.labelSmall, color = accent)
-                        Text(recipient?.name ?: "Détails", style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif))
+                        Text(recipient?.name ?: "Détails", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -74,7 +75,7 @@ fun HeirAllocationScreen(
             Text(
                 text = "${entries.size} souvenirs sont destinés à ${recipient?.name ?: "ce proche"}.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.7f),
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
             )
 
@@ -85,6 +86,7 @@ fun HeirAllocationScreen(
                 items(entries) { entry ->
                     AllocationEntryRow(
                         entry = entry,
+                        theme = theme,
                         onClick = { navController.navigate(Screen.MemoryDetail.createRoute(entry.id)) }
                     )
                 }
@@ -96,9 +98,10 @@ fun HeirAllocationScreen(
 @Composable
 fun AllocationEntryRow(
     entry: OfflineEntry,
+    theme: AppThemeState,
     onClick: () -> Unit
 ) {
-    val accent = LocalAccentColor.current
+    val accent = theme.accentColor
     val sdf = SimpleDateFormat("dd MMM yyyy", Locale.FRENCH)
     val formattedDate = sdf.format(Date(entry.createdAt))
 
@@ -123,7 +126,7 @@ fun AllocationEntryRow(
             Surface(
                 modifier = Modifier.size(48.dp),
                 shape = RoundedCornerShape(8.dp),
-                color = SurfaceCard.copy(alpha = 0.4f),
+                color = theme.contentColor.copy(alpha = 0.03f),
                 border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -142,14 +145,14 @@ fun AllocationEntryRow(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = TextPrimary,
+                    color = theme.contentColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = formattedDate,
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary
+                    color = theme.contentColor.copy(alpha = 0.4f)
                 )
             }
             

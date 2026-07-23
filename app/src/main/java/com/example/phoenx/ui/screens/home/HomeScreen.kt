@@ -89,21 +89,21 @@ fun HomeScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            containerColor = BackgroundSecondary,
-            title = { Text("Se déconnecter ?", color = TextPrimary) },
-            text = { Text("Es-tu sûr de vouloir fermer ta session ?", color = TextSecondary) },
+            containerColor = theme.backgroundColor,
+            title = { Text("Se déconnecter ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Es-tu sûr de vouloir fermer ta session ?", color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 TextButton(onClick = {
                     mainViewModel.logout()
                     onLogoutSuccess()
                     showLogoutDialog = false
                 }) {
-                    Text("Déconnexion", color = Error)
+                    Text("Déconnexion", color = Error, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Annuler", color = TextPrimary)
+                    Text("Annuler", color = theme.contentColor)
                 }
             }
         )
@@ -197,8 +197,8 @@ fun HomeScreen(
                                 Spacer(Modifier.width(12.dp))
                                 Text(
                                     "Tu as ${pendingInvites.size} invitation(s) en attente.",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = TextPrimary,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = theme.contentColor,
                                     modifier = Modifier.weight(1f)
                                 )
                                 Icon(Icons.Outlined.ArrowForward, null, tint = accent, modifier = Modifier.size(16.dp))
@@ -257,7 +257,7 @@ fun HomeScreen(
                                     }
                                 }
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("Déposer", color = BackgroundPrimary, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold))
+                                Text("Déposer", color = theme.backgroundColor, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold))
                             }
                         }
 
@@ -372,6 +372,7 @@ fun HomeScreen(
                         pendingInvites = pendingInvites,
                         isCreator = isCreator ?: true,
                         accent = accent,
+                        theme = theme,
                         onNavigateToCube = onNavigateToCube,
                         onAcceptInvite = onAcceptInvite,
                         onBecomeCreator = onBecomeCreator
@@ -665,13 +666,14 @@ fun HomeNavigationBar(
 
 @Composable
 fun NavItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, active: Boolean, onClick: () -> Unit) {
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     Column(
         modifier = Modifier.clickable { onClick() },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(icon, null, tint = if (active) accent else TextTertiary, modifier = Modifier.size(22.dp))
+        Icon(icon, null, tint = if (active) accent else theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.size(22.dp))
         Spacer(modifier = Modifier.height(4.dp))
-        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = if (active) accent else TextTertiary)
+        Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold), color = if (active) accent else theme.contentColor.copy(alpha = 0.3f))
     }
 }

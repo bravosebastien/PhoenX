@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,21 +38,23 @@ fun RecipientPhotosScreen(
     }
 
     val entries by viewModel.archiveEntries.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Grande Photothèque", style = MaterialTheme.typography.displaySmall) },
+                title = { Text("Grande Photothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 actions = {
                     IconButton(onClick = onNavigateToCapture) {
-                        Icon(Icons.Default.Add, null, tint = AccentPrimary)
+                        Icon(Icons.Default.Add, null, tint = accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -65,7 +68,7 @@ fun RecipientPhotosScreen(
         ) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("L'album est encore vide.", color = TextTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Text("L'album est encore vide.", color = theme.contentColor.copy(alpha = 0.4f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             } else {
                 LazyVerticalGrid(
@@ -76,7 +79,7 @@ fun RecipientPhotosScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(entries) { entry ->
-                        PhotoItem(entry) { onNavigateToDetail(entry.id) }
+                        PhotoItem(entry, theme) { onNavigateToDetail(entry.id) }
                     }
                 }
             }
@@ -85,23 +88,23 @@ fun RecipientPhotosScreen(
 }
 
 @Composable
-fun PhotoItem(entry: PhoenXEntry, onClick: () -> Unit) {
+fun PhotoItem(entry: PhoenXEntry, theme: AppThemeState, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .aspectRatio(1f)
             .clip(MaterialTheme.shapes.medium)
-            .background(SurfaceCard)
+            .background(theme.contentColor.copy(alpha = 0.05f))
             .clickable(onClick = onClick)
             .phoenXMatiere(),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Default.PhotoLibrary, null, tint = AccentPrimary.copy(alpha = 0.5f), modifier = Modifier.size(32.dp))
+            Icon(Icons.Default.PhotoLibrary, null, tint = theme.accentColor.copy(alpha = 0.5f), modifier = Modifier.size(32.dp))
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "${entry.ageAtCreation.years} ans",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = theme.contentColor.copy(alpha = 0.6f),
                 fontSize = 10.sp
             )
         }

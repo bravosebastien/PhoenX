@@ -21,9 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.phoenx.ui.screens.book.BookThemeOptions
 import com.example.phoenx.ui.theme.LocalAppTheme
-import com.example.phoenx.ui.theme.TextPrimary
-import com.example.phoenx.ui.theme.TextSecondary
-import com.example.phoenx.ui.theme.TextTertiary
 
 @Composable
 fun GlobalThemeSelector(

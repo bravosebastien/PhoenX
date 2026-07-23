@@ -82,7 +82,6 @@ import androidx.navigation.NavController
 import com.google.firebase.auth.FirebaseAuth
 import com.example.phoenx.ui.screens.media.MediaViewerScreen
 
-@androidx.media3.common.util.UnstableApi
 @Composable
 fun PhoenXNavGraph(
     navController: NavHostController,

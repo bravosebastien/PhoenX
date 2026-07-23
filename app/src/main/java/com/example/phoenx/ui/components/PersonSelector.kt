@@ -20,12 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.phoenx.data.local.PersonEntity
-import com.example.phoenx.ui.theme.AccentPrimary
-import com.example.phoenx.ui.theme.BackgroundSecondary
-import com.example.phoenx.ui.theme.SurfaceCard
-import com.example.phoenx.ui.theme.TextPrimary
-import com.example.phoenx.ui.theme.TextSecondary
-import com.example.phoenx.ui.theme.TextTertiary
+import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -38,6 +33,7 @@ fun PersonSelector(
     onRemove: (String) -> Unit,
     accent: Color
 ) {
+    val theme = LocalAppTheme.current
     var query by remember { mutableStateOf("") }
     var showCreateDialog by remember { mutableStateOf(false) }
     var duplicateNameDialog by remember { mutableStateOf<String?>(null) }
@@ -45,8 +41,8 @@ fun PersonSelector(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             "Personnes mentionnées",
-            style = MaterialTheme.typography.labelSmall,
-            color = TextTertiary,
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = theme.contentColor.copy(alpha = 0.4f),
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
@@ -78,7 +74,7 @@ fun PersonSelector(
                 query = it
                 onSearch(it)
             },
-            placeholder = { Text("Qui est présent ?", fontSize = 14.sp) },
+            placeholder = { Text("Qui est présent ?", fontSize = 14.sp, color = theme.contentColor.copy(alpha = 0.4f)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             leadingIcon = { Icon(Icons.Default.PersonAdd, null, tint = accent) },
@@ -98,7 +94,9 @@ fun PersonSelector(
             },
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = accent,
-                unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f)
+                unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                focusedTextColor = theme.contentColor,
+                unfocusedTextColor = theme.contentColor
             )
         )
 
@@ -107,14 +105,15 @@ fun PersonSelector(
             Surface(
                 modifier = Modifier.padding(top = 4.dp).fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                color = SurfaceCard,
+                color = theme.contentColor.copy(alpha = 0.05f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
                 tonalElevation = 2.dp
             ) {
                 Column {
                     suggestedPersons.forEach { person ->
                         ListItem(
-                            headlineContent = { Text(person.firstName + (person.lastName?.let { " $it" } ?: "")) },
-                            supportingContent = { Text(person.relationship ?: "Proche") },
+                            headlineContent = { Text(person.firstName + (person.lastName?.let { " $it" } ?: ""), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                            supportingContent = { Text(person.relationship ?: "Proche", color = theme.contentColor.copy(alpha = 0.6f)) },
                             leadingContent = {
                                 Surface(modifier = Modifier.size(32.dp), shape = CircleShape, color = accent.copy(alpha = 0.1f)) {
                                     Box(contentAlignment = Alignment.Center) {
@@ -122,6 +121,7 @@ fun PersonSelector(
                                     }
                                 }
                             },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                             modifier = Modifier.clickable { 
                                 onSelect(person)
                                 query = ""
@@ -151,13 +151,13 @@ fun PersonSelector(
     if (duplicateNameDialog != null) {
         AlertDialog(
             onDismissRequest = { duplicateNameDialog = null },
-            title = { Text("Nom déjà existant") },
-            text = { Text("Il y a déjà un(e) ${duplicateNameDialog} dans votre liste. Voulez-vous utiliser la personne existante ou en créer une nouvelle ?") },
+            title = { Text("Nom déjà existant", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Il y a déjà un(e) ${duplicateNameDialog} dans votre liste. Voulez-vous utiliser la personne existante ou en créer une nouvelle ?", color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 TextButton(onClick = { 
                     showCreateDialog = true
                     duplicateNameDialog = null 
-                }) { Text("Créer un nouveau", color = accent) }
+                }) { Text("Créer un nouveau", color = accent, fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
                 TextButton(onClick = { 
@@ -165,9 +165,9 @@ fun PersonSelector(
                     onSelect(p)
                     duplicateNameDialog = null
                     query = ""
-                }) { Text("Utiliser l'existant") }
+                }) { Text("Utiliser l'existant", color = theme.contentColor) }
             },
-            containerColor = BackgroundSecondary
+            containerColor = theme.backgroundColor
         )
     }
 }
@@ -193,14 +193,16 @@ fun CreatePersonDialog(
         "autre" to "Autre"
     )
 
+    val theme = LocalAppTheme.current
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(24.dp),
-            color = BackgroundSecondary,
+            color = theme.backgroundColor,
+            border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
-                Text("Nouvelle Personne", style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                Text("Nouvelle Personne", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                 Spacer(Modifier.height(16.dp))
 
                 OutlinedTextField(
@@ -208,7 +210,7 @@ fun CreatePersonDialog(
                     onValueChange = { firstName = it },
                     label = { Text("Prénom") },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
                 Spacer(Modifier.height(8.dp))
 
@@ -217,11 +219,11 @@ fun CreatePersonDialog(
                     onValueChange = { relationship = it },
                     label = { Text("Lien (ex: fils, collègue)") },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
                 Spacer(Modifier.height(16.dp))
 
-                Text("Pour les différencier (si besoin)", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                Text("Pour les différencier (si besoin)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
                 Spacer(Modifier.height(8.dp))
 
                 var expanded by remember { mutableStateOf(false) }
@@ -236,7 +238,7 @@ fun CreatePersonDialog(
                         label = { Text("Type de distinction") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                     )
                     ExposedDropdownMenu(
                         expanded = expanded,
@@ -244,11 +246,12 @@ fun CreatePersonDialog(
                     ) {
                         distTypes.forEach { type ->
                             DropdownMenuItem(
-                                text = { Text(type.second) },
+                                text = { Text(type.second, color = theme.contentColor) },
                                 onClick = {
                                     distinctionType = type.first
                                     expanded = false
-                                }
+                                },
+                                colors = MenuDefaults.itemColors(textColor = theme.contentColor)
                             )
                         }
                     }
@@ -260,18 +263,19 @@ fun CreatePersonDialog(
                     onValueChange = { distinctionValue = it },
                     label = { Text("Valeur (ex: Lyon, Le Grand...)") },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
 
                 Spacer(Modifier.height(24.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onDismiss) { Text("Annuler", color = TextSecondary) }
+                    TextButton(onClick = onDismiss) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f)) }
                     Button(
                         onClick = { onConfirm(firstName, if(lastName.isBlank()) null else lastName, if(relationship.isBlank()) null else relationship, distinctionType, if(distinctionValue.isBlank()) null else distinctionValue) },
                         colors = ButtonDefaults.buttonColors(containerColor = accent),
-                        enabled = firstName.isNotBlank()
-                    ) { Text("Créer", color = Color.Black) }
+                        enabled = firstName.isNotBlank(),
+                        modifier = Modifier.phoenXMatiere()
+                    ) { Text("Créer", color = theme.backgroundColor, fontWeight = FontWeight.Bold) }
                 }
             }
         }

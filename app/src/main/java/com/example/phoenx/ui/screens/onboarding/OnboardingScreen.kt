@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,11 +27,13 @@ fun OnboardingScreen(
 ) {
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary)
+            .background(theme.backgroundColor)
     ) {
         HorizontalPager(
             state = pagerState,
@@ -40,11 +43,11 @@ fun OnboardingScreen(
             when (page) {
                 0 -> StepFounderStory(onNext = { 
                     scope.launch { pagerState.animateScrollToPage(1) }
-                })
+                }, theme = theme)
                 1 -> StepPromises(onNext = {
                     scope.launch { pagerState.animateScrollToPage(2) }
-                })
-                2 -> StepGetStarted(onFinish)
+                }, theme = theme)
+                2 -> StepGetStarted(onFinish, theme = theme)
             }
         }
 
@@ -59,7 +62,7 @@ fun OnboardingScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(3) { iteration ->
-                val color = if (pagerState.currentPage == iteration) AccentPrimary else TextTertiary
+                val color = if (pagerState.currentPage == iteration) accent else theme.contentColor.copy(alpha = 0.2f)
                 Box(
                     modifier = Modifier
                         .padding(4.dp)
@@ -72,7 +75,8 @@ fun OnboardingScreen(
 }
 
 @Composable
-fun StepFounderStory(onNext: () -> Unit) {
+fun StepFounderStory(onNext: () -> Unit, theme: AppThemeState) {
+    val accent = theme.accentColor
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
 
@@ -103,8 +107,8 @@ fun StepFounderStory(onNext: () -> Unit) {
 
                     Text(
                         text = "J'ai survécu trois fois.",
-                        style = MaterialTheme.typography.displayLarge,
-                        color = TextPrimary,
+                        style = MaterialTheme.typography.displayLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                        color = theme.contentColor,
                         textAlign = TextAlign.Center
                     )
 
@@ -113,7 +117,7 @@ fun StepFounderStory(onNext: () -> Unit) {
                     Text(
                         text = "Chaque retour m'a appris que l'urgence n'était pas médicale.",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = TextSecondary,
+                        color = theme.contentColor.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center
                     )
 
@@ -121,8 +125,8 @@ fun StepFounderStory(onNext: () -> Unit) {
 
                     Text(
                         text = "C'était ce que je n'avais jamais encore transmis.",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = AccentPrimary,
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = accent,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -132,10 +136,10 @@ fun StepFounderStory(onNext: () -> Unit) {
         OutlinedButton(
             onClick = onNext,
             modifier = Modifier.fillMaxWidth().height(56.dp).padding(bottom = 24.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentPrimary)
+            border = androidx.compose.foundation.BorderStroke(1.dp, accent),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = accent)
         ) {
-            Text("Continuer")
+            Text("Continuer", fontWeight = FontWeight.Bold)
         }
         
         Spacer(modifier = Modifier.height(56.dp)) // Espace pour les indicateurs
@@ -143,7 +147,8 @@ fun StepFounderStory(onNext: () -> Unit) {
 }
 
 @Composable
-fun StepPromises(onNext: () -> Unit) {
+fun StepPromises(onNext: () -> Unit, theme: AppThemeState) {
+    val accent = theme.accentColor
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -159,31 +164,34 @@ fun StepPromises(onNext: () -> Unit) {
                 icon = "❤",
                 title = "Pour toi, maintenant",
                 description = "Un espace intime pour capturer ce qui compte.",
-                delay = 0
+                delay = 0,
+                theme = theme
             )
             Spacer(modifier = Modifier.height(16.dp))
             PromiseCard(
                 icon = "🦋",
                 title = "Pour eux, plus tard",
                 description = "Une transmission réfléchie, au bon moment.",
-                delay = 300
+                delay = 300,
+                theme = theme
             )
             Spacer(modifier = Modifier.height(16.dp))
             PromiseCard(
                 icon = "✦",
                 title = "Avec dignité, toujours",
                 description = "Ton histoire, racontée comme tu l'as voulue.",
-                delay = 600
+                delay = 600,
+                theme = theme
             )
         }
 
         OutlinedButton(
             onClick = onNext,
             modifier = Modifier.fillMaxWidth().height(56.dp).padding(bottom = 24.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentPrimary)
+            border = androidx.compose.foundation.BorderStroke(1.dp, accent),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = accent)
         ) {
-            Text("Continuer")
+            Text("Continuer", fontWeight = FontWeight.Bold)
         }
         
         Spacer(modifier = Modifier.height(56.dp)) // Espace pour les indicateurs
@@ -191,7 +199,7 @@ fun StepPromises(onNext: () -> Unit) {
 }
 
 @Composable
-fun PromiseCard(icon: String, title: String, description: String, delay: Int) {
+fun PromiseCard(icon: String, title: String, description: String, delay: Int, theme: AppThemeState) {
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { 
         kotlinx.coroutines.delay(delay.toLong())
@@ -204,8 +212,9 @@ fun PromiseCard(icon: String, title: String, description: String, delay: Int) {
     ) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            color = SurfaceCard,
-            shape = MaterialTheme.shapes.large
+            color = theme.contentColor.copy(alpha = 0.05f),
+            shape = MaterialTheme.shapes.large,
+            border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
         ) {
             Row(
                 modifier = Modifier.padding(20.dp),
@@ -214,8 +223,8 @@ fun PromiseCard(icon: String, title: String, description: String, delay: Int) {
                 Text(text = icon, fontSize = 24.sp)
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    Text(text = title, style = MaterialTheme.typography.labelLarge, color = TextPrimary)
-                    Text(text = description, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
+                    Text(text = title, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                    Text(text = description, style = MaterialTheme.typography.bodyMedium, color = theme.contentColor.copy(alpha = 0.7f))
                 }
             }
         }
@@ -223,7 +232,8 @@ fun PromiseCard(icon: String, title: String, description: String, delay: Int) {
 }
 
 @Composable
-fun StepGetStarted(onFinish: (Boolean) -> Unit) {
+fun StepGetStarted(onFinish: (Boolean) -> Unit, theme: AppThemeState) {
+    val accent = theme.accentColor
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -233,8 +243,8 @@ fun StepGetStarted(onFinish: (Boolean) -> Unit) {
     ) {
         Text(
             text = "Comment veux-tu commencer ?",
-            style = MaterialTheme.typography.displayMedium,
-            color = TextPrimary,
+            style = MaterialTheme.typography.displayMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+            color = theme.contentColor,
             textAlign = TextAlign.Center
         )
 
@@ -242,11 +252,11 @@ fun StepGetStarted(onFinish: (Boolean) -> Unit) {
 
         Button(
             onClick = { onFinish(true) },
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+            modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+            colors = ButtonDefaults.buttonColors(containerColor = accent),
             shape = MaterialTheme.shapes.medium
         ) {
-            Text("Créer mon espace", color = BackgroundPrimary)
+            Text("Créer mon espace", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -255,9 +265,10 @@ fun StepGetStarted(onFinish: (Boolean) -> Unit) {
             onClick = { onFinish(false) },
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = MaterialTheme.shapes.medium,
-            border = androidx.compose.foundation.BorderStroke(1.dp, TextSecondary)
+            border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor)
         ) {
-            Text("J'ai déjà un compte", color = TextPrimary)
+            Text("J'ai déjà un compte", color = theme.contentColor, fontWeight = FontWeight.Bold)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -265,9 +276,10 @@ fun StepGetStarted(onFinish: (Boolean) -> Unit) {
         Text(
             text = "Tes souvenirs sont chiffrés et scellés.\nIls ne seront transmis qu'au moment voulu.",
             style = MaterialTheme.typography.labelSmall,
-            color = TextTertiary,
+            color = theme.contentColor.copy(alpha = 0.4f),
             textAlign = TextAlign.Center,
-            lineHeight = 16.sp
+            lineHeight = 16.sp,
+            fontWeight = FontWeight.Bold
         )
         
         Spacer(modifier = Modifier.height(56.dp)) // Espace pour les indicateurs

@@ -33,7 +33,6 @@ import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.example.phoenx.ui.theme.BackgroundPrimary
 
-@androidx.media3.common.util.UnstableApi
 @Composable
 fun MediaViewerScreen(
     entryId: String,
@@ -138,7 +137,6 @@ fun ZoomableImage(
     }
 }
 
-@androidx.media3.common.util.UnstableApi
 @Composable
 fun VideoPlayer(
     mediaUrl: String,
@@ -172,7 +170,6 @@ fun VideoPlayer(
     )
 }
 
-@androidx.media3.common.util.UnstableApi
 @Composable
 fun AudioPlayer(
     mediaUrl: String,

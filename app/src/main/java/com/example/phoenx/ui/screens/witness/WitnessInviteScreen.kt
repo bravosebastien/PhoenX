@@ -226,20 +226,20 @@ fun WitnessInviteScreen(
         if (witnessToDelete != null) {
             AlertDialog(
                 onDismissRequest = { witnessToDelete = null },
-                containerColor = BackgroundSecondary,
-                title = { Text("Supprimer ce témoin ?", color = TextPrimary) },
-                text = { Text("Veux-tu vraiment annuler l'invitation de ${witnessToDelete?.name} ?", color = TextSecondary) },
+                containerColor = theme.backgroundColor,
+                title = { Text("Supprimer ce témoin ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                text = { Text("Veux-tu vraiment annuler l'invitation de ${witnessToDelete?.name} ?", color = theme.contentColor.copy(alpha = 0.7f)) },
                 confirmButton = {
                     TextButton(onClick = {
                         witnessToDelete?.let { viewModel.deleteWitness(it.id) }
                         witnessToDelete = null
                     }) {
-                        Text("Supprimer", color = Error)
+                        Text("Supprimer", color = Error, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { witnessToDelete = null }) {
-                        Text("Annuler", color = TextPrimary)
+                        Text("Annuler", color = theme.contentColor)
                     }
                 }
             )
@@ -307,7 +307,7 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit, onReview: () -> Un
                 }
                 
                 IconButton(onClick = onDelete, modifier = Modifier.padding(top = 4.dp).size(24.dp)) {
-                    Icon(Icons.Default.Delete, null, tint = TextTertiary.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Delete, null, tint = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.size(16.dp))
                 }
             }
         }

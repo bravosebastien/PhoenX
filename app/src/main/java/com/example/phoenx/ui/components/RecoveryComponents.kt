@@ -23,35 +23,39 @@ fun RecoveryReminderDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundSecondary,
+        containerColor = theme.backgroundColor,
         title = {
             Text(
                 text = "Ta phrase de récupération est-elle en sécurité ?",
-                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-                color = TextPrimary
+                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                color = theme.contentColor
             )
         },
         text = {
             Text(
                 text = "PHOEN-X utilise une technologie de chiffrement de bout en bout. Tes souvenirs sont protégés par une clé privée unique que nous ne possédons pas.\n\nCes 12 mots sont l'unique sauvegarde de cette clé. Si tu changes de téléphone ou si l'application est désinstallée, sans ces mots, l'accès à ta vie sera DÉFINITIVEMENT verrouillé. Ni toi, ni nous ne pourrons rien faire. C'est ton unique bouclier contre l'oubli définitif.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.7f),
                 lineHeight = 22.sp
             )
         },
         confirmButton = {
             Button(
                 onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent),
+                modifier = Modifier.phoenXMatiere()
             ) {
-                Text("Vérifier mes 12 mots", color = BackgroundPrimary)
+                Text("Vérifier mes 12 mots", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("C'est bon, je les ai", color = TextTertiary)
+                Text("C'est bon, je les ai", color = theme.contentColor.copy(alpha = 0.4f))
             }
         }
     )
@@ -63,10 +67,13 @@ fun RecoveryPhraseBottomSheet(
     phrase: List<String>,
     onDismiss: () -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundSecondary,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = TextTertiary.copy(alpha = 0.3f)) }
+        containerColor = theme.backgroundColor,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = theme.contentColor.copy(alpha = 0.2f)) }
     ) {
         Column(
             modifier = Modifier
@@ -78,7 +85,7 @@ fun RecoveryPhraseBottomSheet(
             Text(
                 text = "Ces mots sont affichés uniquement sur ton téléphone. Ne les photographiez pas. Ne les partagez pas en ligne. Rangez-les dans un endroit physique sûr.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center
             )
             
@@ -92,8 +99,9 @@ fun RecoveryPhraseBottomSheet(
             ) {
                 itemsIndexed(phrase) { index, word ->
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF2E2E35)),
-                        shape = RoundedCornerShape(8.dp)
+                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                        shape = RoundedCornerShape(8.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                     ) {
                         Column(
                             modifier = Modifier.padding(12.dp),
@@ -102,15 +110,15 @@ fun RecoveryPhraseBottomSheet(
                             Text(
                                 text = (index + 1).toString(),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                                color = Color(0xFF5C5855)
+                                color = theme.contentColor.copy(alpha = 0.3f)
                             )
                             Text(
                                 text = word,
                                 style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontFamily = FontFamily.Serif,
+                                    fontFamily = theme.fontFamily,
                                     fontWeight = FontWeight.Bold
                                 ),
-                                color = Color(0xFFF2EDE8)
+                                color = theme.contentColor
                             )
                         }
                     }
@@ -122,9 +130,9 @@ fun RecoveryPhraseBottomSheet(
             Button(
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Fermer", color = BackgroundPrimary)
+                Text("Fermer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     }

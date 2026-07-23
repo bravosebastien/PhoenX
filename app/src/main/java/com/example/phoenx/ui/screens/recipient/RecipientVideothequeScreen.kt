@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,25 +36,27 @@ fun RecipientVideothequeScreen(
     viewModel: RecipientMediaViewModel = hiltViewModel(),
 ) {
     val entries by viewModel.videoEntries.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     LaunchedEffect(creatorId) {
         viewModel.setTargetCreator(creatorId)
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Grande Vidéothèque", style = MaterialTheme.typography.displaySmall) },
+                title = { Text("Grande Vidéothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 actions = {
                     IconButton(onClick = onNavigateToCapture) {
-                        Icon(Icons.Default.Add, null, tint = AccentPrimary)
+                        Icon(Icons.Default.Add, null, tint = accent)
                     }
                     InfoPoint(
                         title = "La Vidéothèque",
@@ -71,7 +74,7 @@ fun RecipientVideothequeScreen(
         ) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Le projecteur est éteint pour le moment.", color = TextTertiary, textAlign = TextAlign.Center)
+                    Text("Le projecteur est éteint pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), textAlign = TextAlign.Center)
                 }
             } else {
                 LazyVerticalGrid(
@@ -82,7 +85,7 @@ fun RecipientVideothequeScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     items(entries) { entry ->
-                        VHSCard(entry) { onNavigateToDetail(entry.id) }
+                        VHSCard(entry, theme) { onNavigateToDetail(entry.id) }
                     }
                 }
             }
@@ -91,14 +94,15 @@ fun RecipientVideothequeScreen(
 }
 
 @Composable
-fun VHSCard(entry: PhoenXEntry, onClick: () -> Unit) {
+fun VHSCard(entry: PhoenXEntry, theme: AppThemeState, onClick: () -> Unit) {
+    val accent = theme.accentColor
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(120.dp)
                 .clip(MaterialTheme.shapes.medium)
-                .background(Color(0xFF1A1A2A)) // Corps VHS
+                .background(Color(0xFF1A1A2A)) // Corps VHS (fixe pour le style cassette)
                 .clickable(onClick = onClick)
                 .phoenXMatiere(),
             contentAlignment = Alignment.Center
@@ -119,13 +123,13 @@ fun VHSCard(entry: PhoenXEntry, onClick: () -> Unit) {
             // Étiquette (Braise)
             Surface(
                 modifier = Modifier.fillMaxWidth(0.9f).height(40.dp).align(Alignment.BottomCenter).padding(bottom = 8.dp),
-                color = TextPrimary.copy(alpha = 0.9f),
+                color = theme.contentColor.copy(alpha = 0.9f),
                 shape = MaterialTheme.shapes.extraSmall
             ) {
                 Row(modifier = Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Videocam, null, tint = AccentPrimary, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Videocam, null, tint = accent, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(entry.aiSummary.ifEmpty { "Souvenir vidéo" }, style = MaterialTheme.typography.labelSmall, color = Color.Black, maxLines = 1)
+                    Text(entry.aiSummary.ifEmpty { "Souvenir vidéo" }, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = Color.Black, maxLines = 1)
                 }
             }
 
@@ -137,8 +141,8 @@ fun VHSCard(entry: PhoenXEntry, onClick: () -> Unit) {
         
         Text(
             text = "À ${entry.ageAtCreation.years} ans",
-            style = MaterialTheme.typography.labelSmall,
-            color = AccentPrimary
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = accent
         )
     }
 }

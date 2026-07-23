@@ -33,6 +33,8 @@ fun QuestionsRoomScreen(
     viewModel: QuestionsRoomViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val answeredCount = uiState.answeredQuestionIds.size
     val totalCount = 120
 
@@ -41,27 +43,27 @@ fun QuestionsRoomScreen(
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             Column(modifier = Modifier.background(Color.Transparent)) {
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Les 100 Questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif))
+                            Text("Les 100 Questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                             Text(
                                 text = if (answeredCount == totalCount) 
                                     "Toutes tes histoires sont racontées." 
                                 else 
                                     "$answeredCount / $totalCount questions racontées",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = if (answeredCount == totalCount) Success else TextSecondary
+                                color = if (answeredCount == totalCount) Success else theme.contentColor.copy(alpha = 0.5f)
                             )
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -70,12 +72,12 @@ fun QuestionsRoomScreen(
                 ScrollableTabRow(
                     selectedTabIndex = QuestionsData.categories.indexOf(uiState.selectedCategory),
                     containerColor = Color.Transparent,
-                    contentColor = AccentPrimary,
+                    contentColor = accent,
                     edgePadding = 16.dp,
                     indicator = { tabPositions ->
                         TabRowDefaults.SecondaryIndicator(
                             Modifier.tabIndicatorOffset(tabPositions[QuestionsData.categories.indexOf(uiState.selectedCategory)]),
-                            color = AccentPrimary
+                            color = accent
                         )
                     },
                     divider = {}
@@ -88,7 +90,7 @@ fun QuestionsRoomScreen(
                                 Text(
                                     text = category,
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = if (uiState.selectedCategory == category) TextPrimary else Color(0xFF5C5855)
+                                    color = if (uiState.selectedCategory == category) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
                                 )
                             }
                         )
@@ -99,7 +101,7 @@ fun QuestionsRoomScreen(
     ) { padding ->
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AccentPrimary)
+                CircularProgressIndicator(color = accent)
             }
         } else {
             LazyColumn(
@@ -113,22 +115,22 @@ fun QuestionsRoomScreen(
                     item {
                         Text(
                             text = "TES QUESTIONS PERSONNELLES",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AccentPrimary,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = accent,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
                     }
                     items(uiState.myPendingQuestions) { pending ->
-                        MyQuestionResultCard(pending, uiState.creatorName)
+                        MyQuestionResultCard(pending, uiState.creatorName, theme)
                     }
                     item {
                         Spacer(modifier = Modifier.height(24.dp))
-                        HorizontalDivider(color = TextTertiary.copy(alpha = 0.1f))
+                        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
                             text = "QUESTIONS GÉNÉRALES",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextSecondary,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = theme.contentColor.copy(alpha = 0.4f),
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
                     }
@@ -138,6 +140,7 @@ fun QuestionsRoomScreen(
                     QuestionCard(
                         question = question,
                         isAnswered = uiState.answeredQuestionIds.contains(question.id),
+                        theme = theme,
                         onAnswerClick = { onAnswerQuestion(question.id, question.text) }
                     )
                 }
@@ -150,23 +153,25 @@ fun QuestionsRoomScreen(
 fun QuestionCard(
     question: Question,
     isAnswered: Boolean,
+    theme: AppThemeState,
     onAnswerClick: () -> Unit
 ) {
+    val accent = theme.accentColor
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
         shape = MaterialTheme.shapes.medium,
         border = androidx.compose.foundation.BorderStroke(
             1.dp, 
-            if (isAnswered) Success.copy(alpha = 0.3f) else Color.Transparent
+            if (isAnswered) Success.copy(alpha = 0.3f) else theme.contentColor.copy(alpha = 0.1f)
         )
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = question.category.uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AccentPrimary,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = accent,
                     modifier = Modifier.weight(1f)
                 )
                 if (isAnswered) {
@@ -190,8 +195,8 @@ fun QuestionCard(
             
             Text(
                 text = question.text,
-                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif),
-                color = TextPrimary
+                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                color = theme.contentColor
             )
             
             Spacer(modifier = Modifier.height(20.dp))
@@ -201,14 +206,14 @@ fun QuestionCard(
                     onClick = onAnswerClick,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("Modifier ma réponse", color = TextSecondary, style = MaterialTheme.typography.labelMedium)
+                    Text("Modifier ma réponse", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelMedium)
                 }
             } else {
                 OutlinedButton(
-                    onClick = onAnswerClick,
+                    onClick = { onAnswerClick() },
                     modifier = Modifier.align(Alignment.End),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentPrimary),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary)
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, accent)
                 ) {
                     Text("Répondre")
                 }
@@ -218,17 +223,19 @@ fun QuestionCard(
 }
 
 @Composable
-fun MyQuestionResultCard(pending: PendingQuestion, creatorName: String) {
+fun MyQuestionResultCard(pending: PendingQuestion, creatorName: String, theme: AppThemeState) {
+    val accent = theme.accentColor
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-        shape = MaterialTheme.shapes.medium
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+        shape = MaterialTheme.shapes.medium,
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = pending.questionText,
-                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic),
-                color = TextPrimary
+                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
+                color = theme.contentColor
             )
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -242,61 +249,61 @@ fun MyQuestionResultCard(pending: PendingQuestion, creatorName: String) {
                         Text(
                             "RÉPONSE DE $creatorName",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = Success
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = pending.answerContent ?: "",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
-                        color = TextPrimary
+                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = theme.fontFamily),
+                        color = theme.contentColor
                     )
                 }
                 "declined" -> {
                     Surface(
-                        color = TextTertiary.copy(alpha = 0.1f),
+                        color = theme.contentColor.copy(alpha = 0.1f),
                         shape = MaterialTheme.shapes.small
                     ) {
                         Text(
                             "NON RÉPONDU PAR CHOIX",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextTertiary
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = theme.contentColor.copy(alpha = 0.6f)
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         "$creatorName a vu cette question et a choisi de ne pas y répondre.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = theme.contentColor.copy(alpha = 0.7f)
                     )
                     if (!pending.declineNote.isNullOrEmpty()) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = "\"${pending.declineNote}\"",
                             style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
-                            color = TextTertiary
+                            color = theme.contentColor.copy(alpha = 0.5f)
                         )
                     }
                 }
                 else -> {
                     Surface(
-                        color = TextTertiary.copy(alpha = 0.1f),
+                        color = theme.contentColor.copy(alpha = 0.1f),
                         shape = MaterialTheme.shapes.small
                     ) {
                         Text(
                             "SANS RÉPONSE",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = TextTertiary
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = theme.contentColor.copy(alpha = 0.4f)
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         "Cette question n'a pas eu de réponse.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = theme.contentColor.copy(alpha = 0.6f)
                     )
                 }
             }

@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,21 +36,22 @@ fun RecipientArchiveScreen(
     viewModel: RecipientMediaViewModel = hiltViewModel(),
 ) {
     val entries by viewModel.archiveEntries.collectAsState()
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     LaunchedEffect(creatorId) {
         viewModel.setTargetCreator(creatorId)
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Grande Archive", style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif)) },
+                title = { Text("Grande Archive", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -63,7 +65,7 @@ fun RecipientArchiveScreen(
         ) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("L'album photo est encore vide.", color = TextTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Text("L'album photo est encore vide.", color = theme.contentColor.copy(alpha = 0.4f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, fontWeight = FontWeight.Bold)
                 }
             } else {
                 LazyVerticalGrid(
@@ -74,7 +76,7 @@ fun RecipientArchiveScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(entries) { entry ->
-                        ArchiveItem(entry)
+                        ArchiveItem(entry, theme)
                     }
                 }
             }
@@ -83,24 +85,25 @@ fun RecipientArchiveScreen(
 }
 
 @Composable
-fun ArchiveItem(entry: PhoenXEntry) {
+fun ArchiveItem(entry: PhoenXEntry, theme: AppThemeState) {
+    val accent = theme.accentColor
     Box(
         modifier = Modifier
             .aspectRatio(1f)
             .clip(MaterialTheme.shapes.medium)
-            .background(SurfaceCard)
+            .background(theme.contentColor.copy(alpha = 0.05f))
             .phoenXMatiere(),
         contentAlignment = Alignment.Center
     ) {
         // En prod, on chargerait l'image déchiffrée ici
         // Pour le MVP, on affiche une icône et l'âge
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(Icons.Default.PhotoLibrary, null, tint = AccentPrimary.copy(alpha = 0.5f), modifier = Modifier.size(32.dp))
+            Icon(Icons.Default.PhotoLibrary, null, tint = accent.copy(alpha = 0.5f), modifier = Modifier.size(32.dp))
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "${entry.ageAtCreation.years} ans",
-                style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = theme.contentColor.copy(alpha = 0.6f),
                 fontSize = 10.sp
             )
         }

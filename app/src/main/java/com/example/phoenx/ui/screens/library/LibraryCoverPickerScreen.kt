@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -12,11 +13,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -30,7 +33,6 @@ import coil3.compose.AsyncImage
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
-@androidx.media3.common.util.UnstableApi
 @Composable
 fun LibraryCoverPickerScreen(
     compartmentId: String,
@@ -39,6 +41,8 @@ fun LibraryCoverPickerScreen(
     viewModel: LibraryCoverViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
     var selectedType by remember { mutableStateOf("none") }
     val isUploading by viewModel.isUploading.collectAsState()
@@ -59,16 +63,16 @@ fun LibraryCoverPickerScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Personnaliser $compartmentName", style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif)) },
+                title = { Text("Personnaliser $compartmentName", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
             )
         }
     ) { padding ->
@@ -82,7 +86,7 @@ fun LibraryCoverPickerScreen(
             Text(
                 "Choisis une photo ou une courte vidéo qui représente cet espace pour toi.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.7f),
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -92,17 +96,18 @@ fun LibraryCoverPickerScreen(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(
                     onClick = { photoLauncher.launch("image/*") },
-                    modifier = Modifier.weight(1f).height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                    modifier = Modifier.weight(1f).height(56.dp).phoenXMatiere(),
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("📷 Photo", color = BackgroundPrimary)
+                    Text("📷 Photo", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
                 OutlinedButton(
                     onClick = { videoLauncher.launch("video/*") },
                     modifier = Modifier.weight(1f).height(56.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary)
+                    border = androidx.compose.foundation.BorderStroke(1.dp, accent),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = accent)
                 ) {
-                    Text("🎬 Vidéo", color = AccentPrimary)
+                    Text("🎬 Vidéo", color = accent, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -113,7 +118,8 @@ fun LibraryCoverPickerScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(220.dp)
-                    .background(SurfaceCard, MaterialTheme.shapes.large),
+                    .background(theme.contentColor.copy(alpha = 0.05f), MaterialTheme.shapes.large)
+                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), MaterialTheme.shapes.large),
                 contentAlignment = Alignment.Center
             ) {
                 if (selectedUri != null) {
@@ -121,14 +127,14 @@ fun LibraryCoverPickerScreen(
                         AsyncImage(
                             model = selectedUri,
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.fillMaxSize().clip(MaterialTheme.shapes.large),
                             contentScale = ContentScale.Crop
                         )
                     } else {
                         VideoPreview(uri = selectedUri!!)
                     }
                 } else {
-                    Text("Aucun média sélectionné", color = TextTertiary, style = MaterialTheme.typography.bodySmall)
+                    Text("Aucun média sélectionné", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -137,7 +143,7 @@ fun LibraryCoverPickerScreen(
                 Text(
                     text = if (selectedType == "photo") "Cette image s'affichera sur la carte." else "Cette vidéo défilera en silence sur la carte.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextTertiary,
+                    color = theme.contentColor.copy(alpha = 0.5f),
                     fontStyle = FontStyle.Italic
                 )
             }
@@ -149,10 +155,10 @@ fun LibraryCoverPickerScreen(
                     LinearProgressIndicator(
                         progress = { uploadProgress },
                         modifier = Modifier.fillMaxWidth(),
-                        color = AccentPrimary
+                        color = accent
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("Envoi en cours... ${(uploadProgress * 100).toInt()}%", color = TextSecondary, fontSize = 12.sp)
+                    Text("Envoi en cours... ${(uploadProgress * 100).toInt()}%", color = theme.contentColor.copy(alpha = 0.6f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             } else {
                 Button(
@@ -164,10 +170,10 @@ fun LibraryCoverPickerScreen(
                         }
                     },
                     enabled = selectedUri != null,
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                    modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Enregistrer cette couverture", color = BackgroundPrimary)
+                    Text("Enregistrer cette couverture", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -177,14 +183,13 @@ fun LibraryCoverPickerScreen(
                     Toast.makeText(context, "Illustration par défaut restaurée.", Toast.LENGTH_SHORT).show()
                     navController.popBackStack()
                 }) {
-                    Text("Supprimer la personnalisation", color = Color(0xFFE57373))
+                    Text("Supprimer la personnalisation", color = Error.copy(alpha = 0.8f), fontWeight = FontWeight.Bold)
                 }
             }
         }
     }
 }
 
-@androidx.media3.common.util.UnstableApi
 @Composable
 fun VideoPreview(uri: Uri) {
     val context = LocalContext.current

@@ -32,17 +32,19 @@ fun FavoritesScreen(
     viewModel: FavoritesViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var showAddDialog by remember { mutableStateOf(false) }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Mes Meilleurs", style = MaterialTheme.typography.displaySmall) },
+                title = { Text("Mes Meilleurs", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -51,8 +53,8 @@ fun FavoritesScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
-                containerColor = AccentPrimary,
-                contentColor = BackgroundPrimary
+                containerColor = accent,
+                contentColor = theme.backgroundColor
             ) {
                 Icon(Icons.Default.Add, null)
             }
@@ -60,7 +62,7 @@ fun FavoritesScreen(
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
             when (val state = uiState) {
-                is FavoritesUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                is FavoritesUiState.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
                 is FavoritesUiState.Success -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().padding(padding),
@@ -69,15 +71,15 @@ fun FavoritesScreen(
                     ) {
                         if (state.tasteMap.isNotEmpty()) {
                             item {
-                                TasteMapCard(state.tasteMap)
+                                TasteMapCard(state.tasteMap, theme)
                             }
                         }
 
                         if (state.items.isEmpty()) {
-                            item { EmptyFavorites() }
+                            item { EmptyFavorites(theme = theme) }
                         } else {
                             items(state.items) { item ->
-                                FavoriteCard(item)
+                                FavoriteCard(item, theme)
                             }
                         }
                     }
@@ -88,6 +90,7 @@ fun FavoritesScreen(
         if (showAddDialog) {
             AddFavoriteDialog(
                 onDismiss = { showAddDialog = false },
+                theme = theme,
                 onConfirm = { cat, title, why ->
                     viewModel.saveFavorite(cat, title, why)
                     showAddDialog = false
@@ -98,27 +101,29 @@ fun FavoritesScreen(
 }
 
 @Composable
-fun TasteMapCard(content: String) {
+fun TasteMapCard(content: String, theme: AppThemeState) {
+    val accent = theme.accentColor
     Card(
         modifier = Modifier.fillMaxWidth().phoenXMatiere(),
-        colors = CardDefaults.cardColors(containerColor = AccentPrimary.copy(alpha = 0.05f)),
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
         shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.AutoAwesome, null, tint = AccentPrimary, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("TA CARTE DES GOÛTS", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
+                Text("TA CARTE DES GOÛTS", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, letterSpacing = 2.sp)
             }
             Spacer(modifier = Modifier.height(12.dp))
-            Text(content, style = MaterialTheme.typography.bodySmall, color = TextPrimary, fontStyle = FontStyle.Italic)
+            Text(content, style = MaterialTheme.typography.bodySmall.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold), color = theme.contentColor)
         }
     }
 }
 
 @Composable
-fun FavoriteCard(item: FavoriteItem) {
+fun FavoriteCard(item: FavoriteItem, theme: AppThemeState) {
+    val accent = theme.accentColor
     val icon = when(item.category) {
         "Livres" -> Icons.Default.AutoStories
         "Films" -> Icons.Default.Theaters
@@ -128,24 +133,25 @@ fun FavoriteCard(item: FavoriteItem) {
 
     Card(
         modifier = Modifier.fillMaxWidth().phoenXMatiere(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-        shape = MaterialTheme.shapes.large
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(
-                color = AccentPrimary.copy(alpha = 0.1f),
+                color = accent.copy(alpha = 0.1f),
                 shape = MaterialTheme.shapes.medium,
                 modifier = Modifier.size(48.dp)
             ) {
-                Icon(icon, null, tint = AccentPrimary, modifier = Modifier.padding(12.dp))
+                Icon(icon, null, tint = accent, modifier = Modifier.padding(12.dp))
             }
             Spacer(modifier = Modifier.width(20.dp))
             Column {
-                Text(item.title, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Bold)
-                Text(item.category, style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 1.sp)
+                Text(item.title, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                Text(item.category, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, letterSpacing = 1.sp)
                 if (item.why.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text(item.why, style = MaterialTheme.typography.bodySmall, color = TextSecondary, fontStyle = FontStyle.Italic)
+                    Text(item.why, style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic), color = theme.contentColor.copy(alpha = 0.6f))
                 }
             }
         }
@@ -153,20 +159,21 @@ fun FavoriteCard(item: FavoriteItem) {
 }
 
 @Composable
-fun EmptyFavorites(modifier: Modifier = Modifier) {
+fun EmptyFavorites(modifier: Modifier = Modifier, theme: AppThemeState) {
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Ta bibliothèque est vide.", color = TextTertiary, style = MaterialTheme.typography.bodyLarge)
-        Text("Ajoute tes livres, films et musiques essentiels.", color = TextTertiary, style = MaterialTheme.typography.bodySmall)
+        Text("Ta bibliothèque est vide.", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
+        Text("Ajoute tes livres, films et musiques essentiels.", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodySmall)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddFavoriteDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) -> Unit) {
+fun AddFavoriteDialog(onDismiss: () -> Unit, theme: AppThemeState, onConfirm: (String, String, String) -> Unit) {
+    val accent = theme.accentColor
     var title by remember { mutableStateOf("") }
     var why by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("Livres") }
@@ -174,8 +181,8 @@ fun AddFavoriteDialog(onDismiss: () -> Unit, onConfirm: (String, String, String)
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundSecondary,
-        title = { Text("Ajouter un incontournable", style = MaterialTheme.typography.headlineSmall, color = TextPrimary) },
+        containerColor = theme.backgroundColor,
+        title = { Text("Ajouter un incontournable", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 // Catégorie
@@ -184,7 +191,13 @@ fun AddFavoriteDialog(onDismiss: () -> Unit, onConfirm: (String, String, String)
                         FilterChip(
                             selected = category == cat,
                             onClick = { category = cat },
-                            label = { Text(cat) }
+                            label = { Text(cat) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = accent,
+                                selectedLabelColor = theme.backgroundColor,
+                                containerColor = theme.contentColor.copy(alpha = 0.05f),
+                                labelColor = theme.contentColor.copy(alpha = 0.6f)
+                            )
                         )
                     }
                 }
@@ -193,7 +206,13 @@ fun AddFavoriteDialog(onDismiss: () -> Unit, onConfirm: (String, String, String)
                     value = title,
                     onValueChange = { title = it },
                     label = { Text("Titre / Nom") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
+                    )
                 )
                 
                 OutlinedTextField(
@@ -201,7 +220,13 @@ fun AddFavoriteDialog(onDismiss: () -> Unit, onConfirm: (String, String, String)
                     onValueChange = { why = it },
                     label = { Text("Pourquoi est-ce important ?") },
                     modifier = Modifier.fillMaxWidth(),
-                    minLines = 3
+                    minLines = 3,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
+                    )
                 )
             }
         },
@@ -209,14 +234,15 @@ fun AddFavoriteDialog(onDismiss: () -> Unit, onConfirm: (String, String, String)
             Button(
                 onClick = { onConfirm(category, title, why) },
                 enabled = title.isNotEmpty(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent),
+                modifier = Modifier.phoenXMatiere()
             ) {
-                Text("Ajouter", color = BackgroundPrimary)
+                Text("Ajouter", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler", color = TextSecondary)
+                Text("Annuler", color = theme.contentColor)
             }
         }
     )

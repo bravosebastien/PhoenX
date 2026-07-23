@@ -34,7 +34,8 @@ fun QuizLeaderboardScreen(
     navController: NavController,
     viewModel: QuizViewModel = hiltViewModel()
 ) {
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
     val results by viewModel.results.collectAsState()
     val quiz by viewModel.currentQuiz.collectAsState()
@@ -45,20 +46,20 @@ fun QuizLeaderboardScreen(
         viewModel.loadResults(creatorId, quizId)
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(backgroundBrush)) {
+    Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
         Scaffold(
-            containerColor = Color.Transparent,
+            containerColor = theme.backgroundColor,
             topBar = {
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Classement", style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic))
-                            quiz?.let { Text(it.title, style = MaterialTheme.typography.labelSmall, color = TextSecondary) }
+                            Text("Classement", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                            quiz?.let { Text(it.title, style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f)) }
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -69,7 +70,7 @@ fun QuizLeaderboardScreen(
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
             } else if (results.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Personne n'a encore joué.", style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic), color = TextTertiary)
+                    Text("Personne n'a encore joué.", style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
                 }
             } else {
                 LazyColumn(
@@ -78,7 +79,7 @@ fun QuizLeaderboardScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     itemsIndexed(results) { index, result ->
-                        LeaderboardCard(index + 1, result, quiz?.showNames == true)
+                        LeaderboardCard(index + 1, result, quiz?.showNames == true, theme)
                     }
                 }
             }
@@ -87,8 +88,8 @@ fun QuizLeaderboardScreen(
 }
 
 @Composable
-fun LeaderboardCard(rank: Int, result: QuizResult, showNames: Boolean) {
-    val accent = LocalAccentColor.current
+fun LeaderboardCard(rank: Int, result: QuizResult, showNames: Boolean, theme: AppThemeState) {
+    val accent = theme.accentColor
     
     val rankColor = when (rank) {
         1 -> Color(0xFFFFD700)
@@ -99,8 +100,9 @@ fun LeaderboardCard(rank: Int, result: QuizResult, showNames: Boolean) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
-        shape = RoundedCornerShape(14.dp)
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+        shape = RoundedCornerShape(14.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -113,7 +115,7 @@ fun LeaderboardCard(rank: Int, result: QuizResult, showNames: Boolean) {
                 color = rankColor
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(rank.toString(), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = if (rank <= 3) Color(0xFF1A1A1F) else TextPrimary)
+                    Text(rank.toString(), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = if (rank <= 3) Color(0xFF1A1A1F) else theme.contentColor)
                 }
             }
 
@@ -121,17 +123,17 @@ fun LeaderboardCard(rank: Int, result: QuizResult, showNames: Boolean) {
                 Text(
                     text = if (showNames) result.recipientName ?: "Anonyme" else "Participant $rank",
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = TextPrimary
+                    color = theme.contentColor
                 )
                 val date = result.completedAt.toDate()
                 val dateStr = java.text.SimpleDateFormat("dd/MM/yyyy", Locale.FRENCH).format(date)
-                Text("Répondu le $dateStr", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                Text("Répondu le $dateStr", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
             }
 
             Column(horizontalAlignment = Alignment.End) {
-                Text("${result.score}/${result.totalQuestions}", style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif), color = accent)
+                Text("${result.score}/${result.totalQuestions}", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = accent)
                 val percentage = (result.score.toFloat() / result.totalQuestions.toFloat()) * 100
-                Text("${percentage.toInt()}%", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                Text("${percentage.toInt()}%", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
             }
         }
     }

@@ -23,21 +23,19 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.example.phoenx.ui.theme.AccentPrimary
-import com.example.phoenx.ui.theme.BackgroundPrimary
-import com.example.phoenx.ui.theme.TextPrimary
-import com.example.phoenx.ui.theme.TextSecondary
+import com.example.phoenx.ui.theme.LocalAppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 
-@OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun VideoPlayerBanner(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var videoUrl by remember { mutableStateOf("") }
     var isMuted by remember { mutableStateOf(true) }
     var isPlaying by remember { mutableStateOf(true) }
@@ -115,21 +113,21 @@ fun VideoPlayerBanner(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color(0xFF2E2E35)),
+                        .background(theme.contentColor.copy(alpha = 0.05f)),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Icon(
                         imageVector = Icons.Default.VideoLibrary,
                         contentDescription = null,
-                        tint = AccentPrimary,
+                        tint = accent,
                         modifier = Modifier.size(40.dp)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Aucune vidéo configurée",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = theme.contentColor.copy(alpha = 0.4f)
                     )
                 }
             } else {
@@ -156,12 +154,12 @@ fun VideoPlayerBanner(
                     .size(32.dp)
                     .clip(CircleShape)
                     .clickable { onDismiss() },
-                color = BackgroundPrimary.copy(alpha = 0.6f)
+                color = theme.backgroundColor.copy(alpha = 0.6f)
             ) {
                 Icon(
                     imageVector = Icons.Default.Close,
                     contentDescription = "Fermer",
-                    tint = TextPrimary,
+                    tint = theme.contentColor,
                     modifier = Modifier.padding(8.dp).size(18.dp)
                 )
             }
@@ -175,12 +173,12 @@ fun VideoPlayerBanner(
                         .size(36.dp)
                         .clip(CircleShape)
                         .clickable { isMuted = !isMuted },
-                    color = BackgroundPrimary.copy(alpha = 0.6f)
+                    color = theme.backgroundColor.copy(alpha = 0.6f)
                 ) {
                     Icon(
                         imageVector = if (isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
                         contentDescription = "Son",
-                        tint = TextPrimary,
+                        tint = theme.contentColor,
                         modifier = Modifier.padding(8.dp).size(20.dp)
                     )
                 }
@@ -193,12 +191,12 @@ fun VideoPlayerBanner(
                         .size(36.dp)
                         .clip(CircleShape)
                         .clickable { isPlaying = !isPlaying },
-                    color = BackgroundPrimary.copy(alpha = 0.6f)
+                    color = theme.backgroundColor.copy(alpha = 0.6f)
                 ) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = "Play/Pause",
-                        tint = TextPrimary,
+                        tint = theme.contentColor,
                         modifier = Modifier.padding(8.dp).size(20.dp)
                     )
                 }

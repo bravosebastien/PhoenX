@@ -35,9 +35,11 @@ fun DetectiveHomeScreen(
 ) {
     val entries by viewModel.entries.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
@@ -50,13 +52,13 @@ fun DetectiveHomeScreen(
                         Column {
                             Text(
                                 text = "Mode Détective",
-                                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-                                color = TextPrimary
+                                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                                color = theme.contentColor
                             )
                             Text(
                                 text = "Cache un souvenir derrière une question",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = TextSecondary
+                                color = theme.contentColor.copy(alpha = 0.6f)
                             )
                         }
                         InfoButton(
@@ -73,7 +75,7 @@ fun DetectiveHomeScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -82,8 +84,8 @@ fun DetectiveHomeScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("detective_create") },
-                containerColor = AccentPrimary,
-                contentColor = Color.White
+                containerColor = accent,
+                contentColor = theme.backgroundColor
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Créer une énigme")
             }
@@ -91,10 +93,10 @@ fun DetectiveHomeScreen(
     ) { padding ->
         if (isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AccentPrimary)
+                CircularProgressIndicator(color = accent)
             }
         } else if (entries.isEmpty()) {
-            EmptyDetectiveState(onAddClick = { navController.navigate("detective_create") })
+            EmptyDetectiveState(onAddClick = { navController.navigate("detective_create") }, theme = theme)
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -104,7 +106,7 @@ fun DetectiveHomeScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(entries) { entry ->
-                    DetectiveEnigmaCard(entry)
+                    DetectiveEnigmaCard(entry, theme)
                 }
             }
         }
@@ -112,7 +114,8 @@ fun DetectiveHomeScreen(
 }
 
 @Composable
-fun EmptyDetectiveState(onAddClick: () -> Unit) {
+fun EmptyDetectiveState(onAddClick: () -> Unit, theme: AppThemeState) {
+    val accent = theme.accentColor
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -122,66 +125,70 @@ fun EmptyDetectiveState(onAddClick: () -> Unit) {
             imageVector = Icons.Default.Search,
             contentDescription = null,
             modifier = Modifier.size(64.dp),
-            tint = AccentPrimary
+            tint = accent
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Aucune énigme créée pour l'instant.",
             style = MaterialTheme.typography.bodyLarge.copy(
-                fontFamily = FontFamily.Serif,
-                fontStyle = FontStyle.Italic
+                fontFamily = theme.fontFamily,
+                fontStyle = FontStyle.Italic,
+                fontWeight = FontWeight.Bold
             ),
-            color = TextSecondary,
+            color = theme.contentColor.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
         Text(
             text = "Crée ton premier mystère pour un proche.",
             style = MaterialTheme.typography.bodySmall,
-            color = TextTertiary,
+            color = theme.contentColor.copy(alpha = 0.4f),
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = onAddClick,
-            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+            colors = ButtonDefaults.buttonColors(containerColor = accent),
+            modifier = Modifier.phoenXMatiere(),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("+ Créer une énigme", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+            Text("+ Créer une énigme", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
-fun DetectiveEnigmaCard(entry: OfflineEntry) {
+fun DetectiveEnigmaCard(entry: OfflineEntry, theme: AppThemeState) {
+    val accent = theme.accentColor
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-        shape = RoundedCornerShape(16.dp)
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Lock, null, tint = AccentPrimary, modifier = Modifier.size(24.dp))
+            Icon(Icons.Default.Lock, null, tint = accent, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = entry.enigmaQuestion ?: "Énigme sans question",
-                    style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif),
-                    color = TextPrimary
+                    style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                    color = theme.contentColor
                 )
                 Text(
                     text = "Pour : ${entry.recipientIds.ifEmpty { "Tes proches" }}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
+                    color = theme.contentColor.copy(alpha = 0.6f)
                 )
             }
             Surface(
-                color = AccentPrimary.copy(alpha = 0.1f),
+                color = accent.copy(alpha = 0.1f),
                 shape = RoundedCornerShape(8.dp)
             ) {
                 Text(
                     text = entry.entryType,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AccentPrimary
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = accent
                 )
             }
         }

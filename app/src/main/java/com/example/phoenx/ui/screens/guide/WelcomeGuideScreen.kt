@@ -31,6 +31,8 @@ data class GuideStep(
 fun WelcomeGuideScreen(
     onDismiss: (Boolean) -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val steps = listOf(
         GuideStep(
             "Bienvenue dans PHOEN-X",
@@ -62,12 +64,12 @@ fun WelcomeGuideScreen(
     val pagerState = rememberPagerState { steps.size }
     var neverShowAgain by remember { mutableStateOf(value = false) }
 
-    Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary)) {
+    Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            GuideStepContent(steps[page])
+            GuideStepContent(steps[page], theme)
         }
 
         // Contrôles en bas
@@ -83,7 +85,7 @@ fun WelcomeGuideScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 repeat(steps.size) { i ->
-                    val color = if (pagerState.currentPage == i) AccentPrimary else TextTertiary.copy(alpha = 0.3f)
+                    val color = if (pagerState.currentPage == i) accent else theme.contentColor.copy(alpha = 0.2f)
                     Box(modifier = Modifier.size(8.dp).background(color, CircleShape))
                 }
             }
@@ -96,23 +98,24 @@ fun WelcomeGuideScreen(
                     Checkbox(
                         checked = neverShowAgain,
                         onCheckedChange = { neverShowAgain = it },
-                        colors = CheckboxDefaults.colors(checkedColor = AccentPrimary)
+                        colors = CheckboxDefaults.colors(checkedColor = accent)
                     )
-                    Text("Ne plus afficher ce guide", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                    Text("Ne plus afficher ce guide", color = theme.contentColor.copy(alpha = 0.7f), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                 }
                 
                 Button(
                     onClick = { onDismiss(neverShowAgain) },
                     modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Commencer l'aventure", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                    Text("Commencer l'aventure", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             } else {
                 Text(
                     "Faites glisser pour continuer →",
-                    color = TextTertiary,
-                    style = MaterialTheme.typography.labelSmall
+                    color = theme.contentColor.copy(alpha = 0.4f),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(56.dp)) // Espace du bouton absent
             }
@@ -121,7 +124,8 @@ fun WelcomeGuideScreen(
 }
 
 @Composable
-fun GuideStepContent(step: GuideStep) {
+fun GuideStepContent(step: GuideStep, theme: AppThemeState) {
+    val accent = theme.accentColor
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -147,8 +151,8 @@ fun GuideStepContent(step: GuideStep) {
         
         Text(
             text = step.title,
-            style = MaterialTheme.typography.displaySmall,
-            color = TextPrimary,
+            style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+            color = theme.contentColor,
             textAlign = TextAlign.Center
         )
         
@@ -157,7 +161,7 @@ fun GuideStepContent(step: GuideStep) {
         Text(
             text = step.description,
             style = MaterialTheme.typography.bodyLarge,
-            color = TextSecondary,
+            color = theme.contentColor.copy(alpha = 0.7f),
             textAlign = TextAlign.Center,
             lineHeight = 28.sp
         )

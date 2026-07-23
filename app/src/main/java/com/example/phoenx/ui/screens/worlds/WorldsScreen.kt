@@ -33,32 +33,32 @@ fun WorldsScreen(
     viewModel: WorldsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { 
                     Column {
-                        Text("Les Tiroirs de ma Vie", style = MaterialTheme.typography.displaySmall)
-                        Text("Rangement assisté par IA", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+                        Text("Les Tiroirs de ma Vie", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                        Text("Rangement assisté par IA", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.radialGradient(listOf(BackgroundSecondary, BackgroundPrimary), radius = 2000f)
-        )) {
+        Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
             when (val state = uiState) {
                 is WorldsUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = AccentPrimary)
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
                 }
                 is WorldsUiState.Empty -> {
                     Column(
@@ -66,10 +66,10 @@ fun WorldsScreen(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(Icons.Default.Inbox, null, modifier = Modifier.size(64.dp), tint = TextTertiary)
+                        Icon(Icons.Default.Inbox, null, modifier = Modifier.size(64.dp), tint = theme.contentColor.copy(alpha = 0.2f))
                         Spacer(modifier = Modifier.height(24.dp))
-                        Text("La commode est vide.", style = MaterialTheme.typography.bodyLarge, color = TextTertiary)
-                        Text("Capture des souvenirs pour les voir se ranger ici.", style = MaterialTheme.typography.bodySmall, color = TextTertiary)
+                        Text("La commode est vide.", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                        Text("Capture des souvenirs pour les voir se ranger ici.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.4f))
                     }
                 }
                 is WorldsUiState.Success -> {
@@ -81,7 +81,7 @@ fun WorldsScreen(
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         items(state.worlds) { world ->
-                            WorldDrawerItem(world, onClick = { onNavigateToWorld(world.name) })
+                            WorldDrawerItem(world, theme, onClick = { onNavigateToWorld(world.name) })
                         }
                     }
                 }
@@ -91,38 +91,38 @@ fun WorldsScreen(
 }
 
 @Composable
-fun WorldDrawerItem(world: WorldItem, onClick: () -> Unit) {
+fun WorldDrawerItem(world: WorldItem, theme: AppThemeState, onClick: () -> Unit) {
+    val accent = theme.accentColor
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(180.dp)
             .clickable(onClick = onClick)
             .phoenXMatiere(isPaper = false), // Texture Cuir/Bois
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
         shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Icon(Icons.Default.AutoAwesome, null, tint = AccentPrimary.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
-                Text(text = "${world.count}", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+                Icon(Icons.Default.AutoAwesome, null, tint = accent.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                Text(text = "${world.count}", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
             }
             
             Spacer(modifier = Modifier.weight(1f))
             
             Text(
                 text = world.name.uppercase(),
-                style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 2.sp),
-                color = TextPrimary,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.labelLarge.copy(letterSpacing = 2.sp, fontWeight = FontWeight.Bold),
+                color = theme.contentColor
             )
             
             if (world.lastEntrySummary.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = world.lastEntrySummary,
-                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp, fontStyle = FontStyle.Italic),
-                    color = TextSecondary,
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 10.sp, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
+                    color = theme.contentColor.copy(alpha = 0.6f),
                     maxLines = 2,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                 )

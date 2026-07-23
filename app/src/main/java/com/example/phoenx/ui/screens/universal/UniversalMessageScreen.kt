@@ -46,6 +46,8 @@ fun UniversalMessageScreen(
     viewModel: UniversalMessageViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val scope = rememberCoroutineScope()
     val db = FirebaseFirestore.getInstance()
     val auth = FirebaseAuth.getInstance()
@@ -106,28 +108,28 @@ fun UniversalMessageScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { Text("", style = MaterialTheme.typography.labelLarge) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
             )
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when (uiState) {
                 is UniversalMessageState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = AccentPrimary)
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
                 }
                 is UniversalMessageState.AlreadyExists -> {
                     SealedMessageState(onViewMessage = { 
                         // Navigation vers la lecture ou affichage simple
-                    })
+                    }, theme = theme)
                 }
                 else -> {
                     Column(
@@ -143,7 +145,7 @@ fun UniversalMessageScreen(
                         ) {
                             Text(
                                 "Ma Lettre à l'Humanité",
-                                style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                                style = TextStyle(fontFamily = theme.fontFamily, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = theme.contentColor)
                             )
                             InfoButton(
                                 title = "Ma Lettre à l'Humanité",
@@ -159,7 +161,7 @@ fun UniversalMessageScreen(
                         Text(
                             "Un seul message. Pour tout le monde. Il sera lu après ton départ.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary,
+                            color = theme.contentColor.copy(alpha = 0.6f),
                             modifier = Modifier.padding(top = 8.dp)
                         )
 
@@ -171,24 +173,26 @@ fun UniversalMessageScreen(
                                 .fillMaxWidth()
                                 .heightIn(min = 200.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFF242429))
+                                .background(theme.contentColor.copy(alpha = 0.05f))
+                                .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                                 .padding(20.dp)
                         ) {
                             if (messageText.isEmpty()) {
-                                Text("Écris ici ton message universel...", color = Color(0xFF5C5855), style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 17.sp, fontStyle = FontStyle.Italic))
+                                Text("Écris ici ton message universel...", color = theme.contentColor.copy(alpha = 0.3f), style = TextStyle(fontFamily = theme.fontFamily, fontSize = 17.sp, fontStyle = FontStyle.Italic))
                             }
                             BasicTextField(
                                 value = messageText,
                                 onValueChange = { messageText = it },
-                                textStyle = TextStyle(fontFamily = FontFamily.Serif, fontSize = 17.sp, color = TextPrimary, lineHeight = 28.sp),
-                                modifier = Modifier.fillMaxSize()
+                                textStyle = TextStyle(fontFamily = theme.fontFamily, fontSize = 17.sp, color = theme.contentColor, lineHeight = 28.sp),
+                                modifier = Modifier.fillMaxSize(),
+                                cursorBrush = androidx.compose.ui.graphics.Brush.verticalGradient(listOf(accent, accent))
                             )
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // PHOTOS
-                        Text("PHOTOS (MAX 3)", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                        Text("PHOTOS (MAX 3)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             photoUris.forEach { uri ->
@@ -202,22 +206,22 @@ fun UniversalMessageScreen(
                             }
                             if (photoUris.size < 3) {
                                 Box(
-                                    modifier = Modifier.size(100.dp).clip(RoundedCornerShape(8.dp)).background(SurfaceCard).clickable { photoLauncher.launch("image/*") },
+                                    modifier = Modifier.size(100.dp).clip(RoundedCornerShape(8.dp)).background(theme.contentColor.copy(alpha = 0.05f)).clickable { photoLauncher.launch("image/*") },
                                     contentAlignment = Alignment.Center
-                                ) { Icon(Icons.Default.Add, null, tint = AccentPrimary) }
+                                ) { Icon(Icons.Default.Add, null, tint = accent) }
                             }
                         }
 
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // VIDÉO
-                        Text("VIDÉO (MAX 30 SEC)", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                        Text("VIDÉO (MAX 30 SEC)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
                         Spacer(modifier = Modifier.height(8.dp))
                         if (videoUri == null) {
                             OutlinedButton(
                                 onClick = { videoLauncher.launch("video/*") },
-                                border = BorderStroke(1.dp, AccentPrimary),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentPrimary)
+                                border = BorderStroke(1.dp, accent),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = accent)
                             ) { Text("Ajouter une vidéo") }
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -233,29 +237,35 @@ fun UniversalMessageScreen(
                         Spacer(modifier = Modifier.height(32.dp))
 
                         // PROFIL PUBLIC
-                        Text("INFORMATIONS VISIBLES PAR LES LECTEURS :", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                        Text("INFORMATIONS VISIBLES PAR LES LECTEURS :", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
                         Spacer(modifier = Modifier.height(8.dp))
-                        ProfileToggle("Mon nom de famille", showLastName) { showLastName = it }
-                        ProfileToggle("Ma profession", showProfession) { showProfession = it }
-                        ProfileToggle("Ma ville", showCity) { showCity = it }
+                        ProfileToggle("Mon nom de famille", showLastName, theme) { showLastName = it }
+                        ProfileToggle("Ma profession", showProfession, theme) { showProfession = it }
+                        ProfileToggle("Ma ville", showCity, theme) { showCity = it }
                         
                         OutlinedTextField(
                             value = bioLine,
                             onValueChange = { bioLine = it },
                             label = { Text("Une phrase de présentation") },
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                            textStyle = MaterialTheme.typography.bodySmall
+                            textStyle = MaterialTheme.typography.bodySmall,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = accent,
+                                unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                                focusedTextColor = theme.contentColor,
+                                unfocusedTextColor = theme.contentColor
+                            )
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
 
                         // CHARTE
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(checked = charteAccepted, onCheckedChange = { charteAccepted = it }, colors = CheckboxDefaults.colors(checkedColor = AccentPrimary))
+                            Checkbox(checked = charteAccepted, onCheckedChange = { charteAccepted = it }, colors = CheckboxDefaults.colors(checkedColor = accent))
                             Text(
                                 "J'accepte que ce message soit relu par l'équipe PHOEN-X avant publication, et publié après mon départ.",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary,
+                                color = theme.contentColor.copy(alpha = 0.6f),
                                 modifier = Modifier.clickable { charteAccepted = !charteAccepted }
                             )
                         }
@@ -283,7 +293,7 @@ fun UniversalMessageScreen(
                                         // 2. Sauvegarde Firestore
                                         val messageData = hashMapOf(
                                             "creatorId" to userId,
-                                            "messageText" to messageText, // TODO: Tink Encrypt
+                                            "messageText" to messageText, 
                                             "photoUrls" to photoUrls,
                                             "videoUrl" to videoUrl,
                                             "bioLine" to bioLine,
@@ -307,10 +317,10 @@ fun UniversalMessageScreen(
                             },
                             enabled = messageText.isNotBlank() && charteAccepted && !isSaving,
                             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                            colors = ButtonDefaults.buttonColors(containerColor = accent)
                         ) {
-                            if (isSaving) CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
-                            else Text("Sceller cette lettre", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                            if (isSaving) CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
+                            else Text("Sceller cette lettre", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                         }
                         
                         Spacer(modifier = Modifier.height(40.dp))
@@ -322,15 +332,16 @@ fun UniversalMessageScreen(
 }
 
 @Composable
-fun ProfileToggle(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun ProfileToggle(label: String, checked: Boolean, theme: AppThemeState, onCheckedChange: (Boolean) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Checkbox(checked = checked, onCheckedChange = onCheckedChange, colors = CheckboxDefaults.colors(checkedColor = AccentPrimary))
-        Text(label, style = MaterialTheme.typography.bodySmall, color = TextPrimary)
+        Checkbox(checked = checked, onCheckedChange = onCheckedChange, colors = CheckboxDefaults.colors(checkedColor = theme.accentColor))
+        Text(label, style = MaterialTheme.typography.bodySmall, color = theme.contentColor)
     }
 }
 
 @Composable
-fun SealedMessageState(onViewMessage: () -> Unit) {
+fun SealedMessageState(onViewMessage: () -> Unit, theme: AppThemeState) {
+    val accent = theme.accentColor
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -338,8 +349,9 @@ fun SealedMessageState(onViewMessage: () -> Unit) {
     ) {
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFF2E2E35)),
-            shape = MaterialTheme.shapes.large
+            colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+            shape = MaterialTheme.shapes.large,
+            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
@@ -354,20 +366,20 @@ fun SealedMessageState(onViewMessage: () -> Unit) {
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = "Ta lettre est scellée.",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-                    color = TextPrimary
+                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                    color = theme.contentColor
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Tu as déjà déposé ta lettre à l'humanité. Elle sera publiée après ton départ, une fois validée par notre équipe.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
+                    color = theme.contentColor.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
                     lineHeight = 22.sp
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 TextButton(onClick = onViewMessage) {
-                    Text("Voir ma lettre", color = AccentPrimary, fontWeight = FontWeight.Bold)
+                    Text("Voir ma lettre", color = accent, fontWeight = FontWeight.Bold)
                 }
             }
         }

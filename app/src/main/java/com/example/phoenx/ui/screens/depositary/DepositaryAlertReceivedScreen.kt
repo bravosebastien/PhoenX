@@ -31,6 +31,9 @@ fun DepositaryAlertReceivedScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    
     var showSuccessInput by remember { mutableStateOf(false) }
     var successNote by remember { mutableStateOf("") }
     var showHelpText by remember { mutableStateOf(false) }
@@ -40,7 +43,7 @@ fun DepositaryAlertReceivedScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary
+        containerColor = theme.backgroundColor
     ) { padding ->
         Column(
             modifier = Modifier
@@ -51,7 +54,7 @@ fun DepositaryAlertReceivedScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Badge d'état
-            val badgeColor = if (escalationLevel >= 4) AccentPrimary else Warning
+            val badgeColor = if (escalationLevel >= 4) accent else Warning
             val badgeText = if (escalationLevel >= 4) "ACTION URGENTE" else "ACTION DEMANDÉE"
 
             Surface(
@@ -73,8 +76,9 @@ fun DepositaryAlertReceivedScreen(
             Text(
                 text = "${uiState.creatorName} n'a pas confirmé sa présence depuis ${uiState.daysSinceLastCheckIn} jours.",
                 style = MaterialTheme.typography.headlineSmall.copy(
-                    fontFamily = FontFamily.Serif,
-                    color = TextPrimary
+                    fontFamily = theme.fontFamily,
+                    color = theme.contentColor,
+                    fontWeight = FontWeight.Bold
                 ),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
@@ -82,11 +86,11 @@ fun DepositaryAlertReceivedScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             // RAPPEL DES ÉTAPES
-            ContactStepItem("1", "Essaie de contacter ${uiState.creatorName}", "(appel, message, ou visite si possible)")
+            ContactStepItem("1", "Essaie de contacter ${uiState.creatorName}", "(appel, message, ou visite si possible)", theme)
             Spacer(modifier = Modifier.height(16.dp))
-            ContactStepItem("2", "Si tu n'y arrives pas, contacte son entourage", "")
+            ContactStepItem("2", "Si tu n'y arrives pas, contacte son entourage", "", theme)
             Spacer(modifier = Modifier.height(16.dp))
-            ContactStepItem("3", "Une fois que tu as une réponse, dis-le nous ci-dessous", "")
+            ContactStepItem("3", "Une fois que tu as une réponse, dis-le nous ci-dessous", "", theme)
 
             Spacer(modifier = Modifier.height(48.dp))
 
@@ -97,9 +101,10 @@ fun DepositaryAlertReceivedScreen(
                     onValueChange = { successNote = it },
                     label = { Text("Que s'est-il passé ? (Optionnel)") },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = SurfaceCard,
-                        unfocusedContainerColor = SurfaceCard
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accent,
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
                     )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -109,42 +114,43 @@ fun DepositaryAlertReceivedScreen(
                         Toast.makeText(context, "Merci. ${uiState.creatorName} a été marqué comme présent.", Toast.LENGTH_LONG).show()
                         navController.popBackStack()
                     },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                     colors = ButtonDefaults.buttonColors(containerColor = Success)
                 ) {
-                    Text("Confirmer le rétablissement", color = Color.White)
+                    Text("Confirmer le rétablissement", color = Color.White, fontWeight = FontWeight.Bold)
                 }
             } else if (showHelpText) {
                 Surface(
-                    color = SurfaceCard,
+                    color = theme.contentColor.copy(alpha = 0.05f),
                     shape = MaterialTheme.shapes.medium,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
                             "Continue d'essayer dans les prochains jours. Si la situation persiste ou si tu confirmes une absence définitive, tu pourras accéder au protocole d'activation depuis ton tableau de bord.",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = TextPrimary
+                            color = theme.contentColor
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Button(
                             onClick = { navController.popBackStack() },
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                            modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+                            colors = ButtonDefaults.buttonColors(containerColor = accent)
                         ) {
-                            Text("Retour au tableau de bord", color = BackgroundPrimary)
+                            Text("Retour au tableau de bord", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             } else {
                 Button(
                     onClick = { showSuccessInput = true },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                     colors = ButtonDefaults.buttonColors(containerColor = Success)
                 ) {
-                    Icon(Icons.Default.Check, null)
+                    Icon(Icons.Default.Check, null, tint = Color.White)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("J'ai eu de ses nouvelles, tout va bien", color = Color.White)
+                    Text("J'ai eu de ses nouvelles, tout va bien", color = Color.White, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -152,11 +158,12 @@ fun DepositaryAlertReceivedScreen(
                 OutlinedButton(
                     onClick = { showHelpText = true },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, Warning)
+                    border = androidx.compose.foundation.BorderStroke(1.dp, Warning),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor)
                 ) {
                     Icon(Icons.Default.Warning, null, tint = Warning)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("Je n'arrive pas à le/la joindre", color = TextPrimary)
+                    Text("Je n'arrive pas à le/la joindre", color = theme.contentColor)
                 }
             }
 
@@ -164,14 +171,14 @@ fun DepositaryAlertReceivedScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             TextButton(onClick = { navController.navigate("depositary_onboarding") }) {
-                Text("Revoir comment tout ça fonctionne", color = TextSecondary)
+                Text("Revoir comment tout ça fonctionne", color = theme.contentColor.copy(alpha = 0.6f))
             }
         }
     }
 }
 
 @Composable
-fun ContactStepItem(number: String, title: String, subtitle: String) {
+fun ContactStepItem(number: String, title: String, subtitle: String, theme: AppThemeState) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top
@@ -179,16 +186,16 @@ fun ContactStepItem(number: String, title: String, subtitle: String) {
         Box(
             modifier = Modifier
                 .size(28.dp)
-                .background(AccentPrimary, CircleShape),
+                .background(theme.accentColor, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Text(number, color = BackgroundPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(number, color = theme.backgroundColor, fontWeight = FontWeight.Bold, fontSize = 14.sp)
         }
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-            Text(title, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+            Text(title, style = MaterialTheme.typography.bodyLarge, color = theme.contentColor, fontWeight = FontWeight.SemiBold)
             if (subtitle.isNotEmpty()) {
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
             }
         }
     }

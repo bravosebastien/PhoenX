@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,6 +25,8 @@ fun RecoveryScreen(
     viewModel: RecoveryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var email by remember { mutableStateOf("") }
     var phrase by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
@@ -35,39 +38,37 @@ fun RecoveryScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Récupération de compte") },
+                title = { Text("Récupération de compte", style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(BackgroundSecondary, BackgroundPrimary))
-        )) {
+        Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
             Column(
                 modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(Icons.Default.VpnKey, null, tint = AccentPrimary, modifier = Modifier.size(64.dp))
+                Icon(Icons.Default.VpnKey, null, tint = accent, modifier = Modifier.size(64.dp))
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     "Retrouvez votre héritage",
-                    style = MaterialTheme.typography.displaySmall,
-                    color = TextPrimary,
+                    style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                    color = theme.contentColor,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     "Saisissez votre phrase de 12 mots pour déchiffrer vos souvenirs et définir un nouveau mot de passe.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
+                    color = theme.contentColor.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
                 )
 
@@ -79,8 +80,10 @@ fun RecoveryScreen(
                     label = { Text("Ton adresse email") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AccentPrimary,
-                        unfocusedBorderColor = TextTertiary
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
                     )
                 )
 
@@ -93,8 +96,10 @@ fun RecoveryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AccentPrimary,
-                        unfocusedBorderColor = TextTertiary
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
                     )
                 )
 
@@ -106,8 +111,10 @@ fun RecoveryScreen(
                     label = { Text("Nouveau mot de passe") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AccentPrimary,
-                        unfocusedBorderColor = TextTertiary
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
                     )
                 )
 
@@ -126,12 +133,12 @@ fun RecoveryScreen(
                     onClick = { viewModel.recoverWithPhrase(email, phrase, newPassword) },
                     enabled = email.isNotBlank() && phrase.isNotBlank() && newPassword.length >= 8 && uiState !is RecoveryUiState.Loading,
                     modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
                     if (uiState is RecoveryUiState.Loading) {
-                        CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+                        CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
                     } else {
-                        Text("Restaurer mon accès", color = BackgroundPrimary)
+                        Text("Restaurer mon accès", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                     }
                 }
             }

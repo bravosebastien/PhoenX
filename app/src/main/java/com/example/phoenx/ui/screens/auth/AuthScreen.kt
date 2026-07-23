@@ -57,6 +57,8 @@ fun AuthScreen(
     var recoveryConfirmed by remember { mutableStateOf(value = false) }
 
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val context = androidx.compose.ui.platform.LocalContext.current
     var isVerifying by remember { mutableStateOf(false) }
 
@@ -73,13 +75,14 @@ fun AuthScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary)
+            .background(theme.backgroundColor)
     ) {
         if (uiState is AuthState.EmailVerificationSent || uiState is AuthState.EmailNotVerified) {
             EmailVerificationContent(
                 email = email,
                 isNotVerifiedError = uiState is AuthState.EmailNotVerified,
                 isLoading = isVerifying,
+                theme = theme,
                 onConfirmedClick = { 
                     isVerifying = true
                     com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.reload()?.addOnCompleteListener {
@@ -123,7 +126,8 @@ fun AuthScreen(
                             onResetPasswordClick = { viewModel.resetPassword(email) },
                             onNavigateToSignup = { currentStep = SignupStep.StepA },
                             onNavigateToRecovery = onNavigateToRecovery,
-                            isLoading = uiState is AuthState.Loading
+                            isLoading = uiState is AuthState.Loading,
+                            theme = theme
                         )
                         SignupStep.StepA -> SignupStepA(
                             email = email,
@@ -133,7 +137,8 @@ fun AuthScreen(
                             birthDate = birthDate,
                             onBirthDateChange = { birthDate = it },
                             isGuestFlow = isGuestFlow,
-                            onNavigateToLogin = { currentStep = SignupStep.Login }
+                            onNavigateToLogin = { currentStep = SignupStep.Login },
+                            theme = theme
                         ) { 
                             if (isGuestFlow) {
                                 viewModel.signUpGuest(email, password)
@@ -141,8 +146,14 @@ fun AuthScreen(
                                 viewModel.signUp(email, password, birthDate)
                             }
                         }
-                        SignupStep.StepB -> Text("Système avancé en veille")
-                        SignupStep.StepC -> Text("Système avancé en veille")
+                        SignupStep.StepB -> Text("Système avancé en veille", color = theme.contentColor)
+                        SignupStep.StepC -> SignupStepC(
+                            depositaryName = depositaryName,
+                            onDepositaryNameChange = { depositaryName = it },
+                            onFinish = { /* ... */ },
+                            isLoading = uiState is AuthState.Loading,
+                            theme = theme
+                        )
                     }
                 }
 
@@ -165,6 +176,7 @@ fun EmailVerificationContent(
     email: String,
     isNotVerifiedError: Boolean,
     isLoading: Boolean,
+    theme: AppThemeState,
     onConfirmedClick: () -> Unit,
     onResendClick: () -> Unit
 ) {
@@ -176,17 +188,18 @@ fun EmailVerificationContent(
         Icon(
             imageVector = androidx.compose.material.icons.Icons.Default.Email,
             contentDescription = null,
-            tint = AccentPrimary,
+            tint = theme.accentColor,
             modifier = Modifier.size(64.dp)
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "Vérifie ta boîte mail",
             style = androidx.compose.ui.text.TextStyle(
-                fontFamily = androidx.compose.ui.text.font.FontFamily.Serif,
-                fontSize = 22.sp
+                fontFamily = theme.fontFamily,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
             ),
-            color = TextPrimary
+            color = theme.contentColor
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
@@ -195,7 +208,7 @@ fun EmailVerificationContent(
             else 
                 "Un email de confirmation a été envoyé à $email. Clique sur le lien pour activer ton compte.",
             style = androidx.compose.ui.text.TextStyle(fontSize = 15.sp),
-            color = TextSecondary,
+            color = theme.contentColor.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -203,12 +216,12 @@ fun EmailVerificationContent(
             onClick = onConfirmedClick,
             enabled = !isLoading,
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = theme.accentColor)
         ) {
             if (isLoading) {
-                CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+                CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
             } else {
-                Text("J'ai confirmé mon email", color = BackgroundPrimary)
+                Text("J'ai confirmé mon email", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -216,7 +229,7 @@ fun EmailVerificationContent(
             onClick = onResendClick,
             enabled = !isLoading
         ) {
-            Text("Renvoyer l'email", color = TextSecondary)
+            Text("Renvoyer l'email", color = theme.contentColor.copy(alpha = 0.6f))
         }
     }
 }
@@ -229,10 +242,11 @@ fun LoginContent(
     onResetPasswordClick: () -> Unit,
     onNavigateToSignup: () -> Unit,
     onNavigateToRecovery: () -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    theme: AppThemeState
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Content de te revoir", style = MaterialTheme.typography.displayMedium, color = TextPrimary)
+        Text("Content de te revoir", style = MaterialTheme.typography.displayMedium, color = theme.contentColor)
         Spacer(modifier = Modifier.height(32.dp))
         
         OutlinedTextField(
@@ -241,7 +255,11 @@ fun LoginContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics { contentType = ContentType.EmailAddress },
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentPrimary)
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = theme.accentColor,
+                focusedTextColor = theme.contentColor,
+                unfocusedTextColor = theme.contentColor
+            )
         )
         Spacer(modifier = Modifier.height(16.dp))
         var passwordVisible by remember { mutableStateOf(false) }
@@ -252,39 +270,43 @@ fun LoginContent(
             trailingIcon = {
                 val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                    Icon(imageVector = icon, contentDescription = null, tint = TextSecondary)
+                    Icon(imageVector = icon, contentDescription = null, tint = theme.contentColor.copy(alpha = 0.6f))
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics { contentType = ContentType.Password },
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentPrimary)
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = theme.accentColor,
+                focusedTextColor = theme.contentColor,
+                unfocusedTextColor = theme.contentColor
+            )
         )
         
         TextButton(
             onClick = onResetPasswordClick,
             modifier = Modifier.align(Alignment.End)
         ) {
-            Text("Mot de passe oublié ?", color = TextTertiary, style = MaterialTheme.typography.labelSmall)
+            Text("Mot de passe oublié ?", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.labelSmall)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = onLoginClick,
             modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+            colors = ButtonDefaults.buttonColors(containerColor = theme.accentColor),
             enabled = !isLoading && email.isNotEmpty() && password.isNotEmpty()
         ) {
-            if (isLoading) CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
-            else Text("Se connecter", color = BackgroundPrimary)
+            if (isLoading) CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
+            else Text("Se connecter", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
         TextButton(onClick = onNavigateToSignup) {
-            Text("Créer un compte", color = AccentPrimary)
+            Text("Créer un compte", color = theme.accentColor)
         }
         
         // Système avancé en veille
         TextButton(onClick = onNavigateToRecovery) {
-            Text("Restaurer via mes 12 mots (Legacy)", color = TextTertiary, style = MaterialTheme.typography.labelSmall)
+            Text("Restaurer via mes 12 mots (Legacy)", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.labelSmall)
         }
     }
 }
@@ -297,11 +319,13 @@ fun SignupStepA(
     birthDate: LocalDate, onBirthDateChange: (LocalDate) -> Unit,
     isGuestFlow: Boolean = false,
     onNavigateToLogin: () -> Unit,
+    theme: AppThemeState,
     onNext: () -> Unit
 ) {
+    val accent = theme.accentColor
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         val title = if (isGuestFlow) "Votre espace commence ici" else "Ton espace commence ici"
-        Text(title, style = MaterialTheme.typography.displayMedium, color = TextPrimary, textAlign = TextAlign.Center)
+        Text(title, style = MaterialTheme.typography.displayMedium, color = theme.contentColor, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
@@ -309,7 +333,8 @@ fun SignupStepA(
             label = { Text("Email") },
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentType = ContentType.EmailAddress }
+                .semantics { contentType = ContentType.EmailAddress },
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
         )
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -317,8 +342,8 @@ fun SignupStepA(
             // Date de naissance (Masquée pour le flux Invité)
             Text(
                 "POUR TON FIL DE PENSÉE", 
-                style = MaterialTheme.typography.labelSmall, 
-                color = AccentPrimary,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                color = accent,
                 modifier = Modifier.align(Alignment.Start)
             )
             var showDatePicker by remember { mutableStateOf(value = false) }
@@ -329,13 +354,14 @@ fun SignupStepA(
             OutlinedCard(
                 onClick = { showDatePicker = true },
                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                colors = CardDefaults.outlinedCardColors(containerColor = SurfaceCard),
-                border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary)
+                colors = CardDefaults.outlinedCardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Text(
                     birthDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy", java.util.Locale.FRENCH)),
                     modifier = Modifier.padding(16.dp),
-                    color = TextPrimary
+                    color = theme.contentColor,
+                    fontWeight = FontWeight.Bold
                 )
             }
 
@@ -350,7 +376,7 @@ fun SignupStepA(
                                 )
                             }
                             showDatePicker = false
-                        }) { Text("OK", color = AccentPrimary) }
+                        }) { Text("OK", color = accent) }
                     }
                 ) {
                     DatePicker(state = datePickerState)
@@ -370,13 +396,14 @@ fun SignupStepA(
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentType = ContentType.Password }
+                .semantics { contentType = ContentType.Password },
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
         )
         LinearProgressIndicator(
             progress = { strength },
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
             color = strengthColor,
-            trackColor = SurfaceCard
+            trackColor = theme.contentColor.copy(alpha = 0.05f)
         )
         
         Text(
@@ -396,26 +423,26 @@ fun SignupStepA(
             Checkbox(
                 checked = termsAccepted,
                 onCheckedChange = { termsAccepted = it },
-                colors = CheckboxDefaults.colors(checkedColor = AccentPrimary)
+                colors = CheckboxDefaults.colors(checkedColor = accent)
             )
             Column {
                 Text(
                     text = "J'accepte les Conditions Générales d'Utilisation et la Politique de Confidentialité",
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextPrimary
+                    color = theme.contentColor
                 )
                 Row {
                     Text(
                         "Lire les CGU",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AccentPrimary,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = accent,
                         modifier = Modifier.clickable { /* Navigation placeholder */ }
                     )
                     Spacer(Modifier.width(12.dp))
                     Text(
                         "Politique de Confidentialité",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = AccentPrimary,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = accent,
                         modifier = Modifier.clickable { /* Navigation placeholder */ }
                     )
                 }
@@ -427,13 +454,13 @@ fun SignupStepA(
             onClick = onNext,
             enabled = (email.isNotEmpty() && password.length >= 12 && termsAccepted),
             modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = accent)
         ) {
-            Text("Continuer", color = BackgroundPrimary)
+            Text("Continuer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
 
         TextButton(onClick = onNavigateToLogin) {
-            Text("J'ai déjà un compte ? Se connecter", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+            Text("J'ai déjà un compte ? Se connecter", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
         }
     }
 }
@@ -443,16 +470,18 @@ fun SignupStepC(
     depositaryName: String,
     onDepositaryNameChange: (String) -> Unit,
     onFinish: () -> Unit,
-    isLoading: Boolean
+    isLoading: Boolean,
+    theme: AppThemeState
 ) {
+    val accent = theme.accentColor
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Une dernière chose...", style = MaterialTheme.typography.displaySmall, color = TextPrimary)
+        Text("Une dernière chose...", style = MaterialTheme.typography.displaySmall, color = theme.contentColor)
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
             "Qui est la personne à qui tu souhaites un jour transmettre ton héritage ?",
             style = MaterialTheme.typography.bodyLarge,
-            color = TextSecondary,
+            color = theme.contentColor.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
         
@@ -461,24 +490,24 @@ fun SignupStepC(
             value = depositaryName, onValueChange = onDepositaryNameChange,
             label = { Text("Prénom ou Surnom") },
             modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = AccentPrimary)
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
         )
 
         Spacer(modifier = Modifier.height(48.dp))
         
         if (isLoading) {
-            CircularProgressIndicator(color = AccentPrimary)
+            CircularProgressIndicator(color = accent)
         } else {
             Button(
                 onClick = onFinish,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Créer mon espace", color = BackgroundPrimary)
+                Text("Créer mon espace", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
             
             TextButton(onClick = onFinish, modifier = Modifier.padding(top = 16.dp)) {
-                Text("Je préfère découvrir d'abord", color = TextTertiary)
+                Text("Je préfère découvrir d'abord", color = theme.contentColor.copy(alpha = 0.4f))
             }
         }
     }

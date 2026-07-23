@@ -31,18 +31,20 @@ fun PactDetailScreen(
     viewModel: PactViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val pact = uiState.pacts.find { it.id == pactId }
     val entries by viewModel.getEntriesForPact(pactId).collectAsState(initial = emptyList())
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text(pact?.partnerName?.let { "Pacte avec $it" } ?: "Détails du Pacte") },
+                title = { Text(pact?.partnerName?.let { "Pacte avec $it" } ?: "Détails du Pacte", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -50,9 +52,9 @@ fun PactDetailScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* In a real app, this would create a shared event title */ },
-                containerColor = AccentPrimary,
-                contentColor = BackgroundPrimary
+                onClick = { /* ... */ },
+                containerColor = accent,
+                contentColor = theme.backgroundColor
             ) {
                 Icon(Icons.Default.Add, null)
             }
@@ -60,43 +62,45 @@ fun PactDetailScreen(
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
             if (pact == null) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
             } else {
                 Column(modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp)) {
-                    Text("ÉVÉNEMENTS PARTAGÉS", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
+                    Text("ÉVÉNEMENTS PARTAGÉS", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, letterSpacing = 2.sp)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     if (entries.isEmpty()) {
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
-                            color = SurfaceCard.copy(alpha = 0.4f),
-                            shape = MaterialTheme.shapes.large
+                            color = theme.contentColor.copy(alpha = 0.05f),
+                            shape = MaterialTheme.shapes.large,
+                            border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("Aucun événement encore raconté.", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                                Text("Aucun événement encore raconté.", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall)
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Button(
                                     onClick = { onNavigateToCapture(pactId, pact.partnerName) },
-                                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard)
+                                    colors = ButtonDefaults.buttonColors(containerColor = accent),
+                                    modifier = Modifier.phoenXMatiere()
                                 ) {
-                                    Text("Raconter le premier souvenir", color = TextPrimary)
+                                    Text("Raconter le premier souvenir", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
                     } else {
                         LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             items(entries) { entry ->
-                                PactEntryCard(entry, pact.partnerName)
+                                PactEntryCard(entry, pact.partnerName, theme)
                             }
                             
                             item {
                                 Spacer(modifier = Modifier.height(24.dp))
                                 Button(
                                     onClick = { onNavigateToCapture(pactId, pact.partnerName) },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                                    modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+                                    colors = ButtonDefaults.buttonColors(containerColor = accent)
                                 ) {
-                                    Text("Ajouter une vérité", color = BackgroundPrimary)
+                                    Text("Ajouter une vérité", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -106,7 +110,7 @@ fun PactDetailScreen(
                     Text(
                         "Rappel : Le contenu est chiffré. Vous ne verrez la version de ${pact.partnerName} qu'après activation mutuelle.",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextTertiary,
+                        color = theme.contentColor.copy(alpha = 0.4f),
                         lineHeight = 16.sp
                     )
                 }
@@ -116,17 +120,18 @@ fun PactDetailScreen(
 }
 
 @Composable
-fun PactEntryCard(entry: OfflineEntry, partnerName: String) {
+fun PactEntryCard(entry: OfflineEntry, partnerName: String, theme: AppThemeState) {
     Surface(
-        color = SurfaceCard.copy(alpha = 0.6f),
+        color = theme.contentColor.copy(alpha = 0.03f),
         shape = MaterialTheme.shapes.medium,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.HistoryEdu, null, tint = AccentPrimary)
+            Icon(Icons.Default.HistoryEdu, null, tint = theme.accentColor)
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(entry.aiSummary.ifEmpty { "Événement sans titre" }, style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+                Text(entry.aiSummary.ifEmpty { "Événement sans titre" }, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.CheckCircle, null, tint = Success, modifier = Modifier.size(12.dp))
                     Spacer(modifier = Modifier.width(4.dp))

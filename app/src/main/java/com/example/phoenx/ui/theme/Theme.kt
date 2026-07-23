@@ -38,11 +38,11 @@ private val DarkColorScheme = darkColorScheme(
     secondary = AccentSecondary,
     onSecondary = BackgroundPrimary,
     background = BackgroundPrimary,
-    onBackground = TextPrimary,
+    onBackground = Color(0xFFF2EDE8),
     surface = BackgroundSecondary,
-    onSurface = TextPrimary,
+    onSurface = Color(0xFFF2EDE8),
     surfaceVariant = SurfaceCard,
-    onSurfaceVariant = TextSecondary,
+    onSurfaceVariant = Color(0xFF9B9590),
     error = Error,
     onError = BackgroundPrimary
 )

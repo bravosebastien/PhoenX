@@ -162,9 +162,9 @@ fun NotificationContactsScreen(
         if (contactToDelete != null) {
             AlertDialog(
                 onDismissRequest = { contactToDelete = null },
-                containerColor = BackgroundSecondary,
-                title = { Text("Supprimer ce contact ?", color = TextPrimary) },
-                text = { Text("Veux-tu vraiment retirer ${contactToDelete?.name} de tes contacts à prévenir ?", color = TextSecondary) },
+                containerColor = theme.backgroundColor,
+                title = { Text("Supprimer ce contact ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                text = { Text("Veux-tu vraiment retirer ${contactToDelete?.name} de tes contacts à prévenir ?", color = theme.contentColor.copy(alpha = 0.7f)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -172,12 +172,12 @@ fun NotificationContactsScreen(
                             contactToDelete = null
                         }
                     ) {
-                        Text("Supprimer", color = Error)
+                        Text("Supprimer", color = Error, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { contactToDelete = null }) {
-                        Text("Annuler", color = TextSecondary)
+                        Text("Annuler", color = theme.contentColor)
                     }
                 }
             )

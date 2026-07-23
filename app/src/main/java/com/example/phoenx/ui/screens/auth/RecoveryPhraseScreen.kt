@@ -42,18 +42,22 @@ fun RecoveryPhraseScreen(
         indices.sorted()
     }
 
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary)
+            .background(theme.backgroundColor)
             .padding(24.dp)
     ) {
         when (step) {
-            1 -> WarningStep { step = 2 }
-            2 -> DisplayStep(phrase) { step = 3 }
+            1 -> WarningStep(theme = theme, onNext = { step = 2 })
+            2 -> DisplayStep(phrase = phrase, theme = theme, onNext = { step = 3 })
             3 -> VerificationStep(
                 phrase = phrase,
                 indices = verificationIndices,
+                theme = theme,
                 onSuccess = {
                     Toast.makeText(context, "Parfait. Ta phrase est en sécurité.", Toast.LENGTH_SHORT).show()
                     onConfirmed()
@@ -64,7 +68,8 @@ fun RecoveryPhraseScreen(
 }
 
 @Composable
-fun WarningStep(onNext: () -> Unit) {
+fun WarningStep(theme: AppThemeState, onNext: () -> Unit) {
+    val accent = theme.accentColor
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -73,21 +78,21 @@ fun WarningStep(onNext: () -> Unit) {
         Icon(
             imageVector = Icons.Default.Lock,
             contentDescription = null,
-            tint = AccentPrimary,
+            tint = accent,
             modifier = Modifier.size(64.dp)
         )
         Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = "Avant de continuer",
-            style = MaterialTheme.typography.displaySmall.copy(fontFamily = FontFamily.Serif),
-            color = TextPrimary,
+            style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+            color = theme.contentColor,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = "PHOEN-X va générer ta phrase de récupération. Ce sont 12 mots qui protègent l'ensemble de tes souvenirs.\n\n⚠️ Si tu perds ces 12 mots ET ton téléphone, tes données seront perdues pour toujours. Même nous ne pourrons pas les récupérer. Personne. Jamais.\n\nSi tu changes de téléphone un jour, ces 12 mots seront le seul moyen de retrouver tes souvenirs.\n\nPrends un stylo et du papier maintenant.",
             style = MaterialTheme.typography.bodyLarge,
-            color = TextSecondary,
+            color = theme.contentColor.copy(alpha = 0.7f),
             lineHeight = 26.sp,
             textAlign = TextAlign.Center
         )
@@ -95,15 +100,16 @@ fun WarningStep(onNext: () -> Unit) {
         Button(
             onClick = onNext,
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = accent)
         ) {
-            Text("J'ai un stylo et du papier, je suis prêt(e)", color = BackgroundPrimary)
+            Text("J'ai un stylo et du papier, je suis prêt(e)", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
     }
 }
 
 @Composable
-fun DisplayStep(phrase: List<String>, onNext: () -> Unit) {
+fun DisplayStep(phrase: List<String>, theme: AppThemeState, onNext: () -> Unit) {
+    val accent = theme.accentColor
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -111,14 +117,14 @@ fun DisplayStep(phrase: List<String>, onNext: () -> Unit) {
         Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = "Ta phrase de récupération",
-            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-            color = TextPrimary
+            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+            color = theme.contentColor
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Note ces 12 mots dans l'ordre exact, sur papier. Pas de capture d'écran.",
             style = MaterialTheme.typography.bodySmall,
-            color = TextSecondary,
+            color = theme.contentColor.copy(alpha = 0.6f),
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
@@ -131,8 +137,9 @@ fun DisplayStep(phrase: List<String>, onNext: () -> Unit) {
         ) {
             itemsIndexed(phrase) { index, word ->
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF2E2E35)),
-                    shape = RoundedCornerShape(8.dp)
+                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                    shape = RoundedCornerShape(8.dp),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),
@@ -141,15 +148,15 @@ fun DisplayStep(phrase: List<String>, onNext: () -> Unit) {
                         Text(
                             text = (index + 1).toString(),
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                            color = Color(0xFF5C5855)
+                            color = theme.contentColor.copy(alpha = 0.3f)
                         )
                         Text(
                             text = word,
                             style = MaterialTheme.typography.bodyLarge.copy(
-                                fontFamily = FontFamily.Serif,
+                                fontFamily = theme.fontFamily,
                                 fontWeight = FontWeight.Bold
                             ),
-                            color = Color(0xFFF2EDE8)
+                            color = theme.contentColor
                         )
                     }
                 }
@@ -160,9 +167,9 @@ fun DisplayStep(phrase: List<String>, onNext: () -> Unit) {
         Button(
             onClick = onNext,
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = accent)
         ) {
-            Text("J'ai noté tous les mots", color = BackgroundPrimary)
+            Text("J'ai noté tous les mots", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(24.dp))
     }
@@ -172,8 +179,10 @@ fun DisplayStep(phrase: List<String>, onNext: () -> Unit) {
 fun VerificationStep(
     phrase: List<String>,
     indices: List<Int>,
+    theme: AppThemeState,
     onSuccess: () -> Unit
 ) {
+    val accent = theme.accentColor
     var inputs by remember { mutableStateOf(List(3) { "" }) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -184,14 +193,14 @@ fun VerificationStep(
         Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = "Vérifions ensemble",
-            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-            color = TextPrimary
+            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+            color = theme.contentColor
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Pour confirmer que tu as bien noté ta phrase, entre les mots numéros ${indices[0] + 1}, ${indices[1] + 1} et ${indices[2] + 1}",
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = theme.contentColor.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(40.dp))
@@ -206,8 +215,10 @@ fun VerificationStep(
                 label = { Text("Mot n°${index + 1}") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentPrimary,
-                    unfocusedBorderColor = Color(0xFF2E2E35)
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                    focusedTextColor = theme.contentColor,
+                    unfocusedTextColor = theme.contentColor
                 )
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -232,9 +243,9 @@ fun VerificationStep(
                 }
             },
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = accent)
         ) {
-            Text("Vérifier et terminer", color = BackgroundPrimary)
+            Text("Vérifier et terminer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(24.dp))
     }

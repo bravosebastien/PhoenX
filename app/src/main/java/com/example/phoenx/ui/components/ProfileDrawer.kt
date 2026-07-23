@@ -43,17 +43,19 @@ fun ProfileDrawer(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
-                drawerContainerColor = BackgroundPrimary,
+                drawerContainerColor = theme.backgroundColor,
                 drawerShape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp),
                 modifier = Modifier
                     .width(300.dp)
                     .fillMaxHeight()
-                    .border(androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35)))
+                    .border(androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)))
             ) {
                 Column(
                     modifier = Modifier
@@ -72,62 +74,63 @@ fun ProfileDrawer(
                         Surface(
                             modifier = Modifier.size(60.dp),
                             shape = CircleShape,
-                            color = LocalAccentColor.current.copy(alpha = 0.1f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, LocalAccentColor.current.copy(alpha = 0.3f))
+                            color = accent.copy(alpha = 0.1f),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Outlined.Person, null, tint = LocalAccentColor.current, modifier = Modifier.size(32.dp))
+                                Icon(Icons.Outlined.Person, null, tint = accent, modifier = Modifier.size(32.dp))
                             }
                         }
 
                         Text(
                             text = userName,
                             style = MaterialTheme.typography.headlineSmall.copy(
-                                fontFamily = FontFamily.Serif,
+                                fontFamily = theme.fontFamily,
                                 fontStyle = FontStyle.Italic,
-                                fontSize = 20.sp
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
                             ),
-                            color = TextPrimary,
+                            color = theme.contentColor,
                             modifier = Modifier.padding(top = 16.dp)
                         )
                         Text(
                             text = userEmail,
                             style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
-                            color = TextTertiary
+                            color = theme.contentColor.copy(alpha = 0.4f)
                         )
                     }
 
                     Spacer(modifier = Modifier.height(40.dp))
-                    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color(0xFF2E2E35)))
+                    Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(theme.contentColor.copy(alpha = 0.1f)))
                     Spacer(modifier = Modifier.height(32.dp))
 
                     // MENU SIMPLIFIÉ
-                    DrawerItem(icon = Icons.Outlined.AccountCircle, text = "Mon Profil & Style") { 
+                    DrawerItem(icon = Icons.Outlined.AccountCircle, text = "Mon Profil & Style", theme = theme) { 
                         scope.launch { drawerState.close() }
                         onNavigateToProfile() 
                     }
 
-                    DrawerItem(icon = Icons.Outlined.People, text = "Mon Cercle de Confiance") { 
+                    DrawerItem(icon = Icons.Outlined.People, text = "Mon Cercle de Confiance", theme = theme) { 
                         scope.launch { drawerState.close() }
                         onNavigateToTransmission() 
                     }
                     
-                    DrawerItem(icon = Icons.Outlined.Info, text = "Aide & Guide") { 
+                    DrawerItem(icon = Icons.Outlined.Info, text = "Aide & Guide", theme = theme) { 
                         // Futur guide
                     }
 
                     Spacer(modifier = Modifier.weight(1f))
 
                     // SÉCURITÉ
-                    DrawerItem(icon = Icons.Outlined.Logout, text = "Se déconnecter", textColor = Error) {
+                    DrawerItem(icon = Icons.Outlined.Logout, text = "Se déconnecter", textColor = Error, theme = theme) {
                         scope.launch { drawerState.close() }
                         onLogout()
                     }
                     
                     Text(
-                        text = "PHOEN-X v7.1",
+                        text = "PHOEN-X v8.9.7",
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextTertiary.copy(alpha = 0.5f),
+                        color = theme.contentColor.copy(alpha = 0.2f),
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
@@ -141,10 +144,11 @@ fun ProfileDrawer(
 fun DrawerItem(
     icon: ImageVector,
     text: String,
-    textColor: Color = TextPrimary,
+    theme: AppThemeState,
+    textColor: Color = theme.contentColor,
     onClick: () -> Unit
 ) {
-    val accent = LocalAccentColor.current
+    val accent = theme.accentColor
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -154,7 +158,7 @@ fun DrawerItem(
     ) {
         Icon(icon, null, tint = accent, modifier = Modifier.size(20.dp))
         Spacer(modifier = Modifier.width(14.dp))
-        Text(text, style = MaterialTheme.typography.bodyMedium, color = textColor, modifier = Modifier.weight(1f))
-        Icon(Icons.Outlined.ChevronRight, null, tint = TextTertiary, modifier = Modifier.size(16.dp))
+        Text(text, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = textColor, modifier = Modifier.weight(1f))
+        Icon(Icons.Outlined.ChevronRight, null, tint = theme.contentColor.copy(alpha = 0.2f), modifier = Modifier.size(16.dp))
     }
 }

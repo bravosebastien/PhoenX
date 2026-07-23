@@ -26,9 +26,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import com.example.phoenx.R
-import com.example.phoenx.ui.theme.AccentPrimary
-import com.example.phoenx.ui.theme.BackgroundPrimary
-import com.example.phoenx.ui.theme.TextPrimary
+import com.example.phoenx.ui.theme.LocalAppTheme
+import androidx.compose.ui.text.font.FontWeight
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.cos
@@ -63,6 +62,8 @@ val SPLASH_VARIANT = SplashVariant.ETINCELLES
 fun SplashScreen(
     onAnimationFinished: () -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val logoScale      = remember { Animatable(0.4f) }
     val logoAlpha      = remember { Animatable(0f) }
     val logoOffsetY    = remember { Animatable(28f) }
@@ -163,7 +164,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundPrimary),
+            .background(theme.backgroundColor),
         contentAlignment = Alignment.Center
     ) {
 
@@ -175,8 +176,8 @@ fun SplashScreen(
                 .alpha(haloAlpha)
                 .background(
                     brush = Brush.radialGradient(
-                        0.0f to AccentPrimary.copy(alpha = 0.35f),
-                        0.4f to AccentPrimary.copy(alpha = 0.10f),
+                        0.0f to accent.copy(alpha = 0.35f),
+                        0.4f to accent.copy(alpha = 0.10f),
                         1.0f to Color.Transparent,
                         center = Offset(450f, 450f), // Centre ajusté pour le rayonnement
                         radius = 500f
@@ -239,10 +240,11 @@ fun SplashScreen(
             Text(
                 text  = "PHOEN-X",
                 style = TextStyle(
-                    fontFamily    = FontFamily.Serif,
+                    fontFamily    = theme.fontFamily,
                     fontSize      = 24.sp,
                     letterSpacing = TextUnit(0.42f, TextUnitType.Em),
-                    color         = TextPrimary
+                    color         = theme.contentColor,
+                    fontWeight    = FontWeight.Bold
                 ),
                 modifier = Modifier
                     .alpha(nameAlpha.value)
@@ -255,7 +257,7 @@ fun SplashScreen(
                 modifier = Modifier
                     .width(lineWidth.value.dp)
                     .height(1.dp)
-                    .background(AccentPrimary)
+                    .background(accent)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -263,10 +265,11 @@ fun SplashScreen(
             Text(
                 text      = "Ce n'est pas une archive. C'est une présence.",
                 style     = TextStyle(
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = theme.fontFamily,
                     fontSize   = 13.sp,
                     fontStyle  = FontStyle.Italic,
-                    color      = Color(0xFF9B9590)
+                    color      = theme.contentColor.copy(alpha = 0.4f),
+                    fontWeight = FontWeight.Bold
                 ),
                 textAlign = TextAlign.Center,
                 modifier  = Modifier

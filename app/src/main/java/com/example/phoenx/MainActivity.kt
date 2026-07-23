@@ -48,7 +48,6 @@ class MainActivity : FragmentActivity() {
         navController?.handleDeepLink(intent)
     }
 
-    @androidx.media3.common.util.UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -152,7 +151,6 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    @androidx.media3.common.util.UnstableApi
     @Composable
     fun MainContent(onVerifyBiometrics: (onSuccess: () -> Unit) -> Unit) {
         LaunchedEffect(Unit) {

@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.quiz
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -41,7 +42,8 @@ fun QuizCreateScreen(
     viewModel: QuizViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
 
     var title by remember { mutableStateOf("") }
@@ -59,18 +61,18 @@ fun QuizCreateScreen(
 
     Box(modifier = Modifier.fillMaxSize().background(backgroundBrush)) {
         Scaffold(
-            containerColor = Color.Transparent,
+            containerColor = theme.backgroundColor,
             topBar = {
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Créer mon quiz", style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic))
-                            Text("Tes proches devineront ta vie.", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                            Text("Créer mon quiz", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                            Text("Tes proches devineront ta vie.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -87,8 +89,9 @@ fun QuizCreateScreen(
                 // ÉTAPE 1 — TITRE ET OPTIONS
                 Card(
                     modifier = Modifier.padding(horizontal = 12.dp).fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
-                    shape = RoundedCornerShape(16.dp)
+                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         OutlinedTextField(
@@ -97,7 +100,7 @@ fun QuizCreateScreen(
                             label = { Text("Titre du quiz") },
                             placeholder = { Text("Connais-tu vraiment [Prénom] ?", style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)) },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = accent.copy(alpha = 0.5f))
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                         )
 
                         Spacer(modifier = Modifier.height(12.dp))
@@ -109,26 +112,26 @@ fun QuizCreateScreen(
                             placeholder = { Text("Ce que tu veux leur dire après avoir joué...") },
                             modifier = Modifier.fillMaxWidth(),
                             minLines = 2,
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = accent.copy(alpha = 0.5f))
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Accessible maintenant", style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+                            Text("Accessible maintenant", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
                             Switch(checked = availableNow, onCheckedChange = { availableNow = it }, colors = SwitchDefaults.colors(checkedThumbColor = accent))
                         }
 
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Accessible après mon départ", style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+                            Text("Accessible après mon départ", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
                             Switch(checked = availableAfterDeath, onCheckedChange = { availableAfterDeath = it }, colors = SwitchDefaults.colors(checkedThumbColor = accent))
                         }
 
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("Afficher les noms dans le classement", style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+                            Text("Afficher les noms dans le classement", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
                             Switch(checked = showNames, onCheckedChange = { showNames = it }, colors = SwitchDefaults.colors(checkedThumbColor = accent))
                         }
-                        Text("Si désactivé, seuls les rangs seront visibles.", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = TextTertiary)
+                        Text("Si désactivé, seuls les rangs seront visibles.", style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp), color = theme.contentColor.copy(alpha = 0.4f))
 
                         Spacer(modifier = Modifier.height(16.dp))
                         Text("QUI PEUT JOUER ?", style = MaterialTheme.typography.labelSmall, color = accent, fontWeight = FontWeight.Bold)
@@ -148,18 +151,19 @@ fun QuizCreateScreen(
                 // ÉTAPE 2 — NOMBRE DE QUESTIONS
                 Card(
                     modifier = Modifier.padding(horizontal = 12.dp).fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
-                    shape = RoundedCornerShape(16.dp)
+                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("NOMBRE DE QUESTIONS", style = MaterialTheme.typography.labelSmall, color = accent, fontWeight = FontWeight.Bold)
+                        Text("NOMBRE DE QUESTIONS", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                         
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                            Text("$numQuestionsGoal questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif), color = TextPrimary)
+                            Text("$numQuestionsGoal questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 IconButton(
                                     onClick = { if (numQuestionsGoal > 1) numQuestionsGoal-- },
-                                    modifier = Modifier.size(36.dp).background(Color(0xFF2E2E35), RoundedCornerShape(10.dp))
+                                    modifier = Modifier.size(36.dp).background(theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(10.dp))
                                 ) {
                                     Text("-", color = accent, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                                 }
@@ -167,7 +171,7 @@ fun QuizCreateScreen(
                                     onClick = { if (numQuestionsGoal < 20) numQuestionsGoal++ },
                                     modifier = Modifier.size(36.dp).background(accent, RoundedCornerShape(10.dp))
                                 ) {
-                                    Text("+", color = Color(0xFF1A1A1F), fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                                    Text("+", color = theme.backgroundColor, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
@@ -177,7 +181,7 @@ fun QuizCreateScreen(
                             onValueChange = { numQuestionsGoal = it.toInt() },
                             valueRange = 1f..20f,
                             steps = 18,
-                            colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent)
+                            colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent, inactiveTrackColor = theme.contentColor.copy(alpha = 0.1f))
                         )
                     }
                 }
@@ -185,7 +189,7 @@ fun QuizCreateScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ÉTAPE 3 — QUESTIONS
-                Text("MES QUESTIONS (${questions.size}/$numQuestionsGoal)", style = MaterialTheme.typography.labelSmall, color = accent, modifier = Modifier.padding(start = 14.dp, bottom = 6.dp), fontWeight = FontWeight.Bold)
+                Text("MES QUESTIONS (${questions.size}/$numQuestionsGoal)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, modifier = Modifier.padding(start = 14.dp, bottom = 6.dp))
 
                 questions.forEachIndexed { index, question ->
                     QuestionItemCard(
@@ -193,6 +197,7 @@ fun QuizCreateScreen(
                         question = question,
                         onDelete = { questions.removeAt(index) },
                         onUpdate = { updated -> questions[index] = updated },
+                        theme = theme,
                         viewModel = viewModel
                     )
                 }
@@ -202,7 +207,7 @@ fun QuizCreateScreen(
                         onClick = { showInspiration = true },
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, accent)
+                        border = BorderStroke(1.dp, accent)
                     ) {
                         Icon(Icons.Default.Add, null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -232,16 +237,17 @@ fun QuizCreateScreen(
                         navController.popBackStack()
                     },
                     enabled = canPublish,
-                    modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 12.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 12.dp).phoenXMatiere(),
                     colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Publier ce quiz", color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold)
+                    Text("Publier ce quiz", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
 
         if (showInspiration) {
             InspirationBottomSheet(
+                theme = theme,
                 onDismiss = { showInspiration = false },
                 onSelect = { inspiration ->
                     val correct = inspiration.exampleAnswers.firstOrNull() ?: ""
@@ -269,9 +275,10 @@ fun QuestionItemCard(
     question: QuizQuestion,
     onDelete: () -> Unit,
     onUpdate: (QuizQuestion) -> Unit,
+    theme: AppThemeState,
     viewModel: QuizViewModel
 ) {
-    val accent = LocalAccentColor.current
+    val accent = theme.accentColor
     val context = androidx.compose.ui.platform.LocalContext.current
     
     val photoLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
@@ -300,19 +307,21 @@ fun QuestionItemCard(
 
     Card(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp).fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
-        shape = RoundedCornerShape(14.dp)
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Box(modifier = Modifier.align(Alignment.CenterStart).width(3.dp).fillMaxHeight().background(accent))
             
             Column(modifier = Modifier.padding(14.dp)) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Question ${index + 1}", style = MaterialTheme.typography.labelSmall, color = accent)
+                    Text("Question ${index + 1}", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                     IconButton(onClick = onDelete, modifier = Modifier.size(24.dp)) {
                         Icon(Icons.Default.Delete, null, tint = Error, modifier = Modifier.size(18.dp))
                     }
                 }
+                // ... suite identique ...
 
                 // SUPPORT MÉDIA (PHOTO/VIDÉO/SON)
                 if (question.mediaUrl != null) {
@@ -374,7 +383,7 @@ fun QuestionItemCard(
                     label = { Text("La question") },
                     placeholder = { Text("Ex: Dans quelle ville suis-je né(e) ?", style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic)) },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = accent.copy(alpha = 0.3f))
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -389,12 +398,12 @@ fun QuestionItemCard(
                     },
                     label = { Text("La bonne réponse (Sera chiffrée)") },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Success, unfocusedBorderColor = Success.copy(alpha = 0.3f))
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = Success, unfocusedBorderColor = Success.copy(alpha = 0.3f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("Les pièges (distracteurs)", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                    Text("Les pièges (distracteurs)", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                     
                     // BOUTON MAGIE IA
                     TextButton(
@@ -413,7 +422,7 @@ fun QuestionItemCard(
                     ) {
                         Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(4.dp))
-                        Text("Magie IA", fontSize = 11.sp)
+                        Text("Magie IA", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -430,7 +439,7 @@ fun QuestionItemCard(
                         },
                         placeholder = { Text("Fausse réponse ${dIndex + 1}") },
                         modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = accent.copy(alpha = 0.2f))
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                     )
                 }
                 
@@ -439,12 +448,12 @@ fun QuestionItemCard(
                         val newList = currentDistractors + ""
                         onUpdate(question.copy(distractors = newList))
                     }) {
-                        Text("+ Ajouter un piège", fontSize = 12.sp, color = accent)
+                        Text("+ Ajouter un piège", fontSize = 12.sp, color = accent, fontWeight = FontWeight.Bold)
                     }
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
-                Text("Messages taquins (Si mode aide utilisé)", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                Text("Messages taquins (Si mode aide utilisé)", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                 
                 question.teasingMessages.forEachIndexed { tIndex, msg ->
                     OutlinedTextField(
@@ -456,7 +465,7 @@ fun QuestionItemCard(
                         },
                         placeholder = { Text("Ex: On voit qui ne suivait pas à table !") },
                         modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = accent.copy(alpha = 0.2f))
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                     )
                 }
                 
@@ -465,7 +474,7 @@ fun QuestionItemCard(
                         val newList = question.teasingMessages + ""
                         onUpdate(question.copy(teasingMessages = newList))
                     }) {
-                        Text("+ Ajouter une pique", fontSize = 12.sp, color = accent)
+                        Text("+ Ajouter une pique", fontSize = 12.sp, color = accent, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -476,13 +485,14 @@ fun QuestionItemCard(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InspirationBottomSheet(
+    theme: AppThemeState,
     onDismiss: () -> Unit,
     onSelect: (QuizInspiration) -> Unit
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundPrimary,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF2E2E35)) }
+        containerColor = theme.backgroundColor,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = theme.contentColor.copy(alpha = 0.2f)) }
     ) {
         Column(
             modifier = Modifier
@@ -490,8 +500,8 @@ fun InspirationBottomSheet(
                 .padding(horizontal = 24.dp)
                 .padding(bottom = 32.dp)
         ) {
-            Text("Besoin d'inspiration ?", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif), color = TextPrimary)
-            Text("Tap sur une question pour l'utiliser comme base.", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            Text("Besoin d'inspiration ?", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+            Text("Tap sur une question pour l'utiliser comme base.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -500,12 +510,13 @@ fun InspirationBottomSheet(
                     Card(
                         onClick = { onSelect(item) },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF242429)),
-                        shape = RoundedCornerShape(10.dp)
+                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            Text(item.question, style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic), color = TextPrimary)
-                            Text(item.exampleAnswers.joinToString(", "), style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                            Text(item.question, style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                            Text(item.exampleAnswers.joinToString(", "), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                         }
                     }
                 }

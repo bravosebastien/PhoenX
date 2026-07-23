@@ -35,21 +35,23 @@ fun RecipientBooksScreen(
 ) {
     val entries by viewModel.libraryEntries.collectAsState()
     var selectedEntry by remember { mutableStateOf<PhoenXEntry?>(null) }
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Grande Bibliothèque", style = MaterialTheme.typography.displaySmall) },
+                title = { Text("Grande Bibliothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 actions = {
                     IconButton(onClick = onNavigateToCapture) {
-                        Icon(Icons.Default.Add, null, tint = AccentPrimary)
+                        Icon(Icons.Default.Add, null, tint = accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -59,7 +61,7 @@ fun RecipientBooksScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Aucun écrit n'a encore été confié à cette bibliothèque.", color = TextTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Text("Aucun écrit n'a encore été confié à cette bibliothèque.", color = theme.contentColor.copy(alpha = 0.4f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             } else {
                 LazyColumn(

@@ -53,7 +53,8 @@ fun HeirHeritageScreen(
     val bookMessage by viewModel.bookSealedMessage.collectAsState()
     val creatorName by viewModel.creatorName.collectAsState()
     val isActivated by viewModel.isProtocolActivated.collectAsState()
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
 
     LaunchedEffect(creatorId) {
@@ -61,19 +62,20 @@ fun HeirHeritageScreen(
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(backgroundBrush),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         "Mon Héritage",
-                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic)
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
+                        color = theme.contentColor
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -90,7 +92,7 @@ fun HeirHeritageScreen(
                 Text(
                     text = "${heritageEntries.size} souvenirs vous ont été destinés",
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary,
+                    color = theme.contentColor.copy(alpha = 0.4f),
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                 )
             }
@@ -108,18 +110,21 @@ fun HeirHeritageScreen(
                         subtitle = if (!isActivated) bookMessage ?: "$creatorName a décidé de vous partager le livre de sa vie. Visible le moment venu." else "Récit de vie",
                         icon = Icons.Outlined.MenuBook,
                         modifier = Modifier.weight(1.3f),
+                        theme = theme,
                         onClick = { navController.navigate("book_viewer_recipient?creatorId=$creatorId") }
                     )
                     SpecialAccessCard(
                         title = "Coffre",
                         icon = Icons.Outlined.Lock,
                         modifier = Modifier.weight(1f),
+                        theme = theme,
                         onClick = { navController.navigate(Screen.RecipientDetective.createRoute(creatorId)) }
                     )
                     SpecialAccessCard(
                         title = "Quiz",
                         icon = Icons.Outlined.EmojiEvents,
                         modifier = Modifier.weight(1f),
+                        theme = theme,
                         onClick = { 
                             // Navigation automatique vers le quiz du créateur (v8.5.9)
                             navController.navigate("quiz_play/$creatorId/main_quiz") 
@@ -127,7 +132,7 @@ fun HeirHeritageScreen(
                     )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                HorizontalDivider(color = TextTertiary.copy(alpha = 0.1f), modifier = Modifier.padding(horizontal = 24.dp))
+                HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f), modifier = Modifier.padding(horizontal = 24.dp))
                 Spacer(modifier = Modifier.height(8.dp))
             }
 
@@ -137,6 +142,7 @@ fun HeirHeritageScreen(
                     entry = entry,
                     heirKey = heirKey,
                     mediaManager = viewModel.mediaManager,
+                    theme = theme,
                     onClick = { navController.navigate(Screen.MemoryDetail.createRoute(entry.id, creatorId)) }
                 )
             }
@@ -150,12 +156,13 @@ fun SpecialAccessCard(
     subtitle: String? = null,
     icon: ImageVector,
     modifier: Modifier = Modifier,
+    theme: AppThemeState,
     onClick: () -> Unit
 ) {
-    val accent = LocalAccentColor.current
+    val accent = theme.accentColor
     Surface(
         onClick = onClick,
-        color = SurfaceCard.copy(alpha = 0.4f),
+        color = theme.contentColor.copy(alpha = 0.03f),
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f)),
         modifier = modifier.heightIn(min = 80.dp)
@@ -167,13 +174,13 @@ fun SpecialAccessCard(
         ) {
             Icon(icon, null, tint = accent, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.height(6.dp))
-            Text(title, style = MaterialTheme.typography.labelSmall, color = TextPrimary, fontWeight = FontWeight.Bold)
+            Text(title, style = MaterialTheme.typography.labelSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
             if (subtitle != null) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = subtitle, 
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), 
-                    color = TextSecondary,
+                    color = theme.contentColor.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -188,9 +195,10 @@ fun HeritageEntryRow(
     entry: PhoenXEntry,
     heirKey: ByteArray?,
     mediaManager: MediaManager,
+    theme: AppThemeState,
     onClick: () -> Unit
 ) {
-    val accent = LocalAccentColor.current
+    val accent = theme.accentColor
     val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.FRENCH).withZone(ZoneId.systemDefault()) }
     val formattedDate = dateFormatter.format(entry.timestamp)
 
@@ -207,7 +215,7 @@ fun HeritageEntryRow(
                 modifier = Modifier
                     .size(64.dp)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(SurfaceCard)
+                    .background(theme.contentColor.copy(alpha = 0.05f))
             ) {
                 if (entry.type == EntryType.PHOTO) {
                     SecureAsyncImage(
@@ -235,28 +243,28 @@ fun HeritageEntryRow(
                 Text(
                     text = entry.aiSummary.ifEmpty { "Souvenir" },
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = TextPrimary,
+                    color = theme.contentColor,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = formattedDate,
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary
+                    color = theme.contentColor.copy(alpha = 0.4f)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // Aperçu court (simulé avec les premiers octets si c'est du texte déchiffré)
+                // Aperçu court
                 val preview = String(entry.encryptedContent).take(60) + "..."
                 Text(
                     text = preview,
                     style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
+                    color = theme.contentColor.copy(alpha = 0.7f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = TextTertiary.copy(alpha = 0.5f))
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.2f))
         }
     }
 }

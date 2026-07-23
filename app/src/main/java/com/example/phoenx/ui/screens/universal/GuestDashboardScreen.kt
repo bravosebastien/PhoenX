@@ -41,23 +41,25 @@ fun GuestDashboardScreen(
     val myRoles by mainViewModel.myRoles.collectAsState()
     val pendingByEmail by mainViewModel.pendingInvitations.collectAsState()
     val isCreator by mainViewModel.isCreator.collectAsState()
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(backgroundBrush),
         topBar = {
             TopAppBar(
                 title = { 
                     Text(
                         "Espace Proches", 
-                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic)
+                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
+                        color = theme.contentColor
                     ) 
                 },
                 actions = {
                     TextButton(onClick = onLogout) {
-                        Text("Déconnexion", color = Error)
+                        Text("Déconnexion", color = Error, fontWeight = FontWeight.Bold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -73,7 +75,7 @@ fun GuestDashboardScreen(
             Text(
                 "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.7f),
                 lineHeight = 22.sp
             )
 
@@ -82,12 +84,12 @@ fun GuestDashboardScreen(
             if (pendingByEmail.isNotEmpty()) {
                 Text(
                     "INVITATIONS EN ATTENTE",
-                    style = MaterialTheme.typography.labelSmall,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = accent,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
                 pendingByEmail.forEach { invite ->
-                    PendingInviteCard(invite, accent) {
+                    PendingInviteCard(invite, accent, theme) {
                         navController.navigate(Screen.UniversalJoin.createRoute(invite.id))
                     }
                 }
@@ -96,7 +98,7 @@ fun GuestDashboardScreen(
 
             if (myRoles.isEmpty() && pendingByEmail.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Aucun rôle actif pour le moment.", color = TextTertiary)
+                    Text("Aucun rôle actif pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), fontWeight = FontWeight.Bold)
                 }
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -107,6 +109,7 @@ fun GuestDashboardScreen(
                         RoleCard(
                             role = role,
                             accent = accent,
+                            theme = theme,
                             onClick = {
                                 when(role.role) {
                                     "depositary" -> navController.navigate(Screen.DepositaryDashboard.createRoute(role.creatorId))
@@ -129,15 +132,15 @@ fun GuestDashboardScreen(
                 Card(
                     onClick = { navController.navigate(Screen.SilenceOnboarding.route) },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = TextPrimary)
+                        Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
                         Text(
                             "Vous aussi, commencez à sceller vos souvenirs pour ceux que vous aimez.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
+                            color = theme.contentColor.copy(alpha = 0.6f)
                         )
                         Text(
                             "Devenir Créateur →",
@@ -157,13 +160,14 @@ fun GuestDashboardScreen(
 fun PendingInviteCard(
     invite: com.example.phoenx.ui.MainViewModel.PendingInvitation,
     accent: Color,
+    theme: AppThemeState,
     onClick: () -> Unit
 ) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.15f)),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.5f))
+        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.1f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -172,8 +176,8 @@ fun PendingInviteCard(
             Icon(Icons.Default.People, null, tint = accent, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(invite.creatorName, style = MaterialTheme.typography.titleMedium, color = TextPrimary)
-                Text("Vous invite à être : ${invite.label}", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                Text(invite.creatorName, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                Text("Vous invite à être : ${invite.label}", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
             }
             Text("Accepter", style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.Bold)
         }
@@ -184,6 +188,7 @@ fun PendingInviteCard(
 fun RoleCard(
     role: UserRole,
     accent: Color,
+    theme: AppThemeState,
     onClick: () -> Unit
 ) {
     val (icon, label, color) = when(role.role) {
@@ -196,9 +201,9 @@ fun RoleCard(
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.4f)),
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
         shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = 0.2f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -220,16 +225,16 @@ fun RoleCard(
                 Text(
                     text = role.creatorName,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = TextPrimary
+                    color = theme.contentColor
                 )
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelSmall,
-                    color = TextSecondary
+                    color = theme.contentColor.copy(alpha = 0.6f)
                 )
             }
             
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = TextTertiary)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.2f))
         }
     }
 }
@@ -240,6 +245,7 @@ fun GuestPerspectiveContent(
     pendingInvites: List<com.example.phoenx.ui.MainViewModel.PendingInvitation>,
     isCreator: Boolean,
     accent: Color,
+    theme: AppThemeState,
     onNavigateToCube: (String) -> Unit,
     onAcceptInvite: (String) -> Unit,
     onBecomeCreator: () -> Unit
@@ -252,7 +258,7 @@ fun GuestPerspectiveContent(
         Text(
             "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary,
+            color = theme.contentColor.copy(alpha = 0.7f),
             lineHeight = 22.sp
         )
 
@@ -261,12 +267,12 @@ fun GuestPerspectiveContent(
         if (pendingInvites.isNotEmpty()) {
             Text(
                 "INVITATIONS EN ATTENTE",
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                 color = accent,
                 modifier = Modifier.padding(bottom = 12.dp)
             )
             pendingInvites.forEach { invite ->
-                PendingInviteCard(invite, accent) {
+                PendingInviteCard(invite, accent, theme) {
                     onAcceptInvite(invite.id)
                 }
             }
@@ -280,6 +286,7 @@ fun GuestPerspectiveContent(
                 RoleCard(
                     role = role,
                     accent = accent,
+                    theme = theme,
                     onClick = {
                         onNavigateToCube(role.creatorId)
                     }
@@ -294,15 +301,15 @@ fun GuestPerspectiveContent(
             Card(
                 onClick = onBecomeCreator,
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = TextPrimary)
+                    Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
                     Text(
                         "Vous aussi, commencez à sceller vos souvenirs pour ceux que vous aimez.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary
+                        color = theme.contentColor.copy(alpha = 0.6f)
                     )
                     Text(
                         "Devenir Créateur →",

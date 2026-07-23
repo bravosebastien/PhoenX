@@ -33,6 +33,8 @@ fun PactScreen(
     viewModel: PactViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var showInviteDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -44,15 +46,15 @@ fun PactScreen(
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Le Pacte", style = MaterialTheme.typography.displaySmall) },
+                title = { Text("Le Pacte", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -61,8 +63,8 @@ fun PactScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showInviteDialog = true },
-                containerColor = AccentPrimary,
-                contentColor = BackgroundPrimary
+                containerColor = accent,
+                contentColor = theme.backgroundColor
             ) {
                 Icon(Icons.Default.Add, null)
             }
@@ -70,9 +72,9 @@ fun PactScreen(
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize()) {
             if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = AccentPrimary)
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
             } else if (uiState.pacts.isEmpty()) {
-                EmptyPactContent(modifier = Modifier.padding(padding))
+                EmptyPactContent(modifier = Modifier.padding(padding), theme = theme)
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(padding),
@@ -82,14 +84,14 @@ fun PactScreen(
                     item {
                         Text(
                             "Tes histoires partagées",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AccentPrimary,
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = accent,
                             letterSpacing = 2.sp
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                     items(uiState.pacts) { pact ->
-                        PactCard(pact) {
+                        PactCard(pact, theme) {
                             onNavigateToDetail(pact.id)
                         }
                     }
@@ -100,6 +102,7 @@ fun PactScreen(
         if (showInviteDialog) {
             InvitePactDialog(
                 onDismiss = { showInviteDialog = false },
+                theme = theme,
                 onConfirm = { name, email ->
                     viewModel.invitePartner(name, email)
                     showInviteDialog = false
@@ -110,68 +113,82 @@ fun PactScreen(
 }
 
 @Composable
-fun PactCard(pact: PactEntity, onClick: () -> Unit) {
+fun PactCard(pact: PactEntity, theme: AppThemeState, onClick: () -> Unit) {
+    val accent = theme.accentColor
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).phoenXMatiere(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
         shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
+        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
     ) {
         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Surface(
-                color = AccentPrimary.copy(alpha = 0.1f),
+                color = accent.copy(alpha = 0.1f),
                 shape = androidx.compose.foundation.shape.CircleShape,
                 modifier = Modifier.size(48.dp)
             ) {
-                Icon(Icons.Default.Handshake, null, tint = AccentPrimary, modifier = Modifier.padding(12.dp))
+                Icon(Icons.Default.Handshake, null, tint = accent, modifier = Modifier.padding(12.dp))
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(pact.partnerName, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Bold)
-                Text("Pacte avec ${pact.partnerEmail}", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                Text(pact.partnerName, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                Text("Pacte avec ${pact.partnerEmail}", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
             }
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = AccentPrimary)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = accent)
         }
     }
 }
 
 @Composable
-fun EmptyPactContent(modifier: Modifier = Modifier) {
+fun EmptyPactContent(modifier: Modifier = Modifier, theme: AppThemeState) {
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(Icons.Default.Handshake, null, modifier = Modifier.size(64.dp), tint = TextTertiary)
+        Icon(Icons.Default.Handshake, null, modifier = Modifier.size(64.dp), tint = theme.contentColor.copy(alpha = 0.2f))
         Spacer(modifier = Modifier.height(24.dp))
-        Text("Aucun pacte en cours.", style = MaterialTheme.typography.bodyLarge, color = TextTertiary)
-        Text("Invite un proche à raconter votre histoire commune.", style = MaterialTheme.typography.bodySmall, color = TextTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(horizontal = 40.dp))
+        Text("Aucun pacte en cours.", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+        Text("Invite un proche à raconter votre histoire commune.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.4f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(horizontal = 40.dp))
     }
 }
 
 @Composable
-fun InvitePactDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit) {
+fun InvitePactDialog(onDismiss: () -> Unit, theme: AppThemeState, onConfirm: (String, String) -> Unit) {
+    val accent = theme.accentColor
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundSecondary,
-        title = { Text("Initier un Pacte", color = TextPrimary) },
+        containerColor = theme.backgroundColor,
+        title = { Text("Initier un Pacte", color = theme.contentColor, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("Deux points de vue pour une même histoire. Chacun écrit de son côté, et les versions seront révélées ensemble plus tard.", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                Text("Deux points de vue pour une même histoire. Chacun écrit de son côté, et les versions seront révélées ensemble plus tard.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Nom du partenaire") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
+                    )
                 )
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
                     label = { Text("Email du partenaire") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
+                    )
                 )
             }
         },
@@ -179,9 +196,10 @@ fun InvitePactDialog(onDismiss: () -> Unit, onConfirm: (String, String) -> Unit)
             Button(
                 onClick = { onConfirm(name, email) },
                 enabled = name.isNotBlank() && email.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent),
+                modifier = Modifier.phoenXMatiere()
             ) {
-                Text("Envoyer l'invitation", color = BackgroundPrimary)
+                Text("Envoyer l'invitation", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     )

@@ -19,6 +19,8 @@ fun InfoPoint(
     modifier: Modifier = Modifier
 ) {
     var showDialog by remember { mutableStateOf(false) }
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     IconButton(
         onClick = { showDialog = true },
@@ -27,32 +29,32 @@ fun InfoPoint(
         Icon(
             imageVector = Icons.Default.Info,
             contentDescription = "Aide",
-            tint = AccentPrimary.copy(alpha = 0.6f)
+            tint = accent.copy(alpha = 0.6f)
         )
     }
 
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            containerColor = BackgroundSecondary,
+            containerColor = theme.backgroundColor,
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Info, null, tint = AccentPrimary)
+                    Icon(Icons.Default.Info, null, tint = accent)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text(title, color = TextPrimary, style = MaterialTheme.typography.headlineSmall)
+                    Text(title, color = theme.contentColor, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold))
                 }
             },
             text = {
                 Text(
                     content,
-                    color = TextSecondary,
+                    color = theme.contentColor.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.bodyMedium,
                     lineHeight = 22.sp
                 )
             },
             confirmButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("J'ai compris", color = AccentPrimary, fontWeight = FontWeight.Bold)
+                    Text("J'ai compris", color = accent, fontWeight = FontWeight.Bold)
                 }
             }
         )

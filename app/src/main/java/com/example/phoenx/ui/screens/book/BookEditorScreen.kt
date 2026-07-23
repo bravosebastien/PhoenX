@@ -401,6 +401,24 @@ fun BookEditorScreen(
 
                 // ── LISTE DES CHAPITRES (v8.6.3: Master List) ──────────
                 item {
+                    // NOTE INFORMATIVE SUR L'ATTRIBUTION (v8.9.7)
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                        color = accent.copy(alpha = 0.03f),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                    ) {
+                        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.Top) {
+                            Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                "Note : Seuls vos souvenirs déjà « Attribués » (ceux que vous avez rangés pour un proche ou dans un compartiment) sont intégrés au récit par l'IA. Les pensées encore en attente dans votre fil ne sont pas prises en compte.",
+                                style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                                color = theme.contentColor.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+
                     Text(
                         text = "SOMMAIRE DU MANUSCRIT", 
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
@@ -478,21 +496,22 @@ fun BookEditorScreen(
         if (showRegenerateConfirm) {
             AlertDialog(
                 onDismissRequest = { showRegenerateConfirm = false },
-                containerColor = BackgroundSecondary,
-                title = { Text("Réécrire tout le livre ?", color = TextPrimary, fontFamily = FontFamily.Serif) },
-                text = { Text("L'IA va reprendre l'ensemble de vos souvenirs pour créer un nouveau manuscrit. Vos modifications actuelles seront remplacées.", color = TextSecondary) },
+                containerColor = theme.backgroundColor,
+                title = { Text("Réécrire tout le livre ?", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
+                text = { Text("L'IA va reprendre l'ensemble de vos souvenirs pour créer un nouveau manuscrit. Vos modifications actuelles seront remplacées.", color = theme.contentColor.copy(alpha = 0.7f)) },
                 confirmButton = {
                     Button(
                         onClick = { 
                             showRegenerateConfirm = false
                             viewModel.generateBook() 
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
-                    ) { Text("Confirmer", color = BackgroundPrimary) }
+                        colors = ButtonDefaults.buttonColors(containerColor = accent),
+                        modifier = Modifier.phoenXMatiere()
+                    ) { Text("Confirmer", color = theme.backgroundColor, fontWeight = FontWeight.Bold) }
                 },
                 dismissButton = {
                     TextButton(onClick = { showRegenerateConfirm = false }) {
-                        Text("Annuler", color = TextPrimary)
+                        Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
                     }
                 }
             )
@@ -851,18 +870,21 @@ private fun GeneratingBookState(progress: String) {
 
 @Composable
 private fun BookAiExplanationDialog(onDismiss: () -> Unit) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundSecondary,
+        containerColor = theme.backgroundColor,
         shape = RoundedCornerShape(24.dp),
         title = {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Default.Psychology, null, tint = AccentPrimary, modifier = Modifier.size(40.dp))
+                Icon(Icons.Default.Psychology, null, tint = accent, modifier = Modifier.size(40.dp))
                 Spacer(Modifier.height(16.dp))
                 Text(
                     "Retouches vs Réécriture", 
-                    color = TextPrimary, 
-                    fontFamily = FontFamily.Serif,
+                    color = theme.contentColor, 
+                    fontFamily = theme.fontFamily,
+                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     fontSize = 20.sp
                 )
@@ -871,19 +893,19 @@ private fun BookAiExplanationDialog(onDismiss: () -> Unit) {
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(verticalAlignment = Alignment.Top) {
-                    Icon(Icons.Default.EditNote, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.EditNote, null, tint = accent, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("Modifier un chapitre", style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.Bold)
-                        Text("L'action 'Demander à l'IA' à l'intérieur d'un chapitre ne modifie QUE ce chapitre. C'est idéal pour corriger un détail sans toucher au reste.", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        Text("Modifier un chapitre", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                        Text("L'action 'Demander à l'IA' à l'intérieur d'un chapitre ne modifie QUE ce chapitre. C'est idéal pour corriger un détail sans toucher au reste.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
                     }
                 }
                 Row(verticalAlignment = Alignment.Top) {
-                    Icon(Icons.Default.AutoFixHigh, null, tint = AccentPrimary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.AutoFixHigh, null, tint = accent, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("Régénérer le livre", style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.Bold)
-                        Text("Le bouton 'Régénérer' (en haut) relance l'écriture de TOUS les chapitres. Utilisez-le uniquement si vous voulez un manuscrit totalement nouveau.", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        Text("Régénérer le livre", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                        Text("Le bouton 'Régénérer' (en haut) relance l'écriture de TOUS les chapitres. Utilisez-le uniquement si vous voulez un manuscrit totalement nouveau.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
                     }
                 }
             }
@@ -891,11 +913,11 @@ private fun BookAiExplanationDialog(onDismiss: () -> Unit) {
         confirmButton = {
             Button(
                 onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
-                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = accent),
+                modifier = Modifier.fillMaxWidth().phoenXMatiere(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("C'est très clair", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                Text("C'est très clair", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     )
@@ -1097,23 +1119,26 @@ private fun ChapterCard(
 
 @Composable
 private fun BookOnboardingDialog(onDismiss: () -> Unit) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundSecondary,
+        containerColor = theme.backgroundColor,
         shape = RoundedCornerShape(24.dp),
         title = {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                 Icon(
                     Icons.Default.AutoStories, 
                     null, 
-                    tint = AccentPrimary, 
+                    tint = accent, 
                     modifier = Modifier.size(40.dp)
                 )
                 Spacer(Modifier.height(16.dp))
                 Text(
                     "Comment l'IA écrit votre vie", 
-                    color = TextPrimary, 
-                    fontFamily = FontFamily.Serif,
+                    color = theme.contentColor, 
+                    fontFamily = theme.fontFamily,
+                    fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     fontSize = 20.sp
                 )
@@ -1127,36 +1152,39 @@ private fun BookOnboardingDialog(onDismiss: () -> Unit) {
                 OnboardingPoint(
                     icon = Icons.Default.Timeline,
                     title = "Respect de votre chronologie",
-                    description = "Chaque souvenir est trié par âge. L'IA utilise ces repères pour tisser un récit fluide, du premier chapitre jusqu'au dernier."
+                    description = "Chaque souvenir est trié par âge. L'IA utilise ces repères pour tisser un récit fluide, du premier chapitre jusqu'au dernier.",
+                    theme = theme
                 )
                 OnboardingPoint(
                     icon = Icons.Default.People,
                     title = "Reconnaissance des personnages",
-                    description = "L'IA identifie vos proches (ex: 'Julie', 'mon fils Marc'). Elle fait le lien entre vos différents souvenirs pour raconter l'évolution de vos relations."
+                    description = "L'IA identifie vos proches (ex: 'Julie', 'mon fils Marc'). Elle fait le lien entre vos différents souvenirs pour raconter l'évolution de vos relations.",
+                    theme = theme
                 )
                 OnboardingPoint(
                     icon = Icons.Default.HistoryEdu,
                     title = "Une narration personnalisée",
-                    description = "Ce n'est pas une simple liste. L'IA rédige à la première personne ('Je') et adapte le ton (joie, nostalgie) selon l'émotion de vos souvenirs."
+                    description = "Ce n'est pas une simple liste. L'IA rédige à la première personne ('Je') et adapte le ton (joie, nostalgie) selon l'émotion de vos souvenirs.",
+                    theme = theme
                 )
                 
                 Surface(
-                    color = AccentPrimary.copy(alpha = 0.1f),
+                    color = accent.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f))
+                    border = BorderStroke(1.dp, accent.copy(alpha = 0.2f))
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
                             "💡 Conseil du Biographe",
                             style = MaterialTheme.typography.labelMedium,
-                            color = AccentPrimary,
+                            color = accent,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
                             "Plus vos souvenirs sont détaillés (prénoms, lieux, sentiments), plus le récit de l'IA sera précis et fidèle à votre réalité.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondary
+                            color = theme.contentColor.copy(alpha = 0.7f)
                         )
                     }
                 }
@@ -1165,11 +1193,11 @@ private fun BookOnboardingDialog(onDismiss: () -> Unit) {
         confirmButton = {
             Button(
                 onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
-                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = accent),
+                modifier = Modifier.fillMaxWidth().phoenXMatiere(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("J'ai compris", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                Text("J'ai compris", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     )
@@ -1179,14 +1207,16 @@ private fun BookOnboardingDialog(onDismiss: () -> Unit) {
 private fun OnboardingPoint(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
-    description: String
+    description: String,
+    theme: AppThemeState
 ) {
+    val accent = theme.accentColor
     Row(verticalAlignment = Alignment.Top) {
-        Icon(icon, null, tint = AccentPrimary, modifier = Modifier.size(18.dp).padding(top = 2.dp))
+        Icon(icon, null, tint = accent, modifier = Modifier.size(18.dp).padding(top = 2.dp))
         Spacer(Modifier.width(12.dp))
         Column {
-            Text(title, style = MaterialTheme.typography.bodyMedium, color = TextPrimary, fontWeight = FontWeight.Bold)
-            Text(description, style = MaterialTheme.typography.bodySmall, color = TextSecondary, lineHeight = 18.sp)
+            Text(title, style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f), lineHeight = 18.sp)
         }
     }
 }
@@ -1203,6 +1233,8 @@ private fun ChapterEditorSheet(
     onValidate: () -> Unit,
     onUnvalidate: () -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var editableContent by remember(chapter.id, decryptedContent) {
         mutableStateOf(decryptedContent)
     }
@@ -1212,7 +1244,7 @@ private fun ChapterEditorSheet(
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1C1410),
+        containerColor = theme.backgroundColor,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     ) {
         Column(
@@ -1224,10 +1256,11 @@ private fun ChapterEditorSheet(
             Text(
                 text = chapter.title,
                 style = TextStyle(
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = theme.fontFamily,
                     fontSize = 20.sp,
                     fontStyle = FontStyle.Italic,
-                    color = AccentPrimary
+                    fontWeight = FontWeight.Bold,
+                    color = accent
                 )
             )
 
@@ -1235,7 +1268,7 @@ private fun ChapterEditorSheet(
                 modifier = Modifier
                     .width(48.dp)
                     .height(1.dp)
-                    .background(AccentPrimary)
+                    .background(accent)
                     .padding(top = 8.dp)
             )
 
@@ -1250,14 +1283,15 @@ private fun ChapterEditorSheet(
                             onContentChange(newVal)
                         },
                         textStyle = TextStyle(
-                            fontFamily = FontFamily.Serif,
+                            fontFamily = theme.fontFamily,
                             fontSize = 16.sp,
-                            color = TextPrimary,
+                            color = theme.contentColor,
                             lineHeight = 26.sp
                         ),
                         modifier = Modifier
                             .fillMaxSize()
-                            .verticalScroll(rememberScrollState())
+                            .verticalScroll(rememberScrollState()),
+                        cursorBrush = Brush.verticalGradient(listOf(accent, accent))
                     )
                 } else {
                     Column(
@@ -1266,9 +1300,9 @@ private fun ChapterEditorSheet(
                         Text(
                             text = editableContent,
                             style = TextStyle(
-                                fontFamily = FontFamily.Serif,
+                                fontFamily = theme.fontFamily,
                                 fontSize = 16.sp,
-                                color = TextPrimary,
+                                color = theme.contentColor,
                                 lineHeight = 26.sp
                             )
                         )
@@ -1278,7 +1312,8 @@ private fun ChapterEditorSheet(
                             style = TextStyle(
                                 fontSize = 12.sp,
                                 color = Color(0xFF4CAF50),
-                                fontStyle = FontStyle.Italic
+                                fontStyle = FontStyle.Italic,
+                                fontWeight = FontWeight.Bold
                             )
                         )
                     }
@@ -1289,7 +1324,7 @@ private fun ChapterEditorSheet(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(
-                                Color(0xFF1C1410).copy(alpha = 0.85f)
+                                theme.backgroundColor.copy(alpha = 0.85f)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -1297,17 +1332,17 @@ private fun ChapterEditorSheet(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             CircularProgressIndicator(
-                                color = AccentPrimary,
+                                color = accent,
                                 strokeWidth = 2.dp
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
                                 text = "L'IA réécrit ce chapitre...",
                                 style = TextStyle(
-                                    fontFamily = FontFamily.Serif,
+                                    fontFamily = theme.fontFamily,
                                     fontSize = 14.sp,
                                     fontStyle = FontStyle.Italic,
-                                    color = TextSecondary
+                                    color = theme.contentColor.copy(alpha = 0.7f)
                                 )
                             )
                         }
@@ -1322,9 +1357,10 @@ private fun ChapterEditorSheet(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            SurfaceCard,
+                            theme.contentColor.copy(alpha = 0.05f),
                             RoundedCornerShape(12.dp)
                         )
+                        .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                         .padding(12.dp)
                 ) {
                     val suggestions = listOf(
@@ -1346,12 +1382,13 @@ private fun ChapterEditorSheet(
                                 label = {
                                     Text(
                                         suggestion,
-                                        fontSize = 12.sp
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold
                                     )
                                 },
                                 colors = FilterChipDefaults.filterChipColors(
-                                    containerColor = Color(0xFF3E3E45),
-                                    labelColor = TextSecondary
+                                    containerColor = theme.contentColor.copy(alpha = 0.1f),
+                                    labelColor = theme.contentColor.copy(alpha = 0.6f)
                                 )
                             )
                         }
@@ -1362,21 +1399,23 @@ private fun ChapterEditorSheet(
                         onValueChange = { aiInstruction = it },
                         textStyle = TextStyle(
                             fontSize = 14.sp,
-                            color = TextPrimary
+                            color = theme.contentColor,
+                            fontWeight = FontWeight.Bold
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(
-                                BackgroundPrimary,
+                                theme.backgroundColor,
                                 RoundedCornerShape(8.dp)
                             )
+                            .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
                             .padding(12.dp),
                         decorationBox = { inner ->
                             if (aiInstruction.isEmpty()) {
                                 Text(
                                     "Dis à l'IA ce que tu veux modifier...",
                                     fontSize = 14.sp,
-                                    color = TextTertiary
+                                    color = theme.contentColor.copy(alpha = 0.3f)
                                 )
                             }
                             inner()
@@ -1393,15 +1432,16 @@ private fun ChapterEditorSheet(
                                 aiInstruction = ""
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().phoenXMatiere(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = AccentPrimary
+                            containerColor = accent
                         ),
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
                             "Envoyer à l'IA",
-                            color = BackgroundPrimary,
+                            color = theme.backgroundColor,
+                            fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
                         )
                     }
@@ -1422,7 +1462,8 @@ private fun ChapterEditorSheet(
                     ) {
                         Text(
                             "🤖 Demander à l'IA",
-                            color = AccentPrimary,
+                            color = accent,
+                            fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
                     }
@@ -1432,11 +1473,13 @@ private fun ChapterEditorSheet(
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFF4CAF50)
                         ),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.phoenXMatiere()
                     ) {
                         Text(
                             "✅ Valider",
                             color = Color(0xFFFFFFFF),
+                            fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )
                     }
@@ -1450,8 +1493,9 @@ private fun ChapterEditorSheet(
                 ) {
                     Text(
                         "🔓 Modifier quand même",
-                        color = TextSecondary,
-                        fontSize = 13.sp
+                        color = theme.contentColor.copy(alpha = 0.6f),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }

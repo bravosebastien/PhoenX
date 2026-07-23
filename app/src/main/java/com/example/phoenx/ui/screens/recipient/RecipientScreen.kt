@@ -175,13 +175,14 @@ fun RecipientCard(recipient: RecipientEntity, onDelete: () -> Unit, onClick: () 
 
 @Composable
 fun EmptyRecipients(modifier: Modifier = Modifier) {
+    val theme = LocalAppTheme.current
     Column(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Ton cercle est vide.", color = TextTertiary, style = MaterialTheme.typography.bodyLarge)
-        Text("Ajoute les personnes qui recevront ton héritage.", color = TextTertiary, style = MaterialTheme.typography.bodySmall)
+        Text("Ton cercle est vide.", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
+        Text("Ajoute les personnes qui recevront ton héritage.", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodySmall)
     }
 }
 

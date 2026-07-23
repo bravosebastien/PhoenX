@@ -40,7 +40,8 @@ fun RecipientCubeScreen(
 ) {
     val db = FirebaseFirestore.getInstance()
     var creatorName by remember { mutableStateOf("Ton proche") }
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
 
     LaunchedEffect(creatorId) {
@@ -51,19 +52,19 @@ fun RecipientCubeScreen(
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(backgroundBrush),
         topBar = {
             TopAppBar(
                 title = { 
                     Column {
-                        Text("L'Armoire de $creatorName", color = TextPrimary, style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif))
-                        Text("Explore son héritage", color = TextSecondary, style = MaterialTheme.typography.labelSmall)
+                        Text("L'Armoire de $creatorName", color = theme.contentColor, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold))
+                        Text("Explore son héritage", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onExit) {
-                        Icon(Icons.Default.Close, null, tint = TextPrimary)
+                        Icon(Icons.Default.Close, null, tint = theme.contentColor)
                     }
                 },
                 actions = {
@@ -108,15 +109,15 @@ fun RecipientCubeScreen(
                     
                     Text(
                         "L'Héritage Intime",
-                        style = MaterialTheme.typography.headlineMedium.copy(fontFamily = FontFamily.Serif),
-                        color = TextPrimary,
+                        style = MaterialTheme.typography.headlineMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                        color = theme.contentColor,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         "Les objets de cette armoire s'ouvriront à toi au fil de ton exploration.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary,
+                        color = theme.contentColor.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center,
                         fontStyle = FontStyle.Italic
                     )
@@ -133,8 +134,8 @@ fun RecipientCubeScreen(
             ) {
                 Text(
                     "ACCÉDER À L'HÉRITAGE",
-                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp),
-                    color = TextTertiary,
+                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp, fontWeight = FontWeight.Bold),
+                    color = theme.contentColor.copy(alpha = 0.4f),
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(20.dp))
@@ -143,12 +144,12 @@ fun RecipientCubeScreen(
                     onClick = onNavigateToHeritage,
                     color = accent,
                     shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth().height(64.dp)
+                    modifier = Modifier.fillMaxWidth().height(64.dp).phoenXMatiere()
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
                             "ENTRER DANS SES SOUVENIRS", 
-                            color = BackgroundPrimary, 
+                            color = theme.backgroundColor, 
                             style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                         )
                     }
@@ -160,17 +161,17 @@ fun RecipientCubeScreen(
                     // DEVENIR CRÉATEUR
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
+                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                         shape = RoundedCornerShape(12.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                     ) {
                         Row(
                             modifier = Modifier.padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = TextPrimary)
-                                Text("Commencez à sceller vos souvenirs.", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                                Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                                Text("Commencez à sceller vos souvenirs.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
                             }
                             TextButton(onClick = onBecomeCreator) {
                                 Text("DEVENIR CRÉATEUR", color = accent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
@@ -184,13 +185,13 @@ fun RecipientCubeScreen(
 }
 
 @Composable
-fun DrawerShortCut(label: String, subtitle: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
-    val accent = LocalAccentColor.current
+fun DrawerShortCut(label: String, subtitle: String, modifier: Modifier = Modifier, theme: AppThemeState, onClick: () -> Unit) {
+    val accent = theme.accentColor
     Surface(
         onClick = onClick,
-        color = SurfaceCard.copy(alpha = 0.4f),
+        color = theme.contentColor.copy(alpha = 0.03f),
         shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
         modifier = modifier.height(90.dp)
     ) {
         Column(
@@ -198,7 +199,7 @@ fun DrawerShortCut(label: String, subtitle: String, modifier: Modifier = Modifie
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
+            Text(label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
             Spacer(modifier = Modifier.height(4.dp))
             Text(subtitle, style = MaterialTheme.typography.labelSmall, color = accent, fontSize = 9.sp)
         }

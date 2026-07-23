@@ -277,7 +277,7 @@ fun MappamondeScreen(
                         CircularProgressIndicator(color = accent, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                     } else if (searchQuery.isNotEmpty()) {
                         IconButton(onClick = { searchQuery = "" }, modifier = Modifier.size(28.dp)) {
-                            Icon(Icons.Default.Close, null, tint = TextTertiary, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Close, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(16.dp))
                         }
                     }
                 }

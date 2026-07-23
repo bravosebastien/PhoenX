@@ -31,30 +31,31 @@ fun LegacyPreparationScreen(
     viewModel: LegacyPreparationViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var selectedRecipient by remember { mutableStateOf<RecipientEntity?>(null) }
     val selectedEntries = remember { mutableStateListOf<String>() }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Préparer un Legs", style = MaterialTheme.typography.displaySmall) },
+                title = { Text("Préparer un Legs", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.verticalGradient(listOf(BackgroundSecondary, BackgroundPrimary))
-        )) {
+        Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
             if (selectedRecipient == null) {
                 RecipientSelectionList(
                     padding = padding,
                     recipients = uiState.recipients,
+                    theme = theme,
                     onSelect = { selectedRecipient = it },
                     onAddRecipient = onNavigateToRecipients
                 )
@@ -64,6 +65,7 @@ fun LegacyPreparationScreen(
                     recipient = selectedRecipient!!,
                     entries = uiState.entries,
                     selectedIds = selectedEntries,
+                    theme = theme,
                     onToggle = { id ->
                         if (selectedEntries.contains(id)) selectedEntries.remove(id)
                         else selectedEntries.add(id)
@@ -84,16 +86,18 @@ fun LegacyPreparationScreen(
 fun RecipientSelectionList(
     padding: PaddingValues,
     recipients: List<RecipientEntity>,
+    theme: AppThemeState,
     onSelect: (RecipientEntity) -> Unit,
     onAddRecipient: () -> Unit
 ) {
+    val accent = theme.accentColor
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(padding),
         contentPadding = PaddingValues(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Text("Choisissez à qui vous voulez transmettre des souvenirs.", style = MaterialTheme.typography.bodyLarge, color = TextSecondary)
+            Text("Choisissez à qui vous voulez transmettre des souvenirs.", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor.copy(alpha = 0.7f))
         }
         
         if (recipients.isEmpty()) {
@@ -101,11 +105,11 @@ fun RecipientSelectionList(
                 Button(
                     onClick = onAddRecipient,
                     modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard)
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.05f))
                 ) {
-                    Icon(Icons.Default.Add, null, tint = AccentPrimary)
+                    Icon(Icons.Default.Add, null, tint = accent)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("Ajouter une personne au cercle", color = TextPrimary)
+                    Text("Ajouter une personne au cercle", color = theme.contentColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -113,12 +117,13 @@ fun RecipientSelectionList(
         items(recipients) { recipient ->
             Surface(
                 onClick = { onSelect(recipient) },
-                color = SurfaceCard,
-                shape = MaterialTheme.shapes.medium
+                color = theme.contentColor.copy(alpha = 0.03f),
+                shape = MaterialTheme.shapes.medium,
+                border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(recipient.name, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                    Icon(Icons.Default.Send, null, tint = AccentPrimary)
+                    Text(recipient.name, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor, modifier = Modifier.weight(1f))
+                    Icon(Icons.Default.Send, null, tint = accent)
                 }
             }
         }
@@ -131,14 +136,16 @@ fun EntrySelectionList(
     recipient: RecipientEntity,
     entries: List<OfflineEntry>,
     selectedIds: List<String>,
+    theme: AppThemeState,
     onToggle: (String) -> Unit,
     onConfirm: () -> Unit,
     onCancel: () -> Unit
 ) {
+    val accent = theme.accentColor
     Column(modifier = Modifier.fillMaxSize().padding(padding)) {
         Column(modifier = Modifier.padding(24.dp)) {
-            Text("Pour ${recipient.name}", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
-            Text("Sélectionnez les fragments à transmettre", style = MaterialTheme.typography.headlineSmall)
+            Text("Pour ${recipient.name}", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+            Text("Sélectionnez les fragments à transmettre", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
         }
         
         LazyColumn(
@@ -151,16 +158,16 @@ fun EntrySelectionList(
                 
                 Surface(
                     onClick = { onToggle(entry.id) },
-                    color = if (isSelected) AccentPrimary.copy(alpha = 0.1f) else SurfaceCard.copy(alpha = 0.4f),
+                    color = if (isSelected) accent.copy(alpha = 0.1f) else theme.contentColor.copy(alpha = 0.03f),
                     shape = MaterialTheme.shapes.medium,
-                    border = if (isSelected) androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary) else null
+                    border = androidx.compose.foundation.BorderStroke(1.dp, if (isSelected) accent else theme.contentColor.copy(alpha = 0.1f))
                 ) {
                     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("À ${age.years} ans", style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
-                            Text(entry.aiSummary.ifEmpty { "Fragment de vie" }, style = MaterialTheme.typography.bodySmall, color = TextPrimary)
+                            Text("À ${age.years} ans", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+                            Text(entry.aiSummary.ifEmpty { "Fragment de vie" }, style = MaterialTheme.typography.bodySmall, color = theme.contentColor)
                         }
-                        if (isSelected) Icon(Icons.Default.Check, null, tint = AccentPrimary)
+                        if (isSelected) Icon(Icons.Default.Check, null, tint = accent)
                     }
                 }
             }
@@ -170,13 +177,14 @@ fun EntrySelectionList(
             modifier = Modifier.fillMaxWidth().padding(24.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            TextButton(onClick = onCancel) { Text("Changer de proche", color = TextSecondary) }
+            TextButton(onClick = onCancel) { Text("Changer de proche", color = theme.contentColor.copy(alpha = 0.6f)) }
             Button(
                 onClick = onConfirm,
                 enabled = selectedIds.isNotEmpty(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                modifier = Modifier.phoenXMatiere(),
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Valider ce Legs", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                Text("Valider ce Legs", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     }

@@ -30,6 +30,8 @@ fun RecipientPermissionsScreen(
     viewModel: RecipientViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val recipients = (uiState as? RecipientUiState.Success)?.recipients ?: emptyList()
     val recipient = recipients.find { it.id == recipientId }
 
@@ -38,14 +40,14 @@ fun RecipientPermissionsScreen(
     var maxQuestions by remember { mutableIntStateOf(10) }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("${recipient?.name ?: "Proche"} — Droits d'accès", style = MaterialTheme.typography.labelLarge) },
+                title = { Text("${recipient?.name ?: "Proche"} — Droits d'accès", style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -66,58 +68,59 @@ fun RecipientPermissionsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
-            Text("QUESTIONS", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
+            Text("QUESTIONS", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, letterSpacing = 2.sp)
             Spacer(modifier = Modifier.height(16.dp))
 
             Card(
-                colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-                shape = MaterialTheme.shapes.large
+                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                shape = MaterialTheme.shapes.large,
+                border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             "Autoriser ${recipient?.name ?: "ce proche"} à me poser des questions",
                             modifier = Modifier.weight(1f),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = TextPrimary
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                            color = theme.contentColor
                         )
                         Switch(
                             checked = canAskQuestions,
                             onCheckedChange = { canAskQuestions = it },
-                            colors = SwitchDefaults.colors(checkedThumbColor = AccentPrimary)
+                            colors = SwitchDefaults.colors(checkedThumbColor = accent)
                         )
                     }
                     
                     Text(
                         "${recipient?.name ?: "Ce proche"} pourra déposer des questions scellées. Tu y répondras, ou choisiras consciemment de ne pas y répondre. Les questions restent invisibles pour lui/elle jusqu'à l'activation du protocole.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextTertiary,
+                        color = theme.contentColor.copy(alpha = 0.4f),
                         lineHeight = 18.sp,
                         modifier = Modifier.padding(top = 8.dp)
                     )
 
                     if (canAskQuestions) {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = TextTertiary.copy(alpha = 0.1f))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = theme.contentColor.copy(alpha = 0.1f))
                         
-                        Text("LIMITE DE QUESTIONS", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                        Text("LIMITE DE QUESTIONS", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             RadioButton(
                                 selected = !limitQuestions,
                                 onClick = { limitQuestions = false },
-                                colors = RadioButtonDefaults.colors(selectedColor = AccentPrimary)
+                                colors = RadioButtonDefaults.colors(selectedColor = accent)
                             )
-                            Text("Nombre illimité de questions", style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+                            Text("Nombre illimité de questions", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             RadioButton(
                                 selected = limitQuestions,
                                 onClick = { limitQuestions = true },
-                                colors = RadioButtonDefaults.colors(selectedColor = AccentPrimary)
+                                colors = RadioButtonDefaults.colors(selectedColor = accent)
                             )
-                            Text("Limiter à un nombre précis", style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+                            Text("Limiter à un nombre précis", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
                         }
 
                         if (limitQuestions) {
@@ -127,21 +130,21 @@ fun RecipientPermissionsScreen(
                             ) {
                                 IconButton(
                                     onClick = { if (maxQuestions > 1) maxQuestions-- },
-                                    modifier = Modifier.background(BackgroundPrimary, CircleShape)
+                                    modifier = Modifier.background(theme.contentColor.copy(alpha = 0.05f), CircleShape)
                                 ) {
-                                    Icon(Icons.Default.Remove, null, tint = AccentPrimary)
+                                    Icon(Icons.Default.Remove, null, tint = accent)
                                 }
                                 Text(
                                     text = "$maxQuestions",
                                     modifier = Modifier.padding(horizontal = 16.dp),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    color = TextPrimary
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = theme.contentColor
                                 )
                                 IconButton(
                                     onClick = { if (maxQuestions < 100) maxQuestions++ },
-                                    modifier = Modifier.background(BackgroundPrimary, CircleShape)
+                                    modifier = Modifier.background(theme.contentColor.copy(alpha = 0.05f), CircleShape)
                                 ) {
-                                    Icon(Icons.Default.Add, null, tint = AccentPrimary)
+                                    Icon(Icons.Default.Add, null, tint = accent)
                                 }
                             }
                         }
@@ -161,9 +164,9 @@ fun RecipientPermissionsScreen(
                     onNavigateBack()
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Enregistrer les droits", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                Text("Enregistrer les droits", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     }

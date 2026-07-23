@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,25 +36,27 @@ fun RecipientDiscothequeScreen(
     viewModel: RecipientMediaViewModel = hiltViewModel()
 ) {
     val entries by viewModel.discothequeEntries.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     LaunchedEffect(creatorId) {
         viewModel.setTargetCreator(creatorId)
     }
 
     Scaffold(
-        containerColor = Color.Transparent,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Grande Discothèque", style = MaterialTheme.typography.displaySmall) },
+                title = { Text("Grande Discothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 actions = {
                     IconButton(onClick = onNavigateToCapture) {
-                        Icon(Icons.Default.Add, null, tint = AccentPrimary)
+                        Icon(Icons.Default.Add, null, tint = accent)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -63,7 +66,7 @@ fun RecipientDiscothequeScreen(
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Le tourne-disque est silencieux pour le moment.", color = TextTertiary, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Text("Le tourne-disque est silencieux pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 }
             } else {
                 LazyVerticalGrid(
@@ -74,7 +77,7 @@ fun RecipientDiscothequeScreen(
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     items(entries) { entry ->
-                        VinylItem(entry) { onNavigateToDetail(entry.id) }
+                        VinylItem(entry, theme) { onNavigateToDetail(entry.id) }
                     }
                 }
             }
@@ -83,14 +86,15 @@ fun RecipientDiscothequeScreen(
 }
 
 @Composable
-fun VinylItem(entry: PhoenXEntry, onClick: () -> Unit) {
+fun VinylItem(entry: PhoenXEntry, theme: AppThemeState, onClick: () -> Unit) {
+    val accent = theme.accentColor
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
                 .aspectRatio(1f)
                 .fillMaxWidth()
                 .clip(MaterialTheme.shapes.medium)
-                .background(Color(0xFF121215)) // Pochette noire
+                .background(Color(0xFF121215)) // Pochette noire (fixe pour le style vinyle)
                 .clickable(onClick = onClick)
                 .phoenXMatiere(),
             contentAlignment = Alignment.Center
@@ -103,13 +107,13 @@ fun VinylItem(entry: PhoenXEntry, onClick: () -> Unit) {
                 border = androidx.compose.foundation.BorderStroke(2.dp, Color.DarkGray.copy(alpha = 0.5f))
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    // Étiquette centrale (Braise)
+                    // Étiquette centrale
                     Surface(
                         modifier = Modifier.size(40.dp),
                         shape = CircleShape,
-                        color = AccentPrimary
+                        color = accent
                     ) {
-                        Icon(Icons.Default.MusicNote, null, tint = BackgroundPrimary, modifier = Modifier.padding(10.dp))
+                        Icon(Icons.Default.MusicNote, null, tint = theme.backgroundColor, modifier = Modifier.padding(10.dp))
                     }
                 }
             }
@@ -128,13 +132,13 @@ fun VinylItem(entry: PhoenXEntry, onClick: () -> Unit) {
         
         Text(
             text = "À ${entry.ageAtCreation.years} ans",
-            style = MaterialTheme.typography.labelSmall,
-            color = AccentPrimary
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = accent
         )
         Text(
             text = entry.aiSummary.ifEmpty { "Souvenir vocal" },
             style = MaterialTheme.typography.bodySmall,
-            color = TextPrimary,
+            color = theme.contentColor,
             maxLines = 1,
             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
         )

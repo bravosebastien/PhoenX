@@ -32,7 +32,8 @@ fun UniversalJoinScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val currentUser = FirebaseAuth.getInstance().currentUser
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     LaunchedEffect(Unit) {
         viewModel.loadInvitation(token)
@@ -47,7 +48,7 @@ fun UniversalJoinScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalBackgroundBrush.current)
+            .background(theme.backgroundColor)
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -56,13 +57,14 @@ fun UniversalJoinScreen(
                 CircularProgressIndicator(color = accent)
             }
             uiState.error != null -> {
-                ErrorView(uiState.error!!, accent)
+                ErrorView(uiState.error!!, accent, theme)
             }
             uiState.invitation != null -> {
                 InvitationView(
                     invitation = uiState.invitation!!,
                     isLoggedIn = currentUser != null,
                     accent = accent,
+                    theme = theme,
                     onAccept = { viewModel.acceptInvitation(token) },
                     onAuth = { onNavigateToAuth(token) }
                 )
@@ -76,6 +78,7 @@ fun InvitationView(
     invitation: InvitationDetails,
     isLoggedIn: Boolean,
     accent: Color,
+    theme: AppThemeState,
     onAccept: () -> Unit,
     onAuth: () -> Unit
 ) {
@@ -97,17 +100,17 @@ fun InvitationView(
 
         Text(
             text = "Bonjour,",
-            style = MaterialTheme.typography.headlineSmall,
-            color = TextPrimary
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            color = theme.contentColor
         )
         
         Text(
             text = "${invitation.creatorName} vous invite",
             style = MaterialTheme.typography.headlineMedium.copy(
-                fontFamily = FontFamily.Serif,
+                fontFamily = theme.fontFamily,
                 fontWeight = FontWeight.Bold
             ),
-            color = TextPrimary,
+            color = theme.contentColor,
             textAlign = TextAlign.Center
         )
 
@@ -122,9 +125,8 @@ fun InvitationView(
 
         Text(
             text = roleText,
-            style = MaterialTheme.typography.bodyLarge,
-            color = accent,
-            fontWeight = FontWeight.Medium
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            color = accent
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -137,15 +139,16 @@ fun InvitationView(
         }
 
         Surface(
-            color = Color.White.copy(alpha = 0.05f),
+            color = theme.contentColor.copy(alpha = 0.05f),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
         ) {
             Text(
                 text = pedagogie,
                 modifier = Modifier.padding(20.dp),
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
                 lineHeight = 24.sp
             )
@@ -160,7 +163,7 @@ fun InvitationView(
                 colors = ButtonDefaults.buttonColors(containerColor = accent),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Accepter ce rôle", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                Text("Accepter ce rôle", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         } else {
             Button(
@@ -169,7 +172,7 @@ fun InvitationView(
                 colors = ButtonDefaults.buttonColors(containerColor = accent),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Se connecter pour accepter", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                Text("Se connecter pour accepter", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -177,21 +180,21 @@ fun InvitationView(
             Text(
                 text = "L'accès est réservé à l'adresse : ${invitation.targetEmail}",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextTertiary
+                color = theme.contentColor.copy(alpha = 0.4f)
             )
         }
     }
 }
 
 @Composable
-fun ErrorView(message: String, accent: Color) {
+fun ErrorView(message: String, accent: Color, theme: AppThemeState) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(Icons.Default.ErrorOutline, null, tint = Error, modifier = Modifier.size(64.dp))
         Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = message,
-            style = MaterialTheme.typography.bodyLarge,
-            color = TextPrimary,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            color = theme.contentColor,
             textAlign = TextAlign.Center
         )
     }

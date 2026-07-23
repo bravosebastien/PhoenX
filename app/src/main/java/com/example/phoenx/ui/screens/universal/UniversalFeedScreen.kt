@@ -46,6 +46,8 @@ data class UniversalMessage(
 @Composable
 fun UniversalFeedScreen(navController: NavController) {
     val db = FirebaseFirestore.getInstance()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var messages by remember { mutableStateOf<List<UniversalMessage>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var selectedCategory by remember { mutableStateOf("Toutes") }
@@ -76,22 +78,22 @@ fun UniversalFeedScreen(navController: NavController) {
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
-            Column(modifier = Modifier.background(BackgroundPrimary)) {
+            Column(modifier = Modifier.background(theme.backgroundColor)) {
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Lettres à l'Humanité", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif))
-                            Text("Des mots laissés pour toi par ceux qui sont partis.", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+                            Text("Lettres à l'Humanité", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                            Text("Des mots laissés pour toi par ceux qui sont partis.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
                         }
                     },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
                 )
                 
                 LazyRow(
@@ -104,10 +106,10 @@ fun UniversalFeedScreen(navController: NavController) {
                             onClick = { selectedCategory = category },
                             label = { Text(category) },
                             colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = AccentPrimary,
-                                selectedLabelColor = BackgroundPrimary,
-                                containerColor = SurfaceCard,
-                                labelColor = TextSecondary
+                                selectedContainerColor = accent,
+                                selectedLabelColor = theme.backgroundColor,
+                                containerColor = theme.contentColor.copy(alpha = 0.05f),
+                                labelColor = theme.contentColor.copy(alpha = 0.6f)
                             )
                         )
                     }
@@ -117,11 +119,11 @@ fun UniversalFeedScreen(navController: NavController) {
     ) { padding ->
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AccentPrimary)
+                CircularProgressIndicator(color = accent)
             }
         } else if (messages.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Aucune lettre pour le moment.", color = TextTertiary)
+                Text("Aucune lettre pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), fontWeight = FontWeight.Bold)
             }
         } else {
             LazyColumn(
@@ -130,7 +132,7 @@ fun UniversalFeedScreen(navController: NavController) {
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 items(messages) { message ->
-                    UniversalMessageCard(message)
+                    UniversalMessageCard(message, theme)
                 }
             }
         }
@@ -138,31 +140,33 @@ fun UniversalFeedScreen(navController: NavController) {
 }
 
 @Composable
-fun UniversalMessageCard(message: UniversalMessage) {
+fun UniversalMessageCard(message: UniversalMessage, theme: AppThemeState) {
+    val accent = theme.accentColor
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-        shape = MaterialTheme.shapes.large
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(24.dp)) {
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
-                    color = AccentPrimary,
+                    color = accent,
                     shape = RoundedCornerShape(4.dp)
                 ) {
                     Text(
                         text = message.category.uppercase(),
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                        color = BackgroundPrimary
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                        color = theme.backgroundColor
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = "${message.creatorFirstName}, ${message.creatorAge} ans • ${message.creatorCountry}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = theme.contentColor.copy(alpha = 0.4f)
                 )
             }
 
@@ -170,7 +174,7 @@ fun UniversalMessageCard(message: UniversalMessage) {
                 Text(
                     text = message.bioLine,
                     style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
-                    color = TextSecondary,
+                    color = theme.contentColor.copy(alpha = 0.6f),
                     modifier = Modifier.padding(top = 8.dp)
                 )
             }
@@ -180,8 +184,8 @@ fun UniversalMessageCard(message: UniversalMessage) {
             // Message
             Text(
                 text = message.messageText,
-                style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 17.sp, color = TextPrimary, lineHeight = 26.sp),
-                maxLines = 5 // "Lire la suite" à implémenter si besoin
+                style = TextStyle(fontFamily = theme.fontFamily, fontSize = 17.sp, color = theme.contentColor, lineHeight = 26.sp, fontWeight = FontWeight.Bold),
+                maxLines = 5 
             )
 
             if (message.photoUrls.isNotEmpty()) {
@@ -199,7 +203,7 @@ fun UniversalMessageCard(message: UniversalMessage) {
             }
             
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
+            HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
         }
     }
 }

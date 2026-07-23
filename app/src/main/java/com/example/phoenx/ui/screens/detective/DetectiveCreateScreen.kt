@@ -544,12 +544,14 @@ fun InspirationBottomSheet(
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var expandedCategory by remember { mutableStateOf<String?>(null) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundPrimary,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = Color(0xFF2E2E35)) }
+        containerColor = theme.backgroundColor,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = theme.contentColor.copy(alpha = 0.2f)) }
     ) {
         Column(
             modifier = Modifier
@@ -559,13 +561,13 @@ fun InspirationBottomSheet(
         ) {
             Text(
                 "Des idées de questions",
-                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-                color = TextPrimary
+                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                color = theme.contentColor
             )
             Text(
                 "Ces exemples sont là pour t'inspirer. La vraie question, c'est toi qui la connais.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.6f),
                 modifier = Modifier.padding(vertical = 8.dp)
             )
 
@@ -581,7 +583,8 @@ fun InspirationBottomSheet(
                     Card(
                         onClick = { expandedCategory = if (isExpanded) null else category.title },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF2E2E35))
+                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                     ) {
                         Column {
                             Row(
@@ -591,20 +594,20 @@ fun InspirationBottomSheet(
                                 Text(category.emoji, modifier = Modifier.padding(end = 12.dp))
                                 Text(
                                     text = category.title,
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = TextPrimary,
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = theme.contentColor,
                                     modifier = Modifier.weight(1f)
                                 )
                                 Text(
                                     text = "${category.questions.size}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = AccentPrimary,
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = accent,
                                     modifier = Modifier.padding(horizontal = 8.dp)
                                 )
                                 Icon(
                                     imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                                     contentDescription = null,
-                                    tint = TextTertiary
+                                    tint = theme.contentColor.copy(alpha = 0.3f)
                                 )
                             }
 
@@ -616,16 +619,17 @@ fun InspirationBottomSheet(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .padding(vertical = 4.dp),
-                                            colors = CardDefaults.cardColors(containerColor = Color(0xFF242429))
+                                            colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
                                         ) {
                                             Text(
                                                 text = question,
                                                 modifier = Modifier.padding(12.dp),
                                                 style = TextStyle(
-                                                    fontFamily = FontFamily.Serif,
+                                                    fontFamily = theme.fontFamily,
                                                     fontStyle = FontStyle.Italic,
                                                     fontSize = 14.sp,
-                                                    color = Color(0xFF9B9590)
+                                                    color = theme.contentColor
                                                 )
                                             )
                                         }

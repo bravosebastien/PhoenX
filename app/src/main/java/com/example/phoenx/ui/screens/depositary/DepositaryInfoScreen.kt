@@ -31,22 +31,24 @@ fun DepositaryInfoScreen(
     viewModel: DepositaryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     var showEditDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Mes Informations", color = TextPrimary) },
+                title = { Text("Mes Informations", color = theme.contentColor, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
             )
         }
     ) { padding ->
@@ -62,10 +64,10 @@ fun DepositaryInfoScreen(
             Surface(
                 modifier = Modifier.size(80.dp),
                 shape = CircleShape,
-                color = AccentPrimary.copy(alpha = 0.1f)
+                color = accent.copy(alpha = 0.1f)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Person, null, tint = AccentPrimary, modifier = Modifier.size(40.dp))
+                    Icon(Icons.Default.Person, null, tint = accent, modifier = Modifier.size(40.dp))
                 }
             }
 
@@ -78,8 +80,8 @@ fun DepositaryInfoScreen(
             ) {
                 Text(
                     text = uiState.personalName.ifEmpty { "Utilisateur" },
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = TextPrimary,
+                    style = MaterialTheme.typography.headlineMedium.copy(fontFamily = theme.fontFamily),
+                    color = theme.contentColor,
                     fontWeight = FontWeight.Bold
                 )
                 IconButton(onClick = { 
@@ -89,7 +91,7 @@ fun DepositaryInfoScreen(
                     Icon(
                         imageVector = Icons.Default.Edit,
                         contentDescription = "Modifier le nom",
-                        tint = AccentPrimary,
+                        tint = accent,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -98,7 +100,7 @@ fun DepositaryInfoScreen(
             Text(
                 text = uiState.personalEmail,
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary
+                color = theme.contentColor.copy(alpha = 0.7f)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -106,7 +108,7 @@ fun DepositaryInfoScreen(
             Text(
                 text = "Ce nom sera visible par les personnes que vous invitez (Dépositaires, Témoins, Destinataires).",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextTertiary,
+                color = theme.contentColor.copy(alpha = 0.4f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp)
             )
@@ -116,15 +118,16 @@ fun DepositaryInfoScreen(
             // RÔLE
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-                shape = MaterialTheme.shapes.large
+                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                shape = MaterialTheme.shapes.large,
+                border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Security, null, tint = Success)
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
-                        Text("Rôle : Gardien de Confiance", color = TextPrimary, fontWeight = FontWeight.Bold)
-                        Text("Actif pour ${uiState.creatorName}", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                        Text("Rôle : Gardien de Confiance", color = theme.contentColor, fontWeight = FontWeight.Bold)
+                        Text("Actif pour ${uiState.creatorName}", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
@@ -135,14 +138,14 @@ fun DepositaryInfoScreen(
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = Color.Transparent,
-                border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.1f)),
+                border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
                 shape = MaterialTheme.shapes.medium
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         "En tant que Dépositaire, vous êtes le dernier rempart de l'héritage de votre proche. Vous seul avez le pouvoir de confirmer son absence définitive pour sceller la transmission.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
+                        color = theme.contentColor.copy(alpha = 0.7f),
                         lineHeight = 20.sp
                     )
                 }
@@ -154,9 +157,9 @@ fun DepositaryInfoScreen(
             Button(
                 onClick = onNavigateBack,
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard)
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Retour au tableau de bord", color = TextPrimary)
+                Text("Retour au tableau de bord", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -174,9 +177,9 @@ fun DepositaryInfoScreen(
     if (showLogoutDialog) {
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
-            containerColor = BackgroundSecondary,
-            title = { Text("Se déconnecter ?", color = TextPrimary) },
-            text = { Text("Es-tu sûr de vouloir fermer ta session Dépositaire ?", color = TextSecondary) },
+            containerColor = theme.backgroundColor,
+            title = { Text("Se déconnecter ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Es-tu sûr de vouloir fermer ta session Dépositaire ?", color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 TextButton(onClick = {
                     mainViewModel.logout()
@@ -188,7 +191,7 @@ fun DepositaryInfoScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Annuler", color = TextPrimary)
+                    Text("Annuler", color = theme.contentColor)
                 }
             }
         )
@@ -197,8 +200,8 @@ fun DepositaryInfoScreen(
     if (showEditDialog) {
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
-            containerColor = BackgroundSecondary,
-            title = { Text("Modifier mon nom", color = TextPrimary) },
+            containerColor = theme.backgroundColor,
+            title = { Text("Modifier mon nom", color = theme.contentColor, fontWeight = FontWeight.Bold) },
             text = {
                 OutlinedTextField(
                     value = newName,
@@ -207,10 +210,12 @@ fun DepositaryInfoScreen(
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = AccentPrimary,
-                        unfocusedBorderColor = TextTertiary,
-                        focusedLabelColor = AccentPrimary,
-                        cursorColor = AccentPrimary
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                        focusedLabelColor = accent,
+                        cursorColor = accent,
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
                     )
                 )
             },
@@ -221,12 +226,12 @@ fun DepositaryInfoScreen(
                         showEditDialog = false
                     }
                 }) {
-                    Text("Enregistrer", color = AccentPrimary)
+                    Text("Enregistrer", color = accent)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditDialog = false }) {
-                    Text("Annuler", color = TextPrimary)
+                    Text("Annuler", color = theme.contentColor)
                 }
             }
         )
