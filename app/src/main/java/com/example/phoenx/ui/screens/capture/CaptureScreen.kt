@@ -590,8 +590,26 @@ fun AdvancedOptionsContent(
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     
+    val datePickerColors = DatePickerDefaults.colors(
+        containerColor = theme.backgroundColor,
+        titleContentColor = theme.contentColor,
+        headlineContentColor = theme.contentColor,
+        weekdayContentColor = theme.contentColor.copy(alpha = 0.4f),
+        subheadContentColor = theme.contentColor.copy(alpha = 0.4f),
+        yearContentColor = theme.contentColor,
+        currentYearContentColor = accent,
+        selectedYearContentColor = theme.backgroundColor,
+        selectedYearContainerColor = accent,
+        dayContentColor = theme.contentColor,
+        disabledDayContentColor = theme.contentColor.copy(alpha = 0.1f),
+        selectedDayContentColor = theme.backgroundColor,
+        selectedDayContainerColor = accent,
+        todayContentColor = accent,
+        todayDateBorderColor = accent
+    )
+
     Column(modifier = Modifier.padding(24.dp).fillMaxWidth().padding(bottom = 32.dp)) {
-        Text("OPTIONS AVANCÉES", style = MaterialTheme.typography.labelSmall, color = accent, letterSpacing = 2.sp)
+        Text("OPTIONS AVANCÉES", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
         Spacer(modifier = Modifier.height(32.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -618,7 +636,7 @@ fun AdvancedOptionsContent(
             label = { Text("Ta question secrète") },
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
             placeholder = { Text("Ex: Quel était le nom de notre premier chien ?") },
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f))
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
@@ -626,7 +644,7 @@ fun AdvancedOptionsContent(
             onValueChange = onEnigmaAnswerChange,
             label = { Text("La réponse attendue") },
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f))
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
@@ -635,7 +653,7 @@ fun AdvancedOptionsContent(
             label = { Text("Indice (optionnel, après 3 échecs)") },
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
             placeholder = { Text("Ex: C'est un animal à poils...") },
-            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f))
+            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -705,15 +723,26 @@ fun AdvancedOptionsContent(
         var showDatePicker by remember { mutableStateOf(false) }
         val datePickerState = rememberDatePickerState()
 
-        OutlinedButton(
-            onClick = { showDatePicker = true },
-            modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
-            border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 32.dp)
+                .clickable { showDatePicker = true }
+                .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+            color = theme.contentColor.copy(alpha = 0.03f),
+            shape = RoundedCornerShape(12.dp)
         ) {
-            Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(dateText)
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.CalendarToday, null, tint = accent, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(dateText, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                }
+            }
         }
 
         if (showDatePicker) {
@@ -725,9 +754,9 @@ fun AdvancedOptionsContent(
                         showDatePicker = false
                     }) { Text("Confirmer", color = accent) }
                 },
-                colors = DatePickerDefaults.colors(containerColor = theme.backgroundColor)
+                colors = datePickerColors
             ) {
-                DatePicker(state = datePickerState)
+                DatePicker(state = datePickerState, colors = datePickerColors)
             }
         }
     }
@@ -865,11 +894,13 @@ fun PhotoCaptureContent(
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onTiroirsToggle() },
-                        color = Color.Transparent
+                            .clickable { onTiroirsToggle() }
+                            .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                        color = theme.contentColor.copy(alpha = 0.03f),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
-                            modifier = Modifier.padding(vertical = 8.dp),
+                            modifier = Modifier.padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
@@ -911,18 +942,20 @@ fun PhotoCaptureContent(
                         }
                     }
 
-                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
 
                     // TONALITÉ (v8.9.2 : Menu déroulant)
                     Column {
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onTonaliteToggle() },
-                            color = Color.Transparent
+                                .clickable { onTonaliteToggle() }
+                                .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                            color = theme.contentColor.copy(alpha = 0.03f),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Row(
-                                modifier = Modifier.padding(vertical = 8.dp),
+                                modifier = Modifier.padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
@@ -979,7 +1012,7 @@ fun PhotoCaptureContent(
                         }
                     }
 
-                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -1078,30 +1111,16 @@ fun TextCaptureContent(
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
-            color = AccentPrimary
+            color = accent
         )
         
         if (!isComplement) {
             Text(
                 text = "Donne un nom ou un sujet à ce souvenir. Tu l'enrichiras à l'étape suivante.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextTertiary,
+                color = theme.contentColor.copy(alpha = 0.5f),
                 modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
             )
-        }
-
-        if (preselectedName != null) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = LocalAccentColor.current.copy(alpha = 0.1f)),
-                shape = RoundedCornerShape(8.dp),
-                modifier = Modifier.padding(bottom = 16.dp, top = 4.dp)
-            ) {
-                Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocationOn, null, tint = LocalAccentColor.current, modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Pour : $preselectedName", style = MaterialTheme.typography.labelSmall, color = LocalAccentColor.current)
-                }
-            }
         }
 
         if (galleryUri != null) {
@@ -1120,7 +1139,7 @@ fun TextCaptureContent(
                     Text(
                         text = if (isComplement) "Écris tes mots ici..." else "Quel est le sujet de ce souvenir ?", 
                         style = MaterialTheme.typography.headlineSmall, 
-                        color = TextTertiary.copy(alpha = 0.5f)
+                        color = theme.contentColor.copy(alpha = 0.3f)
                     ) 
                 },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
@@ -1133,7 +1152,9 @@ fun TextCaptureContent(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = theme.contentColor,
+                    unfocusedTextColor = theme.contentColor
                 )
             )
             
@@ -1144,7 +1165,7 @@ fun TextCaptureContent(
                 Icon(
                     imageVector = if (isListening) Icons.Default.Stop else Icons.Default.Mic,
                     contentDescription = null,
-                    tint = if (isListening) Color.Red else AccentPrimary
+                    tint = if (isListening) Color.Red else accent
                 )
             }
         }
@@ -1153,7 +1174,7 @@ fun TextCaptureContent(
         Text(
             text = nudgePhrase,
             style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
-            color = TextTertiary,
+            color = theme.contentColor.copy(alpha = 0.4f),
             modifier = Modifier.padding(top = 8.dp)
         )
 
@@ -1170,18 +1191,20 @@ fun TextCaptureContent(
             accent = accent
         )
 
-        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 24.dp))
+        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 24.dp))
 
         // TONALITÉ (v8.9.2 : Menu déroulant)
         Column {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onTonaliteToggle() },
-                color = Color.Transparent
+                    .clickable { onTonaliteToggle() }
+                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                color = theme.contentColor.copy(alpha = 0.03f),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -1249,18 +1272,20 @@ fun TextCaptureContent(
             }
         }
 
-        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 12.dp))
+        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 12.dp))
 
         // POUR QUI (v8.9.2 : Menu déroulant)
         Column {
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onTiroirsToggle() },
-                color = Color.Transparent
+                    .clickable { onTiroirsToggle() }
+                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                color = theme.contentColor.copy(alpha = 0.03f),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -1359,7 +1384,9 @@ fun AudioCaptureContent(
                 textStyle = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic, color = theme.contentColor),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = theme.accentColor,
-                    unfocusedBorderColor = theme.accentColor.copy(alpha = 0.3f)
+                    unfocusedBorderColor = theme.accentColor.copy(alpha = 0.3f),
+                    focusedTextColor = theme.contentColor,
+                    unfocusedTextColor = theme.contentColor
                 ),
                 shape = RoundedCornerShape(12.dp)
             )
@@ -1408,7 +1435,7 @@ fun AudioCaptureContent(
         
         if (isRecording) {
             Spacer(modifier = Modifier.height(32.dp))
-            Text("Appuie pour arrêter", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+            Text("Appuie pour arrêter", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
         } else if (transcript.isNotEmpty()) {
             Spacer(modifier = Modifier.height(24.dp))
             
@@ -1418,11 +1445,13 @@ fun AudioCaptureContent(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onTiroirsToggle() },
-                color = Color.Transparent
+                    .clickable { onTiroirsToggle() }
+                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                color = theme.contentColor.copy(alpha = 0.03f),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -1464,17 +1493,19 @@ fun AudioCaptureContent(
                 }
             }
 
-            HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
 
             // TONALITÉ (v8.9.2 : Menu déroulant)
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onTonaliteToggle() },
-                color = Color.Transparent
+                    .clickable { onTonaliteToggle() }
+                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                color = theme.contentColor.copy(alpha = 0.03f),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(vertical = 8.dp),
+                    modifier = Modifier.padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -1530,7 +1561,7 @@ fun AudioCaptureContent(
                 }
             }
 
-            HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -1566,6 +1597,8 @@ fun NightCaptureContent(
     isRecording: Boolean,
     onStart: () -> Unit
 ) {
+    val theme = LocalAppTheme.current
+    
     LaunchedEffect(Unit) {
         if (!isRecording) onStart()
     }
@@ -1576,9 +1609,9 @@ fun NightCaptureContent(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                "CAPTURE INVISIBLE",
+                text = "CAPTURE INVISIBLE",
                 style = MaterialTheme.typography.labelSmall,
-                color = TextTertiary,
+                color = theme.contentColor.copy(alpha = 0.4f),
                 letterSpacing = 4.sp
             )
             Spacer(modifier = Modifier.height(24.dp))
@@ -1589,9 +1622,9 @@ fun NightCaptureContent(
             ) {}
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                "Parle. On garde tout.\nTouches VOLUME pour arrêter.",
+                text = "Parle. On garde tout.\nTouches VOLUME pour arrêter.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center
             )
         }

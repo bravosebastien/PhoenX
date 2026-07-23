@@ -134,19 +134,18 @@ fun DetectiveCreateScreen(
                     title = if (uiState.isUltimateSecret) "Le Secret Ultime" else "Mode Détective",
                     points = if (uiState.isUltimateSecret) {
                         listOf(
-                            "Le Secret Ultime est le contenu le plus précieux de votre coffre.",
-                            "Il est protégé par une question d'une importance capitale.",
-                            "Sa révélation marque un moment solennel pour vos proches.",
-                            "Il est conseillé de n'avoir qu'un seul Secret Ultime par héritage.",
-                            "Sa présentation visuelle sera distinguée des autres énigmes."
+                            "La pièce maîtresse de ton héritage : le secret le plus précieux et le plus intime.",
+                            "Protection inviolable : aucun déblocage automatique n'est possible avec le temps.",
+                            "Un moment solennel : sa lecture est présentée avec un habillage visuel unique pour tes proches.",
+                            "L'unique clé : seul celui qui connaît la réponse pourra un jour briser ce dernier sceau."
                         )
                     } else {
                         listOf(
-                            "Cache un contenu derrière une question dont seul ton proche connaît la réponse.",
-                            "La réponse est protégée localement — personne ne peut la lire, même nos serveurs.",
-                            "Ton proche a plusieurs tentatives pour trouver la réponse.",
-                            "Tape sur 'Besoin d'inspiration ?' pour voir 20 exemples de questions.",
-                            "C'est différent du Tiroir à Clé Unique — ici, pas de limite d'ouvertures."
+                            "Protège un souvenir par une énigme personnelle : une question dont seul ton proche possède la clé.",
+                            "Sécurité absolue : la réponse est hachée sur ton appareil. Personne ne peut la déchiffrer.",
+                            "Un jeu de piste intime : une fois la bonne réponse saisie, le souvenir est révélé pour toujours.",
+                            "Un secret à l'épreuve du temps : contrairement à un simple message, ce contenu reste scellé tant que l'énigme n'est pas résolue.",
+                            "Tape sur 'Besoin d'inspiration ?' pour voir des exemples de questions."
                         )
                     }
                 )

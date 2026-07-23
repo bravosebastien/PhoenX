@@ -5,6 +5,7 @@ import android.location.Geocoder
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -81,9 +82,28 @@ fun MappamondeScreen(
     val currentAge by viewModel.currentAge.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
     val backgroundBrush = LocalBackgroundBrush.current
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    
+    val datePickerColors = DatePickerDefaults.colors(
+        containerColor = theme.backgroundColor,
+        titleContentColor = theme.contentColor,
+        headlineContentColor = theme.contentColor,
+        weekdayContentColor = theme.contentColor.copy(alpha = 0.4f),
+        subheadContentColor = theme.contentColor.copy(alpha = 0.4f),
+        yearContentColor = theme.contentColor,
+        currentYearContentColor = accent,
+        selectedYearContentColor = theme.backgroundColor,
+        selectedYearContainerColor = accent,
+        dayContentColor = theme.contentColor,
+        disabledDayContentColor = theme.contentColor.copy(alpha = 0.1f),
+        selectedDayContentColor = theme.backgroundColor,
+        selectedDayContainerColor = accent,
+        todayContentColor = accent,
+        todayDateBorderColor = accent
+    )
 
     var searchQuery by remember { mutableStateOf("") }
     var isSearching by remember { mutableStateOf(false) }
@@ -107,7 +127,7 @@ fun MappamondeScreen(
         viewModel.setMode(mode)
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary)) {
+    Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
         // ── La Carte Google Maps ──────────────────
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
@@ -191,7 +211,7 @@ fun MappamondeScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.verticalGradient(listOf(BackgroundPrimary.copy(alpha = 0.95f), Color.Transparent)))
+                .background(Brush.verticalGradient(listOf(theme.backgroundColor.copy(alpha = 0.95f), Color.Transparent)))
                 .statusBarsPadding()
         ) {
             Row(
@@ -203,8 +223,8 @@ fun MappamondeScreen(
                 }
                 Text(
                     text = "Ma Mappemonde",
-                    style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontSize = 22.sp),
-                    color = TextPrimary,
+                    style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontSize = 22.sp),
+                    color = theme.contentColor,
                     modifier = Modifier.weight(1f)
                 )
                 IconButton(onClick = { showInventory = true }) {
@@ -225,10 +245,10 @@ fun MappamondeScreen(
             // Barre de recherche flottante
             Card(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xF01E1E23)),
+                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                 shape = RoundedCornerShape(14.dp),
                 elevation = CardDefaults.cardElevation(10.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+                border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
@@ -240,9 +260,9 @@ fun MappamondeScreen(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
                         modifier = Modifier.weight(1f).padding(vertical = 10.dp),
-                        textStyle = TextStyle(color = TextPrimary, fontSize = 15.sp, fontFamily = FontFamily.SansSerif),
+                        textStyle = TextStyle(color = theme.contentColor, fontSize = 15.sp, fontFamily = theme.fontFamily),
                         decorationBox = { innerTextField ->
-                            if (searchQuery.isEmpty()) Text("Chercher un lieu ou une adresse...", color = TextTertiary, fontSize = 15.sp)
+                            if (searchQuery.isEmpty()) Text("Chercher un lieu ou une adresse...", color = theme.contentColor.copy(alpha = 0.4f), fontSize = 15.sp)
                             innerTextField()
                         },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -285,16 +305,16 @@ fun MappamondeScreen(
         if (!isLoading && allLocations.isEmpty() && mode == MapMode.CREATOR) {
             Card(
                 modifier = Modifier.align(Alignment.Center).padding(32.dp),
-                colors = CardDefaults.cardColors(containerColor = BackgroundPrimary.copy(alpha = 0.85f)),
+                colors = CardDefaults.cardColors(containerColor = theme.backgroundColor.copy(alpha = 0.85f)),
                 shape = RoundedCornerShape(16.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.4f))
+                border = BorderStroke(1.dp, accent.copy(alpha = 0.4f))
             ) {
                 Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.LocationOn, null, tint = accent, modifier = Modifier.size(44.dp))
                     Spacer(Modifier.height(16.dp))
-                    Text("Ta Mappemonde est vierge", style = MaterialTheme.typography.titleMedium, color = TextPrimary)
+                    Text("Ta Mappemonde est vierge", style = MaterialTheme.typography.titleMedium, color = theme.contentColor)
                     Spacer(Modifier.height(8.dp))
-                    Text("Maintiens ton doigt sur le globe pour épingler ton premier souvenir géographique.", textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                    Text("Maintiens ton doigt sur le globe pour épingler ton premier souvenir géographique.", textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
                 }
             }
         }
@@ -395,15 +415,16 @@ fun MarqueurSouvenir(memoriesCount: Int) {
 @Composable
 fun GeographicTimeline(currentAge: Int, selectedAge: Int, onAgeChange: (Int) -> Unit) {
     val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xF21A1A1F)),
+        colors = CardDefaults.cardColors(containerColor = theme.backgroundColor.copy(alpha = 0.9f)),
         shape = RoundedCornerShape(20.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(18.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("TRAJECTOIRE DE VIE", style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp, fontWeight = FontWeight.Bold), color = TextTertiary)
+                Text("TRAJECTOIRE DE VIE", style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp, fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
                 Text(if (selectedAge >= currentAge) "Aujourd'hui" else "$selectedAge ans", color = accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
             }
             Spacer(Modifier.height(4.dp))
@@ -411,7 +432,7 @@ fun GeographicTimeline(currentAge: Int, selectedAge: Int, onAgeChange: (Int) -> 
                 value = selectedAge.toFloat(),
                 onValueChange = { onAgeChange(it.toInt()) },
                 valueRange = 0f..currentAge.toFloat().coerceAtLeast(1f),
-                colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent, inactiveTrackColor = Color(0xFF2E2E35))
+                colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent, inactiveTrackColor = theme.contentColor.copy(alpha = 0.1f))
             )
         }
     }
@@ -429,6 +450,25 @@ fun LocationBottomSheet(
     val location = data.location
     val entries = data.entries
     val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+
+    val datePickerColors = DatePickerDefaults.colors(
+        containerColor = theme.backgroundColor,
+        titleContentColor = theme.contentColor,
+        headlineContentColor = theme.contentColor,
+        weekdayContentColor = theme.contentColor.copy(alpha = 0.4f),
+        subheadContentColor = theme.contentColor.copy(alpha = 0.4f),
+        yearContentColor = theme.contentColor,
+        currentYearContentColor = accent,
+        selectedYearContentColor = theme.backgroundColor,
+        selectedYearContainerColor = accent,
+        dayContentColor = theme.contentColor,
+        disabledDayContentColor = theme.contentColor.copy(alpha = 0.1f),
+        selectedDayContentColor = theme.backgroundColor,
+        selectedDayContainerColor = accent,
+        todayContentColor = accent,
+        todayDateBorderColor = accent
+    )
     
     var isEditingName by remember { mutableStateOf(false) }
     var editedName by remember { mutableStateOf(location.placeName) }
@@ -440,8 +480,8 @@ fun LocationBottomSheet(
 
     ModalBottomSheet(
         onDismissRequest = onClose,
-        containerColor = BackgroundSecondary,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = TextTertiary) }
+        containerColor = theme.backgroundColor,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = theme.contentColor.copy(alpha = 0.2f)) }
     ) {
         Column(modifier = Modifier.padding(horizontal = 24.dp).padding(bottom = 44.dp).fillMaxWidth()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -453,19 +493,19 @@ fun LocationBottomSheet(
                             value = editedName,
                             onValueChange = { editedName = it },
                             modifier = Modifier.fillMaxWidth(),
-                            textStyle = TextStyle(fontFamily = FontFamily.Serif, fontSize = 20.sp, color = TextPrimary),
+                            textStyle = TextStyle(fontFamily = theme.fontFamily, fontSize = 20.sp, color = theme.contentColor),
                             trailingIcon = {
                                 IconButton(onClick = { viewModel.updateLocationName(location.id, editedName); isEditingName = false }) {
                                     Icon(Icons.Default.Check, null, tint = accent)
                                 }
                             },
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                         )
                     } else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(location.placeName, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold), color = TextPrimary)
+                            Text(location.placeName, style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                             IconButton(onClick = { isEditingName = true }, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Edit, null, tint = TextTertiary, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.Edit, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(16.dp))
                             }
                         }
                     }
@@ -477,7 +517,7 @@ fun LocationBottomSheet(
                         val dateStr = if (location.visitedAt > 0) {
                             SimpleDateFormat("MMMM yyyy", Locale.FRENCH).format(Date(location.visitedAt))
                         } else "Ajouter une date"
-                        Text(dateStr, style = MaterialTheme.typography.labelSmall, color = if (location.visitedAt > 0) TextTertiary else accent)
+                        Text(dateStr, style = MaterialTheme.typography.labelSmall, color = if (location.visitedAt > 0) theme.contentColor.copy(alpha = 0.6f) else accent)
                     }
                 }
             }
@@ -494,21 +534,21 @@ fun LocationBottomSheet(
                     items(entries) { entry ->
                         Card(
                             modifier = Modifier.width(280.dp).height(140.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+                            colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
                             shape = RoundedCornerShape(14.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Column(modifier = Modifier.padding(14.dp).fillMaxSize()) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.AutoStories, null, tint = accent.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
                                     Spacer(Modifier.width(6.dp))
-                                    Text("SOUVENIR", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = TextTertiary)
+                                    Text("SOUVENIR", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = entry.aiSummary.ifEmpty { "Souvenir précieux..." },
-                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, lineHeight = 18.sp),
-                                    color = TextSecondary,
+                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, lineHeight = 18.sp),
+                                    color = theme.contentColor.copy(alpha = 0.8f),
                                     maxLines = 3,
                                     overflow = TextOverflow.Ellipsis
                                 )
@@ -517,8 +557,8 @@ fun LocationBottomSheet(
                     }
                 }
             } else {
-                Box(modifier = Modifier.fillMaxWidth().height(90.dp).background(Color(0xFF1E1E23), RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
-                    Text("Aucun souvenir attaché ici.", color = TextTertiary, style = MaterialTheme.typography.bodySmall)
+                Box(modifier = Modifier.fillMaxWidth().height(90.dp).background(theme.contentColor.copy(alpha = 0.03f), RoundedCornerShape(14.dp)), contentAlignment = Alignment.Center) {
+                    Text("Aucun souvenir attaché ici.", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodySmall)
                 }
             }
 
@@ -543,10 +583,10 @@ fun LocationBottomSheet(
                     OutlinedButton(
                         onClick = { navController.navigate("location_detail/${location.id}"); onClose() },
                         modifier = Modifier.weight(1f).height(56.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary),
+                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.2f)),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Détails", color = TextPrimary)
+                        Text("Détails", color = theme.contentColor)
                     }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
@@ -565,9 +605,10 @@ fun LocationBottomSheet(
                         showDatePicker = false
                     }) { Text("Confirmer", color = accent) }
                 },
-                dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Annuler", color = TextPrimary) } }
+                dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Annuler", color = theme.contentColor) } },
+                colors = datePickerColors
             ) {
-                DatePicker(state = dateState)
+                DatePicker(state = dateState, colors = datePickerColors)
             }
         }
     }
@@ -576,29 +617,30 @@ fun LocationBottomSheet(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InventoryBottomSheet(locations: List<LocationWithEntries>, onClose: () -> Unit, onSelect: (LocationWithEntries) -> Unit) {
-    ModalBottomSheet(onDismissRequest = onClose, containerColor = BackgroundSecondary) {
+    val theme = LocalAppTheme.current
+    ModalBottomSheet(onDismissRequest = onClose, containerColor = theme.backgroundColor) {
         Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 40.dp)) {
-            Text("Mes Lieux Épinglés", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold), color = TextPrimary)
+            Text("Mes Lieux Épinglés", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
             Spacer(modifier = Modifier.height(20.dp))
             if (locations.isEmpty()) {
-                Text("Aucun lieu pour le moment.", color = TextTertiary, modifier = Modifier.padding(vertical = 20.dp))
+                Text("Aucun lieu pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.padding(vertical = 20.dp))
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(locations) { item ->
                         Card(
                             onClick = { onSelect(item) },
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF242429)),
+                            colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                             shape = RoundedCornerShape(14.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Row(modifier = Modifier.padding(18.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text(item.location.emoji, fontSize = 28.sp)
                                 Spacer(Modifier.width(16.dp))
                                 Column(modifier = Modifier.weight(1f)) {
-                                    Text(item.location.placeName, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = TextPrimary)
-                                    Text("${item.entries.size} souvenirs", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                                    Text(item.location.placeName, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                    Text("${item.entries.size} souvenirs", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                                 }
-                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = TextTertiary)
+                                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.2f))
                             }
                         }
                     }
@@ -615,6 +657,7 @@ fun AddLocationDialog(latLng: LatLng, onConfirm: (String, String, Long) -> Unit,
     val emojis = listOf("📍", "🏠", "🏖️", "🏔️", "🌆", "🌿", "🏛️", "🎭", "🍷", "🎿", "🌊", "🏕️")
     val context = LocalContext.current
     val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
 
     LaunchedEffect(latLng) {
         withContext(Dispatchers.IO) {
@@ -627,13 +670,19 @@ fun AddLocationDialog(latLng: LatLng, onConfirm: (String, String, Long) -> Unit,
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundSecondary,
-        title = { Text("Nouveau lieu", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, color = TextPrimary) },
+        containerColor = theme.backgroundColor,
+        title = { Text("Nouveau lieu", fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, color = theme.contentColor) },
         text = {
             Column {
-                OutlinedTextField(value = placeName, onValueChange = { placeName = it }, label = { Text("Nom du lieu") }, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent))
+                OutlinedTextField(
+                    value = placeName, 
+                    onValueChange = { placeName = it }, 
+                    label = { Text("Nom du lieu") }, 
+                    modifier = Modifier.fillMaxWidth(), 
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                )
                 Spacer(Modifier.height(20.dp))
-                Text("Icône :", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+                Text("Icône :", style = MaterialTheme.typography.labelMedium, color = theme.contentColor.copy(alpha = 0.6f))
                 Spacer(Modifier.height(10.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(emojis) { emoji ->
@@ -644,8 +693,8 @@ fun AddLocationDialog(latLng: LatLng, onConfirm: (String, String, Long) -> Unit,
                 }
             }
         },
-        confirmButton = { Button(onClick = { onConfirm(placeName, selectedEmoji, System.currentTimeMillis()) }, colors = ButtonDefaults.buttonColors(containerColor = accent), shape = RoundedCornerShape(10.dp)) { Text("Épingler", color = BackgroundPrimary, fontWeight = FontWeight.Bold) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler", color = TextPrimary) } }
+        confirmButton = { Button(onClick = { onConfirm(placeName, selectedEmoji, System.currentTimeMillis()) }, colors = ButtonDefaults.buttonColors(containerColor = accent), shape = RoundedCornerShape(10.dp)) { Text("Épingler", color = theme.backgroundColor, fontWeight = FontWeight.Bold) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler", color = theme.contentColor) } }
     )
 }
 

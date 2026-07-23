@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.portraits
 
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -55,6 +56,8 @@ fun PortraitProcheScreen(
     var expanded by remember { mutableStateOf(false) }
     
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     LaunchedEffect(recipients) {
         if (selectedRecipient == null && initialRecipientId != null) {
@@ -81,10 +84,10 @@ fun PortraitProcheScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Miroir du proche", style = MaterialTheme.typography.labelLarge) },
+                title = { Text("Miroir du proche", style = MaterialTheme.typography.labelLarge, color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -101,10 +104,10 @@ fun PortraitProcheScreen(
             Text(
                 text = "Voici comment je t'ai vu. Voici ce que j'ai vu en toi que tu n'as peut-être jamais su.",
                 style = TextStyle(
-                    fontFamily = FontFamily.Serif,
+                    fontFamily = theme.fontFamily,
                     fontSize = 22.sp,
                     fontStyle = FontStyle.Italic,
-                    color = TextPrimary,
+                    color = theme.contentColor,
                     lineHeight = 30.sp
                 )
             )
@@ -112,43 +115,43 @@ fun PortraitProcheScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // SÉLECTION DU PROCHE
-            Text("POUR QUI EST CE PORTRAIT ?", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Text("POUR QUI EST CE PORTRAIT ?", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(8.dp))
             
             if (recipients.isEmpty()) {
                 Button(
                     onClick = { navController.navigate("recipients") },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard)
+                    colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.05f))
                 ) {
-                    Text("Ajouter d'abord un proche", color = AccentPrimary)
+                    Text("Ajouter d'abord un proche", color = accent)
                 }
             } else {
                 Box {
                     OutlinedCard(
                         onClick = { expanded = true },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.outlinedCardColors(containerColor = SurfaceCard),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, if (selectedRecipient == null) Error else TextTertiary)
+                        colors = CardDefaults.outlinedCardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, if (selectedRecipient == null) Error else theme.contentColor.copy(alpha = 0.1f))
                     ) {
                         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = selectedRecipient?.name ?: "Choisir un proche",
-                                color = if (selectedRecipient == null) TextTertiary else TextPrimary,
+                                color = if (selectedRecipient == null) theme.contentColor.copy(alpha = 0.4f) else theme.contentColor,
                                 modifier = Modifier.weight(1f)
                             )
-                            Icon(Icons.Default.ArrowDropDown, null, tint = AccentPrimary)
+                            Icon(Icons.Default.ArrowDropDown, null, tint = accent)
                         }
                     }
                     
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(SurfaceCard).fillMaxWidth(0.85f)
+                        modifier = Modifier.background(theme.backgroundColor).fillMaxWidth(0.85f)
                     ) {
                         recipients.forEach { recipient ->
                             DropdownMenuItem(
-                                text = { Text(recipient.name, color = TextPrimary) },
+                                text = { Text(recipient.name, color = theme.contentColor) },
                                 onClick = {
                                     selectedRecipient = recipient
                                     expanded = false
@@ -167,17 +170,18 @@ fun PortraitProcheScreen(
                     .fillMaxWidth()
                     .heightIn(min = 250.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF242429))
+                    .background(theme.contentColor.copy(alpha = 0.05f))
+                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
                     .padding(20.dp)
             ) {
                 if (text.isEmpty()) {
                     Text(
                         text = "Écris librement ce que tu as vu en ${selectedRecipient?.name ?: "ton proche"}...",
                         style = TextStyle(
-                            fontFamily = FontFamily.Serif,
+                            fontFamily = theme.fontFamily,
                             fontSize = 17.sp,
                             fontStyle = FontStyle.Italic,
-                            color = Color(0xFF5C5855)
+                            color = theme.contentColor.copy(alpha = 0.3f)
                         )
                     )
                 }
@@ -186,9 +190,9 @@ fun PortraitProcheScreen(
                     value = text,
                     onValueChange = { text = it },
                     textStyle = TextStyle(
-                        fontFamily = FontFamily.Serif,
+                        fontFamily = theme.fontFamily,
                         fontSize = 17.sp,
-                        color = TextPrimary,
+                        color = theme.contentColor,
                         lineHeight = 28.sp
                     ),
                     modifier = Modifier.fillMaxSize()
@@ -201,7 +205,7 @@ fun PortraitProcheScreen(
             var showGuidance by remember { mutableStateOf(false) }
             if (!showGuidance) {
                 TextButton(onClick = { showGuidance = true }) {
-                    Text("Voir des questions de guidage", color = TextSecondary, style = MaterialTheme.typography.bodySmall)
+                    Text("Voir des questions de guidage", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall)
                 }
             } else {
                 val guidance = listOf(
@@ -232,10 +236,10 @@ fun PortraitProcheScreen(
                 },
                 enabled = text.isNotBlank() && selectedRecipient != null && uiState !is PortraitUiState.Loading,
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                if (uiState is PortraitUiState.Loading) CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
-                else Text("Sceller ce portrait", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                if (uiState is PortraitUiState.Loading) CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
+                else Text("Sceller ce portrait", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
 
             if (uiState is PortraitUiState.Success) {

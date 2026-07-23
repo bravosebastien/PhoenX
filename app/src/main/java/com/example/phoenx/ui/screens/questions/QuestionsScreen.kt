@@ -44,6 +44,8 @@ fun QuestionsScreen(
     viewModel: QuestionsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var selectedQuestion by remember { mutableStateOf<Question?>(null) }
     var answerText by remember { mutableStateOf("") }
     
@@ -72,9 +74,9 @@ fun QuestionsScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
-            Column(modifier = Modifier.background(BackgroundPrimary)) {
+            Column(modifier = Modifier.background(theme.backgroundColor)) {
                 TopAppBar(
                     title = {
                         Row(
@@ -83,11 +85,11 @@ fun QuestionsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Les 100 Questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif))
+                                Text("Les 100 Questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                                 Text(
                                     text = "$answeredCount / $totalCount questions racontées",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if (answeredCount == totalCount) Success else TextSecondary
+                                    color = if (answeredCount == totalCount) Success else theme.contentColor.copy(alpha = 0.5f)
                                 )
                             }
                             InfoButton(
@@ -103,22 +105,22 @@ fun QuestionsScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = { if (selectedQuestion != null) selectedQuestion = null else onNavigateBack() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
                 )
 
                 if (selectedQuestion == null) {
                     ScrollableTabRow(
                         selectedTabIndex = QuestionsData.categories.indexOf(uiState.selectedCategory),
-                        containerColor = BackgroundPrimary,
-                        contentColor = AccentPrimary,
+                        containerColor = theme.backgroundColor,
+                        contentColor = accent,
                         edgePadding = 16.dp,
                         indicator = { tabPositions ->
                             TabRowDefaults.SecondaryIndicator(
                                 Modifier.tabIndicatorOffset(tabPositions[QuestionsData.categories.indexOf(uiState.selectedCategory)]),
-                                color = AccentPrimary
+                                color = accent
                             )
                         },
                         divider = {}
@@ -131,7 +133,7 @@ fun QuestionsScreen(
                                     Text(
                                         text = category,
                                         style = MaterialTheme.typography.labelMedium,
-                                        color = if (uiState.selectedCategory == category) TextPrimary else Color(0xFF5C5855)
+                                        color = if (uiState.selectedCategory == category) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
                                     )
                                 }
                             )
@@ -141,11 +143,11 @@ fun QuestionsScreen(
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
             if (selectedQuestion == null) {
                 // LISTE DES QUESTIONS
                 if (uiState.isLoading) {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = AccentPrimary)
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().padding(padding),
@@ -156,6 +158,7 @@ fun QuestionsScreen(
                             QuestionListItem(
                                 question = question,
                                 isAnswered = uiState.answeredQuestionIds.contains(question.id),
+                                theme = theme,
                                 onClick = { selectedQuestion = question }
                             )
                         }
@@ -168,8 +171,8 @@ fun QuestionsScreen(
                 ) {
                     Text(
                         text = selectedQuestion!!.text,
-                        style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-                        color = TextPrimary,
+                        style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                        color = theme.contentColor,
                         lineHeight = 32.sp
                     )
                     
@@ -194,11 +197,11 @@ fun QuestionsScreen(
                         OutlinedButton(
                             onClick = { photoLauncher.launch("image/*") },
                             modifier = Modifier.fillMaxWidth().height(56.dp),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.3f))
+                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
                         ) {
-                            Icon(Icons.Default.PhotoCamera, null, tint = AccentPrimary)
+                            Icon(Icons.Default.PhotoCamera, null, tint = accent)
                             Spacer(Modifier.width(12.dp))
-                            Text("Illustrer ma réponse", color = TextPrimary)
+                            Text("Illustrer ma réponse", color = theme.contentColor)
                         }
                     }
 
@@ -208,12 +211,12 @@ fun QuestionsScreen(
                         value = answerText,
                         onValueChange = { answerText = it },
                         modifier = Modifier.fillMaxWidth().weight(1f),
-                        placeholder = { Text("Dépose tes mots ici...", color = TextTertiary, style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)) },
-                        textStyle = MaterialTheme.typography.bodyLarge,
+                        placeholder = { Text("Dépose tes mots ici...", color = theme.contentColor.copy(alpha = 0.3f), style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)) },
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = theme.contentColor),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = AccentPrimary,
-                            unfocusedBorderColor = TextTertiary.copy(alpha = 0.2f),
-                            focusedContainerColor = SurfaceCard.copy(alpha = 0.2f),
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                            focusedContainerColor = theme.contentColor.copy(alpha = 0.03f),
                             unfocusedContainerColor = Color.Transparent
                         )
                     )
@@ -224,12 +227,12 @@ fun QuestionsScreen(
                         onClick = { viewModel.saveAnswer(selectedQuestion!!, answerText, capturedPhotoFile) },
                         enabled = (answerText.isNotBlank() || capturedPhotoFile != null) && !uiState.isSaving,
                         modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = accent)
                     ) {
                         if (uiState.isSaving) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = BackgroundPrimary, strokeWidth = 2.dp)
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = theme.backgroundColor, strokeWidth = 2.dp)
                         } else {
-                            Text("Sceller ma réponse", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                            Text("Sceller ma réponse", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -242,30 +245,32 @@ fun QuestionsScreen(
 fun QuestionListItem(
     question: Question,
     isAnswered: Boolean,
+    theme: AppThemeState,
     onClick: () -> Unit
 ) {
+    val accent = theme.accentColor
     Surface(
         onClick = onClick,
-        color = SurfaceCard.copy(alpha = 0.6f),
+        color = theme.contentColor.copy(alpha = 0.03f),
         shape = MaterialTheme.shapes.large,
         modifier = Modifier.fillMaxWidth(),
-        border = androidx.compose.foundation.BorderStroke(1.dp, if (isAnswered) Success.copy(alpha = 0.3f) else Color.Transparent)
+        border = androidx.compose.foundation.BorderStroke(1.dp, if (isAnswered) Success.copy(alpha = 0.3f) else theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = if (isAnswered) Icons.Default.CheckCircle else Icons.AutoMirrored.Filled.HelpOutline, 
                 contentDescription = null, 
-                tint = if (isAnswered) Success else AccentPrimary, 
+                tint = if (isAnswered) Success else accent, 
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = question.text,
-                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Serif),
-                color = TextPrimary,
+                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                color = theme.contentColor,
                 modifier = Modifier.weight(1f)
             )
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = TextTertiary)
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.2f))
         }
     }
 }

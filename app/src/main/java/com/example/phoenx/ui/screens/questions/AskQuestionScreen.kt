@@ -40,6 +40,8 @@ fun AskQuestionScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     
     var questionText by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Amour & Couple") }
@@ -112,16 +114,16 @@ fun AskQuestionScreen(
     )
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Une question pour ${uiState.creatorName}", style = MaterialTheme.typography.labelLarge) },
+                title = { Text("Une question pour ${uiState.creatorName}", style = MaterialTheme.typography.labelLarge, color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
             )
         }
     ) { padding ->
@@ -135,7 +137,7 @@ fun AskQuestionScreen(
             Text(
                 text = "Certaines personnes trouvent les mots facilement. D'autres non — par pudeur, par habitude du silence, ou simplement parce que certains sujets n'ont jamais trouvé leur moment. Si tu as une question que tu n'as jamais réussi à poser à ${uiState.creatorName} de son vivant, tu peux la déposer ici. Ceci ne remplace jamais une conversation possible aujourd'hui. Si tu peux encore poser cette question à voix haute, fais-le — c'est toujours mieux.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.7f),
                 lineHeight = 22.sp
             )
 
@@ -145,7 +147,7 @@ fun AskQuestionScreen(
                 Text(
                     text = "${uiState.questionsRemaining} questions restantes sur ${uiState.maxQuestions} autorisées",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (uiState.questionsRemaining > 0) AccentPrimary else Error,
+                    color = if (uiState.questionsRemaining > 0) accent else Error,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
@@ -153,26 +155,28 @@ fun AskQuestionScreen(
             TextField(
                 value = questionText,
                 onValueChange = { questionText = it },
-                placeholder = { Text("Écris ta question ici...", style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 18.sp, color = TextTertiary)) },
+                placeholder = { Text("Écris ta question ici...", style = TextStyle(fontFamily = theme.fontFamily, fontSize = 18.sp, color = theme.contentColor.copy(alpha = 0.3f))) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                textStyle = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, color = TextPrimary),
+                textStyle = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, color = theme.contentColor),
                 colors = TextFieldDefaults.colors(
-                    focusedContainerColor = SurfaceCard.copy(alpha = 0.3f),
-                    unfocusedContainerColor = SurfaceCard.copy(alpha = 0.3f),
-                    focusedIndicatorColor = AccentPrimary,
-                    unfocusedIndicatorColor = Color.Transparent
+                    focusedContainerColor = theme.contentColor.copy(alpha = 0.05f),
+                    unfocusedContainerColor = theme.contentColor.copy(alpha = 0.05f),
+                    focusedIndicatorColor = accent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    focusedTextColor = theme.contentColor,
+                    unfocusedTextColor = theme.contentColor
                 )
             )
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            Text("SUGGESTIONS", style = MaterialTheme.typography.labelSmall, color = AccentPrimary, letterSpacing = 2.sp)
+            Text("SUGGESTIONS", style = MaterialTheme.typography.labelSmall, color = accent, letterSpacing = 2.sp)
             Spacer(modifier = Modifier.height(16.dp))
 
             ScrollableTabRow(
                 selectedTabIndex = categories.indexOf(selectedCategory),
                 containerColor = Color.Transparent,
-                contentColor = AccentPrimary,
+                contentColor = accent,
                 edgePadding = 0.dp,
                 divider = {},
                 indicator = {}
@@ -181,7 +185,7 @@ fun AskQuestionScreen(
                     Tab(
                         selected = selectedCategory == cat,
                         onClick = { selectedCategory = cat },
-                        text = { Text(cat, style = MaterialTheme.typography.labelMedium) }
+                        text = { Text(cat, style = MaterialTheme.typography.labelMedium, color = if (selectedCategory == cat) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)) }
                     )
                 }
             }
@@ -194,13 +198,13 @@ fun AskQuestionScreen(
                         .fillMaxWidth()
                         .padding(vertical = 4.dp)
                         .clickable { questionText = suggestion },
-                    colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.5f))
+                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f))
                 ) {
                     Text(
                         text = suggestion,
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary,
+                        color = theme.contentColor,
                         fontStyle = FontStyle.Italic
                     )
                 }
@@ -214,14 +218,14 @@ fun AskQuestionScreen(
                 },
                 enabled = questionText.isNotBlank() && !uiState.isSaving && (uiState.questionsRemaining != 0),
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
                 if (uiState.isSaving) {
-                    CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
                 } else if (uiState.questionsRemaining == 0) {
-                    Text("Limite atteinte", color = BackgroundPrimary)
+                    Text("Limite atteinte", color = theme.backgroundColor)
                 } else {
-                    Text("Sceller cette question", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                    Text("Sceller cette question", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -230,7 +234,7 @@ fun AskQuestionScreen(
             Text(
                 "Ta question sera scellée. Tu auras la réponse quand son héritage te sera transmis.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextTertiary,
+                color = theme.contentColor.copy(alpha = 0.4f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )

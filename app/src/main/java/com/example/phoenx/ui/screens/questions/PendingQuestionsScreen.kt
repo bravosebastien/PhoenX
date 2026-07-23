@@ -36,13 +36,15 @@ fun PendingQuestionsScreen(
     viewModel: PendingQuestionsViewModel = hiltViewModel()
 ) {
     val questions by viewModel.questions.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val isLoading by viewModel.isLoading.collectAsState()
     var selectedQuestion by remember { mutableStateOf<PendingQuestion?>(null) }
     val sheetState = rememberModalBottomSheetState()
 
     Scaffold(
-        containerColor = Color.Transparent,
-        modifier = Modifier.background(LocalBackgroundBrush.current),
+        containerColor = theme.backgroundColor,
+        modifier = Modifier.background(theme.backgroundColor),
         topBar = {
             TopAppBar(
                 title = {
@@ -51,7 +53,7 @@ fun PendingQuestionsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Questions en attente", style = MaterialTheme.typography.labelLarge)
+                        Text("Questions en attente", style = MaterialTheme.typography.labelLarge, color = theme.contentColor)
                         InfoButton(
                             title = "Questions en Attente",
                             points = listOf(
@@ -66,7 +68,7 @@ fun PendingQuestionsScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -79,19 +81,19 @@ fun PendingQuestionsScreen(
                 .padding(padding)
         ) {
             if (isLoading) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = AccentPrimary)
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth(), color = accent)
             }
 
             Text(
                 text = "${questions.size} questions de ${questions.map { it.recipientName }.distinct().size} personnes",
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
-                style = MaterialTheme.typography.labelSmall,
-                color = TextSecondary
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = theme.contentColor.copy(alpha = 0.4f)
             )
 
             if (questions.isEmpty() && !isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Aucune question en attente", color = TextTertiary, style = MaterialTheme.typography.bodyLarge)
+                    Text("Aucune question en attente", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodyLarge)
                 }
             } else {
                 LazyColumn(
@@ -102,6 +104,7 @@ fun PendingQuestionsScreen(
                     items(questions) { question ->
                         QuestionCard(
                             question = question,
+                            theme = theme,
                             onClick = { selectedQuestion = question }
                         )
                     }
@@ -113,10 +116,11 @@ fun PendingQuestionsScreen(
             ModalBottomSheet(
                 onDismissRequest = { selectedQuestion = null },
                 sheetState = sheetState,
-                containerColor = BackgroundSecondary
+                containerColor = theme.backgroundColor
             ) {
                 QuestionActionContent(
                     question = selectedQuestion!!,
+                    theme = theme,
                     onAnswer = { 
                         onAnswerQuestion(selectedQuestion!!.id)
                         selectedQuestion = null 
@@ -133,19 +137,21 @@ fun PendingQuestionsScreen(
 }
 
 @Composable
-fun QuestionCard(question: PendingQuestion, onClick: () -> Unit) {
+fun QuestionCard(question: PendingQuestion, theme: AppThemeState, onClick: () -> Unit) {
+    val accent = theme.accentColor
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .phoenXMatiere(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
-        shape = MaterialTheme.shapes.large
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+        shape = MaterialTheme.shapes.large,
+        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text(question.recipientName, style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+            Text(question.recipientName, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(question.questionText, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif), color = TextPrimary)
+            Text(question.questionText, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
             Spacer(modifier = Modifier.height(12.dp))
             
             val date = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.FRENCH)
@@ -153,13 +159,13 @@ fun QuestionCard(question: PendingQuestion, onClick: () -> Unit) {
                 .format(Instant.ofEpochMilli(question.askedAt))
             
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(date, style = MaterialTheme.typography.labelSmall, color = TextTertiary, modifier = Modifier.weight(1f))
+                Text(date, style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.weight(1f))
                 
                 Surface(
                     color = when(question.status) {
-                        "pending" -> AccentPrimary.copy(alpha = 0.2f)
+                        "pending" -> accent.copy(alpha = 0.2f)
                         "answered" -> Success.copy(alpha = 0.2f)
-                        else -> TextTertiary.copy(alpha = 0.2f)
+                        else -> theme.contentColor.copy(alpha = 0.1f)
                     },
                     shape = MaterialTheme.shapes.small
                 ) {
@@ -167,14 +173,14 @@ fun QuestionCard(question: PendingQuestion, onClick: () -> Unit) {
                         text = when(question.status) {
                             "pending" -> "Nouvelle"
                             "answered" -> "Répondue"
-                            else -> "Réponse non souhaitée"
+                            else -> "Déclinée"
                         },
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = when(question.status) {
-                            "pending" -> AccentPrimary
+                            "pending" -> accent
                             "answered" -> Success
-                            else -> TextTertiary
+                            else -> theme.contentColor.copy(alpha = 0.6f)
                         }
                     )
                 }
@@ -186,18 +192,20 @@ fun QuestionCard(question: PendingQuestion, onClick: () -> Unit) {
 @Composable
 fun QuestionActionContent(
     question: PendingQuestion,
+    theme: AppThemeState,
     onAnswer: () -> Unit,
     onDecline: (String?) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val accent = theme.accentColor
     var showDeclineNote by remember { mutableStateOf(false) }
     var declineNote by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(24.dp).fillMaxWidth().padding(bottom = 32.dp)) {
         Text(
             text = question.questionText,
-            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic),
-            color = TextPrimary,
+            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic),
+            color = theme.contentColor,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -207,9 +215,9 @@ fun QuestionActionContent(
             Button(
                 onClick = onAnswer,
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("✍️ Répondre maintenant", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                Text("✍️ Répondre maintenant", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -217,9 +225,10 @@ fun QuestionActionContent(
             OutlinedButton(
                 onClick = { showDeclineNote = true },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary)
+                border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.2f)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor)
             ) {
-                Text("🤐 Je ne souhaite pas répondre", color = TextPrimary)
+                Text("🤐 Je ne souhaite pas répondre", color = theme.contentColor)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -228,13 +237,13 @@ fun QuestionActionContent(
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Laisser en attente", color = TextTertiary)
+                Text("Laisser en attente", color = theme.contentColor.copy(alpha = 0.4f))
             }
         } else {
             Text(
                 "Tu peux ajouter une courte note (facultatif) — elle sera visible par ${question.recipientName}, mais pas la réponse à sa question.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary
+                color = theme.contentColor.copy(alpha = 0.6f)
             )
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
@@ -242,21 +251,21 @@ fun QuestionActionContent(
                 onValueChange = { declineNote = it },
                 placeholder = { Text("Ex: Certaines choses doivent rester pour moi seul. Mais sache que ta question m'a touché.") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 3
+                minLines = 3,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(color = theme.contentColor),
+                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f))
             )
             Spacer(modifier = Modifier.height(24.dp))
             Button(
                 onClick = { onDecline(declineNote) },
                 modifier = Modifier.fillMaxWidth().height(56.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = TextTertiary)
+                colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.1f))
             ) {
-                Text("Confirmer ce choix", color = Color.White)
+                Text("Confirmer ce choix", color = theme.contentColor)
             }
             TextButton(onClick = { showDeclineNote = false }, modifier = Modifier.fillMaxWidth()) {
-                Text("Retour", color = AccentPrimary)
+                Text("Retour", color = accent)
             }
         }
     }
 }
-
-

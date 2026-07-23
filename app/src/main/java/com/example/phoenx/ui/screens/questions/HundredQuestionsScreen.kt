@@ -29,13 +29,15 @@ fun HundredQuestionsScreen(
     viewModel: HundredQuestionsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val answeredCount = uiState.answeredQuestionIds.size
     val totalCount = 120
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
-            Column(modifier = Modifier.background(BackgroundPrimary)) {
+            Column(modifier = Modifier.background(theme.backgroundColor)) {
                 TopAppBar(
                     title = {
                         Row(
@@ -44,14 +46,14 @@ fun HundredQuestionsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Les 100 Questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif))
+                                Text("Les 100 Questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                                 Text(
                                     text = if (answeredCount == totalCount) 
                                         "Toutes tes histoires sont racontées." 
                                     else 
                                         "$answeredCount / $totalCount questions racontées",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if (answeredCount == totalCount) Success else TextSecondary
+                                    color = if (answeredCount == totalCount) Success else theme.contentColor.copy(alpha = 0.5f)
                                 )
                             }
                             InfoButton(
@@ -68,21 +70,21 @@ fun HundredQuestionsScreen(
                     },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = AccentPrimary)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
                 )
                 
                 ScrollableTabRow(
                     selectedTabIndex = QuestionsData.categories.indexOf(uiState.selectedCategory),
-                    containerColor = BackgroundPrimary,
-                    contentColor = AccentPrimary,
+                    containerColor = theme.backgroundColor,
+                    contentColor = accent,
                     edgePadding = 16.dp,
                     indicator = { tabPositions ->
                         TabRowDefaults.SecondaryIndicator(
                             Modifier.tabIndicatorOffset(tabPositions[QuestionsData.categories.indexOf(uiState.selectedCategory)]),
-                            color = AccentPrimary
+                            color = accent
                         )
                     },
                     divider = {}
@@ -95,7 +97,7 @@ fun HundredQuestionsScreen(
                                 Text(
                                     text = category,
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = if (uiState.selectedCategory == category) TextPrimary else Color(0xFF5C5855)
+                                    color = if (uiState.selectedCategory == category) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
                                 )
                             }
                         )
@@ -106,7 +108,7 @@ fun HundredQuestionsScreen(
     ) { padding ->
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AccentPrimary)
+                CircularProgressIndicator(color = accent)
             }
         } else {
             LazyColumn(
@@ -120,6 +122,7 @@ fun HundredQuestionsScreen(
                     QuestionCreatorCard(
                         question = question,
                         isAnswered = uiState.answeredQuestionIds.contains(question.id),
+                        theme = theme,
                         onAnswerClick = { onAnswerQuestion(question.id, question.text) }
                     )
                 }
@@ -132,23 +135,25 @@ fun HundredQuestionsScreen(
 fun QuestionCreatorCard(
     question: Question,
     isAnswered: Boolean,
+    theme: AppThemeState,
     onAnswerClick: () -> Unit
 ) {
+    val accent = theme.accentColor
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard),
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
         shape = MaterialTheme.shapes.medium,
         border = androidx.compose.foundation.BorderStroke(
             1.dp, 
-            if (isAnswered) Success.copy(alpha = 0.3f) else Color.Transparent
+            if (isAnswered) Success.copy(alpha = 0.3f) else theme.contentColor.copy(alpha = 0.1f)
         )
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = question.category.uppercase(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = AccentPrimary,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = accent,
                     modifier = Modifier.weight(1f)
                 )
                 if (isAnswered) {
@@ -172,8 +177,8 @@ fun QuestionCreatorCard(
             
             Text(
                 text = question.text,
-                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif),
-                color = TextPrimary
+                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                color = theme.contentColor
             )
             
             Spacer(modifier = Modifier.height(20.dp))
@@ -182,8 +187,8 @@ fun QuestionCreatorCard(
                 OutlinedButton(
                     onClick = onAnswerClick,
                     modifier = Modifier.align(Alignment.End),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentPrimary),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary)
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, accent)
                 ) {
                     Text("Répondre")
                 }
@@ -192,7 +197,7 @@ fun QuestionCreatorCard(
                     onClick = onAnswerClick,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("Modifier ma réponse", color = TextSecondary, style = MaterialTheme.typography.labelMedium)
+                    Text("Modifier ma réponse", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelMedium)
                 }
             }
         }

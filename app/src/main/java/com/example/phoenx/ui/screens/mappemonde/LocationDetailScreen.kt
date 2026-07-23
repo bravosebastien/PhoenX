@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.mappemonde
 
 import android.widget.Toast
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,9 +54,27 @@ fun LocationDetailScreen(
     viewModel: LocationDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val accent = LocalAccentColor.current
-    val backgroundBrush = LocalBackgroundBrush.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val context = LocalContext.current
+    
+    val datePickerColors = DatePickerDefaults.colors(
+        containerColor = theme.backgroundColor,
+        titleContentColor = theme.contentColor,
+        headlineContentColor = theme.contentColor,
+        weekdayContentColor = theme.contentColor.copy(alpha = 0.4f),
+        subheadContentColor = theme.contentColor.copy(alpha = 0.4f),
+        yearContentColor = theme.contentColor,
+        currentYearContentColor = accent,
+        selectedYearContentColor = theme.backgroundColor,
+        selectedYearContainerColor = accent,
+        dayContentColor = theme.contentColor,
+        disabledDayContentColor = theme.contentColor.copy(alpha = 0.1f),
+        selectedDayContentColor = theme.backgroundColor,
+        selectedDayContainerColor = accent,
+        todayContentColor = accent,
+        todayDateBorderColor = accent
+    )
 
     var showEditDialog by remember { mutableStateOf(false) }
 
@@ -63,18 +83,18 @@ fun LocationDetailScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { 
                     if (uiState is LocationDetailUiState.Success) {
                         val loc = (uiState as LocationDetailUiState.Success).location
-                        Text("${loc.emoji} ${loc.placeName}", style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic))
+                        Text("${loc.emoji} ${loc.placeName}", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic), color = theme.contentColor)
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 actions = {
@@ -88,7 +108,7 @@ fun LocationDetailScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(backgroundBrush)) {
+        Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
             when (uiState) {
                 is LocationDetailUiState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
@@ -118,7 +138,7 @@ fun LocationDetailScreen(
                                 Marker(state = MarkerState(position = LatLng(location.latitude, location.longitude)))
                             }
                             // Overlay dégradé
-                            Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, BackgroundPrimary))))
+                            Box(modifier = Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, theme.backgroundColor))))
                             
                             // Badge Période
                             Surface(
@@ -132,7 +152,7 @@ fun LocationDetailScreen(
                                     text = "$start — $end",
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = BackgroundPrimary
+                                    color = theme.backgroundColor
                                 )
                             }
                         }
@@ -156,9 +176,9 @@ fun LocationDetailScreen(
                                         modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
-                                        Icon(Icons.Default.CloudQueue, null, tint = TextTertiary, modifier = Modifier.size(48.dp))
+                                        Icon(Icons.Default.CloudQueue, null, tint = theme.contentColor.copy(alpha = 0.2f), modifier = Modifier.size(48.dp))
                                         Spacer(Modifier.height(16.dp))
-                                        Text("Aucun souvenir pour le moment.", color = TextSecondary, textAlign = TextAlign.Center)
+                                        Text("Aucun souvenir pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), textAlign = TextAlign.Center)
                                     }
                                 }
                             } else {
@@ -166,6 +186,7 @@ fun LocationDetailScreen(
                                     EditableMemoryCard(
                                         entry = entry,
                                         recipients = recipients,
+                                        theme = theme,
                                         onUpdate = { viewModel.updateEntrySummary(entry.id, it) },
                                         onUpdateRecipients = { viewModel.updateEntryRecipients(entry.id, it) },
                                         onUpdateVisibility = { viewModel.updateEntryVisibility(entry.id, it) },
@@ -180,25 +201,25 @@ fun LocationDetailScreen(
                         if (mode == MapMode.CREATOR) {
                             Surface(
                                 modifier = Modifier.fillMaxWidth(),
-                                color = Color(0xFF1E1E23),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+                                color = theme.contentColor.copy(alpha = 0.05f),
+                                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                             ) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("NOUVEAU SOUVENIR ICI", style = MaterialTheme.typography.labelSmall, color = TextTertiary, modifier = Modifier.padding(bottom = 12.dp))
+                                    Text("NOUVEAU SOUVENIR ICI", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.padding(bottom = 12.dp))
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
-                                        MediaAddButton(Icons.Default.CameraAlt, "Caméra", accent, Modifier.weight(1f)) {
+                                        MediaAddButton(Icons.Default.CameraAlt, "Caméra", accent, theme, Modifier.weight(1f)) {
                                             navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_PHOTO, locationId = locationId))
                                         }
-                                        MediaAddButton(Icons.Default.PhotoLibrary, "Galerie", accent, Modifier.weight(1f)) {
+                                        MediaAddButton(Icons.Default.PhotoLibrary, "Galerie", accent, theme, Modifier.weight(1f)) {
                                             navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_GALLERY, locationId = locationId))
                                         }
-                                        MediaAddButton(Icons.Default.Mic, "Vocal", accent, Modifier.weight(1f)) {
+                                        MediaAddButton(Icons.Default.Mic, "Vocal", accent, theme, Modifier.weight(1f)) {
                                             navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_AUDIO, locationId = locationId))
                                         }
-                                        MediaAddButton(Icons.Default.EditNote, "Texte", accent, Modifier.weight(1f)) {
+                                        MediaAddButton(Icons.Default.EditNote, "Texte", accent, theme, Modifier.weight(1f)) {
                                             navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, locationId = locationId))
                                         }
                                     }
@@ -210,6 +231,8 @@ fun LocationDetailScreen(
                     if (showEditDialog) {
                         EditLocationDialog(
                             location = location,
+                            theme = theme,
+                            datePickerColors = datePickerColors,
                             onDismiss = { showEditDialog = false },
                             onConfirm = { name, emoji, start, end ->
                                 viewModel.updateLocation(location.id, name, emoji, start, end)
@@ -227,17 +250,17 @@ fun LocationDetailScreen(
 }
 
 @Composable
-fun MediaAddButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, accent: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun MediaAddButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, accent: Color, theme: AppThemeState, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
         modifier = modifier.height(60.dp),
         color = accent.copy(alpha = 0.1f),
         shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
             Icon(icon, null, tint = accent, modifier = Modifier.size(20.dp))
-            Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = accent)
+            Text(label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold), color = accent)
         }
     }
 }
@@ -246,13 +269,14 @@ fun MediaAddButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label:
 fun EditableMemoryCard(
     entry: OfflineEntry,
     recipients: List<com.example.phoenx.data.local.RecipientEntity>,
+    theme: AppThemeState,
     onUpdate: (String) -> Unit,
     onUpdateRecipients: (List<String>) -> Unit,
     onUpdateVisibility: (String) -> Unit,
     onDelete: () -> Unit,
     onDetach: () -> Unit
 ) {
-    val accent = LocalAccentColor.current
+    val accent = theme.accentColor
     var isEditing by remember { mutableStateOf(false) }
     var editedText by remember { mutableStateOf(entry.aiSummary) }
     var showMenu by remember { mutableStateOf(false) }
@@ -260,9 +284,9 @@ fun EditableMemoryCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E23)),
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
         shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF2E2E35))
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Column {
             Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -280,19 +304,19 @@ fun EditableMemoryCard(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     val date = SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(entry.createdAt))
-                    Text(text = "Souvenir du $date", style = MaterialTheme.typography.labelSmall, color = TextTertiary)
+                    Text(text = "Souvenir du $date", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                     Text(text = entry.entryType, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                 }
                 Box {
-                    IconButton(onClick = { showMenu = true }) { Icon(Icons.Default.MoreVert, null, tint = TextTertiary) }
-                    DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, containerColor = BackgroundSecondary) {
+                    IconButton(onClick = { showMenu = true }) { Icon(Icons.Default.MoreVert, null, tint = theme.contentColor.copy(alpha = 0.4f)) }
+                    DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, containerColor = theme.backgroundColor) {
                         DropdownMenuItem(
-                            text = { Text("Modifier", color = TextPrimary) },
+                            text = { Text("Modifier", color = theme.contentColor) },
                             onClick = { isEditing = true; showMenu = false },
                             leadingIcon = { Icon(Icons.Default.Edit, null, tint = accent) }
                         )
                         DropdownMenuItem(
-                            text = { Text("Changer les destinataires", color = TextPrimary) },
+                            text = { Text("Changer les destinataires", color = theme.contentColor) },
                             onClick = { showRecipientDialog = true; showMenu = false },
                             leadingIcon = { Icon(Icons.Default.People, null, tint = accent) }
                         )
@@ -317,16 +341,16 @@ fun EditableMemoryCard(
                             value = editedText,
                             onValueChange = { editedText = it },
                             modifier = Modifier.fillMaxWidth(),
-                            textStyle = TextStyle(fontFamily = FontFamily.Serif, fontSize = 15.sp, color = TextPrimary),
-                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                            textStyle = TextStyle(fontFamily = theme.fontFamily, fontSize = 15.sp, color = theme.contentColor),
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                         )
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            TextButton(onClick = { isEditing = false; editedText = entry.aiSummary }) { Text("Annuler", color = TextSecondary) }
+                            TextButton(onClick = { isEditing = false; editedText = entry.aiSummary }) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f)) }
                             TextButton(onClick = { onUpdate(editedText); isEditing = false }) { Text("Sauvegarder", color = accent) }
                         }
                     }
                 } else {
-                    Text(text = entry.aiSummary, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, lineHeight = 22.sp), color = TextPrimary)
+                    Text(text = entry.aiSummary, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, lineHeight = 22.sp), color = theme.contentColor)
                 }
             }
             Spacer(modifier = Modifier.height(14.dp))
@@ -341,8 +365,8 @@ fun EditableMemoryCard(
         }
         AlertDialog(
             onDismissRequest = { showRecipientDialog = false },
-            containerColor = BackgroundSecondary,
-            title = { Text("Destinataires", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, color = TextPrimary) },
+            containerColor = theme.backgroundColor,
+            title = { Text("Destinataires", fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, color = theme.contentColor) },
             text = {
                 RecipientSelector(
                     recipients = recipients,
@@ -360,12 +384,12 @@ fun EditableMemoryCard(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Valider", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                    Text("Valider", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showRecipientDialog = false }) {
-                    Text("Annuler", color = TextPrimary)
+                    Text("Annuler", color = theme.contentColor)
                 }
             }
         )
@@ -376,6 +400,8 @@ fun EditableMemoryCard(
 @Composable
 fun EditLocationDialog(
     location: LocationMemory,
+    theme: AppThemeState,
+    datePickerColors: DatePickerColors,
     onDismiss: () -> Unit,
     onConfirm: (String, String, Long?, Long?) -> Unit
 ) {
@@ -394,43 +420,51 @@ fun EditLocationDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = BackgroundSecondary,
-        title = { Text("Modifier le lieu", fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold, color = TextPrimary) },
+        containerColor = theme.backgroundColor,
+        title = { Text("Modifier le lieu", fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, color = theme.contentColor) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(value = name, onValueChange = { name = it }, label = { Text("Nom du lieu") }, modifier = Modifier.fillMaxWidth(), colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = LocalAccentColor.current))
+                OutlinedTextField(
+                    value = name, 
+                    onValueChange = { name = it }, 
+                    label = { Text("Nom du lieu") }, 
+                    modifier = Modifier.fillMaxWidth(), 
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = theme.accentColor, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                )
                 
-                Text("Icône :", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+                Text("Icône :", style = MaterialTheme.typography.labelMedium, color = theme.contentColor.copy(alpha = 0.6f))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(emojis) { emoji ->
-                        Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(if (selectedEmoji == emoji) LocalAccentColor.current.copy(alpha = 0.25f) else Color.Transparent).border(if (selectedEmoji == emoji) 1.dp else 0.dp, LocalAccentColor.current, CircleShape).clickable { selectedEmoji = emoji }, contentAlignment = Alignment.Center) {
+                        Box(modifier = Modifier.size(44.dp).clip(CircleShape).background(if (selectedEmoji == emoji) theme.accentColor.copy(alpha = 0.25f) else Color.Transparent).border(if (selectedEmoji == emoji) 1.dp else 0.dp, theme.accentColor, CircleShape).clickable { selectedEmoji = emoji }, contentAlignment = Alignment.Center) {
                             Text(emoji, fontSize = 22.sp)
                         }
                     }
                 }
                 
-                Text("Période (optionnel) :", style = MaterialTheme.typography.labelMedium, color = TextSecondary)
+                Text("Période (optionnel) :", style = MaterialTheme.typography.labelMedium, color = theme.contentColor.copy(alpha = 0.6f))
                 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = { showStartPicker = true },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor)
                     ) {
                         Text(if (startDate != null) SimpleDateFormat("dd/MM/yyyy").format(Date(startDate!!)) else "Date début", fontSize = 11.sp)
                     }
                     OutlinedButton(
                         onClick = { showEndPicker = true },
                         modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor)
                     ) {
                         Text(if (endDate != null) SimpleDateFormat("dd/MM/yyyy").format(Date(endDate!!)) else "Date fin", fontSize = 11.sp)
                     }
                 }
             }
         },
-        confirmButton = { Button(onClick = { onConfirm(name, selectedEmoji, startDate, endDate) }, colors = ButtonDefaults.buttonColors(containerColor = LocalAccentColor.current)) { Text("Valider", color = BackgroundPrimary, fontWeight = FontWeight.Bold) } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler", color = TextPrimary) } }
+        confirmButton = { Button(onClick = { onConfirm(name, selectedEmoji, startDate, endDate) }, colors = ButtonDefaults.buttonColors(containerColor = theme.accentColor)) { Text("Valider", color = theme.backgroundColor, fontWeight = FontWeight.Bold) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler", color = theme.contentColor) } }
     )
 
     if (showStartPicker) {
@@ -440,9 +474,10 @@ fun EditLocationDialog(
                 TextButton(onClick = {
                     startDate = startDateState.selectedDateMillis
                     showStartPicker = false
-                }) { Text("Confirmer", color = LocalAccentColor.current) }
-            }
-        ) { DatePicker(state = startDateState) }
+                }) { Text("Confirmer", color = theme.accentColor) }
+            },
+            colors = datePickerColors
+        ) { DatePicker(state = startDateState, colors = datePickerColors) }
     }
 
     if (showEndPicker) {
@@ -452,8 +487,9 @@ fun EditLocationDialog(
                 TextButton(onClick = {
                     endDate = endDateState.selectedDateMillis
                     showEndPicker = false
-                }) { Text("Confirmer", color = LocalAccentColor.current) }
-            }
-        ) { DatePicker(state = endDateState) }
+                }) { Text("Confirmer", color = theme.accentColor) }
+            },
+            colors = datePickerColors
+        ) { DatePicker(state = endDateState, colors = datePickerColors) }
     }
 }

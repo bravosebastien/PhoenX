@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.portraits
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -59,6 +60,8 @@ fun PortraitScreen(
     val answers = remember { mutableStateListOf(*Array(questions.size) { "" }) }
     
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
     LaunchedEffect(uiState) {
         if (uiState is PortraitUiState.Success) {
@@ -67,44 +70,43 @@ fun PortraitScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { 
                     val recipientName = recipients.find { it.id == selectedRecipientId }?.name
-                    Text(recipientName?.let { "Portrait de $it" } ?: "Portrait d'un proche", style = MaterialTheme.typography.displaySmall) 
+                    Text(recipientName?.let { "Portrait de $it" } ?: "Portrait d'un proche", style = MaterialTheme.typography.displaySmall, color = theme.contentColor) 
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().background(
-            Brush.radialGradient(listOf(BackgroundSecondary, BackgroundPrimary), radius = 2000f)
-        )) {
+        Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
             if (selectedRecipientId == null) {
                 // Écran de sélection du destinataire
                 Column(modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp)) {
-                    Text("Pour qui écris-tu ce portrait ?", style = MaterialTheme.typography.headlineSmall, color = TextPrimary)
+                    Text("Pour qui écris-tu ce portrait ?", style = MaterialTheme.typography.headlineSmall, color = theme.contentColor)
                     Spacer(modifier = Modifier.height(24.dp))
                     
                     if (recipients.isEmpty()) {
-                        Text("Ton cercle est vide. Ajoute tes proches sur l'accueil d'abord.", color = TextSecondary)
+                        Text("Ton cercle est vide. Ajoute tes proches sur l'accueil d'abord.", color = theme.contentColor.copy(alpha = 0.6f))
                     } else {
                         recipients.forEach { recipient ->
                             Surface(
                                 onClick = { selectedRecipientId = recipient.id },
                                 modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                                color = SurfaceCard,
-                                shape = MaterialTheme.shapes.medium
+                                color = theme.contentColor.copy(alpha = 0.05f),
+                                shape = MaterialTheme.shapes.medium,
+                                border = BorderStroke(1.dp, accent.copy(alpha = 0.1f))
                             ) {
                                 Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Text(recipient.name, style = MaterialTheme.typography.bodyLarge, color = TextPrimary, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                                    Text(recipient.relationship, style = MaterialTheme.typography.labelSmall, color = AccentPrimary)
+                                    Text(recipient.name, style = MaterialTheme.typography.bodyLarge, color = theme.contentColor, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                                    Text(recipient.relationship, style = MaterialTheme.typography.labelSmall, color = accent)
                                 }
                             }
                         }
@@ -122,8 +124,8 @@ fun PortraitScreen(
                     LinearProgressIndicator(
                         progress = { (step + 1) / questions.size.toFloat() },
                         modifier = Modifier.fillMaxWidth().height(4.dp).clip(CircleShape),
-                        color = AccentPrimary,
-                        trackColor = TextTertiary.copy(alpha = 0.2f)
+                        color = accent,
+                        trackColor = theme.contentColor.copy(alpha = 0.1f)
                     )
                     
                     Spacer(modifier = Modifier.height(32.dp))
@@ -132,7 +134,7 @@ fun PortraitScreen(
                         Text(
                             text = "QUESTION ${step + 1} SUR ${questions.size}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = AccentPrimary,
+                            color = accent,
                             letterSpacing = 2.sp
                         )
                         
@@ -140,7 +142,7 @@ fun PortraitScreen(
                             TextButton(onClick = { 
                                 viewModel.savePortrait(selectedRecipientId!!, questions, answers.toList()) 
                             }) {
-                                Text("Terminer maintenant", color = AccentSecondary, style = MaterialTheme.typography.labelSmall)
+                                Text("Terminer maintenant", color = accent.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall)
                             }
                         }
                     }
@@ -150,31 +152,31 @@ fun PortraitScreen(
                     Text(
                         text = questions[step],
                         style = MaterialTheme.typography.displaySmall.copy(lineHeight = 34.sp),
-                        color = TextPrimary
+                        color = theme.contentColor
                     )
 
                     Spacer(modifier = Modifier.height(32.dp))
 
                     Card(
                         modifier = Modifier.fillMaxWidth().weight(1f).phoenXMatiere(isPaper = true),
-                        colors = CardDefaults.cardColors(containerColor = MateriauPapier.copy(alpha = 0.05f)),
+                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.02f)),
                         shape = MaterialTheme.shapes.large,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.1f))
+                        border = BorderStroke(1.dp, accent.copy(alpha = 0.1f))
                     ) {
                         TextField(
                             value = answers[step],
                             onValueChange = { answers[step] = it },
                             modifier = Modifier.fillMaxSize().padding(8.dp),
-                            placeholder = { Text("Écris tes pensées ici... (Optionnel)", style = MaterialTheme.typography.bodyLarge, color = TextTertiary) },
+                            placeholder = { Text("Écris tes pensées ici... (Optionnel)", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor.copy(alpha = 0.3f)) },
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
                                 focusedIndicatorColor = Color.Transparent,
                                 unfocusedIndicatorColor = Color.Transparent,
-                                focusedTextColor = TextPrimary,
-                                unfocusedTextColor = TextPrimary
+                                focusedTextColor = theme.contentColor,
+                                unfocusedTextColor = theme.contentColor
                             ),
-                            textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp)
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(fontSize = 18.sp, color = theme.contentColor)
                         )
                     }
 
@@ -187,11 +189,11 @@ fun PortraitScreen(
                     ) {
                         if (step > 0) {
                             TextButton(onClick = { step-- }) {
-                                Text("Précédent", color = TextSecondary)
+                                Text("Précédent", color = theme.contentColor.copy(alpha = 0.6f))
                             }
                         } else {
                             TextButton(onClick = { selectedRecipientId = null }) {
-                                Text("Changer de proche", color = TextTertiary)
+                                Text("Changer de proche", color = theme.contentColor.copy(alpha = 0.4f))
                             }
                         }
 
@@ -202,21 +204,21 @@ fun PortraitScreen(
                                     viewModel.savePortrait(selectedRecipientId!!, questions, answers.toList())
                                 }
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary),
+                            colors = ButtonDefaults.buttonColors(containerColor = accent),
                             shape = MaterialTheme.shapes.medium,
                             modifier = Modifier.height(48.dp)
                         ) {
                             if (uiState is PortraitUiState.Loading) {
-                                androidx.compose.material3.CircularProgressIndicator(
+                                CircularProgressIndicator(
                                     modifier = Modifier.size(20.dp),
-                                    color = BackgroundPrimary,
+                                    color = theme.backgroundColor,
                                     strokeWidth = 2.dp
                                 )
                             } else {
                                 val buttonText = if (step < questions.size - 1) {
                                     if (answers[step].isEmpty()) "Passer" else "Suivant"
                                 } else "Finaliser"
-                                Text(buttonText, color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                                Text(buttonText, color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                             }
                         }
                     }

@@ -128,7 +128,7 @@ fun HomeScreen(
     ) {
         Scaffold(
             containerColor = Color.Transparent,
-            modifier = Modifier.background(LocalBackgroundBrush.current),
+            modifier = Modifier.background(LocalBackgroundBrush.current).statusBarsPadding(),
             bottomBar = {
                 HomeNavigationBar(
                     onNavigateToHome = { },
@@ -647,7 +647,7 @@ fun HomeNavigationBar(
 ) {
     val theme = LocalAppTheme.current
     Surface(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
         color = theme.backgroundColor.copy(alpha = 0.95f),
         border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {

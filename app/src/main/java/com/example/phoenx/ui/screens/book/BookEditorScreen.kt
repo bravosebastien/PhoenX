@@ -69,6 +69,8 @@ fun BookEditorScreen(
     var showAiExplanation by remember { mutableStateOf(false) }
     var showIntroEditor by remember { mutableStateOf(false) }
     var isStyleExpanded by remember { mutableStateOf(false) }
+    var isTransmissionExpanded by remember { mutableStateOf(false) }
+    var isIntroExpanded by remember { mutableStateOf(false) }
     
     // v8.9.0 : Thème Global
     val theme = LocalAppTheme.current
@@ -110,6 +112,8 @@ fun BookEditorScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(theme.backgroundColor)
+            .statusBarsPadding()
+            .navigationBarsPadding()
     ) {
         LazyColumn(
             modifier = Modifier
@@ -220,8 +224,7 @@ fun BookEditorScreen(
                         
                         Spacer(modifier = Modifier.height(16.dp))
                         
-                        // PRÉFACE DU MANUSCRIT (Ancienne Introduction déplacée ici)
-                        var isIntroExpanded by remember { mutableStateOf(false) }
+                        // PRÉFACE DU MANUSCRIT (Bandeau déroulant)
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -230,7 +233,7 @@ fun BookEditorScreen(
                             shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
                         ) {
-                            Column(modifier = Modifier.padding(16.dp)) {
+                            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
@@ -239,7 +242,7 @@ fun BookEditorScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.HistoryEdu, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(18.dp))
                                         Spacer(Modifier.width(12.dp))
-                                        Text("PRÉFACE DU MANUSCRIT", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
+                                        Text("PRÉFACE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
                                     }
                                     Icon(
                                         imageVector = if (isIntroExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -268,53 +271,89 @@ fun BookEditorScreen(
                 // ── RÉGLAGES CÔTE À CÔTE (v8.9.2) ────────────
                 item {
                     Row(
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // TRANSMISSION (Gris très clair)
-                        Box(modifier = Modifier.weight(1f)) {
-                            SealedMessageSection(
-                                userName = userName,
-                                currentMessage = bookDraft!!.sealedMessage,
-                                onMessageSelected = { viewModel.updateSealedMessage(it) }
-                            )
+                        // TRANSMISSION
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(64.dp)
+                                .clickable { isTransmissionExpanded = !isTransmissionExpanded },
+                            color = theme.contentColor.copy(alpha = 0.05f),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, if (isTransmissionExpanded) accent.copy(alpha = 0.4f) else Color.Transparent)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Icon(Icons.Default.Lock, null, tint = accent, modifier = Modifier.size(18.dp))
+                                Text(
+                                    "TRANSMISSION", 
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                                    color = theme.contentColor.copy(alpha = 0.6f),
+                                    maxLines = 1
+                                )
+                                Icon(
+                                    imageVector = if (isTransmissionExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, 
+                                    null, 
+                                    tint = theme.contentColor.copy(alpha = 0.2f),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
                         }
                         
-                        // STYLE (Gris très clair)
-                        Box(modifier = Modifier.weight(1f)) {
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp) // Hauteur fixe pour aligner avec l'autre bandeau fermé
-                                    .clickable { isStyleExpanded = !isStyleExpanded },
-                                color = theme.contentColor.copy(alpha = 0.05f),
-                                shape = RoundedCornerShape(12.dp),
-                                border = BorderStroke(1.dp, if (isStyleExpanded) accent.copy(alpha = 0.4f) else Color.Transparent)
+                        // STYLE
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(64.dp) 
+                                .clickable { isStyleExpanded = !isStyleExpanded },
+                            color = theme.contentColor.copy(alpha = 0.05f),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, if (isStyleExpanded) accent.copy(alpha = 0.4f) else Color.Transparent)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Icon(Icons.Default.Palette, null, tint = accent, modifier = Modifier.size(18.dp))
-                                    Text(
-                                        "STYLE", 
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
-                                        color = theme.contentColor.copy(alpha = 0.6f)
-                                    )
-                                    Icon(
-                                        imageVector = if (isStyleExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                        contentDescription = null,
-                                        tint = theme.contentColor.copy(alpha = 0.2f),
-                                        modifier = Modifier.size(14.dp)
-                                    )
-                                }
+                                Icon(Icons.Default.Palette, null, tint = accent, modifier = Modifier.size(18.dp))
+                                Text(
+                                    "STYLE", 
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                                    color = theme.contentColor.copy(alpha = 0.6f)
+                                )
+                                Icon(
+                                    imageVector = if (isStyleExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = null,
+                                    tint = theme.contentColor.copy(alpha = 0.2f),
+                                    modifier = Modifier.size(14.dp)
+                                )
                             }
                         }
                     }
                 }
                 
-                // Overlay Style si ouvert
+                // Zone de sélection Transmission (Pleine largeur)
+                item {
+                    AnimatedVisibility(visible = isTransmissionExpanded) {
+                        Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                            SealedMessageOptions(
+                                userName = userName,
+                                currentMessage = bookDraft!!.sealedMessage,
+                                onMessageSelected = { 
+                                    viewModel.updateSealedMessage(it)
+                                    isTransmissionExpanded = false 
+                                }
+                            )
+                        }
+                    }
+                }
+                
+                // Overlay Style si ouvert (Pleine largeur)
                 item {
                     AnimatedVisibility(visible = isStyleExpanded) {
                         Column(modifier = Modifier.padding(bottom = 24.dp)) {
@@ -528,14 +567,13 @@ fun BookEditorScreen(
 }
 
 @Composable
-fun SealedMessageSection(
+fun SealedMessageOptions(
     userName: String,
     currentMessage: String,
     onMessageSelected: (String) -> Unit
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
-    var expanded by remember { mutableStateOf(false) }
     val options = listOf(
         "$userName a décidé de vous partager le livre de sa vie. Visible le moment venu.",
         "$userName a préparé un précieux cadeau pour vous : le récit de sa vie, protégé avec tendresse jusqu'au moment de vous être transmis.",
@@ -550,104 +588,64 @@ fun SealedMessageSection(
     }
 
     Column {
-        // BANDEAU DÉROULANT (v8.6.3)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded },
-            color = theme.contentColor.copy(alpha = 0.05f),
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, if (expanded) accent.copy(alpha = 0.4f) else Color.Transparent)
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+        options.forEach { phrase ->
+            val isSelected = !isCustomMode && currentMessage == phrase
+            Card(
+                onClick = { 
+                    isCustomMode = false
+                    onMessageSelected(phrase) 
+                },
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isSelected) accent.copy(alpha = 0.15f) else theme.contentColor.copy(alpha = 0.05f)
+                ),
+                border = BorderStroke(1.dp, if (isSelected) accent else Color.Transparent)
             ) {
-                Icon(Icons.Default.Lock, null, tint = accent, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        "MESSAGE DE TRANSMISSION", 
-                        style = MaterialTheme.typography.labelSmall, 
-                        color = accent, 
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        "Modifier le message d'attente", 
-                        style = MaterialTheme.typography.bodySmall, 
-                        color = theme.contentColor.copy(alpha = 0.4f)
-                    )
-                }
-                Icon(
-                    imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, 
-                    null, 
-                    tint = theme.contentColor.copy(alpha = 0.4f)
+                Text(
+                    text = phrase,
+                    style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic, fontFamily = theme.fontFamily),
+                    modifier = Modifier.padding(12.dp),
+                    color = if (isSelected) theme.contentColor else theme.contentColor.copy(alpha = 0.6f)
                 )
             }
         }
 
-        AnimatedVisibility(visible = expanded) {
-            Column(modifier = Modifier.padding(top = 12.dp)) {
-                options.forEach { phrase ->
-                    val isSelected = !isCustomMode && currentMessage == phrase
-                    Card(
-                        onClick = { 
-                            isCustomMode = false
-                            onMessageSelected(phrase) 
+        // Option Personnalisée
+        Card(
+            onClick = { 
+                isCustomMode = true 
+                if (customText.isNotBlank()) onMessageSelected(customText)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = if (isCustomMode) accent.copy(alpha = 0.15f) else theme.contentColor.copy(alpha = 0.05f)
+            ),
+            border = BorderStroke(1.dp, if (isCustomMode) accent else Color.Transparent)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    "Écrire mon propre message...",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isCustomMode) theme.contentColor else theme.contentColor.copy(alpha = 0.6f)
+                )
+                if (isCustomMode) {
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = customText,
+                        onValueChange = { 
+                            customText = it
+                            onMessageSelected(it)
                         },
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) accent.copy(alpha = 0.15f) else theme.contentColor.copy(alpha = 0.05f)
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = MaterialTheme.typography.bodySmall,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
                         ),
-                        border = BorderStroke(1.dp, if (isSelected) accent else Color.Transparent)
-                    ) {
-                        Text(
-                            text = phrase,
-                            style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
-                            modifier = Modifier.padding(12.dp),
-                            color = if (isSelected) theme.contentColor else theme.contentColor.copy(alpha = 0.6f)
-                        )
-                    }
-                }
-
-                // Option Personnalisée
-                Card(
-                    onClick = { 
-                        isCustomMode = true 
-                        if (customText.isNotBlank()) onMessageSelected(customText)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = if (isCustomMode) accent.copy(alpha = 0.15f) else theme.contentColor.copy(alpha = 0.05f)
-                    ),
-                    border = BorderStroke(1.dp, if (isCustomMode) accent else Color.Transparent)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp)) {
-                        Text(
-                            "Écrire mon propre message...",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (isCustomMode) theme.contentColor else theme.contentColor.copy(alpha = 0.6f)
-                        )
-                        if (isCustomMode) {
-                            Spacer(Modifier.height(8.dp))
-                            OutlinedTextField(
-                                value = customText,
-                                onValueChange = { 
-                                    customText = it
-                                    onMessageSelected(it)
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                textStyle = MaterialTheme.typography.bodySmall,
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    focusedBorderColor = accent,
-                                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
-                                    focusedTextColor = theme.contentColor,
-                                    unfocusedTextColor = theme.contentColor
-                                ),
-                                placeholder = { Text("Votre message personnel...", fontSize = 12.sp, color = theme.contentColor.copy(alpha = 0.3f)) }
-                            )
-                        }
-                    }
+                        placeholder = { Text("Votre message personnel...", fontSize = 12.sp, color = theme.contentColor.copy(alpha = 0.3f)) }
+                    )
                 }
             }
         }

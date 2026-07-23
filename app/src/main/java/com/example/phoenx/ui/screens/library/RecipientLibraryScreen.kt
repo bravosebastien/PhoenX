@@ -73,6 +73,8 @@ fun RecipientLibraryScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(theme.backgroundColor)
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .verticalScroll(rememberScrollState())
     ) {
         // HEADER
@@ -110,12 +112,12 @@ fun RecipientLibraryScreen(
             modifier = Modifier.padding(start = 16.dp, bottom = 14.dp)
         )
 
-        // ── 1. ESSENTIELS (Lignes fines) ──────────────────
+        // ── 1. ESSENTIELS (Lignes fines - AGRANDIES v8.9.6) ──────────────────
         Text(
             "ESSENTIELS",
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp),
             color = theme.contentColor.copy(alpha = 0.4f),
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
         )
 
         CompactEssentialRow(
@@ -151,19 +153,19 @@ fun RecipientLibraryScreen(
             theme = theme
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(64.dp))
 
-        // ── 2. GRILLE DE 6 BLOCS VISIBLES ──────────────────
+        // ── 2. GRILLE DE 6 BLOCS VISIBLES (AGRANDIS v8.9.6) ──────────────────
         Text(
             "COMPARTIMENTS",
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp),
             color = theme.contentColor.copy(alpha = 0.4f),
-            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
+            modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)
         )
 
         FlowRow(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             maxItemsInEachRow = 3
         ) {
             val itemModifier = Modifier.weight(1f)
@@ -212,12 +214,12 @@ fun RecipientLibraryScreen(
                 modifier = itemModifier
                     .clip(RoundedCornerShape(12.dp))
                     .clickable { isExpanded = !isExpanded }
-                    .padding(vertical = 12.dp),
+                    .padding(vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Surface(
-                    modifier = Modifier.size(44.dp),
+                    modifier = Modifier.size(56.dp),
                     shape = CircleShape,
                     color = accent.copy(alpha = 0.1f),
                     border = BorderStroke(1.dp, accent.copy(alpha = 0.2f))
@@ -227,14 +229,14 @@ fun RecipientLibraryScreen(
                             if (isExpanded) Icons.Outlined.ExpandLess else Icons.Outlined.MoreHoriz, 
                             null, 
                             tint = accent, 
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 Text(
                     text = if (isExpanded) "Réduire" else "Autres",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold),
                     color = accent,
                     textAlign = TextAlign.Center
                 )
@@ -248,13 +250,13 @@ fun RecipientLibraryScreen(
                 // GROUPE 1 : ACTIONS DE CRÉATION
                 Text(
                     "DÉPOSER ET TRANSMETTRE",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp),
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.2.sp),
                     color = theme.contentColor.copy(alpha = 0.3f),
-                    modifier = Modifier.padding(start = 8.dp, top = 24.dp, bottom = 8.dp)
+                    modifier = Modifier.padding(start = 8.dp, top = 32.dp, bottom = 12.dp)
                 )
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     maxItemsInEachRow = 3
                 ) {
                     val itemModifier = Modifier.weight(1f)
@@ -268,13 +270,13 @@ fun RecipientLibraryScreen(
                 // GROUPE 2 : MÉDIATHÈQUE (Auto)
                 Text(
                     "MA MÉDIATHÈQUE",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp),
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.2.sp),
                     color = theme.contentColor.copy(alpha = 0.3f),
-                    modifier = Modifier.padding(start = 8.dp, top = 24.dp, bottom = 8.dp)
+                    modifier = Modifier.padding(start = 8.dp, top = 32.dp, bottom = 12.dp)
                 )
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     maxItemsInEachRow = 3
                 ) {
                     val itemModifier = Modifier.weight(1f)
@@ -304,33 +306,33 @@ fun CompactEssentialRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable { onClick() }
-                .padding(horizontal = 20.dp, vertical = 14.dp),
+                .padding(horizontal = 24.dp, vertical = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Surface(
-                modifier = Modifier.size(36.dp),
-                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.size(50.dp),
+                shape = RoundedCornerShape(14.dp),
                 color = theme.accentColor.copy(alpha = 0.1f),
-                border = BorderStroke(0.5.dp, theme.accentColor.copy(alpha = 0.2f))
+                border = BorderStroke(1.dp, theme.accentColor.copy(alpha = 0.2f))
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = theme.accentColor, modifier = Modifier.size(18.dp))
+                    Icon(icon, null, tint = theme.accentColor, modifier = Modifier.size(28.dp))
                 }
             }
-            Spacer(Modifier.width(16.dp))
+            Spacer(Modifier.width(20.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title, 
                     style = TextStyle(
                         fontFamily = theme.fontFamily, 
                         fontWeight = FontWeight.Bold, 
-                        fontSize = 15.sp
+                        fontSize = 19.sp
                     ), 
                     color = theme.contentColor
                 )
                 Text(
                     text = info, 
-                    style = MaterialTheme.typography.labelSmall, 
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 13.sp), 
                     color = theme.contentColor.copy(alpha = 0.5f)
                 )
             }
@@ -338,7 +340,7 @@ fun CompactEssentialRow(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 null, 
                 tint = theme.contentColor.copy(alpha = 0.2f), 
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(22.dp)
             )
         }
         HorizontalDivider(
@@ -361,25 +363,25 @@ fun CompactGridItem(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
             .clickable { onClick() }
-            .padding(vertical = 12.dp),
+            .padding(vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Surface(
-            modifier = Modifier.size(46.dp),
+            modifier = Modifier.size(64.dp),
             shape = CircleShape,
             color = theme.contentColor.copy(alpha = 0.04f),
-            border = BorderStroke(0.5.dp, theme.contentColor.copy(alpha = 0.08f))
+            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.08f))
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Icon(icon, null, tint = theme.accentColor, modifier = Modifier.size(20.dp))
+                Icon(icon, null, tint = theme.accentColor, modifier = Modifier.size(32.dp))
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 10.sp, 
+                fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = theme.fontFamily
             ),

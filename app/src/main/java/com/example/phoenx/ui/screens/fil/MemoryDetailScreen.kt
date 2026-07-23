@@ -55,10 +55,29 @@ fun MemoryDetailScreen(
     val recipients by viewModel.recipients.collectAsState()
     val deleteSuccess by viewModel.deleteSuccess.collectAsState()
     val error by viewModel.error.collectAsState()
+    
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    val datePickerColors = DatePickerDefaults.colors(
+        containerColor = theme.backgroundColor,
+        titleContentColor = theme.contentColor,
+        headlineContentColor = theme.contentColor,
+        weekdayContentColor = theme.contentColor.copy(alpha = 0.4f),
+        subheadContentColor = theme.contentColor.copy(alpha = 0.4f),
+        yearContentColor = theme.contentColor,
+        currentYearContentColor = accent,
+        selectedYearContentColor = theme.backgroundColor,
+        selectedYearContainerColor = accent,
+        dayContentColor = theme.contentColor,
+        disabledDayContentColor = theme.contentColor.copy(alpha = 0.1f),
+        selectedDayContentColor = theme.backgroundColor,
+        selectedDayContainerColor = accent,
+        todayContentColor = accent,
+        todayDateBorderColor = accent
+    )
 
     // Observation du retour du Picker de lieu
     val pickedLocationId by navController.currentBackStackEntry?.savedStateHandle
@@ -132,9 +151,9 @@ fun MemoryDetailScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            containerColor = BackgroundSecondary,
-            title = { Text("Supprimer ce souvenir ?", color = TextPrimary) },
-            text = { Text("Cette action est irréversible et supprimera le souvenir de votre fil ainsi que du Cloud.", color = TextSecondary) },
+            containerColor = theme.backgroundColor,
+            title = { Text("Supprimer ce souvenir ?", color = theme.contentColor) },
+            text = { Text("Cette action est irréversible et supprimera le souvenir de votre fil ainsi que du Cloud.", color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 TextButton(
                     onClick = { 
@@ -147,7 +166,7 @@ fun MemoryDetailScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Annuler", color = TextPrimary)
+                    Text("Annuler", color = theme.contentColor)
                 }
             }
         )
@@ -168,11 +187,11 @@ fun MemoryDetailScreen(
                             else "L'Étincelle & son Récit"
                         }
                     }
-                    Text(titleText, style = MaterialTheme.typography.labelLarge) 
+                    Text(titleText, style = MaterialTheme.typography.labelLarge, color = theme.contentColor) 
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
                 actions = {
@@ -254,16 +273,15 @@ fun MemoryDetailScreen(
                             }
                         }
                     }
-                }
-else {
+                } else {
                     // Titre fixe pour le Portrait
                     Column {
-                        Text("LE SUJET", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Text("LE SUJET", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = entry!!.aiSummary,
-                            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif, fontWeight = FontWeight.Bold),
-                            color = TextPrimary
+                            style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                            color = theme.contentColor
                         )
                     }
                 }
@@ -278,14 +296,14 @@ else {
                 } else {
                     Column {
                         val récitLabel = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") "MA RÉPONSE" else "LE RÉCIT"
-                        Text(récitLabel, style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Text(récitLabel, style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
                         Spacer(modifier = Modifier.height(12.dp))
                         
                         if (isChildEntry || textComplements.isEmpty()) {
                             // Édition en place pour les réponses atomiques
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                                 shape = RoundedCornerShape(12.dp),
                                 border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
                             ) {
@@ -293,14 +311,14 @@ else {
                                     value = editableText,
                                     onValueChange = { editableText = it },
                                     modifier = Modifier.fillMaxWidth().padding(8.dp),
-                                    textStyle = MaterialTheme.typography.bodyLarge.copy(lineHeight = 26.sp),
+                                    textStyle = MaterialTheme.typography.bodyLarge.copy(lineHeight = 26.sp, color = theme.contentColor),
                                     colors = TextFieldDefaults.colors(
                                         focusedContainerColor = Color.Transparent,
                                         unfocusedContainerColor = Color.Transparent,
                                         focusedIndicatorColor = Color.Transparent,
                                         unfocusedIndicatorColor = Color.Transparent,
-                                        focusedTextColor = TextPrimary,
-                                        unfocusedTextColor = TextPrimary
+                                        focusedTextColor = theme.contentColor,
+                                        unfocusedTextColor = theme.contentColor
                                     )
                                 )
                             }
@@ -309,7 +327,7 @@ else {
                             textComplements.forEach { (compId, text) ->
                                 Card(
                                     modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                                     shape = RoundedCornerShape(12.dp),
                                     border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
                                 ) {
@@ -322,17 +340,17 @@ else {
                                                 }
                                                 Spacer(Modifier.width(8.dp))
                                                 IconButton(onClick = { viewModel.deleteComplement(compId) }, modifier = Modifier.size(24.dp)) {
-                                                    Icon(Icons.Default.Close, null, tint = TextTertiary, modifier = Modifier.size(14.dp))
+                                                    Icon(Icons.Default.Close, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
                                                 }
                                             }
                                         }
                                         Text(
                                             text = text,
                                             style = MaterialTheme.typography.bodyMedium.copy(
-                                                fontFamily = FontFamily.Serif,
+                                                fontFamily = theme.fontFamily,
                                                 lineHeight = 24.sp
                                             ),
-                                            color = TextPrimary
+                                            color = theme.contentColor
                                         )
                                     }
                                 }
@@ -343,7 +361,7 @@ else {
 
                 // ON CACHE LE RESTE POUR LES RÉPONSES ATOMIQUES (v8.5.9)
                 if (!isChildEntry) {
-                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp)
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp)
 
                     // DATE RÉELLE (MemoryDate / Période)
                     Column {
@@ -352,17 +370,17 @@ else {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("QUAND ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                            Text("QUAND ?", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
                             
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Date", style = MaterialTheme.typography.labelSmall, color = if (!isPeriodMode) accent else TextTertiary)
+                                Text("Date", style = MaterialTheme.typography.labelSmall, color = if (!isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
                                 Switch(
                                     checked = isPeriodMode,
                                     onCheckedChange = { isPeriodMode = it },
                                     modifier = Modifier.scale(0.7f),
                                     colors = SwitchDefaults.colors(checkedThumbColor = accent)
                                 )
-                                Text("Période", style = MaterialTheme.typography.labelSmall, color = if (isPeriodMode) accent else TextTertiary)
+                                Text("Période", style = MaterialTheme.typography.labelSmall, color = if (isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
                             }
                         }
                         Spacer(modifier = Modifier.height(12.dp))
@@ -371,18 +389,29 @@ else {
                             var showDatePicker by remember { mutableStateOf(false) }
                             val datePickerState = rememberDatePickerState(initialSelectedDateMillis = entry!!.memoryDate ?: entry!!.createdAt)
 
-                            OutlinedButton(
-                                onClick = { showDatePicker = true },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = MaterialTheme.shapes.medium,
-                                border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.3f))
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showDatePicker = true }
+                                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                                color = theme.contentColor.copy(alpha = 0.03f),
+                                shape = RoundedCornerShape(12.dp)
                             ) {
-                                Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(18.dp), tint = accent)
-                                Spacer(modifier = Modifier.width(12.dp))
-                                val dateText = entry!!.memoryDate?.let { 
-                                    SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(it))
-                                } ?: "Ajouter une date précise"
-                                Text(dateText, color = TextPrimary)
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("DATE PRÉCISE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.CalendarToday, null, tint = accent, modifier = Modifier.size(16.dp))
+                                        Spacer(Modifier.width(8.dp))
+                                        val dateText = entry!!.memoryDate?.let { 
+                                            SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(it))
+                                        } ?: "Ajouter une date"
+                                        Text(dateText, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                                    }
+                                }
                             }
 
                             if (showDatePicker) {
@@ -393,8 +422,9 @@ else {
                                             viewModel.updateMemoryDate(datePickerState.selectedDateMillis)
                                             showDatePicker = false
                                         }) { Text("Confirmer", color = accent) }
-                                    }
-                                ) { DatePicker(state = datePickerState) }
+                                    },
+                                    colors = datePickerColors
+                                ) { DatePicker(state = datePickerState, colors = datePickerColors) }
                             }
                         } else {
                             // MODE PÉRIODE
@@ -409,19 +439,25 @@ else {
                                     onClick = { showStartPicker = true },
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(8.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.3f))
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                                    colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f))
                                 ) {
+                                    Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
+                                    Spacer(Modifier.width(8.dp))
                                     val txt = entry!!.memoryDateStart?.let { SimpleDateFormat("dd/MM/yy").format(Date(it)) } ?: "Début"
-                                    Text(txt, color = TextPrimary, fontSize = 12.sp)
+                                    Text(txt, color = theme.contentColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                                 OutlinedButton(
                                     onClick = { showEndPicker = true },
                                     modifier = Modifier.weight(1f),
                                     shape = RoundedCornerShape(8.dp),
-                                    border = androidx.compose.foundation.BorderStroke(1.dp, TextTertiary.copy(alpha = 0.3f))
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                                    colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f))
                                 ) {
+                                    Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
+                                    Spacer(Modifier.width(8.dp))
                                     val txt = entry!!.memoryDateEnd?.let { SimpleDateFormat("dd/MM/yy").format(Date(it)) } ?: "Fin"
-                                    Text(txt, color = TextPrimary, fontSize = 12.sp)
+                                    Text(txt, color = theme.contentColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
 
@@ -433,8 +469,9 @@ else {
                                             viewModel.updateMemoryPeriod(startState.selectedDateMillis, entry!!.memoryDateEnd)
                                             showStartPicker = false
                                         }) { Text("Confirmer", color = accent) }
-                                    }
-                                ) { DatePicker(state = startState) }
+                                    },
+                                    colors = datePickerColors
+                                ) { DatePicker(state = startState, colors = datePickerColors) }
                             }
                             if (showEndPicker) {
                                 DatePickerDialog(
@@ -444,8 +481,9 @@ else {
                                             viewModel.updateMemoryPeriod(entry!!.memoryDateStart, endState.selectedDateMillis)
                                             showEndPicker = false
                                         }) { Text("Confirmer", color = accent) }
-                                    }
-                                ) { DatePicker(state = endState) }
+                                    },
+                                    colors = datePickerColors
+                                ) { DatePicker(state = endState, colors = datePickerColors) }
                             }
                         }
                     }
@@ -455,11 +493,13 @@ else {
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { isTiroirsExpanded = !isTiroirsExpanded },
-                            color = Color.Transparent
+                                .clickable { isTiroirsExpanded = !isTiroirsExpanded }
+                                .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                            color = theme.contentColor.copy(alpha = 0.03f),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Row(
-                                modifier = Modifier.padding(vertical = 8.dp),
+                                modifier = Modifier.padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
@@ -521,7 +561,7 @@ else {
                         }
                     }
 
-                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp)
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp)
 
                     // COMPLÉMENTS MÉDIA
                     Column {
@@ -530,7 +570,7 @@ else {
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("COMPLÉMENTS MÉDIA", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                            Text("COMPLÉMENTS MÉDIA", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
                             Box {
                                 IconButton(
                                     onClick = { showAddMediaMenu = true },
@@ -542,7 +582,7 @@ else {
                                 DropdownMenu(
                                     expanded = showAddMediaMenu,
                                     onDismissRequest = { showAddMediaMenu = false },
-                                    containerColor = BackgroundSecondary
+                                    containerColor = theme.backgroundColor
                                 ) {
                                     val types = listOf(
                                         Triple("Texte", Icons.Default.Description, "TEXT"),
@@ -552,7 +592,7 @@ else {
                                     )
                                     types.forEach { (label, icon, type) ->
                                         DropdownMenuItem(
-                                            text = { Text(if (type == "TEXT") "Ajouter un récit" else label, color = TextPrimary) },
+                                            text = { Text(if (type == "TEXT") "Ajouter un récit" else label, color = theme.contentColor) },
                                             leadingIcon = { Icon(icon, null, tint = accent) },
                                             onClick = {
                                                 showAddMediaMenu = false
@@ -567,7 +607,7 @@ else {
                         Spacer(modifier = Modifier.height(12.dp))
                         
                         if (complements.isEmpty()) {
-                            Text("Aucun média complémentaire rattaché.", style = MaterialTheme.typography.bodySmall, color = TextTertiary)
+                            Text("Aucun média complémentaire rattaché.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.4f))
                         } else {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 complements.filter { it.entryType != "TEXT" }.forEach { complement ->
@@ -579,7 +619,7 @@ else {
                                                     Screen.MediaViewer.createRoute(complement.id, targetCreatorId)
                                                 )
                                             },
-                                        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+                                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
                                         shape = RoundedCornerShape(12.dp),
                                         border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
                                     ) {
@@ -619,7 +659,7 @@ else {
                                                 Text(
                                                     text = complement.aiSummary.ifEmpty { "Média ${complement.entryType.lowercase()}" },
                                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                                    color = TextPrimary,
+                                                    color = theme.contentColor,
                                                     maxLines = 1,
                                                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                                 )
@@ -628,13 +668,13 @@ else {
                                                         imageVector = if (complement.visibility == "EVERYONE") Icons.Default.Public else Icons.Default.Lock,
                                                         contentDescription = null,
                                                         modifier = Modifier.size(10.dp),
-                                                        tint = TextTertiary
+                                                        tint = theme.contentColor.copy(alpha = 0.4f)
                                                     )
                                                     Spacer(Modifier.width(4.dp))
                                                     Text(
                                                         text = if (complement.visibility == "EVERYONE") "Public" else "Restreint",
                                                         style = MaterialTheme.typography.labelSmall,
-                                                        color = TextTertiary
+                                                        color = theme.contentColor.copy(alpha = 0.4f)
                                                     )
                                                 }
                                             }
@@ -654,11 +694,13 @@ else {
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { isTonaliteExpanded = !isTonaliteExpanded },
-                            color = Color.Transparent
+                                .clickable { isTonaliteExpanded = !isTonaliteExpanded }
+                                .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                            color = theme.contentColor.copy(alpha = 0.03f),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Row(
-                                modifier = Modifier.padding(vertical = 8.dp),
+                                modifier = Modifier.padding(16.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
@@ -719,11 +761,11 @@ else {
                         }
                     }
 
-                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f), thickness = 0.5.dp)
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp)
 
                     // DESTINATAIRES
                     Column {
-                        Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
                         Spacer(modifier = Modifier.height(12.dp))
                         
                         val selectedRecipientIds = remember(entry!!.recipientIds) {
@@ -750,56 +792,55 @@ else {
 
                     // LIEU
                     Column {
-                        Text("OÙ ?", style = MaterialTheme.typography.labelSmall, color = TextTertiary, letterSpacing = 2.sp)
+                        Text("OÙ ?", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
                         Spacer(modifier = Modifier.height(12.dp))
                         
                         Surface(
-                            color = SurfaceCard.copy(alpha = 0.3f),
-                            shape = MaterialTheme.shapes.medium,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { 
+                                    if (entry!!.locationName == null) {
+                                        navController.navigate(Screen.Map.createRoute(returnToEntryId = entryId))
+                                    } else {
+                                        showLocationMenu = true
+                                    }
+                                }
+                                .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                            color = theme.contentColor.copy(alpha = 0.03f),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
                             Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.LocationOn, null, tint = accent, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     text = entry!!.locationName ?: "Lieu non défini",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = if (entry!!.locationName != null) TextPrimary else TextTertiary
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = if (entry!!.locationName != null) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
                                 )
                                 Spacer(modifier = Modifier.weight(1f))
-                                Box {
-                                    IconButton(onClick = { 
-                                        if (entry!!.locationName == null) {
-                                            navController.navigate(Screen.Map.createRoute(returnToEntryId = entryId))
-                                        } else {
-                                            showLocationMenu = true
-                                        }
-                                    }) {
-                                        Icon(Icons.Default.Edit, null, tint = TextTertiary, modifier = Modifier.size(18.dp))
-                                    }
+                                Icon(Icons.Default.Edit, null, tint = theme.contentColor.copy(alpha = 0.2f), modifier = Modifier.size(16.dp))
 
-                                    DropdownMenu(
-                                        expanded = showLocationMenu,
-                                        onDismissRequest = { showLocationMenu = false },
-                                        containerColor = BackgroundSecondary
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text("Changer de lieu", color = TextPrimary) },
-                                            leadingIcon = { Icon(Icons.Default.EditLocation, null, tint = accent) },
-                                            onClick = {
-                                                showLocationMenu = false
-                                                navController.navigate(Screen.Map.createRoute(returnToEntryId = entryId))
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text("Voir sur la carte", color = TextPrimary) },
-                                            leadingIcon = { Icon(Icons.Default.Map, null, tint = accent) },
-                                            onClick = {
-                                                showLocationMenu = false
-                                                navController.navigate(Screen.Map.createRoute())
-                                            }
-                                        )
-                                    }
+                                DropdownMenu(
+                                    expanded = showLocationMenu,
+                                    onDismissRequest = { showLocationMenu = false },
+                                    containerColor = theme.backgroundColor
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Changer de lieu", color = theme.contentColor) },
+                                        leadingIcon = { Icon(Icons.Default.EditLocation, null, tint = accent) },
+                                        onClick = {
+                                            showLocationMenu = false
+                                            navController.navigate(Screen.Map.createRoute(returnToEntryId = entryId))
+                                        }
+                                    )
+                                    DropdownMenuItem(
+                                        text = { Text("Voir sur la carte", color = theme.contentColor) },
+                                        leadingIcon = { Icon(Icons.Default.Map, null, tint = accent) },
+                                        onClick = {
+                                            showLocationMenu = false
+                                            navController.navigate(Screen.Map.createRoute())
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -819,6 +860,7 @@ fun PortraitAccordion(
     onEditItem: (String) -> Unit
 ) {
     var isMasterExpanded by remember { mutableStateOf(false) }
+    val theme = LocalAppTheme.current
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         // LE BANDEAU MAÎTRE (v8.5.9)
@@ -836,7 +878,7 @@ fun PortraitAccordion(
                 Spacer(Modifier.width(16.dp))
                 Text(
                     text = "LES RÉPONSES AU PORTRAIT (${items.size})",
-                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
                     color = accent,
                     modifier = Modifier.weight(1f)
                 )
@@ -861,7 +903,7 @@ fun PortraitAccordion(
                     Card(
                         onClick = { expanded = !expanded },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),
+                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                         shape = RoundedCornerShape(12.dp),
                         border = androidx.compose.foundation.BorderStroke(1.dp, if (expanded) accent.copy(alpha = 0.3f) else Color.Transparent)
                     ) {
@@ -880,7 +922,7 @@ fun PortraitAccordion(
                                 Text(
                                     text = item.question.ifBlank { "Pensée libre" },
                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = if (expanded) accent else TextPrimary,
+                                    color = if (expanded) accent else theme.contentColor,
                                     modifier = Modifier.weight(1f)
                                 )
                                 
@@ -897,18 +939,18 @@ fun PortraitAccordion(
                                 Icon(
                                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                                     contentDescription = null,
-                                    tint = TextTertiary
+                                    tint = theme.contentColor.copy(alpha = 0.2f)
                                 )
                             }
                             
                             if (expanded) {
                                 Spacer(modifier = Modifier.height(12.dp))
-                                HorizontalDivider(color = accent.copy(alpha = 0.1f))
+                                HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f))
                                 Spacer(modifier = Modifier.height(12.dp))
                                 Text(
                                     text = item.answer,
-                                    style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, lineHeight = 26.sp),
-                                    color = TextPrimary
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, lineHeight = 26.sp),
+                                    color = theme.contentColor
                                 )
                             }
                         }
