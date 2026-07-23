@@ -34,7 +34,8 @@ data class DetectiveCreateUiState(
     val unlockAfterDays: Int = 30, // Délai actuel (Legacy)
     val enigmaHint: String = "",
     val autoUnlockDays: String = "", // Pour le nouveau champ optionnel
-    val fallbackMessage: String = ""
+    val fallbackMessage: String = "",
+    val isUltimateSecret: Boolean = false // v8.9.4 : Fusion Tiroir Secret
 )
 
 @HiltViewModel
@@ -85,6 +86,10 @@ class DetectiveCreateViewModel @Inject constructor(
         _uiState.update { it.copy(autoUnlockDays = days) }
     }
 
+    fun toggleUltimateSecret(enabled: Boolean) {
+        _uiState.update { it.copy(isUltimateSecret = enabled) }
+    }
+
     fun hashAnswer(answer: String): String {
         return MessageDigest
             .getInstance("SHA-256")
@@ -120,20 +125,21 @@ class DetectiveCreateViewModel @Inject constructor(
                 offlineEntryDao.insertEntry(
                     OfflineEntry(
                         id = java.util.UUID.randomUUID().toString(),
-                        creatorUid = userId, // Ajout explicite requis pour le filtrage Room
+                        creatorUid = userId,
                         encryptedPayload = encryptedPayload,
                         entryType = state.contentType.name,
                         ageAtCreation = ageJson,
-                        emotionalCategory = "Sagesse",
+                        emotionalCategory = if (state.isUltimateSecret) "Secret" else "Sagesse",
                         visibility = "private",
                         isYoungSelfLetter = false,
                         syncStatus = "pending",
                         enigmaQuestion = state.enigmaText,
                         enigmaAnswer = hashedAnswer,
-                        unlockAfterDays = state.unlockAfterDays,
+                        unlockAfterDays = if (state.isUltimateSecret) 9999 else state.unlockAfterDays, // Pas de déblocage auto pour l'ultime
                         fallbackAnswer = hashedFallback,
                         enigmaHint = state.enigmaHint.ifBlank { null },
-                        enigmaAutoUnlockDays = state.autoUnlockDays.toIntOrNull()
+                        enigmaAutoUnlockDays = if (state.isUltimateSecret) null else state.autoUnlockDays.toIntOrNull(),
+                        isUltimateSecret = state.isUltimateSecret
                     )
                 )
 

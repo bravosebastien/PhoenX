@@ -57,6 +57,7 @@ fun FilScreen(
     val accent = theme.accentColor
 
     var showFilters by remember { mutableStateOf(false) }
+    var filterFavoritesOnly by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
     LaunchedEffect(targetCreatorId) {
@@ -124,8 +125,14 @@ fun FilScreen(
                 }
             } else {
                 // Séparation des souvenirs attribués et non attribués (v8.9.2)
-                val notAttributed = uiState.entries.filter { it.recipientIds.isEmpty() }
-                val attributed = uiState.entries.filter { it.recipientIds.isNotEmpty() }
+                val allEntries = if (filterFavoritesOnly) {
+                    uiState.entries.filter { it.tags.contains("FAVORITE") }
+                } else {
+                    uiState.entries
+                }
+
+                val notAttributed = allEntries.filter { it.recipientIds.isEmpty() }
+                val attributed = allEntries.filter { it.recipientIds.isNotEmpty() }
                 val groupedAttributed = attributed.groupBy { it.ageAtCreation.years }
 
                 LazyColumn(
@@ -221,6 +228,19 @@ fun FilScreen(
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Text("Mes coups de cœur", style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    FilterChip(
+                        selected = filterFavoritesOnly,
+                        onClick = { filterFavoritesOnly = !filterFavoritesOnly },
+                        label = { Text("Voir mes coups de cœur uniquement") },
+                        leadingIcon = { if (filterFavoritesOnly) Icon(Icons.Default.Star, null, modifier = Modifier.size(16.dp)) },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
+                    )
                 }
             }
         }

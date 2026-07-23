@@ -1,8 +1,8 @@
 package com.example.phoenx.ui.screens.detective
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,19 +10,14 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,6 +32,8 @@ fun DetectivePlayerScreen(
     viewModel: DetectiveViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var selectedEntry by remember { mutableStateOf<OfflineEntry?>(null) }
     var answer by remember { mutableStateOf("") }
 
@@ -45,24 +42,36 @@ fun DetectivePlayerScreen(
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Mode Détective", style = MaterialTheme.typography.displaySmall) },
+                title = { 
+                    Text(
+                        "Mode Détective", 
+                        style = MaterialTheme.typography.displaySmall.copy(
+                            fontFamily = theme.fontFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp
+                        )
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = theme.backgroundColor,
+                    titleContentColor = theme.contentColor
+                )
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+        Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor).padding(padding)) {
             if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = AccentPrimary)
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
             } else if (uiState.lockedEntries.isEmpty()) {
-                EmptyDetectiveContent()
+                EmptyDetectiveContent(theme)
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -72,8 +81,8 @@ fun DetectivePlayerScreen(
                     item {
                         Text(
                             "Déchiffre les énigmes pour accéder aux souvenirs.",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = TextSecondary
+                            style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily),
+                            color = theme.contentColor.copy(alpha = 0.7f)
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
@@ -95,6 +104,7 @@ fun DetectivePlayerScreen(
                             daysRemaining = if (entry.enigmaAutoUnlockDays != null && !isAutoUnlocked) autoDays - daysSinceCreation else 0,
                             isAutoUnlocked = isAutoUnlocked,
                             creatorName = uiState.creatorName,
+                            theme = theme,
                             onClick = { 
                                 if (uiState.unlockedEntryId != entry.id && !isAutoUnlocked) selectedEntry = entry 
                             }
@@ -107,59 +117,78 @@ fun DetectivePlayerScreen(
         if (selectedEntry != null) {
             AlertDialog(
                 onDismissRequest = { selectedEntry = null; answer = ""; viewModel.clearError() },
-                containerColor = BackgroundSecondary,
+                containerColor = theme.backgroundColor,
                 title = { 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Fingerprint, null, tint = AccentPrimary)
+                        Icon(
+                            imageVector = if (selectedEntry!!.isUltimateSecret) Icons.Default.Verified else Icons.Default.Fingerprint, 
+                            null, 
+                            tint = accent
+                        )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Énigme Personnelle", color = TextPrimary)
+                        Text(
+                            text = if (selectedEntry!!.isUltimateSecret) "Le Secret Ultime" else "Énigme Personnelle", 
+                            color = theme.contentColor,
+                            fontFamily = theme.fontFamily,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 },
                 text = {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Text(selectedEntry!!.enigmaQuestion ?: "", style = MaterialTheme.typography.bodyLarge, color = TextPrimary)
+                        if (selectedEntry!!.isUltimateSecret) {
+                            Text(
+                                "Cette confidence a été marquée comme capitale. Aucune ouverture automatique n'est possible. Seule la réponse exacte lèvera le sceau.",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                                color = accent
+                            )
+                        }
+
+                        Text(selectedEntry!!.enigmaQuestion ?: "", style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily), color = theme.contentColor)
                         
-                        // AFFICHAGE DE L'INDICE (Après 3 tentatives)
+                        // AFFICHAGE DE L'INDICE
                         val attemptCount = uiState.attempts[selectedEntry!!.id] ?: 0
                         if (attemptCount >= 3 && !selectedEntry!!.enigmaHint.isNullOrBlank()) {
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = AccentPrimary.copy(alpha = 0.05f)),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.2f)),
+                                colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
+                                border = BorderStroke(1.dp, accent.copy(alpha = 0.2f)),
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Fingerprint, null, tint = AccentPrimary, modifier = Modifier.size(16.dp))
-                                    Spacer(Modifier.width(8.dp))
+                                    Icon(Icons.Default.HelpOutline, null, tint = accent, modifier = Modifier.size(16.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = "Indice : ${selectedEntry!!.enigmaHint}",
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = TextPrimary
+                                        color = theme.contentColor
                                     )
                                 }
                             }
                         }
 
-                        // BANDEAU DÉLAI DE GRÂCE
-                        val autoDays = selectedEntry!!.enigmaAutoUnlockDays ?: selectedEntry!!.unlockAfterDays
-                        val daysLeft = autoDays - uiState.daysSinceActivation
-                        if (daysLeft > 0) {
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = SurfaceCard),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.5f)),
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Column(modifier = Modifier.padding(12.dp)) {
-                                    Text(
-                                        text = "Si tu ne connais pas la réponse, cette énigme s'ouvrira automatiquement dans $daysLeft jours.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = TextSecondary
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "${uiState.creatorName} a prévu cette option pour que tu puisses accéder à son message quoi qu'il arrive.",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = TextTertiary
-                                    )
+                        // BANDEAU DÉLAI DE GRÂCE (Uniquement si pas Secret Ultime)
+                        if (!selectedEntry!!.isUltimateSecret) {
+                            val autoDays = selectedEntry!!.enigmaAutoUnlockDays ?: selectedEntry!!.unlockAfterDays
+                            val daysLeft = autoDays - uiState.daysSinceActivation
+                            if (daysLeft > 0) {
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                                    border = BorderStroke(1.dp, accent.copy(alpha = 0.3f)),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Column(modifier = Modifier.padding(12.dp)) {
+                                        Text(
+                                            text = "Si tu ne connais pas la réponse, cette énigme s'ouvrira automatiquement dans $daysLeft jours.",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = theme.contentColor.copy(alpha = 0.7f)
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "${uiState.creatorName} a prévu cette option pour que tu puisses accéder à son message quoi qu'il arrive.",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = theme.contentColor.copy(alpha = 0.4f)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -169,7 +198,13 @@ fun DetectivePlayerScreen(
                             onValueChange = { answer = it },
                             label = { Text("Ta réponse") },
                             modifier = Modifier.fillMaxWidth(),
-                            isError = uiState.error != null
+                            isError = uiState.error != null,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = accent,
+                                unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                                focusedTextColor = theme.contentColor,
+                                unfocusedTextColor = theme.contentColor
+                            )
                         )
                         if (uiState.error != null) {
                             Text(uiState.error!!, color = Error, style = MaterialTheme.typography.labelSmall)
@@ -179,9 +214,9 @@ fun DetectivePlayerScreen(
                 confirmButton = {
                     Button(
                         onClick = { viewModel.attemptUnlock(selectedEntry!!, answer) },
-                        colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = accent)
                     ) {
-                        Text("Vérifier", color = BackgroundPrimary)
+                        Text("Vérifier", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                     }
                 }
             )
@@ -204,61 +239,89 @@ fun LockedEntryCard(
     daysRemaining: Int,
     isAutoUnlocked: Boolean,
     creatorName: String,
+    theme: AppThemeState,
     onClick: () -> Unit
 ) {
+    val accent = theme.accentColor
+    val isUltimate = entry.isUltimateSecret
+
     Card(
         modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).phoenXMatiere(),
-        colors = CardDefaults.cardColors(containerColor = SurfaceCard.copy(alpha = 0.6f)),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isUltimate && !isUnlocked) accent.copy(alpha = 0.08f) else theme.contentColor.copy(alpha = 0.05f)
+        ),
         shape = MaterialTheme.shapes.large,
-        border = androidx.compose.foundation.BorderStroke(1.dp, if (isUnlocked) Success.copy(alpha = 0.3f) else AccentPrimary.copy(alpha = 0.2f))
+        border = BorderStroke(
+            1.dp, 
+            if (isUnlocked) Success.copy(alpha = 0.3f) 
+            else if (isUltimate) accent.copy(alpha = 0.5f) 
+            else accent.copy(alpha = 0.2f)
+        )
     ) {
         Column {
-            if (!isUnlocked && daysRemaining > 0) {
+            if (!isUnlocked && !isUltimate && daysRemaining > 0) {
                 Surface(
-                    color = AccentPrimary.copy(alpha = 0.1f),
+                    color = accent.copy(alpha = 0.1f),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = "S'ouvrira automatiquement dans $daysRemaining jours",
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.labelSmall,
-                        color = AccentPrimary
+                        color = accent
                     )
+                }
+            } else if (!isUnlocked && isUltimate) {
+                Surface(
+                    color = accent.copy(alpha = 0.15f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Key, null, tint = accent, modifier = Modifier.size(12.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "SECRET ULTIME SCELLÉ",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = accent
+                        )
+                    }
                 }
             }
 
             Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = if (isUnlocked) Icons.Default.LockOpen else Icons.Default.Lock,
+                    imageVector = if (isUnlocked) Icons.Default.LockOpen 
+                                 else if (isUltimate) Icons.Default.Verified
+                                 else Icons.Default.Lock,
                     contentDescription = null,
-                    tint = if (isUnlocked) Success else AccentPrimary
+                    tint = if (isUnlocked) Success else accent
                 )
                 Spacer(modifier = Modifier.width(20.dp))
                 Column {
                     Text(
-                        text = if (isUnlocked) "SOUVENIR RÉVÉLÉ" else "CONTENU SCELLÉ",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isUnlocked) Success else AccentPrimary,
+                        text = if (isUnlocked) "SOUVENIR RÉVÉLÉ" else if (isUltimate) "CONFIDENCE SACRÉE" else "CONTENU SCELLÉ",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = if (isUnlocked) Success else accent,
                         letterSpacing = 1.sp
                     )
                     Text(
-                        text = if (isUnlocked) entry.aiSummary else "Résous l'énigme pour lire...",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary
+                        text = if (isUnlocked) entry.aiSummary else if (isUltimate) "Réponds à l'unique question..." else "Résous l'énigme pour lire...",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontFamily = theme.fontFamily),
+                        color = theme.contentColor
                     )
                     
                     if (isUnlocked && isAutoUnlocked) {
                         Text(
                             text = "Cette énigme s'est ouverte avec le temps.",
                             style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
-                            color = TextSecondary,
+                            color = theme.contentColor.copy(alpha = 0.6f),
                             modifier = Modifier.padding(top = 4.dp)
                         )
                         if (!entry.fallbackAnswer.isNullOrEmpty()) {
                             Text(
                                 text = "Note de $creatorName : \"${entry.fallbackAnswer}\"",
-                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic),
-                                color = TextPrimary,
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic),
+                                color = theme.contentColor,
                                 modifier = Modifier.padding(top = 8.dp)
                             )
                         }
@@ -270,14 +333,14 @@ fun LockedEntryCard(
 }
 
 @Composable
-fun EmptyDetectiveContent() {
+fun EmptyDetectiveContent(theme: AppThemeState) {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Icon(Icons.Default.Fingerprint, null, modifier = Modifier.size(64.dp), tint = TextTertiary)
+        Icon(Icons.Default.Fingerprint, null, modifier = Modifier.size(64.dp), tint = theme.contentColor.copy(alpha = 0.2f))
         Spacer(modifier = Modifier.height(24.dp))
-        Text("Aucun mystère à résoudre.", style = MaterialTheme.typography.bodyLarge, color = TextTertiary)
+        Text("Aucun mystère à résoudre.", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor.copy(alpha = 0.4f))
     }
 }

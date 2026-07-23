@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+import com.example.phoenx.data.sync.toOfflineEntry
 
 data class DetectiveUiState(
     val lockedEntries: List<OfflineEntry> = emptyList(),
@@ -72,9 +73,7 @@ class DetectiveViewModel @Inject constructor(
                         .whereNotEqualTo("enigmaQuestion", null)
                         .get().await()
                     
-                    val entries = snapshot.documents.mapNotNull { doc ->
-                        doc.toObject(OfflineEntry::class.java)?.copy(id = doc.id)
-                    }
+                    val entries = snapshot.documents.mapNotNull { it.toOfflineEntry() }
                     _uiState.update { it.copy(lockedEntries = entries, isLoading = false) }
                 } else {
                     // Mode Créateur lui-même (test local)

@@ -54,7 +54,8 @@ fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
         "enigmaHint" to enigmaHint,
         "enigmaAutoUnlockDays" to enigmaAutoUnlockDays,
         "questionId" to questionId,
-        "personIds" to personIds.split(",").filter { it.isNotBlank() }
+        "personIds" to personIds.split(",").filter { it.isNotBlank() },
+        "isUltimateSecret" to isUltimateSecret
     )
 }
 
@@ -108,6 +109,7 @@ fun DocumentSnapshot.toOfflineEntry(): OfflineEntry? {
         enigmaHint = getString("enigmaHint"),
         enigmaAutoUnlockDays = getLong("enigmaAutoUnlockDays")?.toInt(),
         questionId = getString("questionId"),
-        personIds = (get("personIds") as? List<*>)?.joinToString(",") ?: ""
+        personIds = (get("personIds") as? List<*>)?.joinToString(",") ?: "",
+        isUltimateSecret = getBoolean("isUltimateSecret") ?: false
     )
 }

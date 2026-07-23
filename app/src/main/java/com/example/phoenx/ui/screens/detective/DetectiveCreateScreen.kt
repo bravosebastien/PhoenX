@@ -4,7 +4,9 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -46,22 +48,35 @@ fun DetectiveCreateScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     
+    // v8.9.0 : Thème Global
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    
     val photoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         viewModel.updatePhotoUri(uri)
     }
 
     Scaffold(
-        containerColor = BackgroundPrimary,
+        containerColor = theme.backgroundColor,
         modifier = Modifier.imePadding(),
         topBar = {
             TopAppBar(
-                title = { Text("", style = MaterialTheme.typography.labelLarge) },
+                title = { 
+                    Text(
+                        if (uiState.isUltimateSecret) "Le Secret Ultime" else "Mode Détective", 
+                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                        fontFamily = theme.fontFamily
+                    ) 
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = TextPrimary)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = theme.backgroundColor,
+                    titleContentColor = theme.contentColor
+                )
             )
         }
     ) { padding ->
@@ -69,53 +84,119 @@ fun DetectiveCreateScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .background(if (uiState.isUltimateSecret) theme.contentColor.copy(alpha = 0.03f) else Color.Transparent)
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
+            // SÉLECTEUR DE TYPE (v8.9.4 : Fusion Secret Ultime)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(theme.contentColor.copy(alpha = 0.05f))
+                    .padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                TypeSelectorButton(
+                    selected = !uiState.isUltimateSecret,
+                    label = "Énigme Classique",
+                    icon = Icons.Default.Extension,
+                    modifier = Modifier.weight(1f),
+                    onClick = { viewModel.toggleUltimateSecret(false) },
+                    theme = theme
+                )
+                TypeSelectorButton(
+                    selected = uiState.isUltimateSecret,
+                    label = "Secret Ultime",
+                    icon = Icons.Default.Key,
+                    modifier = Modifier.weight(1f),
+                    onClick = { viewModel.toggleUltimateSecret(true) },
+                    theme = theme
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Un secret protégé par une question",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
-                    color = TextPrimary
+                    text = if (uiState.isUltimateSecret) "Le Trésor de ton Héritage" else "Un secret protégé par une question",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontFamily = theme.fontFamily,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = theme.contentColor
                 )
                 InfoButton(
-                    title = "Mode Détective",
-                    points = listOf(
-                        "Cache un contenu derrière une question dont seul ton proche connaît la réponse.",
-                        "La réponse est protégée localement — personne ne peut la lire, même nos serveurs.",
-                        "Ton proche a plusieurs tentatives pour trouver la réponse.",
-                        "Tape sur 'Besoin d'inspiration ?' pour voir 20 exemples de questions.",
-                        "C'est différent du Tiroir à Clé Unique — ici, pas de limite d'ouvertures."
-                    )
+                    title = if (uiState.isUltimateSecret) "Le Secret Ultime" else "Mode Détective",
+                    points = if (uiState.isUltimateSecret) {
+                        listOf(
+                            "Le Secret Ultime est le contenu le plus précieux de votre coffre.",
+                            "Il est protégé par une question d'une importance capitale.",
+                            "Sa révélation marque un moment solennel pour vos proches.",
+                            "Il est conseillé de n'avoir qu'un seul Secret Ultime par héritage.",
+                            "Sa présentation visuelle sera distinguée des autres énigmes."
+                        )
+                    } else {
+                        listOf(
+                            "Cache un contenu derrière une question dont seul ton proche connaît la réponse.",
+                            "La réponse est protégée localement — personne ne peut la lire, même nos serveurs.",
+                            "Ton proche a plusieurs tentatives pour trouver la réponse.",
+                            "Tape sur 'Besoin d'inspiration ?' pour voir 20 exemples de questions.",
+                            "C'est différent du Tiroir à Clé Unique — ici, pas de limite d'ouvertures."
+                        )
+                    }
                 )
             }
             Text(
-                text = "Seul celui qui connaît la réponse pourra accéder à ce que tu déposes ici.",
+                text = if (uiState.isUltimateSecret) 
+                    "Une confidence unique, scellée au cœur de votre mémoire." 
+                    else "Seul celui qui connaît la réponse pourra accéder à ce que tu déposes ici.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextSecondary,
+                color = theme.contentColor.copy(alpha = 0.6f),
                 modifier = Modifier.padding(top = 8.dp)
             )
+
+            if (uiState.isUltimateSecret) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, accent.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                        .background(accent.copy(alpha = 0.05f))
+                        .padding(12.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Verified, null, tint = accent, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            "Traitement Solennel Activé",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = accent
+                        )
+                    }
+                }
+            }
 
             Spacer(modifier = Modifier.height(40.dp))
 
             // ÉTAPE 1 — L'ÉNIGME
-            Text("LA QUESTION", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Text("LA QUESTION", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = uiState.enigmaText,
                 onValueChange = { viewModel.updateEnigma(it) },
-                placeholder = { Text("Ex : Quel était le nom de notre premier chien ?", color = TextTertiary) },
+                placeholder = { Text("Ex : Quel était le nom de notre premier chien ?", color = theme.contentColor.copy(alpha = 0.3f)) },
                 modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle(fontFamily = FontFamily.Serif, fontSize = 17.sp, color = TextPrimary),
+                textStyle = TextStyle(fontFamily = theme.fontFamily, fontSize = 17.sp, color = theme.contentColor),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentPrimary,
-                    unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f),
-                    unfocusedContainerColor = SurfaceCard,
-                    focusedContainerColor = SurfaceCard
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                    unfocusedContainerColor = theme.contentColor.copy(alpha = 0.03f),
+                    focusedContainerColor = theme.contentColor.copy(alpha = 0.03f)
                 ),
                 maxLines = 3
             )
@@ -125,7 +206,7 @@ fun DetectiveCreateScreen(
             Button(
                 onClick = { showInspiration = true },
                 modifier = Modifier.padding(top = 8.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary.copy(alpha = 0.15f)),
+                colors = ButtonDefaults.buttonColors(containerColor = accent.copy(alpha = 0.1f)),
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
@@ -133,13 +214,13 @@ fun DetectiveCreateScreen(
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
                         contentDescription = null,
-                        tint = AccentPrimary,
+                        tint = accent,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = "Besoin d'inspiration ?",
-                        color = AccentPrimary,
+                        color = accent,
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                     )
                 }
@@ -158,122 +239,141 @@ fun DetectiveCreateScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // ÉTAPE 2 — LA RÉPONSE
-            Text("LA RÉPONSE (invisible après saisie)", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Text("LA RÉPONSE (invisible après saisie)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = uiState.secretAnswer,
                 onValueChange = { viewModel.updateAnswer(it) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle(fontSize = 17.sp, color = TextPrimary),
+                textStyle = TextStyle(fontSize = 17.sp, color = theme.contentColor),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentPrimary,
-                    unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f),
-                    unfocusedContainerColor = SurfaceCard,
-                    focusedContainerColor = SurfaceCard
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                    unfocusedContainerColor = theme.contentColor.copy(alpha = 0.03f),
+                    focusedContainerColor = theme.contentColor.copy(alpha = 0.03f)
                 )
             )
             Text(
                 "La réponse est protégée localement par une empreinte numérique SHA-256. Personne ne peut la lire, même nos serveurs.",
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                color = TextTertiary,
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                color = theme.contentColor.copy(alpha = 0.4f),
                 modifier = Modifier.padding(top = 4.dp)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // ÉTAPE 2 bis — L'INDICE
-            Text("INDICE (Affiché après 3 échecs)", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Text("INDICE (Affiché après 3 échecs)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = uiState.enigmaHint,
                 onValueChange = { viewModel.updateEnigmaHint(it) },
-                placeholder = { Text("Ex : C'est le nom d'un animal...", color = TextTertiary) },
+                placeholder = { Text("Ex : C'est le nom d'un animal...", color = theme.contentColor.copy(alpha = 0.3f)) },
                 modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle(fontSize = 15.sp, color = TextPrimary),
+                textStyle = TextStyle(fontSize = 15.sp, color = theme.contentColor),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentPrimary,
-                    unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f),
-                    unfocusedContainerColor = SurfaceCard,
-                    focusedContainerColor = SurfaceCard
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                    unfocusedContainerColor = theme.contentColor.copy(alpha = 0.03f),
+                    focusedContainerColor = theme.contentColor.copy(alpha = 0.03f)
                 )
             )
 
             Spacer(modifier = Modifier.height(40.dp))
 
             // SECTION DÉLAI DE GRÂCE
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("DÉBLOCAGE AUTOMATIQUE", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
-                var autoUnlockEnabled by remember { mutableStateOf(uiState.autoUnlockDays.isNotEmpty()) }
-                Switch(
-                    checked = autoUnlockEnabled,
-                    onCheckedChange = { 
-                        autoUnlockEnabled = it
-                        if (!it) viewModel.updateAutoUnlockDays("")
-                        else viewModel.updateAutoUnlockDays("30")
-                    },
-                    colors = SwitchDefaults.colors(checkedThumbColor = AccentPrimary)
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            if (uiState.autoUnlockDays.isNotEmpty()) {
-                val delayOptions = listOf(7, 14, 30, 60, 90, 180)
-                var sliderPosition by remember { mutableFloatStateOf(delayOptions.indexOf(uiState.autoUnlockDays.toIntOrNull() ?: 30).coerceAtLeast(0).toFloat()) }
-                
-                Slider(
-                    value = sliderPosition,
-                    onValueChange = { 
-                        sliderPosition = it
-                        viewModel.updateAutoUnlockDays(delayOptions[it.toInt()].toString())
-                    },
-                    valueRange = 0f..(delayOptions.size - 1).toFloat(),
-                    steps = delayOptions.size - 2,
-                    colors = SliderDefaults.colors(
-                        thumbColor = AccentPrimary,
-                        activeTrackColor = AccentPrimary,
-                        inactiveTrackColor = SurfaceCard
+            if (!uiState.isUltimateSecret) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("DÉBLOCAGE AUTOMATIQUE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                    var autoUnlockEnabled by remember { mutableStateOf(uiState.autoUnlockDays.isNotEmpty()) }
+                    Switch(
+                        checked = autoUnlockEnabled,
+                        onCheckedChange = { 
+                            autoUnlockEnabled = it
+                            if (!it) viewModel.updateAutoUnlockDays("")
+                            else viewModel.updateAutoUnlockDays("30")
+                        },
+                        colors = SwitchDefaults.colors(checkedThumbColor = accent)
                     )
-                )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
                 
-                Text(
-                    text = "Ouvrir après ${uiState.autoUnlockDays} jours",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextPrimary
-                )
-                Text(
-                    text = "Ton proche pourra voir le contenu automatiquement après ce délai s'il ne trouve pas la réponse.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = TextTertiary,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+                if (uiState.autoUnlockDays.isNotEmpty()) {
+                    val delayOptions = listOf(7, 14, 30, 60, 90, 180)
+                    var sliderPosition by remember { mutableFloatStateOf(delayOptions.indexOf(uiState.autoUnlockDays.toIntOrNull() ?: 30).coerceAtLeast(0).toFloat()) }
+                    
+                    Slider(
+                        value = sliderPosition,
+                        onValueChange = { 
+                            sliderPosition = it
+                            viewModel.updateAutoUnlockDays(delayOptions[it.toInt()].toString())
+                        },
+                        valueRange = 0f..(delayOptions.size - 1).toFloat(),
+                        steps = delayOptions.size - 2,
+                        colors = SliderDefaults.colors(
+                            thumbColor = accent,
+                            activeTrackColor = accent,
+                            inactiveTrackColor = theme.contentColor.copy(alpha = 0.1f)
+                        )
+                    )
+                    
+                    Text(
+                        text = "Ouvrir après ${uiState.autoUnlockDays} jours",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                        color = theme.contentColor
+                    )
+                    Text(
+                        text = "Ton proche pourra voir le contenu automatiquement après ce délai s'il ne trouve pas la réponse.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = theme.contentColor.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                } else {
+                    Text(
+                        text = "Verrouillage permanent tant que la réponse n'est pas trouvée.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = theme.contentColor.copy(alpha = 0.4f)
+                    )
+                }
             } else {
-                Text(
-                    text = "Verrouillage permanent tant que la réponse n'est pas trouvée.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextTertiary
-                )
+                // Info solennelle pour le Secret Ultime
+                Surface(
+                    color = theme.contentColor.copy(alpha = 0.05f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.LockPerson, null, tint = accent, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            "Le Secret Ultime est scellé sans limite de temps. Il ne pourra être ouvert que par la connaissance de la réponse.",
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            color = theme.contentColor
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("MESSAGE DE RÉVÉLATION (FACULTATIF)", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Text("MESSAGE DE RÉVÉLATION (FACULTATIF)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = uiState.fallbackMessage,
                 onValueChange = { viewModel.updateFallbackMessage(it) },
-                placeholder = { Text("Ex: La réponse était [ville]. J'espère que tu t'en souviendras un jour...", color = TextTertiary) },
+                placeholder = { Text("Ex: La réponse était [ville]. J'espère que tu t'en souviendras un jour...", color = theme.contentColor.copy(alpha = 0.3f)) },
                 modifier = Modifier.fillMaxWidth(),
-                textStyle = TextStyle(fontFamily = FontFamily.Serif, fontSize = 15.sp, fontStyle = FontStyle.Italic, color = TextPrimary),
+                textStyle = TextStyle(fontFamily = theme.fontFamily, fontSize = 15.sp, fontStyle = FontStyle.Italic, color = theme.contentColor),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentPrimary,
-                    unfocusedBorderColor = TextTertiary.copy(alpha = 0.3f),
-                    unfocusedContainerColor = Color(0xFF242429),
-                    focusedContainerColor = Color(0xFF242429)
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                    unfocusedContainerColor = theme.contentColor.copy(alpha = 0.03f),
+                    focusedContainerColor = theme.contentColor.copy(alpha = 0.03f)
                 ),
                 maxLines = 3
             )
@@ -281,11 +381,11 @@ fun DetectiveCreateScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             // ÉTAPE 3 — LE CONTENU
-            Text("LE CONTENU SECRET", style = MaterialTheme.typography.labelSmall, color = TextSecondary)
+            Text("LE CONTENU SECRET", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Text(
                 "Ce contenu ne sera accessible qu'après avoir répondu correctement à ta question.",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextTertiary,
+                color = theme.contentColor.copy(alpha = 0.5f),
                 modifier = Modifier.padding(top = 4.dp)
             )
             
@@ -296,19 +396,22 @@ fun DetectiveCreateScreen(
                     selected = uiState.contentType == ContentType.TEXT,
                     label = "✍️ Texte",
                     modifier = Modifier.weight(1f),
-                    onClick = { viewModel.selectContentType(ContentType.TEXT) }
+                    onClick = { viewModel.selectContentType(ContentType.TEXT) },
+                    theme = theme
                 )
                 ContentTypeButton(
                     selected = uiState.contentType == ContentType.PHOTO,
                     label = "📷 Photo",
                     modifier = Modifier.weight(1f),
-                    onClick = { viewModel.selectContentType(ContentType.PHOTO) }
+                    onClick = { viewModel.selectContentType(ContentType.PHOTO) },
+                    theme = theme
                 )
                 ContentTypeButton(
                     selected = uiState.contentType == ContentType.AUDIO,
                     label = "🎙️ Audio",
                     modifier = Modifier.weight(1f),
-                    onClick = { viewModel.selectContentType(ContentType.AUDIO) }
+                    onClick = { viewModel.selectContentType(ContentType.AUDIO) },
+                    theme = theme
                 )
             }
 
@@ -321,13 +424,13 @@ fun DetectiveCreateScreen(
                             .fillMaxWidth()
                             .heightIn(min = 150.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(Color(0xFF242429))
+                            .background(theme.contentColor.copy(alpha = 0.05f))
                             .padding(16.dp)
                     ) {
                         BasicTextField(
                             value = uiState.textContent,
                             onValueChange = { viewModel.updateTextContent(it) },
-                            textStyle = TextStyle(fontFamily = FontFamily.Serif, fontSize = 16.sp, color = TextPrimary),
+                            textStyle = TextStyle(fontFamily = theme.fontFamily, fontSize = 16.sp, color = theme.contentColor),
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -337,9 +440,9 @@ fun DetectiveCreateScreen(
                         Button(
                             onClick = { photoLauncher.launch("image/*") },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = SurfaceCard)
+                            colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.05f))
                         ) {
-                            Text("Choisir une photo", color = AccentPrimary)
+                            Text("Choisir une photo", color = accent)
                         }
                     } else {
                         Box(modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp))) {
@@ -364,10 +467,10 @@ fun DetectiveCreateScreen(
                         Surface(
                             modifier = Modifier.size(72.dp),
                             shape = CircleShape,
-                            color = AccentPrimary,
+                            color = accent,
                             onClick = { /* TODO */ }
                         ) {
-                            Icon(Icons.Default.Mic, null, tint = BackgroundPrimary, modifier = Modifier.padding(20.dp))
+                            Icon(Icons.Default.Mic, null, tint = theme.backgroundColor, modifier = Modifier.padding(20.dp))
                         }
                     }
                 }
@@ -383,20 +486,55 @@ fun DetectiveCreateScreen(
             Button(
                 onClick = { 
                     viewModel.saveDetectiveEntry {
-                        Toast.makeText(context, "Énigme scellée. Seul celui qui sait pourra l'ouvrir.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Confidence scellée.", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     }
                 },
                 enabled = canSave && !uiState.isSaving,
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
-                colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
                 if (uiState.isSaving) {
-                    CircularProgressIndicator(color = BackgroundPrimary, modifier = Modifier.size(24.dp))
+                    CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Sceller l'énigme", color = BackgroundPrimary, fontWeight = FontWeight.Bold)
+                    Text(if (uiState.isUltimateSecret) "Sceller le Secret Ultime" else "Sceller l'énigme", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun TypeSelectorButton(
+    selected: Boolean,
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+    theme: AppThemeState
+) {
+    Surface(
+        modifier = modifier.height(44.dp).clickable { onClick() },
+        shape = RoundedCornerShape(10.dp),
+        color = if (selected) theme.accentColor else Color.Transparent,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                icon, 
+                null, 
+                tint = if (selected) theme.backgroundColor else theme.contentColor.copy(alpha = 0.4f),
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = if (selected) theme.backgroundColor else theme.contentColor.copy(alpha = 0.5f)
+            )
         }
     }
 }
@@ -504,23 +642,23 @@ fun InspirationBottomSheet(
 }
 
 @Composable
-fun ContentTypeButton(selected: Boolean, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun ContentTypeButton(selected: Boolean, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, theme: AppThemeState) {
     if (selected) {
         Button(
             onClick = onClick,
             modifier = modifier,
-            colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = theme.accentColor)
         ) {
-            Text(label, color = BackgroundPrimary, fontSize = 12.sp)
+            Text(label, color = theme.backgroundColor, fontSize = 12.sp)
         }
     } else {
         OutlinedButton(
             onClick = onClick,
             modifier = modifier,
-            border = androidx.compose.foundation.BorderStroke(1.dp, AccentPrimary.copy(alpha = 0.5f)),
-            colors = ButtonDefaults.outlinedButtonColors(containerColor = SurfaceCard)
+            border = BorderStroke(1.dp, theme.accentColor.copy(alpha = 0.5f)),
+            colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.05f))
         ) {
-            Text(label, color = TextSecondary, fontSize = 12.sp)
+            Text(label, color = theme.contentColor.copy(alpha = 0.6f), fontSize = 12.sp)
         }
     }
 }

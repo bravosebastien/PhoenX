@@ -1,5 +1,7 @@
 package com.example.phoenx.ui.screens.library
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,8 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,7 +37,7 @@ import com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel
 import com.example.phoenx.ui.theme.*
 
 @androidx.media3.common.util.UnstableApi
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun RecipientLibraryScreen(
     navController: NavController,
@@ -44,7 +46,6 @@ fun RecipientLibraryScreen(
     viewModel: LibraryCoverViewModel = hiltViewModel(),
     mediaViewModel: com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel = hiltViewModel()
 ) {
-    val covers by viewModel.covers.collectAsState()
     val libraryEntries by mediaViewModel.libraryEntries.collectAsState()
     val videoEntries by mediaViewModel.videoEntries.collectAsState()
     val discothequeEntries by mediaViewModel.discothequeEntries.collectAsState()
@@ -54,6 +55,8 @@ fun RecipientLibraryScreen(
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     
+    var isExpanded by remember { mutableStateOf(false) }
+
     LaunchedEffect(targetCreatorId) {
         mediaViewModel.setTargetCreator(targetCreatorId)
     }
@@ -65,8 +68,6 @@ fun RecipientLibraryScreen(
     val rootArchive = archiveEntries.filter { it.parentEntryId == null }
     
     val totalSouvenirs = rootLibrary.size + rootVideo.size + rootDisco.size + rootArchive.size
-
-    android.util.Log.d("LibraryCover", "Covers chargées : ${covers.keys}")
 
     Column(
         modifier = Modifier
@@ -83,7 +84,7 @@ fun RecipientLibraryScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { navController.popBackStack() }) {
-                Icon(Icons.Outlined.ArrowBack, null, tint = accent)
+                Icon(Icons.Outlined.ArrowBack, null, tint = theme.contentColor)
             }
             Text(
                 text = "Ma Bibliothèque",
@@ -91,7 +92,7 @@ fun RecipientLibraryScreen(
                     fontFamily = theme.fontFamily, 
                     fontStyle = FontStyle.Italic, 
                     fontSize = 22.sp,
-                    fontWeight = FontWeight.Black // Force Black pour être sûr
+                    fontWeight = FontWeight.Black
                 ),
                 color = theme.contentColor
             )
@@ -109,33 +110,29 @@ fun RecipientLibraryScreen(
             modifier = Modifier.padding(start = 16.dp, bottom = 14.dp)
         )
 
-        // ESSENTIELS
+        // ── 1. ESSENTIELS (Lignes fines) ──────────────────
         Text(
             "ESSENTIELS",
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
-            color = accent,
-            modifier = Modifier.padding(start = 14.dp, bottom = 8.dp)
+            color = theme.contentColor.copy(alpha = 0.4f),
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
         )
 
-        EssentialCard(
+        CompactEssentialRow(
             title = "Fil de Pensée",
-            description = "Souvenirs classés par l'âge que tu avais.",
-            status = "$totalSouvenirs souvenirs",
+            info = "$totalSouvenirs souvenirs classés par âge",
             icon = Icons.Outlined.Timeline,
-            cover = covers["fil_pensee"],
             onClick = { 
                 val route = if (isCreatorMode) "fil_pensee" else "fil_pensee?creatorId=$targetCreatorId"
                 navController.navigate(route) 
             },
-            onEdit = { navController.navigate("library_cover_picker/fil_pensee/Fil de Pensée") }
+            theme = theme
         )
 
-        EssentialCard(
+        CompactEssentialRow(
             title = "Livre de Ma Vie",
-            description = "Co-écrit avec l'IA narrative.",
-            status = if (isCreatorMode) "En cours" else "Consultation",
+            info = if (isCreatorMode) "Co-écrit avec l'IA narrative" else "Consultation du manuscrit",
             icon = Icons.Outlined.MenuBook,
-            cover = covers["livre_vie"],
             onClick = { 
                 if (isCreatorMode) {
                     navController.navigate("book_editor") 
@@ -143,318 +140,253 @@ fun RecipientLibraryScreen(
                     navController.navigate("book_viewer_recipient?creatorId=$targetCreatorId")
                 }
             },
-            onEdit = { 
-                if (isCreatorMode) {
-                    navController.navigate("library_cover_picker/livre_vie/Livre de Ma Vie") 
-                }
-            }
+            theme = theme
         )
 
-        EssentialCard(
+        CompactEssentialRow(
             title = "Lettre à Mon Jeune Moi",
-            description = "Écris à celui que tu étais.",
-            status = "1 lettre active",
+            info = "Écris à celui que tu étais",
             icon = Icons.Outlined.HistoryEdu,
-            cover = covers["lettre_jeune_moi"],
             onClick = { navController.navigate("youngselfletters") },
-            onEdit = { navController.navigate("library_cover_picker/lettre_jeune_moi/Lettre à Mon Jeune Moi") }
+            theme = theme
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
-        // TOUS LES COMPARTIMENTS
+        // ── 2. GRILLE DE 6 BLOCS VISIBLES ──────────────────
         Text(
-            "TOUS LES COMPARTIMENTS",
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
+            "COMPARTIMENTS",
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
             color = theme.contentColor.copy(alpha = 0.4f),
-            modifier = Modifier.padding(start = 14.dp, bottom = 6.dp)
+            modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
         )
 
-        val compartments = listOf(
-            // Label, Icon, route, ID, Subtitle, InfoText
-            listOf("Discothèque", Icons.Outlined.Album, "library_music", "discotheque", "Tes sons", "Ta bibliothèque musicale personnelle. Dépose les morceaux qui ont marqué ta vie. Tes proches pourront les écouter plus tard."),
-            listOf("Vidéothèque", Icons.Outlined.Movie, "library_video", "videotheque", "Tes moments", "Un espace pour tes souvenirs animés. Stocke tes vidéos les plus précieuses. Accessible à tes héritiers après activation."),
-            listOf("Mes Meilleurs", Icons.Outlined.StarOutline, "mes_meilleurs", "mes_meilleurs", "Tes coups de cœur", "Livres, films, voyages : le best-of de tes goûts. Partage ce qui t'a inspiré. Aide tes proches à te découvrir sous un autre angle."),
-            listOf("Grande Photothèque", Icons.Outlined.PhotoCamera, "photos", "photos", "Tes images", "Tes albums photo chiffrés et sécurisés. Organise tes souvenirs visuels par période. Tes proches y accèderont le moment venu."),
-            listOf("Mappemonde", Icons.Outlined.Public, "mappemonde", "mappemonde", "Tes lieux", "Une carte interactive de tes souvenirs géolocalisés. Marque les endroits qui comptent pour toi. Laisse une trace de tes voyages."),
-            listOf("100 Questions", Icons.Outlined.HelpOutline, "cent_questions", "cent_questions", "Ton histoire", "Réponds à des questions guidées sur ta vie. L'IA utilisera tes réponses pour ton Livre de Vie. Transmets ton vécu simplement."),
-            listOf("Coffre Fort", Icons.Outlined.Lock, "coffre_fort", "coffre_fort", "Mode Détective", "Cache des secrets derrière des énigmes personnelles. Seuls ceux qui te connaissent bien pourront les ouvrir. Transforme ton héritage en exploration."),
-            listOf("Le Pacte", Icons.Outlined.Handshake, "le_pacte", "le_pacte", "Vérités croisées", "Raconte ton histoire en duo avec un proche. Comparez vos points de vue sur les mêmes événements. Une mémoire partagée et symétrique."),
-            listOf("Portrait proche", Icons.Outlined.AccountCircle, "portrait_proche", "portrait_proche", "Ton regard", "Écris ce que tu vois en ceux que tu aimes. Laisse-leur un miroir de ta propre vision. Un cadeau émotionnel inestimable."),
-            listOf("Réconciliation", Icons.Outlined.Mail, "reconciliation", "reconciliation", "Mots de paix", "Un espace pour dire ce qui n'a jamais été dit. Formule tes excuses ou tes vérités. Accessible uniquement 30 jours après ton départ."),
-            listOf("Capsules Temporelles", Icons.Outlined.MailOutline, "lettres", "lettres", "Messages futur", "Programme des messages pour des dates précises. Écris pour le futur de tes proches. Tes mots arriveront au bon moment."),
-            listOf("Tiroir secret", Icons.Outlined.Key, "tiroir_secret", "tiroir_secret", "L'Unique Secret", "Un tiroir scellé dont une seule personne aura la clé physique. Le contenu le plus intime de ton héritage. Une transmission directe et unique."),
-            listOf("Mon Quiz", Icons.Outlined.EmojiEvents, "quiz", "quiz", "Test de complicité", "Crée un quiz sur ta vie pour tes proches. Vois qui te connaît le mieux. Une façon ludique et multimedia de transmettre.")
-        )
-
-        // Affichage en grille manuelle pour éviter le LazyVerticalGrid dans Scrollable
-        Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-            compartments.chunked(3).forEach { rowItems ->
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 7.dp),
-                    horizontalArrangement = Arrangement.spacedBy(7.dp)
+        FlowRow(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            maxItemsInEachRow = 3
+        ) {
+            val itemModifier = Modifier.weight(1f)
+            
+            CompactGridItem(
+                label = "Coffre Fort",
+                icon = Icons.Outlined.Lock,
+                onClick = { 
+                    if (isCreatorMode) navController.navigate("coffre_fort")
+                    else navController.navigate(Screen.RecipientDetective.createRoute(targetCreatorId))
+                },
+                theme = theme,
+                modifier = itemModifier
+            )
+            CompactGridItem(
+                label = "100 Questions",
+                icon = Icons.Outlined.HelpOutline,
+                onClick = { navController.navigate("cent_questions") },
+                theme = theme,
+                modifier = itemModifier
+            )
+            CompactGridItem(
+                label = "Portraits",
+                icon = Icons.Outlined.AccountCircle,
+                onClick = { navController.navigate("portrait_proche") },
+                theme = theme,
+                modifier = itemModifier
+            )
+            CompactGridItem(
+                label = "Mon Quiz",
+                icon = Icons.Outlined.EmojiEvents,
+                onClick = { if (isCreatorMode) navController.navigate("quiz_create") },
+                theme = theme,
+                modifier = itemModifier
+            )
+            CompactGridItem(
+                label = "Mappemonde",
+                icon = Icons.Outlined.Public,
+                onClick = { navController.navigate("mappemonde") },
+                theme = theme,
+                modifier = itemModifier
+            )
+            
+            // Toggle Button
+            Column(
+                modifier = itemModifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { isExpanded = !isExpanded }
+                    .padding(vertical = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Surface(
+                    modifier = Modifier.size(44.dp),
+                    shape = CircleShape,
+                    color = accent.copy(alpha = 0.1f),
+                    border = BorderStroke(1.dp, accent.copy(alpha = 0.2f))
                 ) {
-                    rowItems.forEach { comp ->
-                        val label = comp[0] as String
-                        val icon = comp[1] as androidx.compose.ui.graphics.vector.ImageVector
-                        val id = comp[3] as String
-                        val subtitle = comp[4] as String
-                        val infoText = comp[5] as String
-                        
-                        val route = when(id) {
-                            "discotheque" -> Screen.RecipientDiscotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)
-                            "videotheque" -> Screen.RecipientVideotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)
-                            "photos" -> Screen.RecipientPhotos.createRoute(targetCreatorId ?: mediaViewModel.currentUid)
-                            "mes_meilleurs" -> Screen.RecipientFavorites.createRoute(targetCreatorId ?: mediaViewModel.currentUid)
-                            else -> comp[2] as String
-                        }
-                        
-                        CompartmentCard(
-                            name = label,
-                            subtitle = subtitle,
-                            infoText = infoText,
-                            icon = icon,
-                            cover = covers[id],
-                            modifier = Modifier.weight(1f),
-                            onClick = {
-                                if (label == "Mon Quiz") {
-                                    if (isCreatorMode) {
-                                        navController.navigate("quiz_create")
-                                    } else {
-                                        // Côté destinataire
-                                    }
-                                } else if (id == "coffre_fort" && !isCreatorMode) {
-                                    // Routage corrigé vers le Player Détective (v8.3)
-                                    navController.navigate(Screen.RecipientDetective.createRoute(targetCreatorId))
-                                } else {
-                                    navController.navigate(route)
-                                }
-                            },
-                            onEdit = { 
-                                android.util.Log.d("LibraryCover", "ID cherché : $id")
-                                navController.navigate("library_cover_picker/$id/$label") 
-                            }
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            if (isExpanded) Icons.Outlined.ExpandLess else Icons.Outlined.MoreHoriz, 
+                            null, 
+                            tint = accent, 
+                            modifier = Modifier.size(20.dp)
                         )
                     }
-                    // Compléter la ligne si moins de 3 items
-                    if (rowItems.size < 3) {
-                        repeat(3 - rowItems.size) {
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
-                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = if (isExpanded) "Réduire" else "Autres",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                    color = accent,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        // ── 3. ZONE DÉPLIÉE ───────────────────────────────
+        AnimatedVisibility(visible = isExpanded) {
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+                
+                // GROUPE 1 : ACTIONS DE CRÉATION
+                Text(
+                    "DÉPOSER ET TRANSMETTRE",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp),
+                    color = theme.contentColor.copy(alpha = 0.3f),
+                    modifier = Modifier.padding(start = 8.dp, top = 24.dp, bottom = 8.dp)
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    maxItemsInEachRow = 3
+                ) {
+                    val itemModifier = Modifier.weight(1f)
+                    CompactGridItem("Le Pacte", Icons.Outlined.Handshake, { navController.navigate("le_pacte") }, theme, itemModifier)
+                    CompactGridItem("Réconciliation", Icons.Outlined.Mail, { navController.navigate("reconciliation") }, theme, itemModifier)
+                    CompactGridItem("Capsules", Icons.Outlined.MailOutline, { navController.navigate("lettres") }, theme, itemModifier)
+                    // Remplissage si nécessaire
+                    repeat(2) { Spacer(modifier = itemModifier) }
+                }
+
+                // GROUPE 2 : MÉDIATHÈQUE (Auto)
+                Text(
+                    "MA MÉDIATHÈQUE",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp, fontWeight = FontWeight.Black, letterSpacing = 1.sp),
+                    color = theme.contentColor.copy(alpha = 0.3f),
+                    modifier = Modifier.padding(start = 8.dp, top = 24.dp, bottom = 8.dp)
+                )
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    maxItemsInEachRow = 3
+                ) {
+                    val itemModifier = Modifier.weight(1f)
+                    CompactGridItem("Discothèque", Icons.Outlined.Album, { navController.navigate(Screen.RecipientDiscotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) }, theme, itemModifier)
+                    CompactGridItem("Vidéothèque", Icons.Outlined.Movie, { navController.navigate(Screen.RecipientVideotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) }, theme, itemModifier)
+                    CompactGridItem("Photos", Icons.Outlined.PhotoCamera, { navController.navigate(Screen.RecipientPhotos.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) }, theme, itemModifier)
+                    // Remplissage si nécessaire
+                    repeat(2) { Spacer(modifier = itemModifier) }
                 }
             }
         }
         
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(48.dp))
     }
 }
 
 @Composable
-fun EssentialCard(
+fun CompactEssentialRow(
     title: String,
-    description: String,
-    status: String,
+    info: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    cover: LibraryCover? = null,
     onClick: () -> Unit,
-    onEdit: () -> Unit
+    theme: AppThemeState
 ) {
-    val theme = LocalAppTheme.current
-    val accent = theme.accentColor
-    
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 4.dp)
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = theme.contentColor.copy(alpha = 0.05f)
-        ),
-        shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
-    ) {
-        Box(modifier = Modifier.fillMaxWidth().height(100.dp)) {
-            if (cover != null) {
-                AsyncImage(
-                    model = cover.mediaUrl,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-                Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor.copy(alpha = 0.4f)))
-            }
-            
-            // Halo coin supérieur droit
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .size(120.dp)
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(accent.copy(alpha = 0.15f), Color.Transparent),
-                            radius = 120f
-                        )
-                    )
-            )
-            
-            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    modifier = Modifier.size(52.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    color = if (cover != null) Color.White.copy(alpha = 0.1f) else accent.copy(alpha = 0.12f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(icon, null, tint = accent, modifier = Modifier.size(24.dp))
-                    }
-                }
-                
-                Spacer(modifier = Modifier.width(14.dp))
-                
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        title, 
-                        style = TextStyle(
-                            fontFamily = theme.fontFamily, 
-                            fontStyle = FontStyle.Italic, 
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.ExtraBold // Passage à ExtraBold
-                        ), 
-                        color = theme.contentColor
-                    )
-                    Text(description, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, lineHeight = 14.sp), color = theme.contentColor.copy(alpha = 0.7f))
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(modifier = Modifier.size(4.dp).background(accent, CircleShape))
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(status.uppercase(), style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = accent)
-                    }
-                }
-                
-                IconButton(
-                    onClick = {
-                        android.util.Log.d("LibraryCover", "Edit Essential: $title")
-                        onEdit()
-                    },
-                    modifier = Modifier.size(22.dp).background(accent.copy(alpha = 0.12f), RoundedCornerShape(6.dp)).border(1.dp, accent.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
-                ) {
-                    Icon(Icons.Outlined.Edit, null, tint = accent, modifier = Modifier.size(12.dp))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun CompartmentCard(
-    name: String,
-    subtitle: String? = null,
-    infoText: String? = null,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    cover: LibraryCover?,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-    onEdit: () -> Unit
-) {
-    val theme = LocalAppTheme.current
-    val accent = theme.accentColor
-    var showInfo by remember { mutableStateOf(false) }
-
-    if (showInfo && infoText != null) {
-        AlertDialog(
-            onDismissRequest = { showInfo = false },
-            title = { Text(name, color = theme.contentColor) },
-            text = { Text(infoText, color = theme.contentColor.copy(alpha = 0.8f)) },
-            confirmButton = {
-                TextButton(onClick = { showInfo = false }) {
-                    Text("Compris", color = accent)
-                }
-            },
-            containerColor = theme.backgroundColor,
-            tonalElevation = 6.dp
-        )
-    }
-    
-    Card(
-        modifier = modifier.height(105.dp).clickable { onClick() },
-        colors = CardDefaults.cardColors(
-            containerColor = theme.contentColor.copy(alpha = 0.05f)
-        ),
-        shape = RoundedCornerShape(12.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            if (cover != null) {
-                AsyncImage(
-                    model = cover.mediaUrl,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-                Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor.copy(alpha = 0.4f)))
-            }
-            
-            // Liseré top
-            Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(accent.copy(alpha = 0.4f)))
-            
-            // Halo bottom
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .height(30.dp)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(Color.Transparent, accent.copy(alpha = 0.05f))
-                        )
-                    )
-            )
-
-            Row(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                if (infoText != null) {
-                    IconButton(
-                        onClick = { showInfo = true },
-                        modifier = Modifier.size(16.dp)
-                    ) {
-                        Icon(Icons.Outlined.Info, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(12.dp))
-                    }
-                }
-                IconButton(
-                    onClick = onEdit,
-                    modifier = Modifier.size(16.dp)
-                ) {
-                    Icon(Icons.Outlined.Edit, null, tint = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.size(10.dp))
-                }
-            }
-
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() }
+                .padding(horizontal = 20.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                modifier = Modifier.size(36.dp),
+                shape = RoundedCornerShape(8.dp),
+                color = theme.accentColor.copy(alpha = 0.1f),
+                border = BorderStroke(0.5.dp, theme.accentColor.copy(alpha = 0.2f))
             ) {
-                Icon(icon, null, tint = accent, modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.height(4.dp))
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(icon, null, tint = theme.accentColor, modifier = Modifier.size(18.dp))
+                }
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    name, 
+                    text = title, 
                     style = TextStyle(
                         fontFamily = theme.fontFamily, 
-                        fontStyle = FontStyle.Italic, 
-                        fontSize = 11.sp, 
-                        fontWeight = FontWeight.Black, // Force Black
-                        textAlign = TextAlign.Center
+                        fontWeight = FontWeight.Bold, 
+                        fontSize = 15.sp
                     ), 
                     color = theme.contentColor
                 )
-                if (subtitle != null) {
-                    Text(
-                        subtitle,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                        color = accent.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center
-                    )
-                }
+                Text(
+                    text = info, 
+                    style = MaterialTheme.typography.labelSmall, 
+                    color = theme.contentColor.copy(alpha = 0.5f)
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                null, 
+                tint = theme.contentColor.copy(alpha = 0.2f), 
+                modifier = Modifier.size(16.dp)
+            )
+        }
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 20.dp), 
+            color = theme.contentColor.copy(alpha = 0.05f), 
+            thickness = 0.5.dp
+        )
+    }
+}
+
+@Composable
+fun CompactGridItem(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    theme: AppThemeState,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() }
+            .padding(vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Surface(
+            modifier = Modifier.size(46.dp),
+            shape = CircleShape,
+            color = theme.contentColor.copy(alpha = 0.04f),
+            border = BorderStroke(0.5.dp, theme.contentColor.copy(alpha = 0.08f))
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(icon, null, tint = theme.accentColor, modifier = Modifier.size(20.dp))
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontSize = 10.sp, 
+                fontWeight = FontWeight.Bold,
+                fontFamily = theme.fontFamily
+            ),
+            color = theme.contentColor.copy(alpha = 0.8f),
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }

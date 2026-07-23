@@ -67,7 +67,10 @@ data class OfflineEntry(
     val questionId: String? = null,
 
     // PERSONNES CITÉES (Signature 8.8 - v23)
-    val personIds: String = "" // Stocké en CSV : ,ID1,ID2,
+    val personIds: String = "", // Stocké en CSV : ,ID1,ID2,
+
+    // FUSION SECRET ULTIME (Signature 8.9.4 - v24)
+    val isUltimateSecret: Boolean = false
 ) {
     fun isChild(): Boolean = parentEntryId != null
 
