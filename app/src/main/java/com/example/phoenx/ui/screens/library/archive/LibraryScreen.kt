@@ -171,7 +171,7 @@ fun CompartmentCell(compartment: LibraryCompartment, glowIntensity: Float, theme
             // Contenu
             translate(left = (w * 0.07f), top = (h * 0.08f)) {
                 clipRect(right = (w * 0.86f), bottom = (h * 0.75f)) {
-                    drawCompartmentContent(compartment, glowIntensity)
+                    drawCompartmentContent(compartment, glowIntensity, theme)
                 }
             }
 
