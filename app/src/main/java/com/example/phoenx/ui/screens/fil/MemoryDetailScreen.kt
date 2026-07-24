@@ -780,13 +780,28 @@ fun MemoryDetailScreen(
                             selectedIds = selectedRecipientIds,
                             visibility = entry!!.visibility,
                             onVisibilityChange = { viewModel.updateVisibility(it) },
-                            accent = accent
+                            accent = accent,
+                            notifyByEmail = !entry!!.silentAttribution,
+                            onNotifyByEmailChange = { viewModel.updateSilentAttribution(!it) }
                         )
                         
                         LaunchedEffect(selectedRecipientIds.toList()) {
                             val csv = selectedRecipientIds.toList().joinToString(",")
                             if (csv != entry!!.recipientIds) {
                                 viewModel.updateRecipients(selectedRecipientIds.toList())
+                            }
+                        }
+
+                        // NOUVEAUTÉ v8.9.8 : Lien Vivant
+                        if (selectedRecipientIds.size == 1) {
+                            val recipientId = selectedRecipientIds.first()
+                            val recipient = recipients.find { it.id == recipientId }
+                            if (recipient != null) {
+                                Spacer(modifier = Modifier.height(24.dp))
+                                com.example.phoenx.ui.components.LienVivantBanner(
+                                    recipientName = recipient.name,
+                                    recipientPhone = recipient.phone
+                                )
                             }
                         }
                     }

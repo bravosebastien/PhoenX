@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.data.local.WitnessEntity
 import com.example.phoenx.ui.components.InfoButton
+import com.example.phoenx.ui.components.InvitationConfirmDialog
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -323,110 +324,119 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
     var requestPrompt by remember { mutableStateOf("") }
     var allowRead by remember { mutableStateOf(false) }
     var allowReject by remember { mutableStateOf(false) }
+    var showInvitationConfirm by remember { mutableStateOf(false) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = theme.backgroundColor,
-        title = { 
-            Text(
-                "Inviter un témoin", 
-                color = theme.contentColor, 
-                style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold)
-            ) 
-        },
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Nom complet") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = accent,
-                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
-                        focusedLabelColor = accent,
-                        unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
-                        focusedTextColor = theme.contentColor,
-                        unfocusedTextColor = theme.contentColor
-                    )
-                )
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = accent,
-                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
-                        focusedLabelColor = accent,
-                        unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
-                        focusedTextColor = theme.contentColor,
-                        unfocusedTextColor = theme.contentColor
-                    )
-                )
-
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("ORIENTATION DU TÉMOIGNAGE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        com.example.phoenx.ui.components.InfoPoint(
-                            title = "Guider le témoin",
-                            content = "Tu peux poser une question précise ou suggérer un thème (ex: 'Raconte notre voyage en Italie', 'Qu'est-ce qui t'a le plus marqué dans mon caractère ?'). Cela aide le témoin à savoir par où commencer."
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
+    if (!showInvitationConfirm) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            containerColor = theme.backgroundColor,
+            title = { 
+                Text(
+                    "Inviter un témoin", 
+                    color = theme.contentColor, 
+                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold)
+                ) 
+            },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     OutlinedTextField(
-                        value = requestPrompt,
-                        onValueChange = { requestPrompt = it },
-                        placeholder = { Text("Ex: Quel est ton souvenir le plus drôle avec moi ?", fontSize = 14.sp) },
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Nom complet") },
                         modifier = Modifier.fillMaxWidth(),
-                        maxLines = 3,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = accent,
                             unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                            focusedLabelColor = accent,
+                            unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
                             focusedTextColor = theme.contentColor,
                             unfocusedTextColor = theme.contentColor
                         )
                     )
-                }
-                
-                Column {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = allowRead,
-                            onCheckedChange = { allowRead = it },
-                            colors = CheckboxDefaults.colors(checkedColor = accent)
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                            focusedLabelColor = accent,
+                            unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
                         )
-                        Text("M'autoriser à lire ce témoignage de mon vivant", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
-                    }
+                    )
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Checkbox(
-                            checked = allowReject,
-                            onCheckedChange = { allowReject = it },
-                            colors = CheckboxDefaults.colors(checkedColor = accent)
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("ORIENTATION DU TÉMOIGNAGE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            com.example.phoenx.ui.components.InfoPoint(
+                                title = "Guider le témoin",
+                                content = "Tu peux poser une question précise ou suggérer un thème (ex: 'Raconte notre voyage en Italie', 'Qu'est-ce qui t'a le plus marqué dans mon caractère ?'). Cela aide le témoin à savoir par où commencer."
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = requestPrompt,
+                            onValueChange = { requestPrompt = it },
+                            placeholder = { Text("Ex: Quel est ton souvenir le plus drôle avec moi ?", fontSize = 14.sp) },
+                            modifier = Modifier.fillMaxWidth(),
+                            maxLines = 3,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = accent,
+                                unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                                focusedTextColor = theme.contentColor,
+                                unfocusedTextColor = theme.contentColor
+                            )
                         )
-                        Text("Droit de regard : pouvoir refuser le témoignage si inapproprié", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
+                    }
+                    
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = allowRead,
+                                onCheckedChange = { allowRead = it },
+                                colors = CheckboxDefaults.colors(checkedColor = accent)
+                            )
+                            Text("M'autoriser à lire ce témoignage de mon vivant", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Checkbox(
+                                checked = allowReject,
+                                onCheckedChange = { allowReject = it },
+                                colors = CheckboxDefaults.colors(checkedColor = accent)
+                            )
+                            Text("Droit de regard : pouvoir refuser le témoignage si inapproprié", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
+                        }
                     }
                 }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showInvitationConfirm = true },
+                    enabled = name.isNotBlank() && email.isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
+                ) {
+                    Text("Suivant", color = theme.backgroundColor)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) {
+                    Text("Annuler", color = theme.contentColor)
+                }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = { onConfirm(name, email, allowRead, allowReject, if (requestPrompt.isNotBlank()) requestPrompt else null) },
-                enabled = name.isNotBlank() && email.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(containerColor = accent)
-            ) {
-                Text("Envoyer l'invitation", color = theme.backgroundColor)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Annuler", color = theme.contentColor)
-            }
-        }
-    )
+        )
+    } else {
+        InvitationConfirmDialog(
+            personName = name,
+            onConfirm = { onConfirm(name, email, allowRead, allowReject, if (requestPrompt.isNotBlank()) requestPrompt else null) },
+            onDismiss = { showInvitationConfirm = false }
+        )
+    }
 }

@@ -252,6 +252,7 @@ class CaptureViewModel @Inject constructor(
         category: String,
         visibility: String,
         recipientIds: List<String> = emptyList(),
+        silentAttribution: Boolean = false, // v8.9.8
         isYoungSelfLetter: Boolean = false,
         targetAge: Int? = null,
         pendingQuestionId: String? = null,
@@ -339,6 +340,7 @@ class CaptureViewModel @Inject constructor(
                     emotionalCategory = category,
                     visibility = visibility,
                     recipientIds = recipientIds.joinToString(","),
+                    silentAttribution = silentAttribution, // v8.9.8
                     personIds = selectedPersons.value.map { it.id }.joinToString(","), // v8.8
                     isYoungSelfLetter = isYoungSelfLetter,
                     targetAge = targetAge,

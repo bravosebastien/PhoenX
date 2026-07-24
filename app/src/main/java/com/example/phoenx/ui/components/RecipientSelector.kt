@@ -15,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,7 +32,10 @@ fun RecipientSelector(
     visibility: String,
     onVisibilityChange: (String) -> Unit,
     accent: Color,
-    containerColor: Color? = null
+    containerColor: Color? = null,
+    // NOUVEAUTÉ v8.9.8 (Contrôle de Notification)
+    notifyByEmail: Boolean = false,
+    onNotifyByEmailChange: ((Boolean) -> Unit)? = null
 ) {
     val theme = com.example.phoenx.ui.theme.LocalAppTheme.current
     var expanded by remember { mutableStateOf(false) }
@@ -62,20 +66,20 @@ fun RecipientSelector(
                     Text(
                         text = if (isEveryone) "Partagé avec tout le monde" else "Destinataires sélectionnés",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = theme.contentColor
                     )
                     if (!isEveryone) {
                         Text(
                             text = "${selectedIds.size} personne(s) autorisée(s)",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = theme.contentColor.copy(alpha = 0.6f)
                         )
                     }
                 }
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    tint = theme.contentColor.copy(alpha = 0.4f)
                 )
             }
         }
@@ -93,8 +97,8 @@ fun RecipientSelector(
                     leadingIcon = { Icon(Icons.Default.Public, null, modifier = Modifier.size(16.dp)) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = accent,
-                        selectedLabelColor = BackgroundPrimary,
-                        selectedLeadingIconColor = BackgroundPrimary
+                        selectedLabelColor = theme.backgroundColor,
+                        selectedLeadingIconColor = theme.backgroundColor
                     ),
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
@@ -117,8 +121,8 @@ fun RecipientSelector(
                                 leadingIcon = { if (isSelected) Icon(Icons.Default.Check, null, modifier = Modifier.size(14.dp)) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = accent, 
-                                    selectedLabelColor = BackgroundPrimary,
-                                    selectedLeadingIconColor = BackgroundPrimary
+                                    selectedLabelColor = theme.backgroundColor,
+                                    selectedLeadingIconColor = theme.backgroundColor
                                 )
                             )
                         }
@@ -145,8 +149,44 @@ fun RecipientSelector(
                                 leadingIcon = { Icon(Icons.Default.Check, null, modifier = Modifier.size(14.dp)) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = accent.copy(alpha = 0.5f), 
-                                    selectedLabelColor = BackgroundPrimary
+                                    selectedLabelColor = theme.backgroundColor
                                 )
+                            )
+                        }
+                    }
+                }
+
+                // NOUVEAUTÉ v8.9.8 : Interrupteur de notification
+                if (onNotifyByEmailChange != null && (selectedIds.isNotEmpty() || isEveryone)) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Surface(
+                        color = theme.contentColor.copy(alpha = 0.03f),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            val label = if (isEveryone) "Prévenir le Cercle par email" 
+                                       else if (selectedIds.size == 1) {
+                                           val name = recipients.find { it.id == selectedIds.first() }?.name ?: "le destinataire"
+                                           "Prévenir $name par email"
+                                       } else "Prévenir les destinataires par email"
+                            
+                            Text(
+                                text = label,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = theme.contentColor.copy(alpha = 0.8f)
+                            )
+                            Switch(
+                                checked = notifyByEmail,
+                                onCheckedChange = onNotifyByEmailChange,
+                                modifier = Modifier.scale(0.7f),
+                                colors = SwitchDefaults.colors(checkedThumbColor = accent)
                             )
                         }
                     }

@@ -48,6 +48,9 @@ fun PhotoCaptureContent(
     selectedRecipientIds: MutableList<String>,
     visibility: String,
     onVisibilityChange: (String) -> Unit,
+    // NOUVEAUTÉ v8.9.8
+    notifyByEmail: Boolean = false,
+    onNotifyByEmailChange: ((Boolean) -> Unit)? = null,
     // Personnes citées (v8.8)
     selectedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
     suggestedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
@@ -210,7 +213,9 @@ fun PhotoCaptureContent(
                                 selectedIds = selectedRecipientIds,
                                 visibility = visibility,
                                 onVisibilityChange = onVisibilityChange,
-                                accent = accent
+                                accent = accent,
+                                notifyByEmail = notifyByEmail,
+                                onNotifyByEmailChange = onNotifyByEmailChange
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                         }

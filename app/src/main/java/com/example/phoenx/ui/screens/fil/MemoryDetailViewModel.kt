@@ -223,6 +223,14 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
+    fun updateSilentAttribution(silent: Boolean) {
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            offlineEntryDao.updateEntrySilentAttribution(silent, id)
+            triggerSync(id)
+        }
+    }
+
     fun updateCompartments(selectedIds: List<String>) {
         val id = _entryId.value ?: return
         // Format CSV : ,ID1,ID2,

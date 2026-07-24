@@ -164,7 +164,7 @@ class ProtocolViewModel @Inject constructor(
                     "to" to email,
                     "message" to hashMapOf(
                         "subject" to "$creatorName vous a désigné comme Gardien de confiance",
-                        "text" to "Lien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
+                        "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous choisissant comme Gardien (Dépositaire) de son récit de vie.\n\nLien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
                     )
                 )
                 db.collection("mail").add(emailData).await()
@@ -262,7 +262,7 @@ class ProtocolViewModel @Inject constructor(
                     "to" to email,
                     "message" to hashMapOf(
                         "subject" to "$creatorName vous a désigné comme Gardien de confiance",
-                        "text" to "Lien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
+                        "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous choisissant comme Gardien (Dépositaire) de son récit de vie.\n\nLien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
                     )
                 )
                 db.collection("mail").add(emailData).await()

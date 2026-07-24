@@ -79,7 +79,7 @@ class RecipientViewModel @Inject constructor(
         }
     }
 
-    fun addRecipient(name: String, email: String, relationship: String) {
+    fun addRecipient(name: String, email: String, relationship: String, phone: String? = null) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
@@ -87,6 +87,7 @@ class RecipientViewModel @Inject constructor(
                 val recipientData = hashMapOf(
                     "name" to name,
                     "email" to email,
+                    "phone" to phone,
                     "relationship" to relationship,
                     "status" to "invited"
                 )
@@ -98,6 +99,7 @@ class RecipientViewModel @Inject constructor(
                     id = docRef.id,
                     name = name,
                     email = email,
+                    phone = phone,
                     relationship = relationship
                 )
                 offlineEntryDao.insertRecipient(recipient)
@@ -120,7 +122,7 @@ class RecipientViewModel @Inject constructor(
                     "to" to email,
                     "message" to hashMapOf(
                         "subject" to "$creatorName t'a choisi comme héritier",
-                        "text" to "Lien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
+                        "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous choisissant comme héritier de son récit de vie.\n\nLien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
                     )
                 )
                 db.collection("mail").add(emailData).await()

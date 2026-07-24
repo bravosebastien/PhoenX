@@ -41,6 +41,9 @@ fun TextCaptureContent(
     selectedRecipientIds: androidx.compose.runtime.snapshots.SnapshotStateList<String>,
     visibility: String,
     onVisibilityChange: (String) -> Unit,
+    // NOUVEAUTÉ v8.9.8
+    notifyByEmail: Boolean = false,
+    onNotifyByEmailChange: ((Boolean) -> Unit)? = null,
     isListening: Boolean,
     onMicClick: () -> Unit,
     preselectedName: String? = null,
@@ -287,7 +290,9 @@ fun TextCaptureContent(
                         selectedIds = selectedRecipientIds, 
                         visibility = visibility,
                         onVisibilityChange = onVisibilityChange,
-                        accent = accent
+                        accent = accent,
+                        notifyByEmail = notifyByEmail,
+                        onNotifyByEmailChange = onNotifyByEmailChange
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }

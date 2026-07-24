@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.RecipientEntity
+import com.example.phoenx.ui.components.InvitationConfirmDialog
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -126,8 +127,8 @@ fun RecipientScreen(
         if (showAddDialog) {
             AddRecipientDialog(
                 onDismiss = { showAddDialog = false },
-                onConfirm = { name, email, rel ->
-                    viewModel.addRecipient(name, email, rel)
+                onConfirm = { name, email, rel, phone ->
+                    viewModel.addRecipient(name, email, rel, phone)
                     showAddDialog = false
                 }
             )
@@ -187,11 +188,12 @@ fun EmptyRecipients(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) -> Unit) {
+fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String, String?) -> Unit) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var relationship by remember { mutableStateOf("") }
     var showInvitationConfirm by remember { mutableStateOf(false) }
 
@@ -220,6 +222,20 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
                         value = email,
                         onValueChange = { email = it },
                         label = { Text("Email") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                            focusedLabelColor = accent,
+                            unfocusedLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
+                        )
+                    )
+                    OutlinedTextField(
+                        value = phone,
+                        onValueChange = { phone = it },
+                        label = { Text("Téléphone (Optionnel)") },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = accent,
@@ -262,49 +278,10 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
             }
         )
     } else {
-        AlertDialog(
-            onDismissRequest = { showInvitationConfirm = false },
-            containerColor = theme.backgroundColor,
-            title = { Text("Confirmer l'invitation", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
-            text = {
-                Column {
-                    Text(
-                        "Un email va être envoyé à $name pour l'informer qu'il/elle fait partie des personnes que tu as choisies dans PHOEN-X. Veux-tu continuer ?",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = theme.contentColor.copy(alpha = 0.7f)
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Surface(
-                        color = theme.contentColor.copy(alpha = 0.05f),
-                        shape = MaterialTheme.shapes.medium,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("APERÇU DE L'EMAIL", style = MaterialTheme.typography.labelSmall, color = accent)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                "$name vient d'être ajouté(e) par ton proche.\nTu fais partie des personnes choisies pour recevoir son héritage PHOEN-X.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = theme.contentColor,
-                                fontStyle = FontStyle.Italic
-                            )
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = { onConfirm(name, email, relationship) },
-                    colors = ButtonDefaults.buttonColors(containerColor = accent)
-                ) {
-                    Text("Envoyer l'invitation", color = theme.backgroundColor)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showInvitationConfirm = false }) {
-                    Text("Retour", color = theme.contentColor)
-                }
-            }
+        InvitationConfirmDialog(
+            personName = name,
+            onConfirm = { onConfirm(name, email, relationship, if (phone.isNotBlank()) phone else null) },
+            onDismiss = { showInvitationConfirm = false }
         )
     }
 }

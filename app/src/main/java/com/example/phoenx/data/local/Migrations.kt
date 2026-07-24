@@ -124,6 +124,7 @@ object RoomMigrations {
     val MIGRATION_24_25 = object : Migration(24, 25) {
         override fun migrate(db: SupportSQLiteDatabase) {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN silentAttribution INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE recipients ADD COLUMN phone TEXT")
         }
     }
 }

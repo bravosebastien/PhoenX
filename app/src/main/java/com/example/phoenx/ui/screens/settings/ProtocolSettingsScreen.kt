@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.components.InfoPoint
+import com.example.phoenx.ui.components.InvitationConfirmDialog
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,6 +33,7 @@ fun ProtocolSettingsScreen(
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var threshold by remember { mutableFloatStateOf(72f) }
+    var showInvitationConfirm by remember { mutableStateOf(false) }
 
     // Synchronisation initiale uniquement (Évite d'écraser la saisie en cours)
     var hasInitialized by remember { mutableStateOf(false) }
@@ -200,7 +202,13 @@ fun ProtocolSettingsScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             Button(
-                onClick = { viewModel.saveProtocol(name, email, phone, threshold.toInt()) },
+                onClick = { 
+                    if (name != uiState.name || email != uiState.email) {
+                        showInvitationConfirm = true 
+                    } else {
+                        viewModel.saveProtocol(name, email, phone, threshold.toInt())
+                    }
+                },
                 enabled = !uiState.isLoading && name.isNotBlank() && email.isNotBlank(),
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
@@ -210,6 +218,17 @@ fun ProtocolSettingsScreen(
                 } else {
                     Text("Enregistrer les réglages", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
+            }
+
+            if (showInvitationConfirm) {
+                InvitationConfirmDialog(
+                    personName = name,
+                    onConfirm = { 
+                        viewModel.saveProtocol(name, email, phone, threshold.toInt())
+                        showInvitationConfirm = false 
+                    },
+                    onDismiss = { showInvitationConfirm = false }
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))

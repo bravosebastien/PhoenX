@@ -101,6 +101,7 @@ fun CaptureScreen(
     var selectedCategory by remember { mutableStateOf("Sagesse") }
     var visibility by remember { mutableStateOf("RESTRICTED") }
     val selectedRecipientIds = remember { mutableStateListOf<String>() }
+    var notifyByEmail by remember { mutableStateOf(true) } // Nouveauté v8.9.8
     var isTonaliteExpanded by remember { mutableStateOf(false) }
     var isTiroirsExpanded by remember { mutableStateOf(false) }
     
@@ -243,6 +244,7 @@ fun CaptureScreen(
                                     category = selectedCategory,
                                     visibility = visibility,
                                     recipientIds = selectedRecipientIds.toList(),
+                                    silentAttribution = !notifyByEmail, // Nouveauté v8.9.8
                                     pendingQuestionId = pendingQuestionId,
                                     enigmaQuestion = if (enigmaQuestion.isNotBlank()) enigmaQuestion else null,
                                     enigmaAnswer = if (enigmaAnswer.isNotBlank()) enigmaAnswer else null,
@@ -321,6 +323,7 @@ fun CaptureScreen(
                                         category = selectedCategory,
                                         visibility = visibility,
                                         recipientIds = selectedRecipientIds.toList(),
+                                        silentAttribution = !notifyByEmail, // Nouveauté v8.9.8
                                         pendingQuestionId = pendingQuestionId,
                                         locationId = locationId,
                                         parentEntryId = parentEntryId
@@ -330,6 +333,8 @@ fun CaptureScreen(
                                 selectedRecipientIds = selectedRecipientIds,
                                 visibility = visibility,
                                 onVisibilityChange = { visibility = it },
+                                notifyByEmail = notifyByEmail,
+                                onNotifyByEmailChange = { notifyByEmail = it },
                                 selectedPersons = selectedPersons,
                                 suggestedPersons = suggestedPersons,
                                 onSearchPersons = { viewModel.searchPersons(it) },
@@ -356,6 +361,8 @@ fun CaptureScreen(
                                 selectedRecipientIds = selectedRecipientIds,
                                 visibility = visibility,
                                 onVisibilityChange = { visibility = it },
+                                notifyByEmail = notifyByEmail,
+                                onNotifyByEmailChange = { notifyByEmail = it },
                                 selectedPersons = selectedPersons,
                                 suggestedPersons = suggestedPersons,
                                 onSearchPersons = { viewModel.searchPersons(it) },
@@ -381,6 +388,8 @@ fun CaptureScreen(
                                 selectedRecipientIds = selectedRecipientIds,
                                 visibility = visibility,
                                 onVisibilityChange = { visibility = it },
+                                notifyByEmail = notifyByEmail,
+                                onNotifyByEmailChange = { notifyByEmail = it },
                                 isListening = false,
                                 onMicClick = { },
                                 preselectedName = preselectedName,
@@ -408,6 +417,8 @@ fun CaptureScreen(
                                 selectedRecipientIds = selectedRecipientIds,
                                 visibility = visibility,
                                 onVisibilityChange = { visibility = it },
+                                notifyByEmail = notifyByEmail,
+                                onNotifyByEmailChange = { notifyByEmail = it },
                                 isListening = isSttListening,
                                 onMicClick = {
                                     if (isSttListening) viewModel.stopVocalCapture()
@@ -463,12 +474,13 @@ fun CaptureScreen(
                         )
                         
                         if (!isNightMode) {
+                            val recipientNames = selectedRecipientIds.mapNotNull { id -> 
+                                recipients.find { it.id == id }?.name 
+                            }
+                            
                             val summary = if (visibility == "EVERYONE") {
                                 "Rangé dans $selectedCategory, partagé avec tout le monde."
                             } else {
-                                val recipientNames = selectedRecipientIds.mapNotNull { id -> 
-                                    recipients.find { it.id == id }?.name 
-                                }
                                 if (recipientNames.isNotEmpty()) {
                                     "Rangé dans $selectedCategory, destiné à ${recipientNames.joinToString(", ")}."
                                 } else {
@@ -483,6 +495,19 @@ fun CaptureScreen(
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.padding(horizontal = 40.dp)
                             )
+
+                            // NOUVEAUTÉ v8.9.8 : Lien Vivant
+                            if (selectedRecipientIds.size == 1) {
+                                val recipient = recipients.find { it.id == selectedRecipientIds.first() }
+                                if (recipient != null) {
+                                    Spacer(modifier = Modifier.height(32.dp))
+                                    com.example.phoenx.ui.components.LienVivantBanner(
+                                        recipientName = recipient.name,
+                                        recipientPhone = recipient.phone,
+                                        modifier = Modifier.padding(horizontal = 24.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

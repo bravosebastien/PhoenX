@@ -180,7 +180,7 @@ class WitnessViewModel @Inject constructor(
                     "to" to email,
                     "message" to hashMapOf(
                         "subject" to "$creatorName demande ton témoignage",
-                        "text" to "Lien pour rejoindre son cercle : https://phoenx.app/join/$tokenId"
+                        "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous demandant de témoigner sur un souvenir partagé.\n\nLien pour rejoindre son cercle : https://phoenx.app/join/$tokenId"
                     )
                 )
                 db.collection("mail").add(emailData).await()
