@@ -131,15 +131,7 @@ class MainActivity : FragmentActivity() {
                     }
                 } else if (isUnlocked) {
                     android.util.Log.d("PHOENX_DEBUG", "Chargement MainContent")
-                    MainContent(
-                        onVerifyBiometrics = { onSuccess ->
-                            biometricManager.showBiometricPrompt(
-                                activity = this@MainActivity,
-                                onSuccess = onSuccess,
-                                onError = { /* handle error */ }
-                            )
-                        }
-                    )
+                    MainContent()
                 } else {
                     Box(
                         modifier = Modifier
@@ -152,7 +144,7 @@ class MainActivity : FragmentActivity() {
     }
 
     @Composable
-    fun MainContent(onVerifyBiometrics: (onSuccess: () -> Unit) -> Unit) {
+    fun MainContent() {
         LaunchedEffect(Unit) {
             mainViewModel.confirmPresence()
         }
@@ -207,8 +199,7 @@ class MainActivity : FragmentActivity() {
         ) {
             PhoenXNavGraph(
                 navController = navController,
-                mainViewModel = mainViewModel,
-                onVerifyBiometrics = onVerifyBiometrics
+                mainViewModel = mainViewModel
             )
         }
     }
