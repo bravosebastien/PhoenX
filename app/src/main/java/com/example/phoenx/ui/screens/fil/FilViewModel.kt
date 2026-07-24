@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -176,7 +177,9 @@ class FilViewModel @Inject constructor(
                 } else {
                     decodedEntries.sortedByDescending { it.ageAtCreation.years }
                 }
-            }.collect { list ->
+            }
+            .flowOn(Dispatchers.Default)
+            .collect { list ->
                 val minAgeVal = if (list.isEmpty()) 0 else list.minOfOrNull { it.ageAtCreation.years } ?: 0
                 val maxAgeVal = if (list.isEmpty()) 100 else list.maxOfOrNull { it.ageAtCreation.years } ?: 100
                 

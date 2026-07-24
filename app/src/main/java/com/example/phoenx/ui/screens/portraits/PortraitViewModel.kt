@@ -11,8 +11,10 @@ import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.data.sync.SyncWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import kotlinx.coroutines.tasks.await
 import java.util.UUID
@@ -40,6 +42,7 @@ class PortraitViewModel @Inject constructor(
         .map { entry -> 
             entry?.let { encryptionManager.decryptText(it.encryptedPayload) }
         }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     init {
@@ -75,7 +78,9 @@ class PortraitViewModel @Inject constructor(
                 val recipientsList = _recipients.value
                 val recipientName = recipientsList.find { it.id == recipientId }?.name ?: "un proche"
                 
-                val existingParent = offlineEntryDao.getPortraitEntryForRecipient(recipientId).first()
+                val existingParent = withContext(Dispatchers.IO) {
+                    offlineEntryDao.getPortraitEntryForRecipient(recipientId).first()
+                }
                 val parentId = existingParent?.id ?: UUID.randomUUID().toString()
 
                 val parentEntry = OfflineEntry(
@@ -98,7 +103,9 @@ class PortraitViewModel @Inject constructor(
                     questions.forEachIndexed { index, question ->
                         val answer = answers.getOrNull(index) ?: ""
                         if (answer.isNotBlank()) {
-                            val existingAnswers = offlineEntryDao.getComplements(parentId).first()
+                            val existingAnswers = withContext(Dispatchers.IO) {
+                                offlineEntryDao.getComplements(parentId).first()
+                            }
                             val existingAnswer = existingAnswers.find { it.aiSummary == question }
                             
                             val answerEntry = OfflineEntry(
@@ -120,7 +127,9 @@ class PortraitViewModel @Inject constructor(
                 } else {
                     // Cas "Pensée Libre" (PortraitProcheScreen)
                     val freeText = answers.joinToString("\n\n")
-                    val existingAnswers = offlineEntryDao.getComplements(parentId).first()
+                    val existingAnswers = withContext(Dispatchers.IO) {
+                        offlineEntryDao.getComplements(parentId).first()
+                    }
                     val existingAnswer = existingAnswers.find { it.aiSummary == "Pensée libre" }
 
                     val answerEntry = OfflineEntry(

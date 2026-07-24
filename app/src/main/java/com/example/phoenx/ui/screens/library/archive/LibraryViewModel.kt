@@ -7,8 +7,10 @@ import com.example.phoenx.ui.screens.library.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.tasks.await
 import java.util.Locale
 import javax.inject.Inject
@@ -43,8 +45,11 @@ class OldLibraryViewModel @Inject constructor(
                 // Pour le moment on simule les droits d'accès
                 val accessRights = CompartmentId.entries.associateWith { CompartmentAccess.OPEN }
 
-                // Récupérer les comptes d'items par compartiment via Room
-                val entries = offlineEntryDao.getAllEntriesSync()
+                // Récupérer les comptes d'items par compartiment via Room (v8.9.9 : Thread Off-UI)
+                val entries = withContext(Dispatchers.IO) {
+                    offlineEntryDao.getAllEntriesSync()
+                }
+
                 val itemCounts = mutableMapOf<CompartmentId, Int>()
                 
                 entries.forEach { entry ->

@@ -14,10 +14,12 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.util.*
 import javax.inject.Inject
 
@@ -56,7 +58,9 @@ class ReconciliationViewModel @Inject constructor(
                 val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: Date()
                 val age = AgeUtils.calculateAge(birthDate)
                 
-                val encrypted = encryptionManager.encryptText(content)
+                val encrypted = withContext(Dispatchers.Default) {
+                    encryptionManager.encryptText(content)
+                }
                 
                 val entry = OfflineEntry(
                     encryptedPayload = encrypted,

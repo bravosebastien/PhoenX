@@ -7,8 +7,10 @@ import com.example.phoenx.data.local.OfflineEntryDao
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -57,7 +59,9 @@ class LocationDetailViewModel @Inject constructor(
                     offlineEntryDao.getEntriesForLocation(locationId).collectLatest { relatedEntries ->
                         // Fallback : si aucun via locationId, on cherche par nom ou pactId (legacy)
                         val finalEntries = if (relatedEntries.isEmpty()) {
-                            val all = offlineEntryDao.getAllEntriesSync()
+                            val all = withContext(Dispatchers.IO) {
+                                offlineEntryDao.getAllEntriesSync()
+                            }
                             all.filter { it.locationName == location.placeName || it.pactId == location.id }
                         } else relatedEntries
 

@@ -427,4 +427,27 @@ fun NavGraphBuilder.creatorGraph(
     composable("book_viewer") {
         BookReaderFlowScreen(navController = navController)
     }
+
+    // --- ALIAS DE ROUTES POUR COMPATIBILITÉ (v8.9.9) ---
+    composable("quiz_create") { QuizCreateScreen(navController = navController) }
+    composable(
+        route = "fil_pensee?creatorId={creatorId}",
+        arguments = listOf(navArgument("creatorId") { nullable = true })
+    ) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        FilScreen(
+            navController = navController, 
+            onNavigateBack = { navController.popBackStack() },
+            targetCreatorId = creatorId
+        )
+    }
+    composable("fil_pensee") { 
+        FilScreen(navController = navController, onNavigateBack = { navController.popBackStack() }) 
+    }
+    composable("coffre_fort") { DetectiveHomeScreen(navController = navController) }
+    composable("cent_questions") { QuestionsScreen(onNavigateBack = { navController.popBackStack() }) }
+    composable("portrait_proche") { PortraitScreen(onNavigateBack = { navController.popBackStack() }) }
+    composable("le_pacte") { PactScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToDetail = { id -> navController.navigate("pact/$id") }) }
+    composable("lettres") { com.example.phoenx.ui.screens.mailbox.MailboxScreen(onNavigateBack = { navController.popBackStack() }) }
+    composable("mappemonde") { MappamondeScreen(navController = navController, mode = MapMode.CREATOR) }
 }

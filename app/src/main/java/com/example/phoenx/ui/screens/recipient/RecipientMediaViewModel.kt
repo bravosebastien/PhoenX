@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -138,9 +139,7 @@ class RecipientMediaViewModel @Inject constructor(
                         (pub + priv).distinctBy { it.id }
                     }
                 }
-            }.combine(_isProtocolActivated) { entries, activated ->
-                entries to activated
-            }.collectLatest { (allOfflineEntries, activated) ->
+            }.combine(_isProtocolActivated) { allOfflineEntries, activated ->
                 val targetId = _targetCreatorId.value
                 val isHeirMode = targetId != null && targetId != currentUid
 
@@ -153,18 +152,21 @@ class RecipientMediaViewModel @Inject constructor(
                     parents 
                 } else {
                     parents.filter { parent ->
-                        val isForMe = parent.visibility == "EVERYONE" || parent.recipientIds.split(",").contains(currentUid)
-                        isForMe
+                        parent.visibility == "EVERYONE" || parent.recipientIds.split(",").contains(currentUid)
                     }
                 }
 
-                // 3. Conversion en domaine
+                // 3. Conversion en domaine (Déchiffrement Tink ici)
                 val decodedParents = accessibleParents.map { 
                     if (isHeirMode && !activated) it.toSealedDomain()
                     else it.toDomain(encryptionManager) 
                 }
 
-                // 4. Indexation automatique par type (incluant compléments)
+                Triple(decodedParents, complements, activated)
+            }
+            .flowOn(Dispatchers.Default)
+            .collectLatest { (decodedParents, complements, activated) ->
+                // 4. Indexation automatique par type
                 _libraryEntries.value = decodedParents.filter { parent ->
                     val hasMatch = parent.type == EntryType.THOUGHT || parent.type == EntryType.LEGACY || parent.isYoungSelfLetter ||
                         complements.any { it.parentEntryId == parent.id && it.entryType == "TEXT" }

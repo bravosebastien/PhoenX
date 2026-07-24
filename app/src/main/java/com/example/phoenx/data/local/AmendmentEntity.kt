@@ -1,10 +1,14 @@
 package com.example.phoenx.data.local
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
-@Entity(tableName = "amendments")
+@Entity(
+    tableName = "amendments",
+    indices = [Index(value = ["entryId"])]
+)
 data class AmendmentEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val entryId: String,

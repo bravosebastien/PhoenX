@@ -1,10 +1,23 @@
 package com.example.phoenx.data.local
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
-@Entity(tableName = "offline_entries")
+@Entity(
+    tableName = "offline_entries",
+    indices = [
+        Index(value = ["createdAt"]),
+        Index(value = ["parentEntryId"]),
+        Index(value = ["creatorUid"]),
+        Index(value = ["pactId"]),
+        Index(value = ["locationId"]),
+        Index(value = ["entryType"]),
+        Index(value = ["scheduledTimestamp"]),
+        Index(value = ["recipientIds"])
+    ]
+)
 data class OfflineEntry(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
     val creatorUid: String = "",

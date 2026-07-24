@@ -53,6 +53,7 @@ class MainActivity : FragmentActivity() {
         enableEdgeToEdge()
         
         // CAPTUREUR DE CRASH POUR DEBUG
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             android.util.Log.e("PHOENX_DEBUG", "FATAL CRASH sur le thread ${thread.name}")
             android.util.Log.e("PHOENX_DEBUG", "CAUSE: ${throwable.message}")
@@ -60,6 +61,9 @@ class MainActivity : FragmentActivity() {
             val pw = java.io.PrintWriter(sw)
             throwable.printStackTrace(pw)
             android.util.Log.e("PHOENX_DEBUG", sw.toString())
+            
+            // On laisse le système gérer le crash après le log pour éviter le figement (v8.9.9)
+            defaultHandler?.uncaughtException(thread, throwable)
         }
 
         android.util.Log.d("PHOENX_DEBUG", "MainActivity onCreate")
