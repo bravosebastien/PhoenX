@@ -70,7 +70,10 @@ data class OfflineEntry(
     val personIds: String = "", // Stocké en CSV : ,ID1,ID2,
 
     // FUSION SECRET ULTIME (Signature 8.9.4 - v24)
-    val isUltimateSecret: Boolean = false
+    val isUltimateSecret: Boolean = false,
+
+    // NOUVEAUTÉ v8.9.8 (Migration v25)
+    val silentAttribution: Boolean = false
 ) {
     fun isChild(): Boolean = parentEntryId != null
 
@@ -107,6 +110,7 @@ data class OfflineEntry(
         if (memoryDate != other.memoryDate) return false
         if (memoryDateStart != other.memoryDateStart) return false
         if (memoryDateEnd != other.memoryDateEnd) return false
+        if (silentAttribution != other.silentAttribution) return false
 
         return true
     }
@@ -139,6 +143,7 @@ data class OfflineEntry(
         result = 31 * result + (memoryDate?.hashCode() ?: 0)
         result = 31 * result + (memoryDateStart?.hashCode() ?: 0)
         result = 31 * result + (memoryDateEnd?.hashCode() ?: 0)
+        result = 31 * result + silentAttribution.hashCode()
         return result
     }
 }

@@ -35,7 +35,8 @@ data class PhoenXEntry(
 
     // GESTION RÉSEAU (v8.9.2)
     val recipientIds: List<String> = emptyList(),
-    val visibility: String = "RESTRICTED"
+    val visibility: String = "RESTRICTED",
+    val silentAttribution: Boolean = false
 )
 
 data class PhoenXAmendment(

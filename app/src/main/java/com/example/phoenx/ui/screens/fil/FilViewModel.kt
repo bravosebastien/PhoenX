@@ -252,7 +252,8 @@ class FilViewModel @Inject constructor(
             aiSummary = aiSummary,
             hasEnigma = enigmaQuestion != null,
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
-            visibility = visibility
+            visibility = visibility,
+            silentAttribution = silentAttribution
         )
     }
 
@@ -293,7 +294,8 @@ class FilViewModel @Inject constructor(
             mediaUrl = mediaUrl,
             localMediaPath = localMediaPath,
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
-            visibility = visibility
+            visibility = visibility,
+            silentAttribution = silentAttribution
         )
     }
 }

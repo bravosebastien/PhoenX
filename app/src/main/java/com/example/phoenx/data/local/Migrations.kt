@@ -120,4 +120,10 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN isUltimateSecret INTEGER NOT NULL DEFAULT 0")
         }
     }
+
+    val MIGRATION_24_25 = object : Migration(24, 25) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN silentAttribution INTEGER NOT NULL DEFAULT 0")
+        }
+    }
 }
