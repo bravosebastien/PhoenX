@@ -183,6 +183,24 @@ class CaptureViewModel @Inject constructor(
         _suggestedPersons.value = emptyList()
     }
 
+    fun selectMe() {
+        val user = auth.currentUser ?: return
+        viewModelScope.launch {
+            // On cherche s'il existe déjà une entité "Moi" ou on en crée une virtuelle
+            val me = com.example.phoenx.data.local.PersonEntity(
+                id = "ME_${user.uid}",
+                firstName = "Moi",
+                lastName = null,
+                relationship = "Auteur",
+                distinctionType = "autre",
+                distinctionValue = "Moi-même"
+            )
+            if (!_selectedPersons.value.any { it.id == me.id }) {
+                _selectedPersons.value = _selectedPersons.value + me
+            }
+        }
+    }
+
     fun removePerson(personId: String) {
         _selectedPersons.value = _selectedPersons.value.filter { it.id != personId }
     }
