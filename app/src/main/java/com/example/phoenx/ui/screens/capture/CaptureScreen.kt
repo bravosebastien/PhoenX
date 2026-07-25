@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
@@ -128,6 +129,7 @@ fun CaptureScreen(
 
     val isNightMode = initialType == Screen.Capture.TYPE_NIGHT
     var capturedPhotoFile by remember { mutableStateOf<File?>(null) }
+    var currentStep by remember { mutableIntStateOf(1) } // v9.0 : Parcours en deux temps
     
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -189,12 +191,7 @@ fun CaptureScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = when (initialType) {
-                                Screen.Capture.TYPE_AUDIO -> "Capture Vocale"
-                                Screen.Capture.TYPE_PHOTO -> "Caméra"
-                                Screen.Capture.TYPE_GALLERY -> "Galerie"
-                                else -> "Nouvelle Pensée"
-                            },
+                            text = if (currentStep == 1) "L'Âme du souvenir" else "Habillage & Destination",
                             style = MaterialTheme.typography.labelLarge.copy(
                                 fontWeight = FontWeight.Bold
                             ),
@@ -202,14 +199,34 @@ fun CaptureScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Default.Close, contentDescription = null, tint = theme.contentColor)
+                        IconButton(onClick = { 
+                            if (currentStep == 1) onNavigateBack() 
+                            else currentStep = 1 
+                        }) {
+                            Icon(
+                                imageVector = if (currentStep == 1) Icons.Default.Close else Icons.Default.ArrowBack, 
+                                contentDescription = null, 
+                                tint = theme.contentColor
+                            )
                         }
                     },
                     actions = {
-                        IconButton(onClick = { showAdvancedOptions = true }) {
-                            Icon(Icons.Default.Tune, null, tint = accent)
-                        }
+                        InfoButton(
+                            title = if (currentStep == 1) "Étape 1 : L'Essentiel" else "Étape 2 : Finitions",
+                            points = if (currentStep == 1) {
+                                listOf(
+                                    "LE TITRE : Exprimez ici le cœur de votre pensée ou l'intitulé de votre souvenir.",
+                                    "LES PERSONNES : Précisez qui est présent ou mentionné dans ce fragment de vie.",
+                                    "SUIVANT : Une fois l'âme du souvenir posée, nous passerons au rangement et aux médias."
+                                )
+                            } else {
+                                listOf(
+                                    "MÉDIAS : Ajoutez une dimension visuelle ou sonore à votre récit.",
+                                    "TONALITÉ & RANGEMENT : Choisissez l'émotion et le tiroir de la Bibliothèque pour classer ce dépôt.",
+                                    "CONFIDENTIALITÉ : Définissez qui pourra recevoir ce secret et quand."
+                                )
+                            }
+                        )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = backgroundColor,
@@ -226,38 +243,45 @@ fun CaptureScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        TextButton(onClick = { onNavigateBack() }) {
-                            Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+                        TextButton(onClick = { 
+                            if (currentStep == 1) onNavigateBack() 
+                            else currentStep = 1 
+                        }) {
+                            Text(if (currentStep == 1) "Annuler" else "Retour", color = theme.contentColor.copy(alpha = 0.6f))
                         }
                         Button(
                             onClick = {
-                                val mediaFile = if (initialType == Screen.Capture.TYPE_GALLERY) {
-                                    selectedGalleryUri?.let { viewModel.uriToFile(it) }
+                                if (currentStep == 1 && initialType == Screen.Capture.TYPE_TEXT) {
+                                    currentStep = 2
                                 } else {
-                                    capturedPhotoFile
-                                }
+                                    val mediaFile = if (initialType == Screen.Capture.TYPE_GALLERY) {
+                                        selectedGalleryUri?.let { viewModel.uriToFile(it) }
+                                    } else {
+                                        capturedPhotoFile
+                                    }
 
-                                viewModel.saveEntry(
-                                    content = text,
-                                    mediaFile = mediaFile,
-                                    type = initialType,
-                                    category = selectedCategory,
-                                    visibility = visibility,
-                                    recipientIds = selectedRecipientIds.toList(),
-                                    silentAttribution = !notifyByEmail, // Nouveauté v8.9.8
-                                    pendingQuestionId = pendingQuestionId,
-                                    enigmaQuestion = if (enigmaQuestion.isNotBlank()) enigmaQuestion else null,
-                                    enigmaAnswer = if (enigmaAnswer.isNotBlank()) enigmaAnswer else null,
-                                    enigmaHint = if (enigmaHint.isNotBlank()) enigmaHint else null,
-                                    enigmaAutoUnlockDays = enigmaAutoUnlockDays,
-                                    scheduledTimestamp = scheduledTimestamp,
-                                    pactId = pactId,
-                                    latitude = latitude,
-                                    longitude = longitude,
-                                    locationName = locationName,
-                                    locationId = locationId,
-                                    parentEntryId = parentEntryId
-                                )
+                                    viewModel.saveEntry(
+                                        content = text,
+                                        mediaFile = mediaFile,
+                                        type = initialType,
+                                        category = selectedCategory,
+                                        visibility = visibility,
+                                        recipientIds = selectedRecipientIds.toList(),
+                                        silentAttribution = !notifyByEmail, // Nouveauté v8.9.8
+                                        pendingQuestionId = pendingQuestionId,
+                                        enigmaQuestion = if (enigmaQuestion.isNotBlank()) enigmaQuestion else null,
+                                        enigmaAnswer = if (enigmaAnswer.isNotBlank()) enigmaAnswer else null,
+                                        enigmaHint = if (enigmaHint.isNotBlank()) enigmaHint else null,
+                                        enigmaAutoUnlockDays = enigmaAutoUnlockDays,
+                                        scheduledTimestamp = scheduledTimestamp,
+                                        pactId = pactId,
+                                        latitude = latitude,
+                                        longitude = longitude,
+                                        locationName = locationName,
+                                        locationId = locationId,
+                                        parentEntryId = parentEntryId
+                                    )
+                                }
                             },
                             enabled = (text.isNotEmpty() || capturedPhotoFile != null || selectedGalleryUri != null || initialType == Screen.Capture.TYPE_PHOTO) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
                             colors = ButtonDefaults.buttonColors(containerColor = accent),
@@ -266,7 +290,7 @@ fun CaptureScreen(
                             if (uiState is CaptureUiState.Loading) {
                                 CircularProgressIndicator(modifier = Modifier.size(20.dp), color = theme.backgroundColor, strokeWidth = 2.dp)
                             } else {
-                                Text("Déposer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                                Text(if (currentStep == 1 && initialType == Screen.Capture.TYPE_TEXT) "Suivant" else "Déposer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -326,7 +350,10 @@ fun CaptureScreen(
                                         silentAttribution = !notifyByEmail, // Nouveauté v8.9.8
                                         pendingQuestionId = pendingQuestionId,
                                         locationId = locationId,
-                                        parentEntryId = parentEntryId
+                                        parentEntryId = parentEntryId,
+                                        enigmaQuestion = enigmaQuestion,
+                                        enigmaAnswer = enigmaAnswer,
+                                        scheduledTimestamp = scheduledTimestamp
                                     )
                                 },
                                 recipients = recipients,
@@ -339,6 +366,7 @@ fun CaptureScreen(
                                 suggestedPersons = suggestedPersons,
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
+                                onSelectMe = { viewModel.selectMe() },
                                 onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
                                 onRemovePerson = { viewModel.removePerson(it) },
                                 selectedCategory = selectedCategory,
@@ -346,7 +374,14 @@ fun CaptureScreen(
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
                                 isTiroirsExpanded = isTiroirsExpanded,
-                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded },
+                                currentStep = currentStep,
+                                enigmaQuestion = enigmaQuestion,
+                                onEnigmaQuestionChange = { enigmaQuestion = it },
+                                enigmaAnswer = enigmaAnswer,
+                                onEnigmaAnswerChange = { enigmaAnswer = it },
+                                scheduledTimestamp = scheduledTimestamp,
+                                onScheduledTimestampChange = { scheduledTimestamp = it }
                             )
                         }
                         Screen.Capture.TYPE_PHOTO -> {
@@ -367,6 +402,7 @@ fun CaptureScreen(
                                 suggestedPersons = suggestedPersons,
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
+                                onSelectMe = { viewModel.selectMe() },
                                 onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
                                 onRemovePerson = { viewModel.removePerson(it) },
                                 selectedCategory = selectedCategory,
@@ -374,7 +410,14 @@ fun CaptureScreen(
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
                                 isTiroirsExpanded = isTiroirsExpanded,
-                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded },
+                                currentStep = currentStep,
+                                enigmaQuestion = enigmaQuestion,
+                                onEnigmaQuestionChange = { enigmaQuestion = it },
+                                enigmaAnswer = enigmaAnswer,
+                                onEnigmaAnswerChange = { enigmaAnswer = it },
+                                scheduledTimestamp = scheduledTimestamp,
+                                onScheduledTimestampChange = { scheduledTimestamp = it }
                             )
                         }
                         Screen.Capture.TYPE_GALLERY -> {
@@ -398,12 +441,20 @@ fun CaptureScreen(
                                 suggestedPersons = suggestedPersons,
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
+                                onSelectMe = { viewModel.selectMe() },
                                 onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
                                 onRemovePerson = { viewModel.removePerson(it) },
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
                                 isTiroirsExpanded = isTiroirsExpanded,
-                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded },
+                                currentStep = currentStep,
+                                enigmaQuestion = enigmaQuestion,
+                                onEnigmaQuestionChange = { enigmaQuestion = it },
+                                enigmaAnswer = enigmaAnswer,
+                                onEnigmaAnswerChange = { enigmaAnswer = it },
+                                scheduledTimestamp = scheduledTimestamp,
+                                onScheduledTimestampChange = { scheduledTimestamp = it }
                             )
                         }
                         else -> {
@@ -432,12 +483,20 @@ fun CaptureScreen(
                                 suggestedPersons = suggestedPersons,
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
+                                onSelectMe = { viewModel.selectMe() },
                                 onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
                                 onRemovePerson = { viewModel.removePerson(it) },
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
                                 isTiroirsExpanded = isTiroirsExpanded,
-                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded },
+                                currentStep = currentStep,
+                                enigmaQuestion = enigmaQuestion,
+                                onEnigmaQuestionChange = { enigmaQuestion = it },
+                                enigmaAnswer = enigmaAnswer,
+                                onEnigmaAnswerChange = { enigmaAnswer = it },
+                                scheduledTimestamp = scheduledTimestamp,
+                                onScheduledTimestampChange = { scheduledTimestamp = it }
                             )
                         }
                     }

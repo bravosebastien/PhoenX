@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -29,6 +30,7 @@ fun PersonSelector(
     suggestedPersons: List<PersonEntity>,
     onSearch: (String) -> Unit,
     onSelect: (PersonEntity) -> Unit,
+    onSelectMe: () -> Unit, // v9.0
     onCreate: (firstName: String, lastName: String?, relation: String?, distType: String?, distValue: String?) -> Unit,
     onRemove: (String) -> Unit,
     accent: Color
@@ -39,12 +41,34 @@ fun PersonSelector(
     var duplicateNameDialog by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            "Personnes mentionnées",
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = theme.contentColor.copy(alpha = 0.4f),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                "Personnes mentionnées",
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = theme.contentColor.copy(alpha = 0.4f)
+            )
+            
+            // RACCOURCI "C'EST DE MOI" (v9.0)
+            Surface(
+                onClick = onSelectMe,
+                color = accent.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(0.5.dp, accent.copy(alpha = 0.3f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Person, null, tint = accent, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(4.dp))
+                    Text("C'est de moi", style = MaterialTheme.typography.labelSmall, color = accent, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
 
         // Tags des personnes sélectionnées
         FlowRow(
@@ -56,7 +80,7 @@ fun PersonSelector(
                 InputChip(
                     selected = true,
                     onClick = { onRemove(person.id) },
-                    label = { Text(person.firstName) },
+                    label = { Text(person.firstName + (person.lastName?.let { " $it" } ?: "")) },
                     trailingIcon = { Icon(Icons.Default.Close, null, modifier = Modifier.size(14.dp)) },
                     colors = InputChipDefaults.inputChipColors(
                         selectedContainerColor = accent.copy(alpha = 0.2f),
@@ -106,7 +130,7 @@ fun PersonSelector(
                 modifier = Modifier.padding(top = 4.dp).fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 color = theme.contentColor.copy(alpha = 0.05f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
                 tonalElevation = 2.dp
             ) {
                 Column {
@@ -161,8 +185,8 @@ fun PersonSelector(
             },
             dismissButton = {
                 TextButton(onClick = { 
-                    val p = suggestedPersons.first { it.firstName.equals(duplicateNameDialog, ignoreCase = true) }
-                    onSelect(p)
+                    val p = suggestedPersons.find { it.firstName.equals(duplicateNameDialog, ignoreCase = true) }
+                    if (p != null) onSelect(p)
                     duplicateNameDialog = null
                     query = ""
                 }) { Text("Utiliser l'existant", color = theme.contentColor) }
@@ -172,7 +196,7 @@ fun PersonSelector(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CreatePersonDialog(
     initialFirstName: String,
@@ -198,7 +222,7 @@ fun CreatePersonDialog(
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = theme.backgroundColor,
-            border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
             modifier = Modifier.fillMaxWidth().padding(16.dp)
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
@@ -214,6 +238,16 @@ fun CreatePersonDialog(
                 )
                 Spacer(Modifier.height(8.dp))
 
+                // CHAMP NOM DE FAMILLE (AJOUTÉ v9.0)
+                OutlinedTextField(
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    label = { Text("Nom de famille") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                )
+                Spacer(Modifier.height(8.dp))
+
                 OutlinedTextField(
                     value = relationship,
                     onValueChange = { relationship = it },
@@ -223,45 +257,29 @@ fun CreatePersonDialog(
                 )
                 Spacer(Modifier.height(16.dp))
 
-                Text("Pour les différencier (si besoin)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                // TYPE DE DISTINCTION (FILTER CHIPS AU LIEU DU DROPDOWN BUGGÉ)
+                Text("DISTINGUER PAR :", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
                 Spacer(Modifier.height(8.dp))
-
-                var expanded by remember { mutableStateOf(false) }
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded }
-                ) {
-                    OutlinedTextField(
-                        value = distTypes.find { it.first == distinctionType }?.second ?: "",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Type de distinction") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false }
-                    ) {
-                        distTypes.forEach { type ->
-                            DropdownMenuItem(
-                                text = { Text(type.second, color = theme.contentColor) },
-                                onClick = {
-                                    distinctionType = type.first
-                                    expanded = false
-                                },
-                                colors = MenuDefaults.itemColors(textColor = theme.contentColor)
+                FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    distTypes.forEach { type ->
+                        FilterChip(
+                            selected = distinctionType == type.first,
+                            onClick = { distinctionType = type.first },
+                            label = { Text(type.second) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = accent,
+                                selectedLabelColor = theme.backgroundColor
                             )
-                        }
+                        )
                     }
                 }
+                
                 Spacer(Modifier.height(8.dp))
 
                 OutlinedTextField(
                     value = distinctionValue,
                     onValueChange = { distinctionValue = it },
-                    label = { Text("Valeur (ex: Lyon, Le Grand...)") },
+                    label = { Text("Précision (ex: Lyon, Le Grand...)") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )

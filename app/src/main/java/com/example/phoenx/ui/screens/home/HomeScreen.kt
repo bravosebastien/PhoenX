@@ -35,6 +35,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.components.ProfileDrawer
 import com.example.phoenx.ui.components.VideoPlayerBanner
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.launch
@@ -445,14 +446,26 @@ fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit, theme: Ap
                 color = theme.contentColor.copy(alpha = 0.5f)
             )
         }
-        Surface(
-            modifier = Modifier.size(34.dp).clickable { onProfileClick() },
-            shape = CircleShape,
-            color = accent.copy(alpha = 0.15f),
-            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(Icons.Outlined.Person, null, tint = accent, modifier = Modifier.size(18.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            InfoButton(
+                title = "Votre Centre de Pilotage",
+                points = listOf(
+                    "VOTRE LÉGENDE : C'est ici que vous gérez votre héritage émotionnel et numérique.",
+                    "LE SILENCE : Votre état de présence est surveillé pour garantir que vos secrets ne seront libérés qu'au bon moment.",
+                    "LA BIBLIOTHÈQUE : Accédez à tous vos compartiments (Photos, Vidéos, Secrets, Quiz).",
+                    "CERCLE DE CONFIANCE : Gérez qui sont vos héritiers et vos témoins."
+                )
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Surface(
+                modifier = Modifier.size(34.dp).clickable { onProfileClick() },
+                shape = CircleShape,
+                color = accent.copy(alpha = 0.15f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.Person, null, tint = accent, modifier = Modifier.size(18.dp))
+                }
             }
         }
     }

@@ -56,6 +56,7 @@ fun PhotoCaptureContent(
     suggestedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
     onSearchPersons: (String) -> Unit = {},
     onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
+    onSelectMe: () -> Unit = {}, // v9.0
     onCreatePerson: (String, String?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> },
     onRemovePerson: (String) -> Unit = {},
     // Menus déroulants (v8.9.2)
@@ -63,8 +64,16 @@ fun PhotoCaptureContent(
     onCategoryChange: (String) -> Unit = {},
     isTonaliteExpanded: Boolean = false,
     onTonaliteToggle: () -> Unit = {},
-    isTiroirsExpanded: Boolean = false,
-    onTiroirsToggle: () -> Unit = {}
+    isTiroirsExpanded: Boolean = false, // Rétabli v9.0.1
+    onTiroirsToggle: () -> Unit = {},
+    currentStep: Int = 1, // v9.0
+    // OPTIONS AVANCÉES (Intégrées v9.0)
+    enigmaQuestion: String = "",
+    onEnigmaQuestionChange: (String) -> Unit = {},
+    enigmaAnswer: String = "",
+    onEnigmaAnswerChange: (String) -> Unit = {},
+    scheduledTimestamp: Long? = null,
+    onScheduledTimestampChange: (Long?) -> Unit = {}
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -167,64 +176,71 @@ fun PhotoCaptureContent(
                 }
 
                 Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp).padding(bottom = 24.dp)) {
-                    // POUR QUI (v8.9.2 : Menu déroulant)
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onTiroirsToggle() }
-                            .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
-                        color = theme.contentColor.copy(alpha = 0.03f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                    if (currentStep == 1) {
+                        // v8.8 : Personnes citées
+                        com.example.phoenx.ui.components.PersonSelector(
+                            selectedPersons = selectedPersons,
+                            suggestedPersons = suggestedPersons,
+                            onSearch = onSearchPersons,
+                            onSelect = onSelectPerson,
+                            onSelectMe = onSelectMe,
+                            onCreate = onCreatePerson,
+                            onRemove = onRemovePerson,
+                            accent = accent
+                        )
+                    } else {
+                        // ÉTAPE 2 : HABILLAGE PHOTO
+                        Text(
+                            "HABILLAGE & DESTINATION", 
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                            color = theme.contentColor.copy(alpha = 0.4f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // POUR QUI (Tiroirs)
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onTiroirsToggle() }
+                                .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                            color = theme.contentColor.copy(alpha = 0.03f),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            Text(
-                                "DANS QUELS TIROIRS ?", 
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
-                                color = theme.contentColor.copy(alpha = 0.4f)
-                            )
-                            Row(verticalAlignment = Alignment.CenterVertically) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    "DANS QUELS TIROIRS ?", 
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                                    color = theme.contentColor.copy(alpha = 0.4f)
+                                )
                                 val count = selectedRecipientIds.size
                                 val label = if (visibility == "EVERYONE") "Tout le monde" else if (count == 0) "Privé" else "$count choisi(s)"
-                                Text(
-                                    text = label,
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = accent
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Icon(
-                                    imageVector = if (isTiroirsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                    contentDescription = null,
-                                    tint = theme.contentColor.copy(alpha = 0.2f),
-                                    modifier = Modifier.size(16.dp)
-                                )
+                                Text(text = label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                             }
                         }
-                    }
 
-                    AnimatedVisibility(visible = isTiroirsExpanded) {
-                        Column {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            RecipientSelector(
-                                recipients = recipients,
-                                selectedIds = selectedRecipientIds,
-                                visibility = visibility,
-                                onVisibilityChange = onVisibilityChange,
-                                accent = accent,
-                                notifyByEmail = notifyByEmail,
-                                onNotifyByEmailChange = onNotifyByEmailChange
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
+                        AnimatedVisibility(visible = isTiroirsExpanded) {
+                            Column {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                com.example.phoenx.ui.components.RecipientSelector(
+                                    recipients = recipients,
+                                    selectedIds = selectedRecipientIds,
+                                    visibility = visibility,
+                                    onVisibilityChange = onVisibilityChange,
+                                    accent = accent,
+                                    notifyByEmail = notifyByEmail,
+                                    onNotifyByEmailChange = onNotifyByEmailChange
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                         }
-                    }
 
-                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
+                        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 12.dp))
 
-                    // TONALITÉ (v8.9.2 : Menu déroulant)
-                    Column {
+                        // TONALITÉ
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -238,28 +254,12 @@ fun PhotoCaptureContent(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "QUELLE TONALITÉ ?", 
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
-                                        color = theme.contentColor.copy(alpha = 0.4f)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = selectedCategory,
-                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                        color = accent
-                                    )
-                                    Spacer(Modifier.width(8.dp))
-                                    Icon(
-                                        imageVector = if (isTonaliteExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                        contentDescription = null,
-                                        tint = theme.contentColor.copy(alpha = 0.2f),
-                                        modifier = Modifier.size(16.dp)
-                                    )
-                                }
+                                Text(
+                                    text = "QUELLE TONALITÉ ?", 
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                                    color = theme.contentColor.copy(alpha = 0.4f)
+                                )
+                                Text(text = selectedCategory, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                             }
                         }
 
@@ -273,38 +273,90 @@ fun PhotoCaptureContent(
                                             selected = selectedCategory == cat,
                                             onClick = { onCategoryChange(cat) },
                                             label = { Text(cat) },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = accent,
-                                                selectedLabelColor = theme.backgroundColor,
-                                                containerColor = theme.contentColor.copy(alpha = 0.05f),
-                                                labelColor = theme.contentColor.copy(alpha = 0.6f)
-                                            ),
-                                            border = BorderStroke(
-                                                1.dp, 
-                                                if (selectedCategory == cat) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f)
-                                            )
+                                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(16.dp))
                             }
                         }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f), thickness = 0.5.dp)
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // CAPSULE TEMPORELLE (Ouverture programmée)
+                        Text(
+                            "CAPSULE TEMPORELLE", 
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                            color = theme.contentColor.copy(alpha = 0.4f)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        val dateText = scheduledTimestamp?.let {
+                            java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy", java.util.Locale.FRENCH)
+                                .withZone(java.time.ZoneId.systemDefault())
+                                .format(java.time.Instant.ofEpochMilli(it))
+                        } ?: "Dès maintenant"
+                        
+                        var showDatePicker by remember { mutableStateOf(false) }
+                        val datePickerState = rememberDatePickerState()
+
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { showDatePicker = true }
+                                .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                            color = theme.contentColor.copy(alpha = 0.03f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Event, null, tint = accent, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(12.dp))
+                                Text(dateText, color = if(scheduledTimestamp != null) accent else theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+
+                        if (showDatePicker) {
+                            DatePickerDialog(
+                                onDismissRequest = { showDatePicker = false },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        onScheduledTimestampChange(datePickerState.selectedDateMillis)
+                                        showDatePicker = false
+                                    }) { Text("Confirmer", color = accent) }
+                                }
+                            ) { DatePicker(state = datePickerState) }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f), thickness = 0.5.dp)
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // VERROU
+                        Text(
+                            "PROTECTION SECRÈTE", 
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                            color = theme.contentColor.copy(alpha = 0.4f)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        OutlinedTextField(
+                            value = enigmaQuestion,
+                            onValueChange = onEnigmaQuestionChange,
+                            label = { Text("Question secrète") },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = enigmaAnswer,
+                            onValueChange = onEnigmaAnswerChange,
+                            label = { Text("Réponse attendue") },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor)
+                        )
+                        
+                        Spacer(modifier = Modifier.height(48.dp))
                     }
-
-                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // v8.8 : Personnes citées
-                    com.example.phoenx.ui.components.PersonSelector(
-                        selectedPersons = selectedPersons,
-                        suggestedPersons = suggestedPersons,
-                        onSearch = onSearchPersons,
-                        onSelect = onSelectPerson,
-                        onCreate = onCreatePerson,
-                        onRemove = onRemovePerson,
-                        accent = accent
-                    )
                 }
             }
         }
