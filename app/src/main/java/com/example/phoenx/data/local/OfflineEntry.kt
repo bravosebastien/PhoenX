@@ -1,5 +1,6 @@
 package com.example.phoenx.data.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -86,7 +87,14 @@ data class OfflineEntry(
     val isUltimateSecret: Boolean = false,
 
     // NOUVEAUTÉ v8.9.8 (Migration v25)
-    val silentAttribution: Boolean = false
+    val silentAttribution: Boolean = false,
+
+    // SOUVERAINETÉ v8.9.9 (Migration v26)
+    @ColumnInfo(defaultValue = "1")
+    val includeInBook: Boolean = true,
+
+    // IA NARRATIVE v8.9.9 (Ton de l'Âme)
+    val soulTone: String? = null
 ) {
     fun isChild(): Boolean = parentEntryId != null
 

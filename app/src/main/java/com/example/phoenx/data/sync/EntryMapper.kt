@@ -56,7 +56,9 @@ fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
         "questionId" to questionId,
         "personIds" to personIds.split(",").filter { it.isNotBlank() },
         "isUltimateSecret" to isUltimateSecret,
-        "silentAttribution" to silentAttribution
+        "silentAttribution" to silentAttribution,
+        "includeInBook" to includeInBook,
+        "soulTone" to soulTone
     )
 }
 
@@ -112,6 +114,8 @@ fun DocumentSnapshot.toOfflineEntry(): OfflineEntry? {
         questionId = getString("questionId"),
         personIds = (get("personIds") as? List<*>)?.joinToString(",") ?: "",
         isUltimateSecret = getBoolean("isUltimateSecret") ?: false,
-        silentAttribution = getBoolean("silentAttribution") ?: false
+        silentAttribution = getBoolean("silentAttribution") ?: false,
+        includeInBook = getBoolean("includeInBook") ?: true,
+        soulTone = getString("soulTone")
     )
 }

@@ -266,7 +266,9 @@ class CaptureViewModel @Inject constructor(
         longitude: Double? = null,
         locationName: String? = null,
         locationId: String? = null,
-        parentEntryId: String? = null
+        parentEntryId: String? = null,
+        includeInBook: Boolean = true,
+        soulTone: String? = null
     ) {
         Toast.makeText(context, "saveEntry() appelée !", Toast.LENGTH_LONG).show()
         Log.d("SaveEntryDebug", "saveEntry() appelée, uid actuel = ${auth.currentUser?.uid}")
@@ -358,7 +360,9 @@ class CaptureViewModel @Inject constructor(
                     locationName = locationName,
                     locationId = locationId,
                     localMediaPath = finalLocalPath,
-                    parentEntryId = parentEntryId
+                    parentEntryId = parentEntryId,
+                    includeInBook = includeInBook,
+                    soulTone = soulTone
                 )
                 offlineEntryDao.insertEntry(entry)
                 Log.d("SaveEntryDebug", "Entrée insérée en local avec id = $entryId")

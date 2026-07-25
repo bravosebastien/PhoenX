@@ -131,21 +131,24 @@ class FilViewModel @Inject constructor(
             }.combine(
                 combine(_selectedRecipientId, _sortByCreationDate, _isProtocolActivated) { r, s, a -> Triple(r, s, a) }
             ) { offlineEntries, (recipientId, sortByDate, activated) ->
+                android.util.Log.d("FIL_DEBUG", "Entrées reçues de Room/Firestore: ${offlineEntries.size}")
                 val targetId = _targetCreatorId.value
                 val isHeirMode = targetId != null && targetId != currentUid
 
                 // 1. Filtrage par CRÉATEUR et ACCÈS
                 val rootEntries = if (!isHeirMode) {
                     // Mon propre fil : Uniquement mes propres souvenirs Room (Parents)
-                    offlineEntries.filter { it.parentEntryId == null }
+                    // v8.9.9 : Correction filtrage parentEntryId strict (null vs "")
+                    offlineEntries.filter { it.parentEntryId.isNullOrBlank() }
                 } else {
                     // Fil d'un proche : Filtrage accès héritier
                     offlineEntries.filter { entry ->
-                        val isRoot = entry.parentEntryId == null
+                        val isRoot = entry.parentEntryId.isNullOrBlank()
                         val isForMe = entry.visibility == "EVERYONE" || entry.recipientIds.split(",").contains(currentUid)
                         isRoot && isForMe
                     }
                 }
+                android.util.Log.d("FIL_DEBUG", "Entrées racines après filtrage parent: ${rootEntries.size}")
 
                 // 2. Filtrage par destinataire (UI)
                 val filteredOffline = if (recipientId != null) {
@@ -225,22 +228,16 @@ class FilViewModel @Inject constructor(
     }
 
     private fun AmendmentEntity.toDomain(): PhoenXAmendment {
-        val ageJson = JSONObject(ageAtAmendment)
         return PhoenXAmendment(
             id = id,
             encryptedContent = encryptedContent,
-            ageAtAmendment = AgeSnapshot(ageJson.getInt("years"), ageJson.getInt("months"), ageJson.getInt("days")),
+            ageAtAmendment = AgeUtils.parseAgeJson(ageAtAmendment),
             createdAt = Instant.ofEpochMilli(createdAt)
         )
     }
 
     private fun OfflineEntry.toSealedDomain(): PhoenXEntry {
-        val ageJson = JSONObject(ageAtCreation)
-        val age = AgeSnapshot(
-            years = ageJson.getInt("years"),
-            months = ageJson.getInt("months"),
-            days = ageJson.getInt("days")
-        )
+        val age = AgeUtils.parseAgeJson(ageAtCreation)
         return PhoenXEntry(
             id = id,
             creatorUid = creatorUid,
@@ -262,13 +259,7 @@ class FilViewModel @Inject constructor(
 
     private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager, amendments: List<PhoenXAmendment>): PhoenXEntry {
         val decryptedText = encryptionManager.decryptText(encryptedPayload)
-        
-        val ageJson = JSONObject(ageAtCreation)
-        val age = AgeSnapshot(
-            years = ageJson.getInt("years"),
-            months = ageJson.getInt("months"),
-            days = ageJson.getInt("days")
-        )
+        val age = AgeUtils.parseAgeJson(ageAtCreation)
 
         return PhoenXEntry(
             id = id,

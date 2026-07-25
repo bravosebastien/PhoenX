@@ -57,6 +57,13 @@ fun PersonSelector(
                     selected = true,
                     onClick = { onRemove(person.id) },
                     label = { Text(person.firstName) },
+                    leadingIcon = {
+                        CameoPortrait(
+                            imagePath = person.imagePath,
+                            firstName = person.firstName,
+                            size = 20.dp
+                        )
+                    },
                     trailingIcon = { Icon(Icons.Default.Close, null, modifier = Modifier.size(14.dp)) },
                     colors = InputChipDefaults.inputChipColors(
                         selectedContainerColor = accent.copy(alpha = 0.2f),
@@ -115,11 +122,11 @@ fun PersonSelector(
                             headlineContent = { Text(person.firstName + (person.lastName?.let { " $it" } ?: ""), color = theme.contentColor, fontWeight = FontWeight.Bold) },
                             supportingContent = { Text(person.relationship ?: "Proche", color = theme.contentColor.copy(alpha = 0.6f)) },
                             leadingContent = {
-                                Surface(modifier = Modifier.size(32.dp), shape = CircleShape, color = accent.copy(alpha = 0.1f)) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text(person.firstName.take(1), color = accent, fontWeight = FontWeight.Bold)
-                                    }
-                                }
+                                CameoPortrait(
+                                    imagePath = person.imagePath,
+                                    firstName = person.firstName,
+                                    size = 32.dp
+                                )
                             },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                             modifier = Modifier.clickable { 

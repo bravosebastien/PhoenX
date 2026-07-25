@@ -33,7 +33,11 @@ fun AdvancedOptionsContent(
     enigmaAutoUnlockDays: Int?,
     onEnigmaAutoUnlockDaysChange: (Int?) -> Unit,
     scheduledTimestamp: Long?,
-    onScheduledTimestampChange: (Long?) -> Unit
+    onScheduledTimestampChange: (Long?) -> Unit,
+    includeInBook: Boolean,
+    onIncludeInBookChange: (Boolean) -> Unit,
+    soulTone: String?,
+    onSoulToneChange: (String?) -> Unit
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -205,6 +209,70 @@ fun AdvancedOptionsContent(
                 colors = datePickerColors
             ) {
                 DatePicker(state = datePickerState, colors = datePickerColors)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.AutoStories, null, tint = accent, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text("Livre de Vie", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
+            Spacer(modifier = Modifier.weight(1f))
+            Switch(
+                checked = includeInBook,
+                onCheckedChange = onIncludeInBookChange,
+                colors = SwitchDefaults.colors(checkedThumbColor = accent)
+            )
+        }
+        Text(
+            "Inclure ce fragment dans ton Livre de Vie global (Générateur IA).",
+            style = MaterialTheme.typography.bodySmall,
+            color = theme.contentColor.copy(alpha = 0.6f),
+            modifier = Modifier.padding(start = 32.dp)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.width(12.dp))
+            Text("Ton de l'Âme", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
+        }
+        Text(
+            "Influence le style du récit généré par l'IA.",
+            style = MaterialTheme.typography.bodySmall,
+            color = theme.contentColor.copy(alpha = 0.6f),
+            modifier = Modifier.padding(start = 32.dp)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        @OptIn(ExperimentalLayoutApi::class)
+        FlowRow(
+            modifier = Modifier.padding(start = 32.dp).fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val tones = listOf("Authentique", "Cynique", "Rigolo", "Poétique", "Brut")
+            tones.forEach { tone ->
+                FilterChip(
+                    selected = soulTone == tone,
+                    onClick = { onSoulToneChange(if (soulTone == tone) null else tone) },
+                    label = { Text(tone) },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = accent.copy(alpha = 0.2f),
+                        selectedLabelColor = accent,
+                        labelColor = theme.contentColor,
+                        selectedLeadingIconColor = accent
+                    ),
+                    border = FilterChipDefaults.filterChipBorder(
+                        borderColor = theme.contentColor.copy(alpha = 0.1f),
+                        selectedBorderColor = accent,
+                        enabled = true,
+                        selected = soulTone == tone
+                    )
+                )
             }
         }
     }

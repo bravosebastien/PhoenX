@@ -39,7 +39,8 @@ object DatabaseModule {
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_23_24,
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_24_25,
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_25_26,
-            com.example.phoenx.data.local.RoomMigrations.MIGRATION_26_27
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_26_27,
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_27_28
         ).build()
     }
 

@@ -228,4 +228,21 @@ object RoomMigrations {
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_amendments_entryId` ON `amendments` (`entryId`)")
         }
     }
+
+    /**
+     * MIGRATION_27_28 — Lot v8.9.9b
+     * Ajout des champs Cameo (imagePath), Souveraineté (includeInBook) et IA Narrative (soulTone).
+     */
+    val MIGRATION_27_28 = object : Migration(27, 28) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // 1. imagePath (PersonEntity) : Nullable, pas de DEFAULT requis
+            db.execSQL("ALTER TABLE persons ADD COLUMN imagePath TEXT")
+
+            // 2. soulTone (OfflineEntry) : Nullable, pas de DEFAULT requis
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN soulTone TEXT")
+
+            // 3. includeInBook (OfflineEntry) : NOT NULL avec DEFAULT 1 (true)
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN includeInBook INTEGER NOT NULL DEFAULT 1")
+        }
+    }
 }

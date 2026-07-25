@@ -124,6 +124,8 @@ fun CaptureScreen(
     var enigmaHint by remember { mutableStateOf("") }
     var enigmaAutoUnlockDays by remember { mutableStateOf<Int?>(null) }
     var scheduledTimestamp by remember { mutableStateOf<Long?>(null) }
+    var includeInBook by remember { mutableStateOf(true) }
+    var soulTone by remember { mutableStateOf<String?>(null) }
     val sheetState = rememberModalBottomSheetState()
 
     val isNightMode = initialType == Screen.Capture.TYPE_NIGHT
@@ -177,7 +179,9 @@ fun CaptureScreen(
                         visibility = visibility,
                         pendingQuestionId = pendingQuestionId,
                         locationId = locationId,
-                        parentEntryId = parentEntryId
+                        parentEntryId = parentEntryId,
+                        includeInBook = includeInBook,
+                        soulTone = soulTone
                     )
                     return@onKeyEvent true
                 }
@@ -256,7 +260,9 @@ fun CaptureScreen(
                                     longitude = longitude,
                                     locationName = locationName,
                                     locationId = locationId,
-                                    parentEntryId = parentEntryId
+                                    parentEntryId = parentEntryId,
+                                    includeInBook = includeInBook,
+                                    soulTone = soulTone
                                 )
                             },
                             enabled = (text.isNotEmpty() || capturedPhotoFile != null || selectedGalleryUri != null || initialType == Screen.Capture.TYPE_PHOTO) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
@@ -291,7 +297,9 @@ fun CaptureScreen(
                                 category = "Sagesse",
                                 visibility = "private",
                                 pendingQuestionId = pendingQuestionId,
-                                locationId = locationId
+                                locationId = locationId,
+                                includeInBook = includeInBook,
+                                soulTone = soulTone
                             )
                         }
                     }
@@ -326,7 +334,9 @@ fun CaptureScreen(
                                         silentAttribution = !notifyByEmail, // Nouveauté v8.9.8
                                         pendingQuestionId = pendingQuestionId,
                                         locationId = locationId,
-                                        parentEntryId = parentEntryId
+                                        parentEntryId = parentEntryId,
+                                        includeInBook = includeInBook,
+                                        soulTone = soulTone
                                     )
                                 },
                                 recipients = recipients,
@@ -551,7 +561,11 @@ fun CaptureScreen(
                     enigmaAutoUnlockDays = enigmaAutoUnlockDays,
                     onEnigmaAutoUnlockDaysChange = { enigmaAutoUnlockDays = it },
                     scheduledTimestamp = scheduledTimestamp,
-                    onScheduledTimestampChange = { scheduledTimestamp = it }
+                    onScheduledTimestampChange = { scheduledTimestamp = it },
+                    includeInBook = includeInBook,
+                    onIncludeInBookChange = { includeInBook = it },
+                    soulTone = soulTone,
+                    onSoulToneChange = { soulTone = it }
                 )
             }
         }

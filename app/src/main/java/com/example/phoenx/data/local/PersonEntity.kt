@@ -12,6 +12,7 @@ data class PersonEntity(
     val relationship: String? = null, // ex: "compagne", "cousin"
     val distinctionType: String? = null, // "nom_famille", "surnom", "ville", "autre"
     val distinctionValue: String? = null,
+    val imagePath: String? = null, // v8.9.9 : Chemin vers le portrait Cameo
     val createdAt: Long = System.currentTimeMillis(),
     val syncStatus: String = "pending"
 )
