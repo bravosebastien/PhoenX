@@ -9,6 +9,7 @@ import com.example.phoenx.data.model.ChapterStatus
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -83,16 +84,43 @@ class BookGeneratorService @Inject constructor(
      */
     suspend fun extractScenes(): List<Map<String, Any?>> {
         val allEntries = offlineEntryDao.getAllEntriesSync()
+        val allPersons = offlineEntryDao.getAllPersons().first()
+        val personMap = allPersons.associateBy { it.id }
+
         val parents = allEntries.filter { it.parentEntryId == null }
         
         return parents.map { parent ->
             val complements = allEntries.filter { it.parentEntryId == parent.id }
             val age = AgeUtils.parseAgeJson(parent.ageAtCreation)
             
+            // v9.0 : Résolution des personnages cités dans cette scène
+            val taggedIds = parent.personIds.split(",").filter { it.isNotBlank() }
+            val characters = taggedIds.mapNotNull { id ->
+                personMap[id]?.let { p ->
+                    mapOf(
+                        "firstName" to p.firstName,
+                        "lastName" to p.lastName,
+                        "relationship" to p.relationship,
+                        "distinctionType" to p.distinctionType,
+                        "distinctionValue" to p.distinctionValue,
+                        // Nouveaux champs v9.0
+                        "height" to p.height,
+                        "weight" to p.weight,
+                        "eyeColor" to p.eyeColor,
+                        "hairColor" to p.hairColor,
+                        "clothingStyle" to p.clothingStyle,
+                        "profession" to p.profession,
+                        "hasChildren" to p.hasChildren,
+                        "relationshipDetail" to p.relationshipDetail
+                    )
+                }
+            }
+            
             mapOf(
                 "summary" to parent.aiSummary,
                 "age" to age.years,
                 "category" to parent.emotionalCategory,
+                "characters" to characters, // Transmis à l'IA Biographe
                 "photos" to complements.filter { it.entryType == "PHOTO" || it.entryType == "GALLERY" }
                     .map { mapOf("id" to it.id, "description" to it.aiSummary) },
                 "vocal_essence" to complements.filter { it.entryType == "AUDIO" }
@@ -124,6 +152,14 @@ class BookGeneratorService @Inject constructor(
             "ageMin" to ageMin,
             "ageMax" to ageMax
         )
+
+        // v9.0 : Log temporaire du payload envoyé à l'IA pour vérification des fiches personnages
+        try {
+            val json = org.json.JSONObject(data as Map<*, *>).toString(2)
+            android.util.Log.d("PHOENX_AI_PROMPT", "Payload envoyé à generateBookChapters :\n$json")
+        } catch (e: Exception) {
+            android.util.Log.w("PHOENX_AI_PROMPT", "Impossible de logguer le payload JSON")
+        }
 
         val result = functions.getHttpsCallable("generateBookChapters")
             .call(data)
