@@ -629,6 +629,7 @@ export const joinAsDepositary = onCall(async (request) => {
     // 1. Liaison sur le document du Créateur
     batch.update(ref, {
         depositaryUid: depositaryUid,
+        status: "active", // v9.1 : Correction statut
         inviteTokenUsed: true
     });
 
@@ -924,11 +925,18 @@ export const acceptUniversalInvitation = onCall(async (request) => {
             // 8. Mise à jour du statut dans la liste du Créateur
             if (inviteData.sourcePath) {
                 const sourceRef = db.doc(inviteData.sourcePath);
-                transaction.update(sourceRef, {
+                const sourceUpdates: any = {
                     status: "active",
                     linkedUid: auth.uid,
                     linkedAt: admin.firestore.FieldValue.serverTimestamp()
-                });
+                };
+
+                // v9.1 : Champ spécifique requis par les Security Rules pour les Dépositaires
+                if (role === "depositary") {
+                    sourceUpdates.depositaryUid = auth.uid;
+                }
+
+                transaction.update(sourceRef, sourceUpdates);
             }
 
             return { status: "success", role: role };

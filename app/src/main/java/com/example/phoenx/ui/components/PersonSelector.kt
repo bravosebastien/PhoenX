@@ -50,7 +50,7 @@ fun PersonSelector(
     onSearch: (String) -> Unit,
     onSelect: (PersonEntity) -> Unit,
     onSelectMe: () -> Unit = {},
-    onCreate: (firstName: String, lastName: String?, relation: String?, distType: String?, distValue: String?, imageUri: Uri?) -> Unit,
+    onCreate: (firstName: String, lastName: String?, relation: String?, distType: String?, distValue: String?, imageUri: Uri?, characterType: String) -> Unit,
     onRemove: (String) -> Unit,
     onManageCharacters: () -> Unit = {},
     accent: Color
@@ -198,8 +198,8 @@ fun PersonSelector(
         CreatePersonDialog(
             initialFirstName = query,
             onDismiss = { showCreateDialog = false },
-            onConfirm = { f, l, r, dt, dv, uri ->
-                onCreate(f, l, r, dt, dv, uri)
+            onConfirm = { f, l, r, dt, dv, uri, ct ->
+                onCreate(f, l, r, dt, dv, uri, ct)
                 showCreateDialog = false
                 query = ""
             },
@@ -237,7 +237,7 @@ fun PersonSelector(
 fun CreatePersonDialog(
     initialFirstName: String,
     onDismiss: () -> Unit,
-    onConfirm: (String, String?, String?, String?, String?, Uri?) -> Unit,
+    onConfirm: (String, String?, String?, String?, String?, Uri?, String) -> Unit,
     accent: Color
 ) {
     var firstName by remember { mutableStateOf(initialFirstName) }
@@ -246,6 +246,7 @@ fun CreatePersonDialog(
     var distinctionType by remember { mutableStateOf<String?>(null) }
     var distinctionValue by remember { mutableStateOf("") }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var characterType by remember { mutableStateOf("HUMAN") }
     var showCropDialog by remember { mutableStateOf(false) }
     var tempPickedUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -290,7 +291,35 @@ fun CreatePersonDialog(
                 modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Nouvelle Personne", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                Text("Nouveau Personnage", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                Spacer(Modifier.height(24.dp))
+
+                // TYPE SELECTOR (v9.1)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    FilterChip(
+                        selected = characterType == "HUMAN",
+                        onClick = { characterType = "HUMAN" },
+                        label = { Text("Humain") },
+                        leadingIcon = if (characterType == "HUMAN") {
+                            { Icon(Icons.Default.Person, null, modifier = Modifier.size(16.dp)) }
+                        } else null,
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor, selectedLeadingIconColor = theme.backgroundColor)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    FilterChip(
+                        selected = characterType == "ANIMAL",
+                        onClick = { characterType = "ANIMAL" },
+                        label = { Text("Animal") },
+                        leadingIcon = if (characterType == "ANIMAL") {
+                            { Icon(Icons.Default.Pets, null, modifier = Modifier.size(16.dp)) }
+                        } else null,
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor, selectedLeadingIconColor = theme.backgroundColor)
+                    )
+                }
+
                 Spacer(Modifier.height(24.dp))
 
                 // BOUTON CAMEO
@@ -320,16 +349,29 @@ fun CreatePersonDialog(
                 OutlinedTextField(
                     value = firstName,
                     onValueChange = { firstName = it },
-                    label = { Text("Prénom") },
+                    label = { Text(if (characterType == "HUMAN") "Prénom" else "Petit nom") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
-                Spacer(Modifier.height(8.dp))
+                
+                if (characterType == "HUMAN") {
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = lastName,
+                        onValueChange = { lastName = it },
+                        label = { Text("Nom (optionnel)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                    )
+                }
+
+                Spacer(Modifier.height(12.dp))
 
                 OutlinedTextField(
                     value = relationship,
                     onValueChange = { relationship = it },
-                    label = { Text("Lien (ex: fils, collègue)") },
+                    label = { Text(if (characterType == "HUMAN") "Lien de parenté / Relation" else "C'est qui pour toi ?") },
+                    placeholder = { Text(if (characterType == "HUMAN") "Ex: Mon cousin" else "Ex: Mon fidèle compagnon") },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
@@ -374,7 +416,7 @@ fun CreatePersonDialog(
                     TextButton(onClick = onDismiss) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f)) }
                     Button(
                         onClick = { 
-                            onConfirm(firstName, if(lastName.isBlank()) null else lastName, if(relationship.isBlank()) null else relationship, distinctionType, if(distinctionValue.isBlank()) null else distinctionValue, selectedImageUri) 
+                            onConfirm(firstName, if(lastName.isBlank()) null else lastName, if(relationship.isBlank()) null else relationship, distinctionType, if(distinctionValue.isBlank()) null else distinctionValue, selectedImageUri, characterType)
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = accent),
                         enabled = firstName.isNotBlank()

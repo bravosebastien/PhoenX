@@ -290,4 +290,13 @@ object RoomMigrations {
             """.trimIndent())
         }
     }
+
+    /**
+     * MIGRATION_30_31 — Distinction Humain / Animal v9.1
+     */
+    val MIGRATION_30_31 = object : Migration(30, 31) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE persons ADD COLUMN characterType TEXT")
+        }
+    }
 }

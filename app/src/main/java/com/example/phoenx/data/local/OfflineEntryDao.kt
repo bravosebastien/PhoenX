@@ -94,14 +94,17 @@ interface OfflineEntryDao {
     suspend fun deleteNotificationContact(contactId: String)
 
     // Depositaries
-    @Query("SELECT * FROM depositaries LIMIT 1")
-    fun getDepositary(): Flow<DepositaryEntity?>
+    @Query("SELECT * FROM depositaries ORDER BY role ASC")
+    fun getAllDepositaries(): Flow<List<DepositaryEntity>>
 
-    @Query("SELECT * FROM depositaries LIMIT 1")
-    suspend fun getDepositarySync(): DepositaryEntity?
+    @Query("SELECT * FROM depositaries WHERE id = :id")
+    suspend fun getDepositaryById(id: String): DepositaryEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDepositary(depositary: DepositaryEntity)
+
+    @Query("DELETE FROM depositaries WHERE id = :id")
+    suspend fun deleteDepositary(id: String)
 
     @Query("DELETE FROM depositaries")
     suspend fun clearDepositaries()

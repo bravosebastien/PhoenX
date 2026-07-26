@@ -6,6 +6,7 @@ import com.example.phoenx.data.local.DepositaryEntity
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -22,279 +23,139 @@ class ProtocolViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProtocolUiState())
-    val uiState: StateFlow<ProtocolUiState> = _uiState
+    val uiState: StateFlow<ProtocolUiState> = _uiState.asStateFlow()
 
     private val _inviteToken = MutableStateFlow<String?>(null)
     val inviteToken: StateFlow<String?> = _inviteToken
 
-    private val _secondaryInviteToken = MutableStateFlow<String?>(null)
-    val secondaryInviteToken: StateFlow<String?> = _secondaryInviteToken
-
-    private val _shortCode = MutableStateFlow<String?>(null)
-    val shortCode: StateFlow<String?> = _shortCode
-
-    private val _secondaryShortCode = MutableStateFlow<String?>(null)
-    val secondaryShortCode: StateFlow<String?> = _secondaryShortCode
-
     init {
-        loadDepositaries()
+        loadData()
     }
 
-    private fun loadDepositaries() {
+    private fun loadData() {
         val userId = auth.currentUser?.uid ?: return
-        
-        // 1. Écouter les changements locaux pour l'UI (Réactivité maximale)
-        viewModelScope.launch {
-            offlineEntryDao.getDepositary().collectLatest { dep ->
-                if (dep != null) {
-                    _uiState.update { it.copy(
-                        name = dep.name,
-                        email = dep.email,
-                        phone = dep.phone,
-                        status = dep.status
-                    ) }
-                }
-            }
-        }
 
-        // 2. Synchroniser depuis Firestore (Source de vérité)
+        // 1. Écoute locale
+        offlineEntryDao.getAllDepositaries().onEach { list ->
+            _uiState.update { it.copy(depositaries = list) }
+        }.launchIn(viewModelScope)
+
+        // 2. Synchronisation Firestore
         viewModelScope.launch {
             try {
-                // Charger la config de silence
                 val userDoc = db.collection("users").document(userId).get().await()
                 val threshold = userDoc.getLong("silenceConfig.thresholdHours")?.toInt() ?: 72
                 _uiState.update { it.copy(thresholdHours = threshold) }
 
-                // Charger le dépositaire primaire
-                val primaryDoc = db.collection("users").document(userId)
-                    .collection("depositaries").document("primary").get().await()
+                val snapshot = db.collection("users").document(userId)
+                    .collection("depositaries").get().await()
                 
-                if (primaryDoc.exists()) {
-                    val name = primaryDoc.getString("name") ?: ""
-                    val email = primaryDoc.getString("email") ?: ""
-                    val phone = primaryDoc.getString("phone") ?: ""
-                    val status = primaryDoc.getString("status") ?: "active"
-
-                    // Mettre à jour Room si nécessaire
-                    val local = offlineEntryDao.getDepositarySync()
-                    if (local == null || local.name != name || local.email != email) {
-                        offlineEntryDao.clearDepositaries()
-                        offlineEntryDao.insertDepositary(DepositaryEntity(
-                            name = name, 
-                            email = email, 
-                            phone = phone,
-                            status = status
-                        ))
-                    }
+                val remoteDeps = snapshot.documents.map { doc ->
+                    DepositaryEntity(
+                        id = doc.id,
+                        name = doc.getString("name") ?: "",
+                        email = doc.getString("email") ?: "",
+                        phone = doc.getString("phone"),
+                        role = doc.getString("role") ?: "primary",
+                        status = doc.getString("status") ?: "invited",
+                        linkedUid = doc.getString("depositaryUid") // v9.1 : Correction nom de champ Firestore
+                    )
                 }
-            } catch (e: Exception) {
-                android.util.Log.e("PHOENX_PROTO", "Erreur sync Firestore -> Room: ${e.message}")
-            }
-        }
 
-        // 3. Vérifier le secondaire sur Firestore
-        viewModelScope.launch {
-            try {
-                val doc = db.collection("users").document(userId)
-                    .collection("depositaries").document("secondary").get().await()
-                
-                if (doc.exists()) {
-                    _uiState.update { it.copy(
-                        hasSecondaryDepositary = true,
-                        secondaryName = doc.getString("name") ?: "",
-                        secondaryEmail = doc.getString("email") ?: "",
-                        secondaryPhone = doc.getString("phone") ?: ""
-                    ) }
-                }
+                offlineEntryDao.clearDepositaries()
+                remoteDeps.forEach { offlineEntryDao.insertDepositary(it) }
+
             } catch (e: Exception) {
-                // Erreur silencieuse
+                android.util.Log.e("ProtocolVM", "Erreur sync : ${e.message}")
             }
         }
     }
 
-    fun saveProtocol(name: String, email: String, phone: String, threshold: Int) {
+    fun updateThreshold(hours: Int) {
         val userId = auth.currentUser?.uid ?: return
-        _uiState.update { it.copy(isLoading = true, error = null, isSuccess = false) }
+        _uiState.update { it.copy(thresholdHours = hours) }
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(userId)
+                    .set(mapOf("silenceConfig" to mapOf("thresholdHours" to hours)), SetOptions.merge())
+                    .await()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = "Erreur mise à jour délai") }
+            }
+        }
+    }
+
+    fun inviteDepositary(name: String, email: String, role: String) {
+        val userId = auth.currentUser?.uid ?: return
+        _uiState.update { it.copy(isLoading = true, error = null) }
 
         viewModelScope.launch {
             try {
-                // 1. Sauvegarde locale
-                offlineEntryDao.clearDepositaries()
-                val dep = DepositaryEntity(name = name, email = email, phone = phone)
-                offlineEntryDao.insertDepositary(dep)
-
-                // 2. Sauvegarde Firestore
-                val depositaryId = "primary"
-                val depositaryData = hashMapOf(
-                    "name" to name,
-                    "email" to email,
-                    "phone" to phone,
-                    "role" to "primary",
-                    "status" to "active"
-                )
+                val depositaryId = role
+                
+                // Firestore first to ensure rule validation
                 db.collection("users").document(userId)
                     .collection("depositaries").document(depositaryId)
-                    .set(depositaryData).await()
+                    .set(mapOf(
+                        "name" to name,
+                        "email" to email,
+                        "role" to role,
+                        "status" to "invited",
+                        "createdAt" to System.currentTimeMillis()
+                    )).await()
 
-                // Enregistrement du délai de contestation (Seuil de sécurité)
-                db.collection("users").document(userId)
-                    .set(
-                        mapOf("silenceConfig" to mapOf("thresholdHours" to threshold)),
-                        com.google.firebase.firestore.SetOptions.merge()
-                    ).await()
-
-                // 3. Génération du Token Universel (v7.2)
+                // Invitation
                 val inviteData = hashMapOf(
                     "email" to email,
                     "role" to "depositary",
                     "sourceId" to depositaryId,
-                    "label" to "Gardien de confiance"
+                    "label" to if (role == "primary") "Gardien Principal" else "Gardien Secondaire"
                 )
                 val result = functions.getHttpsCallable("generateUniversalInvitation").call(inviteData).await()
                 val tokenId = (result.data as Map<*, *>)["tokenId"] as String
                 
                 _inviteToken.value = tokenId
-                _shortCode.value = tokenId
-                
-                // 4. Envoi automatique de l'email d'invitation (v7.2)
-                val userDoc = db.collection("users").document(userId).get().await()
-                val creatorName = userDoc.getString("displayName") ?: "Votre proche"
-                
+
+                // Email
+                val creatorName = db.collection("users").document(userId).get().await().getString("displayName") ?: "Un proche"
                 val emailData = hashMapOf(
                     "to" to email,
                     "message" to hashMapOf(
-                        "subject" to "$creatorName vous a désigné comme Gardien de confiance",
-                        "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous choisissant comme Gardien (Dépositaire) de son récit de vie.\n\nLien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
+                        "subject" to "$creatorName vous a choisi comme Gardien de confiance",
+                        "text" to "Bonjour $name,\n\n$creatorName souhaite vous confier le rôle de Gardien (Dépositaire) de son récit de vie sur PHOEN-X.\n\nRejoindre son cercle : https://phoenx.app/join/$tokenId"
                     )
                 )
                 db.collection("mail").add(emailData).await()
 
                 _uiState.update { it.copy(isLoading = false, isSuccess = true) }
-
             } catch (e: Exception) {
-                android.util.Log.e("PHOENX_PROTO", "Erreur sauvegarde primaire: ${e.message}")
-                _uiState.update { it.copy(isLoading = false, error = e.message ?: "Erreur de sauvegarde") }
+                _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
         }
     }
 
-    /**
-     * Supprime un dépositaire (primaire ou secondaire).
-     */
-    fun deleteDepositary(depositaryId: String) {
+    fun removeDepositary(id: String) {
         val userId = auth.currentUser?.uid ?: return
-        _uiState.update { it.copy(isLoading = true) }
-        
         viewModelScope.launch {
             try {
-                // 1. Suppression Firestore
                 db.collection("users").document(userId)
-                    .collection("depositaries").document(depositaryId)
+                    .collection("depositaries").document(id)
                     .delete().await()
-
-                // 2. Mise à jour Room / État local
-                if (depositaryId == "primary") {
-                    offlineEntryDao.clearDepositaries()
-                    _uiState.update { it.copy(
-                        name = "", email = "", phone = "", status = "Dormant",
-                        isLoading = false, isSuccess = true
-                    ) }
-                } else {
-                    _uiState.update { it.copy(
-                        hasSecondaryDepositary = false,
-                        secondaryName = "", secondaryEmail = "", secondaryPhone = "",
-                        isLoading = false, isSuccess = true
-                    ) }
-                }
+                offlineEntryDao.deleteDepositary(id)
             } catch (e: Exception) {
-                android.util.Log.e("PHOENX_PROTO", "Erreur suppression dépositaire: ${e.message}")
-                _uiState.update { it.copy(isLoading = false, error = "Erreur lors de la suppression") }
+                _uiState.update { it.copy(error = "Erreur suppression") }
             }
         }
     }
 
-    fun loadCreatorStatus(creatorId: String) {
-        // ... (Non modifié ici)
-    }
-
-    fun clearError() {
-        _uiState.update { it.copy(error = null) }
-    }
-
-    /**
-     * Sauvegarde le Dépositaire secondaire (Palier 4 d'alerte).
-     */
-    fun saveSecondaryDepositary(name: String, email: String, phone: String) {
-        val userId = auth.currentUser?.uid ?: return
-        _uiState.update { it.copy(isLoading = true, error = null, isSuccess = false) }
-        viewModelScope.launch {
-            try {
-                val depositaryId = "secondary"
-                val depositaryData = hashMapOf(
-                    "name" to name,
-                    "email" to email,
-                    "phone" to phone,
-                    "role" to "secondary",
-                    "status" to "active"
-                )
-                db.collection("users").document(userId)
-                    .collection("depositaries").document(depositaryId)
-                    .set(depositaryData).await()
-
-                // Génération du token universel pour le secondaire
-                val inviteData = hashMapOf(
-                    "email" to email,
-                    "role" to "depositary",
-                    "sourceId" to depositaryId,
-                    "label" to "Gardien de confiance"
-                )
-                val result = functions.getHttpsCallable("generateUniversalInvitation").call(inviteData).await()
-                val tokenId = (result.data as Map<*, *>)["tokenId"] as String
-
-                _secondaryInviteToken.value = tokenId
-                _secondaryShortCode.value = tokenId
-                
-                // Envoi automatique de l'email d'invitation (v7.2)
-                val userDoc = db.collection("users").document(userId).get().await()
-                val creatorName = userDoc.getString("displayName") ?: "Votre proche"
-                
-                val emailData = hashMapOf(
-                    "to" to email,
-                    "message" to hashMapOf(
-                        "subject" to "$creatorName vous a désigné comme Gardien de confiance",
-                        "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous choisissant comme Gardien (Dépositaire) de son récit de vie.\n\nLien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
-                    )
-                )
-                db.collection("mail").add(emailData).await()
-
-                _uiState.update { it.copy(
-                    hasSecondaryDepositary = true,
-                    secondaryName = name,
-                    secondaryEmail = email,
-                    secondaryPhone = phone,
-                    isLoading = false,
-                    isSuccess = true
-                ) }
-
-            } catch (e: Exception) {
-                android.util.Log.e("PHOENX_PROTO", "Erreur sauvegarde secondaire: ${e.message}")
-                _uiState.update { it.copy(isLoading = false, error = e.message ?: "Erreur de sauvegarde") }
-            }
-        }
-    }
+    fun clearError() { _uiState.update { it.copy(error = null) } }
+    fun clearSuccess() { _uiState.update { it.copy(isSuccess = false) } }
 }
 
 data class ProtocolUiState(
-    val name: String = "",
-    val email: String = "",
-    val phone: String = "",
-    val status: String = "Dormant",
+    val depositaries: List<DepositaryEntity> = emptyList(),
     val thresholdHours: Int = 72,
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
-    val error: String? = null,
-    val hasSecondaryDepositary: Boolean = false,
-    val secondaryName: String = "",
-    val secondaryEmail: String = "",
-    val secondaryPhone: String = ""
+    val error: String? = null
 )

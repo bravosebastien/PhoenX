@@ -213,7 +213,8 @@ class CaptureViewModel @Inject constructor(
         relationship: String?,
         distinctionType: String?,
         distinctionValue: String?,
-        imageUri: Uri?
+        imageUri: Uri?,
+        characterType: String = "HUMAN"
     ) {
         viewModelScope.launch {
             var finalImagePath: String? = null
@@ -246,7 +247,8 @@ class CaptureViewModel @Inject constructor(
                     relationship = relationship,
                     distinctionType = distinctionType,
                     distinctionValue = distinctionValue,
-                    imagePath = finalImagePath
+                    imagePath = finalImagePath,
+                    characterType = characterType
                 )
                 offlineEntryDao.insertPerson(newPerson)
                 selectPerson(newPerson)

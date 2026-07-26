@@ -56,7 +56,8 @@ fun PhotoCaptureContent(
     suggestedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
     onSearchPersons: (String) -> Unit = {},
     onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
-    onCreatePerson: (String, String?, String?, String?, String?, android.net.Uri?) -> Unit = { _, _, _, _, _, _ -> },
+    onSelectMe: () -> Unit = {}, // v9.0
+    onCreatePerson: (String, String?, String?, String?, String?, android.net.Uri?, String) -> Unit = { _, _, _, _, _, _, _ -> },
     onRemovePerson: (String) -> Unit = {},
     onManageCharacters: () -> Unit = {},
     // Menus déroulants (v8.9.2)
@@ -67,7 +68,6 @@ fun PhotoCaptureContent(
     isTiroirsExpanded: Boolean = false, // Rétabli v9.0.1
     onTiroirsToggle: () -> Unit = {},
     currentStep: Int = 1,
-    onSelectMe: () -> Unit = {},
     enigmaQuestion: String = "",
     onEnigmaQuestionChange: (String) -> Unit = {},
     enigmaAnswer: String = "",

@@ -6,10 +6,12 @@ import java.util.UUID
 
 @Entity(tableName = "depositaries")
 data class DepositaryEntity(
-    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    @PrimaryKey val id: String, // "primary" ou "secondary"
     val name: String,
     val email: String,
-    val phone: String,
-    val status: String = "invited", // "invited" | "confirmed" | "active"
+    val phone: String? = null,
+    val role: String, // "primary" | "secondary"
+    val status: String = "invited", // "invited" | "active"
+    val linkedUid: String? = null,
     val createdAt: Long = System.currentTimeMillis()
 )

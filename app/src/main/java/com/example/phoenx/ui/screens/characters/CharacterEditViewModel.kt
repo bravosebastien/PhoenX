@@ -104,7 +104,8 @@ class CharacterEditViewModel @Inject constructor(
         clothingStyle: String?,
         profession: String?,
         hasChildren: Boolean?,
-        relationshipDetail: String?
+        relationshipDetail: String?,
+        characterType: String = "HUMAN"
     ) {
         val current = _character.value ?: return
         viewModelScope.launch {
@@ -145,7 +146,8 @@ class CharacterEditViewModel @Inject constructor(
                 clothingStyle = clothingStyle,
                 profession = profession,
                 hasChildren = hasChildren,
-                relationshipDetail = relationshipDetail
+                relationshipDetail = relationshipDetail,
+                characterType = characterType
             )
 
             offlineEntryDao.insertPerson(updated)

@@ -24,5 +24,6 @@ data class PersonEntity(
     val clothingStyle: String? = null,
     val profession: String? = null,
     val hasChildren: Boolean? = null,
-    val relationshipDetail: String? = null
+    val relationshipDetail: String? = null,
+    val characterType: String? = "HUMAN" // v9.1 : "HUMAN" | "ANIMAL"
 )

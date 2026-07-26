@@ -69,6 +69,7 @@ fun CharacterEditScreen(
     var profession by remember { mutableStateOf("") }
     var hasChildren by remember { mutableStateOf<Boolean?>(null) }
     var relationshipDetail by remember { mutableStateOf("") }
+    var characterType by remember { mutableStateOf("HUMAN") }
 
     var showCropDialog by remember { mutableStateOf(false) }
     var tempImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -96,6 +97,7 @@ fun CharacterEditScreen(
             profession = it.profession ?: ""
             hasChildren = it.hasChildren
             relationshipDetail = it.relationshipDetail ?: ""
+            characterType = it.characterType ?: "HUMAN"
         }
     }
 
@@ -117,7 +119,8 @@ fun CharacterEditScreen(
                                 selectedImageUri, height.toIntOrNull(), weight.toIntOrNull(),
                                 if(eyeColor.isBlank()) null else eyeColor, if(hairColor.isBlank()) null else hairColor,
                                 if(clothingStyle.isBlank()) null else clothingStyle, if(profession.isBlank()) null else profession,
-                                hasChildren, if(relationshipDetail.isBlank()) null else relationshipDetail
+                                hasChildren, if(relationshipDetail.isBlank()) null else relationshipDetail,
+                                characterType
                             )
                         },
                         enabled = firstName.isNotBlank()
@@ -137,6 +140,34 @@ fun CharacterEditScreen(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // TYPE SELECTOR (v9.1)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                FilterChip(
+                    selected = characterType == "HUMAN",
+                    onClick = { characterType = "HUMAN" },
+                    label = { Text("Humain") },
+                    leadingIcon = if (characterType == "HUMAN") {
+                        { Icon(Icons.Default.Person, null, modifier = Modifier.size(16.dp)) }
+                    } else null,
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor, selectedLeadingIconColor = theme.backgroundColor)
+                )
+                Spacer(Modifier.width(12.dp))
+                FilterChip(
+                    selected = characterType == "ANIMAL",
+                    onClick = { characterType = "ANIMAL" },
+                    label = { Text("Animal") },
+                    leadingIcon = if (characterType == "ANIMAL") {
+                        { Icon(Icons.Default.Pets, null, modifier = Modifier.size(16.dp)) }
+                    } else null,
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor, selectedLeadingIconColor = theme.backgroundColor)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             // PORTRAIT CAMEO
             Box(contentAlignment = Alignment.BottomEnd) {
                 CameoPortrait(
@@ -163,20 +194,22 @@ fun CharacterEditScreen(
             OutlinedTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
-                label = { Text("Prénom") },
+                label = { Text(if (characterType == "HUMAN") "Prénom" else "Petit nom") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
             )
             
-            Spacer(modifier = Modifier.height(12.dp))
+            if (characterType == "HUMAN") {
+                Spacer(modifier = Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = lastName,
-                onValueChange = { lastName = it },
-                label = { Text("Nom (facultatif)") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
-            )
+                OutlinedTextField(
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    label = { Text("Nom (facultatif)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
             SectionTitle("Relation", accent)
@@ -184,7 +217,8 @@ fun CharacterEditScreen(
             OutlinedTextField(
                 value = relationship,
                 onValueChange = { relationship = it },
-                label = { Text("Lien (ex: Compagne, Ami d'enfance)") },
+                label = { Text(if (characterType == "HUMAN") "Lien de parenté / Relation" else "C'est qui pour toi ?") },
+                placeholder = { Text(if (characterType == "HUMAN") "Ex: Mon cousin" else "Ex: Mon fidèle compagnon") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
             )
@@ -200,7 +234,7 @@ fun CharacterEditScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            SectionTitle("Portrait Physique (v9.0)", accent)
+            SectionTitle(if (characterType == "HUMAN") "Portrait Physique (v9.0)" else "Description Physique", accent)
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
@@ -234,49 +268,63 @@ fun CharacterEditScreen(
                 OutlinedTextField(
                     value = hairColor,
                     onValueChange = { hairColor = it },
-                    label = { Text("Cheveux") },
+                    label = { Text(if (characterType == "HUMAN") "Cheveux" else "Couleur du pelage") },
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-            SectionTitle("Vie Sociale (v9.0)", accent)
+            if (characterType == "HUMAN") {
+                Spacer(modifier = Modifier.height(24.dp))
+                SectionTitle("Vie Sociale (v9.0)", accent)
 
-            OutlinedTextField(
-                value = profession,
-                onValueChange = { profession = it },
-                label = { Text("Métier / Occupation") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedTextField(
-                value = clothingStyle,
-                onValueChange = { clothingStyle = it },
-                label = { Text("Style vestimentaire") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text("A des enfants ?", color = theme.contentColor, modifier = Modifier.weight(1f))
-                FilterChip(
-                    selected = hasChildren == true,
-                    onClick = { hasChildren = if (hasChildren == true) null else true },
-                    label = { Text("Oui") },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
+                OutlinedTextField(
+                    value = profession,
+                    onValueChange = { profession = it },
+                    label = { Text("Métier / Occupation") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
-                Spacer(Modifier.width(8.dp))
-                FilterChip(
-                    selected = hasChildren == false,
-                    onClick = { hasChildren = if (hasChildren == false) null else false },
-                    label = { Text("Non") },
-                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
+                
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = clothingStyle,
+                    onValueChange = { clothingStyle = it },
+                    label = { Text("Style vestimentaire") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Text("A des enfants ?", color = theme.contentColor, modifier = Modifier.weight(1f))
+                    FilterChip(
+                        selected = hasChildren == true,
+                        onClick = { hasChildren = if (hasChildren == true) null else true },
+                        label = { Text("Oui") },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    FilterChip(
+                        selected = hasChildren == false,
+                        onClick = { hasChildren = if (hasChildren == false) null else false },
+                        label = { Text("Non") },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
+                    )
+                }
+            } else {
+                // ANIMAL - On réutilise le champ profession pour la Race/Espèce
+                Spacer(modifier = Modifier.height(24.dp))
+                SectionTitle("Espèce", accent)
+                OutlinedTextField(
+                    value = profession,
+                    onValueChange = { profession = it },
+                    label = { Text("Race / Espèce") },
+                    placeholder = { Text("Ex: Golden Retriever, Chat de gouttière") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
             }
 
