@@ -310,11 +310,20 @@ class MainViewModel @Inject constructor(
             }
 
             // --- 3. CONFIG ET STATS SILENCE (Restauration v7.5) ---
-            _silenceRhythmDays.value = doc.getLong("silenceConfig.rhythmDays")?.toInt() ?: 30
-            val lastCheckIn = doc.getTimestamp("silenceConfig.lastCheckInAt")
-            if (lastCheckIn != null) {
-                val diff = System.currentTimeMillis() - lastCheckIn.toDate().time
-                _daysSinceLastCheckIn.value = (diff / (1000 * 60 * 60 * 24)).toInt()
+            val silenceConfig = doc.get("silenceConfig") as? Map<*, *>
+            if (silenceConfig != null) {
+                // v8.9.9 : Synchronisation du flag local avec Firestore pour éviter le re-onboarding
+                viewModelScope.launch {
+                    preferenceManager.setSilenceOnboardingDone(true)
+                }
+                _silenceRhythmDays.value = (silenceConfig["rhythmDays"] as? Long)?.toInt() ?: 30
+                val lastCheckIn = silenceConfig["lastCheckInAt"] as? com.google.firebase.Timestamp
+                if (lastCheckIn != null) {
+                    val diff = System.currentTimeMillis() - lastCheckIn.toDate().time
+                    _daysSinceLastCheckIn.value = (diff / (1000 * 60 * 60 * 24)).toInt()
+                }
+            } else {
+                _silenceRhythmDays.value = 30
             }
 
             // --- 4. RADAR D'INVITATIONS (v7.6) ---
