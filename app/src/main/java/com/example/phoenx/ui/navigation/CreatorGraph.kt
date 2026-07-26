@@ -18,6 +18,8 @@ import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.screens.book.BookEditorScreen
 import com.example.phoenx.ui.screens.book.BookReaderFlowScreen
 import com.example.phoenx.ui.screens.capture.CaptureScreen
+import com.example.phoenx.ui.screens.characters.CharactersScreen
+import com.example.phoenx.ui.screens.characters.CharacterEditScreen
 import com.example.phoenx.ui.screens.detective.DetectiveCreateScreen
 import com.example.phoenx.ui.screens.detective.DetectiveHomeScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
@@ -206,6 +208,7 @@ fun NavGraphBuilder.creatorGraph(
             locationId = locationId,
             parentEntryId = parentEntryId,
             onNavigateBack = { navController.popBackStack() },
+            onNavigateToCharacters = { navController.navigate(Screen.Characters.route) },
             onNavigateToDetail = { id: String -> 
                 navController.navigate(Screen.MemoryDetail.createRoute(id)) {
                     popUpTo(Screen.Home.route)
@@ -408,7 +411,30 @@ fun NavGraphBuilder.creatorGraph(
             onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
             onNavigateToWitnesses = { navController.navigate(Screen.WitnessInvite.route) },
             onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
-            onNavigateToNotifications = { navController.navigate(Screen.NotificationContacts.route) }
+            onNavigateToNotifications = { navController.navigate(Screen.NotificationContacts.route) },
+            onNavigateToCharacters = { navController.navigate(Screen.Characters.route) }
+        )
+    }
+
+    composable(Screen.Characters.route) {
+        CharactersScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onEditCharacter = { id -> navController.navigate(Screen.CharacterEdit.createRoute(id)) },
+            onAddCharacter = { 
+                // Pour l'instant on ouvre l'édition avec un ID spécial ou un futur écran de création
+                navController.navigate("capture/TEXT") // Fallback temporaire
+            }
+        )
+    }
+
+    composable(
+        route = Screen.CharacterEdit.route,
+        arguments = listOf(navArgument("personId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val personId = backStackEntry.arguments?.getString("personId") ?: return@composable
+        CharacterEditScreen(
+            personId = personId,
+            onNavigateBack = { navController.popBackStack() }
         )
     }
 

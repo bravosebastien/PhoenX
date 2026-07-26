@@ -14,5 +14,15 @@ data class PersonEntity(
     val distinctionValue: String? = null,
     val imagePath: String? = null, // v8.9.9 : Chemin vers le portrait Cameo
     val createdAt: Long = System.currentTimeMillis(),
-    val syncStatus: String = "pending"
+    val syncStatus: String = "pending",
+
+    // ÉCRAN PERSONNAGES v9.0
+    val height: Int? = null,
+    val weight: Int? = null,
+    val eyeColor: String? = null,
+    val hairColor: String? = null,
+    val clothingStyle: String? = null,
+    val profession: String? = null,
+    val hasChildren: Boolean? = null,
+    val relationshipDetail: String? = null
 )

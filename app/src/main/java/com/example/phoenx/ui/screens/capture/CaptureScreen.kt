@@ -53,6 +53,7 @@ fun CaptureScreen(
     parentEntryId: String? = null,
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (String) -> Unit = {},
+    onNavigateToCharacters: () -> Unit = {},
     viewModel: CaptureViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -359,6 +360,7 @@ fun CaptureScreen(
                                 onSelectPerson = { viewModel.selectPerson(it) },
                                 onCreatePerson = { f, l, r, dt, dv, uri -> viewModel.createAndSelectPerson(f, l, r, dt, dv, uri) },
                                 onRemovePerson = { viewModel.removePerson(it) },
+                                onManageCharacters = onNavigateToCharacters,
                                 selectedCategory = selectedCategory,
                                 onCategoryChange = { selectedCategory = it },
                                 isTonaliteExpanded = isTonaliteExpanded,
@@ -396,6 +398,7 @@ fun CaptureScreen(
                                 onSelectMe = { viewModel.selectMe() },
                                 onCreatePerson = { f, l, r, dt, dv, uri -> viewModel.createAndSelectPerson(f, l, r, dt, dv, uri) },
                                 onRemovePerson = { viewModel.removePerson(it) },
+                                onManageCharacters = onNavigateToCharacters,
                                 selectedCategory = selectedCategory,
                                 onCategoryChange = { selectedCategory = it },
                                 isTonaliteExpanded = isTonaliteExpanded,
@@ -435,6 +438,7 @@ fun CaptureScreen(
                                 onSelectMe = { viewModel.selectMe() },
                                 onCreatePerson = { f, l, r, dt, dv, uri -> viewModel.createAndSelectPerson(f, l, r, dt, dv, uri) },
                                 onRemovePerson = { viewModel.removePerson(it) },
+                                onManageCharacters = onNavigateToCharacters,
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
                                 isTiroirsExpanded = isTiroirsExpanded,
@@ -477,6 +481,7 @@ fun CaptureScreen(
                                 onSelectMe = { viewModel.selectMe() },
                                 onCreatePerson = { f, l, r, dt, dv, uri -> viewModel.createAndSelectPerson(f, l, r, dt, dv, uri) },
                                 onRemovePerson = { viewModel.removePerson(it) },
+                                onManageCharacters = onNavigateToCharacters,
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
                                 isTiroirsExpanded = isTiroirsExpanded,

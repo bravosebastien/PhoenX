@@ -58,6 +58,7 @@ fun PhotoCaptureContent(
     onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
     onCreatePerson: (String, String?, String?, String?, String?, android.net.Uri?) -> Unit = { _, _, _, _, _, _ -> },
     onRemovePerson: (String) -> Unit = {},
+    onManageCharacters: () -> Unit = {},
     // Menus déroulants (v8.9.2)
     selectedCategory: String = "Sagesse",
     onCategoryChange: (String) -> Unit = {},
@@ -185,6 +186,7 @@ fun PhotoCaptureContent(
                             onSelectMe = onSelectMe,
                             onCreate = onCreatePerson,
                             onRemove = onRemovePerson,
+                            onManageCharacters = onManageCharacters,
                             accent = accent
                         )
                     } else {

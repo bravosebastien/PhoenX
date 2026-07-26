@@ -51,6 +51,7 @@ fun AudioCaptureContent(
     onSelectMe: () -> Unit = {}, // v9.0
     onCreatePerson: (String, String?, String?, String?, String?, android.net.Uri?) -> Unit = { _, _, _, _, _, _ -> },
     onRemovePerson: (String) -> Unit = {},
+    onManageCharacters: () -> Unit = {},
     // Menus déroulants (v8.9.2)
     selectedCategory: String = "Sagesse",
     onCategoryChange: (String) -> Unit = {},
@@ -156,6 +157,7 @@ fun AudioCaptureContent(
                     onSelectMe = onSelectMe,
                     onCreate = onCreatePerson,
                     onRemove = onRemovePerson,
+                    onManageCharacters = onManageCharacters,
                     accent = accent
                 )
             } else {

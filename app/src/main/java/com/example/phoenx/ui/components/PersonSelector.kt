@@ -52,6 +52,7 @@ fun PersonSelector(
     onSelectMe: () -> Unit = {},
     onCreate: (firstName: String, lastName: String?, relation: String?, distType: String?, distValue: String?, imageUri: Uri?) -> Unit,
     onRemove: (String) -> Unit,
+    onManageCharacters: () -> Unit = {},
     accent: Color
 ) {
     val theme = LocalAppTheme.current
@@ -71,14 +72,28 @@ fun PersonSelector(
                 color = theme.contentColor.copy(alpha = 0.4f)
             )
             
-            TextButton(
-                onClick = onSelectMe,
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.height(24.dp)
-            ) {
-                Icon(Icons.Default.Person, null, modifier = Modifier.size(14.dp), tint = accent)
-                Spacer(Modifier.width(4.dp))
-                Text("C'est de moi", style = MaterialTheme.typography.labelSmall, color = accent)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(
+                    onClick = onManageCharacters,
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    modifier = Modifier.height(24.dp)
+                ) {
+                    Icon(Icons.Default.Group, null, modifier = Modifier.size(14.dp), tint = accent)
+                    Spacer(Modifier.width(4.dp))
+                    Text("Gérer", style = MaterialTheme.typography.labelSmall, color = accent)
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                TextButton(
+                    onClick = onSelectMe,
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier.height(24.dp)
+                ) {
+                    Icon(Icons.Default.Person, null, modifier = Modifier.size(14.dp), tint = accent)
+                    Spacer(Modifier.width(4.dp))
+                    Text("Moi", style = MaterialTheme.typography.labelSmall, color = accent)
+                }
             }
         }
         

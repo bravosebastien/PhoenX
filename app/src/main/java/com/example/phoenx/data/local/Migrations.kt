@@ -245,4 +245,21 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN includeInBook INTEGER NOT NULL DEFAULT 1")
         }
     }
+
+    /**
+     * MIGRATION_28_29 — Écran Personnages v9.0
+     * Extension du modèle PersonEntity pour le Livre de Vie.
+     */
+    val MIGRATION_28_29 = object : Migration(28, 29) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE persons ADD COLUMN height INTEGER")
+            db.execSQL("ALTER TABLE persons ADD COLUMN weight INTEGER")
+            db.execSQL("ALTER TABLE persons ADD COLUMN eyeColor TEXT")
+            db.execSQL("ALTER TABLE persons ADD COLUMN hairColor TEXT")
+            db.execSQL("ALTER TABLE persons ADD COLUMN clothingStyle TEXT")
+            db.execSQL("ALTER TABLE persons ADD COLUMN profession TEXT")
+            db.execSQL("ALTER TABLE persons ADD COLUMN hasChildren INTEGER")
+            db.execSQL("ALTER TABLE persons ADD COLUMN relationshipDetail TEXT")
+        }
+    }
 }

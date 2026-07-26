@@ -31,7 +31,8 @@ fun CercleConfianceScreen(
     onNavigateToProtocol: () -> Unit,
     onNavigateToWitnesses: () -> Unit,
     onNavigateToRecipients: () -> Unit,
-    onNavigateToNotifications: () -> Unit
+    onNavigateToNotifications: () -> Unit,
+    onNavigateToCharacters: () -> Unit
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -116,6 +117,17 @@ fun CercleConfianceScreen(
                 icon = Icons.Default.NotificationsNone,
                 accent = accent,
                 onClick = onNavigateToNotifications
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 5. PERSONNAGES (v9.0)
+            TrustHubItem(
+                title = "Les Personnages",
+                subtitle = "Ceux qui peuplent tes souvenirs",
+                icon = Icons.Default.People,
+                accent = accent,
+                onClick = onNavigateToCharacters
             )
 
             Spacer(modifier = Modifier.height(48.dp))
