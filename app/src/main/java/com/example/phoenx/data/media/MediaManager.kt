@@ -51,6 +51,29 @@ class MediaManager @Inject constructor(
     }
 
     /**
+     * Uploade un portrait Cameo vers Firebase Storage (SANS CHIFFREMENT - v8.9.9).
+     * Retourne l'URL de téléchargement.
+     */
+    suspend fun uploadCameo(userId: String, personId: String, localFile: File): String {
+        val storageRef = storage.reference
+            .child("users")
+            .child(userId)
+            .child("cameos")
+            .child("$personId.jpg")
+
+        storageRef.putFile(android.net.Uri.fromFile(localFile)).await()
+        return storageRef.downloadUrl.await().toString()
+    }
+
+    /**
+     * Télécharge un portrait Cameo depuis Storage vers un fichier local (v8.9.9).
+     */
+    suspend fun downloadCameo(url: String, destFile: File) {
+        val storageRef = storage.getReferenceFromUrl(url)
+        storageRef.getFile(destFile).await()
+    }
+
+    /**
      * Fournit une factory de source de données pour ExoPlayer (Streaming Chiffré).
      */
     fun getEncryptedDataSourceFactory(explicitKey: ByteArray? = null): androidx.media3.datasource.DataSource.Factory {

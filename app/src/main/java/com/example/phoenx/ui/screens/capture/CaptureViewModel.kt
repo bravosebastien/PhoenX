@@ -250,6 +250,16 @@ class CaptureViewModel @Inject constructor(
                 )
                 offlineEntryDao.insertPerson(newPerson)
                 selectPerson(newPerson)
+
+                // v8.9.9 : Déclenchement immédiat de la synchronisation pour la nouvelle personne
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+                val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+                    .setConstraints(constraints)
+                    .build()
+                WorkManager.getInstance(context).enqueue(syncRequest)
+                android.util.Log.d("PersonSync", "Synchronisation déclenchée pour la nouvelle personne : $firstName")
             } catch (_: Exception) { }
         }
     }

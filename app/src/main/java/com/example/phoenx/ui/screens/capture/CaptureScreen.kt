@@ -194,12 +194,7 @@ fun CaptureScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = when (initialType) {
-                                Screen.Capture.TYPE_AUDIO -> "Capture Vocale"
-                                Screen.Capture.TYPE_PHOTO -> "Caméra"
-                                Screen.Capture.TYPE_GALLERY -> "Galerie"
-                                else -> "Nouvelle Pensée"
-                            },
+                            text = if (currentStep == 1) "L'Âme du souvenir" else "Habillage",
                             style = MaterialTheme.typography.labelLarge.copy(
                                 fontWeight = FontWeight.Bold
                             ),
@@ -207,13 +202,21 @@ fun CaptureScreen(
                         )
                     },
                     navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.Default.Close, contentDescription = null, tint = theme.contentColor)
+                        IconButton(onClick = { 
+                            if (currentStep == 2) currentStep = 1 else onNavigateBack() 
+                        }) {
+                            Icon(
+                                imageVector = if (currentStep == 2) Icons.Default.ArrowBack else Icons.Default.Close, 
+                                contentDescription = null, 
+                                tint = theme.contentColor
+                            )
                         }
                     },
                     actions = {
-                        IconButton(onClick = { showAdvancedOptions = true }) {
-                            Icon(Icons.Default.Tune, null, tint = accent)
+                        if (currentStep == 2) {
+                            IconButton(onClick = { showAdvancedOptions = true }) {
+                                Icon(Icons.Default.Tune, null, tint = accent)
+                            }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
@@ -236,44 +239,48 @@ fun CaptureScreen(
                         }
                         Button(
                             onClick = {
-                                val mediaFile = if (initialType == Screen.Capture.TYPE_GALLERY) {
-                                    selectedGalleryUri?.let { viewModel.uriToFile(it) }
+                                if (currentStep == 1) {
+                                    currentStep = 2
                                 } else {
-                                    capturedPhotoFile
-                                }
+                                    val mediaFile = if (initialType == Screen.Capture.TYPE_GALLERY) {
+                                        selectedGalleryUri?.let { viewModel.uriToFile(it) }
+                                    } else {
+                                        capturedPhotoFile
+                                    }
 
-                                viewModel.saveEntry(
-                                    content = text,
-                                    mediaFile = mediaFile,
-                                    type = initialType,
-                                    category = selectedCategory,
-                                    visibility = visibility,
-                                    recipientIds = selectedRecipientIds.toList(),
-                                    silentAttribution = !notifyByEmail, // Nouveauté v8.9.8
-                                    pendingQuestionId = pendingQuestionId,
-                                    enigmaQuestion = if (enigmaQuestion.isNotBlank()) enigmaQuestion else null,
-                                    enigmaAnswer = if (enigmaAnswer.isNotBlank()) enigmaAnswer else null,
-                                    enigmaHint = if (enigmaHint.isNotBlank()) enigmaHint else null,
-                                    enigmaAutoUnlockDays = enigmaAutoUnlockDays,
-                                    scheduledTimestamp = scheduledTimestamp,
-                                    pactId = pactId,
-                                    latitude = latitude,
-                                    longitude = longitude,
-                                    locationName = locationName,
-                                    locationId = locationId,
-                                    parentEntryId = parentEntryId,
-                                    includeInBook = includeInBook,
-                                    soulTone = soulTone
-                                )
+                                    viewModel.saveEntry(
+                                        content = text,
+                                        mediaFile = mediaFile,
+                                        type = initialType,
+                                        category = selectedCategory,
+                                        visibility = visibility,
+                                        recipientIds = selectedRecipientIds.toList(),
+                                        silentAttribution = !notifyByEmail, // Nouveauté v8.9.8
+                                        pendingQuestionId = pendingQuestionId,
+                                        enigmaQuestion = if (enigmaQuestion.isNotBlank()) enigmaQuestion else null,
+                                        enigmaAnswer = if (enigmaAnswer.isNotBlank()) enigmaAnswer else null,
+                                        enigmaHint = if (enigmaHint.isNotBlank()) enigmaHint else null,
+                                        enigmaAutoUnlockDays = enigmaAutoUnlockDays,
+                                        scheduledTimestamp = scheduledTimestamp,
+                                        pactId = pactId,
+                                        latitude = latitude,
+                                        longitude = longitude,
+                                        locationName = locationName,
+                                        locationId = locationId,
+                                        parentEntryId = parentEntryId,
+                                        includeInBook = includeInBook,
+                                        soulTone = soulTone
+                                    )
+                                }
                             },
-                            enabled = (text.isNotEmpty() || capturedPhotoFile != null || selectedGalleryUri != null || initialType == Screen.Capture.TYPE_PHOTO) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
+                            enabled = (text.isNotEmpty() || capturedPhotoFile != null || selectedGalleryUri != null || initialType == Screen.Capture.TYPE_PHOTO || currentStep == 2) && uiState !is CaptureUiState.Loading && !isRitualPlaying,
                             colors = ButtonDefaults.buttonColors(containerColor = accent),
                             shape = MaterialTheme.shapes.medium
                         ) {
                             if (uiState is CaptureUiState.Loading) {
                                 CircularProgressIndicator(modifier = Modifier.size(20.dp), color = theme.backgroundColor, strokeWidth = 2.dp)
                             } else {
-                                Text("Déposer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                                Text(if (currentStep == 1) "Suivant" else "Déposer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                             }
                         }
                     }

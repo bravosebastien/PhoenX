@@ -31,22 +31,38 @@ class SyncWorker @AssistedInject constructor(
         val pendingEntries = offlineEntryDao.getPendingEntries().first()
         val pendingPersons = offlineEntryDao.getAllPersons().first().filter { it.syncStatus == "pending" }
         
+        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées et ${pendingPersons.size} personnes en attente")
+
         if (pendingEntries.isEmpty() && pendingPersons.isEmpty()) return Result.success()
 
         val db = FirebaseFirestore.getInstance()
         var hasError = false
 
         return try {
-            // 1. Synchronisation des Personnes (v8.8)
+            // 1. Synchronisation des Personnes (v8.8 + v8.9.9 Cameo Sync)
             pendingPersons.forEach { person ->
                 try {
+                    android.util.Log.d("PersonSync", "Tentative upload pour : ${person.firstName} (${person.id})")
+                    var storageUrl: String? = null
+                    
+                    // Upload du portrait vers Storage si présent (v8.9.9)
+                    if (!person.imagePath.isNullOrBlank()) {
+                        val file = File(person.imagePath)
+                        if (file.exists()) {
+                            android.util.Log.d("PersonSync", "Upload portrait Storage pour ${person.firstName}")
+                            storageUrl = mediaManager.uploadCameo(userId, person.id, file)
+                        }
+                    }
+
                     db.collection("users").document(userId)
                         .collection("persons").document(person.id)
-                        .set(person.toFirestoreMap())
+                        .set(person.toFirestoreMap(storageUrl))
                         .await()
+                    
                     offlineEntryDao.insertPerson(person.copy(syncStatus = "synced"))
+                    android.util.Log.d("PersonSync", "Upload Firestore RÉUSSI pour ${person.firstName}")
                 } catch (e: Exception) {
-                    android.util.Log.e("SyncWorker", "Erreur upload pour la personne ${person.id}: ${e.message}")
+                    android.util.Log.e("PersonSync", "ÉCHEC upload pour ${person.firstName}: ${e.message}")
                     hasError = true
                 }
             }

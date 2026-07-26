@@ -256,21 +256,27 @@ fun AdvancedOptionsContent(
         ) {
             val tones = listOf("Authentique", "Cynique", "Rigolo", "Poétique", "Brut")
             tones.forEach { tone ->
+                val isSelected = soulTone == tone
                 FilterChip(
-                    selected = soulTone == tone,
-                    onClick = { onSoulToneChange(if (soulTone == tone) null else tone) },
+                    selected = isSelected,
+                    onClick = { 
+                        onSoulToneChange(if (isSelected) null else tone) 
+                    },
                     label = { Text(tone) },
+                    leadingIcon = if (isSelected) {
+                        { Icon(Icons.Default.Check, null, modifier = Modifier.size(16.dp)) }
+                    } else null,
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = accent.copy(alpha = 0.2f),
-                        selectedLabelColor = accent,
-                        labelColor = theme.contentColor,
-                        selectedLeadingIconColor = accent
+                        selectedContainerColor = accent,
+                        selectedLabelColor = theme.backgroundColor,
+                        selectedLeadingIconColor = theme.backgroundColor,
+                        labelColor = theme.contentColor.copy(alpha = 0.6f)
                     ),
                     border = FilterChipDefaults.filterChipBorder(
                         borderColor = theme.contentColor.copy(alpha = 0.1f),
                         selectedBorderColor = accent,
                         enabled = true,
-                        selected = soulTone == tone
+                        selected = isSelected
                     )
                 )
             }

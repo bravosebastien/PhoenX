@@ -62,14 +62,31 @@ fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
     )
 }
 
-fun com.example.phoenx.data.local.PersonEntity.toFirestoreMap(): Map<String, Any?> {
+fun com.example.phoenx.data.local.PersonEntity.toFirestoreMap(storageUrl: String? = null): Map<String, Any?> {
     return mapOf(
         "prenom" to firstName,
         "nom" to lastName,
         "lien" to relationship,
         "distinctionType" to distinctionType,
         "distinctionValeur" to distinctionValue,
+        "imageUrl" to storageUrl, // v8.9.9 : URL Storage pour synchronisation
         "createdAt" to createdAt
+    )
+}
+
+/**
+ * Extension pour convertir un DocumentSnapshot Firestore en PersonEntity (Room).
+ */
+fun DocumentSnapshot.toPersonEntity(): com.example.phoenx.data.local.PersonEntity {
+    return com.example.phoenx.data.local.PersonEntity(
+        id = id,
+        firstName = getString("prenom") ?: "",
+        lastName = getString("nom"),
+        relationship = getString("lien"),
+        distinctionType = getString("distinctionType"),
+        distinctionValue = getString("distinctionValeur"),
+        createdAt = getLong("createdAt") ?: System.currentTimeMillis(),
+        syncStatus = "synced"
     )
 }
 
