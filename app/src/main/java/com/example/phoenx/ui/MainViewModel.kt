@@ -214,13 +214,10 @@ class MainViewModel @Inject constructor(
             }
             if (repairCount > 0) android.util.Log.d("PHOENX_V8.3", "$repairCount énigmes sécurisées et marquées pour re-sync.")
 
-            // 3. RÉCUPÉRATION INITIALE (v8.9.9)
-            // Si la base locale est vide, on déclenche InitialSyncWorker pour restaurerFirestore -> Room
-            if (allEntries.isEmpty()) {
-                android.util.Log.d("FIL_DEBUG", "MainViewModel: Base locale vide, lancement de InitialSyncWorker")
-                val syncRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
-                WorkManager.getInstance(context).enqueue(syncRequest)
-            }
+            // 3. RÉCUPÉRATION / MERGE (v8.9.9)
+            // On déclenche systématiquement InitialSyncWorker au lancement pour rattraper les entrées distantes manquantes
+            val syncRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
+            WorkManager.getInstance(context).enqueue(syncRequest)
         }
 
         // Nettoyage de l'ancien écouteur si existant

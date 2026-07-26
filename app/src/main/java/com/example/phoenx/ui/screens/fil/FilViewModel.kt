@@ -131,7 +131,6 @@ class FilViewModel @Inject constructor(
             }.combine(
                 combine(_selectedRecipientId, _sortByCreationDate, _isProtocolActivated) { r, s, a -> Triple(r, s, a) }
             ) { offlineEntries, (recipientId, sortByDate, activated) ->
-                android.util.Log.d("FIL_DEBUG", "Entrées reçues de Room/Firestore: ${offlineEntries.size}")
                 val targetId = _targetCreatorId.value
                 val isHeirMode = targetId != null && targetId != currentUid
 
@@ -148,7 +147,6 @@ class FilViewModel @Inject constructor(
                         isRoot && isForMe
                     }
                 }
-                android.util.Log.d("FIL_DEBUG", "Entrées racines après filtrage parent: ${rootEntries.size}")
 
                 // 2. Filtrage par destinataire (UI)
                 val filteredOffline = if (recipientId != null) {

@@ -27,34 +27,35 @@ class InitialSyncWorker @AssistedInject constructor(
     override suspend fun doWork(): Result {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return Result.failure()
 
-        android.util.Log.d("FIL_DEBUG", "InitialSyncWorker: Démarrage de la récupération Firestore pour $userId")
-
         return try {
-            // 1. Récupération des souvenirs du Créateur sur Firestore
+            // 1. Récupération des IDs déjà présents en local pour éviter d'écraser des modifications non sync
+            val localEntries = offlineEntryDao.getAllEntriesSync()
+            val localIds = localEntries.map { it.id }.toSet()
+
+            // 2. Récupération de tous les souvenirs du Créateur sur Firestore
             val entriesSnapshot = db.collection("users").document(userId)
                 .collection("entries")
                 .get()
                 .await()
 
             if (entriesSnapshot.isEmpty) {
-                android.util.Log.d("FIL_DEBUG", "InitialSyncWorker: Aucune donnée trouvée sur Firestore pour cet utilisateur.")
                 return Result.success()
             }
 
-            val entries = entriesSnapshot.documents.mapNotNull { it.toOfflineEntry() }
+            val remoteEntries = entriesSnapshot.documents.mapNotNull { it.toOfflineEntry() }
             
-            android.util.Log.d("FIL_DEBUG", "InitialSyncWorker: ${entries.size} souvenirs trouvés. Début de l'insertion locale...")
-
-            // 2. Insertion dans Room (Idempotent grâce au REPLACE du DAO)
-            entries.forEach { entry ->
-                // On force le statut 'synced' pour éviter que le SyncWorker ne les ré-uploade vers Firestore
-                offlineEntryDao.insertEntry(entry.copy(syncStatus = "synced"))
+            // 3. Calcul du différentiel : on ne garde que ce qui n'est PAS en local
+            val missingEntries = remoteEntries.filter { it.id !in localIds }
+            
+            if (missingEntries.isNotEmpty()) {
+                missingEntries.forEach { entry ->
+                    // On insère avec le statut 'synced'
+                    offlineEntryDao.insertEntry(entry.copy(syncStatus = "synced"))
+                }
             }
 
-            android.util.Log.d("FIL_DEBUG", "InitialSyncWorker: Restauration locale terminée avec succès.")
             Result.success()
         } catch (e: Exception) {
-            android.util.Log.e("FIL_DEBUG", "InitialSyncWorker: ÉCHEC CRITIQUE : ${e.message}")
             Result.retry()
         }
     }

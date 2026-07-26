@@ -70,8 +70,8 @@ fun AdvancedOptionsContent(
             Text("Mode Détective", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
             Spacer(modifier = Modifier.weight(1f))
             InfoPoint(
-                title = "Le Jeu de Piste",
-                content = "Transformez la lecture de vos souvenirs en une quête. Vos proches devront répondre à cette question personnelle pour déverrouiller ce fragment."
+                title = "Le Secret Scellé",
+                content = "Ce fragment ne sera révélé qu'après réponse à votre énigme. Vous pouvez fixer un délai de déblocage automatique en cas d'oubli — sauf si vous en faites un Secret Ultime, qui reste scellé sans limite de temps."
             )
         }
         Text(

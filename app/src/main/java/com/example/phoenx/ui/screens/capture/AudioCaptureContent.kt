@@ -49,7 +49,7 @@ fun AudioCaptureContent(
     onSearchPersons: (String) -> Unit = {},
     onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
     onSelectMe: () -> Unit = {}, // v9.0
-    onCreatePerson: (String, String?, String?, String?, String?) -> Unit = { _, _, _, _, _ -> },
+    onCreatePerson: (String, String?, String?, String?, String?, android.net.Uri?) -> Unit = { _, _, _, _, _, _ -> },
     onRemovePerson: (String) -> Unit = {},
     // Menus déroulants (v8.9.2)
     selectedCategory: String = "Sagesse",

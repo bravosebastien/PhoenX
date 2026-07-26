@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.util.*
@@ -210,18 +212,45 @@ class CaptureViewModel @Inject constructor(
         lastName: String?,
         relationship: String?,
         distinctionType: String?,
-        distinctionValue: String?
+        distinctionValue: String?,
+        imageUri: Uri?
     ) {
         viewModelScope.launch {
-            val newPerson = com.example.phoenx.data.local.PersonEntity(
-                firstName = firstName,
-                lastName = lastName,
-                relationship = relationship,
-                distinctionType = distinctionType,
-                distinctionValue = distinctionValue
-            )
-            offlineEntryDao.insertPerson(newPerson)
-            selectPerson(newPerson)
+            var finalImagePath: String? = null
+            
+            // Sauvegarde locale du portrait Cameo (v8.9.9)
+            if (imageUri != null) {
+                try {
+                    val cameoDir = File(context.filesDir, "cameos")
+                    if (!cameoDir.exists()) cameoDir.mkdirs()
+                    
+                    val fileName = "cameo_${UUID.randomUUID()}.jpg"
+                    val destFile = File(cameoDir, fileName)
+                    
+                    context.contentResolver.openInputStream(imageUri)?.use { input ->
+                        FileOutputStream(destFile).use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    finalImagePath = destFile.absolutePath
+                    android.util.Log.d("CameoDebug", "Portrait sauvegardé : $finalImagePath")
+                } catch (e: Exception) {
+                    android.util.Log.e("CameoDebug", "Erreur sauvegarde portrait", e)
+                }
+            }
+
+            try {
+                val newPerson = com.example.phoenx.data.local.PersonEntity(
+                    firstName = firstName,
+                    lastName = lastName,
+                    relationship = relationship,
+                    distinctionType = distinctionType,
+                    distinctionValue = distinctionValue,
+                    imagePath = finalImagePath
+                )
+                offlineEntryDao.insertPerson(newPerson)
+                selectPerson(newPerson)
+            } catch (_: Exception) { }
         }
     }
 

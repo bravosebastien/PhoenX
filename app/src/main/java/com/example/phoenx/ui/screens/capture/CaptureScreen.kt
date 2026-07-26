@@ -350,7 +350,7 @@ fun CaptureScreen(
                                 suggestedPersons = suggestedPersons,
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
-                                onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
+                                onCreatePerson = { f, l, r, dt, dv, uri -> viewModel.createAndSelectPerson(f, l, r, dt, dv, uri) },
                                 onRemovePerson = { viewModel.removePerson(it) },
                                 selectedCategory = selectedCategory,
                                 onCategoryChange = { selectedCategory = it },
@@ -387,7 +387,7 @@ fun CaptureScreen(
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
                                 onSelectMe = { viewModel.selectMe() },
-                                onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
+                                onCreatePerson = { f, l, r, dt, dv, uri -> viewModel.createAndSelectPerson(f, l, r, dt, dv, uri) },
                                 onRemovePerson = { viewModel.removePerson(it) },
                                 selectedCategory = selectedCategory,
                                 onCategoryChange = { selectedCategory = it },
@@ -426,7 +426,7 @@ fun CaptureScreen(
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
                                 onSelectMe = { viewModel.selectMe() },
-                                onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
+                                onCreatePerson = { f, l, r, dt, dv, uri -> viewModel.createAndSelectPerson(f, l, r, dt, dv, uri) },
                                 onRemovePerson = { viewModel.removePerson(it) },
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
@@ -468,7 +468,7 @@ fun CaptureScreen(
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
                                 onSelectMe = { viewModel.selectMe() },
-                                onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
+                                onCreatePerson = { f, l, r, dt, dv, uri -> viewModel.createAndSelectPerson(f, l, r, dt, dv, uri) },
                                 onRemovePerson = { viewModel.removePerson(it) },
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
@@ -582,7 +582,7 @@ fun CaptureScreen(
             ModalBottomSheet(
                 onDismissRequest = { showAdvancedOptions = false },
                 sheetState = sheetState,
-                containerColor = BackgroundSecondary
+                containerColor = theme.backgroundColor
             ) {
                 AdvancedOptionsContent(
                     enigmaQuestion = enigmaQuestion,

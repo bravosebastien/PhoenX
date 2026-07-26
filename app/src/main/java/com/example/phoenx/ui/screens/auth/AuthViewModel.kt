@@ -91,13 +91,9 @@ class AuthViewModel @Inject constructor(
                 val decodedKey = android.util.Base64.decode(encryptionKeyBase64, android.util.Base64.NO_WRAP)
                 encryptionManager.setSessionKey(decodedKey)
 
-                // v8.9.9 : Récupération initiale Firestore -> Room si base locale vide
-                val allEntries = withContext(Dispatchers.IO) { database.offlineEntryDao().getAllEntriesSync() }
-                if (allEntries.isEmpty()) {
-                    android.util.Log.d("FIL_DEBUG", "AuthViewModel: Base locale vide, lancement de InitialSyncWorker")
-                    val syncRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
-                    WorkManager.getInstance(context).enqueue(syncRequest)
-                }
+                // v8.9.9 : Déclenchement systématique du merge différentiel Firestore -> Room
+                val syncRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
+                WorkManager.getInstance(context).enqueue(syncRequest)
                 
                 _uiState.value = AuthState.Success
             } catch (e: Exception) {
