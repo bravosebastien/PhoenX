@@ -35,9 +35,12 @@ fun CharacterEditScreen(
     viewModel: CharacterEditViewModel = hiltViewModel()
 ) {
     val character by viewModel.character.collectAsState()
+    val appearanceCount by viewModel.appearanceCount.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val context = LocalContext.current
+
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     LaunchedEffect(personId) {
         viewModel.loadCharacter(personId)
@@ -278,6 +281,51 @@ fun CharacterEditScreen(
             }
 
             Spacer(modifier = Modifier.height(48.dp))
+
+            HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f), thickness = 0.5.dp)
+            
+            Spacer(modifier = Modifier.height(24.dp))
+
+            TextButton(
+                onClick = { showDeleteConfirm = true },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColors(contentColor = Color.Red.copy(alpha = 0.7f))
+            ) {
+                Icon(Icons.Default.DeleteOutline, null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Supprimer ce personnage")
+            }
+
+            Spacer(modifier = Modifier.height(48.dp))
+        }
+
+        if (showDeleteConfirm) {
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirm = false },
+                title = { Text("Supprimer ${character?.firstName} ?") },
+                text = { 
+                    Text("Ce personnage apparaît dans $appearanceCount souvenirs — le supprimer le retirera de ces récits, sans supprimer les souvenirs eux-mêmes.") 
+                },
+                confirmButton = {
+                    Button(
+                        onClick = { 
+                            showDeleteConfirm = false
+                            viewModel.deleteCharacter(personId) 
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Supprimer définitivement", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteConfirm = false }) {
+                        Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+                    }
+                },
+                containerColor = theme.backgroundColor,
+                titleContentColor = theme.contentColor,
+                textContentColor = theme.contentColor.copy(alpha = 0.8f)
+            )
         }
 
         if (showCropDialog && tempImageUri != null) {
