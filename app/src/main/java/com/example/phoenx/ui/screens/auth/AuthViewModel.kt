@@ -9,6 +9,9 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import android.content.Context
 import com.example.phoenx.data.local.PhoenXDatabase
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.phoenx.data.sync.InitialSyncWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -88,19 +91,13 @@ class AuthViewModel @Inject constructor(
                 val decodedKey = android.util.Base64.decode(encryptionKeyBase64, android.util.Base64.NO_WRAP)
                 encryptionManager.setSessionKey(decodedKey)
 
-                /*
-                // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
-                // Charger le sel unique depuis Firestore
-                val userDoc = db.collection("users").document(user.uid).get().await()
-                val saltBase64 = userDoc.getString("encryptionSalt") 
-                    ?: throw Exception("Clé de sécurité corrompue")
-                val salt = android.util.Base64.decode(saltBase64, android.util.Base64.DEFAULT)
-
-                // Dérivation de la clé de session avec le sel unique
-                val key = encryptionManager.deriveKeyFromPassword(password, salt)
-                sessionKey = key
-                encryptionManager.setSessionKey(key)
-                */
+                // v8.9.9 : Récupération initiale Firestore -> Room si base locale vide
+                val allEntries = withContext(Dispatchers.IO) { database.offlineEntryDao().getAllEntriesSync() }
+                if (allEntries.isEmpty()) {
+                    android.util.Log.d("FIL_DEBUG", "AuthViewModel: Base locale vide, lancement de InitialSyncWorker")
+                    val syncRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
+                    WorkManager.getInstance(context).enqueue(syncRequest)
+                }
                 
                 _uiState.value = AuthState.Success
             } catch (e: Exception) {

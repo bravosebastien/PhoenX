@@ -1,5 +1,6 @@
 package com.example.phoenx.ui
 
+import android.content.Context
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,7 +18,11 @@ import com.example.phoenx.data.local.PhoenXDatabase
 import com.example.phoenx.domain.model.UserRole
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.functions.FirebaseFunctions
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.phoenx.data.sync.InitialSyncWorker
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +47,8 @@ class MainViewModel @Inject constructor(
     private val silenceManager: SilenceManager,
     private val encryptionManager: EncryptionManager,
     private val functions: FirebaseFunctions,
-    private val database: PhoenXDatabase
+    private val database: PhoenXDatabase,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private var userListener: ListenerRegistration? = null
@@ -207,6 +213,14 @@ class MainViewModel @Inject constructor(
                 }
             }
             if (repairCount > 0) android.util.Log.d("PHOENX_V8.3", "$repairCount énigmes sécurisées et marquées pour re-sync.")
+
+            // 3. RÉCUPÉRATION INITIALE (v8.9.9)
+            // Si la base locale est vide, on déclenche InitialSyncWorker pour restaurerFirestore -> Room
+            if (allEntries.isEmpty()) {
+                android.util.Log.d("FIL_DEBUG", "MainViewModel: Base locale vide, lancement de InitialSyncWorker")
+                val syncRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
+                WorkManager.getInstance(context).enqueue(syncRequest)
+            }
         }
 
         // Nettoyage de l'ancien écouteur si existant

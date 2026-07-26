@@ -29,6 +29,7 @@ fun PersonSelector(
     suggestedPersons: List<PersonEntity>,
     onSearch: (String) -> Unit,
     onSelect: (PersonEntity) -> Unit,
+    onSelectMe: () -> Unit = {},
     onCreate: (firstName: String, lastName: String?, relation: String?, distType: String?, distValue: String?) -> Unit,
     onRemove: (String) -> Unit,
     accent: Color
@@ -39,12 +40,29 @@ fun PersonSelector(
     var duplicateNameDialog by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            "Personnes mentionnées",
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = theme.contentColor.copy(alpha = 0.4f),
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "Personnes mentionnées",
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                color = theme.contentColor.copy(alpha = 0.4f)
+            )
+            
+            TextButton(
+                onClick = onSelectMe,
+                contentPadding = PaddingValues(0.dp),
+                modifier = Modifier.height(24.dp)
+            ) {
+                Icon(Icons.Default.Person, null, modifier = Modifier.size(14.dp), tint = accent)
+                Spacer(Modifier.width(4.dp))
+                Text("C'est de moi", style = MaterialTheme.typography.labelSmall, color = accent)
+            }
+        }
+        
+        Spacer(Modifier.height(8.dp))
 
         // Tags des personnes sélectionnées
         FlowRow(

@@ -98,6 +98,7 @@ fun CaptureScreen(
     }
 
     var text by remember { mutableStateOf(initialText) }
+    var currentStep by remember { mutableIntStateOf(1) }
     var selectedCategory by remember { mutableStateOf("Sagesse") }
     var visibility by remember { mutableStateOf("RESTRICTED") }
     val selectedRecipientIds = remember { mutableStateListOf<String>() }
@@ -356,7 +357,15 @@ fun CaptureScreen(
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
                                 isTiroirsExpanded = isTiroirsExpanded,
-                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded },
+                                currentStep = currentStep,
+                                onSelectMe = { viewModel.selectMe() },
+                                enigmaQuestion = enigmaQuestion,
+                                onEnigmaQuestionChange = { enigmaQuestion = it },
+                                enigmaAnswer = enigmaAnswer,
+                                onEnigmaAnswerChange = { enigmaAnswer = it },
+                                scheduledTimestamp = scheduledTimestamp,
+                                onScheduledTimestampChange = { scheduledTimestamp = it }
                             )
                         }
                         Screen.Capture.TYPE_PHOTO -> {
@@ -377,6 +386,7 @@ fun CaptureScreen(
                                 suggestedPersons = suggestedPersons,
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
+                                onSelectMe = { viewModel.selectMe() },
                                 onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
                                 onRemovePerson = { viewModel.removePerson(it) },
                                 selectedCategory = selectedCategory,
@@ -384,7 +394,14 @@ fun CaptureScreen(
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
                                 isTiroirsExpanded = isTiroirsExpanded,
-                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded },
+                                currentStep = currentStep,
+                                enigmaQuestion = enigmaQuestion,
+                                onEnigmaQuestionChange = { enigmaQuestion = it },
+                                enigmaAnswer = enigmaAnswer,
+                                onEnigmaAnswerChange = { enigmaAnswer = it },
+                                scheduledTimestamp = scheduledTimestamp,
+                                onScheduledTimestampChange = { scheduledTimestamp = it }
                             )
                         }
                         Screen.Capture.TYPE_GALLERY -> {
@@ -408,12 +425,20 @@ fun CaptureScreen(
                                 suggestedPersons = suggestedPersons,
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
+                                onSelectMe = { viewModel.selectMe() },
                                 onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
                                 onRemovePerson = { viewModel.removePerson(it) },
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
                                 isTiroirsExpanded = isTiroirsExpanded,
-                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded },
+                                currentStep = currentStep,
+                                enigmaQuestion = enigmaQuestion,
+                                onEnigmaQuestionChange = { enigmaQuestion = it },
+                                enigmaAnswer = enigmaAnswer,
+                                onEnigmaAnswerChange = { enigmaAnswer = it },
+                                scheduledTimestamp = scheduledTimestamp,
+                                onScheduledTimestampChange = { scheduledTimestamp = it }
                             )
                         }
                         else -> {
@@ -442,12 +467,20 @@ fun CaptureScreen(
                                 suggestedPersons = suggestedPersons,
                                 onSearchPersons = { viewModel.searchPersons(it) },
                                 onSelectPerson = { viewModel.selectPerson(it) },
+                                onSelectMe = { viewModel.selectMe() },
                                 onCreatePerson = { f, l, r, dt, dv -> viewModel.createAndSelectPerson(f, l, r, dt, dv) },
                                 onRemovePerson = { viewModel.removePerson(it) },
                                 isTonaliteExpanded = isTonaliteExpanded,
                                 onTonaliteToggle = { isTonaliteExpanded = !isTonaliteExpanded },
                                 isTiroirsExpanded = isTiroirsExpanded,
-                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded }
+                                onTiroirsToggle = { isTiroirsExpanded = !isTiroirsExpanded },
+                                currentStep = currentStep,
+                                enigmaQuestion = enigmaQuestion,
+                                onEnigmaQuestionChange = { enigmaQuestion = it },
+                                enigmaAnswer = enigmaAnswer,
+                                onEnigmaAnswerChange = { enigmaAnswer = it },
+                                scheduledTimestamp = scheduledTimestamp,
+                                onScheduledTimestampChange = { scheduledTimestamp = it }
                             )
                         }
                     }
