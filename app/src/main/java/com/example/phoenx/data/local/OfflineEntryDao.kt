@@ -197,4 +197,17 @@ interface OfflineEntryDao {
 
     @Query("UPDATE offline_entries SET silentAttribution = :silent WHERE id = :entryId")
     suspend fun updateEntrySilentAttribution(silent: Boolean, entryId: String): Int
+
+    // Creator Profile (v9.1)
+    @Query("SELECT * FROM creator_profile WHERE userId = :userId")
+    fun getCreatorProfile(userId: String): Flow<CreatorProfileEntity?>
+
+    @Query("SELECT * FROM creator_profile WHERE userId = :userId")
+    suspend fun getCreatorProfileSync(userId: String): CreatorProfileEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertCreatorProfile(profile: CreatorProfileEntity)
+
+    @Query("SELECT * FROM creator_profile WHERE syncStatus = 'pending'")
+    suspend fun getPendingProfiles(): List<CreatorProfileEntity>
 }

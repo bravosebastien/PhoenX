@@ -146,6 +146,7 @@ sealed class Screen(val route: String) {
     object UniqueKey : Screen("uniquekey")
     object Reconciliation : Screen("reconciliation")
     object Profile : Screen("profile")
+    object CreatorRichProfile : Screen("profile/rich")
     object TrustCircle : Screen("trust_circle")
     object Characters : Screen("characters")
     object CharacterEdit : Screen("characters/edit/{personId}") {

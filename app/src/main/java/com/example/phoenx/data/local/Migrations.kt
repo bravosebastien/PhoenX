@@ -262,4 +262,32 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE persons ADD COLUMN relationshipDetail TEXT")
         }
     }
+
+    /**
+     * MIGRATION_29_30 — Profil Créateur v9.1
+     * Création de la table creator_profile pour enrichir le Livre de Vie.
+     */
+    val MIGRATION_29_30 = object : Migration(29, 30) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `creator_profile` (
+                    `userId` TEXT NOT NULL, 
+                    `bio` TEXT, 
+                    `profession` TEXT, 
+                    `hasSiblings` INTEGER, 
+                    `siblingsDetail` TEXT, 
+                    `hasChildren` INTEGER, 
+                    `childrenDetail` TEXT, 
+                    `hobbies` TEXT, 
+                    `height` INTEGER, 
+                    `weight` INTEGER, 
+                    `eyeColor` TEXT, 
+                    `hairColor` TEXT, 
+                    `updatedAt` INTEGER NOT NULL, 
+                    `syncStatus` TEXT NOT NULL, 
+                    PRIMARY KEY(`userId`)
+                )
+            """.trimIndent())
+        }
+    }
 }

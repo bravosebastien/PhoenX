@@ -30,9 +30,10 @@ class AIManager @Inject constructor(
         return result.data as String
     }
 
-    suspend fun generateEssencePortrait(summaries: List<String>): String {
+    suspend fun generateEssencePortrait(summaries: List<String>, authorProfile: Map<String, Any?>? = null): String {
         val data = hashMapOf(
-            "summaries" to summaries
+            "summaries" to summaries,
+            "authorProfile" to authorProfile
         )
         val result: HttpsCallableResult = functions.getHttpsCallable("generateEssencePortrait").call(data).await()
         return result.data as String

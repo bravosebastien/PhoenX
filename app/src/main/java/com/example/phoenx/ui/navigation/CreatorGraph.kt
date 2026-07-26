@@ -36,6 +36,7 @@ import com.example.phoenx.ui.screens.pact.PactDetailScreen
 import com.example.phoenx.ui.screens.pact.PactScreen
 import com.example.phoenx.ui.screens.portraits.PortraitProcheScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
+import com.example.phoenx.ui.screens.profile.CreatorRichProfileScreen
 import com.example.phoenx.ui.screens.profile.ProfileScreen
 import com.example.phoenx.ui.screens.questions.PendingQuestionsScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
@@ -402,7 +403,14 @@ fun NavGraphBuilder.creatorGraph(
     }
 
     composable(Screen.Profile.route) {
-        ProfileScreen(onNavigateBack = { navController.popBackStack() })
+        ProfileScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToRichProfile = { navController.navigate(Screen.CreatorRichProfile.route) }
+        )
+    }
+
+    composable(Screen.CreatorRichProfile.route) {
+        CreatorRichProfileScreen(onNavigateBack = { navController.popBackStack() })
     }
 
     composable(Screen.TrustCircle.route) {

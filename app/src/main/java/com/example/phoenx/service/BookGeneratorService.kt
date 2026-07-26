@@ -142,6 +142,26 @@ class BookGeneratorService @Inject constructor(
             throw Exception("Pas assez de souvenirs pour écrire ton livre.")
         }
 
+        // v9.1 : Récupération du profil enrichi du Créateur
+        val richProfile = offlineEntryDao.getCreatorProfileSync(userId)
+        val authorProfileMap = richProfile?.let { p ->
+            val map = mutableMapOf<String, Any>()
+            if (!p.bio.isNullOrBlank()) map["bio"] = p.bio
+            if (!p.profession.isNullOrBlank()) map["profession"] = p.profession
+            if (p.hasSiblings == true && !p.siblingsDetail.isNullOrBlank()) map["family_siblings"] = p.siblingsDetail
+            if (p.hasChildren == true && !p.childrenDetail.isNullOrBlank()) map["family_children"] = p.childrenDetail
+            if (!p.hobbies.isNullOrBlank()) map["hobbies"] = p.hobbies
+            // Portrait physique
+            val physical = mutableListOf<String>()
+            p.height?.let { physical.add("$it cm") }
+            p.weight?.let { physical.add("$it kg") }
+            p.eyeColor?.let { physical.add("Yeux $it") }
+            p.hairColor?.let { physical.add("Cheveux $it") }
+            if (physical.isNotEmpty()) map["physical_appearance"] = physical.joinToString(", ")
+            
+            if (map.isNotEmpty()) map else null
+        }
+
         onProgress("Rédaction des chapitres illustrés par l'IA...")
         
         val ageMin = scenes.minOf { it["age"] as Int }
@@ -150,7 +170,8 @@ class BookGeneratorService @Inject constructor(
         val data = hashMapOf(
             "scenes" to scenes,
             "ageMin" to ageMin,
-            "ageMax" to ageMax
+            "ageMax" to ageMax,
+            "authorProfile" to authorProfileMap // Transmis à l'IA Biographe v9.1
         )
 
         // v9.0 : Log temporaire du payload envoyé à l'IA pour vérification des fiches personnages

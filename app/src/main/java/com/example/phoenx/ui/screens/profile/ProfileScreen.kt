@@ -27,6 +27,7 @@ import com.example.phoenx.ui.theme.*
 @Composable
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToRichProfile: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel(),
     themeViewModel: com.example.phoenx.ui.theme.ThemeViewModel = hiltViewModel()
 ) {
@@ -133,6 +134,30 @@ fun ProfileScreen(
                 )
 
                 Spacer(modifier = Modifier.height(40.dp))
+
+                // --- PORTRAIT DE VIE (v9.1) ---
+                Card(
+                    onClick = onNavigateToRichProfile,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
+                    shape = MaterialTheme.shapes.large,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.AutoAwesome, null, tint = accent)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Mon Portrait de Vie", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                            Text("Enrichis ton histoire pour l'IA Biographe", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                        }
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.4f))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // --- ACCORDÉON APPARENCE (v8.9.0 Global) ---
                 Card(
