@@ -299,4 +299,46 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE persons ADD COLUMN characterType TEXT")
         }
     }
+
+    /**
+     * MIGRATION_31_32 — Finalisation Dépositaires v9.1
+     */
+    val MIGRATION_31_32 = object : Migration(31, 32) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE depositaries ADD COLUMN linkedUid TEXT")
+            db.execSQL("ALTER TABLE depositaries ADD COLUMN role TEXT")
+        }
+    }
+
+    /**
+     * MIGRATION_32_33 — Correction contrainte NOT NULL sur table depositaries
+     */
+    val MIGRATION_32_33 = object : Migration(32, 33) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // 1. Création de la nouvelle table avec les contraintes exactes attendues par Room
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `depositaries_new` (
+                    `id` TEXT NOT NULL, 
+                    `name` TEXT NOT NULL, 
+                    `email` TEXT NOT NULL, 
+                    `phone` TEXT, 
+                    `role` TEXT, 
+                    `status` TEXT NOT NULL, 
+                    `linkedUid` TEXT, 
+                    `createdAt` INTEGER NOT NULL, 
+                    PRIMARY KEY(`id`)
+                )
+            """.trimIndent())
+
+            // 2. Copie des données existantes
+            db.execSQL("""
+                INSERT INTO `depositaries_new` (id, name, email, phone, role, status, linkedUid, createdAt)
+                SELECT id, name, email, phone, role, status, linkedUid, createdAt FROM `depositaries`
+            """.trimIndent())
+
+            // 3. Remplacement
+            db.execSQL("DROP TABLE `depositaries`")
+            db.execSQL("ALTER TABLE `depositaries_new` RENAME TO `depositaries`")
+        }
+    }
 }

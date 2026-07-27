@@ -22,3 +22,11 @@ kotlin-compiler-*
 *.iws
 *.out
 *.app
+
+# PhoenX Debug & Migration logs
+crash*.txt
+freeze*.txt
+migration*.txt
+
+# Firebase temp
+.firebase/
