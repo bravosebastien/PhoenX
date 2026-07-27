@@ -166,12 +166,20 @@ fun StatusCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(12.dp).background(statusColor, CircleShape))
                 Spacer(modifier = Modifier.width(16.dp))
-                PhoenXAvatar(
-                    photoUrl = photoUrl,
-                    name = name,
-                    size = 40.dp,
-                    borderColor = statusColor.copy(alpha = 0.4f)
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    PhoenXAvatar(
+                        photoUrl = photoUrl,
+                        name = name,
+                        size = 48.dp,
+                        borderColor = statusColor.copy(alpha = 0.4f)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = name.split(" ").firstOrNull() ?: "",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                        color = theme.contentColor.copy(alpha = 0.6f)
+                    )
+                }
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = statusText,

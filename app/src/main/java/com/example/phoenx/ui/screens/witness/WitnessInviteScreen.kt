@@ -269,14 +269,23 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit, onReview: () -> Un
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            PhoenXAvatar(
-                photoUrl = witness.photoUrl,
-                name = witness.name,
-                size = 44.dp,
-                borderColor = accent.copy(alpha = 0.3f)
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                PhoenXAvatar(
+                    photoUrl = witness.photoUrl,
+                    name = witness.name,
+                    size = 44.dp,
+                    borderColor = accent.copy(alpha = 0.3f)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = witness.name.split(" ").firstOrNull() ?: "",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                    color = accent,
+                    maxLines = 1
+                )
+            }
             
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(20.dp))
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(

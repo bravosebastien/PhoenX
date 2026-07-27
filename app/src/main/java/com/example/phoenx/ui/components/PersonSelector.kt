@@ -82,7 +82,7 @@ fun PersonSelector(
                     ) {
                         Icon(Icons.Default.Group, null, modifier = Modifier.size(14.dp), tint = accent)
                         Spacer(Modifier.width(4.dp))
-                        Text("Gérer", style = MaterialTheme.typography.labelSmall, color = accent)
+                        Text("Gérer / Ajouter", style = MaterialTheme.typography.labelSmall, color = accent)
                     }
 
                     Spacer(Modifier.width(8.dp))

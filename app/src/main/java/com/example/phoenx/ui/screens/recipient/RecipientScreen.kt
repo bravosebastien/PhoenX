@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -150,13 +151,23 @@ fun RecipientCard(recipient: RecipientEntity, onDelete: () -> Unit, onClick: () 
         border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-            PhoenXAvatar(
-                photoUrl = recipient.photoUrl,
-                name = recipient.name,
-                size = 48.dp,
-                borderColor = accent.copy(alpha = 0.3f)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                PhoenXAvatar(
+                    photoUrl = recipient.photoUrl,
+                    name = recipient.name,
+                    size = 48.dp,
+                    borderColor = accent.copy(alpha = 0.3f)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = recipient.name.split(" ").firstOrNull() ?: "",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                    color = accent,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Spacer(modifier = Modifier.width(20.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     recipient.name, 

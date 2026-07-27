@@ -189,6 +189,14 @@ fun HomeScreen(
                 }
 
                 if (currentPerspective == MainViewModel.Perspective.MY_MEMORY) {
+                    // --- AJOUT v9.2 : CARTE MON LIVRE (Positionnée en haut v9.2.3) ---
+                    BookCoverCard(
+                        title = uiState.bookTitle ?: "Mon Livre de Vie",
+                        chaptersCount = uiState.validatedChaptersCount,
+                        onClick = onNavigateToBookEditor,
+                        theme = theme
+                    )
+
                     // --- VUE CRÉATEUR ---
                     
                     // ALERTE INVITATION EN ATTENTE (v7.6)
@@ -304,14 +312,6 @@ fun HomeScreen(
                             }
                         }
                     }
-
-                    // --- AJOUT v9.2 : CARTE MON LIVRE ---
-                    BookCoverCard(
-                        title = uiState.bookTitle ?: "Mon Livre de Vie",
-                        chaptersCount = uiState.validatedChaptersCount,
-                        onClick = onNavigateToBookEditor,
-                        theme = theme
-                    )
 
                     // DERNIER SOUVENIR
                     LastMemoryCard(uiState.latestEntries.firstOrNull())
@@ -736,7 +736,8 @@ fun BookCoverCard(
                     Text(
                         text = title,
                         onTextLayout = { result ->
-                            if (result.hasVisualOverflow && fontSize > 14.sp) {
+                            // v9.2.3 : Réduction plus agressive pour tablette et gros réglages police
+                            if (result.hasVisualOverflow && fontSize > 10.sp) {
                                 fontSize = (fontSize.value - 1).sp
                             }
                         },
@@ -746,11 +747,11 @@ fun BookCoverCard(
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             fontStyle = FontStyle.Italic,
-                            lineHeight = (fontSize.value * 1.3).sp
+                            lineHeight = (fontSize.value * 1.25).sp
                         ),
                         color = theme.contentColor,
                         maxLines = 4,
-                        overflow = TextOverflow.Clip
+                        overflow = TextOverflow.Ellipsis
                     )
                     
                     Spacer(modifier = Modifier.height(20.dp))

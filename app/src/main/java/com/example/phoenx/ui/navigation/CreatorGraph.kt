@@ -221,13 +221,30 @@ fun NavGraphBuilder.creatorGraph(
             locationId = locationId,
             parentEntryId = parentEntryId,
             onNavigateBack = { navController.popBackStack() },
-            onNavigateToCharacters = { navController.navigate(Screen.Characters.route) },
+            onNavigateToCharacters = { 
+                navController.navigate(Screen.Characters.route + "?selectionMode=true") 
+            },
             onNavigateToDetail = { id: String -> 
                 navController.navigate(Screen.MemoryDetail.createRoute(id)) {
                     popUpTo(Screen.Home.route)
                 }
             }
         )
+
+        // ÉCOUTE DU RETOUR DE SÉLECTION DE PERSONNAGE (v9.2.3)
+        val selectedPerson by navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.getStateFlow<com.example.phoenx.data.local.PersonEntity?>("selected_person", null)
+            ?.collectAsState() ?: remember { mutableStateOf(null) }
+
+        val viewModel: com.example.phoenx.ui.screens.capture.CaptureViewModel = androidx.hilt.navigation.compose.hiltViewModel()
+        
+        LaunchedEffect(selectedPerson) {
+            selectedPerson?.let { person ->
+                viewModel.selectPerson(person)
+                navController.currentBackStackEntry?.savedStateHandle?.set<com.example.phoenx.data.local.PersonEntity?>("selected_person", null)
+            }
+        }
     }
     
     composable(Screen.YoungSelfLetters.route) {
@@ -453,13 +470,24 @@ fun NavGraphBuilder.creatorGraph(
         )
     }
 
-    composable(Screen.Characters.route) {
+    composable(
+        route = Screen.Characters.route + "?selectionMode={selectionMode}",
+        arguments = listOf(
+            navArgument("selectionMode") { type = NavType.BoolType; defaultValue = false }
+        )
+    ) { backStackEntry ->
+        val selectionMode = backStackEntry.arguments?.getBoolean("selectionMode") ?: false
+        
         CharactersScreen(
             onNavigateBack = { navController.popBackStack() },
             onEditCharacter = { id -> navController.navigate(Screen.CharacterEdit.createRoute(id)) },
             onAddCharacter = { 
-                // Pour l'instant on ouvre l'édition avec un ID spécial ou un futur écran de création
                 navController.navigate("capture/TEXT") // Fallback temporaire
+            },
+            selectionMode = selectionMode,
+            onPersonSelected = { person ->
+                // v9.2.3 : On retourne l'objet sélectionné via le SavedStateHandle pour le composant appelant
+                navController.previousBackStackEntry?.savedStateHandle?.set("selected_person", person)
             }
         )
     }

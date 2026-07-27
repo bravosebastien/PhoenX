@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,6 +32,8 @@ fun CharactersScreen(
     onNavigateBack: () -> Unit,
     onEditCharacter: (String) -> Unit,
     onAddCharacter: () -> Unit,
+    selectionMode: Boolean = false,
+    onPersonSelected: ((com.example.phoenx.data.local.PersonEntity) -> Unit)? = null,
     viewModel: CharactersViewModel = hiltViewModel(),
     themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
@@ -54,7 +57,7 @@ fun CharactersScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Les Personnages de mon Livre", 
+                        if (selectionMode) "Choisir un personnage" else "Les Personnages de mon Livre", 
                         style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                         color = theme.contentColor
                     ) 
@@ -94,7 +97,15 @@ fun CharactersScreen(
                             items(state.characters) { character ->
                                 CharacterItem(
                                     character = character,
-                                    onClick = { onEditCharacter(character.person.id) },
+                                    onClick = { 
+                                        if (selectionMode && onPersonSelected != null) {
+                                            onPersonSelected(character.person)
+                                            onNavigateBack()
+                                        } else {
+                                            onEditCharacter(character.person.id) 
+                                        }
+                                    },
+                                    onEditClick = if (selectionMode) { { onEditCharacter(character.person.id) } } else null,
                                     accent = accent
                                 )
                             }
@@ -110,6 +121,7 @@ fun CharactersScreen(
 fun CharacterItem(
     character: CharacterWithStats,
     onClick: () -> Unit,
+    onEditClick: (() -> Unit)? = null,
     accent: Color
 ) {
     val theme = LocalAppTheme.current
@@ -146,27 +158,38 @@ fun CharacterItem(
                 )
             }
             
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "${character.appearanceCount}",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = theme.contentColor
+            if (onEditClick == null) {
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = "${character.appearanceCount}",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = theme.contentColor
+                    )
+                    Text(
+                        text = if (character.appearanceCount > 1) "souvenirs" else "souvenir",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = theme.contentColor.copy(alpha = 0.4f)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                Icon(
+                    Icons.Default.ChevronRight,
+                    null,
+                    tint = theme.contentColor.copy(alpha = 0.1f),
+                    modifier = Modifier.size(20.dp)
                 )
-                Text(
-                    text = if (character.appearanceCount > 1) "souvenirs" else "souvenir",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    color = theme.contentColor.copy(alpha = 0.4f)
-                )
+            } else {
+                IconButton(onClick = onEditClick) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Éditer",
+                        tint = theme.contentColor.copy(alpha = 0.4f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
-            
-            Spacer(modifier = Modifier.width(8.dp))
-            
-            Icon(
-                Icons.Default.ChevronRight,
-                null,
-                tint = theme.contentColor.copy(alpha = 0.1f),
-                modifier = Modifier.size(20.dp)
-            )
         }
     }
 }
