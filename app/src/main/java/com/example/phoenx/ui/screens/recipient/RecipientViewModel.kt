@@ -69,7 +69,8 @@ class RecipientViewModel @Inject constructor(
                         email = doc.getString("email") ?: "",
                         relationship = doc.getString("relationship") ?: "",
                         canAskQuestions = doc.getBoolean("canAskQuestions") ?: false,
-                        maxQuestionsAllowed = doc.getLong("maxQuestionsAllowed")?.toInt()
+                        maxQuestionsAllowed = doc.getLong("maxQuestionsAllowed")?.toInt(),
+                        linkedUid = doc.getString("linkedUid") // v9.2
                     )
                     offlineEntryDao.insertRecipient(recipient)
                 }

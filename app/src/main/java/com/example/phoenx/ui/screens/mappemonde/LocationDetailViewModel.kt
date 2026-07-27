@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.mappemonde
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.local.OfflineEntry
@@ -7,6 +8,7 @@ import com.example.phoenx.data.local.OfflineEntryDao
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -24,7 +26,8 @@ sealed class LocationDetailUiState {
 class LocationDetailViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val auth: FirebaseAuth,
-    private val offlineEntryDao: OfflineEntryDao
+    private val offlineEntryDao: OfflineEntryDao,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<LocationDetailUiState>(LocationDetailUiState.Loading)
@@ -105,10 +108,24 @@ class LocationDetailViewModel @Inject constructor(
         }
     }
 
-    fun updateEntryRecipients(entryId: String, newRecipientIds: List<String>) {
+    fun updateEntryRecipients(entryId: String, newRecipientDocIds: List<String>) {
         viewModelScope.launch {
             try {
-                offlineEntryDao.updateEntryRecipients(newRecipientIds.joinToString(","), entryId)
+                // v9.2.2 : Remappage DocID -> UID pour la sécurité Firestore
+                val persistentIds = newRecipientDocIds.map { docId ->
+                    recipients.value.find { it.id == docId }?.linkedUid ?: docId
+                }
+                offlineEntryDao.updateEntryRecipients(persistentIds.joinToString(","), entryId)
+                
+                // Force sync
+                offlineEntryDao.updateSyncStatus(entryId, "pending")
+                val constraints = androidx.work.Constraints.Builder()
+                    .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                    .build()
+                val syncRequest = androidx.work.OneTimeWorkRequestBuilder<com.example.phoenx.data.sync.SyncWorker>()
+                    .setConstraints(constraints)
+                    .build()
+                androidx.work.WorkManager.getInstance(context).enqueue(syncRequest)
             } catch (e: Exception) {
                 android.util.Log.e("LocationDetailVM", "Error updating recipients", e)
             }

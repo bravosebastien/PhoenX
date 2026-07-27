@@ -302,6 +302,27 @@ class DepositaryViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * v9.1 : MÉTHODE DEBUG POUR TESTER L'HÉRITAGE SUR TÉLÉPHONE
+     * Force immédiatement le statut 'activated' sur le compte du créateur.
+     */
+    fun debugForceActivation(creatorId: String) {
+        viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(isLoading = true) }
+                db.collection("users").document(creatorId)
+                    .update("protocolStatus", "activated")
+                    .await()
+                _activationSuccess.emit(true)
+                android.util.Log.d("DEBUG_TEST", "Héritage forcé pour $creatorId")
+            } catch (e: Exception) {
+                android.util.Log.e("DEBUG_TEST", "Échec force activation : ${e.message}")
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+        }
+    }
 }
 
 data class PhoenXNotification(

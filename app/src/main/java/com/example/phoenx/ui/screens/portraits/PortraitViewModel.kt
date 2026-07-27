@@ -38,7 +38,11 @@ class PortraitViewModel @Inject constructor(
     
     val existingPortrait: StateFlow<String?> = _currentRecipientId
         .filterNotNull()
-        .flatMapLatest { id -> offlineEntryDao.getPortraitEntryForRecipient(id) }
+        .flatMapLatest { id -> 
+            val recipient = _recipients.value.find { it.id == id }
+            val persistentId = recipient?.linkedUid ?: id
+            offlineEntryDao.getPortraitEntryForRecipient(persistentId) 
+        }
         .map { entry -> 
             entry?.let { encryptionManager.decryptText(it.encryptedPayload) }
         }
@@ -76,10 +80,14 @@ class PortraitViewModel @Inject constructor(
 
                 // 1. GESTION DE L'ENTRÉE PARENTE (Le Sceau du Portrait)
                 val recipientsList = _recipients.value
-                val recipientName = recipientsList.find { it.id == recipientId }?.name ?: "un proche"
+                val recipient = recipientsList.find { it.id == recipientId }
+                val recipientName = recipient?.name ?: "un proche"
+                
+                // v9.2 : On stocke l'UID pour la sécurité, ou le DocID en fallback
+                val persistentRecipientId = recipient?.linkedUid ?: recipientId
                 
                 val existingParent = withContext(Dispatchers.IO) {
-                    offlineEntryDao.getPortraitEntryForRecipient(recipientId).first()
+                    offlineEntryDao.getPortraitEntryForRecipient(persistentRecipientId).first()
                 }
                 val parentId = existingParent?.id ?: UUID.randomUUID().toString()
 
@@ -91,7 +99,7 @@ class PortraitViewModel @Inject constructor(
                     ageAtCreation = ageJson,
                     emotionalCategory = "Amour",
                     visibility = "specific",
-                    recipientIds = recipientId,
+                    recipientIds = persistentRecipientId,
                     createdAt = existingParent?.createdAt ?: System.currentTimeMillis(),
                     aiSummary = "Portrait de $recipientName",
                     syncStatus = "pending"
@@ -117,7 +125,7 @@ class PortraitViewModel @Inject constructor(
                                 ageAtCreation = ageJson,
                                 emotionalCategory = "Amour",
                                 visibility = "specific",
-                                recipientIds = recipientId,
+                                recipientIds = persistentRecipientId,
                                 aiSummary = question,
                                 syncStatus = "pending"
                             )
@@ -141,7 +149,7 @@ class PortraitViewModel @Inject constructor(
                         ageAtCreation = ageJson,
                         emotionalCategory = "Amour",
                         visibility = "specific",
-                        recipientIds = recipientId,
+                        recipientIds = persistentRecipientId,
                         aiSummary = "Pensée libre",
                         syncStatus = "pending"
                     )

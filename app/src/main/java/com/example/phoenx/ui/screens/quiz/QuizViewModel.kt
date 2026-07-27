@@ -281,6 +281,11 @@ class QuizViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                // v9.2.2 : Remappage DocID -> UID pour la sécurité Firestore
+                val persistentRecipientIds = quiz.recipientIds.map { docId ->
+                    _recipients.value.find { it.id == docId }?.linkedUid ?: docId
+                }
+
                 // Chiffrement des éléments sensibles (v8.3)
                 val processedQuestions = quiz.questions.map { q ->
                     q.copy(
@@ -300,7 +305,8 @@ class QuizViewModel @Inject constructor(
 
                 val quizToSave = quiz.copy(
                     questions = processedQuestions,
-                    finalMessage = encryptedMessage
+                    finalMessage = encryptedMessage,
+                    recipientIds = persistentRecipientIds
                 )
                 
                 // On force l'ID à 'main_quiz' pour faciliter l'accès héritier (v8.6.2)

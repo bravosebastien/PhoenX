@@ -473,6 +473,24 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /**
+     * v9.1 : Vérifie si le protocole d'un créateur est activé avant navigation.
+     */
+    fun checkProtocolStatus(creatorId: String, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val data = hashMapOf("creatorId" to creatorId)
+                val result = functions.getHttpsCallable("getCreatorProtocolStatus").call(data).await()
+                val response = result.data as Map<*, *>
+                val isActivated = response["isActivated"] as? Boolean ?: false
+                onResult(isActivated)
+            } catch (e: Exception) {
+                android.util.Log.e("MainViewModel", "Erreur check protocol: ${e.message}")
+                onResult(false)
+            }
+        }
+    }
+
     fun handleVoiceCommand(command: String, navigate: (String) -> Unit) {
         val cmd = command.lowercase()
         when {

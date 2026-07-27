@@ -116,6 +116,17 @@ fun DepositaryDashboardScreen(
                         onClick = onNavigateToInfo
                     )
                 }
+
+                item {
+                    Spacer(Modifier.height(32.dp))
+                    TextButton(
+                        onClick = { viewModel.debugForceActivation(creatorId) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.textButtonColors(contentColor = accent.copy(alpha = 0.3f))
+                    ) {
+                        Text("DEBUG: Simuler activation immédiate", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
             }
         }
     }

@@ -150,8 +150,11 @@ class FilViewModel @Inject constructor(
 
                 // 2. Filtrage par destinataire (UI)
                 val filteredOffline = if (recipientId != null) {
-                    rootEntries.filter { 
-                        it.recipientIds.split(",").contains(recipientId) || it.visibility == "EVERYONE"
+                    // v9.2 : On doit filtrer par DocID OU par UID (si lié)
+                    val recipientUid = recipients.value.find { it.id == recipientId }?.linkedUid
+                    rootEntries.filter { entry ->
+                        val ids = entry.recipientIds.split(",")
+                        ids.contains(recipientId) || (recipientUid != null && ids.contains(recipientUid)) || entry.visibility == "EVERYONE"
                     }
                 } else {
                     rootEntries

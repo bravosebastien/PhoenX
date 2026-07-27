@@ -341,4 +341,14 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE `depositaries_new` RENAME TO `depositaries`")
         }
     }
+
+    /**
+     * MIGRATION_33_34 — Support Heritage v9.2
+     * Ajout du champ linkedUid à RecipientEntity pour les contrôles de sécurité.
+     */
+    val MIGRATION_33_34 = object : Migration(33, 34) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE recipients ADD COLUMN linkedUid TEXT")
+        }
+    }
 }

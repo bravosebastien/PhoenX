@@ -86,14 +86,28 @@ class BookEditorViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
             val draft = bookService.loadBookDraft(userId)
-            _bookDraft.value = draft
+            
             if (draft != null) {
+                // v9.2.1 : On affiche d'abord le livre brut pour éviter le blocage (réinstallation)
+                _bookDraft.value = draft
                 decryptAllChapters(userId, draft)
-                // v8.7.0 : Déchiffrement de l'intro globale
+
                 if (draft.globalIntroduction.isNotEmpty()) {
                     val bookKey = bookService.getBookKey(userId)
                     _decryptedGlobalIntro.value = bookService.decryptChapter(draft.globalIntroduction, bookKey)
                 }
+
+                // Remappage des IDs pour l'UI en asynchrone dès que les destinataires sont là
+                recipients.collect { allRecipients ->
+                    if (allRecipients.isNotEmpty()) {
+                        val mappedIds = draft.recipientIds.map { persistentId ->
+                            allRecipients.find { it.linkedUid == persistentId }?.id ?: persistentId
+                        }
+                        _bookDraft.value = draft.copy(recipientIds = mappedIds)
+                    }
+                }
+            } else {
+                _bookDraft.value = null
             }
         }
     }
@@ -229,9 +243,18 @@ class BookEditorViewModel @Inject constructor(
         }
     }
 
-    fun updateRecipients(recipientIds: List<String>) {
+    fun updateRecipients(selectedDocIds: List<String>) {
         val current = _bookDraft.value ?: return
-        val updated = current.copy(recipientIds = recipientIds)
+        val allRecipients = recipients.value
+        
+        // v9.2 : On stocke les VRAIS UIDs pour la sécurité Firestore/Functions
+        // Si un proche n'est pas encore lié (pas de linkedUid), on garde son DocID 
+        // comme placeholder (il ne pourra pas lire tant qu'il n'est pas lié anyway).
+        val persistentIds = selectedDocIds.map { docId ->
+            allRecipients.find { it.id == docId }?.linkedUid ?: docId
+        }
+
+        val updated = current.copy(recipientIds = persistentIds)
         _bookDraft.value = updated
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch

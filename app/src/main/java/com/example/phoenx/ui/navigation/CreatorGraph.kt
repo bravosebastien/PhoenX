@@ -60,6 +60,7 @@ fun NavGraphBuilder.creatorGraph(
     mainViewModel: MainViewModel
 ) {
     composable(Screen.Home.route) {
+        val context = androidx.compose.ui.platform.LocalContext.current
         val silenceStatus by mainViewModel.silenceStatus.collectAsState()
         val isSilenceOnboardingDone by mainViewModel.isSilenceOnboardingDone.collectAsState()
         val isCreator by mainViewModel.isCreator.collectAsState()
@@ -142,16 +143,26 @@ fun NavGraphBuilder.creatorGraph(
             onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
             onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
             onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
-            onNavigateToCube = { id -> 
-                val role = myRoles.values.find { it.creatorId == id }
-                if (role?.role == "depositary") {
-                    navController.navigate(Screen.DepositaryDashboard.createRoute(id))
-                } else if (role?.role == "witness") {
-                    navController.navigate("witness_response/$id/${role.sourceId}/none")
-                } else {
-                    navController.navigate(Screen.RecipientCube.createRoute(id))
-                }
-            },
+                onNavigateToCube = { id -> 
+                    val role = myRoles.values.find { it.creatorId == id }
+                    android.util.Log.d("NavigationDebug", "onNavigateToCube triggered for creatorId: $id, role: ${role?.role}")
+                    if (role?.role == "depositary") {
+                        navController.navigate(Screen.DepositaryDashboard.createRoute(id))
+                    } else if (role?.role == "witness") {
+                        navController.navigate("witness_response/$id/${role.sourceId}/none")
+                    } else {
+                        // v9.1 : Recipient - Navigation Guard
+                        android.util.Log.d("NavigationDebug", "Checking protocol status for recipient: $id")
+                        mainViewModel.checkProtocolStatus(id) { isActivated ->
+                            android.util.Log.d("NavigationDebug", "Protocol status for $id: isActivated=$isActivated")
+                            if (isActivated) {
+                                navController.navigate(Screen.RecipientCube.createRoute(id))
+                            } else {
+                                android.widget.Toast.makeText(context, "L'héritage de ${role?.creatorName ?: "ton proche"} est encore scellé.", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                },
             onAcceptInvite = { token -> 
                 navController.navigate(Screen.UniversalJoin.createRoute(token))
             },

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,10 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.tasks.await as kotlinAwait
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.theme.*
-
-import com.google.firebase.firestore.FirebaseFirestore
 
 /**
  * RecipientCubeScreen (Signature PHOEN-X 5.0)
@@ -36,19 +35,16 @@ fun RecipientCubeScreen(
     onExit: () -> Unit,
     onNavigateToHeritage: () -> Unit,
     isUserCreator: Boolean = false,
-    onBecomeCreator: () -> Unit
+    onBecomeCreator: () -> Unit,
+    viewModel: RecipientCubeViewModel = hiltViewModel()
 ) {
-    val db = FirebaseFirestore.getInstance()
-    var creatorName by remember { mutableStateOf("Ton proche") }
+    val uiState by viewModel.uiState.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
 
     LaunchedEffect(creatorId) {
-        try {
-            val doc = db.collection("users").document(creatorId).get().kotlinAwait()
-            creatorName = doc.getString("displayName") ?: doc.getString("email")?.substringBefore("@") ?: "Ton proche"
-        } catch (e: Exception) {}
+        viewModel.loadCreatorInfo(creatorId)
     }
 
     Scaffold(
@@ -57,8 +53,12 @@ fun RecipientCubeScreen(
         topBar = {
             TopAppBar(
                 title = { 
+                    val title = when (val state = uiState) {
+                        is RecipientCubeUiState.Success -> "L'Armoire de ${state.creatorName}"
+                        else -> "L'Armoire de..."
+                    }
                     Column {
-                        Text("L'Armoire de $creatorName", color = theme.contentColor, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold))
+                        Text(title, color = theme.contentColor, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold))
                         Text("Explore son héritage", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
                     }
                 },
@@ -77,104 +77,139 @@ fun RecipientCubeScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // ZONE D'IMMERSION (Simulation Armoire)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Cercle de prestige central (Halo)
+            when (val state = uiState) {
+                is RecipientCubeUiState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = accent)
+                    }
+                }
+                is RecipientCubeUiState.Error -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(state.message, color = Error, textAlign = TextAlign.Center, modifier = Modifier.padding(24.dp))
+                    }
+                }
+                is RecipientCubeUiState.Success -> {
+                    // ZONE D'IMMERSION (Simulation Armoire)
                     Box(
                         modifier = Modifier
-                            .size(200.dp)
-                            .background(
-                                Brush.radialGradient(
-                                    colors = listOf(accent.copy(alpha = 0.15f), Color.Transparent)
-                                ),
-                                CircleShape
-                            ),
+                            .fillMaxSize()
+                            .padding(24.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            Icons.Default.Lock, 
-                            null, 
-                            tint = accent.copy(alpha = 0.5f), 
-                            modifier = Modifier.size(80.dp)
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(32.dp))
-                    
-                    Text(
-                        "L'Héritage Intime",
-                        style = MaterialTheme.typography.headlineMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
-                        color = theme.contentColor,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        "Les objets de cette armoire s'ouvriront à toi au fil de ton exploration.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = theme.contentColor.copy(alpha = 0.7f),
-                        textAlign = TextAlign.Center,
-                        fontStyle = FontStyle.Italic
-                    )
-                }
-            }
-
-            // NAVIGATION RAPIDE DES TIROIRS
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    "ACCÉDER À L'HÉRITAGE",
-                    style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp, fontWeight = FontWeight.Bold),
-                    color = theme.contentColor.copy(alpha = 0.4f),
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-                
-                Surface(
-                    onClick = onNavigateToHeritage,
-                    color = accent,
-                    shape = RoundedCornerShape(14.dp),
-                    modifier = Modifier.fillMaxWidth().height(64.dp).phoenXMatiere()
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            "ENTRER DANS SES SOUVENIRS", 
-                            color = theme.backgroundColor, 
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
-                        )
-                    }
-                }
-                
-                if (!isUserCreator) {
-                    Spacer(modifier = Modifier.height(32.dp))
-                    
-                    // DEVENIR CRÉATEUR
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
-                        shape = RoundedCornerShape(12.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
-                                Text("Commencez à sceller vos souvenirs.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            // Cercle de prestige central (Halo)
+                            Box(
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .background(
+                                        Brush.radialGradient(
+                                            colors = listOf(accent.copy(alpha = 0.15f), Color.Transparent)
+                                        ),
+                                        CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = if (state.isActivated) Icons.Default.LockOpen else Icons.Default.Lock, 
+                                    contentDescription = null, 
+                                    tint = accent.copy(alpha = 0.5f), 
+                                    modifier = Modifier.size(80.dp)
+                                )
                             }
-                            TextButton(onClick = onBecomeCreator) {
-                                Text("DEVENIR CRÉATEUR", color = accent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            
+                            Spacer(modifier = Modifier.height(32.dp))
+                            
+                            Text(
+                                text = if (state.isActivated) "L'Héritage est Ouvert" else "L'Héritage Intime",
+                                style = MaterialTheme.typography.headlineMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                                color = theme.contentColor,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = if (state.isActivated) 
+                                    "Tu peux désormais explorer tous les souvenirs de ${state.creatorName}." 
+                                else 
+                                    "Les objets de cette armoire s'ouvriront à toi au fil de ton exploration.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = theme.contentColor.copy(alpha = 0.7f),
+                                textAlign = TextAlign.Center,
+                                fontStyle = FontStyle.Italic
+                            )
+                        }
+                    }
+
+                    // NAVIGATION RAPIDE DES TIROIRS
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(24.dp)
+                            .fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (!state.isActivated) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+                                colors = CardDefaults.cardColors(containerColor = Warning.copy(alpha = 0.1f)),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Warning.copy(alpha = 0.3f))
+                            ) {
+                                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.Lock, null, tint = Warning, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(12.dp))
+                                    Text(
+                                        "Cet héritage est encore scellé. Tu y auras accès le moment venu.",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = theme.contentColor
+                                    )
+                                }
+                            }
+                        }
+
+                        Text(
+                            "ACCÉDER À L'HÉRITAGE",
+                            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp, fontWeight = FontWeight.Bold),
+                            color = theme.contentColor.copy(alpha = 0.4f),
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        
+                        Surface(
+                            onClick = { if (state.isActivated) onNavigateToHeritage() },
+                            color = if (state.isActivated) accent else accent.copy(alpha = 0.3f),
+                            shape = RoundedCornerShape(14.dp),
+                            modifier = Modifier.fillMaxWidth().height(64.dp).phoenXMatiere()
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(
+                                    "ENTRER DANS SES SOUVENIRS", 
+                                    color = if (state.isActivated) theme.backgroundColor else theme.backgroundColor.copy(alpha = 0.5f), 
+                                    style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                                )
+                            }
+                        }
+                        
+                        if (!isUserCreator) {
+                            Spacer(modifier = Modifier.height(32.dp))
+                            
+                            // DEVENIR CRÉATEUR
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                                shape = RoundedCornerShape(12.dp),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                                        Text("Commencez à sceller vos souvenirs.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                                    }
+                                    TextButton(onClick = onBecomeCreator) {
+                                        Text("DEVENIR CRÉATEUR", color = accent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                    }
+                                }
                             }
                         }
                     }

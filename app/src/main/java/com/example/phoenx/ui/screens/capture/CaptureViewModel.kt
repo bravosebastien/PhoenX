@@ -392,6 +392,12 @@ class CaptureViewModel @Inject constructor(
 
                 // 5. SAUVEGARDE HORS-LIGNE
                 val entryId = UUID.randomUUID().toString()
+                
+                // v9.2 : On stocke les VRAIS UIDs pour la sécurité Firestore
+                val persistentRecipientIds = recipientIds.map { docId ->
+                    _recipients.value.find { it.id == docId }?.linkedUid ?: docId
+                }
+
                 val entry = OfflineEntry(
                     id = entryId,
                     creatorUid = user.uid,
@@ -400,7 +406,7 @@ class CaptureViewModel @Inject constructor(
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",
                     emotionalCategory = category,
                     visibility = visibility,
-                    recipientIds = recipientIds.joinToString(","),
+                    recipientIds = persistentRecipientIds.joinToString(","),
                     silentAttribution = silentAttribution, // v8.9.8
                     personIds = selectedPersons.value.map { it.id }.joinToString(","), // v8.8
                     isYoungSelfLetter = isYoungSelfLetter,

@@ -49,9 +49,23 @@ class MemoryDetailViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    val recipients: StateFlow<List<RecipientEntity>> = offlineEntryDao.getAllRecipients()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val entry: StateFlow<OfflineEntry?> = _entryId
         .filterNotNull()
         .flatMapLatest { id -> offlineEntryDao.getEntryById(id) }
+        .combine(recipients) { entry, recipientsList ->
+            if (entry != null && recipientsList.isNotEmpty()) {
+                // v9.2 : Remappage des UIDs vers les DocIDs pour l'UI (RecipientSelector)
+                val mappedIds = entry.recipientIds.split(",").map { persistentId ->
+                    recipientsList.find { it.linkedUid == persistentId }?.id ?: persistentId
+                }.joinToString(",")
+                entry.copy(recipientIds = mappedIds)
+            } else {
+                entry
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     val complements: StateFlow<List<OfflineEntry>> = _entryId
@@ -135,8 +149,6 @@ class MemoryDetailViewModel @Inject constructor(
         list
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val recipients: StateFlow<List<RecipientEntity>> = offlineEntryDao.getAllRecipients()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun loadEntry(id: String, creatorId: String? = null) {
         _entryId.value = id
@@ -207,10 +219,14 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
-    fun updateRecipients(newRecipientIds: List<String>) {
+    fun updateRecipients(newRecipientDocIds: List<String>) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            offlineEntryDao.updateEntryRecipients(newRecipientIds.joinToString(","), id)
+            // v9.2 : On stocke les VRAIS UIDs pour la sécurité Firestore
+            val persistentIds = newRecipientDocIds.map { docId ->
+                recipients.value.find { it.id == docId }?.linkedUid ?: docId
+            }
+            offlineEntryDao.updateEntryRecipients(persistentIds.joinToString(","), id)
             triggerSync(id)
         }
     }
