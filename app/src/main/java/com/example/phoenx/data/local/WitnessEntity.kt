@@ -12,5 +12,6 @@ data class WitnessEntity(
     val submittedAt: Long? = null,
     val allowCreatorToRead: Boolean = false,
     val allowCreatorToReject: Boolean = false,
+    val photoUrl: String? = null, // v9.2.2: Profile photo
     val requestPrompt: String? = null
 )

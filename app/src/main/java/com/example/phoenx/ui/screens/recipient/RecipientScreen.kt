@@ -6,9 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -25,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.ui.components.InvitationConfirmDialog
+import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -127,8 +130,8 @@ fun RecipientScreen(
         if (showAddDialog) {
             AddRecipientDialog(
                 onDismiss = { showAddDialog = false },
-                onConfirm = { name, email, rel, phone ->
-                    viewModel.addRecipient(name, email, rel, phone)
+                onConfirm = { name, email, rel, phone, imageUri ->
+                    viewModel.addRecipient(name, email, rel, phone, imageUri)
                     showAddDialog = false
                 }
             )
@@ -147,13 +150,12 @@ fun RecipientCard(recipient: RecipientEntity, onDelete: () -> Unit, onClick: () 
         border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
-            Surface(
-                color = accent.copy(alpha = 0.1f),
-                shape = androidx.compose.foundation.shape.CircleShape,
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(Icons.Default.Person, null, tint = accent, modifier = Modifier.padding(12.dp))
-            }
+            PhoenXAvatar(
+                photoUrl = recipient.photoUrl,
+                name = recipient.name,
+                size = 48.dp,
+                borderColor = accent.copy(alpha = 0.3f)
+            )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -188,14 +190,40 @@ fun EmptyRecipients(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String, String?) -> Unit) {
+fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String, String?, android.net.Uri?) -> Unit) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var relationship by remember { mutableStateOf("") }
     var showInvitationConfirm by remember { mutableStateOf(false) }
+
+    var selectedImageUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var showCropDialog by remember { mutableStateOf(false) }
+    var tempPhotoUri by remember { mutableStateOf<android.net.Uri?>(null) }
+
+    val photoPickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri: android.net.Uri? ->
+        if (uri != null) {
+            tempPhotoUri = uri
+            showCropDialog = true
+        }
+    }
+
+    if (showCropDialog && tempPhotoUri != null) {
+        com.example.phoenx.ui.components.CameoCropDialog(
+            imageUri = tempPhotoUri!!,
+            onDismiss = { showCropDialog = false },
+            onConfirmed = { croppedUri ->
+                selectedImageUri = croppedUri
+                showCropDialog = false
+            },
+            accent = accent
+        )
+    }
 
     if (!showInvitationConfirm) {
         AlertDialog(
@@ -203,7 +231,34 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
             containerColor = theme.backgroundColor,
             title = { Text("Ajouter un proche", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // SÉLECTEUR DE PHOTO (v9.2.2)
+                    Box(
+                        modifier = Modifier
+                            .clickable { photoPickerLauncher.launch("image/*") }
+                            .padding(bottom = 8.dp),
+                        contentAlignment = Alignment.BottomEnd
+                    ) {
+                        PhoenXAvatar(
+                            photoUrl = selectedImageUri?.toString(),
+                            name = if (name.isBlank()) "?" else name,
+                            size = 80.dp
+                        )
+                        Surface(
+                            modifier = Modifier.size(28.dp),
+                            shape = CircleShape,
+                            color = accent,
+                            border = BorderStroke(2.dp, theme.backgroundColor)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.AddAPhoto, null, tint = theme.backgroundColor, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -280,7 +335,7 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
     } else {
         InvitationConfirmDialog(
             personName = name,
-            onConfirm = { onConfirm(name, email, relationship, if (phone.isNotBlank()) phone else null) },
+            onConfirm = { onConfirm(name, email, relationship, if (phone.isNotBlank()) phone else null, selectedImageUri) },
             onDismiss = { showInvitationConfirm = false }
         )
     }

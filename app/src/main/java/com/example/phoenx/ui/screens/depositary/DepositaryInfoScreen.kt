@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,6 +32,7 @@ fun DepositaryInfoScreen(
     viewModel: DepositaryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val photoUrl by mainViewModel.photoUrl.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
 
@@ -61,15 +63,12 @@ fun DepositaryInfoScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // AVATAR
-            Surface(
-                modifier = Modifier.size(80.dp),
-                shape = CircleShape,
-                color = accent.copy(alpha = 0.1f)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Person, null, tint = accent, modifier = Modifier.size(40.dp))
-                }
-            }
+            PhoenXAvatar(
+                photoUrl = photoUrl,
+                name = uiState.personalName,
+                size = 80.dp,
+                borderColor = accent.copy(alpha = 0.3f)
+            )
 
             Spacer(modifier = Modifier.height(24.dp))
 

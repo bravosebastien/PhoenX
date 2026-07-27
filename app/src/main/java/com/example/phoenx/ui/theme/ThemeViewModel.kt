@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ThemeViewModel @Inject constructor(
-    private val preferenceManager: PreferenceManager,
+    val preferenceManager: PreferenceManager,
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore
 ) : ViewModel() {

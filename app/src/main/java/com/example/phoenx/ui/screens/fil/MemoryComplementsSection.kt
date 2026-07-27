@@ -37,7 +37,8 @@ fun MemoryComplementsSection(
     viewModel: MemoryDetailViewModel,
     theme: AppThemeState,
     accent: Color,
-    navController: NavController
+    navController: NavController,
+    isReadOnly: Boolean = false
 ) {
     var showAddMediaMenu by remember { mutableStateOf(false) }
 
@@ -53,34 +54,36 @@ fun MemoryComplementsSection(
                 color = theme.contentColor.copy(alpha = 0.4f), 
                 letterSpacing = 2.sp
             )
-            Box {
-                IconButton(
-                    onClick = { showAddMediaMenu = true },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(Icons.Default.AddCircle, null, tint = accent)
-                }
+            if (!isReadOnly) {
+                Box {
+                    IconButton(
+                        onClick = { showAddMediaMenu = true },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(Icons.Default.AddCircle, null, tint = accent)
+                    }
 
-                DropdownMenu(
-                    expanded = showAddMediaMenu,
-                    onDismissRequest = { showAddMediaMenu = false },
-                    containerColor = theme.backgroundColor
-                ) {
-                    val types = listOf(
-                        Triple("Texte", Icons.Default.Description, "TEXT"),
-                        Triple("Photo", Icons.Default.PhotoCamera, "PHOTO"),
-                        Triple("Galerie", Icons.Default.Collections, "GALLERY"),
-                        Triple("Vocal", Icons.Default.Mic, "AUDIO")
-                    )
-                    types.forEach { (label, icon, type) ->
-                        DropdownMenuItem(
-                            text = { Text(if (type == "TEXT") "Ajouter un récit" else label, color = theme.contentColor) },
-                            leadingIcon = { Icon(icon, null, tint = accent) },
-                            onClick = {
-                                showAddMediaMenu = false
-                                navController.navigate(Screen.Capture.createRoute(type = type, parentEntryId = entryId))
-                            }
+                    DropdownMenu(
+                        expanded = showAddMediaMenu,
+                        onDismissRequest = { showAddMediaMenu = false },
+                        containerColor = theme.backgroundColor
+                    ) {
+                        val types = listOf(
+                            Triple("Texte", Icons.Default.Description, "TEXT"),
+                            Triple("Photo", Icons.Default.PhotoCamera, "PHOTO"),
+                            Triple("Galerie", Icons.Default.Collections, "GALLERY"),
+                            Triple("Vocal", Icons.Default.Mic, "AUDIO")
                         )
+                        types.forEach { (label, icon, type) ->
+                            DropdownMenuItem(
+                                text = { Text(if (type == "TEXT") "Ajouter un récit" else label, color = theme.contentColor) },
+                                leadingIcon = { Icon(icon, null, tint = accent) },
+                                onClick = {
+                                    showAddMediaMenu = false
+                                    navController.navigate(Screen.Capture.createRoute(type = type, parentEntryId = entryId))
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -165,8 +168,10 @@ fun MemoryComplementsSection(
                                 }
                             }
 
-                            IconButton(onClick = { viewModel.deleteComplement(complement.id) }) {
-                                Icon(Icons.Default.DeleteOutline, null, tint = Error.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                            if (!isReadOnly) {
+                                IconButton(onClick = { viewModel.deleteComplement(complement.id) }) {
+                                    Icon(Icons.Default.DeleteOutline, null, tint = Error.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                                }
                             }
                         }
                     }

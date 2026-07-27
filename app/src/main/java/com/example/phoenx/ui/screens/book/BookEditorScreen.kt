@@ -27,19 +27,37 @@ import com.example.phoenx.data.model.BookChapter
 import com.example.phoenx.data.model.ChapterStatus
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.RecipientSelector
+import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.theme.*
 
 @Composable
 fun BookEditorScreen(
     navController: NavController,
-    viewModel: BookEditorViewModel = hiltViewModel()
+    viewModel: BookEditorViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+
+    OnboardingPopup(
+        pageKey = "book_editor",
+        title = "Le Livre de Ma Vie",
+        contentPoints = listOf(
+            "L'IA génère un livre narratif à partir de tes souvenirs.",
+            "Chaque chapitre arrive en brouillon — tu peux le valider, le modifier, ou demander à l'IA de le réécrire.",
+            "L'IA ne lit jamais tes vrais souvenirs — uniquement les résumés anonymisés.",
+            "Un chapitre validé est verrouillé mais tu peux le déverrouiller à tout moment.",
+            "Tes proches liront ce livre comme un vrai livre, page par page."
+        ),
+        preferenceManager = themeViewModel.preferenceManager
+    )
+
     val bookDraft by viewModel.bookDraft.collectAsState()
-    val decryptedContents by viewModel.decryptedContents.collectAsState()
     val isGenerating by viewModel.isGenerating.collectAsState()
     val generationProgress by viewModel.generationProgress.collectAsState()
-    val decryptedGlobalIntro by viewModel.decryptedGlobalIntro.collectAsState()
+    val decryptedContents by viewModel.decryptedContents.collectAsState()
     val isGeneratingGlobalIntro by viewModel.isGeneratingGlobalIntro.collectAsState()
+    val decryptedGlobalIntro by viewModel.decryptedGlobalIntro.collectAsState()
     val selectedChapter by viewModel.selectedChapter.collectAsState()
     val recipients by viewModel.recipients.collectAsState()
     val isModifyingWithAi by viewModel.isModifyingWithAi.collectAsState()
@@ -49,7 +67,7 @@ fun BookEditorScreen(
     val isUserCreator by viewModel.isUserCreator.collectAsState()
     val userName by viewModel.userName.collectAsState()
     var showChapterEditor by remember { mutableStateOf(false) }
-    var forceRestricted by remember { mutableStateOf(false) } // v8.6.3: État indépendant pour le toggle visibilité
+    var forceRestricted by remember { mutableStateOf(false) } 
     var showRegenerateConfirm by remember { mutableStateOf(false) }
     var showOnboarding by remember { mutableStateOf(false) }
     var showAiExplanation by remember { mutableStateOf(false) }
@@ -57,18 +75,14 @@ fun BookEditorScreen(
     var isStyleExpanded by remember { mutableStateOf(false) }
     var isTransmissionExpanded by remember { mutableStateOf(false) }
     var isIntroExpanded by remember { mutableStateOf(false) }
-    
-    // v8.9.0 : Thème Global
-    val theme = LocalAppTheme.current
-    val accent = theme.accentColor
 
     // Onboarding automatique (v8.6.3)
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { context.getSharedPreferences("phoenx_prefs", android.content.Context.MODE_PRIVATE) }
     
     LaunchedEffect(Unit) {
-        if (!prefs.getBoolean("seen_book_onboarding", false)) showOnboarding = true
-        else if (!prefs.getBoolean("seen_book_ai_explanation", false)) showAiExplanation = true
+        // v9.2.2 : Le nouveau OnboardingPopup prend le relais si le flag DataStore n'existe pas encore
+        // On évite ainsi de montrer deux popups à la suite
     }
 
     // ÉTAPE 1 : Stabilisation de l'état au sommet (v8.6.3)

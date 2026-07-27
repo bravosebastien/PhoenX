@@ -25,18 +25,33 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.components.InfoButton
+import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetectiveHomeScreen(
     navController: NavController,
-    viewModel: DetectiveHomeViewModel = hiltViewModel()
+    viewModel: DetectiveHomeViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
     val entries by viewModel.entries.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+
+    OnboardingPopup(
+        pageKey = "detective_home",
+        title = "Mode Détective",
+        contentPoints = listOf(
+            "Cache un contenu derrière une question secrète.",
+            "La réponse est protégée localement par SHA-256.",
+            "Ton proche a plusieurs tentatives pour trouver.",
+            "Tape sur 'Besoin d'inspiration' pour des exemples.",
+            "Différent du Tiroir à Clé — pas de limite d'ouvertures."
+        ),
+        preferenceManager = themeViewModel.preferenceManager
+    )
 
     Scaffold(
         containerColor = theme.backgroundColor,

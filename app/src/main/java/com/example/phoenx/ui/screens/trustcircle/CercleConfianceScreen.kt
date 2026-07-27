@@ -22,6 +22,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -32,10 +34,22 @@ fun CercleConfianceScreen(
     onNavigateToWitnesses: () -> Unit,
     onNavigateToRecipients: () -> Unit,
     onNavigateToNotifications: () -> Unit,
-    onNavigateToCharacters: () -> Unit
+    onNavigateToCharacters: () -> Unit,
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+
+    OnboardingPopup(
+        pageKey = "trust_circle",
+        title = "Cercle de Confiance",
+        contentPoints = listOf(
+            "Ceux qui t'entourent et qui porteront ton héritage. Gère ici tes liens de confiance.",
+            "Personne dans ton cercle n'a accès à tes contenus aujourd'hui.",
+            "Ton héritage reste scellé jusqu'à l'activation du protocole par tes dépositaires."
+        ),
+        preferenceManager = themeViewModel.preferenceManager
+    )
 
     Scaffold(
         containerColor = theme.backgroundColor,

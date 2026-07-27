@@ -12,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
@@ -124,6 +125,7 @@ class WitnessViewModel @Inject constructor(
                         submittedAt = doc.getTimestamp("submittedAt")?.toDate()?.time,
                         allowCreatorToRead = doc.getBoolean("allowCreatorToRead") ?: false,
                         allowCreatorToReject = doc.getBoolean("allowCreatorToReject") ?: false,
+                        photoUrl = doc.getString("photoUrl"),
                         requestPrompt = doc.getString("requestPrompt")
                     )
                     offlineEntryDao.insertWitness(witness)
@@ -136,12 +138,26 @@ class WitnessViewModel @Inject constructor(
         }
     }
 
-    fun inviteWitness(name: String, email: String, allowRead: Boolean, allowReject: Boolean, creatorName: String, requestPrompt: String?) {
+    fun inviteWitness(name: String, email: String, allowRead: Boolean, allowReject: Boolean, creatorName: String, requestPrompt: String?, imageUri: android.net.Uri? = null) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // 1. Créer le document témoin sur Firestore
+                var finalPhotoUrl: String? = null
+                
+                // 1. Upload de la photo si présente (v9.2.2)
+                if (imageUri != null) {
+                    try {
+                        val ref = com.google.firebase.storage.FirebaseStorage.getInstance().reference
+                            .child("users/$userId/witnesses/${UUID.randomUUID()}.jpg")
+                        ref.putFile(imageUri).await()
+                        finalPhotoUrl = ref.downloadUrl.await().toString()
+                    } catch (e: Exception) {
+                        android.util.Log.e("WitnessVM", "Erreur upload photo témoin", e)
+                    }
+                }
+
+                // 2. Créer le document témoin sur Firestore
                 val witnessData = hashMapOf(
                     "name" to name,
                     "email" to email,
@@ -150,17 +166,19 @@ class WitnessViewModel @Inject constructor(
                     "requestPrompt" to requestPrompt,
                     "status" to "invited",
                     "submittedAt" to null,
+                    "photoUrl" to finalPhotoUrl,
                     "createdAt" to com.google.firebase.Timestamp.now()
                 )
                 val docRef = db.collection("users").document(userId).collection("witnesses").add(witnessData).await()
                 
-                // 2. Sauvegarde locale immédiate
+                // 3. Sauvegarde locale immédiate
                 offlineEntryDao.insertWitness(WitnessEntity(
                     id = docRef.id,
                     name = name,
                     email = email,
                     allowCreatorToRead = allowRead,
                     allowCreatorToReject = allowReject,
+                    photoUrl = finalPhotoUrl,
                     requestPrompt = requestPrompt,
                     status = "invited"
                 ))

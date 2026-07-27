@@ -168,6 +168,7 @@ class DepositaryViewModel @Inject constructor(
                 // Mise à jour immédiate des données vitales
                 _uiState.update { it.copy(
                     creatorName = name,
+                    creatorPhotoUrl = doc.getString("photoUrl"),
                     missedCycles = missedCycles,
                     daysSinceLastCheckIn = daysSince.toInt(),
                     thresholdHours = threshold
@@ -334,6 +335,7 @@ data class PhoenXNotification(
 
 data class DepositaryUiState(
     val creatorName: String = "",
+    val creatorPhotoUrl: String? = null,
     val missedCycles: Int = 0,
     val daysSinceLastCheckIn: Int = 0,
     val thresholdHours: Int = 72,

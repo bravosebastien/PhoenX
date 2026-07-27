@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.navigation.Screen
+import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
 import java.io.File
@@ -54,8 +55,21 @@ fun CaptureScreen(
     onNavigateBack: () -> Unit,
     onNavigateToDetail: (String) -> Unit = {},
     onNavigateToCharacters: () -> Unit = {},
-    viewModel: CaptureViewModel = hiltViewModel()
+    viewModel: CaptureViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
+    OnboardingPopup(
+        pageKey = "capture",
+        title = "L'Âme du Souvenir",
+        contentPoints = listOf(
+            "Chaque souvenir déposé est une pièce de ton héritage.",
+            "Donne un nom ou un sujet à ce souvenir. Tu l'enrichiras à l'étape suivante.",
+            "Cette catégorie aide l'IA à comprendre le sens profond de ton récit.",
+            "Tes dépôts sont chiffrés de bout-en-bout (E2EE)."
+        ),
+        preferenceManager = themeViewModel.preferenceManager
+    )
+
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val suggestPin by viewModel.suggestPin.collectAsState()
@@ -84,12 +98,12 @@ fun CaptureScreen(
 
     LaunchedEffect(initialType) {
         val permission = when (initialType) {
-            Screen.Capture.TYPE_AUDIO, Screen.Capture.TYPE_NIGHT -> Manifest.permission.RECORD_AUDIO
-            Screen.Capture.TYPE_PHOTO -> Manifest.permission.CAMERA
+            Screen.Capture.TYPE_AUDIO, Screen.Capture.TYPE_NIGHT -> android.Manifest.permission.RECORD_AUDIO
+            Screen.Capture.TYPE_PHOTO -> android.Manifest.permission.CAMERA
             else -> null
         }
         if (permission != null) {
-            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(context, permission) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                 permissionLauncher.launch(permission)
             }
         }

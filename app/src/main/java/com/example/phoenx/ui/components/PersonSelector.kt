@@ -53,7 +53,8 @@ fun PersonSelector(
     onCreate: (firstName: String, lastName: String?, relation: String?, distType: String?, distValue: String?, imageUri: Uri?, characterType: String) -> Unit,
     onRemove: (String) -> Unit,
     onManageCharacters: () -> Unit = {},
-    accent: Color
+    accent: Color,
+    enabled: Boolean = true
 ) {
     val theme = LocalAppTheme.current
     var query by remember { mutableStateOf("") }
@@ -72,27 +73,29 @@ fun PersonSelector(
                 color = theme.contentColor.copy(alpha = 0.4f)
             )
             
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(
-                    onClick = onManageCharacters,
-                    contentPadding = PaddingValues(horizontal = 8.dp),
-                    modifier = Modifier.height(24.dp)
-                ) {
-                    Icon(Icons.Default.Group, null, modifier = Modifier.size(14.dp), tint = accent)
-                    Spacer(Modifier.width(4.dp))
-                    Text("Gérer", style = MaterialTheme.typography.labelSmall, color = accent)
-                }
+            if (enabled) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    TextButton(
+                        onClick = onManageCharacters,
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                        modifier = Modifier.height(24.dp)
+                    ) {
+                        Icon(Icons.Default.Group, null, modifier = Modifier.size(14.dp), tint = accent)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Gérer", style = MaterialTheme.typography.labelSmall, color = accent)
+                    }
 
-                Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(8.dp))
 
-                TextButton(
-                    onClick = onSelectMe,
-                    contentPadding = PaddingValues(0.dp),
-                    modifier = Modifier.height(24.dp)
-                ) {
-                    Icon(Icons.Default.Person, null, modifier = Modifier.size(14.dp), tint = accent)
-                    Spacer(Modifier.width(4.dp))
-                    Text("Moi", style = MaterialTheme.typography.labelSmall, color = accent)
+                    TextButton(
+                        onClick = onSelectMe,
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.height(24.dp)
+                    ) {
+                        Icon(Icons.Default.Person, null, modifier = Modifier.size(14.dp), tint = accent)
+                        Spacer(Modifier.width(4.dp))
+                        Text("Moi", style = MaterialTheme.typography.labelSmall, color = accent)
+                    }
                 }
             }
         }
@@ -108,8 +111,9 @@ fun PersonSelector(
             selectedPersons.forEach { person ->
                 InputChip(
                     selected = true,
-                    onClick = { onRemove(person.id) },
+                    onClick = { if (enabled) onRemove(person.id) },
                     label = { Text(person.firstName) },
+                    enabled = enabled,
                     leadingIcon = {
                         CameoPortrait(
                             imagePath = person.imagePath,
@@ -128,37 +132,39 @@ fun PersonSelector(
         }
 
         // Champ de recherche
-        OutlinedTextField(
-            value = query,
-            onValueChange = {
-                query = it
-                onSearch(it)
-            },
-            placeholder = { Text("Qui est présent ?", fontSize = 14.sp, color = theme.contentColor.copy(alpha = 0.4f)) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            leadingIcon = { Icon(Icons.Default.PersonAdd, null, tint = accent) },
-            trailingIcon = {
-                if (query.isNotBlank()) {
-                    IconButton(onClick = {
-                        val existing = suggestedPersons.find { it.firstName.equals(query, ignoreCase = true) }
-                        if (existing != null) {
-                            duplicateNameDialog = query
-                        } else {
-                            showCreateDialog = true
+        if (enabled) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = {
+                    query = it
+                    onSearch(it)
+                },
+                placeholder = { Text("Qui est présent ?", fontSize = 14.sp, color = theme.contentColor.copy(alpha = 0.4f)) },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                leadingIcon = { Icon(Icons.Default.PersonAdd, null, tint = accent) },
+                trailingIcon = {
+                    if (query.isNotBlank()) {
+                        IconButton(onClick = {
+                            val existing = suggestedPersons.find { it.firstName.equals(query, ignoreCase = true) }
+                            if (existing != null) {
+                                duplicateNameDialog = query
+                            } else {
+                                showCreateDialog = true
+                            }
+                        }) {
+                            Icon(Icons.Default.Add, null, tint = accent)
                         }
-                    }) {
-                        Icon(Icons.Default.Add, null, tint = accent)
                     }
-                }
-            },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = accent,
-                unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
-                focusedTextColor = theme.contentColor,
-                unfocusedTextColor = theme.contentColor
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = accent,
+                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                    focusedTextColor = theme.contentColor,
+                    unfocusedTextColor = theme.contentColor
+                )
             )
-        )
+        }
 
         // Suggestions
         if (suggestedPersons.isNotEmpty() && query.isNotBlank()) {

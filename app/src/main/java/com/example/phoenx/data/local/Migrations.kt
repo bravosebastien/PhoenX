@@ -351,4 +351,15 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE recipients ADD COLUMN linkedUid TEXT")
         }
     }
+
+    /**
+     * MIGRATION_34_35 — Photos de Profil du Cercle v9.2.2
+     */
+    val MIGRATION_34_35 = object : Migration(34, 35) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE recipients ADD COLUMN photoUrl TEXT")
+            db.execSQL("ALTER TABLE witnesses ADD COLUMN photoUrl TEXT")
+            db.execSQL("ALTER TABLE depositaries ADD COLUMN photoUrl TEXT")
+        }
+    }
 }

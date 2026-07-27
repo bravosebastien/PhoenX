@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.components.InfoButton
+import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,6 +84,7 @@ fun DepositaryDashboardScreen(
                 item {
                     StatusCard(
                         name = uiState.creatorName,
+                        photoUrl = uiState.creatorPhotoUrl,
                         missedCycles = uiState.missedCycles,
                         days = uiState.daysSinceLastCheckIn,
                         theme = theme,
@@ -135,6 +137,7 @@ fun DepositaryDashboardScreen(
 @Composable
 fun StatusCard(
     name: String,
+    photoUrl: String?,
     missedCycles: Int,
     days: Int,
     theme: AppThemeState,
@@ -162,11 +165,19 @@ fun StatusCard(
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(modifier = Modifier.size(12.dp).background(statusColor, CircleShape))
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(16.dp))
+                PhoenXAvatar(
+                    photoUrl = photoUrl,
+                    name = name,
+                    size = 40.dp,
+                    borderColor = statusColor.copy(alpha = 0.4f)
+                )
+                Spacer(modifier = Modifier.width(16.dp))
                 Text(
                     text = statusText,
                     color = theme.contentColor,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f)
                 )
             }
             

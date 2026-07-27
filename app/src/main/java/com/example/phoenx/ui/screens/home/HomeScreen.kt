@@ -6,8 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,9 +19,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -35,10 +33,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import coil3.compose.AsyncImage
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.components.ProfileDrawer
 import com.example.phoenx.ui.components.VideoPlayerBanner
 import com.example.phoenx.ui.components.InfoButton
+import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.launch
@@ -117,6 +117,7 @@ fun HomeScreen(
     ProfileDrawer(
         userName = uiState.userName,
         userEmail = uiState.userEmail,
+        photoUrl = uiState.photoUrl,
         onNavigate = { route -> 
             scope.launch { drawerState.close() }
             if (route == "notification_contacts") onNavigateToNotificationContacts()
@@ -153,6 +154,7 @@ fun HomeScreen(
                 // HEADER
                 HomeHeader(
                     name = uiState.userName,
+                    photoUrl = uiState.photoUrl,
                     date = uiState.currentDate,
                     onProfileClick = { scope.launch { drawerState.open() } },
                     theme = theme
@@ -421,7 +423,7 @@ fun PerspectiveSwitcher(
 }
 
 @Composable
-fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit, theme: AppThemeState) {
+fun HomeHeader(name: String, photoUrl: String?, date: String, onProfileClick: () -> Unit, theme: AppThemeState) {
     val accent = theme.accentColor
     Row(
         modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -456,16 +458,13 @@ fun HomeHeader(name: String, date: String, onProfileClick: () -> Unit, theme: Ap
                 )
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Surface(
-                modifier = Modifier.size(34.dp).clickable { onProfileClick() },
-                shape = CircleShape,
-                color = accent.copy(alpha = 0.15f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Outlined.Person, null, tint = accent, modifier = Modifier.size(18.dp))
-                }
-            }
+            PhoenXAvatar(
+                photoUrl = photoUrl,
+                name = name,
+                size = 34.dp,
+                modifier = Modifier.clickable { onProfileClick() },
+                borderColor = accent.copy(alpha = 0.3f)
+            )
         }
     }
 }
@@ -732,19 +731,26 @@ fun BookCoverCard(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
+                    var fontSize by remember(title) { mutableStateOf(20.sp) }
+                    
                     Text(
                         text = title,
+                        onTextLayout = { result ->
+                            if (result.hasVisualOverflow && fontSize > 14.sp) {
+                                fontSize = (fontSize.value - 1).sp
+                            }
+                        },
                         style = TextStyle(
                             fontFamily = theme.fontFamily,
-                            fontSize = 20.sp,
+                            fontSize = fontSize,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             fontStyle = FontStyle.Italic,
-                            lineHeight = 26.sp
+                            lineHeight = (fontSize.value * 1.3).sp
                         ),
                         color = theme.contentColor,
                         maxLines = 4,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Clip
                     )
                     
                     Spacer(modifier = Modifier.height(20.dp))

@@ -183,6 +183,14 @@ class PreferenceManager @Inject constructor(
         }
     }
 
+    // --- SYSTÈME D'ONBOARDING PAR PAGE (v9.2.2) ---
+    fun isPageOnboardingDismissed(pageKey: String): Flow<Boolean> = context.dataStore.data
+        .map { it[booleanPreferencesKey("onboarding_dismissed_$pageKey")] ?: false }
+
+    suspend fun dismissPageOnboardingPermanent(pageKey: String) {
+        context.dataStore.edit { it[booleanPreferencesKey("onboarding_dismissed_$pageKey")] = true }
+    }
+
     // ═══ SYSTÈME AVANCÉ EN VEILLE ═══
     /*
     suspend fun updateLastRecoveryReminder(timestamp: Long) {

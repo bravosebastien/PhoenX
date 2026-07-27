@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.phoenx.domain.model.UserRole
 import com.example.phoenx.ui.MainViewModel
+import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 
@@ -173,7 +174,12 @@ fun PendingInviteCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.People, null, tint = accent, modifier = Modifier.size(24.dp))
+            PhoenXAvatar(
+                photoUrl = null, // Photo non dispo sur invitation email brute pour l'instant
+                name = invite.creatorName,
+                size = 48.dp,
+                borderColor = accent.copy(alpha = 0.3f)
+            )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(invite.creatorName, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
@@ -209,15 +215,12 @@ fun RoleCard(
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                modifier = Modifier.size(44.dp),
-                shape = CircleShape,
-                color = color.copy(alpha = 0.1f)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = color, modifier = Modifier.size(22.dp))
-                }
-            }
+            PhoenXAvatar(
+                photoUrl = role.photoUrl,
+                name = role.creatorName,
+                size = 44.dp,
+                borderColor = color.copy(alpha = 0.3f)
+            )
             
             Spacer(modifier = Modifier.width(16.dp))
             

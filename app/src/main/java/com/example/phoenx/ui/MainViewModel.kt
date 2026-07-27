@@ -109,6 +109,9 @@ class MainViewModel @Inject constructor(
     private val _userEmail = MutableStateFlow("")
     val userEmail: StateFlow<String> = _userEmail.asStateFlow()
 
+    private val _photoUrl = MutableStateFlow<String?>(null)
+    val photoUrl: StateFlow<String?> = _photoUrl.asStateFlow()
+
     val accentColor: StateFlow<Int> = preferenceManager.accentColor
         .map { it ?: AccentPrimary.toArgb() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AccentPrimary.toArgb())
@@ -232,6 +235,7 @@ class MainViewModel @Inject constructor(
             val name = doc.getString("displayName") ?: doc.getString("email")?.substringBefore("@") ?: "Ami"
             _userName.value = name
             _userEmail.value = doc.getString("email") ?: ""
+            _photoUrl.value = doc.getString("photoUrl")
 
             // --- 1. GESTION DES RÔLES ET MIGRATION (Restauration v7.2) ---
             val rolesData = doc.get("myRoles") as? Map<String, Any>
@@ -258,6 +262,7 @@ class MainViewModel @Inject constructor(
                         role = map["role"] as? String ?: "",
                         status = map["status"] as? String ?: "",
                         label = map["label"] as? String ?: "",
+                        photoUrl = map["creatorPhotoUrl"] as? String, // v9.2.2: Photo du Créateur
                         sourceId = map["sourceId"] as? String,
                         joinedAt = (map["joinedAt"] as? com.google.firebase.Timestamp)?.toDate()?.time
                     )

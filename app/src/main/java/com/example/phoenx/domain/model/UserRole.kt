@@ -10,6 +10,7 @@ data class UserRole(
     val role: String = "", // "depositary" | "witness" | "recipient"
     val status: String = "", // "invited" | "active" | "submitted"
     val label: String = "", // ex: "Gardien de confiance", "Héritier"
+    val photoUrl: String? = null, // v9.2.2: Creator's profile photo
     val sourceId: String? = null, // ID du document source
     val joinedAt: Long? = null,
     val migratedAt: Long? = null

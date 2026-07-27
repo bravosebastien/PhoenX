@@ -17,6 +17,7 @@ data class RecipientEntity(
     val accessToken: String? = null,
     val invitationSentAt: Long? = null,
     val invitationConfirmed: Boolean = false,
+    val photoUrl: String? = null, // v9.2.2: Profile photo
     val createdAt: Long = System.currentTimeMillis(),
     val phone: String? = null, // v8.9.8
     val linkedUid: String? = null // v9.2: Real Auth UID for security checks

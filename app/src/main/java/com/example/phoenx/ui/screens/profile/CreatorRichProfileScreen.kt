@@ -22,18 +22,30 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.CreatorProfileEntity
+import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatorRichProfileScreen(
     onNavigateBack: () -> Unit,
-    viewModel: CreatorRichProfileViewModel = hiltViewModel()
+    viewModel: CreatorRichProfileViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
     val profile by viewModel.profile.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+
+    OnboardingPopup(
+        pageKey = "rich_profile",
+        title = "Mon Portrait de Vie",
+        contentPoints = listOf(
+            "Enrichis ton histoire pour l'IA Biographe.",
+            "Ces informations aideront l'IA à mieux comprendre qui tu es pour rédiger ton livre."
+        ),
+        preferenceManager = themeViewModel.preferenceManager
+    )
 
     // On utilise un profil temporaire local pour l'édition en temps réel
     var currentProfile by remember(profile) { mutableStateOf(profile ?: CreatorProfileEntity(userId = "")) }

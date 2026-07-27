@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.fil
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
@@ -8,6 +9,7 @@ import com.example.phoenx.data.ai.OnDeviceAIManager
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.data.sync.SyncWorker
 import com.google.firebase.auth.FirebaseAuth
@@ -19,6 +21,9 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.io.File
+import java.io.FileOutputStream
+import java.util.*
 import javax.inject.Inject
 
 import org.json.JSONArray
@@ -49,6 +54,12 @@ class MemoryDetailViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _suggestedPersons = MutableStateFlow<List<PersonEntity>>(emptyList())
+    val suggestedPersons: StateFlow<List<PersonEntity>> = _suggestedPersons.asStateFlow()
+
+    private val _selectedPersons = MutableStateFlow<List<PersonEntity>>(emptyList())
+    val selectedPersons: StateFlow<List<PersonEntity>> = _selectedPersons.asStateFlow()
+
     val recipients: StateFlow<List<RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -56,12 +67,26 @@ class MemoryDetailViewModel @Inject constructor(
         .filterNotNull()
         .flatMapLatest { id -> offlineEntryDao.getEntryById(id) }
         .combine(recipients) { entry, recipientsList ->
-            if (entry != null && recipientsList.isNotEmpty()) {
-                // v9.2 : Remappage des UIDs vers les DocIDs pour l'UI (RecipientSelector)
-                val mappedIds = entry.recipientIds.split(",").map { persistentId ->
-                    recipientsList.find { it.linkedUid == persistentId }?.id ?: persistentId
-                }.joinToString(",")
-                entry.copy(recipientIds = mappedIds)
+            if (entry != null) {
+                // v9.2.2 : Résolution des Personnes liées
+                if (entry.personIds.isNotBlank()) {
+                    val ids = entry.personIds.split(",").filter { it.isNotBlank() }
+                    viewModelScope.launch {
+                        _selectedPersons.value = offlineEntryDao.getPersonsByIds(ids)
+                    }
+                } else {
+                    _selectedPersons.value = emptyList()
+                }
+
+                if (recipientsList.isNotEmpty()) {
+                    // v9.2 : Remappage des UIDs vers les DocIDs pour l'UI (RecipientSelector)
+                    val mappedIds = entry.recipientIds.split(",").map { persistentId ->
+                        recipientsList.find { it.linkedUid == persistentId }?.id ?: persistentId
+                    }.joinToString(",")
+                    entry.copy(recipientIds = mappedIds)
+                } else {
+                    entry
+                }
             } else {
                 entry
             }
@@ -227,6 +252,104 @@ class MemoryDetailViewModel @Inject constructor(
                 recipients.value.find { it.id == docId }?.linkedUid ?: docId
             }
             offlineEntryDao.updateEntryRecipients(persistentIds.joinToString(","), id)
+            triggerSync(id)
+        }
+    }
+
+    // --- GESTION DES PERSONNES (v9.2.2) ---
+
+    fun searchPersons(query: String) {
+        if (query.isBlank()) {
+            _suggestedPersons.value = emptyList()
+            return
+        }
+        viewModelScope.launch {
+            _suggestedPersons.value = offlineEntryDao.searchPersonsByFirstName(query)
+        }
+    }
+
+    fun selectPerson(person: PersonEntity) {
+        val current = _selectedPersons.value
+        if (!current.any { it.id == person.id }) {
+            val newList = current + person
+            _selectedPersons.value = newList
+            updatePersonsInDb(newList.map { it.id })
+        }
+        _suggestedPersons.value = emptyList()
+    }
+
+    fun selectMe() {
+        val user = auth.currentUser ?: return
+        viewModelScope.launch {
+            val me = PersonEntity(
+                id = "ME_${user.uid}",
+                firstName = "Moi",
+                lastName = null,
+                relationship = "Auteur",
+                distinctionType = "autre",
+                distinctionValue = "Moi-même"
+            )
+            val current = _selectedPersons.value
+            if (!current.any { it.id == me.id }) {
+                val newList = current + me
+                _selectedPersons.value = newList
+                updatePersonsInDb(newList.map { it.id })
+            }
+        }
+    }
+
+    fun removePerson(personId: String) {
+        val newList = _selectedPersons.value.filter { it.id != personId }
+        _selectedPersons.value = newList
+        updatePersonsInDb(newList.map { it.id })
+    }
+
+    fun createAndSelectPerson(
+        firstName: String,
+        lastName: String?,
+        relationship: String?,
+        distinctionType: String?,
+        distinctionValue: String?,
+        imageUri: Uri?,
+        characterType: String = "HUMAN"
+    ) {
+        viewModelScope.launch {
+            var finalImagePath: String? = null
+            if (imageUri != null) {
+                try {
+                    val cameoDir = File(context.filesDir, "cameos")
+                    if (!cameoDir.exists()) cameoDir.mkdirs()
+                    val fileName = "cameo_${UUID.randomUUID()}.jpg"
+                    val destFile = File(cameoDir, fileName)
+                    context.contentResolver.openInputStream(imageUri)?.use { input ->
+                        FileOutputStream(destFile).use { output -> input.copyTo(output) }
+                    }
+                    finalImagePath = destFile.absolutePath
+                } catch (e: Exception) {
+                    android.util.Log.e("CameoDebug", "Erreur sauvegarde portrait", e)
+                }
+            }
+
+            try {
+                val newPerson = PersonEntity(
+                    firstName = firstName,
+                    lastName = lastName,
+                    relationship = relationship,
+                    distinctionType = distinctionType,
+                    distinctionValue = distinctionValue,
+                    imagePath = finalImagePath,
+                    characterType = characterType
+                )
+                offlineEntryDao.insertPerson(newPerson)
+                selectPerson(newPerson)
+            } catch (_: Exception) { }
+        }
+    }
+
+    private fun updatePersonsInDb(ids: List<String>) {
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            offlineEntryDao.updateEntryPersons(ids.joinToString(","), id)
             triggerSync(id)
         }
     }

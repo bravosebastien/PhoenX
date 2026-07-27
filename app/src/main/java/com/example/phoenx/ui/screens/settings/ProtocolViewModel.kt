@@ -58,6 +58,7 @@ class ProtocolViewModel @Inject constructor(
                         phone = doc.getString("phone"),
                         role = doc.getString("role") ?: "primary",
                         status = doc.getString("status") ?: "invited",
+                        photoUrl = doc.getString("photoUrl"),
                         linkedUid = doc.getString("depositaryUid") // v9.1 : Correction nom de champ Firestore
                     )
                 }
@@ -85,12 +86,26 @@ class ProtocolViewModel @Inject constructor(
         }
     }
 
-    fun inviteDepositary(name: String, email: String, role: String) {
+    fun inviteDepositary(name: String, email: String, role: String, imageUri: android.net.Uri? = null) {
         val userId = auth.currentUser?.uid ?: return
         _uiState.update { it.copy(isLoading = true, error = null) }
 
         viewModelScope.launch {
             try {
+                var finalPhotoUrl: String? = null
+                
+                // 1. Upload photo if present
+                if (imageUri != null) {
+                    try {
+                        val ref = com.google.firebase.storage.FirebaseStorage.getInstance().reference
+                            .child("users/$userId/depositaries/$role.jpg")
+                        ref.putFile(imageUri).await()
+                        finalPhotoUrl = ref.downloadUrl.await().toString()
+                    } catch (e: Exception) {
+                        android.util.Log.e("ProtocolVM", "Erreur upload photo dépositaire", e)
+                    }
+                }
+
                 val depositaryId = role
                 
                 // Firestore first to ensure rule validation
@@ -101,6 +116,7 @@ class ProtocolViewModel @Inject constructor(
                         "email" to email,
                         "role" to role,
                         "status" to "invited",
+                        "photoUrl" to finalPhotoUrl,
                         "createdAt" to System.currentTimeMillis()
                     )).await()
 
@@ -126,6 +142,16 @@ class ProtocolViewModel @Inject constructor(
                     )
                 )
                 db.collection("mail").add(emailData).await()
+
+                // Sync local
+                offlineEntryDao.insertDepositary(DepositaryEntity(
+                    id = depositaryId,
+                    name = name,
+                    email = email,
+                    role = role,
+                    status = "invited",
+                    photoUrl = finalPhotoUrl
+                ))
 
                 _uiState.update { it.copy(isLoading = false, isSuccess = true) }
             } catch (e: Exception) {

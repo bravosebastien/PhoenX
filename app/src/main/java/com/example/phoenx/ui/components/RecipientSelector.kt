@@ -35,7 +35,8 @@ fun RecipientSelector(
     containerColor: Color? = null,
     // NOUVEAUTÉ v8.9.8 (Contrôle de Notification)
     notifyByEmail: Boolean = false,
-    onNotifyByEmailChange: ((Boolean) -> Unit)? = null
+    onNotifyByEmailChange: ((Boolean) -> Unit)? = null,
+    enabled: Boolean = true
 ) {
     val theme = com.example.phoenx.ui.theme.LocalAppTheme.current
     var expanded by remember { mutableStateOf(false) }
@@ -46,7 +47,7 @@ fun RecipientSelector(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { expanded = !expanded },
+                .then(if (enabled) Modifier.clickable { expanded = !expanded } else Modifier),
             color = containerColor ?: SurfaceCard.copy(alpha = 0.3f),
             shape = RoundedCornerShape(12.dp),
             border = BorderStroke(1.dp, if (expanded) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
@@ -90,10 +91,13 @@ fun RecipientSelector(
                 FilterChip(
                     selected = isEveryone,
                     onClick = { 
-                        if (isEveryone) onVisibilityChange("RESTRICTED")
-                        else onVisibilityChange("EVERYONE")
+                        if (enabled) {
+                            if (isEveryone) onVisibilityChange("RESTRICTED")
+                            else onVisibilityChange("EVERYONE")
+                        }
                     },
                     label = { Text("Tout le monde") },
+                    enabled = enabled || isEveryone,
                     leadingIcon = { Icon(Icons.Default.Public, null, modifier = Modifier.size(16.dp)) },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = accent,
@@ -114,10 +118,13 @@ fun RecipientSelector(
                             FilterChip(
                                 selected = isSelected,
                                 onClick = {
-                                    if (isSelected) selectedIds.remove(recipient.id)
-                                    else selectedIds.add(recipient.id)
+                                    if (enabled) {
+                                        if (isSelected) selectedIds.remove(recipient.id)
+                                        else selectedIds.add(recipient.id)
+                                    }
                                 },
                                 label = { Text(recipient.name) },
+                                enabled = enabled || isSelected,
                                 leadingIcon = { if (isSelected) Icon(Icons.Default.Check, null, modifier = Modifier.size(14.dp)) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = accent, 
@@ -139,13 +146,16 @@ fun RecipientSelector(
                             FilterChip(
                                 selected = true,
                                 onClick = { 
-                                    // Cliquer sur un nom individuel désactive "Tout le monde" 
-                                    // et ne garde que ce destinataire
-                                    onVisibilityChange("RESTRICTED")
-                                    selectedIds.clear()
-                                    selectedIds.add(recipient.id)
+                                    if (enabled) {
+                                        // Cliquer sur un nom individuel désactive "Tout le monde" 
+                                        // et ne garde que ce destinataire
+                                        onVisibilityChange("RESTRICTED")
+                                        selectedIds.clear()
+                                        selectedIds.add(recipient.id)
+                                    }
                                 },
                                 label = { Text(recipient.name) },
+                                enabled = enabled,
                                 leadingIcon = { Icon(Icons.Default.Check, null, modifier = Modifier.size(14.dp)) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = accent.copy(alpha = 0.5f), 
@@ -184,9 +194,10 @@ fun RecipientSelector(
                             )
                             Switch(
                                 checked = notifyByEmail,
-                                onCheckedChange = onNotifyByEmailChange,
+                                onCheckedChange = if (enabled) onNotifyByEmailChange else null,
                                 modifier = Modifier.scale(0.7f),
-                                colors = SwitchDefaults.colors(checkedThumbColor = accent)
+                                colors = SwitchDefaults.colors(checkedThumbColor = accent),
+                                enabled = enabled
                             )
                         }
                     }

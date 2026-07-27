@@ -119,6 +119,7 @@ class HomeViewModel @Inject constructor(
                         _uiState.value = _uiState.value.copy(
                             userName = name,
                             userEmail = user.email ?: "",
+                            photoUrl = doc.getString("photoUrl"),
                             currentAge = currentAge,
                             currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH))
                                 .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
@@ -168,6 +169,7 @@ class HomeViewModel @Inject constructor(
 data class HomeUiState(
     val userName: String = "",
     val userEmail: String = "",
+    val photoUrl: String? = null,
     val currentDate: String = "",
     val entryCount: Int = 0,
     val minAge: Int = 0,

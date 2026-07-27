@@ -12,6 +12,7 @@ data class DepositaryEntity(
     val phone: String? = null,
     val role: String? = null, // v9.1 : "primary" | "secondary"
     val status: String = "invited", // "invited" | "active"
+    val photoUrl: String? = null, // v9.2.2: Profile photo
     val linkedUid: String? = null,
     val createdAt: Long = System.currentTimeMillis()
 )

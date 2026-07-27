@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel
 import com.example.phoenx.ui.theme.*
@@ -43,16 +44,26 @@ fun RecipientLibraryScreen(
     isCreatorMode: Boolean = true,
     targetCreatorId: String? = null,
     viewModel: LibraryCoverViewModel = hiltViewModel(),
-    mediaViewModel: com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel = hiltViewModel()
+    mediaViewModel: com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
     val libraryEntries by mediaViewModel.libraryEntries.collectAsState()
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+
+    OnboardingPopup(
+        pageKey = "library",
+        title = "Ma Bibliothèque",
+        contentPoints = listOf(
+            "Accède à tous tes compartiments : Photos, Vidéos, Secrets, Quiz.",
+            "C'est ici que sont centralisés tous tes souvenirs déposés."
+        ),
+        preferenceManager = themeViewModel.preferenceManager
+    )
+
     val videoEntries by mediaViewModel.videoEntries.collectAsState()
     val discothequeEntries by mediaViewModel.discothequeEntries.collectAsState()
     val archiveEntries by mediaViewModel.archiveEntries.collectAsState()
-    
-    // v8.9.0 : Thème Global
-    val theme = LocalAppTheme.current
-    val accent = theme.accentColor
     
     var isExpanded by remember { mutableStateOf(false) }
 

@@ -16,7 +16,7 @@ import androidx.room.RoomDatabase
     NotificationContactEntity::class,
     PersonEntity::class,
     CreatorProfileEntity::class
-], version = 34, exportSchema = false)
+], version = 35, exportSchema = false)
 abstract class PhoenXDatabase : RoomDatabase() {
     abstract fun offlineEntryDao(): OfflineEntryDao
 }

@@ -1,16 +1,21 @@
 package com.example.phoenx.ui.screens.witness
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PersonOutline
 import androidx.compose.material3.*
@@ -19,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -29,6 +35,7 @@ import androidx.navigation.NavController
 import com.example.phoenx.data.local.WitnessEntity
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.InvitationConfirmDialog
+import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -217,8 +224,8 @@ fun WitnessInviteScreen(
         if (showDialog) {
             InviteWitnessDialog(
                 onDismiss = { showDialog = false },
-                onConfirm = { name, email, allowRead, allowReject, prompt ->
-                    viewModel.inviteWitness(name, email, allowRead, allowReject, creatorName, prompt)
+                onConfirm = { name, email, allowRead, allowReject, prompt, imageUri ->
+                    viewModel.inviteWitness(name, email, allowRead, allowReject, creatorName, prompt, imageUri)
                     showDialog = false
                 }
             )
@@ -262,15 +269,12 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit, onReview: () -> Un
             modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                modifier = Modifier.size(44.dp),
-                shape = RoundedCornerShape(10.dp),
-                color = accent.copy(alpha = 0.1f)
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.PersonOutline, null, tint = accent, modifier = Modifier.size(22.dp))
-                }
-            }
+            PhoenXAvatar(
+                photoUrl = witness.photoUrl,
+                name = witness.name,
+                size = 44.dp,
+                borderColor = accent.copy(alpha = 0.3f)
+            )
             
             Spacer(modifier = Modifier.width(16.dp))
             
@@ -316,15 +320,42 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit, onReview: () -> Un
 }
 
 @Composable
-fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boolean, Boolean, String?) -> Unit) {
+fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boolean, Boolean, String?, Uri?) -> Unit) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val context = LocalContext.current
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var requestPrompt by remember { mutableStateOf("") }
     var allowRead by remember { mutableStateOf(false) }
     var allowReject by remember { mutableStateOf(false) }
     var showInvitationConfirm by remember { mutableStateOf(false) }
+
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var showCropDialog by remember { mutableStateOf(false) }
+    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            tempPhotoUri = uri
+            showCropDialog = true
+        }
+    }
+
+    if (showCropDialog && tempPhotoUri != null) {
+        com.example.phoenx.ui.components.CameoCropDialog(
+            imageUri = tempPhotoUri!!,
+            onDismiss = { showCropDialog = false },
+            onConfirmed = { croppedUri ->
+                selectedImageUri = croppedUri
+                showCropDialog = false
+            },
+            accent = accent
+        )
+    }
 
     if (!showInvitationConfirm) {
         AlertDialog(
@@ -340,8 +371,33 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
             text = {
                 Column(
                     modifier = Modifier.verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // SÉLECTEUR DE PHOTO (v9.2.2)
+                    Box(
+                        modifier = Modifier
+                            .clickable { photoPickerLauncher.launch("image/*") }
+                            .padding(bottom = 8.dp),
+                        contentAlignment = Alignment.BottomEnd
+                    ) {
+                        PhoenXAvatar(
+                            photoUrl = selectedImageUri?.toString(),
+                            name = if (name.isBlank()) "?" else name,
+                            size = 80.dp
+                        )
+                        Surface(
+                            modifier = Modifier.size(28.dp),
+                            shape = CircleShape,
+                            color = accent,
+                            border = androidx.compose.foundation.BorderStroke(2.dp, theme.backgroundColor)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(Icons.Default.AddAPhoto, null, tint = theme.backgroundColor, modifier = Modifier.size(16.dp))
+                            }
+                        }
+                    }
+
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
@@ -435,7 +491,7 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
     } else {
         InvitationConfirmDialog(
             personName = name,
-            onConfirm = { onConfirm(name, email, allowRead, allowReject, if (requestPrompt.isNotBlank()) requestPrompt else null) },
+            onConfirm = { onConfirm(name, email, allowRead, allowReject, if (requestPrompt.isNotBlank()) requestPrompt else null, selectedImageUri) },
             onDismiss = { showInvitationConfirm = false }
         )
     }

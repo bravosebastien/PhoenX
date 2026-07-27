@@ -340,7 +340,10 @@ fun NavGraphBuilder.creatorGraph(
         )
     }
 
-    composable(Screen.RecipientDetail.route) { backStackEntry ->
+    composable(
+        route = Screen.RecipientDetail.route,
+        arguments = listOf(navArgument("recipientId") { type = NavType.StringType })
+    ) { backStackEntry ->
         val recipientId = backStackEntry.arguments?.getString("recipientId") ?: ""
         RecipientDetailScreen(
             recipientId = recipientId,
@@ -351,11 +354,25 @@ fun NavGraphBuilder.creatorGraph(
         )
     }
 
-    composable(Screen.RecipientPermissions.route) { backStackEntry ->
+    composable(
+        route = Screen.RecipientPermissions.route,
+        arguments = listOf(navArgument("recipientId") { type = NavType.StringType })
+    ) { backStackEntry ->
         val recipientId = backStackEntry.arguments?.getString("recipientId") ?: ""
         RecipientPermissionsScreen(
             recipientId = recipientId,
             onNavigateBack = { navController.popBackStack() }
+        )
+    }
+
+    composable(
+        route = Screen.RecipientAllocation.route,
+        arguments = listOf(navArgument("recipientId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val recipientId = backStackEntry.arguments?.getString("recipientId") ?: ""
+        com.example.phoenx.ui.screens.recipient.HeirAllocationScreen(
+            recipientId = recipientId,
+            navController = navController
         )
     }
 

@@ -23,6 +23,7 @@ import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.domain.model.CompartmentIds
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.components.LienVivantBanner
+import com.example.phoenx.ui.components.PersonSelector
 import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.AppThemeState
@@ -37,8 +38,12 @@ fun MemoryMetadataSection(
     theme: AppThemeState,
     accent: Color,
     navController: NavController,
-    recipients: List<RecipientEntity>
+    recipients: List<RecipientEntity>,
+    isReadOnly: Boolean = false
 ) {
+    val selectedPersons by viewModel.selectedPersons.collectAsState()
+    val suggestedPersons by viewModel.suggestedPersons.collectAsState()
+
     var isPeriodMode by remember(entry) {
         mutableStateOf(entry.memoryDateStart != null || entry.memoryDateEnd != null)
     }
@@ -80,7 +85,8 @@ fun MemoryMetadataSection(
                         checked = isPeriodMode,
                         onCheckedChange = { isPeriodMode = it },
                         modifier = Modifier.scale(0.7f),
-                        colors = SwitchDefaults.colors(checkedThumbColor = accent)
+                        colors = SwitchDefaults.colors(checkedThumbColor = accent),
+                        enabled = !isReadOnly
                     )
                     Text("Période", style = MaterialTheme.typography.labelSmall, color = if (isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
                 }
@@ -94,7 +100,7 @@ fun MemoryMetadataSection(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showDatePicker = true }
+                        .then(if (!isReadOnly) Modifier.clickable { showDatePicker = true } else Modifier)
                         .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
                     color = theme.contentColor.copy(alpha = 0.03f),
                     shape = RoundedCornerShape(12.dp)
@@ -138,11 +144,12 @@ fun MemoryMetadataSection(
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
-                        onClick = { showStartPicker = true },
+                        onClick = { if (!isReadOnly) showStartPicker = true },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f))
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                        enabled = !isReadOnly
                     ) {
                         Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(8.dp))
@@ -150,11 +157,12 @@ fun MemoryMetadataSection(
                         Text(txt, color = theme.contentColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                     OutlinedButton(
-                        onClick = { showEndPicker = true },
+                        onClick = { if (!isReadOnly) showEndPicker = true },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(8.dp),
                         border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f))
+                        colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                        enabled = !isReadOnly
                     ) {
                         Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
                         Spacer(Modifier.width(8.dp))
@@ -245,10 +253,13 @@ fun MemoryMetadataSection(
                             FilterChip(
                                 selected = isSelected,
                                 onClick = {
-                                    val newList = if (isSelected) currentCompartments - id else currentCompartments + id
-                                    viewModel.updateCompartments(newList)
+                                    if (!isReadOnly) {
+                                        val newList = if (isSelected) currentCompartments - id else currentCompartments + id
+                                        viewModel.updateCompartments(newList)
+                                    }
                                 },
                                 label = { Text(CompartmentIds.getLabel(id)) },
+                                enabled = !isReadOnly || isSelected,
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = accent,
                                     selectedLabelColor = theme.backgroundColor,
@@ -261,6 +272,24 @@ fun MemoryMetadataSection(
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
+        }
+
+        // PERSONNAGES (v9.2.2)
+        if (!isReadOnly || selectedPersons.isNotEmpty()) {
+            PersonSelector(
+                selectedPersons = selectedPersons,
+                suggestedPersons = suggestedPersons,
+                onSearch = { viewModel.searchPersons(it) },
+                onSelect = { viewModel.selectPerson(it) },
+                onSelectMe = { viewModel.selectMe() },
+                onCreate = { f, l, r, dt, dv, uri, ct -> 
+                    viewModel.createAndSelectPerson(f, l, r, dt, dv, uri, ct) 
+                },
+                onRemove = { viewModel.removePerson(it) },
+                onManageCharacters = { navController.navigate(Screen.Characters.route) },
+                accent = accent,
+                enabled = !isReadOnly
+            )
         }
 
         // CATÉGORIE ÉMOTIONNELLE (v8.9.2 : Menu déroulant)
@@ -315,8 +344,9 @@ fun MemoryMetadataSection(
                         categories.forEach { cat ->
                             FilterChip(
                                 selected = entry.emotionalCategory == cat,
-                                onClick = { viewModel.updateCategory(cat) },
+                                onClick = { if (!isReadOnly) viewModel.updateCategory(cat) },
                                 label = { Text(cat) },
+                                enabled = !isReadOnly || entry.emotionalCategory == cat,
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = accent,
                                     selectedLabelColor = theme.backgroundColor,
@@ -350,10 +380,11 @@ fun MemoryMetadataSection(
                 recipients = recipients,
                 selectedIds = selectedRecipientIds,
                 visibility = entry.visibility,
-                onVisibilityChange = { viewModel.updateVisibility(it) },
+                onVisibilityChange = { if (!isReadOnly) viewModel.updateVisibility(it) },
                 accent = accent,
                 notifyByEmail = !entry.silentAttribution,
-                onNotifyByEmailChange = { viewModel.updateSilentAttribution(!it) }
+                onNotifyByEmailChange = { if (!isReadOnly) viewModel.updateSilentAttribution(!it) },
+                enabled = !isReadOnly
             )
             
             LaunchedEffect(selectedRecipientIds.toList()) {
@@ -386,10 +417,12 @@ fun MemoryMetadataSection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { 
-                        if (entry.locationName == null) {
-                            navController.navigate(Screen.Map.createRoute(returnToEntryId = entry.id))
-                        } else {
-                            showLocationMenu = true
+                        if (!isReadOnly) {
+                            if (entry.locationName == null) {
+                                navController.navigate(Screen.Map.createRoute(returnToEntryId = entry.id))
+                            } else {
+                                showLocationMenu = true
+                            }
                         }
                     }
                     .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
@@ -405,29 +438,31 @@ fun MemoryMetadataSection(
                         color = if (entry.locationName != null) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
                     )
                     Spacer(modifier = Modifier.weight(1f))
-                    Icon(Icons.Default.Edit, null, tint = theme.contentColor.copy(alpha = 0.2f), modifier = Modifier.size(16.dp))
+                    if (!isReadOnly) {
+                        Icon(Icons.Default.Edit, null, tint = theme.contentColor.copy(alpha = 0.2f), modifier = Modifier.size(16.dp))
 
-                    DropdownMenu(
-                        expanded = showLocationMenu,
-                        onDismissRequest = { showLocationMenu = false },
-                        containerColor = theme.backgroundColor
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("Changer de lieu", color = theme.contentColor) },
-                            leadingIcon = { Icon(Icons.Default.EditLocation, null, tint = accent) },
-                            onClick = {
-                                showLocationMenu = false
-                                navController.navigate(Screen.Map.createRoute(returnToEntryId = entry.id))
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Voir sur la carte", color = theme.contentColor) },
-                            leadingIcon = { Icon(Icons.Default.Map, null, tint = accent) },
-                            onClick = {
-                                showLocationMenu = false
-                                navController.navigate(Screen.Map.createRoute())
-                            }
-                        )
+                        DropdownMenu(
+                            expanded = showLocationMenu,
+                            onDismissRequest = { showLocationMenu = false },
+                            containerColor = theme.backgroundColor
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Changer de lieu", color = theme.contentColor) },
+                                leadingIcon = { Icon(Icons.Default.EditLocation, null, tint = accent) },
+                                onClick = {
+                                    showLocationMenu = false
+                                    navController.navigate(Screen.Map.createRoute(returnToEntryId = entry.id))
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Voir sur la carte", color = theme.contentColor) },
+                                leadingIcon = { Icon(Icons.Default.Map, null, tint = accent) },
+                                onClick = {
+                                    showLocationMenu = false
+                                    navController.navigate(Screen.Map.createRoute())
+                                }
+                            )
+                        }
                     }
                 }
             }

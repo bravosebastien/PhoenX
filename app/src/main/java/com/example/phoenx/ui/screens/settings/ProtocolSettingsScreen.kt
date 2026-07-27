@@ -1,10 +1,15 @@
 package com.example.phoenx.ui.screens.settings
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -15,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -22,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.DepositaryEntity
 import com.example.phoenx.ui.components.InfoPoint
+import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -174,8 +181,8 @@ fun ProtocolSettingsScreen(
             InviteDepositaryDialog(
                 role = showInviteDialog!!,
                 onDismiss = { showInviteDialog = null },
-                onConfirm = { name, email ->
-                    viewModel.inviteDepositary(name, email, showInviteDialog!!)
+                onConfirm = { name, email, imageUri ->
+                    viewModel.inviteDepositary(name, email, showInviteDialog!!, imageUri)
                     showInviteDialog = null
                 },
                 accent = accent
@@ -232,15 +239,12 @@ fun DepositaryCard(
                 }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        modifier = Modifier.size(40.dp),
-                        shape = RoundedCornerShape(10.dp),
-                        color = accent.copy(alpha = 0.1f)
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(Icons.Default.Security, null, tint = accent, modifier = Modifier.size(20.dp))
-                        }
-                    }
+                    PhoenXAvatar(
+                        photoUrl = depositary.photoUrl,
+                        name = depositary.name,
+                        size = 40.dp,
+                        borderColor = accent.copy(alpha = 0.3f)
+                    )
                     Spacer(Modifier.width(16.dp))
                     Column {
                         Text(depositary.name, style = MaterialTheme.typography.bodyLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
@@ -269,12 +273,38 @@ fun DepositaryCard(
 fun InviteDepositaryDialog(
     role: String,
     onDismiss: () -> Unit,
-    onConfirm: (String, String) -> Unit,
+    onConfirm: (String, String, Uri?) -> Unit,
     accent: Color
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     val theme = LocalAppTheme.current
+    val context = LocalContext.current
+
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var showCropDialog by remember { mutableStateOf(false) }
+    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            tempPhotoUri = uri
+            showCropDialog = true
+        }
+    }
+
+    if (showCropDialog && tempPhotoUri != null) {
+        com.example.phoenx.ui.components.CameoCropDialog(
+            imageUri = tempPhotoUri!!,
+            onDismiss = { showCropDialog = false },
+            onConfirmed = { croppedUri ->
+                selectedImageUri = croppedUri
+                showCropDialog = false
+            },
+            accent = accent
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -287,7 +317,31 @@ fun InviteDepositaryDialog(
             ) 
         },
         text = {
-            Column {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // SÉLECTEUR DE PHOTO (v9.2.2)
+                Box(
+                    modifier = Modifier
+                        .clickable { photoPickerLauncher.launch("image/*") }
+                        .padding(bottom = 24.dp),
+                    contentAlignment = Alignment.BottomEnd
+                ) {
+                    PhoenXAvatar(
+                        photoUrl = selectedImageUri?.toString(),
+                        name = if (name.isBlank()) "?" else name,
+                        size = 80.dp
+                    )
+                    Surface(
+                        modifier = Modifier.size(28.dp),
+                        shape = CircleShape,
+                        color = accent,
+                        border = androidx.compose.foundation.BorderStroke(2.dp, theme.backgroundColor)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.AddAPhoto, null, tint = theme.backgroundColor, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                }
+
                 Text(
                     "Cette personne recevra une invitation par email pour confirmer son rôle.",
                     style = MaterialTheme.typography.bodySmall,
@@ -313,7 +367,7 @@ fun InviteDepositaryDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(name, email) },
+                onClick = { onConfirm(name, email, selectedImageUri) },
                 enabled = name.isNotBlank() && email.contains("@"),
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {

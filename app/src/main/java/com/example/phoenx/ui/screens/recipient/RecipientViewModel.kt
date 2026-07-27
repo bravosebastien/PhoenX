@@ -70,7 +70,8 @@ class RecipientViewModel @Inject constructor(
                         relationship = doc.getString("relationship") ?: "",
                         canAskQuestions = doc.getBoolean("canAskQuestions") ?: false,
                         maxQuestionsAllowed = doc.getLong("maxQuestionsAllowed")?.toInt(),
-                        linkedUid = doc.getString("linkedUid") // v9.2
+                        linkedUid = doc.getString("linkedUid"), // v9.2
+                        photoUrl = doc.getString("photoUrl") // v9.2.2
                     )
                     offlineEntryDao.insertRecipient(recipient)
                 }
@@ -80,28 +81,44 @@ class RecipientViewModel @Inject constructor(
         }
     }
 
-    fun addRecipient(name: String, email: String, relationship: String, phone: String? = null) {
+    fun addRecipient(name: String, email: String, relationship: String, phone: String? = null, imageUri: android.net.Uri? = null) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                // 1. Sauvegarde Firestore
+                var finalPhotoUrl: String? = null
+                
+                // 1. Upload photo if present
+                if (imageUri != null) {
+                    try {
+                        val ref = com.google.firebase.storage.FirebaseStorage.getInstance().reference
+                            .child("users/$userId/recipients/${java.util.UUID.randomUUID()}.jpg")
+                        ref.putFile(imageUri).await()
+                        finalPhotoUrl = ref.downloadUrl.await().toString()
+                    } catch (e: Exception) {
+                        android.util.Log.e("RecipientVM", "Erreur upload photo destinataire", e)
+                    }
+                }
+
+                // 2. Sauvegarde Firestore
                 val recipientData = hashMapOf(
                     "name" to name,
                     "email" to email,
                     "phone" to phone,
                     "relationship" to relationship,
-                    "status" to "invited"
+                    "status" to "invited",
+                    "photoUrl" to finalPhotoUrl
                 )
                 val docRef = db.collection("users").document(userId)
                     .collection("recipients").add(recipientData).await()
 
-                // 2. Room local
+                // 3. Room local
                 val recipient = RecipientEntity(
                     id = docRef.id,
                     name = name,
                     email = email,
                     phone = phone,
-                    relationship = relationship
+                    relationship = relationship,
+                    photoUrl = finalPhotoUrl
                 )
                 offlineEntryDao.insertRecipient(recipient)
 

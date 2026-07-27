@@ -15,9 +15,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -33,6 +35,7 @@ import kotlinx.coroutines.launch
 fun ProfileDrawer(
     userName: String,
     userEmail: String,
+    photoUrl: String? = null,
     onNavigate: (String) -> Unit,
     onLogout: () -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -71,16 +74,12 @@ fun ProfileDrawer(
                                 onNavigateToProfile() 
                             }
                     ) {
-                        Surface(
-                            modifier = Modifier.size(60.dp),
-                            shape = CircleShape,
-                            color = accent.copy(alpha = 0.1f),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Outlined.Person, null, tint = accent, modifier = Modifier.size(32.dp))
-                            }
-                        }
+                        PhoenXAvatar(
+                            photoUrl = photoUrl,
+                            name = userName,
+                            size = 60.dp,
+                            borderColor = accent.copy(alpha = 0.3f)
+                        )
 
                         Text(
                             text = userName,

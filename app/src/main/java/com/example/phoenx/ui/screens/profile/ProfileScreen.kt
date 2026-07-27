@@ -1,5 +1,9 @@
 package com.example.phoenx.ui.screens.profile
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,33 +20,109 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.example.phoenx.ui.components.CameoCropDialog
+import com.example.phoenx.ui.components.PhoenXAvatar
+import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToRichProfile: () -> Unit = {},
+    onNavigateToRichProfile: () -> Unit,
     viewModel: ProfileViewModel = hiltViewModel(),
     themeViewModel: com.example.phoenx.ui.theme.ThemeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val uploadProgress by viewModel.uploadProgress.collectAsState()
     
     // v8.9.0 : Thème Global
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val backgroundId by themeViewModel.globalBackgroundId.collectAsState()
     val fontId by themeViewModel.globalFontId.collectAsState()
+    val context = LocalContext.current
 
     var showEditDialog by remember { mutableStateOf(false) }
     var isAppearingExpanded by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    var showPhotoOptions by remember { mutableStateOf(false) }
+    var showCropDialog by remember { mutableStateOf(false) }
+    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) {
+            tempPhotoUri = uri
+            showCropDialog = true
+        }
+    }
+
+    // Gestion de la caméra (v9.2.2)
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempPhotoUri != null) {
+            showCropDialog = true
+        }
+    }
+
+    if (showCropDialog && tempPhotoUri != null) {
+        CameoCropDialog(
+            imageUri = tempPhotoUri!!,
+            onDismiss = { showCropDialog = false },
+            onConfirmed = { croppedUri ->
+                viewModel.updateProfilePhoto(croppedUri)
+                showCropDialog = false
+            },
+            accent = accent
+        )
+    }
+
+    if (showPhotoOptions) {
+        ModalBottomSheet(
+            onDismissRequest = { showPhotoOptions = false },
+            containerColor = theme.backgroundColor
+        ) {
+            Column(modifier = Modifier.padding(24.dp).padding(bottom = 32.dp)) {
+                Text("Ma photo de profil", style = MaterialTheme.typography.titleLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(24.dp))
+                
+                ListItem(
+                    headlineContent = { Text("Prendre une photo", color = theme.contentColor) },
+                    leadingContent = { Icon(Icons.Default.PhotoCamera, null, tint = accent) },
+                    modifier = Modifier.clickable {
+                        showPhotoOptions = false
+                        val uri = com.example.phoenx.domain.util.FileUtils.getTempImageUri(context)
+                        tempPhotoUri = uri
+                        cameraLauncher.launch(uri)
+                    }
+                )
+                ListItem(
+                    headlineContent = { Text("Choisir dans la galerie", color = theme.contentColor) },
+                    leadingContent = { Icon(Icons.Default.PhotoLibrary, null, tint = accent) },
+                    modifier = Modifier.clickable {
+                        showPhotoOptions = false
+                        photoPickerLauncher.launch("image/*")
+                    }
+                )
+            }
+        }
+    }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -80,14 +160,38 @@ fun ProfileScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // AVATAR
-                Surface(
-                    modifier = Modifier.size(80.dp),
-                    shape = CircleShape,
-                    color = accent.copy(alpha = 0.1f),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clickable { showPhotoOptions = true },
+                    contentAlignment = Alignment.BottomEnd
                 ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(Icons.Default.Person, null, tint = accent, modifier = Modifier.size(40.dp))
+                    PhoenXAvatar(
+                        photoUrl = uiState.photoUrl,
+                        name = uiState.displayName,
+                        size = 100.dp,
+                        borderColor = accent.copy(alpha = 0.3f)
+                    )
+                    
+                    if (uploadProgress != null) {
+                        CircularProgressIndicator(
+                            progress = { uploadProgress!! },
+                            modifier = Modifier.fillMaxSize(),
+                            color = accent,
+                            strokeWidth = 4.dp
+                        )
+                    }
+                    
+                    // Badge édit
+                    Surface(
+                        modifier = Modifier.size(32.dp),
+                        shape = CircleShape,
+                        color = accent,
+                        border = androidx.compose.foundation.BorderStroke(2.dp, theme.backgroundColor)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(Icons.Default.CameraAlt, null, tint = theme.backgroundColor, modifier = Modifier.size(16.dp))
+                        }
                     }
                 }
 

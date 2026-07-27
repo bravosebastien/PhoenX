@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.components.CameoPortrait
+import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,11 +31,22 @@ fun CharactersScreen(
     onNavigateBack: () -> Unit,
     onEditCharacter: (String) -> Unit,
     onAddCharacter: () -> Unit,
-    viewModel: CharactersViewModel = hiltViewModel()
+    viewModel: CharactersViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+
+    OnboardingPopup(
+        pageKey = "characters",
+        title = "Les Personnages",
+        contentPoints = listOf(
+            "Gère ici la liste des personnes qui peuplent ton histoire.",
+            "Ajoute les personnes qui te sont chères pour enrichir ton récit."
+        ),
+        preferenceManager = themeViewModel.preferenceManager
+    )
 
     Scaffold(
         containerColor = theme.backgroundColor,

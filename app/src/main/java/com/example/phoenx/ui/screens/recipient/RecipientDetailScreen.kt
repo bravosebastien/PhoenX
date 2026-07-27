@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.RecipientEntity
+import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import androidx.navigation.NavController
@@ -92,13 +93,12 @@ fun RecipientDetailScreen(
             ) {
                 // Header Profil
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Surface(
-                        modifier = Modifier.size(64.dp),
-                        shape = androidx.compose.foundation.shape.CircleShape,
-                        color = accent.copy(alpha = 0.1f)
-                    ) {
-                        Icon(Icons.Default.Person, null, tint = accent, modifier = Modifier.padding(16.dp))
-                    }
+                    PhoenXAvatar(
+                        photoUrl = recipient.photoUrl,
+                        name = recipient.name,
+                        size = 64.dp,
+                        borderColor = accent.copy(alpha = 0.3f)
+                    )
                     Spacer(modifier = Modifier.width(20.dp))
                     Column {
                         Text(

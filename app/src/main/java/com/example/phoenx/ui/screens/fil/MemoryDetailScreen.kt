@@ -52,6 +52,8 @@ fun MemoryDetailScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    val isReadOnly = targetCreatorId != null && targetCreatorId != com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+
     // Observation du retour du Picker de lieu
     val pickedLocationId by navController.currentBackStackEntry?.savedStateHandle
         ?.getStateFlow<String?>("pickedLocationId", null)?.collectAsState() ?: remember { mutableStateOf(null) }
@@ -83,7 +85,7 @@ fun MemoryDetailScreen(
 
     // Sauvegarde auto du titre (Sujet)
     LaunchedEffect(editableTitle) {
-        if (entry != null && !entry!!.isChild() && entry!!.entryType != "QUESTION_ANSWER") {
+        if (!isReadOnly && entry != null && !entry!!.isChild() && entry!!.entryType != "QUESTION_ANSWER") {
             if (editableTitle.isNotEmpty() && editableTitle != entry!!.aiSummary) {
                 delay(1000)
                 viewModel.updateTitle(editableTitle)
@@ -93,7 +95,7 @@ fun MemoryDetailScreen(
 
     // Sauvegarde auto du texte avec debounce
     LaunchedEffect(editableText) {
-        if (editableText.isNotEmpty() && editableText != content) {
+        if (!isReadOnly && editableText.isNotEmpty() && editableText != content) {
             delay(1000)
             viewModel.updateContent(editableText)
         }
@@ -161,8 +163,10 @@ fun MemoryDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = Error)
+                    if (!isReadOnly) {
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = Error)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -200,12 +204,13 @@ fun MemoryDetailScreen(
                             border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Column(modifier = Modifier.padding(20.dp)) {
-                                if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") {
+                                if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER" || isReadOnly) {
                                     Text(
-                                        text = entry!!.aiSummary,
+                                        text = if (isReadOnly) entry!!.aiSummary else entry!!.aiSummary,
                                         style = MaterialTheme.typography.bodyLarge.copy(
                                             fontFamily = theme.fontFamily,
-                                            fontStyle = FontStyle.Italic,
+                                            fontStyle = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") FontStyle.Italic else null,
+                                            fontWeight = if (isReadOnly && !isChildEntry && entry!!.entryType != "QUESTION_ANSWER") FontWeight.Bold else null,
                                             color = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") accent else theme.contentColor
                                         )
                                     )
@@ -265,7 +270,20 @@ fun MemoryDetailScreen(
                         Text(récitLabel, style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
                         Spacer(modifier = Modifier.height(12.dp))
                         
-                        if (isChildEntry || textComplements.isEmpty()) {
+                        if (isReadOnly) {
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+                            ) {
+                                Text(
+                                    text = editableText,
+                                    modifier = Modifier.padding(16.dp),
+                                    style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 26.sp, color = theme.contentColor)
+                                )
+                            }
+                        } else if (isChildEntry || textComplements.isEmpty()) {
                             // Édition en place pour les réponses atomiques
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
@@ -300,13 +318,15 @@ fun MemoryDetailScreen(
                                     Column(modifier = Modifier.padding(16.dp)) {
                                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                                             Icon(Icons.Default.FormatQuote, null, tint = accent.copy(alpha = 0.3f), modifier = Modifier.size(20.dp))
-                                            Row {
-                                                IconButton(onClick = { navController.navigate(Screen.MemoryDetail.createRoute(compId, targetCreatorId)) }, modifier = Modifier.size(24.dp)) {
-                                                    Icon(Icons.Default.Edit, null, tint = accent.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
-                                                }
-                                                Spacer(Modifier.width(8.dp))
-                                                IconButton(onClick = { viewModel.deleteComplement(compId) }, modifier = Modifier.size(24.dp)) {
-                                                    Icon(Icons.Default.Close, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
+                                            if (!isReadOnly) {
+                                                Row {
+                                                    IconButton(onClick = { navController.navigate(Screen.MemoryDetail.createRoute(compId, targetCreatorId)) }, modifier = Modifier.size(24.dp)) {
+                                                        Icon(Icons.Default.Edit, null, tint = accent.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
+                                                    }
+                                                    Spacer(Modifier.width(8.dp))
+                                                    IconButton(onClick = { viewModel.deleteComplement(compId) }, modifier = Modifier.size(24.dp)) {
+                                                        Icon(Icons.Default.Close, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
+                                                    }
                                                 }
                                             }
                                         }
@@ -335,7 +355,8 @@ fun MemoryDetailScreen(
                         theme = theme,
                         accent = accent,
                         navController = navController,
-                        recipients = recipients
+                        recipients = recipients,
+                        isReadOnly = isReadOnly
                     )
 
                     HorizontalDivider(color = theme.contentColor.copy(alpha = 0.2f), thickness = 0.5.dp)
@@ -348,7 +369,8 @@ fun MemoryDetailScreen(
                         viewModel = viewModel,
                         theme = theme,
                         accent = accent,
-                        navController = navController
+                        navController = navController,
+                        isReadOnly = isReadOnly
                     )
                 }
                 
