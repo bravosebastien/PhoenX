@@ -58,6 +58,9 @@ class RecipientMediaViewModel @Inject constructor(
     private val _bookSealedMessage = MutableStateFlow<String?>(null)
     val bookSealedMessage: StateFlow<String?> = _bookSealedMessage.asStateFlow()
 
+    private val _bookTitle = MutableStateFlow<String?>(null)
+    val bookTitle: StateFlow<String?> = _bookTitle.asStateFlow()
+
     private val _creatorName = MutableStateFlow("Votre proche")
     val creatorName: StateFlow<String> = _creatorName.asStateFlow()
 
@@ -86,6 +89,11 @@ class RecipientMediaViewModel @Inject constructor(
                     _isProtocolActivated.value = data?.get("isActivated") as? Boolean ?: false
                     _bookSealedMessage.value = data?.get("sealedMessage") as? String
 
+                    // Fetch Book Title (v9.2)
+                    val bookDoc = db.collection("users").document(creatorId)
+                        .collection("book").document("current_draft").get().await()
+                    _bookTitle.value = bookDoc.getString("bookTitle")
+
                     if (_isProtocolActivated.value) {
                         val keyDoc = db.collection("users").document(creatorId)
                             .collection("entry_keys").document("main").get().await()
@@ -102,6 +110,16 @@ class RecipientMediaViewModel @Inject constructor(
         } else {
             _isProtocolActivated.value = true
             _heirKey.value = null
+            // Mode Créateur : Charger son propre titre de livre (v9.2)
+            viewModelScope.launch {
+                try {
+                    val bookDoc = db.collection("users").document(currentUid)
+                        .collection("book").document("current_draft").get().await()
+                    _bookTitle.value = bookDoc.getString("bookTitle")
+                } catch (e: Exception) {
+                    _bookTitle.value = null
+                }
+            }
         }
     }
 

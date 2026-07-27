@@ -288,6 +288,24 @@ class BookEditorViewModel @Inject constructor(
         }
     }
 
+    fun updateBookTitle(title: String) {
+        val current = _bookDraft.value ?: return
+        val updated = current.copy(bookTitle = if (title.isBlank()) null else title)
+        _bookDraft.value = updated
+        viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
+            _isSaving.value = true
+            try {
+                bookService.saveBookDraft(userId, updated)
+                triggerSuccess()
+            } catch (e: Exception) {
+                _error.value = "Erreur lors de la sauvegarde"
+            } finally {
+                _isSaving.value = false
+            }
+        }
+    }
+
     // --- v8.7.0 : ÉVOLUTIONS LECTURE CONTINUE ---
 
     fun generateGlobalIntro() {

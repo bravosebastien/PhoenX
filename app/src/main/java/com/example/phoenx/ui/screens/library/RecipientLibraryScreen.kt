@@ -66,6 +66,7 @@ fun RecipientLibraryScreen(
     val rootDisco = discothequeEntries.filter { it.parentEntryId == null }
     val rootArchive = archiveEntries.filter { it.parentEntryId == null }
     
+    val bookTitle by mediaViewModel.bookTitle.collectAsState()
     val totalSouvenirs = rootLibrary.size + rootVideo.size + rootDisco.size + rootArchive.size
 
     Column(
@@ -131,7 +132,7 @@ fun RecipientLibraryScreen(
         )
 
         CompactEssentialRow(
-            title = "Livre de Ma Vie",
+            title = bookTitle ?: "Livre de Ma Vie",
             info = if (isCreatorMode) "Co-écrit avec l'IA narrative" else "Consultation du manuscrit",
             icon = Icons.Outlined.MenuBook,
             onClick = { 

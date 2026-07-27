@@ -27,6 +27,7 @@ data class BookDraft(
     val status: BookStatus = BookStatus.DRAFT,
     val chapters: List<BookChapter> = emptyList(),
     val totalEntries: Int = 0,
+    val bookTitle: String? = null, // v9.2: Titre personnalisé du Livre
     val recipientIds: List<String> = emptyList(), // v8.5.4 Parity of access
     val sealedMessage: String = "", // v8.6.2 Message personnalisé pour l'héritier
     val globalIntroduction: String = "", // v8.7.0 Intro globale du livre (Chiffrée)

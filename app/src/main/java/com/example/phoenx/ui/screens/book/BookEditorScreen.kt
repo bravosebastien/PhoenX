@@ -153,7 +153,7 @@ fun BookEditorScreen(
 
             item {
                 Text(
-                    text = "Mon Livre de Vie",
+                    text = bookDraft?.bookTitle ?: "Mon Livre de Vie",
                     style = TextStyle(
                         fontFamily = theme.fontFamily,
                         fontSize = 28.sp,
@@ -166,6 +166,12 @@ fun BookEditorScreen(
 
             if (bookDraft != null) {
                 item {
+                    // v9.2: Édition du Titre du Livre
+                    BookTitleEditor(
+                        currentTitle = bookDraft!!.bookTitle,
+                        onTitleChanged = { viewModel.updateBookTitle(it) }
+                    )
+                    
                     Text(
                         text = "${bookDraft!!.chapters.size} chapitres · " +
                                "${bookDraft!!.totalEntries} souvenirs intégrés",

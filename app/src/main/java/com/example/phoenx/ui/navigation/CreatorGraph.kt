@@ -140,6 +140,7 @@ fun NavGraphBuilder.creatorGraph(
             onNavigateToMailbox = { navController.navigate(Screen.RecipientMailbox.route) },
             onNavigateToMap = { navController.navigate(Screen.Map.createRoute()) },
             onNavigateToLibrary = { navController.navigate(Screen.Library.route) },
+            onNavigateToBookEditor = { navController.navigate("book_editor") },
             onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
             onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
             onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },

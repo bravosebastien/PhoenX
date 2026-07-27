@@ -27,6 +27,47 @@ import com.example.phoenx.data.model.ChapterStatus
 import com.example.phoenx.ui.theme.LocalAppTheme
 
 @Composable
+fun BookTitleEditor(
+    currentTitle: String?,
+    onTitleChanged: (String) -> Unit
+) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    var text by remember(currentTitle) { mutableStateOf(currentTitle ?: "") }
+
+    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)) {
+        Text(
+            text = "TITRE DE MON LIVRE",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = theme.contentColor.copy(alpha = 0.4f),
+            letterSpacing = 2.sp
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedTextField(
+            value = text,
+            onValueChange = {
+                text = it
+                onTitleChanged(it)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Mon Livre de Vie", color = theme.contentColor.copy(alpha = 0.3f)) },
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                fontFamily = theme.fontFamily,
+                fontWeight = FontWeight.Bold,
+                color = theme.contentColor
+            ),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = accent,
+                unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                focusedTextColor = theme.contentColor,
+                unfocusedTextColor = theme.contentColor
+            ),
+            shape = RoundedCornerShape(12.dp)
+        )
+    }
+}
+
+@Composable
 fun SealedMessageOptions(
     userName: String,
     currentMessage: String,

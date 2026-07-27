@@ -52,6 +52,7 @@ fun HeirHeritageScreen(
     val heritageEntries by viewModel.heritageEntries.collectAsState()
     val heirKey by viewModel.heirKey.collectAsState()
     val bookMessage by viewModel.bookSealedMessage.collectAsState()
+    val bookTitle by viewModel.bookTitle.collectAsState()
     val creatorName by viewModel.creatorName.collectAsState()
     val isActivated by viewModel.isProtocolActivated.collectAsState()
     val theme = LocalAppTheme.current
@@ -107,7 +108,7 @@ fun HeirHeritageScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SpecialAccessCard(
-                        title = "Livre",
+                        title = bookTitle ?: "Livre",
                         subtitle = if (!isActivated) bookMessage ?: "$creatorName a décidé de vous partager le livre de sa vie. Visible le moment venu." else "Récit de vie",
                         icon = Icons.Outlined.MenuBook,
                         modifier = Modifier.weight(1.3f),

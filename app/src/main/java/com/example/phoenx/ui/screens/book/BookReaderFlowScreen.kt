@@ -24,6 +24,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -90,7 +91,7 @@ fun BookReaderFlowScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mon Livre de Vie", fontFamily = fontFamily) },
+                title = { Text(bookDraft?.bookTitle ?: "Mon Livre de Vie", fontFamily = fontFamily) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = textColor)
@@ -145,13 +146,14 @@ fun BookReaderFlowScreen(
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
-                                text = "Livre de Vie",
-                                style = TextStyle(fontFamily = fontFamily, fontSize = 14.sp, fontWeight = FontWeight.Light, color = textColor.copy(alpha = 0.6f))
+                                text = bookDraft?.bookTitle ?: "Livre de Vie",
+                                style = TextStyle(fontFamily = fontFamily, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = textColor),
+                                textAlign = TextAlign.Center
                             )
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                text = viewModel.creatorName.collectAsState().value,
-                                style = TextStyle(fontFamily = fontFamily, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = textColor)
+                                text = "par ${viewModel.creatorName.collectAsState().value}",
+                                style = TextStyle(fontFamily = fontFamily, fontSize = 14.sp, fontWeight = FontWeight.Light, color = textColor.copy(alpha = 0.6f))
                             )
                             Spacer(Modifier.height(40.dp))
                             HorizontalDivider(modifier = Modifier.width(60.dp), thickness = 1.dp, color = accent.copy(alpha = 0.4f))

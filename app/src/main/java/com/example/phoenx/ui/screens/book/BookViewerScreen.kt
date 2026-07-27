@@ -71,7 +71,7 @@ fun BookViewerScreen(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = sealedMessage ?: "Le Livre de $creatorName vous sera ouvert le moment venu.",
+                    text = sealedMessage ?: "Le Livre de ${bookDraft?.bookTitle ?: creatorName} vous sera ouvert le moment venu.",
                     style = TextStyle(
                         fontFamily = FontFamily.Serif,
                         fontSize = 20.sp,

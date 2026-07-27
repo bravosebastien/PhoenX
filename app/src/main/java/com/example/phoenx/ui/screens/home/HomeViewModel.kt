@@ -64,13 +64,18 @@ class HomeViewModel @Inject constructor(
                         _uiState.update { it.copy(answeredQuestionsCount = snapshot?.size() ?: 0) }
                     }
 
-                // Nombre de chapitres validés
+                // Nombre de chapitres validés (v9.2: Corrigé pour utiliser current_draft)
                 db.collection("users").document(user.uid)
-                    .collection("book").document("default") // Hypothèse ID livre
-                    .collection("chapters")
-                    .whereEqualTo("status", "validated")
+                    .collection("book").document("current_draft")
                     .addSnapshotListener { snapshot, _ ->
-                        _uiState.update { it.copy(validatedChaptersCount = snapshot?.size() ?: 0) }
+                        val chapters = snapshot?.get("chapters") as? List<Map<String, Any>> ?: emptyList()
+                        val validatedCount = chapters.count { it["status"] == "VALIDATED" }
+                        val title = snapshot?.getString("bookTitle")
+                        
+                        _uiState.update { it.copy(
+                            validatedChaptersCount = validatedCount,
+                            bookTitle = title
+                        ) }
                     }
             } catch (e: Exception) {}
         }
@@ -171,5 +176,6 @@ data class HomeUiState(
     val pendingQuestionsCount: Int = 0,
     val answeredQuestionsCount: Int = 0,
     val validatedChaptersCount: Int = 0,
+    val bookTitle: String? = null,
     val latestEntries: List<OfflineEntry> = emptyList()
 )

@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.home
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +25,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +61,7 @@ fun HomeScreen(
     onNavigateToMailbox: () -> Unit,
     onNavigateToMap: () -> Unit,
     onNavigateToLibrary: () -> Unit,
+    onNavigateToBookEditor: () -> Unit,
     onNavigateToDetective: () -> Unit,
     onNavigateToNotificationContacts: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
@@ -299,14 +303,21 @@ fun HomeScreen(
                         }
                     }
 
+                    // --- AJOUT v9.2 : CARTE MON LIVRE ---
+                    BookCoverCard(
+                        title = uiState.bookTitle ?: "Mon Livre de Vie",
+                        chaptersCount = uiState.validatedChaptersCount,
+                        onClick = onNavigateToBookEditor,
+                        theme = theme
+                    )
+
                     // DERNIER SOUVENIR
                     LastMemoryCard(uiState.latestEntries.firstOrNull())
 
-                    // CARTE PROGRESSION
-                    ProgressionCard(
-                        memoriesCount = uiState.entryCount,
-                        questionsCount = uiState.answeredQuestionsCount,
-                        chaptersCount = uiState.validatedChaptersCount
+                    // --- AJOUT v9.2 : MON CERCLE DE CONFIANCE ---
+                    TrustCircleCard(
+                        onClick = onNavigateToTrustCircle,
+                        theme = theme
                     )
 
                     // ACTIONS RAPIDES
@@ -329,22 +340,10 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f),
                             onClick = onNavigateToMap
                         )
-                        QuickActionCard(
-                            icon = Icons.Outlined.QuestionAnswer,
-                            name = "Questions reçues",
-                            modifier = Modifier.weight(1f),
-                            badgeCount = uiState.pendingQuestionsCount,
-                            onClick = onNavigateToPendingQuestions
-                        )
-                        QuickActionCard(
-                            icon = Icons.Outlined.Fingerprint,
-                            name = "Mode Détective",
-                            modifier = Modifier.weight(1f),
-                            onClick = onNavigateToDetective
-                        )
+                        // Nettoyage v9.2 : Suppression de Questions et Détective d'ici
                     }
 
-                    // PRÉSENCE
+                    // PRÉSENCE (Déplacé ou gardé en bas)
                     Card(
                         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 12.dp).fillMaxWidth().clickable { viewModel.updateProofOfLife() },
                         colors = CardDefaults.cardColors(
@@ -673,6 +672,179 @@ fun HomeNavigationBar(
             NavItem(Icons.Outlined.People, "Mon Cercle", false, onNavigateToTrustCircle)
             NavItem(Icons.Outlined.AutoAwesome, "L'IA", false, onNavigateToIA)
             NavItem(Icons.Outlined.AccountCircle, "Profil", false, onOpenProfile)
+        }
+    }
+}
+
+@Composable
+fun BookCoverCard(
+    title: String,
+    chaptersCount: Int,
+    onClick: () -> Unit,
+    theme: AppThemeState
+) {
+    val accent = theme.accentColor
+    
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .fillMaxWidth()
+    ) {
+        Text(
+            "MON LIVRE",
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
+            color = theme.contentColor.copy(alpha = 0.4f),
+            modifier = Modifier.padding(start = 2.dp, bottom = 8.dp)
+        )
+        
+        Card(
+            onClick = onClick,
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .width(180.dp)
+                .aspectRatio(0.72f)
+                .shadow(12.dp, RoundedCornerShape(14.dp)),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = theme.backgroundColor),
+            border = BorderStroke(0.8.dp, accent.copy(alpha = 0.6f))
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                // Tranche stylisée (v9.2.1: Renforcée)
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(14.dp)
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(
+                                    accent.copy(alpha = 0.4f),
+                                    accent.copy(alpha = 0.15f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(start = 28.dp, end = 20.dp, top = 32.dp, bottom = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = title,
+                        style = TextStyle(
+                            fontFamily = theme.fontFamily,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            fontStyle = FontStyle.Italic,
+                            lineHeight = 26.sp
+                        ),
+                        color = theme.contentColor,
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    
+                    Spacer(modifier = Modifier.height(20.dp))
+                    
+                    Box(
+                        modifier = Modifier
+                            .width(32.dp)
+                            .height(1.5.dp)
+                            .background(accent.copy(alpha = 0.4f))
+                    )
+                    
+                    Spacer(modifier = Modifier.height(20.dp))
+                    
+                    Text(
+                        text = "$chaptersCount chapitres\nvalidés",
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            fontSize = 10.sp,
+                            textAlign = TextAlign.Center,
+                            lineHeight = 14.sp
+                        ),
+                        color = accent.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                
+                // Effet de relief sur le bord droit
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .fillMaxHeight()
+                        .width(2.dp)
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(Color.Transparent, accent.copy(alpha = 0.05f))
+                            )
+                        )
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TrustCircleCard(
+    onClick: () -> Unit,
+    theme: AppThemeState
+) {
+    val accent = theme.accentColor
+    Card(
+        modifier = Modifier
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .fillMaxWidth()
+            .height(110.dp),
+        onClick = onClick,
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                modifier = Modifier.size(50.dp),
+                shape = CircleShape,
+                color = accent.copy(alpha = 0.1f),
+                border = BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(Icons.Outlined.People, null, tint = accent, modifier = Modifier.size(26.dp))
+                }
+            }
+            
+            Spacer(modifier = Modifier.width(20.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "Mon Cercle de Confiance",
+                    style = TextStyle(
+                        fontFamily = theme.fontFamily,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 17.sp
+                    ),
+                    color = theme.contentColor
+                )
+                Text(
+                    "Gérer mes héritiers et dépositaires",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = theme.contentColor.copy(alpha = 0.6f)
+                )
+            }
+            
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                null,
+                tint = theme.contentColor.copy(alpha = 0.2f),
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
