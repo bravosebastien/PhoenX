@@ -239,12 +239,22 @@ fun DepositaryCard(
                 }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    PhoenXAvatar(
-                        photoUrl = depositary.photoUrl,
-                        name = depositary.name,
-                        size = 40.dp,
-                        borderColor = accent.copy(alpha = 0.3f)
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        PhoenXAvatar(
+                            photoUrl = depositary.photoUrl,
+                            name = depositary.name,
+                            size = 44.dp,
+                            borderColor = accent.copy(alpha = 0.3f)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = depositary.name.split(" ").firstOrNull() ?: "",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                            color = accent,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    }
                     Spacer(Modifier.width(16.dp))
                     Column {
                         Text(depositary.name, style = MaterialTheme.typography.bodyLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)

@@ -747,7 +747,7 @@ fun BookCoverCard(
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             fontStyle = FontStyle.Italic,
-                            lineHeight = (fontSize.value * 1.25).sp
+                            lineHeight = (fontSize.value * 1.2).sp
                         ),
                         color = theme.contentColor,
                         maxLines = 4,
