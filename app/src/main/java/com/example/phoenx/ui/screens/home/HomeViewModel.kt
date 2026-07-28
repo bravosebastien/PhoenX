@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.ai.AIManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.model.PresentationVideo
 import com.example.phoenx.domain.usecase.ActivationProtocolManager
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -47,6 +49,24 @@ class HomeViewModel @Inject constructor(
         loadPendingQuestionsCount()
         loadExtraStats()
         fetchRemoteConfig()
+        loadPresentationVideos()
+    }
+
+    private fun loadPresentationVideos() {
+        viewModelScope.launch {
+            try {
+                db.collection("presentationVideos")
+                    .orderBy("order")
+                    .addSnapshotListener { snapshot, _ ->
+                        val videos = snapshot?.documents?.mapNotNull { doc ->
+                            doc.toObject(PresentationVideo::class.java)?.copy(id = doc.id)
+                        } ?: emptyList()
+                        _uiState.update { it.copy(presentationVideos = videos) }
+                    }
+            } catch (e: Exception) {
+                android.util.Log.e("HomeViewModel", "Erreur chargement vidéos présentation: ${e.message}")
+            }
+        }
     }
 
     private fun fetchRemoteConfig() {
@@ -93,11 +113,13 @@ class HomeViewModel @Inject constructor(
                         val validatedCount = chapters.count { it["status"] == "VALIDATED" }
                         val title = snapshot?.getString("bookTitle")
                         val coverUrl = snapshot?.getString("coverImageUrl")
+                        val style = snapshot?.getString("coverTitleStyle") ?: "WHITE"
                         
                         _uiState.update { it.copy(
                             validatedChaptersCount = validatedCount,
                             bookTitle = title,
-                            coverImageUrl = coverUrl
+                            coverImageUrl = coverUrl,
+                            coverTitleStyle = style
                         ) }
                     }
             } catch (e: Exception) {}
@@ -187,6 +209,23 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) { }
         }
     }
+
+    fun addPresentationVideo(title: String, videoUrl: String, thumbnailUrl: String?, order: Int) {
+        viewModelScope.launch {
+            try {
+                val data = hashMapOf(
+                    "title" to title,
+                    "videoUrl" to videoUrl,
+                    "thumbnailUrl" to thumbnailUrl,
+                    "order" to order,
+                    "createdAt" to System.currentTimeMillis()
+                )
+                db.collection("presentationVideos").add(data).await()
+            } catch (e: Exception) {
+                android.util.Log.e("HomeViewModel", "Erreur ajout vidéo: ${e.message}")
+            }
+        }
+    }
 }
 
 data class HomeUiState(
@@ -204,5 +243,7 @@ data class HomeUiState(
     val bookTitle: String? = null,
     val coverImageUrl: String? = null, // v9.2.4
     val defaultCoverUrl: String? = null, // v9.2.5
+    val coverTitleStyle: String = "WHITE", // v9.2.6
+    val presentationVideos: List<PresentationVideo> = emptyList(), // v9.2.6
     val latestEntries: List<OfflineEntry> = emptyList()
 )

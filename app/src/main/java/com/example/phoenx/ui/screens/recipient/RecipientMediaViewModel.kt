@@ -55,6 +55,12 @@ class RecipientMediaViewModel @Inject constructor(
     private val _isProtocolActivated = MutableStateFlow(true)
     val isProtocolActivated: StateFlow<Boolean> = _isProtocolActivated.asStateFlow()
 
+    private val _canAskQuestions = MutableStateFlow(false)
+    val canAskQuestions: StateFlow<Boolean> = _canAskQuestions.asStateFlow()
+
+    private val _recipientId = MutableStateFlow<String?>(null)
+    val recipientId: StateFlow<String?> = _recipientId.asStateFlow()
+
     private val _bookSealedMessage = MutableStateFlow<String?>(null)
     val bookSealedMessage: StateFlow<String?> = _bookSealedMessage.asStateFlow()
 
@@ -93,6 +99,18 @@ class RecipientMediaViewModel @Inject constructor(
                     val bookDoc = db.collection("users").document(creatorId)
                         .collection("book").document("current_draft").get().await()
                     _bookTitle.value = bookDoc.getString("bookTitle")
+
+                    // v9.2.6 : Fetch My Permissions (canAskQuestions)
+                    val recipientsSnapshot = db.collection("users").document(creatorId)
+                        .collection("recipients")
+                        .whereEqualTo("linkedUid", currentUid)
+                        .get().await()
+                    
+                    if (!recipientsSnapshot.isEmpty) {
+                        val recipientDoc = recipientsSnapshot.documents.first()
+                        _canAskQuestions.value = recipientDoc.getBoolean("canAskQuestions") ?: false
+                        _recipientId.value = recipientDoc.id
+                    }
 
                     if (_isProtocolActivated.value) {
                         val keyDoc = db.collection("users").document(creatorId)

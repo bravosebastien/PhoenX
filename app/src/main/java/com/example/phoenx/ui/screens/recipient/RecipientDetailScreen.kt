@@ -123,34 +123,45 @@ fun RecipientDetailScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 
+                val isPortraitCompleted = portraitEntry != null
+                
                 Card(
-                    onClick = { onComposePortrait(recipient.id) },
+                    onClick = { if (!isPortraitCompleted) onComposePortrait(recipient.id) },
+                    enabled = !isPortraitCompleted, // v9.2.6 : Non cliquable si complété
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                    colors = CardDefaults.cardColors(
+                        containerColor = theme.contentColor.copy(alpha = 0.05f),
+                        disabledContainerColor = theme.contentColor.copy(alpha = 0.03f)
+                    ),
                     shape = MaterialTheme.shapes.large,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, if (portraitEntry != null) Success.copy(alpha = 0.3f) else accent.copy(alpha = 0.2f))
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp, 
+                        if (isPortraitCompleted) Success.copy(alpha = 0.3f) else accent.copy(alpha = 0.2f)
+                    )
                 ) {
                     Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(
-                            imageVector = if (portraitEntry != null) Icons.Default.CheckCircle else Icons.Default.HistoryEdu,
+                            imageVector = if (isPortraitCompleted) Icons.Default.CheckCircle else Icons.Default.HistoryEdu,
                             contentDescription = null,
-                            tint = if (portraitEntry != null) Success else accent
+                            tint = if (isPortraitCompleted) Success else accent
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
-                                text = if (portraitEntry != null) "Portrait complété" else "Portrait non commencé",
+                                text = if (isPortraitCompleted) "Portrait complété" else "Portrait non commencé",
                                 style = MaterialTheme.typography.bodyLarge.copy(
                                     fontFamily = theme.fontFamily,
                                     fontWeight = FontWeight.Bold
                                 ),
-                                color = theme.contentColor
+                                color = if (isPortraitCompleted) theme.contentColor.copy(alpha = 0.6f) else theme.contentColor
                             )
-                            Text(
-                                text = if (portraitEntry != null) "Clique pour modifier tes mots." else "Dis-lui ce que tu vois en lui/elle.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = theme.contentColor.copy(alpha = 0.6f)
-                            )
+                            if (!isPortraitCompleted) {
+                                Text(
+                                    text = "Dis-lui ce que tu vois en lui/elle.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = theme.contentColor.copy(alpha = 0.6f)
+                                )
+                            }
                         }
                     }
                 }
@@ -189,7 +200,10 @@ fun RecipientDetailScreen(
                             }
                         }
                     }
-                    
+                }
+                
+                // Toujours afficher le lien vers la fiche complète si le portrait existe (v9.2.6)
+                if (isPortraitCompleted || linkedEntries.any { it.entryType != "PORTRAIT" }) {
                     TextButton(
                         onClick = { navController.navigate(Screen.RecipientAllocation.createRoute(recipient.id)) },
                         modifier = Modifier.fillMaxWidth()

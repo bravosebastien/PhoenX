@@ -409,6 +409,24 @@ class BookEditorViewModel @Inject constructor(
         }
     }
 
+    fun updateCoverTitleStyle(style: String) {
+        val userId = auth.currentUser?.uid ?: return
+        val current = _bookDraft.value ?: return
+        val updated = current.copy(coverTitleStyle = style)
+        _bookDraft.value = updated
+        viewModelScope.launch {
+            _isSaving.value = true
+            try {
+                bookService.saveBookDraft(userId, updated)
+                triggerSuccess()
+            } catch (e: Exception) {
+                _error.value = "Erreur sauvegarde style titre"
+            } finally {
+                _isSaving.value = false
+            }
+        }
+    }
+
     private fun triggerSuccess() {
         viewModelScope.launch {
             _saveSuccess.value = true

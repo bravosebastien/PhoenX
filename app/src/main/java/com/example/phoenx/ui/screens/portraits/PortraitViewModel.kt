@@ -43,8 +43,24 @@ class PortraitViewModel @Inject constructor(
             val persistentId = recipient?.linkedUid ?: id
             offlineEntryDao.getPortraitEntryForRecipient(persistentId) 
         }
-        .map { entry -> 
-            entry?.let { encryptionManager.decryptText(it.encryptedPayload) }
+        .flatMapLatest { parentEntry ->
+            if (parentEntry == null) flowOf(null)
+            else {
+                // v9.2.6 : Si le parent est vide (cas standard), on cherche le texte libre dans les enfants
+                offlineEntryDao.getComplements(parentEntry.id).map { children ->
+                    val freeTextEntry = children.find { it.aiSummary == "Pensée libre" }
+                    if (freeTextEntry != null) {
+                        encryptionManager.decryptText(freeTextEntry.encryptedPayload)
+                    } else if (children.isNotEmpty()) {
+                        // Fallback : On concatène les réponses aux questions si c'est un portrait par questions
+                        children.joinToString("\n\n") { child ->
+                            "${child.aiSummary}\n${encryptionManager.decryptText(child.encryptedPayload)}"
+                        }
+                    } else {
+                        null
+                    }
+                }
+            }
         }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

@@ -42,6 +42,7 @@ import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
+import com.example.phoenx.data.model.PresentationVideo
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,27 +92,29 @@ fun HomeScreen(
     val context = LocalContext.current
 
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var selectedPresentationVideo by remember { mutableStateOf<PresentationVideo?>(null) }
+    var showAdminAddVideo by remember { mutableStateOf(false) }
 
     if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            containerColor = theme.backgroundColor,
-            title = { Text("Se déconnecter ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = { Text("Es-tu sûr de vouloir fermer ta session ?", color = theme.contentColor.copy(alpha = 0.7f)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    mainViewModel.logout()
-                    onLogoutSuccess()
-                    showLogoutDialog = false
-                }) {
-                    Text("Déconnexion", color = Error, fontWeight = FontWeight.Bold)
-                }
+        // ... (existing code)
+    }
+
+    if (selectedPresentationVideo != null) {
+        PresentationVideoPlayerDialog(
+            video = selectedPresentationVideo!!,
+            onDismiss = { selectedPresentationVideo = null },
+            theme = theme
+        )
+    }
+
+    if (showAdminAddVideo) {
+        AdminAddVideoDialog(
+            onDismiss = { showAdminAddVideo = false },
+            onSave = { title, url, thumb, order ->
+                viewModel.addPresentationVideo(title, url, thumb, order)
+                showAdminAddVideo = false
             },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Annuler", color = theme.contentColor)
-                }
-            }
+            theme = theme
         )
     }
 
@@ -204,6 +207,7 @@ fun HomeScreen(
                         chaptersCount = uiState.validatedChaptersCount,
                         coverImageUrl = uiState.coverImageUrl,
                         defaultCoverUrl = uiState.defaultCoverUrl,
+                        coverTitleStyle = uiState.coverTitleStyle,
                         onClick = onNavigateToBookEditor,
                         theme = theme
                     )
@@ -323,6 +327,22 @@ fun HomeScreen(
                         onClick = onNavigateToTrustCircle,
                         theme = theme
                     )
+
+                    // --- AJOUT v9.2.6 : GALERIE DE VIDÉOS DE PRÉSENTATION ---
+                    val isAdmin = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid == "bLRNen7rArXinv5iQILx5OS3sxh2"
+                    if (uiState.presentationVideos.isNotEmpty() || isAdmin) {
+                        PresentationVideoGallery(
+                            videos = uiState.presentationVideos,
+                            isAdmin = isAdmin,
+                            theme = theme,
+                            onVideoClick = { video ->
+                                selectedPresentationVideo = video
+                            },
+                            onAddVideo = {
+                                showAdminAddVideo = true
+                            }
+                        )
+                    }
 
                     // ACTIONS RAPIDES
                     Text(
@@ -683,6 +703,7 @@ fun BookCoverCard(
     chaptersCount: Int,
     coverImageUrl: String? = null,
     defaultCoverUrl: String? = null,
+    coverTitleStyle: String = "WHITE",
     onClick: () -> Unit,
     theme: AppThemeState
 ) {
@@ -690,6 +711,13 @@ fun BookCoverCard(
     val finalCoverUrl = coverImageUrl ?: defaultCoverUrl
     val hasBackgroundImage = finalCoverUrl != null
     
+    val titleBrush = getTitleBrush(coverTitleStyle)
+    val titleColor = when(coverTitleStyle) {
+        "BLACK" -> Color.Black
+        "WHITE" -> Color.White
+        else -> Color.White // Fallback pour dégradés
+    }
+
     Column(
         modifier = Modifier
             .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -727,15 +755,15 @@ fun BookCoverCard(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
-                    // Voile sombre progressif pour le titre (v9.2.6)
+                    // Voile sombre progressif réduit pour la visibilité du livre (v9.2.7)
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(
                                 Brush.verticalGradient(
                                     listOf(
-                                        Color.Black.copy(alpha = 0.2f),
-                                        Color.Black.copy(alpha = 0.45f)
+                                        Color.Black.copy(alpha = 0.15f),
+                                        Color.Black.copy(alpha = 0.35f)
                                     )
                                 )
                             )
@@ -786,6 +814,20 @@ fun BookCoverCard(
                 ) {
                     var fontSize by remember(title) { mutableStateOf(20.sp) }
                     
+                    val baseTextStyle = MaterialTheme.typography.headlineSmall.copy(
+                        fontFamily = theme.fontFamily,
+                        fontSize = fontSize,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        fontStyle = FontStyle.Italic,
+                        lineHeight = (fontSize.value * 1.2).sp,
+                        shadow = if (hasBackgroundImage || coverTitleStyle != "BLACK") androidx.compose.ui.graphics.Shadow(
+                            color = Color.Black.copy(alpha = 0.5f),
+                            offset = androidx.compose.ui.geometry.Offset(2f, 2f),
+                            blurRadius = 6f
+                        ) else null
+                    )
+
                     Text(
                         text = title,
                         onTextLayout = { result ->
@@ -794,20 +836,8 @@ fun BookCoverCard(
                                 fontSize = (fontSize.value - 1).sp
                             }
                         },
-                        style = TextStyle(
-                            fontFamily = theme.fontFamily,
-                            fontSize = fontSize,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            fontStyle = FontStyle.Italic,
-                            lineHeight = (fontSize.value * 1.2).sp,
-                            shadow = if (hasBackgroundImage) androidx.compose.ui.graphics.Shadow(
-                                color = Color.Black,
-                                offset = androidx.compose.ui.geometry.Offset(1f, 1f),
-                                blurRadius = 4f
-                            ) else null
-                        ),
-                        color = if (hasBackgroundImage) Color.White else theme.contentColor,
+                        style = if (titleBrush != null) baseTextStyle.copy(brush = titleBrush) 
+                                else baseTextStyle.copy(color = titleColor),
                         maxLines = 4,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -849,6 +879,24 @@ fun BookCoverCard(
                 )
             }
         }
+    }
+}
+
+fun getTitleBrush(style: String): Brush? {
+    return when (style) {
+        "GOLD" -> Brush.linearGradient(
+            colors = listOf(Color(0xFFB8860B), Color(0xFFFFF8DC), Color(0xFFB8860B))
+        )
+        "SILVER" -> Brush.linearGradient(
+            colors = listOf(Color(0xFFA8A9AD), Color(0xFFFFFFFF), Color(0xFFA8A9AD))
+        )
+        "EMERALD" -> Brush.linearGradient(
+            colors = listOf(Color(0xFF046307), Color(0xFF50C878), Color(0xFF046307))
+        )
+        "RED" -> Brush.linearGradient(
+            colors = listOf(Color(0xFF4A0404), Color(0xFFB22222), Color(0xFF7B0323))
+        )
+        else -> null
     }
 }
 
@@ -912,6 +960,160 @@ fun TrustCircleCard(
             )
         }
     }
+}
+
+@Composable
+fun PresentationVideoGallery(
+    videos: List<PresentationVideo>,
+    isAdmin: Boolean,
+    theme: AppThemeState,
+    onVideoClick: (PresentationVideo) -> Unit,
+    onAddVideo: () -> Unit
+) {
+    val accent = theme.accentColor
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                "DÉCOUVRIR PHOEN-X",
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
+                color = theme.contentColor.copy(alpha = 0.4f)
+            )
+            if (isAdmin) {
+                IconButton(onClick = onAddVideo, modifier = Modifier.size(24.dp)) {
+                    Icon(Icons.Outlined.Add, null, tint = accent, modifier = Modifier.size(16.dp))
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Grille de cercles (3 par ligne)
+        FlowRow(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            maxItemsInEachRow = 3
+        ) {
+            videos.forEach { video ->
+                Column(
+                    modifier = Modifier
+                        .width(100.dp)
+                        .clickable { onVideoClick(video) }
+                        .padding(bottom = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(70.dp)
+                            .clip(CircleShape)
+                            .background(theme.contentColor.copy(alpha = 0.05f))
+                            .border(1.5.dp, accent.copy(alpha = 0.3f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (video.thumbnailUrl != null) {
+                            AsyncImage(
+                                model = video.thumbnailUrl,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Icon(Icons.Outlined.PlayArrow, null, tint = accent.copy(alpha = 0.6f))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = video.title,
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                        color = theme.contentColor.copy(alpha = 0.8f),
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PresentationVideoPlayerDialog(
+    video: PresentationVideo,
+    onDismiss: () -> Unit,
+    theme: AppThemeState
+) {
+    androidx.compose.ui.window.Dialog(
+        onDismissRequest = onDismiss,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(video.title, color = Color.White, fontWeight = FontWeight.Bold)
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Outlined.Close, null, tint = Color.White)
+                    }
+                }
+                
+                Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                    VideoPlayerBanner(
+                        modifier = Modifier.fillMaxWidth().aspectRatio(16/9f),
+                        onDismiss = {} // Non applicable ici
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AdminAddVideoDialog(
+    onDismiss: () -> Unit,
+    onSave: (String, String, String?, Int) -> Unit,
+    theme: AppThemeState
+) {
+    var title by remember { mutableStateOf("") }
+    var url by remember { mutableStateOf("") }
+    var thumb by remember { mutableStateOf("") }
+    var order by remember { mutableStateOf("0") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = theme.backgroundColor,
+        title = { Text("Ajouter une vidéo", color = theme.contentColor) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                TextField(value = title, onValueChange = { title = it }, label = { Text("Titre") })
+                TextField(value = url, onValueChange = { url = it }, label = { Text("URL Vidéo") })
+                TextField(value = thumb, onValueChange = { thumb = it }, label = { Text("URL Miniature (Optionnel)") })
+                TextField(value = order, onValueChange = { order = it }, label = { Text("Ordre") })
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onSave(title, url, thumb.ifBlank { null }, order.toIntOrNull() ?: 0) }) {
+                Text("Enregistrer")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Annuler") }
+        }
+    )
 }
 
 @Composable

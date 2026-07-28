@@ -88,7 +88,14 @@ fun HeirAllocationScreen(
                     AllocationEntryRow(
                         entry = entry,
                         theme = theme,
-                        onClick = { navController.navigate(Screen.MemoryDetail.createRoute(entry.id)) }
+                        onClick = { 
+                            if (entry.entryType == "PORTRAIT") {
+                                // v9.2.6 : Redirection vers le vrai point d'édition
+                                navController.navigate("portrait_proche?recipientId=$recipientId")
+                            } else {
+                                navController.navigate(Screen.MemoryDetail.createRoute(entry.id))
+                            }
+                        }
                     )
                 }
             }

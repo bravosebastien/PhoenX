@@ -32,7 +32,8 @@ data class BookDraft(
     val sealedMessage: String = "", // v8.6.2 Message personnalisé pour l'héritier
     val globalIntroduction: String = "", // v8.7.0 Intro globale du livre (Chiffrée)
     val theme: BookTheme = BookTheme(), // v8.7.0 Thème visuel choisi par le Créateur
-    val coverImageUrl: String? = null // v9.2.4: Image de couverture personnalisée
+    val coverImageUrl: String? = null, // v9.2.4: Image de couverture personnalisée
+    val coverTitleStyle: String = "WHITE" // v9.2.6: Style du titre sur la couverture
 )
 
 data class BookMetadata(

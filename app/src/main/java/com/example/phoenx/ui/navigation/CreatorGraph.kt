@@ -537,7 +537,16 @@ fun NavGraphBuilder.creatorGraph(
     }
     composable("coffre_fort") { DetectiveHomeScreen(navController = navController) }
     composable("cent_questions") { QuestionsScreen(onNavigateBack = { navController.popBackStack() }) }
-    composable("portrait_proche") { PortraitScreen(onNavigateBack = { navController.popBackStack() }) }
+    composable(
+        route = "portrait_proche?recipientId={recipientId}",
+        arguments = listOf(navArgument("recipientId") { nullable = true })
+    ) { backStackEntry ->
+        val recipientId = backStackEntry.arguments?.getString("recipientId")
+        PortraitProcheScreen(
+            initialRecipientId = recipientId,
+            navController = navController
+        )
+    }
     composable("le_pacte") { PactScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToDetail = { id -> navController.navigate("pact/$id") }) }
     composable("lettres") { com.example.phoenx.ui.screens.mailbox.MailboxScreen(onNavigateBack = { navController.popBackStack() }) }
     composable("mappemonde") { MappamondeScreen(navController = navController, mode = MapMode.CREATOR) }

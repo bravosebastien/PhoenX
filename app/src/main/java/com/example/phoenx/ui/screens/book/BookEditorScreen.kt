@@ -15,7 +15,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -75,6 +79,7 @@ fun BookEditorScreen(
     var isStyleExpanded by remember { mutableStateOf(false) }
     var isTransmissionExpanded by remember { mutableStateOf(false) }
     var isIntroExpanded by remember { mutableStateOf(false) }
+    var isCoverStyleExpanded by remember { mutableStateOf(false) } // v9.2.6
 
     // GESTION COUVERTURE (v9.2.4)
     var showCropDialog by remember { mutableStateOf(false) }
@@ -120,12 +125,37 @@ fun BookEditorScreen(
         }
     }
 
+    val ripples = remember { mutableStateListOf<Ripple>() }
+    var lastCreationTime by remember { mutableLongStateOf(0L) }
+
+    // Recompose trigger
+    var frameTime by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            withFrameNanos { frameTime = it / 1_000_000 }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(theme.backgroundColor)
             .statusBarsPadding()
             .navigationBarsPadding()
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val position = event.changes.first().position
+                        val now = System.currentTimeMillis()
+                        
+                        if (now - lastCreationTime > 25) {
+                            ripples.add(Ripple(position, now, accent))
+                            lastCreationTime = now
+                        }
+                    }
+                }
+            }
     ) {
         LazyColumn(
             modifier = Modifier
@@ -142,27 +172,15 @@ fun BookEditorScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Retour",
-                                tint = accent
-                            )
-                        }
-                        InfoButton(
-                            title = "Le Livre de Ma Vie",
-                            points = listOf(
-                                "L'IA génère un livre narratif à partir de tes souvenirs.",
-                                "Chaque chapitre arrive en brouillon — tu peux le valider, le modifier, ou demander à l'IA de le réécrire.",
-                                "L'IA ne lit jamais tes vrais souvenirs — uniquement les résumés anonymisés.",
-                                "Un chapitre validé est verrouillé mais tu peux le déverrouiller à tout moment.",
-                                "Tes proches liront ce livre comme un vrai livre, page par page."
-                            )
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Retour",
+                            tint = accent
                         )
                     }
 
-                    // Indicateur de sauvegarde (v8.6.3)
+                    // Indicateur de sauvegarde & Info (v9.2.6 : Info à droite)
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         if (isSaving) {
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), color = accent, strokeWidth = 2.dp)
@@ -173,6 +191,19 @@ fun BookEditorScreen(
                             Spacer(Modifier.width(8.dp))
                             Text("Enregistré", style = MaterialTheme.typography.labelSmall, color = Color(0xFF4CAF50))
                         }
+                        
+                        Spacer(Modifier.width(12.dp))
+                        
+                        InfoButton(
+                            title = "Le Livre de Ma Vie",
+                            points = listOf(
+                                "L'IA génère un livre narratif à partir de tes souvenirs.",
+                                "Chaque chapitre arrive en brouillon — tu peux le valider, le modifier, ou demander à l'IA de le réécrire.",
+                                "L'IA ne lit jamais tes vrais souvenirs — uniquement les résumés anonymisés.",
+                                "Un chapitre validé est verrouillé mais tu peux le déverrouiller à tout moment.",
+                                "Tes proches liront ce livre comme un vrai livre, page par page."
+                            )
+                        )
                     }
                 }
             }
@@ -345,10 +376,10 @@ fun BookEditorScreen(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(64.dp) 
-                                .clickable { photoPickerLauncher.launch("image/*") },
+                                .clickable { isCoverStyleExpanded = !isCoverStyleExpanded }, // v9.2.6 : Dépliage styles
                             color = theme.contentColor.copy(alpha = 0.05f),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+                            border = BorderStroke(1.dp, if (isCoverStyleExpanded) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -362,6 +393,54 @@ fun BookEditorScreen(
                                     color = theme.contentColor.copy(alpha = 0.6f)
                                 )
                             }
+                        }
+                    }
+                }
+
+                // Zone de sélection Styles Couverture (Pleine largeur) (v9.2.6)
+                item {
+                    AnimatedVisibility(visible = isCoverStyleExpanded) {
+                        Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                            Text(
+                                "PERSONNALISATION DE LA COUVERTURE",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+                                color = accent
+                            )
+                            Spacer(Modifier.height(16.dp))
+                            
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Bouton Photo
+                                OutlinedButton(
+                                    onClick = { photoPickerLauncher.launch("image/*") },
+                                    modifier = Modifier.weight(1f).height(48.dp),
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = BorderStroke(1.dp, accent.copy(alpha = 0.4f))
+                                ) {
+                                    Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Changer photo", fontSize = 11.sp)
+                                }
+
+                                // Reset style
+                                TextButton(onClick = { viewModel.updateCoverTitleStyle("WHITE") }) {
+                                    Text("Réinitialiser", color = theme.contentColor.copy(alpha = 0.5f), fontSize = 11.sp)
+                                }
+                            }
+                            
+                            Spacer(Modifier.height(16.dp))
+                            
+                            Text("COULEUR DU TITRE", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                            Spacer(Modifier.height(12.dp))
+                            
+                            CoverTitleStyleSelector(
+                                currentStyle = bookDraft?.coverTitleStyle ?: "WHITE",
+                                onStyleSelected = { viewModel.updateCoverTitleStyle(it) },
+                                theme = theme
+                            )
                         }
                     }
                 }
@@ -477,6 +556,30 @@ fun BookEditorScreen(
                 item {
                     EmptyBookState(
                         onGenerate = { viewModel.generateBook() }
+                    )
+                }
+            }
+        }
+
+        // Overlay de traînée (v9.2.6)
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val now = System.currentTimeMillis()
+            val iterator = ripples.iterator()
+            while (iterator.hasNext()) {
+                val ripple = iterator.next()
+                val age = now - ripple.startTime
+                if (age > 1000) {
+                    iterator.remove()
+                } else {
+                    val progress = age / 1000f
+                    val alpha = 1f - progress
+                    val radius = 10.dp.toPx() + (progress * 120.dp.toPx())
+                    
+                    drawCircle(
+                        color = ripple.color.copy(alpha = alpha * 0.3f),
+                        radius = radius,
+                        center = ripple.position,
+                        style = Stroke(width = 1.5.dp.toPx())
                     )
                 }
             }
@@ -627,5 +730,119 @@ fun BookEditorScreen(
     }
 }
 
+@Composable
+fun CoverTitleStyleSelector(
+    currentStyle: String,
+    onStyleSelected: (String) -> Unit,
+    theme: AppThemeState
+) {
+    val styles = listOf("BLACK", "WHITE", "GOLD", "SILVER", "EMERALD", "RED")
+    
+    androidx.compose.foundation.lazy.LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(end = 16.dp)
+    ) {
+        items(styles) { style ->
+            val isSelected = currentStyle == style
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.clickable { onStyleSelected(style) }
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(if (isSelected) theme.accentColor.copy(alpha = 0.2f) else Color.Transparent)
+                        .border(
+                            width = if (isSelected) 2.dp else 1.dp,
+                            color = if (isSelected) theme.accentColor else theme.contentColor.copy(alpha = 0.2f),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val brush = com.example.phoenx.ui.screens.home.getTitleBrush(style)
+                    val color = when(style) {
+                        "BLACK" -> Color.Black
+                        "WHITE" -> Color.White
+                        else -> Color.White
+                    }
+                    
+                    val baseStyle = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                    
+                    Text(
+                        text = "Aa",
+                        style = if (brush != null) baseStyle.copy(brush = brush)
+                                else baseStyle.copy(color = color)
+                    )
+                }
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = style,
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                    color = theme.contentColor.copy(alpha = if (isSelected) 1f else 0.4f)
+                )
+            }
+        }
+    }
+}
 
+data class Ripple(val position: androidx.compose.ui.geometry.Offset, val startTime: Long, val color: Color)
 
+@Composable
+fun RippleTrailOverlay(accent: Color) {
+    val ripples = remember { mutableStateListOf<Ripple>() }
+    var lastCreationTime by remember { mutableLongStateOf(0L) }
+
+    // Recompose trigger
+    var frameTime by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            withFrameNanos { frameTime = it / 1_000_000 }
+        }
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val position = event.changes.first().position
+                        val now = System.currentTimeMillis()
+                        
+                        if (now - lastCreationTime > 20) {
+                            ripples.add(Ripple(position, now, accent))
+                            lastCreationTime = now
+                        }
+                    }
+                }
+            }
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val now = System.currentTimeMillis()
+            val iterator = ripples.iterator()
+            while (iterator.hasNext()) {
+                val ripple = iterator.next()
+                val age = now - ripple.startTime
+                if (age > 1000) {
+                    iterator.remove()
+                } else {
+                    val progress = age / 1000f
+                    val alpha = 1f - progress
+                    val radius = 10.dp.toPx() + (progress * 120.dp.toPx())
+                    
+                    drawCircle(
+                        color = ripple.color.copy(alpha = alpha * 0.3f),
+                        radius = radius,
+                        center = ripple.position,
+                        style = Stroke(width = 1.5.dp.toPx())
+                    )
+                }
+            }
+        }
+    }
+}

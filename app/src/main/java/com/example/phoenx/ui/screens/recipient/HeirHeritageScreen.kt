@@ -54,7 +54,11 @@ fun HeirHeritageScreen(
     val bookTitle by viewModel.bookTitle.collectAsState()
     val creatorName by viewModel.creatorName.collectAsState()
     val isActivated by viewModel.isProtocolActivated.collectAsState()
+    val canAsk by viewModel.canAskQuestions.collectAsState()
+    val recipientId by viewModel.recipientId.collectAsState()
+
     val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
 
     LaunchedEffect(creatorId) {
@@ -76,6 +80,13 @@ fun HeirHeritageScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
+                    }
+                },
+                actions = {
+                    if (canAsk && recipientId != null) {
+                        IconButton(onClick = { navController.navigate(Screen.AskQuestion.createRoute(creatorId, recipientId!!)) }) {
+                            Icon(Icons.Default.HelpOutline, contentDescription = "Poser une question", tint = accent)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)

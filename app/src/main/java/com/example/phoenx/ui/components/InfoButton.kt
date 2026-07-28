@@ -9,13 +9,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.phoenx.ui.theme.LocalAccentColor
+import com.example.phoenx.ui.theme.LocalAppTheme
 
 @Composable
 fun InfoButton(
@@ -24,9 +24,10 @@ fun InfoButton(
     modifier: Modifier = Modifier
 ) {
     var showDialog by remember { mutableStateOf(false) }
-    val accent = LocalAccentColor.current
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
 
-    // Le bouton ℹ️ discret
+    // Le bouton ℹ️ discret (v9.2.6 : Harmonisé au thème)
     IconButton(
         onClick = { showDialog = true },
         modifier = modifier.size(36.dp)
@@ -35,7 +36,7 @@ fun InfoButton(
             modifier = Modifier
                 .size(28.dp)
                 .background(
-                    color = Color(0xFF2E2E35),
+                    color = theme.contentColor.copy(alpha = 0.08f),
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -45,7 +46,7 @@ fun InfoButton(
                 color = accent,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = FontFamily.Serif
+                fontFamily = theme.fontFamily
             )
         }
     }
@@ -59,7 +60,7 @@ fun InfoButton(
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF1A1A1F)
+                    containerColor = theme.backgroundColor
                 ),
                 border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
             ) {
@@ -70,8 +71,8 @@ fun InfoButton(
                     Text(
                         text = title,
                         style = MaterialTheme.typography.headlineSmall.copy(
-                            fontFamily = FontFamily.Serif,
-                            color = Color(0xFFF2EDE8)
+                            fontFamily = theme.fontFamily,
+                            color = theme.contentColor
                         )
                     )
 
@@ -102,7 +103,7 @@ fun InfoButton(
                             Text(
                                 text = point,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = Color(0xFF9B9590),
+                                color = theme.contentColor.copy(alpha = 0.7f),
                                 lineHeight = 20.sp
                             )
                         }
