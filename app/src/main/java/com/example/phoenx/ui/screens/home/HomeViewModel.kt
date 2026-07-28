@@ -71,10 +71,12 @@ class HomeViewModel @Inject constructor(
                         val chapters = snapshot?.get("chapters") as? List<Map<String, Any>> ?: emptyList()
                         val validatedCount = chapters.count { it["status"] == "VALIDATED" }
                         val title = snapshot?.getString("bookTitle")
+                        val coverUrl = snapshot?.getString("coverImageUrl")
                         
                         _uiState.update { it.copy(
                             validatedChaptersCount = validatedCount,
-                            bookTitle = title
+                            bookTitle = title,
+                            coverImageUrl = coverUrl
                         ) }
                     }
             } catch (e: Exception) {}
@@ -179,5 +181,6 @@ data class HomeUiState(
     val answeredQuestionsCount: Int = 0,
     val validatedChaptersCount: Int = 0,
     val bookTitle: String? = null,
+    val coverImageUrl: String? = null, // v9.2.4
     val latestEntries: List<OfflineEntry> = emptyList()
 )

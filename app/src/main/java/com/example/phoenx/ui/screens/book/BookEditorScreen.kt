@@ -76,6 +76,18 @@ fun BookEditorScreen(
     var isTransmissionExpanded by remember { mutableStateOf(false) }
     var isIntroExpanded by remember { mutableStateOf(false) }
 
+    // GESTION COUVERTURE (v9.2.4)
+    var showCropDialog by remember { mutableStateOf(false) }
+    var tempUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    val photoPickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            tempUri = uri
+            showCropDialog = true
+        }
+    }
+
     // Onboarding automatique (v8.6.3)
     val context = androidx.compose.ui.platform.LocalContext.current
     val prefs = remember { context.getSharedPreferences("phoenx_prefs", android.content.Context.MODE_PRIVATE) }
@@ -278,7 +290,7 @@ fun BookEditorScreen(
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         // TRANSMISSION
                         Surface(
@@ -290,23 +302,16 @@ fun BookEditorScreen(
                             shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, if (isTransmissionExpanded) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(Icons.Default.Lock, null, tint = accent, modifier = Modifier.size(18.dp))
                                 Text(
-                                    "TRANSMISSION", 
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
-                                    color = theme.contentColor.copy(alpha = 0.6f),
-                                    maxLines = 1
-                                )
-                                Icon(
-                                    imageVector = if (isTransmissionExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, 
-                                    null, 
-                                    tint = theme.contentColor.copy(alpha = 0.2f),
-                                    modifier = Modifier.size(14.dp)
+                                    "DROITS", 
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp), 
+                                    color = theme.contentColor.copy(alpha = 0.6f)
                                 )
                             }
                         }
@@ -321,22 +326,40 @@ fun BookEditorScreen(
                             shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, if (isStyleExpanded) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(Icons.Default.Palette, null, tint = accent, modifier = Modifier.size(18.dp))
                                 Text(
                                     "STYLE", 
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp), 
                                     color = theme.contentColor.copy(alpha = 0.6f)
                                 )
-                                Icon(
-                                    imageVector = if (isStyleExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                    contentDescription = null,
-                                    tint = theme.contentColor.copy(alpha = 0.2f),
-                                    modifier = Modifier.size(14.dp)
+                            }
+                        }
+
+                        // COUVERTURE (v9.2.4)
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(64.dp) 
+                                .clickable { photoPickerLauncher.launch("image/*") },
+                            color = theme.contentColor.copy(alpha = 0.05f),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(Icons.Default.AddAPhoto, null, tint = accent, modifier = Modifier.size(18.dp))
+                                Text(
+                                    "COUVERTURE", 
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp), 
+                                    color = theme.contentColor.copy(alpha = 0.6f)
                                 )
                             }
                         }
@@ -541,6 +564,19 @@ fun BookEditorScreen(
                     showAiExplanation = false
                     prefs.edit().putBoolean("seen_book_ai_explanation", true).apply()
                 }
+            )
+        }
+
+        // ── DIALOGUE RECADRAGE COUVERTURE (v9.2.4) ──
+        if (showCropDialog && tempUri != null) {
+            com.example.phoenx.ui.components.BookCoverCropDialog(
+                imageUri = tempUri!!,
+                onDismiss = { showCropDialog = false },
+                onConfirmed = { croppedUri ->
+                    viewModel.updateCoverImage(croppedUri)
+                    showCropDialog = false
+                },
+                accent = accent
             )
         }
 

@@ -3,20 +3,29 @@ package com.example.phoenx.ui.screens.book
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
+import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.model.*
 import com.example.phoenx.service.BookGeneratorService
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await as kotlinAwait
 import javax.inject.Inject
+import android.content.Context
+import android.net.Uri
+import java.io.File
+import java.io.FileOutputStream
+import java.util.UUID
 
 @HiltViewModel
 class BookEditorViewModel @Inject constructor(
     private val bookService: BookGeneratorService,
     private val auth: FirebaseAuth,
-    private val offlineEntryDao: com.example.phoenx.data.local.OfflineEntryDao
+    private val offlineEntryDao: com.example.phoenx.data.local.OfflineEntryDao,
+    private val mediaManager: MediaManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _bookDraft = MutableStateFlow<BookDraft?>(null)
@@ -360,6 +369,40 @@ class BookEditorViewModel @Inject constructor(
                 triggerSuccess()
             } catch (e: Exception) {
                 _error.value = "Erreur sauvegarde thème"
+            } finally {
+                _isSaving.value = false
+            }
+        }
+    }
+
+    fun updateCoverImage(uri: Uri) {
+        val userId = auth.currentUser?.uid ?: return
+        val current = _bookDraft.value ?: return
+
+        viewModelScope.launch {
+            _isSaving.value = true
+            try {
+                // 1. Conversion Uri -> File temporaire
+                val tempFile = File(context.cacheDir, "book_cover_${UUID.randomUUID()}.jpg")
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    FileOutputStream(tempFile).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
+                // 2. Upload vers Storage (On réutilise le dossier cameos pour la simplicité v9.2.4)
+                val downloadUrl = mediaManager.uploadCameo(userId, "book_cover", tempFile)
+                
+                // 3. Mise à jour du Draft
+                val updatedDraft = current.copy(coverImageUrl = downloadUrl)
+                _bookDraft.value = updatedDraft
+                bookService.saveBookDraft(userId, updatedDraft)
+                
+                tempFile.delete()
+                triggerSuccess()
+            } catch (e: Exception) {
+                android.util.Log.e("BookEditorVM", "Erreur upload couverture: ${e.message}")
+                _error.value = "Erreur lors de l'envoi de l'image"
             } finally {
                 _isSaving.value = false
             }

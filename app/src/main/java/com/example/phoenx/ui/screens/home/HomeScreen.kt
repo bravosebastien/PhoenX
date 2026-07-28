@@ -161,6 +161,14 @@ fun HomeScreen(
                 )
 
                 if (currentPerspective == MainViewModel.Perspective.MY_MEMORY) {
+                    // BANNIÈRE VIDÉO (Remontée v9.2.4)
+                    if (!isVideoBannerDismissed) {
+                        VideoPlayerBanner(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp).clip(RoundedCornerShape(16.dp)),
+                            onDismiss = { mainViewModel.dismissVideoBanner() }
+                        )
+                    }
+
                     val welcomeNudge = remember { com.example.phoenx.ui.components.NudgePhrases.getRandomPhrase() }
                     Text(
                         text = welcomeNudge,
@@ -193,6 +201,7 @@ fun HomeScreen(
                     BookCoverCard(
                         title = uiState.bookTitle ?: "Mon Livre de Vie",
                         chaptersCount = uiState.validatedChaptersCount,
+                        coverImageUrl = uiState.coverImageUrl,
                         onClick = onNavigateToBookEditor,
                         theme = theme
                     )
@@ -219,15 +228,6 @@ fun HomeScreen(
                                 Icon(Icons.Outlined.ArrowForward, null, tint = accent, modifier = Modifier.size(16.dp))
                             }
                         }
-                    }
-
-                    // BANNIÈRE VIDÉO
-                    if (!isVideoBannerDismissed) {
-                        VideoPlayerBanner(
-                            modifier = Modifier.padding(horizontal = 12.dp).clip(RoundedCornerShape(16.dp)),
-                            onDismiss = { mainViewModel.dismissVideoBanner() }
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
                     }
 
                     // BADGES STATUT
@@ -679,6 +679,7 @@ fun HomeNavigationBar(
 fun BookCoverCard(
     title: String,
     chaptersCount: Int,
+    coverImageUrl: String? = null,
     onClick: () -> Unit,
     theme: AppThemeState
 ) {
@@ -708,6 +709,18 @@ fun BookCoverCard(
             border = BorderStroke(0.8.dp, accent.copy(alpha = 0.6f))
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
+                // FOND : Image personnalisée (v9.2.4)
+                if (coverImageUrl != null) {
+                    coil3.compose.AsyncImage(
+                        model = coverImageUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                    )
+                    // Voile sombre pour le titre
+                    Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.35f)))
+                }
+
                 // Tranche stylisée (v9.2.1: Renforcée)
                 Box(
                     modifier = Modifier
@@ -716,8 +729,8 @@ fun BookCoverCard(
                         .background(
                             Brush.horizontalGradient(
                                 listOf(
-                                    accent.copy(alpha = 0.4f),
-                                    accent.copy(alpha = 0.15f),
+                                    (if (coverImageUrl != null) Color.Black else accent).copy(alpha = 0.4f),
+                                    (if (coverImageUrl != null) Color.Black else accent).copy(alpha = 0.15f),
                                     Color.Transparent
                                 )
                             )
@@ -749,7 +762,7 @@ fun BookCoverCard(
                             fontStyle = FontStyle.Italic,
                             lineHeight = (fontSize.value * 1.2).sp
                         ),
-                        color = theme.contentColor,
+                        color = if (coverImageUrl != null) Color.White else theme.contentColor,
                         maxLines = 4,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -760,7 +773,7 @@ fun BookCoverCard(
                         modifier = Modifier
                             .width(32.dp)
                             .height(1.5.dp)
-                            .background(accent.copy(alpha = 0.4f))
+                            .background((if (coverImageUrl != null) Color.White else accent).copy(alpha = 0.4f))
                     )
                     
                     Spacer(modifier = Modifier.height(20.dp))
@@ -772,7 +785,7 @@ fun BookCoverCard(
                             textAlign = TextAlign.Center,
                             lineHeight = 14.sp
                         ),
-                        color = accent.copy(alpha = 0.7f),
+                        color = (if (coverImageUrl != null) Color.White else accent).copy(alpha = 0.7f),
                         fontWeight = FontWeight.Bold
                     )
                 }
