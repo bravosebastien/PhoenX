@@ -66,7 +66,6 @@ fun CaptureScreen(
     )
 
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     val suggestPin by viewModel.suggestPin.collectAsState()
     val detectedLocation by viewModel.detectedLocation.collectAsState()
     val preselectedName by viewModel.preselectedLocationName.collectAsState()
@@ -93,12 +92,12 @@ fun CaptureScreen(
 
     LaunchedEffect(initialType) {
         val permission = when (initialType) {
-            Screen.Capture.TYPE_AUDIO, Screen.Capture.TYPE_NIGHT -> android.Manifest.permission.RECORD_AUDIO
-            Screen.Capture.TYPE_PHOTO -> android.Manifest.permission.CAMERA
+            Screen.Capture.TYPE_AUDIO, Screen.Capture.TYPE_NIGHT -> Manifest.permission.RECORD_AUDIO
+            Screen.Capture.TYPE_PHOTO -> Manifest.permission.CAMERA
             else -> null
         }
         if (permission != null) {
-            if (androidx.core.content.ContextCompat.checkSelfPermission(context, permission) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
                 permissionLauncher.launch(permission)
             }
         }

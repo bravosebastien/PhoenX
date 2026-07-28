@@ -183,7 +183,7 @@ class RecipientMediaViewModel @Inject constructor(
                 Triple(decodedParents, complements, activated)
             }
             .flowOn(Dispatchers.Default)
-            .collectLatest { (decodedParents, complements, activated) ->
+            .collectLatest { (decodedParents, complements, _) ->
                 // 4. Indexation automatique par type
                 _libraryEntries.value = decodedParents.filter { parent ->
                     val hasMatch = parent.type == EntryType.THOUGHT || parent.type == EntryType.LEGACY || parent.isYoungSelfLetter ||

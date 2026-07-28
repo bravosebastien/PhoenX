@@ -61,12 +61,12 @@ class LocationDetailViewModel @Inject constructor(
                     // Collecter les souvenirs liés (Flux temps réel local)
                     offlineEntryDao.getEntriesForLocation(locationId).collectLatest { relatedEntries ->
                         // Fallback : si aucun via locationId, on cherche par nom ou pactId (legacy)
-                        val finalEntries = if (relatedEntries.isEmpty()) {
+                        val finalEntries = relatedEntries.ifEmpty {
                             val all = withContext(Dispatchers.IO) {
                                 offlineEntryDao.getAllEntriesSync()
                             }
-                            all.filter { it.locationName == location.placeName || it.pactId == location.id }
-                        } else relatedEntries
+                            all.filter { (it.locationName == location.placeName) || (it.pactId == location.id) }
+                        }
 
                         _uiState.value = LocationDetailUiState.Success(location, finalEntries)
                     }

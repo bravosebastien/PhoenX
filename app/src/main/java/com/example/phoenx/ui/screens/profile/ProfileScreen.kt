@@ -187,7 +187,7 @@ fun ProfileScreen(
                         modifier = Modifier.size(32.dp),
                         shape = CircleShape,
                         color = accent,
-                        border = androidx.compose.foundation.BorderStroke(2.dp, theme.backgroundColor)
+                        border = BorderStroke(2.dp, theme.backgroundColor)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(Icons.Default.CameraAlt, null, tint = theme.backgroundColor, modifier = Modifier.size(16.dp))
@@ -295,9 +295,8 @@ fun ProfileScreen(
                             
                             com.example.phoenx.ui.components.GlobalThemeSelector(
                                 currentBackgroundId = backgroundId,
-                                currentFontId = fontId,
-                                onThemeChange = { bg, font -> themeViewModel.setGlobalTheme(bg, font) }
-                            )
+                                currentFontId = fontId
+                            ) { bg, font -> themeViewModel.setGlobalTheme(bg, font) }
 
                             Spacer(modifier = Modifier.height(24.dp))
 

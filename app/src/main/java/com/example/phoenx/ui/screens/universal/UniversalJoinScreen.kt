@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material3.*
@@ -65,9 +64,8 @@ fun UniversalJoinScreen(
                     isLoggedIn = currentUser != null,
                     accent = accent,
                     theme = theme,
-                    onAccept = { viewModel.acceptInvitation(token) },
-                    onAuth = { onNavigateToAuth(token) }
-                )
+                    onAccept = { viewModel.acceptInvitation(token) }
+                ) { onNavigateToAuth(token) }
             }
         }
     }

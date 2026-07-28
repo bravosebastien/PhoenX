@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -56,7 +55,6 @@ fun HeirHeritageScreen(
     val creatorName by viewModel.creatorName.collectAsState()
     val isActivated by viewModel.isProtocolActivated.collectAsState()
     val theme = LocalAppTheme.current
-    val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
 
     LaunchedEffect(creatorId) {
@@ -112,26 +110,23 @@ fun HeirHeritageScreen(
                         subtitle = if (!isActivated) bookMessage ?: "$creatorName a décidé de vous partager le livre de sa vie. Visible le moment venu." else "Récit de vie",
                         icon = Icons.Outlined.MenuBook,
                         modifier = Modifier.weight(1.3f),
-                        theme = theme,
-                        onClick = { navController.navigate("book_viewer_recipient?creatorId=$creatorId") }
-                    )
+                        theme = theme
+                    ) { navController.navigate("book_viewer_recipient?creatorId=$creatorId") }
                     SpecialAccessCard(
                         title = "Coffre",
                         icon = Icons.Outlined.Lock,
                         modifier = Modifier.weight(1f),
-                        theme = theme,
-                        onClick = { navController.navigate(Screen.RecipientDetective.createRoute(creatorId)) }
-                    )
+                        theme = theme
+                    ) { navController.navigate(Screen.RecipientDetective.createRoute(creatorId)) }
                     SpecialAccessCard(
                         title = "Quiz",
                         icon = Icons.Outlined.EmojiEvents,
                         modifier = Modifier.weight(1f),
-                        theme = theme,
-                        onClick = { 
-                            // Navigation automatique vers le quiz du créateur (v8.5.9)
-                            navController.navigate("quiz_play/$creatorId/main_quiz") 
-                        }
-                    )
+                        theme = theme
+                    ) { 
+                        // Navigation automatique vers le quiz du créateur (v8.5.9)
+                        navController.navigate("quiz_play/$creatorId/main_quiz") 
+                    }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f), modifier = Modifier.padding(horizontal = 24.dp))

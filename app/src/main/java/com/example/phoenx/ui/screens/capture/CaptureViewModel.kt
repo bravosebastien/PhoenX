@@ -234,9 +234,9 @@ class CaptureViewModel @Inject constructor(
                         }
                     }
                     finalImagePath = destFile.absolutePath
-                    android.util.Log.d("CameoDebug", "Portrait sauvegardé : $finalImagePath")
+                    Log.d("CameoDebug", "Portrait sauvegardé : $finalImagePath")
                 } catch (e: Exception) {
-                    android.util.Log.e("CameoDebug", "Erreur sauvegarde portrait", e)
+                    Log.e("CameoDebug", "Erreur sauvegarde portrait", e)
                 }
             }
 
@@ -261,7 +261,7 @@ class CaptureViewModel @Inject constructor(
                     .setConstraints(constraints)
                     .build()
                 WorkManager.getInstance(context).enqueue(syncRequest)
-                android.util.Log.d("PersonSync", "Synchronisation déclenchée pour la nouvelle personne : $firstName")
+                Log.d("PersonSync", "Synchronisation déclenchée pour la nouvelle personne : $firstName")
             } catch (_: Exception) { }
         }
     }
@@ -347,10 +347,10 @@ class CaptureViewModel @Inject constructor(
                 // comme "âme" du média pour l'IA Narrative.
                 val manualSoul = if (parentEntryId != null && !content.isNullOrBlank()) content else null
                 
-                val analysis = if (manualSoul != null) {
-                    com.example.phoenx.data.ai.LocalAnalysis(
+        val analysis = if (manualSoul != null) {
+                    LocalAnalysis(
                         summary = manualSoul, 
-                        tags = emptyList<String>(), 
+                        tags = emptyList(),
                         emotionalTone = "Manual", 
                         lifePeriod = "Current"
                     )
@@ -408,7 +408,7 @@ class CaptureViewModel @Inject constructor(
                     visibility = visibility,
                     recipientIds = persistentRecipientIds.joinToString(","),
                     silentAttribution = silentAttribution, // v8.9.8
-                    personIds = selectedPersons.value.map { it.id }.joinToString(","), // v8.8
+                    personIds = selectedPersons.value.joinToString(",") { it.id }, // v8.8
                     isYoungSelfLetter = isYoungSelfLetter,
                     targetAge = targetAge,
                     createdAt = System.currentTimeMillis(),

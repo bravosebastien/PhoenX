@@ -16,7 +16,6 @@ import javax.inject.Inject
 class BookEditorViewModel @Inject constructor(
     private val bookService: BookGeneratorService,
     private val auth: FirebaseAuth,
-    private val encryptionManager: EncryptionManager,
     private val offlineEntryDao: com.example.phoenx.data.local.OfflineEntryDao
 ) : ViewModel() {
 
@@ -290,7 +289,7 @@ class BookEditorViewModel @Inject constructor(
 
     fun updateBookTitle(title: String) {
         val current = _bookDraft.value ?: return
-        val updated = current.copy(bookTitle = if (title.isBlank()) null else title)
+        val updated = current.copy(bookTitle = title.ifBlank { null })
         _bookDraft.value = updated
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
@@ -310,7 +309,7 @@ class BookEditorViewModel @Inject constructor(
 
     fun generateGlobalIntro() {
         val current = _bookDraft.value ?: return
-        val userId = auth.currentUser?.uid ?: return
+        auth.currentUser?.uid ?: return
         viewModelScope.launch {
             _isGeneratingGlobalIntro.value = true
             try {
