@@ -9,6 +9,10 @@ import com.example.phoenx.domain.usecase.ActivationProtocolManager
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.remoteconfig.FirebaseRemoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.ktx.remoteConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -42,6 +46,23 @@ class HomeViewModel @Inject constructor(
         observeLatestEntries()
         loadPendingQuestionsCount()
         loadExtraStats()
+        fetchRemoteConfig()
+    }
+
+    private fun fetchRemoteConfig() {
+        val remoteConfig = Firebase.remoteConfig
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 3600 // 1 heure en prod
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+        remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val url = remoteConfig.getString("default_book_cover_url").trim()
+                if (url.isNotEmpty()) {
+                    _uiState.update { it.copy(defaultCoverUrl = url) }
+                }
+            }
+        }
     }
 
     /**
@@ -182,5 +203,6 @@ data class HomeUiState(
     val validatedChaptersCount: Int = 0,
     val bookTitle: String? = null,
     val coverImageUrl: String? = null, // v9.2.4
+    val defaultCoverUrl: String? = null, // v9.2.5
     val latestEntries: List<OfflineEntry> = emptyList()
 )

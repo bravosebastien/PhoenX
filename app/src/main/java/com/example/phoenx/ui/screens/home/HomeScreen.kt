@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -202,6 +203,7 @@ fun HomeScreen(
                         title = uiState.bookTitle ?: "Mon Livre de Vie",
                         chaptersCount = uiState.validatedChaptersCount,
                         coverImageUrl = uiState.coverImageUrl,
+                        defaultCoverUrl = uiState.defaultCoverUrl,
                         onClick = onNavigateToBookEditor,
                         theme = theme
                     )
@@ -680,10 +682,13 @@ fun BookCoverCard(
     title: String,
     chaptersCount: Int,
     coverImageUrl: String? = null,
+    defaultCoverUrl: String? = null,
     onClick: () -> Unit,
     theme: AppThemeState
 ) {
     val accent = theme.accentColor
+    val finalCoverUrl = coverImageUrl ?: defaultCoverUrl
+    val hasBackgroundImage = finalCoverUrl != null
     
     Column(
         modifier = Modifier
@@ -703,22 +708,57 @@ fun BookCoverCard(
                 .align(Alignment.CenterHorizontally)
                 .width(180.dp)
                 .aspectRatio(0.72f)
-                .shadow(12.dp, RoundedCornerShape(14.dp)),
+                .shadow(
+                    elevation = 14.dp,
+                    shape = RoundedCornerShape(14.dp),
+                    spotColor = accent.copy(alpha = 0.5f),
+                    ambientColor = accent.copy(alpha = 0.3f)
+                ),
             shape = RoundedCornerShape(14.dp),
             colors = CardDefaults.cardColors(containerColor = theme.backgroundColor),
             border = BorderStroke(0.8.dp, accent.copy(alpha = 0.6f))
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                // FOND : Image personnalisée (v9.2.4)
-                if (coverImageUrl != null) {
+                // FOND : Image personnalisée ou par défaut Remote Config (v9.2.5)
+                if (hasBackgroundImage) {
                     coil3.compose.AsyncImage(
-                        model = coverImageUrl,
+                        model = finalCoverUrl,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
-                    // Voile sombre pour le titre
-                    Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.35f)))
+                    // Voile sombre progressif pour le titre (v9.2.6)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color.Black.copy(alpha = 0.2f),
+                                        Color.Black.copy(alpha = 0.45f)
+                                    )
+                                )
+                            )
+                    )
+                } else {
+                    // 3. Stylized Drawing (Fallback v9.2.6)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(accent.copy(alpha = 0.02f), accent.copy(alpha = 0.08f))
+                                )
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Outlined.AutoStories,
+                            contentDescription = null,
+                            modifier = Modifier.size(64.dp).alpha(0.05f),
+                            tint = accent
+                        )
+                    }
                 }
 
                 // Tranche stylisée (v9.2.1: Renforcée)
@@ -729,8 +769,8 @@ fun BookCoverCard(
                         .background(
                             Brush.horizontalGradient(
                                 listOf(
-                                    (if (coverImageUrl != null) Color.Black else accent).copy(alpha = 0.4f),
-                                    (if (coverImageUrl != null) Color.Black else accent).copy(alpha = 0.15f),
+                                    (if (hasBackgroundImage) Color.Black else accent).copy(alpha = 0.4f),
+                                    (if (hasBackgroundImage) Color.Black else accent).copy(alpha = 0.15f),
                                     Color.Transparent
                                 )
                             )
@@ -760,9 +800,14 @@ fun BookCoverCard(
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
                             fontStyle = FontStyle.Italic,
-                            lineHeight = (fontSize.value * 1.2).sp
+                            lineHeight = (fontSize.value * 1.2).sp,
+                            shadow = if (hasBackgroundImage) androidx.compose.ui.graphics.Shadow(
+                                color = Color.Black,
+                                offset = androidx.compose.ui.geometry.Offset(1f, 1f),
+                                blurRadius = 4f
+                            ) else null
                         ),
-                        color = if (coverImageUrl != null) Color.White else theme.contentColor,
+                        color = if (hasBackgroundImage) Color.White else theme.contentColor,
                         maxLines = 4,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -773,7 +818,7 @@ fun BookCoverCard(
                         modifier = Modifier
                             .width(32.dp)
                             .height(1.5.dp)
-                            .background((if (coverImageUrl != null) Color.White else accent).copy(alpha = 0.4f))
+                            .background((if (hasBackgroundImage) Color.White else accent).copy(alpha = 0.4f))
                     )
                     
                     Spacer(modifier = Modifier.height(20.dp))
@@ -785,7 +830,7 @@ fun BookCoverCard(
                             textAlign = TextAlign.Center,
                             lineHeight = 14.sp
                         ),
-                        color = (if (coverImageUrl != null) Color.White else accent).copy(alpha = 0.7f),
+                        color = (if (hasBackgroundImage) Color.White else accent).copy(alpha = 0.7f),
                         fontWeight = FontWeight.Bold
                     )
                 }

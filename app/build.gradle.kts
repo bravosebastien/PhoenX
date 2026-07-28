@@ -120,6 +120,7 @@ dependencies {
 
     // Images
     implementation(libs.coil.compose)
+    implementation(libs.coil.network)
 
     // Media
     val media3Version = "1.3.1"
