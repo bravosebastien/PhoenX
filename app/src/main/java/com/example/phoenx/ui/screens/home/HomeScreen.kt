@@ -762,8 +762,8 @@ fun BookCoverCard(
                             .background(
                                 Brush.verticalGradient(
                                     listOf(
-                                        Color.Black.copy(alpha = 0.15f),
-                                        Color.Black.copy(alpha = 0.35f)
+                                        Color.Black.copy(alpha = 0.08f),
+                                        Color.Black.copy(alpha = 0.25f)
                                     )
                                 )
                             )

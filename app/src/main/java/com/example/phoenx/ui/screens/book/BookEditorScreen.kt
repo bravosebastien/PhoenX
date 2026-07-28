@@ -561,25 +561,27 @@ fun BookEditorScreen(
             }
         }
 
-        // Overlay de traînée (v9.2.6)
+        // Overlay de traînée (v9.2.7 : Correction saccade et estompement)
         Canvas(modifier = Modifier.fillMaxSize()) {
+            // Force la lecture du frameTime pour déclencher le redessin à chaque frame
+            val _animTrigger = frameTime 
             val now = System.currentTimeMillis()
-            val iterator = ripples.iterator()
-            while (iterator.hasNext()) {
-                val ripple = iterator.next()
+            
+            val activeRipples = ripples.toList() 
+            activeRipples.forEach { ripple ->
                 val age = now - ripple.startTime
                 if (age > 1000) {
-                    iterator.remove()
+                    ripples.remove(ripple)
                 } else {
                     val progress = age / 1000f
-                    val alpha = 1f - progress
-                    val radius = 10.dp.toPx() + (progress * 120.dp.toPx())
+                    val alpha = (1f - progress) * 0.4f
+                    val radius = 10.dp.toPx() + (progress * 150.dp.toPx())
                     
                     drawCircle(
-                        color = ripple.color.copy(alpha = alpha * 0.3f),
+                        color = ripple.color.copy(alpha = alpha),
                         radius = radius,
                         center = ripple.position,
-                        style = Stroke(width = 1.5.dp.toPx())
+                        style = Stroke(width = (1.5.dp.toPx() * (1f - progress)))
                     )
                 }
             }
