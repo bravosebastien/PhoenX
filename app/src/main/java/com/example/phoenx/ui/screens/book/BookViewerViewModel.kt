@@ -95,6 +95,14 @@ class BookViewerViewModel @Inject constructor(
                         _isLoading.value = false
                         return@launch
                     }
+                } else {
+                    // Mode Créateur : Récupérer son propre nom (v9.2.7)
+                    try {
+                        val userDoc = db.collection("users").document(userId).get().kotlinAwait()
+                        _creatorName.value = userDoc.getString("displayName") ?: "Moi"
+                    } catch (e: Exception) {
+                        _creatorName.value = "Moi"
+                    }
                 }
 
                 _isLocked.value = false

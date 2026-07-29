@@ -98,7 +98,7 @@ fun EmptyBookState(onGenerate: () -> Unit) {
 
         Text(
             text = "PHOEN-X va analyser tes souvenirs et rédiger\n" +
-                   "le premier chapitre de ton livre de vie.\n" +
+                   "le premier chapitre de ton Livre de Vie.\n" +
                    "Tu pourras tout relire, modifier et valider.",
             style = TextStyle(
                 fontSize = 14.sp,

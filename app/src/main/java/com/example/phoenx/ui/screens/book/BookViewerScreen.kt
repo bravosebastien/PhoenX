@@ -118,7 +118,7 @@ fun BookViewerScreen(
             ) {
                 Text(
                     text = if (isRecipientMode)
-                        "Le livre de vie n'a pas encore été rédigé."
+                        "Le Livre de Vie n'a pas encore été rédigé."
                     else
                         "Ton livre n'est pas encore créé.",
                     style = TextStyle(

@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.example.phoenx.ui.MainViewModel
+import androidx.media3.common.util.UnstableApi
 
+@UnstableApi
 @Composable
 fun PhoenXNavGraph(
     navController: NavHostController,

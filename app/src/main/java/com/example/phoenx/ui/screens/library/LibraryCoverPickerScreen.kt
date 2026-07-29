@@ -26,6 +26,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
@@ -33,6 +34,7 @@ import coil3.compose.AsyncImage
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
+@UnstableApi
 @Composable
 fun LibraryCoverPickerScreen(
     compartmentId: String,
@@ -190,6 +192,7 @@ fun LibraryCoverPickerScreen(
     }
 }
 
+@UnstableApi
 @Composable
 fun VideoPreview(uri: Uri) {
     val context = LocalContext.current
@@ -209,6 +212,7 @@ fun VideoPreview(uri: Uri) {
 
     AndroidView(
         factory = { ctx ->
+            @androidx.media3.common.util.UnstableApi
             PlayerView(ctx).apply {
                 player = exoPlayer
                 useController = false

@@ -50,7 +50,7 @@ fun BookTitleEditor(
                 onTitleChanged(it)
             },
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Mon Livre de Vie", color = theme.contentColor.copy(alpha = 0.3f)) },
+            placeholder = { Text("Livre de Vie", color = theme.contentColor.copy(alpha = 0.3f)) },
             textStyle = MaterialTheme.typography.bodyLarge.copy(
                 fontFamily = theme.fontFamily,
                 fontWeight = FontWeight.Bold,
@@ -76,8 +76,8 @@ fun SealedMessageOptions(
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val options = listOf(
-        "$userName a décidé de vous partager le livre de sa vie. Visible le moment venu.",
-        "$userName a préparé un précieux cadeau pour vous : le récit de sa vie, protégé avec tendresse jusqu'au moment de vous être transmis.",
+        "$userName a décidé de vous partager son Livre de Vie. Visible le moment venu.",
+        "$userName a préparé un précieux cadeau pour vous : le récit de son Livre de Vie, protégé avec tendresse jusqu'au moment de vous être transmis.",
         "Un trésor de mots et de souvenirs vous attend : le Livre de Vie de $userName, scellé pour éclairer votre chemin le moment venu."
     )
 

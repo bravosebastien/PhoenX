@@ -125,37 +125,12 @@ fun BookEditorScreen(
         }
     }
 
-    val ripples = remember { mutableStateListOf<Ripple>() }
-    var lastCreationTime by remember { mutableLongStateOf(0L) }
-
-    // Recompose trigger
-    var frameTime by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            withFrameNanos { frameTime = it / 1_000_000 }
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(theme.backgroundColor)
             .statusBarsPadding()
             .navigationBarsPadding()
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        val position = event.changes.first().position
-                        val now = System.currentTimeMillis()
-                        
-                        if (now - lastCreationTime > 25) {
-                            ripples.add(Ripple(position, now, accent))
-                            lastCreationTime = now
-                        }
-                    }
-                }
-            }
     ) {
         LazyColumn(
             modifier = Modifier
@@ -210,7 +185,7 @@ fun BookEditorScreen(
 
             item {
                 Text(
-                    text = bookDraft?.bookTitle ?: "Mon Livre de Vie",
+                    text = bookDraft?.bookTitle ?: "Livre de Vie",
                     style = TextStyle(
                         fontFamily = theme.fontFamily,
                         fontSize = 28.sp,
@@ -561,32 +536,6 @@ fun BookEditorScreen(
             }
         }
 
-        // Overlay de traînée (v9.2.7 : Correction saccade et estompement)
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            // Force la lecture du frameTime pour déclencher le redessin à chaque frame
-            val _animTrigger = frameTime 
-            val now = System.currentTimeMillis()
-            
-            val activeRipples = ripples.toList() 
-            activeRipples.forEach { ripple ->
-                val age = now - ripple.startTime
-                if (age > 1000) {
-                    ripples.remove(ripple)
-                } else {
-                    val progress = age / 1000f
-                    val alpha = (1f - progress) * 0.4f
-                    val radius = 10.dp.toPx() + (progress * 150.dp.toPx())
-                    
-                    drawCircle(
-                        color = ripple.color.copy(alpha = alpha),
-                        radius = radius,
-                        center = ripple.position,
-                        style = Stroke(width = (1.5.dp.toPx() * (1f - progress)))
-                    )
-                }
-            }
-        }
-
         // ── ÉTAT 2 : GÉNÉRATION EN COURS (Overlay centré - v8.6.3) ──
         if (isGenerating) {
             Box(
@@ -786,64 +735,6 @@ fun CoverTitleStyleSelector(
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
                     color = theme.contentColor.copy(alpha = if (isSelected) 1f else 0.4f)
                 )
-            }
-        }
-    }
-}
-
-data class Ripple(val position: androidx.compose.ui.geometry.Offset, val startTime: Long, val color: Color)
-
-@Composable
-fun RippleTrailOverlay(accent: Color) {
-    val ripples = remember { mutableStateListOf<Ripple>() }
-    var lastCreationTime by remember { mutableLongStateOf(0L) }
-
-    // Recompose trigger
-    var frameTime by remember { mutableLongStateOf(0L) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            withFrameNanos { frameTime = it / 1_000_000 }
-        }
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        val event = awaitPointerEvent()
-                        val position = event.changes.first().position
-                        val now = System.currentTimeMillis()
-                        
-                        if (now - lastCreationTime > 20) {
-                            ripples.add(Ripple(position, now, accent))
-                            lastCreationTime = now
-                        }
-                    }
-                }
-            }
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val now = System.currentTimeMillis()
-            val iterator = ripples.iterator()
-            while (iterator.hasNext()) {
-                val ripple = iterator.next()
-                val age = now - ripple.startTime
-                if (age > 1000) {
-                    iterator.remove()
-                } else {
-                    val progress = age / 1000f
-                    val alpha = 1f - progress
-                    val radius = 10.dp.toPx() + (progress * 120.dp.toPx())
-                    
-                    drawCircle(
-                        color = ripple.color.copy(alpha = alpha * 0.3f),
-                        radius = radius,
-                        center = ripple.position,
-                        style = Stroke(width = 1.5.dp.toPx())
-                    )
-                }
             }
         }
     }

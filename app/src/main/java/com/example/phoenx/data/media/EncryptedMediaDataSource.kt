@@ -2,6 +2,7 @@ package com.example.phoenx.data.media
 
 import android.net.Uri
 import androidx.media3.common.C
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
@@ -14,6 +15,7 @@ import javax.crypto.CipherInputStream
  * EncryptedMediaDataSource (Signature PHOEN-X 5.0)
  * Permet à ExoPlayer de lire un fichier chiffré sans jamais le déchiffrer sur le disque.
  */
+@UnstableApi
 class EncryptedMediaDataSource(
     private val encryptionManager: EncryptionManager,
     private val explicitKey: ByteArray? = null
@@ -72,6 +74,7 @@ class EncryptedMediaDataSource(
     }
 }
 
+@UnstableApi
 class EncryptedMediaDataSourceFactory(
     private val encryptionManager: EncryptionManager,
     private val explicitKey: ByteArray? = null

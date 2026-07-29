@@ -26,6 +26,9 @@ import com.example.phoenx.ui.theme.PhoenXTheme
 import com.example.phoenx.ui.theme.ThemeViewModel
 import com.example.phoenx.ui.theme.LocalBackgroundBrush
 import com.example.phoenx.ui.theme.AccentPrimary
+import com.example.phoenx.ui.components.rippleTrailDetection
+import com.example.phoenx.ui.components.RippleTrailOverlay
+import com.example.phoenx.ui.components.RippleTrailState
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -135,7 +138,7 @@ class MainActivity : FragmentActivity() {
                     }
                 } else if (isUnlocked) {
                     android.util.Log.d("PHOENX_DEBUG", "Chargement MainContent")
-                    MainContent()
+                    MainContent(accentColor)
                 } else {
                     Box(
                         modifier = Modifier
@@ -148,7 +151,7 @@ class MainActivity : FragmentActivity() {
     }
 
     @Composable
-    fun MainContent() {
+    fun MainContent(accentColor: androidx.compose.ui.graphics.Color) {
         LaunchedEffect(Unit) {
             mainViewModel.confirmPresence()
         }
@@ -157,6 +160,8 @@ class MainActivity : FragmentActivity() {
         // val showRecoveryReminder by mainViewModel.showRecoveryReminder.collectAsState() // Mis en veille
         val navController = rememberNavController()
         this.navController = navController
+
+        val rippleState = remember { RippleTrailState() }
 
         /*
         if (showRecoveryReminder) {
@@ -200,11 +205,17 @@ class MainActivity : FragmentActivity() {
             modifier = Modifier
                 .fillMaxSize()
                 .background(LocalBackgroundBrush.current)
+                .rippleTrailDetection(rippleState, accentColor)
         ) {
+            @androidx.media3.common.util.UnstableApi
             PhoenXNavGraph(
                 navController = navController,
                 mainViewModel = mainViewModel
             )
+
+            // Overlay GLOBAL de traînée tactile (v9.2.7)
+            // Placé APRES le NavGraph pour être au-dessus
+            RippleTrailOverlay(state = rippleState)
         }
     }
 }

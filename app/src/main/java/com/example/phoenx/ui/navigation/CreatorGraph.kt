@@ -38,6 +38,7 @@ import com.example.phoenx.ui.screens.portraits.PortraitProcheScreen
 import com.example.phoenx.ui.screens.portraits.PortraitScreen
 import com.example.phoenx.ui.screens.profile.CreatorRichProfileScreen
 import com.example.phoenx.ui.screens.profile.ProfileScreen
+import androidx.media3.common.util.UnstableApi
 import com.example.phoenx.ui.screens.questions.PendingQuestionsScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.quiz.QuizCreateScreen
@@ -55,6 +56,7 @@ import com.example.phoenx.ui.screens.worlds.WorldsScreen
 import com.example.phoenx.ui.screens.youngselfletters.YoungSelfLetterScreen
 import com.google.firebase.auth.FirebaseAuth
 
+@UnstableApi
 fun NavGraphBuilder.creatorGraph(
     navController: NavController,
     mainViewModel: MainViewModel

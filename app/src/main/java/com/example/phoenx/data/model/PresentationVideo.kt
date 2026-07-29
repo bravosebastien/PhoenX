@@ -5,5 +5,5 @@ data class PresentationVideo(
     val title: String = "",
     val videoUrl: String = "",
     val thumbnailUrl: String? = null,
-    val order: Int = 0
+    val slotIndex: Int = 0 // 1 to 6
 )

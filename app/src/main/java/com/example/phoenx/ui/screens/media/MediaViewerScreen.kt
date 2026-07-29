@@ -26,6 +26,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
@@ -33,6 +34,7 @@ import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.example.phoenx.ui.theme.BackgroundPrimary
 
+@UnstableApi
 @Composable
 fun MediaViewerScreen(
     entryId: String,
@@ -137,6 +139,7 @@ fun ZoomableImage(
     }
 }
 
+@UnstableApi
 @Composable
 fun VideoPlayer(
     mediaUrl: String,
@@ -170,6 +173,7 @@ fun VideoPlayer(
     )
 }
 
+@UnstableApi
 @Composable
 fun AudioPlayer(
     mediaUrl: String,

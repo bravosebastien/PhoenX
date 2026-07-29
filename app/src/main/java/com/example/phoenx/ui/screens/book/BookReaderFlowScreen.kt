@@ -91,7 +91,7 @@ fun BookReaderFlowScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(bookDraft?.bookTitle ?: "Mon Livre de Vie", fontFamily = fontFamily) },
+                title = { Text(bookDraft?.bookTitle ?: "Livre de Vie", fontFamily = fontFamily) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = textColor)

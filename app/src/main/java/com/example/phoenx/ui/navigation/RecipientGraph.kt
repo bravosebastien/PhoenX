@@ -28,9 +28,11 @@ import com.example.phoenx.ui.screens.universal.UniversalFeedScreen
 import com.example.phoenx.ui.screens.universal.UniversalJoinScreen
 import com.example.phoenx.ui.screens.universal.UniversalMessageScreen
 import com.example.phoenx.ui.screens.witness.WitnessResponseScreen
+import androidx.media3.common.util.UnstableApi
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
+@UnstableApi
 fun NavGraphBuilder.recipientGraph(
     navController: NavController,
     mainViewModel: MainViewModel

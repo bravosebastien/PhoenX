@@ -2,8 +2,10 @@ package com.example.phoenx.ui.screens.home
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -43,9 +45,11 @@ import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import com.example.phoenx.data.model.PresentationVideo
+import androidx.media3.common.util.UnstableApi
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
+@UnstableApi
 @Composable
 fun HomeScreen(
     onNavigateToCapture: (String, String?) -> Unit,
@@ -93,27 +97,34 @@ fun HomeScreen(
 
     var showLogoutDialog by remember { mutableStateOf(false) }
     var selectedPresentationVideo by remember { mutableStateOf<PresentationVideo?>(null) }
-    var showAdminAddVideo by remember { mutableStateOf(false) }
 
     if (showLogoutDialog) {
-        // ... (existing code)
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("Se déconnecter ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Es-tu sûr de vouloir fermer ta session ?", color = theme.contentColor.copy(alpha = 0.7f)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    mainViewModel.logout()
+                    onLogoutSuccess()
+                    showLogoutDialog = false
+                }) {
+                    Text("Déconnexion", color = Error, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Annuler", color = theme.contentColor)
+                }
+            }
+        )
     }
 
     if (selectedPresentationVideo != null) {
         PresentationVideoPlayerDialog(
             video = selectedPresentationVideo!!,
             onDismiss = { selectedPresentationVideo = null },
-            theme = theme
-        )
-    }
-
-    if (showAdminAddVideo) {
-        AdminAddVideoDialog(
-            onDismiss = { showAdminAddVideo = false },
-            onSave = { title, url, thumb, order ->
-                viewModel.addPresentationVideo(title, url, thumb, order)
-                showAdminAddVideo = false
-            },
             theme = theme
         )
     }
@@ -203,7 +214,7 @@ fun HomeScreen(
                 if (currentPerspective == MainViewModel.Perspective.MY_MEMORY) {
                     // --- AJOUT v9.2 : CARTE MON LIVRE (Positionnée en haut v9.2.3) ---
                     BookCoverCard(
-                        title = uiState.bookTitle ?: "Mon Livre de Vie",
+                        title = uiState.bookTitle ?: "Livre de Vie",
                         chaptersCount = uiState.validatedChaptersCount,
                         coverImageUrl = uiState.coverImageUrl,
                         defaultCoverUrl = uiState.defaultCoverUrl,
@@ -328,21 +339,14 @@ fun HomeScreen(
                         theme = theme
                     )
 
-                    // --- AJOUT v9.2.6 : GALERIE DE VIDÉOS DE PRÉSENTATION ---
-                    val isAdmin = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid == "bLRNen7rArXinv5iQILx5OS3sxh2"
-                    if (uiState.presentationVideos.isNotEmpty() || isAdmin) {
-                        PresentationVideoGallery(
-                            videos = uiState.presentationVideos,
-                            isAdmin = isAdmin,
-                            theme = theme,
-                            onVideoClick = { video ->
-                                selectedPresentationVideo = video
-                            },
-                            onAddVideo = {
-                                showAdminAddVideo = true
-                            }
-                        )
-                    }
+                    // --- AJOUT v9.2.6 : GALERIE DE VIDÉOS DE PRÉSENTATION (TOUJOURS VISIBLE v9.2.7) ---
+                    PresentationVideoGallery(
+                        videos = uiState.presentationVideos,
+                        theme = theme,
+                        onVideoClick = { video ->
+                            selectedPresentationVideo = video
+                        }
+                    )
 
                     // ACTIONS RAPIDES
                     Text(
@@ -703,7 +707,7 @@ fun BookCoverCard(
     chaptersCount: Int,
     coverImageUrl: String? = null,
     defaultCoverUrl: String? = null,
-    coverTitleStyle: String = "WHITE",
+    coverTitleStyle: String = "GOLD",
     onClick: () -> Unit,
     theme: AppThemeState
 ) {
@@ -713,9 +717,9 @@ fun BookCoverCard(
     
     val titleBrush = getTitleBrush(coverTitleStyle)
     val titleColor = when(coverTitleStyle) {
-        "BLACK" -> Color.Black
-        "WHITE" -> Color.White
-        else -> Color.White // Fallback pour dégradés
+        "BLACK" -> Color.Black.copy(alpha = 0.85f)
+        "WHITE" -> Color.White.copy(alpha = 0.85f)
+        else -> Color.White.copy(alpha = 0.85f)
     }
 
     Column(
@@ -808,9 +812,9 @@ fun BookCoverCard(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(start = 28.dp, end = 20.dp, top = 32.dp, bottom = 24.dp),
+                        .padding(start = 28.dp, end = 20.dp, top = 4.dp, bottom = 24.dp), // v9.2.7 : Top quasi-collé
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Top
                 ) {
                     var fontSize by remember(title) { mutableStateOf(20.sp) }
                     
@@ -822,9 +826,9 @@ fun BookCoverCard(
                         fontStyle = FontStyle.Italic,
                         lineHeight = (fontSize.value * 1.2).sp,
                         shadow = if (hasBackgroundImage || coverTitleStyle != "BLACK") androidx.compose.ui.graphics.Shadow(
-                            color = Color.Black.copy(alpha = 0.5f),
-                            offset = androidx.compose.ui.geometry.Offset(2f, 2f),
-                            blurRadius = 6f
+                            color = Color.Black.copy(alpha = 0.4f),
+                            offset = androidx.compose.ui.geometry.Offset(1.5f, 1.5f),
+                            blurRadius = 4f
                         ) else null
                     )
 
@@ -842,7 +846,7 @@ fun BookCoverCard(
                         overflow = TextOverflow.Ellipsis
                     )
                     
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                     
                     Box(
                         modifier = Modifier
@@ -851,18 +855,7 @@ fun BookCoverCard(
                             .background((if (hasBackgroundImage) Color.White else accent).copy(alpha = 0.4f))
                     )
                     
-                    Spacer(modifier = Modifier.height(20.dp))
-                    
-                    Text(
-                        text = "$chaptersCount chapitres\nvalidés",
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontSize = 10.sp,
-                            textAlign = TextAlign.Center,
-                            lineHeight = 14.sp
-                        ),
-                        color = (if (hasBackgroundImage) Color.White else accent).copy(alpha = 0.7f),
-                        fontWeight = FontWeight.Bold
-                    )
+                    // Suppression "X chapitres validés" (v9.2.7)
                 }
                 
                 // Effet de relief sur le bord droit
@@ -883,18 +876,35 @@ fun BookCoverCard(
 }
 
 fun getTitleBrush(style: String): Brush? {
+    val alpha = 0.82f // v9.2.7 : Rendu plus doux
     return when (style) {
         "GOLD" -> Brush.linearGradient(
-            colors = listOf(Color(0xFFB8860B), Color(0xFFFFF8DC), Color(0xFFB8860B))
+            colors = listOf(
+                Color(0xFFB8860B).copy(alpha = alpha), 
+                Color(0xFFFFF8DC).copy(alpha = alpha), 
+                Color(0xFFB8860B).copy(alpha = alpha)
+            )
         )
         "SILVER" -> Brush.linearGradient(
-            colors = listOf(Color(0xFFA8A9AD), Color(0xFFFFFFFF), Color(0xFFA8A9AD))
+            colors = listOf(
+                Color(0xFFA8A9AD).copy(alpha = alpha), 
+                Color(0xFFFFFFFF).copy(alpha = alpha), 
+                Color(0xFFA8A9AD).copy(alpha = alpha)
+            )
         )
         "EMERALD" -> Brush.linearGradient(
-            colors = listOf(Color(0xFF046307), Color(0xFF50C878), Color(0xFF046307))
+            colors = listOf(
+                Color(0xFF046307).copy(alpha = alpha), 
+                Color(0xFF50C878).copy(alpha = alpha), 
+                Color(0xFF046307).copy(alpha = alpha)
+            )
         )
         "RED" -> Brush.linearGradient(
-            colors = listOf(Color(0xFF4A0404), Color(0xFFB22222), Color(0xFF7B0323))
+            colors = listOf(
+                Color(0xFF4A0404).copy(alpha = alpha), 
+                Color(0xFFB22222).copy(alpha = alpha), 
+                Color(0xFF7B0323).copy(alpha = alpha)
+            )
         )
         else -> null
     }
@@ -965,84 +975,93 @@ fun TrustCircleCard(
 @Composable
 fun PresentationVideoGallery(
     videos: List<PresentationVideo>,
-    isAdmin: Boolean,
     theme: AppThemeState,
-    onVideoClick: (PresentationVideo) -> Unit,
-    onAddVideo: () -> Unit
+    onVideoClick: (PresentationVideo) -> Unit
 ) {
     val accent = theme.accentColor
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 16.dp)
+            .padding(vertical = 24.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                "DÉCOUVRIR PHOEN-X",
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
-                color = theme.contentColor.copy(alpha = 0.4f)
-            )
-            if (isAdmin) {
-                IconButton(onClick = onAddVideo, modifier = Modifier.size(24.dp)) {
-                    Icon(Icons.Outlined.Add, null, tint = accent, modifier = Modifier.size(16.dp))
-                }
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            "VOTRE GUIDE VIDÉO",
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.Black),
+            color = theme.contentColor.copy(alpha = 0.4f),
+            modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 16.dp)
+        )
 
-        // Grille de cercles (3 par ligne)
-        FlowRow(
+        // Grille fixe de 6 slots (3 par ligne, 2 lignes) (v9.2.7)
+        Column(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            maxItemsInEachRow = 3
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            videos.forEach { video ->
-                Column(
-                    modifier = Modifier
-                        .width(100.dp)
-                        .clickable { onVideoClick(video) }
-                        .padding(bottom = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+            repeat(2) { rowIndex ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(70.dp)
-                            .clip(CircleShape)
-                            .background(theme.contentColor.copy(alpha = 0.05f))
-                            .border(1.5.dp, accent.copy(alpha = 0.3f), CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (video.thumbnailUrl != null) {
-                            AsyncImage(
-                                model = video.thumbnailUrl,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
+                    repeat(3) { colIndex ->
+                        val slotNumber = rowIndex * 3 + colIndex + 1 // 1 à 6
+                        val video = videos.find { it.slotIndex == slotNumber }
+                        
+                        Column(
+                            modifier = Modifier
+                                .width(90.dp)
+                                .then(if (video != null) Modifier.clickable { onVideoClick(video) } else Modifier),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(CircleShape)
+                                    .background(theme.contentColor.copy(alpha = 0.04f))
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (video != null) accent.copy(alpha = 0.4f) else theme.contentColor.copy(alpha = 0.1f),
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (video?.thumbnailUrl != null) {
+                                    AsyncImage(
+                                        model = video.thumbnailUrl,
+                                        contentDescription = null,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                } else if (video != null) {
+                                    Icon(Icons.Outlined.PlayArrow, null, tint = accent.copy(alpha = 0.6f))
+                                } else {
+                                    // Placeholder vide discret (v9.2.7)
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .background(theme.contentColor.copy(alpha = 0.05f), CircleShape)
+                                    )
+                                }
+                            }
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+                            
+                            Text(
+                                text = video?.title ?: "",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                                color = theme.contentColor.copy(alpha = 0.8f),
+                                textAlign = TextAlign.Center,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.heightIn(min = 24.dp)
                             )
-                        } else {
-                            Icon(Icons.Outlined.PlayArrow, null, tint = accent.copy(alpha = 0.6f))
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = video.title,
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
-                        color = theme.contentColor.copy(alpha = 0.8f),
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
                 }
             }
         }
     }
 }
 
+@UnstableApi
 @Composable
 fun PresentationVideoPlayerDialog(
     video: PresentationVideo,
@@ -1074,46 +1093,13 @@ fun PresentationVideoPlayerDialog(
                 Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
                     VideoPlayerBanner(
                         modifier = Modifier.fillMaxWidth().aspectRatio(16/9f),
+                        overrideVideoUrl = video.videoUrl, // v9.2.7 : Lecture de l'URL spécifique
                         onDismiss = {} // Non applicable ici
                     )
                 }
             }
         }
     }
-}
-
-@Composable
-fun AdminAddVideoDialog(
-    onDismiss: () -> Unit,
-    onSave: (String, String, String?, Int) -> Unit,
-    theme: AppThemeState
-) {
-    var title by remember { mutableStateOf("") }
-    var url by remember { mutableStateOf("") }
-    var thumb by remember { mutableStateOf("") }
-    var order by remember { mutableStateOf("0") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = theme.backgroundColor,
-        title = { Text("Ajouter une vidéo", color = theme.contentColor) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextField(value = title, onValueChange = { title = it }, label = { Text("Titre") })
-                TextField(value = url, onValueChange = { url = it }, label = { Text("URL Vidéo") })
-                TextField(value = thumb, onValueChange = { thumb = it }, label = { Text("URL Miniature (Optionnel)") })
-                TextField(value = order, onValueChange = { order = it }, label = { Text("Ordre") })
-            }
-        },
-        confirmButton = {
-            Button(onClick = { onSave(title, url, thumb.ifBlank { null }, order.toIntOrNull() ?: 0) }) {
-                Text("Enregistrer")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Annuler") }
-        }
-    )
 }
 
 @Composable

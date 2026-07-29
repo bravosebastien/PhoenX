@@ -56,7 +56,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 db.collection("presentationVideos")
-                    .orderBy("order")
+                    .orderBy("slotIndex") // v9.2.7 : Tri par slotIndex
                     .addSnapshotListener { snapshot, _ ->
                         val videos = snapshot?.documents?.mapNotNull { doc ->
                             doc.toObject(PresentationVideo::class.java)?.copy(id = doc.id)
@@ -113,7 +113,7 @@ class HomeViewModel @Inject constructor(
                         val validatedCount = chapters.count { it["status"] == "VALIDATED" }
                         val title = snapshot?.getString("bookTitle")
                         val coverUrl = snapshot?.getString("coverImageUrl")
-                        val style = snapshot?.getString("coverTitleStyle") ?: "WHITE"
+                        val style = snapshot?.getString("coverTitleStyle") ?: "GOLD"
                         
                         _uiState.update { it.copy(
                             validatedChaptersCount = validatedCount,
@@ -209,23 +209,6 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) { }
         }
     }
-
-    fun addPresentationVideo(title: String, videoUrl: String, thumbnailUrl: String?, order: Int) {
-        viewModelScope.launch {
-            try {
-                val data = hashMapOf(
-                    "title" to title,
-                    "videoUrl" to videoUrl,
-                    "thumbnailUrl" to thumbnailUrl,
-                    "order" to order,
-                    "createdAt" to System.currentTimeMillis()
-                )
-                db.collection("presentationVideos").add(data).await()
-            } catch (e: Exception) {
-                android.util.Log.e("HomeViewModel", "Erreur ajout vidéo: ${e.message}")
-            }
-        }
-    }
 }
 
 data class HomeUiState(
@@ -243,7 +226,7 @@ data class HomeUiState(
     val bookTitle: String? = null,
     val coverImageUrl: String? = null, // v9.2.4
     val defaultCoverUrl: String? = null, // v9.2.5
-    val coverTitleStyle: String = "WHITE", // v9.2.6
+    val coverTitleStyle: String = "GOLD", // v9.2.6
     val presentationVideos: List<PresentationVideo> = emptyList(), // v9.2.6
     val latestEntries: List<OfflineEntry> = emptyList()
 )

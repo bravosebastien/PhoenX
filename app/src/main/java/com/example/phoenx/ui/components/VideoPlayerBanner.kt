@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.components
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,6 +22,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.example.phoenx.ui.theme.LocalAppTheme
@@ -28,44 +30,38 @@ import com.google.firebase.Firebase
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
 
+@UnstableApi
 @Composable
 fun VideoPlayerBanner(
     modifier: Modifier = Modifier,
+    overrideVideoUrl: String? = null, // v9.2.7 : Support URL externe
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
-    var videoUrl by remember { mutableStateOf("") }
-    var isMuted by remember { mutableStateOf(true) }
+    var videoUrl by remember { mutableStateOf(overrideVideoUrl ?: "") }
+    var isMuted by remember { mutableStateOf(overrideVideoUrl == null) } // Muet par défaut sur l'accueil uniquement
     var isPlaying by remember { mutableStateOf(true) }
+    var showControls by remember { mutableStateOf(false) }
 
-    // Remote Config fetching
-    LaunchedEffect(Unit) {
-        val remoteConfig = Firebase.remoteConfig
-        val configSettings = remoteConfigSettings {
-            minimumFetchIntervalInSeconds = 0 // Force le rafraîchissement immédiat pour les tests
-        }
-        remoteConfig.setConfigSettingsAsync(configSettings)
-        
-        android.util.Log.d("PHOENX_VIDEO", "Tentative de récupération Remote Config...")
-        
-        remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val keys = remoteConfig.all.keys
-                android.util.Log.d("PHOENX_VIDEO", "Fetch réussi ! Clés disponibles : ${keys.joinToString(", ")}")
-                
-                val url = remoteConfig.getString("home_video_url").trim()
-                if (url.isNotEmpty()) {
-                    android.util.Log.d("PHOENX_VIDEO", "URL trouvée : $url")
-                    videoUrl = url
-                } else {
-                    android.util.Log.w("PHOENX_VIDEO", "Attention : La clé 'home_video_url' existe mais la valeur est VIDE.")
-                }
-            } else {
-                val error = task.exception?.message ?: "Erreur inconnue"
-                android.util.Log.e("PHOENX_VIDEO", "Échec du Fetch : $error")
+    // Remote Config fetching (Uniquement si pas d'override)
+    LaunchedEffect(overrideVideoUrl) {
+        if (overrideVideoUrl == null) {
+            val remoteConfig = Firebase.remoteConfig
+            val configSettings = remoteConfigSettings {
+                minimumFetchIntervalInSeconds = 3600 
             }
+            remoteConfig.setConfigSettingsAsync(configSettings)
+            
+            remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val url = remoteConfig.getString("home_video_url").trim()
+                    if (url.isNotEmpty()) videoUrl = url
+                }
+            }
+        } else {
+            videoUrl = overrideVideoUrl
         }
     }
 
@@ -107,9 +103,16 @@ fun VideoPlayerBanner(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Black)
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable { showControls = !showControls }
+        ) {
             if (videoUrl.isEmpty()) {
-                // Placeholder
+                // ... (placeholder stays as is, or maybe showControls should be true by default here?)
+                // Actually, if it's empty, we might want to keep the close button visible to allow dismissal.
+                // But let's follow the requirement: controls appear on tap.
+                
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -134,6 +137,7 @@ fun VideoPlayerBanner(
                 // Vidéo Player
                 AndroidView(
                     factory = { ctx ->
+                        @androidx.media3.common.util.UnstableApi
                         PlayerView(ctx).apply {
                             player = exoPlayer
                             useController = false
@@ -144,61 +148,75 @@ fun VideoPlayerBanner(
                 )
             }
 
-            // --- CONTRÔLES ---
+            // --- CONTRÔLES (v9.2.7 : Auto-hide avec fondu) ---
             
-            // Bouton Fermer (Haut Droite)
-            Surface(
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(12.dp)
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .clickable { onDismiss() },
-                color = theme.backgroundColor.copy(alpha = 0.6f)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Fermer",
-                    tint = theme.contentColor,
-                    modifier = Modifier.padding(8.dp).size(18.dp)
-                )
-            }
-
-            if (videoUrl.isNotEmpty()) {
-                // Bouton Son (Bas Gauche)
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(12.dp)
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .clickable { isMuted = !isMuted },
-                    color = theme.backgroundColor.copy(alpha = 0.6f)
+            Column { // Fournit un ColumnScope pour AnimatedVisibility (v9.2.7)
+                AnimatedVisibility(
+                    visible = showControls,
+                    enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+                    exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center),
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    Icon(
-                        imageVector = if (isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
-                        contentDescription = "Son",
-                        tint = theme.contentColor,
-                        modifier = Modifier.padding(8.dp).size(20.dp)
-                    )
-                }
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        // Voile léger pour améliorer la visibilité des contrôles
+                        Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.25f)))
 
-                // Bouton Play/Pause (Bas Centre)
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(12.dp)
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .clickable { isPlaying = !isPlaying },
-                    color = theme.backgroundColor.copy(alpha = 0.6f)
-                ) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = "Play/Pause",
-                        tint = theme.contentColor,
-                        modifier = Modifier.padding(8.dp).size(20.dp)
-                    )
+                        // Bouton Fermer (Haut Droite)
+                        Surface(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(12.dp)
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .clickable { onDismiss() },
+                            color = theme.backgroundColor.copy(alpha = 0.7f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Fermer",
+                                tint = theme.contentColor,
+                                modifier = Modifier.padding(8.dp).size(18.dp)
+                            )
+                        }
+
+                        if (videoUrl.isNotEmpty()) {
+                            // Bouton Son (Bas Gauche)
+                            Surface(
+                                modifier = Modifier
+                                    .align(Alignment.BottomStart)
+                                    .padding(12.dp)
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .clickable { isMuted = !isMuted },
+                                color = theme.backgroundColor.copy(alpha = 0.7f)
+                            ) {
+                                Icon(
+                                    imageVector = if (isMuted) Icons.AutoMirrored.Filled.VolumeOff else Icons.AutoMirrored.Filled.VolumeUp,
+                                    contentDescription = "Son",
+                                    tint = theme.contentColor,
+                                    modifier = Modifier.padding(8.dp).size(20.dp)
+                                )
+                            }
+
+                            // Bouton Play/Pause (Bas Centre)
+                            Surface(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(12.dp)
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .clickable { isPlaying = !isPlaying },
+                                color = theme.backgroundColor.copy(alpha = 0.7f)
+                            ) {
+                                Icon(
+                                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    contentDescription = "Play/Pause",
+                                    tint = theme.contentColor,
+                                    modifier = Modifier.padding(8.dp).size(20.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
