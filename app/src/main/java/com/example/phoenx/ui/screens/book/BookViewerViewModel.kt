@@ -149,7 +149,7 @@ class BookViewerViewModel @Inject constructor(
             chapterContents[chapter.id] = decrypted
             
             // Extraction des IDs média [PHOTO:uuid] ou [AUDIO:uuid]
-            val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9\\-]+)\\]")
+            val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9-]+)]")
             regex.findAll(decrypted).forEach { match ->
                 mediaIds.add(match.groupValues[2])
             }

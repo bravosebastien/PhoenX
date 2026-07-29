@@ -42,7 +42,7 @@ fun VideoPlayerBanner(
     val accent = theme.accentColor
     var videoUrl by remember { mutableStateOf(overrideVideoUrl ?: "") }
     var isMuted by remember { mutableStateOf(overrideVideoUrl == null) } // Muet par défaut sur l'accueil uniquement
-    var isPlaying by remember { mutableStateOf(true) }
+    var isPlaying by remember { mutableStateOf(value = true) }
     var showControls by remember { mutableStateOf(false) }
 
     // Remote Config fetching (Uniquement si pas d'override)

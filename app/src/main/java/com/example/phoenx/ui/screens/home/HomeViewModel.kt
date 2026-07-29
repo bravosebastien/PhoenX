@@ -70,17 +70,23 @@ class HomeViewModel @Inject constructor(
     }
 
     private fun fetchRemoteConfig() {
+        android.util.Log.d("RemoteConfigDebug", "fetchRemoteConfig started")
         val remoteConfig = Firebase.remoteConfig
         val configSettings = remoteConfigSettings {
             minimumFetchIntervalInSeconds = 3600 // 1 heure en prod
         }
         remoteConfig.setConfigSettingsAsync(configSettings)
         remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
+            android.util.Log.d("RemoteConfigDebug", "fetchAndActivate complete. Success: ${task.isSuccessful}")
             if (task.isSuccessful) {
                 val url = remoteConfig.getString("default_book_cover_url").trim()
-                if (url.isNotEmpty()) {
-                    _uiState.update { it.copy(defaultCoverUrl = url) }
-                }
+                val earthUrl = remoteConfig.getString("earth_texture_url").trim()
+                android.util.Log.d("RemoteConfigDebug", "earth_texture_url from RC: '$earthUrl'")
+                
+                _uiState.update { it.copy(
+                    defaultCoverUrl = url.ifEmpty { null },
+                    earthTextureUrl = earthUrl.ifEmpty { null }
+                ) }
             }
         }
     }
@@ -109,7 +115,9 @@ class HomeViewModel @Inject constructor(
                 db.collection("users").document(user.uid)
                     .collection("book").document("current_draft")
                     .addSnapshotListener { snapshot, _ ->
-                        val chapters = snapshot?.get("chapters") as? List<Map<String, Any>> ?: emptyList()
+                        val chaptersList = snapshot?.get("chapters")
+                        @Suppress("UNCHECKED_CAST")
+                        val chapters = chaptersList as? List<Map<String, Any>> ?: emptyList()
                         val validatedCount = chapters.count { it["status"] == "VALIDATED" }
                         val title = snapshot?.getString("bookTitle")
                         val coverUrl = snapshot?.getString("coverImageUrl")
@@ -226,6 +234,7 @@ data class HomeUiState(
     val bookTitle: String? = null,
     val coverImageUrl: String? = null, // v9.2.4
     val defaultCoverUrl: String? = null, // v9.2.5
+    val earthTextureUrl: String? = null, // v9.2.8
     val coverTitleStyle: String = "GOLD", // v9.2.6
     val presentationVideos: List<PresentationVideo> = emptyList(), // v9.2.6
     val latestEntries: List<OfflineEntry> = emptyList()

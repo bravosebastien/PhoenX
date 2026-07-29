@@ -1,7 +1,6 @@
 package com.example.phoenx.ui.screens.book
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -27,12 +26,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEach
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.model.BookTheme
 import com.example.phoenx.ui.theme.LocalAccentColor
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,20 +62,19 @@ fun BookReaderFlowScreen(
     var showResumeBanner by remember { mutableStateOf(false) }
 
     // 1. Détection de position pour le marque-page avec Debounce (v8.7.0)
-    LaunchedEffect(listState.firstVisibleItemIndex, listState.firstVisibleItemScrollOffset) {
-        // On attend 2 secondes d'immobilité totale avant de sauvegarder
-        kotlinx.coroutines.delay(2000)
-        
-        if (listState.firstVisibleItemIndex > 0) {
-            val userId = targetCreatorId ?: bookDraft?.userId
-            if (userId != null) {
-                viewModel.saveReadingProgress(
-                    userId, 
-                    listState.firstVisibleItemIndex, 
-                    listState.firstVisibleItemScrollOffset
-                )
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collectLatest { (index: Int, offset: Int) ->
+                // On attend 2 secondes d'immobilité totale avant de sauvegarder
+                kotlinx.coroutines.delay(2000)
+                
+                if (index > 0) {
+                    val userId = targetCreatorId ?: bookDraft?.userId
+                    if (userId != null) {
+                        viewModel.saveReadingProgress(userId, index, offset)
+                    }
+                }
             }
-        }
     }
 
     // 2. Affichage du bandeau de reprise
@@ -266,7 +266,7 @@ fun ReaderIllustrableText(
     accent: Color,
     fontSizeScale: Float
 ) {
-    val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9\\-]+)\\]")
+    val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9-]+)]")
     val parts = text.split(regex)
     val matches = regex.findAll(text).toList()
 

@@ -1,7 +1,6 @@
 package com.example.phoenx.ui.screens.book
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.core.content.edit
 import com.example.phoenx.data.model.BookChapter
 import com.example.phoenx.data.model.ChapterStatus
 import com.example.phoenx.ui.components.InfoButton
@@ -605,7 +605,7 @@ fun BookEditorScreen(
             BookOnboardingDialog(
                 onDismiss = { 
                     showOnboarding = false 
-                    prefs.edit().putBoolean("seen_book_onboarding", true).apply()
+                    prefs.edit { putBoolean("seen_book_onboarding", true) }
                     // Après le 1er popup, on propose le 2e s'il n'a pas été vu
                     if (!prefs.getBoolean("seen_book_ai_explanation", false)) showAiExplanation = true
                 }
