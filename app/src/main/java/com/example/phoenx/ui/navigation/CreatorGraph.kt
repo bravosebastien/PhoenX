@@ -292,6 +292,10 @@ fun NavGraphBuilder.creatorGraph(
         RecipientLibraryScreen(navController = navController, isCreatorMode = true)
     }
 
+    composable("literary_library") {
+        com.example.phoenx.ui.screens.library.LiteraryLibraryScreen(navController = navController, isCreatorMode = true)
+    }
+
     composable(
         route = "library_cover_picker/{compartmentId}/{compartmentName}",
         arguments = listOf(

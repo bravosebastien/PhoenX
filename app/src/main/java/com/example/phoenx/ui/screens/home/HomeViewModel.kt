@@ -217,6 +217,25 @@ class HomeViewModel @Inject constructor(
             } catch (e: Exception) { }
         }
     }
+
+    /**
+     * Déclenche le rattrapage des UIDs (v9.3.2) - Réservé Admin
+     */
+    fun runRecipientBackfill(onComplete: (Int) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val result = com.google.firebase.functions.FirebaseFunctions.getInstance()
+                    .getHttpsCallable("backfillRecipientUids")
+                    .call()
+                    .await()
+                val data = result.data as Map<*, *>
+                val count = (data["recipientsProcessed"] as? Number)?.toInt() ?: 0
+                onComplete(count)
+            } catch (e: Exception) {
+                android.util.Log.e("HomeVM", "Erreur backfill: ${e.message}")
+            }
+        }
+    }
 }
 
 data class HomeUiState(

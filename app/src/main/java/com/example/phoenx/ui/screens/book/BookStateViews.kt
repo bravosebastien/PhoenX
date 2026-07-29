@@ -29,9 +29,13 @@ import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.phoenXMatiere
 
 @Composable
-fun EmptyBookState(onGenerate: () -> Unit) {
+fun EmptyBookState(
+    entryCount: Int,
+    onGenerate: () -> Unit
+) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val canGenerate = entryCount >= 10 // v9.3.1
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -113,23 +117,108 @@ fun EmptyBookState(onGenerate: () -> Unit) {
 
         Button(
             onClick = onGenerate,
+            enabled = canGenerate, // v9.3.1
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = accent,
-                contentColor = theme.backgroundColor
+                containerColor = if (canGenerate) accent else theme.contentColor.copy(alpha = 0.1f),
+                contentColor = if (canGenerate) theme.backgroundColor else theme.contentColor.copy(alpha = 0.3f)
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
-                text = "Générer mon livre",
+                text = if (canGenerate) "Ébaucher mon livre" else "Il manque ${10 - entryCount} souvenirs",
                 style = TextStyle(
                     fontFamily = theme.fontFamily,
-                    fontSize = 16.sp,
-                    color = theme.backgroundColor
+                    fontSize = 16.sp
                 )
             )
+        }
+    }
+}
+
+@Composable
+fun ProposedPlanView(
+    plan: List<Map<String, Any?>>,
+    onValidate: () -> Unit,
+    onCancel: () -> Unit
+) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(theme.backgroundColor)
+            .padding(24.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(Icons.Default.Architecture, null, tint = accent, modifier = Modifier.size(48.dp))
+        Spacer(Modifier.height(16.dp))
+        Text(
+            "Structure proposée",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, color = theme.contentColor)
+        )
+        Text(
+            "Voici comment l'IA suggère d'organiser votre récit.",
+            style = MaterialTheme.typography.bodySmall,
+            color = theme.contentColor.copy(alpha = 0.6f),
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(Modifier.height(32.dp))
+        
+        plan.forEachIndexed { index, chapter ->
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        "CHAPITRE ${index + 1}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = accent
+                    )
+                    Text(
+                        chapter["title"] as? String ?: "Sans titre",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = theme.contentColor
+                    )
+                    chapter["description"]?.let {
+                        Text(
+                            it as String,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = theme.contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                    val scenes = chapter["sceneIds"] as? List<*>
+                    Text(
+                        "${scenes?.size ?: 0} souvenirs intégrés",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = theme.contentColor.copy(alpha = 0.4f),
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
+        }
+        
+        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(32.dp))
+        
+        Button(
+            onClick = onValidate,
+            modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+            colors = ButtonDefaults.buttonColors(containerColor = accent)
+        ) {
+            Text("Confirmer et rédiger", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+        }
+        
+        TextButton(onClick = onCancel, modifier = Modifier.padding(top = 8.dp)) {
+            Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
         }
     }
 }

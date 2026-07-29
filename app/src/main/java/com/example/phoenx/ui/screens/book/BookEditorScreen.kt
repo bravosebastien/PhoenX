@@ -63,6 +63,7 @@ fun BookEditorScreen(
     val decryptedContents by viewModel.decryptedContents.collectAsState()
     val isGeneratingGlobalIntro by viewModel.isGeneratingGlobalIntro.collectAsState()
     val decryptedGlobalIntro by viewModel.decryptedGlobalIntro.collectAsState()
+    val proposedPlan by viewModel.proposedPlan.collectAsState() // v9.3.1
     val selectedChapter by viewModel.selectedChapter.collectAsState()
     val recipients by viewModel.recipients.collectAsState()
     val isModifyingWithAi by viewModel.isModifyingWithAi.collectAsState()
@@ -71,6 +72,7 @@ fun BookEditorScreen(
     val saveSuccess by viewModel.saveSuccess.collectAsState()
     val isUserCreator by viewModel.isUserCreator.collectAsState()
     val userName by viewModel.userName.collectAsState()
+    val entryCount by viewModel.entryCount.collectAsState() // v9.3.1
     var showChapterEditor by remember { mutableStateOf(false) }
     var forceRestricted by remember { mutableStateOf(false) } 
     var showRegenerateConfirm by remember { mutableStateOf(false) }
@@ -528,13 +530,23 @@ fun BookEditorScreen(
             }
 
             // ── ÉTAT 1 : AUCUN LIVRE ──────────────────
-            if (!isGenerating && bookDraft == null) {
+            if (!isGenerating && bookDraft == null && proposedPlan == null) {
                 item {
                     EmptyBookState(
-                        onGenerate = { viewModel.generateBook() }
+                        entryCount = entryCount,
+                        onGenerate = { viewModel.proposePlan() }
                     )
                 }
             }
+        }
+
+        // ── ÉTAT 1b : PLAN PROPOSÉ (Overlay plein écran v9.3.1) ──
+        if (proposedPlan != null && !isGenerating) {
+            ProposedPlanView(
+                plan = proposedPlan!!,
+                onValidate = { viewModel.generateBook(proposedPlan) },
+                onCancel = { viewModel.cancelPlan() }
+            )
         }
 
         // ── ÉTAT 2 : GÉNÉRATION EN COURS (Overlay centré - v8.6.3) ──

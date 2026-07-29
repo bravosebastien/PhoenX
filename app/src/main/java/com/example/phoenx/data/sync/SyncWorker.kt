@@ -5,7 +5,9 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.local.StandaloneMediaDao
 import com.example.phoenx.data.media.MediaManager
+import com.example.phoenx.data.sync.toFirestoreMap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.assisted.Assisted
@@ -19,6 +21,7 @@ class SyncWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val offlineEntryDao: OfflineEntryDao,
+    private val standaloneMediaDao: StandaloneMediaDao, // v9.3.2
     private val mediaManager: MediaManager
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -30,10 +33,11 @@ class SyncWorker @AssistedInject constructor(
         // Récupération des entrées en attente
         val pendingEntries = offlineEntryDao.getPendingEntries().first()
         val pendingPersons = offlineEntryDao.getAllPersons().first().filter { it.syncStatus == "pending" }
+        val pendingStandalone = standaloneMediaDao.getPendingSync() // v9.3.2
         
-        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées et ${pendingPersons.size} personnes en attente")
+        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées, ${pendingPersons.size} personnes et ${pendingStandalone.size} standalone en attente")
 
-        if (pendingEntries.isEmpty() && pendingPersons.isEmpty()) return Result.success()
+        if (pendingEntries.isEmpty() && pendingPersons.isEmpty() && pendingStandalone.isEmpty()) return Result.success()
 
         val db = FirebaseFirestore.getInstance()
         var hasError = false
@@ -103,6 +107,22 @@ class SyncWorker @AssistedInject constructor(
                     offlineEntryDao.updateSyncStatus(entry.id, "synced")
                 } catch (e: Exception) {
                     android.util.Log.e("SyncWorker", "Erreur upload pour l'entrée ${entry.id}: ${e.message}")
+                    hasError = true
+                }
+            }
+
+            // 3. Synchronisation Standalone Media (v9.3.2)
+            pendingStandalone.forEach { media ->
+                try {
+                    val firestoreMap = media.toFirestoreMap()
+                    db.collection("users").document(userId)
+                        .collection("standaloneMedia").document(media.id)
+                        .set(firestoreMap)
+                        .await()
+                    
+                    standaloneMediaDao.updateSyncStatus(media.id, "synced")
+                } catch (e: Exception) {
+                    android.util.Log.e("SyncWorker", "Erreur upload standalone ${media.id}: ${e.message}")
                     hasError = true
                 }
             }

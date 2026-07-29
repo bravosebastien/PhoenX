@@ -163,11 +163,24 @@ export const generateBookChapters = onCall({
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
 
-    const { scenes, ageMin, ageMax } = request.data;
+    const { scenes, ageMin, ageMax, soulTone, plan, evolutionInsights } = request.data;
     if (!scenes || scenes.length === 0) throw new HttpsError("invalid-argument", "Pas de souvenirs à traiter");
+
+    const toneInstruction = soulTone ? `Le ton de ce récit doit être : ${soulTone}.` : "Le ton doit être celui d'un biographe bienveillant, respectueux et narratif.";
+
+    let planInstruction = "";
+    if (plan && plan.length > 0) {
+        planInstruction = `Respecte IMPÉRATIVEMENT ce plan de chapitres validé : ${JSON.stringify(plan)}.
+        Chaque chapitre doit traiter uniquement les scenes dont les IDs sont listés pour lui.`;
+    }
+
+    const insightsInstruction = evolutionInsights ? `Utilise ces analyses sur l'évolution de la pensée de l'auteur pour donner du relief et de la profondeur au récit : ${evolutionInsights}` : "";
 
     const prompt = `${AI_RULES}
     Tu es le biographe attitré de l'utilisateur. Tu dois rédiger un Livre de Vie structuré en chapitres.
+    ${toneInstruction}
+    ${planInstruction}
+    ${insightsInstruction}
     Données source (Scènes) : ${JSON.stringify(scenes)}
 
     Instructions :
@@ -177,6 +190,31 @@ export const generateBookChapters = onCall({
     4. Réponds UNIQUEMENT en JSON avec cette structure : {"chapters": [{"title": "Nom du chapitre", "content": "Texte avec balises [PHOTO:id] incluses", "orderIndex": 0}]}`;
 
     const text = await generateWithGemini(prompt) || '{"chapters":[]}';
+    return JSON.parse(text.replace(/```json|```/g, "").trim());
+});
+
+// 8b. Génération du plan du livre (v9.3.1)
+export const generateBookPlan = onCall({
+    secrets: ["GEMINI_API_KEY"]
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
+
+    const { scenes } = request.data;
+    if (!scenes || scenes.length === 0) throw new HttpsError("invalid-argument", "Pas de souvenirs à traiter");
+
+    const prompt = `${AI_RULES}
+    Tu es un architecte narratif. À partir des scènes de vie suivantes, propose un plan de livre cohérent.
+    Regroupe les scènes par thèmes ou périodes chronologiques logiques.
+    Scènes : ${JSON.stringify(scenes)}
+
+    Instructions :
+    1. Propose entre 3 et 8 chapitres.
+    2. Pour chaque chapitre, donne un titre poétique et la liste des IDs des scènes incluses.
+    3. Réponds UNIQUEMENT en JSON avec cette structure : {"plan": [{"title": "Titre du chapitre", "sceneIds": ["id1", "id2"], "description": "Brève intention narrative"}]}`;
+
+    const text = await generateWithGemini(prompt) || '{"plan":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());
 });
 
@@ -925,6 +963,7 @@ export const acceptUniversalInvitation = onCall(async (request) => {
             // 8. Mise à jour du statut dans la liste du Créateur
             if (inviteData.sourcePath) {
                 const sourceRef = db.doc(inviteData.sourcePath);
+                const sourceId = inviteDoc.data()?.sourceId; // v9.3.2 : Récupération du DocID local
                 const sourceUpdates: any = {
                     status: "active",
                     linkedUid: auth.uid,
@@ -941,11 +980,94 @@ export const acceptUniversalInvitation = onCall(async (request) => {
 
             return { status: "success", role: role };
         });
+
+        // ═══ PROPAGATION DE LIAISON (v9.3.2) ═══
+        // On effectue la propagation APRÈS le succès de la transaction de liaison
+        const inviteDocAfter = await db.collection("invitations").doc(tokenId).get();
+        const inviteData = inviteDocAfter.data();
+        if (inviteData && inviteData.sourceId && inviteData.role === "recipient") {
+            await propagateUidLiaison(db, inviteData.creatorId, inviteData.sourceId, auth.uid);
+        }
+
+        return { status: "success" };
+
     } catch (error: any) {
         if (error instanceof HttpsError) throw error;
         console.error("Erreur acceptUniversalInvitation:", error);
         throw new HttpsError("internal", error.message || "Erreur lors de l'acceptation de l'invitation");
     }
+});
+
+/**
+ * PHOEN-X v9.3.2 - Propagation de l'UID après liaison
+ * Remplace l'ancien DocID par le vrai UID dans toutes les archives du Créateur.
+ */
+async function propagateUidLiaison(db: FirebaseFirestore.Firestore, creatorId: string, oldDocId: string, newUid: string) {
+    const batch = db.batch();
+    const userRef = db.collection("users").doc(creatorId);
+
+    // 1. Mise à jour des collections avec tableaux recipientIds (v9.3.2)
+    const arrayCollections = ["entries", "quizzes", "standaloneMedia"];
+    for (const col of arrayCollections) {
+        const snap = await userRef.collection(col)
+            .where("recipientIds", "array-contains", oldDocId).get();
+
+        snap.forEach(doc => {
+            const currentIds = doc.data().recipientIds as string[];
+            const updatedIds = currentIds.map(id => id === oldDocId ? newUid : id);
+            batch.update(doc.ref, { recipientIds: updatedIds });
+        });
+    }
+
+    // 2. Mise à jour du Livre (Draft)
+    const bookRef = userRef.collection("book").doc("current_draft");
+    const bookDoc = await bookRef.get();
+    if (bookDoc.exists) {
+        const bookData = bookDoc.data()!;
+        const currentIds = (bookData.recipientIds || []) as string[];
+        if (currentIds.includes(oldDocId)) {
+            const updatedIds = currentIds.map(id => id === oldDocId ? newUid : id);
+            batch.update(bookRef, { recipientIds: updatedIds });
+        }
+    }
+
+    // 4. Mise à jour des Questions en attente & Portraits (Champs simples)
+    const collectionsToFix = ["pendingQuestions", "portraits"];
+    for (const col of collectionsToFix) {
+        const snap = await userRef.collection(col)
+            .where("recipientId", "==", oldDocId).get();
+        snap.forEach(doc => batch.update(doc.ref, { recipientId: newUid }));
+    }
+
+    await batch.commit();
+    console.log(`[LIAISON] Propagation terminée pour ${oldDocId} -> ${newUid} (Collections traitées : ${arrayCollections.join(", ")})`);
+}
+
+/**
+ * Script de rattrapage (Backfill) - Réservé Admin
+ */
+export const backfillRecipientUids = onCall(async (request) => {
+    if (request.auth?.uid !== "bLRNen7rArXinv5iQILx5OS3sxh2") {
+        throw new HttpsError("permission-denied", "Accès administrateur requis");
+    }
+
+    const db = admin.firestore();
+    const usersSnap = await db.collection("users").get();
+    let totalFixed = 0;
+
+    for (const userDoc of usersSnap.docs) {
+        const recipientsSnap = await userDoc.ref.collection("recipients")
+            .where("status", "==", "active").get();
+
+        for (const recDoc of recipientsSnap.docs) {
+            const data = recDoc.data();
+            if (data.linkedUid && data.linkedUid !== recDoc.id) {
+                await propagateUidLiaison(db, userDoc.id, recDoc.id, data.linkedUid);
+                totalFixed++;
+            }
+        }
+    }
+    return { status: "success", recipientsProcessed: totalFixed };
 });
 
 export const migrateLegacyRoles = onCall(async (request) => {

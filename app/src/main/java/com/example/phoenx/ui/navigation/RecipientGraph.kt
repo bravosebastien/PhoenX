@@ -114,6 +114,18 @@ fun NavGraphBuilder.recipientGraph(
         )
     }
 
+    composable(
+        route = "literary_library?creatorId={creatorId}",
+        arguments = listOf(navArgument("creatorId") { type = NavType.StringType; nullable = true })
+    ) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        com.example.phoenx.ui.screens.library.LiteraryLibraryScreen(
+            navController = navController,
+            isCreatorMode = false,
+            targetCreatorId = creatorId
+        )
+    }
+
     // --- MÉDIATHÈQUE ---
     composable(
         route = Screen.RecipientDiscotheque.route,

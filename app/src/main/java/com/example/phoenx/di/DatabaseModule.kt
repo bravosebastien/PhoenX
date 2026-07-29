@@ -47,12 +47,18 @@ object DatabaseModule {
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_31_32,
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_32_33,
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_33_34,
-            com.example.phoenx.data.local.RoomMigrations.MIGRATION_34_35
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_34_35,
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_35_36
         ).build()
     }
 
     @Provides
     fun provideOfflineEntryDao(db: PhoenXDatabase): OfflineEntryDao {
         return db.offlineEntryDao()
+    }
+
+    @Provides
+    fun provideStandaloneMediaDao(db: PhoenXDatabase): com.example.phoenx.data.local.StandaloneMediaDao {
+        return db.standaloneMediaDao()
     }
 }

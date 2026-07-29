@@ -111,10 +111,10 @@ fun HomeScreen(
     // v8.9.0 : Thème Global
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val context = androidx.compose.ui.platform.LocalContext.current
     
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
 
     var showLogoutDialog by remember { mutableStateOf(false) }
     var selectedPresentationVideo by remember { mutableStateOf<PresentationVideo?>(null) }
@@ -243,6 +243,22 @@ fun HomeScreen(
                         onClick = onNavigateToBookEditor,
                         theme = theme
                     )
+
+                    // --- BOUTON BACKFILL ADMIN (v9.3.2) ---
+                    val isAdmin = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid == "bLRNen7rArXinv5iQILx5OS3sxh2"
+                    if (isAdmin) {
+                        Button(
+                            onClick = { 
+                                viewModel.runRecipientBackfill { count ->
+                                    android.widget.Toast.makeText(context, "$count destinataires réparés", android.widget.Toast.LENGTH_LONG).show()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+                        ) {
+                            Text("🔧 RATTRAPAGE UIDs (ADMIN)", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
 
                     // --- VUE CRÉATEUR ---
                     

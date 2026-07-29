@@ -291,10 +291,19 @@ fun RecipientLibraryScreen(
                     maxItemsInEachRow = 3
                 ) {
                     val itemModifier = Modifier.weight(1f)
+                    CompactGridItem("Littéraire", Icons.Outlined.AutoStories, { navController.navigate("literary_library") }, theme, itemModifier)
                     CompactGridItem("Discothèque", Icons.Outlined.Album, { navController.navigate(Screen.RecipientDiscotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) }, theme, itemModifier)
                     CompactGridItem("Vidéothèque", Icons.Outlined.Movie, { navController.navigate(Screen.RecipientVideotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) }, theme, itemModifier)
+                }
+                
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    maxItemsInEachRow = 3
+                ) {
+                    val itemModifier = Modifier.weight(1f)
                     CompactGridItem("Photos", Icons.Outlined.PhotoCamera, { navController.navigate(Screen.RecipientPhotos.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) }, theme, itemModifier)
-                    // Remplissage si nécessaire
+                    // Remplissage
                     repeat(2) { Spacer(modifier = itemModifier) }
                 }
             }

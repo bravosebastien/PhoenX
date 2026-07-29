@@ -49,6 +49,9 @@ class BookEditorViewModel @Inject constructor(
     private val _generationProgress = MutableStateFlow("")
     val generationProgress: StateFlow<String> = _generationProgress
 
+    private val _proposedPlan = MutableStateFlow<List<Map<String, Any?>>?>(null)
+    val proposedPlan: StateFlow<List<Map<String, Any?>>?> = _proposedPlan
+
     private val _isModifyingWithAi = MutableStateFlow(false)
     val isModifyingWithAi: StateFlow<Boolean> = _isModifyingWithAi
 
@@ -69,6 +72,10 @@ class BookEditorViewModel @Inject constructor(
 
     val recipients: StateFlow<List<com.example.phoenx.data.local.RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val entryCount: StateFlow<Int> = offlineEntryDao.getAllEntries()
+        .map { entries -> entries.filter { it.parentEntryId == null }.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     init {
         checkCreatorStatus()
@@ -126,13 +133,14 @@ class BookEditorViewModel @Inject constructor(
         _decryptedContents.value = decrypted
     }
 
-    fun generateBook() {
+    fun generateBook(plan: List<Map<String, Any?>>? = null) {
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
             _isGenerating.value = true
             _error.value = null
+            _proposedPlan.value = null // On efface le plan proposé une fois validé
             try {
-                val draft = bookService.generateBook(userId) { progress ->
+                val draft = bookService.generateBook(userId, plan) { progress ->
                     _generationProgress.value = progress
                 }
                 _bookDraft.value = draft
@@ -143,6 +151,26 @@ class BookEditorViewModel @Inject constructor(
                 _isGenerating.value = false
             }
         }
+    }
+
+    fun proposePlan() {
+        viewModelScope.launch {
+            _isGenerating.value = true
+            _error.value = null
+            _generationProgress.value = "Ébauche de la structure de votre vie..."
+            try {
+                val plan = bookService.generateBookPlan()
+                _proposedPlan.value = plan
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Erreur lors de la création du plan."
+            } finally {
+                _isGenerating.value = false
+            }
+        }
+    }
+
+    fun cancelPlan() {
+        _proposedPlan.value = null
     }
 
     fun selectChapter(chapter: BookChapter?) {

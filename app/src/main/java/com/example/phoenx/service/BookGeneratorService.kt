@@ -116,10 +116,19 @@ class BookGeneratorService @Inject constructor(
                 }
             }
             
+            val originType = when {
+                parent.entryType == "PORTRAIT" -> "PORTRAIT"
+                parent.questionId != null -> "QUESTION"
+                else -> "MEMORY"
+            }
+
             mapOf(
+                "id" to parent.id, // v9.3.1
                 "summary" to parent.aiSummary,
                 "age" to age.years,
                 "category" to parent.emotionalCategory,
+                "soulTone" to parent.soulTone,
+                "originType" to originType, // Injection v9.3.1
                 "characters" to characters, // Transmis à l'IA Biographe
                 "photos" to complements.filter { it.entryType == "PHOTO" || it.entryType == "GALLERY" }
                     .map { mapOf("id" to it.id, "description" to it.aiSummary) },
@@ -132,9 +141,31 @@ class BookGeneratorService @Inject constructor(
     }
 
     /**
-     * Lance la génération complète du manuscrit multimédia.
+     * Propose un plan de livre à partir des souvenirs (v9.3.1)
      */
-    suspend fun generateBook(userId: String, onProgress: (String) -> Unit): BookDraft {
+    suspend fun generateBookPlan(): List<Map<String, Any?>> {
+        val scenes = extractScenes()
+        if (scenes.isEmpty()) throw Exception("Pas assez de souvenirs.")
+
+        val data = hashMapOf("scenes" to scenes)
+        val result = functions.getHttpsCallable("generateBookPlan")
+            .call(data)
+            .await()
+
+        val response = result.data as Map<*, *>
+        @Suppress("UNCHECKED_CAST")
+        return response["plan"] as List<Map<String, Any?>>
+    }
+
+    /**
+     * Lance la génération complète du manuscrit multimédia.
+     * v9.3.1 : Support optionnel d'un plan validé.
+     */
+    suspend fun generateBook(
+        userId: String, 
+        plan: List<Map<String, Any?>>? = null,
+        onProgress: (String) -> Unit
+    ): BookDraft {
         onProgress("Préparation des scènes de ta vie...")
         val scenes = extractScenes()
         
@@ -162,6 +193,23 @@ class BookGeneratorService @Inject constructor(
             if (map.isNotEmpty()) map else null
         }
 
+        // v9.3.1 : Calcul du Ton de l'Âme dominant
+        val allTones = scenes.mapNotNull { it["soulTone"] as? String }
+        val dominantTone = allTones.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
+
+        onProgress("Analyse de l'évolution de ta pensée...")
+        val evolutionInsights = try {
+            val summaries = scenes.mapNotNull { it["summary"] as? String }
+            if (summaries.isNotEmpty()) {
+                val evolutionResult = functions.getHttpsCallable("detectThoughtEvolution")
+                    .call(hashMapOf("summaries" to summaries))
+                    .await()
+                evolutionResult.data as? String
+            } else null
+        } catch (e: Exception) {
+            null
+        }
+
         onProgress("Rédaction des chapitres illustrés par l'IA...")
         
         val ageMin = scenes.minOf { it["age"] as Int }
@@ -171,7 +219,10 @@ class BookGeneratorService @Inject constructor(
             "scenes" to scenes,
             "ageMin" to ageMin,
             "ageMax" to ageMax,
-            "authorProfile" to authorProfileMap // Transmis à l'IA Biographe v9.1
+            "soulTone" to dominantTone, // Injection v9.3.1
+            "authorProfile" to authorProfileMap, // Transmis à l'IA Biographe v9.1
+            "plan" to plan, // Injection v9.3.1
+            "evolutionInsights" to evolutionInsights // Injection v9.3.1
         )
 
         // v9.0 : Log temporaire du payload envoyé à l'IA pour vérification des fiches personnages

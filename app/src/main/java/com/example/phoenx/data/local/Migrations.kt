@@ -362,4 +362,27 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE depositaries ADD COLUMN photoUrl TEXT")
         }
     }
+
+    /**
+     * MIGRATION_35_36 — Bibliothèque Littéraire & Dépôts Directs v9.3.2
+     */
+    val MIGRATION_35_36 = object : Migration(35, 36) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `standalone_media` (
+                    `id` TEXT NOT NULL, 
+                    `creatorUid` TEXT NOT NULL, 
+                    `type` TEXT NOT NULL, 
+                    `title` TEXT NOT NULL, 
+                    `content` TEXT NOT NULL, 
+                    `recipientIds` TEXT NOT NULL, 
+                    `createdAt` INTEGER NOT NULL, 
+                    `syncStatus` TEXT NOT NULL, 
+                    PRIMARY KEY(`id`)
+                )
+            """.trimIndent())
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_standalone_media_createdAt` ON `standalone_media` (`createdAt`)")
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_standalone_media_type` ON `standalone_media` (`type`)")
+        }
+    }
 }
