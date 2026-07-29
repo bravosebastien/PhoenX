@@ -19,7 +19,7 @@ class ActivationProtocolManager @Inject constructor(
         db.collection("users").document(userId)
             .update(
                 "lastAliveConfirmedAt", Timestamp.now(),
-                "protocolStatus", "dormant" // Réinitialise si c'était en attente
+                // "protocolStatus", "dormant" // Temporairement désactivé pour tests (v9.3.3)
             ).await()
 
         // 2. Chercher et marquer le protocole en cours comme contesté

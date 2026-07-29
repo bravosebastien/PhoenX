@@ -42,6 +42,23 @@ class MediaManager @Inject constructor(
     }
 
     /**
+     * Chiffre et uploade une photo Standalone vers Firebase Storage (v9.3.2).
+     */
+    suspend fun encryptAndUploadStandalone(userId: String, mediaId: String, localFile: File): String {
+        val fileBytes = localFile.readBytes()
+        val encryptedBytes = encryptionManager.encryptBytes(fileBytes)
+
+        val storageRef = storage.reference
+            .child("users")
+            .child(userId)
+            .child("standalone_photos")
+            .child("$mediaId.jpg.enc")
+
+        storageRef.putBytes(encryptedBytes).await()
+        return storageRef.downloadUrl.await().toString()
+    }
+
+    /**
      * Télécharge et déchiffre un média.
      * Supporte la clé explicite pour les héritiers (v8.4.5)
      */

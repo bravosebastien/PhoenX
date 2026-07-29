@@ -385,4 +385,13 @@ object RoomMigrations {
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_standalone_media_type` ON `standalone_media` (`type`)")
         }
     }
+
+    /**
+     * MIGRATION_36_37 — Ajout description StandaloneMedia v9.3.3
+     */
+    val MIGRATION_36_37 = object : Migration(36, 37) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE standalone_media ADD COLUMN description TEXT")
+        }
+    }
 }

@@ -67,6 +67,7 @@ class LiteraryLibraryViewModel @Inject constructor(
                         id = doc.id,
                         type = "TEXT_EXCERPT",
                         title = doc.getString("title") ?: "",
+                        description = doc.getString("description"), // v9.3.3
                         content = decrypted,
                         recipientIds = (doc.get("recipientIds") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList(),
                         createdAt = doc.getLong("createdAt") ?: 0L
@@ -105,15 +106,28 @@ class LiteraryLibraryViewModel @Inject constructor(
         }
     }
 
-    fun addExcerpt(title: String, content: String, recipientIds: List<String>) {
+    fun addExcerpt(title: String, content: String, recipientIds: List<String>, description: String? = null, existingId: String? = null) {
         viewModelScope.launch {
             val media = StandaloneMedia(
+                id = existingId ?: java.util.UUID.randomUUID().toString(),
                 type = "TEXT_EXCERPT",
                 title = title,
+                description = description,
                 content = content,
                 recipientIds = recipientIds
             )
             repository.saveMedia(media)
+        }
+    }
+
+    fun deleteExcerpt(media: StandaloneMedia) {
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(currentUid)
+                    .collection("standaloneMedia").document(media.id).delete().await()
+                
+                repository.deleteMedia(media.id)
+            } catch (e: Exception) { }
         }
     }
 }

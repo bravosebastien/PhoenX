@@ -7,6 +7,7 @@ import com.example.phoenx.data.model.StandaloneMedia
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -37,6 +38,7 @@ class StandaloneMediaRepository @Inject constructor(
             creatorUid = currentUid,
             type = media.type,
             title = media.title,
+            description = media.description, // v9.3.3
             content = finalContent,
             recipientIds = media.recipientIds.joinToString(","),
             createdAt = media.createdAt,
@@ -44,6 +46,12 @@ class StandaloneMediaRepository @Inject constructor(
         )
 
         standaloneMediaDao.insertMedia(entity)
+    }
+
+    suspend fun deleteMedia(mediaId: String) {
+        standaloneMediaDao.getAllStandaloneMedia().first().find { it.id == mediaId }?.let {
+            standaloneMediaDao.deleteMedia(it)
+        }
     }
 
     fun getMediaByType(type: String): Flow<List<StandaloneMedia>> {
@@ -70,6 +78,7 @@ class StandaloneMediaRepository @Inject constructor(
             id = id,
             type = type,
             title = title,
+            description = description, // v9.3.3
             content = decryptedContent,
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
             createdAt = createdAt

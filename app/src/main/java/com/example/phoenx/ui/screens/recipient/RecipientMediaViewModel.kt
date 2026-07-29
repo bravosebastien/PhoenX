@@ -27,6 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RecipientMediaViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
+    private val standaloneMediaDao: com.example.phoenx.data.local.StandaloneMediaDao, // v9.3.2
     private val encryptionManager: EncryptionManager,
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
@@ -117,7 +118,7 @@ class RecipientMediaViewModel @Inject constructor(
                             .collection("entry_keys").document("main").get().await()
                         val keyBase64 = keyDoc.getString("key")
                         if (keyBase64 != null) {
-                            _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                            _heirKey.value = android.util.Base64.decode(keyBase64 as String, android.util.Base64.NO_WRAP)
                         }
                     }
                 } catch (e: Exception) {
@@ -141,16 +142,100 @@ class RecipientMediaViewModel @Inject constructor(
         }
     }
 
+    fun addStandaloneMedia(
+        title: String, 
+        content: String, 
+        type: String, 
+        recipientIds: List<String>,
+        description: String? = null,
+        existingId: String? = null // v9.3.3 : Support modification
+    ) {
+        viewModelScope.launch {
+            val mediaId = existingId ?: java.util.UUID.randomUUID().toString()
+            val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
+            
+            val finalContent = if (needsEncryption) {
+                val encrypted = encryptionManager.encryptText(content)
+                android.util.Base64.encodeToString(encrypted, android.util.Base64.DEFAULT)
+            } else {
+                content
+            }
+
+            val entity = com.example.phoenx.data.local.StandaloneMediaEntity(
+                id = mediaId,
+                creatorUid = currentUid,
+                type = type,
+                title = title,
+                description = description,
+                content = finalContent,
+                recipientIds = recipientIds.joinToString(","),
+                createdAt = System.currentTimeMillis(),
+                syncStatus = "pending"
+            )
+
+            standaloneMediaDao.insertMedia(entity)
+        }
+    }
+
+    /**
+     * Supprime un média Standalone (v9.3.3)
+     */
+    fun deleteStandaloneMedia(media: PhoenXEntry) {
+        viewModelScope.launch {
+            try {
+                // 1. Suppression Firestore
+                db.collection("users").document(currentUid)
+                    .collection("standaloneMedia").document(media.id).delete().await()
+                
+                // 2. Suppression Room locale
+                // Note: On devrait idéalement avoir un DAO delete by ID
+                standaloneMediaDao.getAllStandaloneMedia().first().find { it.id == media.id }?.let {
+                    standaloneMediaDao.deleteMedia(it)
+                }
+
+                // 3. Suppression Storage si c'est une photo
+                if (media.type == EntryType.PHOTO) {
+                    try {
+                        // On essaie de supprimer le fichier enc dans /standalone_photos/
+                        val storageRef = com.google.firebase.storage.FirebaseStorage.getInstance().reference
+                            .child("users").child(currentUid).child("standalone_photos")
+                            .child("${media.id}.jpg.enc")
+                        storageRef.delete().await()
+                    } catch (e: Exception) {
+                        android.util.Log.w("RecipientMediaVM", "Fichier storage introuvable pour suppression")
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientMediaVM", "Erreur suppression standalone: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Gère l'upload chiffré d'une photo et son enregistrement Standalone (v9.3.2)
+     */
+    fun uploadAndAddStandalonePhoto(title: String, description: String?, localFile: java.io.File, recipientIds: List<String>) {
+        viewModelScope.launch {
+            try {
+                val mediaId = java.util.UUID.randomUUID().toString()
+                // 1. Upload chiffré vers Storage
+                val downloadUrl = mediaManager.encryptAndUploadStandalone(currentUid, mediaId, localFile)
+                
+                // 2. Enregistrement de l'entité avec l'URL (qui sera elle-même chiffrée dans Firestore)
+                addStandaloneMedia(title, downloadUrl, "PHOTO", recipientIds, description, mediaId)
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientMediaVM", "Erreur upload photo standalone: ${e.message}")
+            }
+        }
+    }
+
     private fun loadAllMedia() {
         val currentUid = auth.currentUser?.uid ?: ""
         viewModelScope.launch {
-            _targetCreatorId.flatMapLatest { targetId ->
+            val offlineEntriesFlow = _targetCreatorId.flatMapLatest { targetId ->
                 if (targetId == null || targetId == currentUid) {
-                    // MODE CRÉATEUR : Lecture Room locale (Ma Mémoire)
                     offlineEntryDao.getAllEntries()
                 } else {
-                    // MODE HÉRITIER : Lecture Firestore directe (v8.5.5)
-                    // On combine deux requêtes pour gérer le "OU" (visibility OR recipientIds)
                     val publicFlow = callbackFlow {
                         val listener = db.collection("users").document(targetId)
                             .collection("entries")
@@ -175,15 +260,60 @@ class RecipientMediaViewModel @Inject constructor(
                         (pub + priv).distinctBy { it.id }
                     }
                 }
-            }.combine(_isProtocolActivated) { allOfflineEntries, activated ->
+            }
+
+            val standaloneMediaFlow = _targetCreatorId.flatMapLatest { targetId ->
+                if (targetId == null || targetId == currentUid) {
+                    standaloneMediaDao.getAllStandaloneMedia()
+                } else {
+                    // Lecture Firestore directe pour les héritiers (v9.3.2)
+                    callbackFlow {
+                        val listener = db.collection("users").document(targetId)
+                            .collection("standaloneMedia")
+                            .addSnapshotListener { snapshot, _ ->
+                                val list = snapshot?.documents?.mapNotNull { doc ->
+                                    val recIds = (doc.get("recipientIds") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
+                                    // Filtrage visibilité v9.3.2
+                                    if (recIds.isEmpty() || recIds.contains(currentUid)) {
+                                        val type = doc.getString("type") ?: ""
+                                        val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
+                                        
+                                        val contentStr = if (needsEncryption) {
+                                            val blob = doc.get("content") as? Blob
+                                            blob?.toBytes()?.let { android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT) } ?: ""
+                                        } else {
+                                            doc.getString("content") ?: ""
+                                        }
+
+                                        com.example.phoenx.data.local.StandaloneMediaEntity(
+                                            id = doc.id,
+                                            creatorUid = targetId,
+                                            type = type,
+                                            title = doc.getString("title") ?: "",
+                                            description = doc.getString("description"), // v9.3.3
+                                            content = contentStr,
+                                            recipientIds = recIds.joinToString(","),
+                                            createdAt = doc.getLong("createdAt") ?: 0L,
+                                            syncStatus = "synced"
+                                        )
+                                    } else null
+                                } ?: emptyList()
+                                trySend(list)
+                            }
+                        awaitClose { listener.remove() }
+                    }
+                }
+            }
+
+            combine(offlineEntriesFlow, standaloneMediaFlow, _isProtocolActivated) { allOfflineEntries, allStandalone, activated ->
                 val targetId = _targetCreatorId.value
                 val isHeirMode = targetId != null && targetId != currentUid
 
-                // 1. On sépare parents et compléments
+                // 1. On sépare parents et compléments (Entries classiques)
                 val parents = allOfflineEntries.filter { it.parentEntryId == null }
                 val complements = allOfflineEntries.filter { it.parentEntryId != null }
 
-                // 2. Filtrage par ACCÈS STRICT
+                // 2. Filtrage par ACCÈS STRICT (Entries classiques)
                 val accessibleParents = if (!isHeirMode) {
                     parents 
                 } else {
@@ -192,13 +322,19 @@ class RecipientMediaViewModel @Inject constructor(
                     }
                 }
 
-                // 3. Conversion en domaine (Déchiffrement Tink ici)
+                // 3. Conversion en domaine (Déchiffrement Tink pour les entries)
                 val decodedParents = accessibleParents.map { 
                     if (isHeirMode && !activated) it.toSealedDomain()
                     else it.toDomain(encryptionManager) 
+                }.toMutableList()
+
+                // 4. Conversion et Injection des Standalone Media (v9.3.2)
+                allStandalone.forEach { standalone ->
+                    val domainEntry = standalone.toStandaloneDomain(isHeirMode, activated)
+                    decodedParents.add(domainEntry)
                 }
 
-                Triple(decodedParents, complements, activated)
+                Triple(decodedParents.toList(), complements, activated)
             }
             .flowOn(Dispatchers.Default)
             .collectLatest { (decodedParents, complements, _) ->
@@ -335,6 +471,64 @@ class RecipientMediaViewModel @Inject constructor(
             parentEntryId = parentEntryId,
             mediaUrl = mediaUrl,
             localMediaPath = localMediaPath
+        )
+    }
+
+    private fun com.example.phoenx.data.local.StandaloneMediaEntity.toStandaloneDomain(
+        isHeirMode: Boolean,
+        activated: Boolean
+    ): PhoenXEntry {
+        val age = AgeSnapshot(0, 0, 0)
+        val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
+        
+        val displayTitle = if (isHeirMode && !activated) {
+            when(type) {
+                "SPOTIFY" -> "Musique scellée"
+                "YOUTUBE" -> "Vidéo scellée"
+                "PHOTO" -> "Photo scellée"
+                "TEXT_EXCERPT" -> "Écrit scellé"
+                else -> "Média scellé"
+            }
+        } else title.ifEmpty { 
+            when(type) {
+                "SPOTIFY" -> "Morceau partagé"
+                "YOUTUBE" -> "Vidéo partagée"
+                else -> "Média"
+            }
+        }
+
+        val domainType = when(type) {
+            "SPOTIFY" -> EntryType.AUDIO
+            "YOUTUBE" -> EntryType.VIDEO
+            "PHOTO" -> EntryType.PHOTO
+            "TEXT_EXCERPT" -> EntryType.THOUGHT
+            else -> EntryType.THOUGHT
+        }
+
+        // Déchiffrement du contenu si nécessaire
+        val finalContent = if (isHeirMode && !activated) {
+            "Scellé"
+        } else if (needsEncryption) {
+            try {
+                val bytes = android.util.Base64.decode(content, android.util.Base64.DEFAULT)
+                encryptionManager.decryptText(bytes, if (isHeirMode) _heirKey.value else null)
+            } catch (e: Exception) {
+                "Contenu chiffré"
+            }
+        } else {
+            content
+        }
+
+        return PhoenXEntry(
+            id = id,
+            creatorUid = creatorUid,
+            ageAtCreation = age,
+            encryptedContent = finalContent.toByteArray(),
+            type = domainType,
+            timestamp = Instant.ofEpochMilli(createdAt),
+            aiSummary = displayTitle,
+            description = if (isHeirMode && !activated) null else description, // v9.3.3
+            mediaUrl = if (domainType == EntryType.PHOTO || domainType == EntryType.VIDEO || type == "SPOTIFY") finalContent else null
         )
     }
 }

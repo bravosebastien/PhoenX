@@ -19,6 +19,7 @@ data class PhoenXEntry(
     
     // IA SIGNATURE 5.0
     val aiSummary: String = "",
+    val description: String? = null, // v9.3.3
     val aiTags: List<String> = emptyList(),
     val temporalEvolution: String? = null,
     

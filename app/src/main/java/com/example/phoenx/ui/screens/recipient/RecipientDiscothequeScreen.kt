@@ -33,34 +33,101 @@ fun RecipientDiscothequeScreen(
     onNavigateBack: () -> Unit,
     onNavigateToCapture: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
-    viewModel: RecipientMediaViewModel = hiltViewModel()
+    viewModel: RecipientMediaViewModel = hiltViewModel(),
+    standaloneViewModel: com.example.phoenx.ui.screens.library.LiteraryLibraryViewModel = hiltViewModel(),
+    themeViewModel: com.example.phoenx.ui.theme.ThemeViewModel = hiltViewModel()
 ) {
     val entries by viewModel.discothequeEntries.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val isCreatorMode = creatorId == null || creatorId == viewModel.currentUid
+    var showAddDialog by remember { mutableStateOf(false) }
+    var showInfoPopup by remember { mutableStateOf(false) }
+    var mediaToDelete by remember { mutableStateOf<PhoenXEntry?>(null) }
+    val recipients by standaloneViewModel.recipients.collectAsState()
 
     LaunchedEffect(creatorId) {
         viewModel.setTargetCreator(creatorId)
+    }
+
+    if (isCreatorMode) {
+        com.example.phoenx.ui.components.OnboardingPopup(
+            pageKey = "discotheque",
+            title = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("DISCO"),
+            contentPoints = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("DISCO"),
+            preferenceManager = themeViewModel.preferenceManager
+        )
+    }
+
+    if (showInfoPopup) {
+        AlertDialog(
+            onDismissRequest = { showInfoPopup = false },
+            containerColor = theme.backgroundColor,
+            title = { Text(com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("DISCO"), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("DISCO").forEach { point ->
+                        Row(verticalAlignment = Alignment.Top) {
+                            Text("•", color = accent, modifier = Modifier.padding(end = 8.dp))
+                            Text(point, style = MaterialTheme.typography.bodyMedium, color = theme.contentColor.copy(alpha = 0.8f))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = { showInfoPopup = false }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
+                    Text("Fermer", color = theme.backgroundColor)
+                }
+            }
+        )
     }
 
     Scaffold(
         containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
-            TopAppBar(
-                title = { Text("Grande Discothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
+            Column {
+                TopAppBar(
+                    title = { Text("Grande Discothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
+                        }
+                    },
+                    actions = {
+                        if (isCreatorMode) {
+                            IconButton(onClick = { showInfoPopup = true }) {
+                                Icon(Icons.Default.Info, null, tint = accent)
+                            }
+                            IconButton(onClick = { showAddDialog = true }) {
+                                Icon(Icons.Default.Add, null, tint = accent)
+                            }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+
+                // BANDEAU D'AIDE (v9.3.2)
+                if (isCreatorMode) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                        color = accent.copy(alpha = 0.05f),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                    ) {
+                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                "Note : Ce morceau sera déposé seul. Pour l'associer à un souvenir précis, utilisez l'écran de Capture.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = theme.contentColor.copy(alpha = 0.7f)
+                            )
+                        }
                     }
-                },
-                actions = {
-                    IconButton(onClick = onNavigateToCapture) {
-                        Icon(Icons.Default.Add, null, tint = accent)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+                }
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -71,22 +138,80 @@ fun RecipientDiscothequeScreen(
             } else {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(24.dp),
                     horizontalArrangement = Arrangement.spacedBy(20.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     items(entries) { entry ->
-                        VinylItem(entry, theme) { onNavigateToDetail(entry.id) }
+                        VinylItem(
+                            entry = entry, 
+                            theme = theme,
+                            isCreatorMode = isCreatorMode,
+                            onDelete = { mediaToDelete = entry }
+                        ) { 
+                            if (entry.mediaUrl != null && (entry.mediaUrl!!.startsWith("http"))) {
+                                try {
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(entry.mediaUrl!!))
+                                    context.startActivity(intent)
+                                } catch(e: Exception) {
+                                    onNavigateToDetail(entry.id)
+                                }
+                            } else {
+                                onNavigateToDetail(entry.id)
+                            }
+                        }
                     }
                 }
             }
         }
     }
+
+    if (showAddDialog) {
+        com.example.phoenx.ui.components.DirectMediaDialog(
+            type = "SPOTIFY",
+            recipients = recipients,
+            onDismiss = { showAddDialog = false },
+            onSave = { title, desc, url, ids ->
+                viewModel.addStandaloneMedia(title, url, "SPOTIFY", ids, desc)
+                showAddDialog = false
+            }
+        )
+    }
+
+    if (mediaToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { mediaToDelete = null },
+            title = { Text("Supprimer ce morceau ?", color = theme.contentColor) },
+            text = { Text("Cette action est irréversible.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteStandaloneMedia(mediaToDelete!!)
+                        mediaToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)
+                ) {
+                    Text("Supprimer", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { mediaToDelete = null }) {
+                    Text("Annuler", color = theme.contentColor)
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun VinylItem(entry: PhoenXEntry, theme: AppThemeState, onClick: () -> Unit) {
+fun VinylItem(
+    entry: PhoenXEntry, 
+    theme: AppThemeState, 
+    isCreatorMode: Boolean,
+    onDelete: () -> Unit,
+    onClick: () -> Unit
+) {
     val accent = theme.accentColor
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
@@ -126,21 +251,40 @@ fun VinylItem(entry: PhoenXEntry, theme: AppThemeState, onClick: () -> Unit) {
             ) {
                 Icon(Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.padding(12.dp))
             }
+
+            // Bouton Supprimer (v9.3.3)
+            if (isCreatorMode && entry.parentEntryId == null) {
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
+                ) {
+                    Icon(Icons.Default.Delete, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                }
+            }
         }
         
         Spacer(modifier = Modifier.height(12.dp))
         
         Text(
-            text = "À ${entry.ageAtCreation.years} ans",
-            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-            color = accent
-        )
-        Text(
             text = entry.aiSummary.ifEmpty { "Souvenir vocal" },
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
             color = theme.contentColor,
             maxLines = 1,
             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+        )
+        entry.description?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.labelSmall,
+                color = theme.contentColor.copy(alpha = 0.5f),
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+        }
+        Text(
+            text = "À ${entry.ageAtCreation.years} ans",
+            style = MaterialTheme.typography.labelSmall,
+            color = accent.copy(alpha = 0.6f)
         )
     }
 }

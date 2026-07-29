@@ -13,10 +13,11 @@ import java.util.UUID
     ]
 )
 data class StandaloneMediaEntity(
-    @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    @PrimaryKey val id: String = java.util.UUID.randomUUID().toString(),
     val creatorUid: String = "",
     val type: String, // "TEXT_EXCERPT", "SPOTIFY", "YOUTUBE", "PHOTO"
     val title: String = "",
+    val description: String? = null, // v9.3.3
     val content: String, // Texte chiffré (Base64) ou URL en clair
     val recipientIds: String = "", // CSV des vrais UIDs
     val createdAt: Long = System.currentTimeMillis(),
