@@ -247,16 +247,32 @@ fun HomeScreen(
                     // --- BOUTON BACKFILL ADMIN (v9.3.2) ---
                     val isAdmin = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid == "bLRNen7rArXinv5iQILx5OS3sxh2"
                     if (isAdmin) {
-                        Button(
-                            onClick = { 
-                                viewModel.runRecipientBackfill { count ->
-                                    android.widget.Toast.makeText(context, "$count destinataires réparés", android.widget.Toast.LENGTH_LONG).show()
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
-                        ) {
-                            Text("🔧 RATTRAPAGE UIDs (ADMIN)", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp)) {
+                            Button(
+                                onClick = { 
+                                    viewModel.runRecipientBackfill { count ->
+                                        android.widget.Toast.makeText(context, "$count destinataires réparés", android.widget.Toast.LENGTH_LONG).show()
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+                            ) {
+                                Text("🔧 RATTRAPAGE UIDs (ADMIN)", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
+                            
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Button(
+                                onClick = { 
+                                    viewModel.runDepositaryBackfill { count ->
+                                        android.widget.Toast.makeText(context, "$count comptes dépositaires réparés", android.widget.Toast.LENGTH_LONG).show()
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.DarkGray)
+                            ) {
+                                Text("🔧 RATTRAPAGE DÉPOSITAIRES", color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                            }
                         }
                     }
 

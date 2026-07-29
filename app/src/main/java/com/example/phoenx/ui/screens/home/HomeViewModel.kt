@@ -236,6 +236,25 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Déclenche le rattrapage des Dépositaires (v9.4.4) - Réservé Admin
+     */
+    fun runDepositaryBackfill(onComplete: (Int) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val result = com.google.firebase.functions.FirebaseFunctions.getInstance()
+                    .getHttpsCallable("backfillDepositaryUids")
+                    .call()
+                    .await()
+                val data = result.data as Map<*, *>
+                val count = (data["usersProcessed"] as? Number)?.toInt() ?: 0
+                onComplete(count)
+            } catch (e: Exception) {
+                android.util.Log.e("HomeVM", "Erreur backfill depositary: ${e.message}")
+            }
+        }
+    }
 }
 
 data class HomeUiState(

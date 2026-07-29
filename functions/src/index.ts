@@ -359,17 +359,39 @@ async function notifyDeathContactsInternal(creatorId: string, protocolId: string
     if (!protocolId) throw new Error("MISSING_PROTOCOL_ID");
 
     const protocolDoc = await db.collection("activationProtocols").doc(protocolId).get();
-
     if (!protocolDoc.exists) throw new Error("PROTOCOL_NOT_FOUND");
 
     const protocolData = protocolDoc.data();
     const status = protocolData?.status;
+    const protocolCreatedAt = protocolData?.confirmedAt || protocolData?.createdAt;
 
     if (status === "contested") throw new Error("PROTOCOL_CONTESTED");
     if (status !== "pending_contest") throw new Error("UNEXPECTED_STATUS");
 
+    // ═══ DÉFENSE EN PROFONDEUR v9.3.8 : Vérification de signe de vie ═══
     const creatorDoc = await db.collection("users").doc(creatorId).get();
-    const creatorName = creatorDoc.data()?.displayName || "Votre proche";
+    if (!creatorDoc.exists) throw new Error("CREATOR_NOT_FOUND");
+
+    const creatorData = creatorDoc.data()!;
+    const silenceConf = creatorData.silenceConfig;
+    const lastCheckIn = silenceConf?.lastCheckInAt;
+    const escalation = silenceConf?.escalationLevel || 0;
+
+    // Si le créateur s'est manifesté APRÈS la création du protocole, ou si l'escalade est retombée
+    if (escalation < 3 || (lastCheckIn && protocolCreatedAt && lastCheckIn.toMillis() > protocolCreatedAt.toMillis())) {
+        console.warn(`[SECURITY] Annulation de l'activation pour ${creatorId} : Signe de vie détecté.`);
+
+        // Marquer le protocole comme contesté pour arrêter les futures tentatives
+        await db.collection("activationProtocols").doc(protocolId).update({
+            status: "contested",
+            cancellationReason: "creator_alive",
+            cancelledAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        throw new Error("CREATOR_ALIVE");
+    }
+
+    const creatorName = creatorData.displayName || "Votre proche";
 
     // Action A : Ouverture de l'héritage
     await db.collection("users").doc(creatorId).update({
@@ -426,7 +448,9 @@ export const scheduledNotifications = onSchedule("every 60 minutes", async () =>
                 "MISSING_PROTOCOL_ID": "missing_protocol_id",
                 "PROTOCOL_NOT_FOUND": "protocol_not_found",
                 "PROTOCOL_CONTESTED": "contested",
-                "UNEXPECTED_STATUS": "unexpected_status"
+                "UNEXPECTED_STATUS": "unexpected_status",
+                "CREATOR_ALIVE": "creator_alive",
+                "CREATOR_NOT_FOUND": "creator_not_found"
             };
 
             const reason = errorMap[e.message];
@@ -450,69 +474,84 @@ export const resolveCreatorSilence = onCall(async (request) => {
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
 
-    // Vérifier que l'appelant est bien le Dépositaire
-    const depositaryDoc = await admin.firestore()
-        .collection("users").doc(creatorId)
-        .collection("depositaries").doc(depositaryId)
-        .get();
-
-    if (!depositaryDoc.exists ||
-        depositaryDoc.data()?.depositaryUid !== request.auth.uid) {
-        throw new HttpsError("permission-denied", "Accès refusé");
-    }
-
     const db = admin.firestore();
-    const batch = db.batch();
 
-    const userRef = db.collection("users").doc(creatorId);
-    batch.update(userRef, {
-        "silenceConfig.missedCycles": 0,
-        "silenceConfig.lastCheckInAt": admin.firestore.Timestamp.now(),
-        "silenceConfig.lastSilenceStatus": "present",
-        "silenceConfig.escalationLevel": 0,
-        "protocolStatus": "dormant" // v9.3.3 : Rétablissement du statut dormant
-    });
+    try {
+        await db.runTransaction(async (transaction) => {
+            // 1. Lectures (v9.3.8 : Toutes les lectures avant les écritures)
+            const depositaryRef = db.collection("users").doc(creatorId).collection("depositaries").doc(depositaryId);
+            const creatorRef = db.collection("users").doc(creatorId);
+            const protocolsQuery = db.collection("activationProtocols")
+                .where("creatorId", "==", creatorId)
+                .where("status", "==", "pending_contest");
+            const tasksQuery = db.collection("tasks")
+                .where("creatorId", "==", creatorId)
+                .where("type", "==", "notifyDeathContacts")
+                .where("status", "==", "pending");
 
-    const notifRef = userRef.collection("silenceNotifications").doc();
-    batch.set(notifRef, {
-        type: "resolved_by_depositary",
-        depositaryId,
-        note: note || null,
-        timestamp: admin.firestore.Timestamp.now()
-    });
+            const [depositaryDoc, creatorDoc, protocolsSnap, tasksSnap] = await Promise.all([
+                transaction.get(depositaryRef),
+                transaction.get(creatorRef),
+                transaction.get(protocolsQuery),
+                transaction.get(tasksQuery)
+            ]);
 
-    // ═══ AJOUT v9.3.3 : ANNULATION DES PROTOCOLES D'ACTIVATION ═══
-    // On cherche tout protocole en attente de contestation pour ce créateur
-    const protocolsSnap = await db.collection("activationProtocols")
-        .where("creatorId", "==", creatorId)
-        .where("status", "==", "pending_contest")
-        .get();
+            // 2. Contrôles
+            if (!depositaryDoc.exists || depositaryDoc.data()?.depositaryUid !== request.auth!.uid) {
+                throw new HttpsError("permission-denied", "Accès refusé");
+            }
 
-    protocolsSnap.forEach(doc => {
-        batch.update(doc.ref, {
-            status: "contested",
-            resolvedAt: admin.firestore.FieldValue.serverTimestamp(),
-            resolvedBy: depositaryId
+            const currentStatus = creatorDoc.data()?.protocolStatus;
+
+            // 3. Écritures
+            const updates: any = {
+                "silenceConfig.missedCycles": 0,
+                "silenceConfig.lastCheckInAt": admin.firestore.Timestamp.now(),
+                "silenceConfig.lastSilenceStatus": "present",
+                "silenceConfig.escalationLevel": 0
+            };
+
+            if (currentStatus === "activated") {
+                console.warn(`[SECURITY] Tentative de fermeture d'un héritage activé pour ${creatorId} par ${request.auth!.uid}`);
+            } else {
+                updates.protocolStatus = "dormant";
+            }
+
+            transaction.update(creatorRef, updates);
+
+            // Log de résolution
+            const notifRef = creatorRef.collection("silenceNotifications").doc();
+            transaction.set(notifRef, {
+                type: "resolved_by_depositary",
+                depositaryId,
+                note: note || null,
+                timestamp: admin.firestore.Timestamp.now()
+            });
+
+            // Annulation des protocoles d'activation
+            protocolsSnap.forEach(doc => {
+                transaction.update(doc.ref, {
+                    status: "contested",
+                    resolvedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    resolvedBy: depositaryId
+                });
+            });
+
+            // Annulation des tâches planifiées
+            tasksSnap.forEach(doc => {
+                transaction.update(doc.ref, {
+                    status: "cancelled",
+                    reason: "resolved_by_depositary",
+                    cancelledAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+            });
         });
-    });
 
-    // On cherche et annule les tâches de notification programmées
-    const tasksSnap = await db.collection("tasks")
-        .where("creatorId", "==", creatorId)
-        .where("status", "==", "pending")
-        .get();
-
-    tasksSnap.forEach(doc => {
-        batch.update(doc.ref, {
-            status: "cancelled",
-            reason: "resolved_by_depositary",
-            cancelledAt: admin.firestore.FieldValue.serverTimestamp()
-        });
-    });
-
-    await batch.commit();
-    console.log(`[SILENCE] Silence résolu par le dépositaire ${depositaryId} pour le créateur ${creatorId}. ${protocolsSnap.size} protocoles contestés.`);
-    return { success: true };
+        return { success: true };
+    } catch (error: any) {
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError("internal", error.message);
+    }
 });
 
 // 17. Notification d'octroi du droit de poser des questions
@@ -521,14 +560,27 @@ export const notifyQuestionRightGranted = onCall(async (request) => {
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
 
-    const { recipientEmail, recipientName, inviteLink } = request.data;
+    const { recipientId } = request.data;
     const creatorUid = request.auth.uid;
+    const db = admin.firestore();
 
-    // Récupérer le nom réel du créateur depuis son profil
-    const creatorDoc = await admin.firestore().collection("users").doc(creatorUid).get();
+    // 1. Lecture sécurisée du destinataire (v9.3.6)
+    const recipientDoc = await db.collection("users").doc(creatorUid).collection("recipients").doc(recipientId).get();
+    if (!recipientDoc.exists) throw new HttpsError("permission-denied", "Destinataire introuvable");
+
+    const recipientData = recipientDoc.data()!;
+    const recipientEmail = recipientData.email;
+    if (!recipientEmail) throw new HttpsError("failed-precondition", "Email du destinataire manquant");
+
+    const recipientName = recipientData.name || "Proche";
+
+    // 2. Récupérer le nom réel du créateur depuis son profil
+    const creatorDoc = await db.collection("users").doc(creatorUid).get();
     const creatorName = creatorDoc.data()?.displayName || "Votre proche";
 
-    await admin.firestore().collection("mail").add({
+    const inviteLink = `https://phoenx.app/ask?creator=${creatorUid}&recipient=${recipientId}`;
+
+    await db.collection("mail").add({
         to: recipientEmail,
         message: {
             subject: `${creatorName} t'invite à lui poser une question`,
@@ -679,49 +731,106 @@ export const generateDepositaryShortCode = onCall(async (request) => {
 });
 
 export const redeemDepositaryShortCode = onCall(async (request) => {
+    // ═══ SÉCURITÉ v9.3.6 : Authentification requise ═══
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
+
     const { shortCode } = request.data;
+    const uid = request.auth.uid;
     const db = admin.firestore();
-    const ref = db.collection("depositaryInviteCodes").doc(shortCode);
-    const doc = await ref.get();
 
-    if (!doc.exists) {
-        throw new HttpsError("not-found", "Code invalide");
+    try {
+        const result = await db.runTransaction(async (transaction) => {
+            const now = Date.now();
+            const windowStart = now - (15 * 60 * 1000); // 15 mins
+
+            // 1. Lectures (v9.3.8 : TOUTES les lectures avant les écritures)
+            const limitRef = db.collection("rateLimits").doc(uid);
+            const codeRef = db.collection("depositaryInviteCodes").doc(shortCode);
+
+            const [limitDoc, codeDoc] = await Promise.all([
+                transaction.get(limitRef),
+                transaction.get(codeRef)
+            ]);
+
+            // 2. Évaluation Rate Limit (v9.3.9 : Plus de throw ici pour ne pas annuler l'écriture)
+            if (limitDoc.exists) {
+                const lData = limitDoc.data()!;
+                const lastAttempt = lData.lastAttemptAt?.toMillis() || 0;
+                if (lastAttempt > windowStart && lData.shortCodeAttempts >= 10) {
+                    return { ok: false, reason: "rate_limited" };
+                }
+            }
+
+            // 3. Incrémenter les tentatives (Même si le code n'existe pas ou est expiré)
+            updateRateLimitTransactional(transaction, limitRef, limitDoc, windowStart);
+
+            // 4. Évaluation Code
+            if (!codeDoc.exists) {
+                return { ok: false, reason: "not_found" };
+            }
+
+            const cData = codeDoc.data()!;
+            if (cData.expiresAt.toMillis() < now || cData.used) {
+                return { ok: false, reason: "expired_or_used" };
+            }
+
+            // 5. Marquage comme utilisé (Uniquement si OK)
+            transaction.update(codeRef, {
+                used: true,
+                redeemedByUid: uid,
+                redeemedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            return {
+                ok: true,
+                creatorId: cData.creatorId,
+                depositaryId: cData.depositaryId
+            };
+        });
+
+        // ═══ TRADUCTION DES ERREURS (v9.3.9) ═══
+        if (!result.ok) {
+            const errorMap: Record<string, { code: any, msg: string }> = {
+                "rate_limited": { code: "resource-exhausted", msg: "Trop de tentatives. Réessayez dans 15 minutes." },
+                "not_found": { code: "not-found", msg: "Code invalide" },
+                "expired_or_used": { code: "permission-denied", msg: "Code expiré ou déjà utilisé" }
+            };
+            const err = errorMap[result.reason!];
+            throw new HttpsError(err.code, err.msg);
+        }
+
+        const { creatorId, depositaryId } = result;
+        const creatorDoc = await db.collection("users").doc(creatorId).get();
+        const dDoc = await db.collection("users").doc(creatorId).collection("depositaries").doc(depositaryId).get();
+
+        return {
+            creatorId: creatorId,
+            depositaryId: depositaryId,
+            token: dDoc.data()?.inviteToken,
+            creatorName: creatorDoc.data()?.displayName || "Ton proche"
+        };
+
+    } catch (error: any) {
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError("internal", error.message);
     }
-
-    const data = doc.data()!;
-    const now = Date.now();
-
-    // ═══ SÉCURITÉ v9.3.4 : Limitation de tentatives ═══
-    const attempts = data.attempts || 0;
-    if (attempts >= 5) {
-        throw new HttpsError("resource-exhausted", "Trop de tentatives pour ce code");
-    }
-
-    if (data.expiresAt.toMillis() < now || data.used) {
-        // Incrémenter les tentatives même si expiré/utilisé pour éviter le probing
-        await ref.update({ attempts: admin.firestore.FieldValue.increment(1) });
-        throw new HttpsError("permission-denied", "Code expiré ou déjà utilisé");
-    }
-
-    await ref.update({
-        used: true,
-        redeemedByUid: request.auth?.uid || "anonymous",
-        redeemedAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
-    const creatorId = data.creatorId;
-    const depositaryId = data.depositaryId;
-
-    const creatorDoc = await db.collection("users").doc(creatorId).get();
-    const dDoc = await db.collection("users").doc(creatorId).collection("depositaries").doc(depositaryId).get();
-
-    return {
-        creatorId: creatorId,
-        depositaryId: depositaryId,
-        token: dDoc.data()?.inviteToken,
-        creatorName: creatorDoc.data()?.displayName || "Ton proche"
-    };
 });
+
+function updateRateLimitTransactional(transaction: admin.firestore.Transaction, limitRef: admin.firestore.DocumentReference, limitDoc: admin.firestore.DocumentSnapshot, windowStart: number) {
+    if (limitDoc.exists) {
+        const lData = limitDoc.data()!;
+        const lastAttempt = lData.lastAttemptAt?.toMillis() || 0;
+        if (lastAttempt <= windowStart) {
+            transaction.set(limitRef, { shortCodeAttempts: 1, lastAttemptAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        } else {
+            transaction.set(limitRef, { shortCodeAttempts: admin.firestore.FieldValue.increment(1), lastAttemptAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        }
+    } else {
+        transaction.set(limitRef, { shortCodeAttempts: 1, lastAttemptAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+    }
+}
 
 export const joinAsDepositary = onCall(async (request) => {
     if (!request.auth) {
@@ -729,45 +838,51 @@ export const joinAsDepositary = onCall(async (request) => {
     }
     const { creatorId, depositaryId, token } = request.data;
     const depositaryUid = request.auth.uid;
-    const ref = admin.firestore().collection("users").doc(creatorId).collection("depositaries").doc(depositaryId);
-    const doc = await ref.get();
+    const db = admin.firestore();
 
-    if (!doc.exists || doc.data()?.inviteToken !== token || doc.data()?.inviteTokenUsed) {
-        throw new HttpsError("permission-denied", "Invalide");
+    try {
+        await db.runTransaction(async (transaction) => {
+            const ref = db.collection("users").doc(creatorId).collection("depositaries").doc(depositaryId);
+            const doc = await transaction.get(ref);
+
+            if (!doc.exists || doc.data()?.inviteToken !== token || doc.data()?.inviteTokenUsed) {
+                throw new HttpsError("permission-denied", "Invalide");
+            }
+
+            const creatorDoc = await transaction.get(db.collection("users").doc(creatorId));
+            const creatorName = creatorDoc.data()?.displayName || "Votre proche";
+
+            // 1. Liaison sur le document du Créateur
+            transaction.update(ref, {
+                depositaryUid: depositaryUid,
+                status: "active",
+                inviteTokenUsed: true,
+                inviteToken: admin.firestore.FieldValue.delete() // v9.3.9 : Suppression du token après usage
+            });
+
+            // 2. Lien inverse sur le document du Dépositaire (Système myRoles v9.3.5)
+            const depositaryUserRef = db.collection("users").doc(depositaryUid);
+            const roleKey = `${creatorId}_depositary`;
+            const newRoleData = {
+                creatorId: creatorId,
+                creatorName: creatorName,
+                role: "depositary",
+                status: "active",
+                label: "Gardien de confiance",
+                joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+                sourceId: depositaryId
+            };
+
+            transaction.set(depositaryUserRef, {
+                myRoles: { [roleKey]: newRoleData }
+            }, { merge: true });
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError("internal", error.message);
     }
-
-    const creatorDoc = await admin.firestore().collection("users").doc(creatorId).get();
-    const creatorName = creatorDoc.data()?.displayName || "Votre proche";
-
-    const batch = admin.firestore().batch();
-
-    // 1. Liaison sur le document du Créateur
-    batch.update(ref, {
-        depositaryUid: depositaryUid,
-        status: "active",
-        inviteTokenUsed: true
-    });
-
-    // 2. Lien inverse sur le document du Dépositaire (Système myRoles v9.3.5)
-    const depositaryUserRef = admin.firestore().collection("users").doc(depositaryUid);
-    const roleKey = `${creatorId}_depositary`;
-    const newRoleData = {
-        creatorId: creatorId,
-        creatorName: creatorName,
-        role: "depositary",
-        status: "active",
-        label: "Gardien de confiance",
-        joinedAt: admin.firestore.FieldValue.serverTimestamp(),
-        sourceId: depositaryId
-    };
-
-    batch.set(depositaryUserRef, {
-        myRoles: { [roleKey]: newRoleData }
-    }, { merge: true });
-
-    await batch.commit();
-
-    return { success: true };
 });
 
 // Témoins
@@ -1030,7 +1145,7 @@ export const acceptUniversalInvitation = onCall(async (request) => {
                 creatorName: inviteData.creatorName || "Votre proche",
                 role: role,
                 status: "active",
-                label: inviteData.label || role,
+                label: inviteData.label || role, // Rétabli v9.3.6
                 joinedAt: admin.firestore.FieldValue.serverTimestamp(),
                 sourceId: inviteData.sourceId || null
             };
@@ -1089,14 +1204,14 @@ export const acceptUniversalInvitation = onCall(async (request) => {
 });
 
 /**
- * PHOEN-X v9.3.2 - Propagation de l'UID après liaison
+ * PHOEN-X v9.3.6/v9.3.7/v9.3.9 - Propagation de l'UID après liaison
  * Remplace l'ancien DocID par le vrai UID dans toutes les archives du Créateur.
  */
 async function propagateUidLiaison(db: FirebaseFirestore.Firestore, creatorId: string, oldDocId: string, newUid: string) {
-    const batch = db.batch();
     const userRef = db.collection("users").doc(creatorId);
+    const operations: { ref: admin.firestore.DocumentReference, data: any }[] = [];
 
-    // 1. Mise à jour des collections avec tableaux recipientIds (v9.3.2)
+    // 1. Collections avec tableaux recipientIds (v9.3.6)
     const arrayCollections = ["entries", "quizzes", "standaloneMedia"];
     for (const col of arrayCollections) {
         const snap = await userRef.collection(col)
@@ -1105,11 +1220,26 @@ async function propagateUidLiaison(db: FirebaseFirestore.Firestore, creatorId: s
         snap.forEach(doc => {
             const currentIds = doc.data().recipientIds as string[];
             const updatedIds = currentIds.map(id => id === oldDocId ? newUid : id);
-            batch.update(doc.ref, { recipientIds: updatedIds });
+            operations.push({ ref: doc.ref, data: { recipientIds: updatedIds } });
         });
     }
 
-    // 2. Mise à jour du Livre (Draft)
+    // TODO v9.3.9 : amendments sont des sous-collections de entries.
+    // Nécessite une requête collectionGroup quand elles seront synchronisées.
+
+    // 2. Collections avec champ simple recipientId (v9.3.6)
+    // TODO INACTIF : PactViewModel n'écrit pas encore recipientId.
+    // Cette boucle ne remonte rien tant que ce n'est pas le cas.
+    const simpleCollections = ["pendingQuestions", "portraits", "legacies", "pacts"];
+    for (const col of simpleCollections) {
+        const snap = await userRef.collection(col)
+            .where("recipientId", "==", oldDocId).get();
+        snap.forEach(doc => {
+            operations.push({ ref: doc.ref, data: { recipientId: newUid } });
+        });
+    }
+
+    // 3. Mise à jour du Livre (Draft)
     const bookRef = userRef.collection("book").doc("current_draft");
     const bookDoc = await bookRef.get();
     if (bookDoc.exists) {
@@ -1117,20 +1247,79 @@ async function propagateUidLiaison(db: FirebaseFirestore.Firestore, creatorId: s
         const currentIds = (bookData.recipientIds || []) as string[];
         if (currentIds.includes(oldDocId)) {
             const updatedIds = currentIds.map(id => id === oldDocId ? newUid : id);
-            batch.update(bookRef, { recipientIds: updatedIds });
+            operations.push({ ref: bookRef, data: { recipientIds: updatedIds } });
         }
     }
 
-    // 4. Mise à jour des Questions en attente & Portraits (Champs simples)
-    const collectionsToFix = ["pendingQuestions", "portraits"];
-    for (const col of collectionsToFix) {
-        const snap = await userRef.collection(col)
-            .where("recipientId", "==", oldDocId).get();
-        snap.forEach(doc => batch.update(doc.ref, { recipientId: newUid }));
+    // ═══ EXÉCUTION PAR LOTS (v9.3.6) ═══
+    // On découpe en lots de 450 pour éviter la limite de 500 de db.batch()
+    for (let i = 0; i < operations.length; i += 450) {
+        const batch = db.batch();
+        const chunk = operations.slice(i, i + 450);
+        chunk.forEach(op => batch.update(op.ref, op.data));
+        await batch.commit();
     }
 
-    await batch.commit();
-    console.log(`[LIAISON] Propagation terminée pour ${oldDocId} -> ${newUid} (Collections traitées : ${arrayCollections.join(", ")})`);
+    console.log(`[LIAISON] Propagation v9.3.9 terminée : ${operations.length} documents mis à jour pour ${oldDocId} -> ${newUid}`);
+}
+
+/**
+ * PHOEN-X v9.4.4 - Révocation d'accès après retrait du Cercle
+ * Retire l'UID du Destinataire des tableaux ou annule les liens simples.
+ */
+async function revokeUidAccess(db: FirebaseFirestore.Firestore, creatorId: string, uidToRemove: string) {
+    const userRef = db.collection("users").doc(creatorId);
+    const operations: { ref: admin.firestore.DocumentReference, data: any }[] = [];
+
+    // 1. Collections avec tableaux recipientIds
+    const arrayCollections = ["entries", "quizzes", "standaloneMedia"];
+    for (const col of arrayCollections) {
+        const snap = await userRef.collection(col)
+            .where("recipientIds", "array-contains", uidToRemove).get();
+
+        snap.forEach(doc => {
+            const currentIds = doc.data().recipientIds as string[];
+            const updatedIds = currentIds.filter(id => id !== uidToRemove);
+            operations.push({ ref: doc.ref, data: { recipientIds: updatedIds } });
+        });
+    }
+
+    // 2. Collections avec champ simple recipientId
+    // Stratégie validée v9.4.4 : recipientId à null + archivage (Pas de suppression)
+    const simpleCollections = ["pendingQuestions", "legacies"];
+    for (const col of simpleCollections) {
+        const snap = await userRef.collection(col)
+            .where("recipientId", "==", uidToRemove).get();
+        snap.forEach(doc => {
+            operations.push({ ref: doc.ref, data: {
+                recipientId: null,
+                previousRecipientId: uidToRemove,
+                revokedAt: admin.firestore.FieldValue.serverTimestamp()
+            } });
+        });
+    }
+
+    // 3. Mise à jour du Livre (Draft)
+    const bookRef = userRef.collection("book").doc("current_draft");
+    const bookDoc = await bookRef.get();
+    if (bookDoc.exists) {
+        const bookData = bookDoc.data()!;
+        const currentIds = (bookData.recipientIds || []) as string[];
+        if (currentIds.includes(uidToRemove)) {
+            const updatedIds = currentIds.filter(id => id !== uidToRemove);
+            operations.push({ ref: bookRef, data: { recipientIds: updatedIds } });
+        }
+    }
+
+    // ═══ EXÉCUTION PAR LOTS ═══
+    for (let i = 0; i < operations.length; i += 450) {
+        const batch = db.batch();
+        const chunk = operations.slice(i, i + 450);
+        chunk.forEach(op => batch.update(op.ref, op.data));
+        await batch.commit();
+    }
+
+    console.log(`[REVOCATION] v9.4.4 terminée : ${operations.length} documents révoqués pour ${uidToRemove} chez ${creatorId}`);
 }
 
 /**
@@ -1158,6 +1347,34 @@ export const backfillRecipientUids = onCall(async (request) => {
         }
     }
     return { status: "success", recipientsProcessed: totalFixed };
+});
+
+/**
+ * Script de rattrapage des Dépositaires (v9.4.4)
+ */
+export const backfillDepositaryUids = onCall(async (request) => {
+    if (request.auth?.uid !== "bLRNen7rArXinv5iQILx5OS3sxh2") {
+        throw new HttpsError("permission-denied", "Accès administrateur requis");
+    }
+
+    const db = admin.firestore();
+    const usersSnap = await db.collection("users").get();
+    let totalFixed = 0;
+
+    for (const userDoc of usersSnap.docs) {
+        const depositariesSnap = await userDoc.ref.collection("depositaries").get();
+        const uids = [...new Set(
+            depositariesSnap.docs
+                .filter(doc => doc.data().status === "active" && !!doc.data().depositaryUid)
+                .map(doc => doc.data().depositaryUid)
+        )];
+
+        if (uids.length > 0) {
+            await userDoc.ref.update({ depositaryUids: uids });
+            totalFixed++;
+        }
+    }
+    return { status: "success", usersProcessed: totalFixed };
 });
 
 export const migrateLegacyRoles = onCall(async (request) => {
@@ -1214,6 +1431,18 @@ async function cleanupMemberRoles(creatorId: string, memberId: string, role: str
         await db.collection("users").doc(linkedUid).update({
             [`myRoles.${roleKey}`]: admin.firestore.FieldValue.delete()
         });
+
+        // v9.4.4 : Retrait du tableau depositaryUids si c'est un Dépositaire
+        if (role === "depositary") {
+            await db.collection("users").doc(creatorId).update({
+                depositaryUids: admin.firestore.FieldValue.arrayRemove(linkedUid)
+            });
+        }
+
+        // v9.4.4 : Révocation des accès si c'est un Destinataire
+        if (role === "recipient") {
+            await revokeUidAccess(db, creatorId, linkedUid);
+        }
     }
 
     // 2. Invalidation des invitations en attente pour ce membre
