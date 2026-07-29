@@ -32,6 +32,7 @@ import com.example.phoenx.data.model.ChapterStatus
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.components.OnboardingPopup
+import com.example.phoenx.ui.screens.home.components.getTitleBrush
 import com.example.phoenx.ui.theme.*
 
 @Composable
@@ -711,7 +712,7 @@ fun CoverTitleStyleSelector(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    val brush = com.example.phoenx.ui.screens.home.getTitleBrush(style)
+                    val brush = getTitleBrush(style)
                     val color = when(style) {
                         "BLACK" -> Color.Black
                         "WHITE" -> Color.White
