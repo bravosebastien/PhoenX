@@ -258,8 +258,10 @@ export const checkCreatorSilence = onSchedule({
         const rhythmDays = conf.rhythmDays || 30;
 
         let l = 0;
-        if (daysSinceLastCheckIn >= rhythmDays + 21) {
-            l = 3; // Dépositaire notifié (Équivalent au point rouge pulsant)
+        if (daysSinceLastCheckIn >= rhythmDays + 28) {
+            l = 4; // Dépositaire secondaire notifié (v9.3.5)
+        } else if (daysSinceLastCheckIn >= rhythmDays + 21) {
+            l = 3; // Dépositaire primaire notifié
         } else if (daysSinceLastCheckIn >= rhythmDays + 14) {
             l = 2; // 2ème relance Créateur
         } else if (daysSinceLastCheckIn >= rhythmDays + 7) {
@@ -271,10 +273,13 @@ export const checkCreatorSilence = onSchedule({
             "silenceConfig.escalationLevel": l,
             "silenceConfig.missedCycles": l // Maintenir cohérence avec UI actuelle
         });
-        if (l < 3) continue;
+
+        if (l < 3) continue; // On ne notifie les dépositaires qu'à partir du niveau 3
+
         const deps = await doc.ref.collection("depositaries").where("status", "==", "active").get();
         const target = l === 3 ? deps.docs.find(d => d.data().role === "primary") : deps.docs.find(d => d.data().role === "secondary");
         if (!target) continue;
+
         const msg = `PHOEN-X: ${data.displayName || "Un proche"} est silencieux depuis ${daysSinceLastCheckIn} jours. https://phoenx.app/depositary-alert?level=${l}&uid=${doc.id}`;
         const tData = target.data();
         if (tData.phone) await sendSMSViaPartner({ to: tData.phone, body: msg });
@@ -464,7 +469,8 @@ export const resolveCreatorSilence = onCall(async (request) => {
         "silenceConfig.missedCycles": 0,
         "silenceConfig.lastCheckInAt": admin.firestore.Timestamp.now(),
         "silenceConfig.lastSilenceStatus": "present",
-        "silenceConfig.escalationLevel": 0
+        "silenceConfig.escalationLevel": 0,
+        "protocolStatus": "dormant" // v9.3.3 : Rétablissement du statut dormant
     });
 
     const notifRef = userRef.collection("silenceNotifications").doc();
@@ -475,13 +481,52 @@ export const resolveCreatorSilence = onCall(async (request) => {
         timestamp: admin.firestore.Timestamp.now()
     });
 
+    // ═══ AJOUT v9.3.3 : ANNULATION DES PROTOCOLES D'ACTIVATION ═══
+    // On cherche tout protocole en attente de contestation pour ce créateur
+    const protocolsSnap = await db.collection("activationProtocols")
+        .where("creatorId", "==", creatorId)
+        .where("status", "==", "pending_contest")
+        .get();
+
+    protocolsSnap.forEach(doc => {
+        batch.update(doc.ref, {
+            status: "contested",
+            resolvedAt: admin.firestore.FieldValue.serverTimestamp(),
+            resolvedBy: depositaryId
+        });
+    });
+
+    // On cherche et annule les tâches de notification programmées
+    const tasksSnap = await db.collection("tasks")
+        .where("creatorId", "==", creatorId)
+        .where("status", "==", "pending")
+        .get();
+
+    tasksSnap.forEach(doc => {
+        batch.update(doc.ref, {
+            status: "cancelled",
+            reason: "resolved_by_depositary",
+            cancelledAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    });
+
     await batch.commit();
+    console.log(`[SILENCE] Silence résolu par le dépositaire ${depositaryId} pour le créateur ${creatorId}. ${protocolsSnap.size} protocoles contestés.`);
     return { success: true };
 });
 
 // 17. Notification d'octroi du droit de poser des questions
 export const notifyQuestionRightGranted = onCall(async (request) => {
-    const { recipientEmail, recipientName, creatorName, inviteLink } = request.data;
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
+
+    const { recipientEmail, recipientName, inviteLink } = request.data;
+    const creatorUid = request.auth.uid;
+
+    // Récupérer le nom réel du créateur depuis son profil
+    const creatorDoc = await admin.firestore().collection("users").doc(creatorUid).get();
+    const creatorName = creatorDoc.data()?.displayName || "Votre proche";
 
     await admin.firestore().collection("mail").add({
         to: recipientEmail,
@@ -567,6 +612,11 @@ export const sealPendingQuestion = onCall(async (request) => {
 
             const recipientData = recipientDoc.data()!;
 
+            // ═══ SÉCURITÉ v9.3.4 : Vérification d'identité ═══
+            if (recipientData.linkedUid !== request.auth!.uid) {
+                throw new HttpsError("permission-denied", "Vous n'êtes pas autorisé à agir pour ce destinataire");
+            }
+
             if (!recipientData.canAskQuestions) {
                 throw new HttpsError(
                     "permission-denied",
@@ -630,16 +680,40 @@ export const generateDepositaryShortCode = onCall(async (request) => {
 
 export const redeemDepositaryShortCode = onCall(async (request) => {
     const { shortCode } = request.data;
-    const ref = admin.firestore().collection("depositaryInviteCodes").doc(shortCode);
+    const db = admin.firestore();
+    const ref = db.collection("depositaryInviteCodes").doc(shortCode);
     const doc = await ref.get();
-    if (!doc.exists || doc.data()?.expiresAt.toMillis() < Date.now() || doc.data()?.used) throw new HttpsError("permission-denied", "Invalide");
-    await ref.update({ used: true });
 
-    const creatorId = doc.data()?.creatorId;
-    const depositaryId = doc.data()?.depositaryId;
+    if (!doc.exists) {
+        throw new HttpsError("not-found", "Code invalide");
+    }
 
-    const creatorDoc = await admin.firestore().collection("users").doc(creatorId).get();
-    const dDoc = await admin.firestore().collection("users").doc(creatorId).collection("depositaries").doc(depositaryId).get();
+    const data = doc.data()!;
+    const now = Date.now();
+
+    // ═══ SÉCURITÉ v9.3.4 : Limitation de tentatives ═══
+    const attempts = data.attempts || 0;
+    if (attempts >= 5) {
+        throw new HttpsError("resource-exhausted", "Trop de tentatives pour ce code");
+    }
+
+    if (data.expiresAt.toMillis() < now || data.used) {
+        // Incrémenter les tentatives même si expiré/utilisé pour éviter le probing
+        await ref.update({ attempts: admin.firestore.FieldValue.increment(1) });
+        throw new HttpsError("permission-denied", "Code expiré ou déjà utilisé");
+    }
+
+    await ref.update({
+        used: true,
+        redeemedByUid: request.auth?.uid || "anonymous",
+        redeemedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    const creatorId = data.creatorId;
+    const depositaryId = data.depositaryId;
+
+    const creatorDoc = await db.collection("users").doc(creatorId).get();
+    const dDoc = await db.collection("users").doc(creatorId).collection("depositaries").doc(depositaryId).get();
 
     return {
         creatorId: creatorId,
@@ -662,19 +736,33 @@ export const joinAsDepositary = onCall(async (request) => {
         throw new HttpsError("permission-denied", "Invalide");
     }
 
+    const creatorDoc = await admin.firestore().collection("users").doc(creatorId).get();
+    const creatorName = creatorDoc.data()?.displayName || "Votre proche";
+
     const batch = admin.firestore().batch();
 
     // 1. Liaison sur le document du Créateur
     batch.update(ref, {
         depositaryUid: depositaryUid,
-        status: "active", // v9.1 : Correction statut
+        status: "active",
         inviteTokenUsed: true
     });
 
-    // 2. Lien inverse sur le document du Dépositaire (Approche 2 - Liste)
+    // 2. Lien inverse sur le document du Dépositaire (Système myRoles v9.3.5)
     const depositaryUserRef = admin.firestore().collection("users").doc(depositaryUid);
+    const roleKey = `${creatorId}_depositary`;
+    const newRoleData = {
+        creatorId: creatorId,
+        creatorName: creatorName,
+        role: "depositary",
+        status: "active",
+        label: "Gardien de confiance",
+        joinedAt: admin.firestore.FieldValue.serverTimestamp(),
+        sourceId: depositaryId
+    };
+
     batch.set(depositaryUserRef, {
-        protectedCreatorIds: admin.firestore.FieldValue.arrayUnion(creatorId)
+        myRoles: { [roleKey]: newRoleData }
     }, { merge: true });
 
     await batch.commit();
@@ -900,7 +988,7 @@ export const acceptUniversalInvitation = onCall(async (request) => {
     const userRef = db.collection("users").doc(auth.uid);
 
     try {
-        return await db.runTransaction(async (transaction) => {
+        const result = await db.runTransaction(async (transaction) => {
             const inviteDoc = await transaction.get(inviteRef);
 
             // 1. Existence
@@ -963,7 +1051,6 @@ export const acceptUniversalInvitation = onCall(async (request) => {
             // 8. Mise à jour du statut dans la liste du Créateur
             if (inviteData.sourcePath) {
                 const sourceRef = db.doc(inviteData.sourcePath);
-                const sourceId = inviteDoc.data()?.sourceId; // v9.3.2 : Récupération du DocID local
                 const sourceUpdates: any = {
                     status: "active",
                     linkedUid: auth.uid,
@@ -983,13 +1070,16 @@ export const acceptUniversalInvitation = onCall(async (request) => {
 
         // ═══ PROPAGATION DE LIAISON (v9.3.2) ═══
         // On effectue la propagation APRÈS le succès de la transaction de liaison
-        const inviteDocAfter = await db.collection("invitations").doc(tokenId).get();
-        const inviteData = inviteDocAfter.data();
-        if (inviteData && inviteData.sourceId && inviteData.role === "recipient") {
-            await propagateUidLiaison(db, inviteData.creatorId, inviteData.sourceId, auth.uid);
+        // On couvre aussi le cas "already_accepted" pour assurer l'idempotence de la propagation
+        if (result.status === "success" || result.status === "already_accepted") {
+            const inviteDocAfter = await inviteRef.get();
+            const inviteData = inviteDocAfter.data();
+            if (inviteData && inviteData.sourceId && inviteData.role === "recipient") {
+                await propagateUidLiaison(db, inviteData.creatorId, inviteData.sourceId, auth.uid);
+            }
         }
 
-        return { status: "success" };
+        return result;
 
     } catch (error: any) {
         if (error instanceof HttpsError) throw error;
@@ -1100,7 +1190,7 @@ export const migrateLegacyRoles = onCall(async (request) => {
 
     await userRef.update({
         myRoles: newRoles,
-        isCreator: !data?.isDepositaryOnly, // v7.2 Correct logic for existing creators
+        isCreator: data?.isCreator === true, // v9.3.5 : Sécurisation du rôle Créateur (pas de true par défaut)
         migrationVersion: 7.2
     });
 
