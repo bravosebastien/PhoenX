@@ -1651,3 +1651,157 @@ export const generateGlobalIntro = onCall({
     const content = await generateWithGemini(prompt);
     return { content: content || "" };
 });
+
+/**
+ * PHOEN-X v9.4.2 - Génération d'URL signée pour l'héritage média
+ */
+export const getInheritedFileUrl = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Non authentifié");
+
+    const { creatorId, docType, docId } = request.data;
+    const requesterUid = request.auth.uid;
+    const db = admin.firestore();
+
+    const ALLOWED_TYPES = ["entries", "standaloneMedia", "book"];
+    if (!ALLOWED_TYPES.includes(docType)) {
+        throw new HttpsError("invalid-argument", "Type de document non supporté.");
+    }
+
+    const userDoc = await db.collection("users").doc(requesterUid).get();
+    const myRoles = userDoc.data()?.myRoles || {};
+    if (!(`${creatorId}_recipient` in myRoles)) {
+        throw new HttpsError("permission-denied", "Accès réservé aux héritiers.");
+    }
+
+    const creatorDoc = await db.collection("users").doc(creatorId).get();
+    if (creatorDoc.data()?.protocolStatus !== "activated") {
+        throw new HttpsError("permission-denied", "Héritage encore scellé.");
+    }
+
+    const docRef = db.collection("users").doc(creatorId).collection(docType).doc(docId);
+    const itemDoc = await docRef.get();
+    if (!itemDoc.exists) throw new HttpsError("not-found", "Document introuvable.");
+
+    const itemData = itemDoc.data()!;
+    const recipientIds = (itemData.recipientIds || []) as string[];
+
+    if (docType === "entries") {
+        const visibility = itemData.visibility || "RESTRICTED";
+        if (visibility !== "EVERYONE" && !recipientIds.includes(requesterUid)) {
+            throw new HttpsError("permission-denied", "Accès refusé.");
+        }
+    } else {
+        if (recipientIds.length > 0 && !recipientIds.includes(requesterUid)) {
+            throw new HttpsError("permission-denied", "Accès refusé.");
+        }
+    }
+
+    let storageUrl: string | null = null;
+    if (docType === "entries") storageUrl = itemData.mediaUrl;
+    else if (docType === "standaloneMedia" && itemData.type === "PHOTO") storageUrl = itemData.content;
+    else if (docType === "book") storageUrl = itemData.coverImageUrl;
+
+    if (!storageUrl) throw new HttpsError("not-found", "Aucun fichier.");
+
+    let storagePath: string;
+    if (storageUrl.startsWith("users/")) {
+        storagePath = storageUrl;
+    } else {
+        const pathMatch = storageUrl.match(/\/o\/(.*?)\?alt=media/);
+        if (!pathMatch) throw new HttpsError("internal", "Format d'URL Storage invalide.");
+        storagePath = decodeURIComponent(pathMatch[1]);
+    }
+
+    if (!storagePath.startsWith(`users/${creatorId}/`)) {
+        throw new HttpsError("permission-denied", "Chemin hors périmètre.");
+    }
+
+    const bucket = admin.storage().bucket();
+    const [signedUrl] = await bucket.file(storagePath).getSignedUrl({
+        action: 'read',
+        expires: Date.now() + 15 * 60 * 1000,
+    });
+
+    return { url: signedUrl };
+});
+
+/**
+ * PHOEN-X v9.4.8 - Verrouillage de l'identité officielle
+ */
+export const lockIdentity = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Non authentifié");
+    const { firstName, lastName } = request.data;
+    if (!firstName || !lastName) throw new HttpsError("invalid-argument", "Champs incomplets");
+
+    const userRef = admin.firestore().collection("users").doc(request.auth.uid);
+
+    await userRef.update({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        isIdentityLocked: true,
+        identityLockedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    return { success: true };
+});
+
+/**
+ * PHOEN-X v9.4.9 - Vérification automatique du décès via deces.matchid.io (INSEE)
+ */
+export const checkDeathRecord = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Non authentifié");
+
+    const { creatorId } = request.data;
+    const db = admin.firestore();
+
+    // 1. VÉRIFICATION D'AUTORISATION DÉPOSITAIRE (D'ABORD v9.4.8)
+    const creatorDoc = await db.collection("users").doc(creatorId).get();
+    if (!creatorDoc.exists) throw new HttpsError("not-found", "Créateur introuvable");
+
+    const creatorData = creatorDoc.data()!;
+    if (!(creatorData.depositaryUids || []).includes(request.auth.uid)) {
+        throw new HttpsError("permission-denied", "Accès refusé.");
+    }
+
+    // 2. VÉRIFICATION DE L'EXISTENCE D'UN PROTOCOLE ACTIF
+    const protocolsSnap = await db.collection("activationProtocols")
+        .where("creatorId", "==", creatorId)
+        .where("status", "==", "pending_contest")
+        .orderBy("confirmedAt", "desc").limit(1).get();
+
+    if (protocolsSnap.empty) return { ok: false, reason: "no_active_protocol" };
+    const protocolRef = protocolsSnap.docs[0].ref;
+
+    // 3. RÉCUPÉRATION IDENTITÉ
+    const { lastName: nom, firstName: prenom, dateOfBirth: dob } = creatorData;
+    if (!nom || !prenom || !dob) return { ok: false, reason: "missing_identity_fields" };
+
+    const dobStr = dob.toDate().toISOString().split('T')[0];
+
+    // 4. INTERROGATION API PUBLIQUE (Sans clé v9.4.9)
+    try {
+        const response = await axios.get("https://deces.matchid.io/deces/api/v1/search", {
+            params: {
+                firstName: prenom,
+                lastName: nom,
+                birthDate: dobStr
+            }
+        });
+
+        const hits = response.data.hits?.hits || [];
+        const found = hits.length > 0;
+
+        await protocolRef.update({
+            deathRecordCheck: {
+                checkedAt: admin.firestore.FieldValue.serverTimestamp(),
+                status: found ? "found" : "not_found",
+                apiReference: hits[0]?._id || null
+            }
+        });
+
+        return { ok: true, found };
+    } catch (error: any) {
+        console.error(`[DEATH_CHECK] API Error: ${error.message}`);
+        return { ok: false, reason: "api_failure" };
+    }
+});
