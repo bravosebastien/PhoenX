@@ -39,6 +39,8 @@ class DetectiveViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(DetectiveUiState())
     val uiState: StateFlow<DetectiveUiState> = _uiState.asStateFlow()
 
+    private val _heirKey = MutableStateFlow<ByteArray?>(null)
+
     fun loadData(creatorId: String?) {
         val currentUserId = auth.currentUser?.uid ?: return
         val targetCreatorId = creatorId ?: ""
@@ -47,7 +49,7 @@ class DetectiveViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             try {
                 // 1. Charger le nom du créateur et l'activation
-                if (targetCreatorId.isNotEmpty()) {
+                if (targetCreatorId.isNotEmpty() && targetCreatorId != currentUserId) {
                     val creatorDoc = db.collection("users").document(targetCreatorId).get().await()
                     val name = creatorDoc.getString("displayName") ?: "Ton proche"
                     
@@ -57,7 +59,18 @@ class DetectiveViewModel @Inject constructor(
                         .get().await()
                     
                     val protocolDoc = protocolSnap.documents.find { it.getString("status") == "activated" }
+                    val isActivated = protocolDoc != null
                     
+                    // v9.4.13 : Chargement de la clé miroir (si activé)
+                    if (isActivated) {
+                        val keyDoc = db.collection("users").document(targetCreatorId)
+                            .collection("entry_keys").document("main").get().await()
+                        val keyBase64 = keyDoc.getString("key")
+                        if (keyBase64 != null) {
+                            _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                        }
+                    }
+
                     // Fallback sur l'heure actuelle si aucun protocole (utile pour les tests)
                     val confirmedAtMillis = protocolDoc?.getTimestamp("confirmedAt")?.toDate()?.time 
                         ?: System.currentTimeMillis()
@@ -73,7 +86,8 @@ class DetectiveViewModel @Inject constructor(
                         .whereNotEqualTo("enigmaQuestion", null)
                         .get().await()
                     
-                    val entries = snapshot.documents.mapNotNull { it.toOfflineEntry() }
+                    // v9.4.13 : Passage de la clé héritier
+                    val entries = snapshot.documents.mapNotNull { it.toOfflineEntry(encryptionManager, _heirKey.value) }
                     _uiState.update { it.copy(lockedEntries = entries, isLoading = false) }
                 } else {
                     // Mode Créateur lui-même (test local)

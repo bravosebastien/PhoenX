@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.sync.toOfflineEntry
@@ -26,6 +27,7 @@ class InitialSyncWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val offlineEntryDao: OfflineEntryDao,
     private val mediaManager: MediaManager,
+    private val encryptionManager: EncryptionManager,
     private val db: FirebaseFirestore
 ) : CoroutineWorker(appContext, workerParams) {
 
@@ -42,7 +44,7 @@ class InitialSyncWorker @AssistedInject constructor(
                 .get()
                 .await()
 
-            val remoteEntries = entriesSnapshot.documents.mapNotNull { it.toOfflineEntry() }
+            val remoteEntries = entriesSnapshot.documents.mapNotNull { it.toOfflineEntry(encryptionManager) }
             val missingEntries = remoteEntries.filter { it.id !in localIds }
             
             missingEntries.forEach { entry ->

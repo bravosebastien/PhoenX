@@ -109,7 +109,8 @@ class FilViewModel @Inject constructor(
                             .collection("entries")
                             .whereEqualTo("visibility", "EVERYONE")
                             .addSnapshotListener { snapshot, _ ->
-                                trySend(snapshot?.documents?.mapNotNull { it.toOfflineEntry() } ?: emptyList())
+                                // v9.4.13 : Passage de la clé héritier pour toOfflineEntry
+                                trySend(snapshot?.documents?.mapNotNull { it.toOfflineEntry(encryptionManager, _heirKey.value) } ?: emptyList())
                             }
                         awaitClose { listener.remove() }
                     }
@@ -119,7 +120,8 @@ class FilViewModel @Inject constructor(
                             .collection("entries")
                             .whereArrayContains("recipientIds", currentUid)
                             .addSnapshotListener { snapshot, _ ->
-                                trySend(snapshot?.documents?.mapNotNull { it.toOfflineEntry() } ?: emptyList())
+                                // v9.4.13 : Passage de la clé héritier pour toOfflineEntry
+                                trySend(snapshot?.documents?.mapNotNull { it.toOfflineEntry(encryptionManager, _heirKey.value) } ?: emptyList())
                             }
                         awaitClose { listener.remove() }
                     }
@@ -133,6 +135,7 @@ class FilViewModel @Inject constructor(
             ) { offlineEntries, (recipientId, sortByDate, activated) ->
                 val targetId = _targetCreatorId.value
                 val isHeirMode = targetId != null && targetId != currentUid
+                val heirKey = if (isHeirMode) _heirKey.value else null
 
                 // 1. Filtrage par CRÉATEUR et ACCÈS
                 val rootEntries = if (!isHeirMode) {
@@ -171,7 +174,8 @@ class FilViewModel @Inject constructor(
                     if (isHeirMode && !activated) {
                         entry.toSealedDomain()
                     } else {
-                        entry.toDomain(encryptionManager, amendments)
+                        // v9.4.13 : Passage de la clé héritier à toDomain
+                        entry.toDomain(encryptionManager, amendments, heirKey)
                     }
                 }
 
@@ -258,8 +262,8 @@ class FilViewModel @Inject constructor(
         )
     }
 
-    private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager, amendments: List<PhoenXAmendment>): PhoenXEntry {
-        val decryptedText = encryptionManager.decryptText(encryptedPayload)
+    private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager, amendments: List<PhoenXAmendment>, explicitKey: ByteArray? = null): PhoenXEntry {
+        val decryptedText = encryptionManager.decryptText(encryptedPayload, explicitKey)
         val age = AgeUtils.parseAgeJson(ageAtCreation)
 
         return PhoenXEntry(

@@ -1,5 +1,6 @@
 package com.example.phoenx.data.sync
 
+import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.google.firebase.firestore.Blob
 import com.google.firebase.firestore.DocumentSnapshot
@@ -8,7 +9,7 @@ import org.json.JSONObject
 /**
  * Extension pour convertir une OfflineEntry (Room) en Map pour Firestore.
  */
-fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
+fun OfflineEntry.toFirestoreMap(encryptionManager: EncryptionManager): Map<String, Any?> {
     val ageMap = try {
         val json = JSONObject(ageAtCreation)
         mapOf(
@@ -33,8 +34,9 @@ fun OfflineEntry.toFirestoreMap(): Map<String, Any?> {
         "isYoungSelfLetter" to isYoungSelfLetter,
         "targetAge" to targetAge,
         "createdAt" to createdAt,
-        "aiSummary" to aiSummary,
-        "aiTags" to aiTags,
+        // CHIFFREMENT v9.4.12 : Conversion String -> Blob (AES-256-GCM)
+        "aiSummary" to if (aiSummary.isNotEmpty()) Blob.fromBytes(encryptionManager.encryptText(aiSummary)) else "",
+        "aiTags" to if (aiTags.isNotEmpty()) Blob.fromBytes(encryptionManager.encryptText(aiTags)) else "",
         "enigmaQuestion" to enigmaQuestion,
         "enigmaAnswer" to enigmaAnswer,
         "scheduledTimestamp" to scheduledTimestamp,
@@ -94,13 +96,29 @@ fun DocumentSnapshot.toPersonEntity(): com.example.phoenx.data.local.PersonEntit
  * Extension pour convertir un DocumentSnapshot Firestore en OfflineEntry (Room).
  * (v8.5.5 - Support Heritage sans Sync local)
  */
-fun DocumentSnapshot.toOfflineEntry(): OfflineEntry? {
+fun DocumentSnapshot.toOfflineEntry(encryptionManager: EncryptionManager, explicitKey: ByteArray? = null): OfflineEntry? {
     if (!exists()) return null
     val ageMap = get("ageAtCreation") as? Map<*, *>
     val ageJson = ageMap?.let { JSONObject(it).toString() } ?: "{}"
 
     val recIds = (get("recipientIds") as? List<*>)?.joinToString(",") ?: ""
     val compIds = (get("compartmentIds") as? List<*>)?.let { "," + it.joinToString(",") + "," } ?: ""
+
+    // DÉTECTION & DÉCHIFFREMENT HYBRIDE (v9.4.12)
+    val summaryObj = get("aiSummary")
+    val finalSummary = when (summaryObj) {
+        is Blob -> encryptionManager.decryptText(summaryObj.toBytes(), explicitKey)
+        is String -> summaryObj
+        else -> ""
+    }
+
+    val tagsObj = get("aiTags")
+    val finalTags = when (tagsObj) {
+        is Blob -> encryptionManager.decryptText(tagsObj.toBytes(), explicitKey)
+        is List<*> -> tagsObj.joinToString(",")
+        is String -> tagsObj
+        else -> ""
+    }
 
     return OfflineEntry(
         id = id,
@@ -115,8 +133,8 @@ fun DocumentSnapshot.toOfflineEntry(): OfflineEntry? {
         isYoungSelfLetter = getBoolean("isYoungSelfLetter") ?: false,
         targetAge = getLong("targetAge")?.toInt(),
         createdAt = getLong("createdAt") ?: 0L,
-        aiSummary = getString("aiSummary") ?: "",
-        aiTags = (get("aiTags") as? List<*>)?.joinToString(",") ?: "",
+        aiSummary = finalSummary,
+        aiTags = finalTags,
         enigmaQuestion = getString("enigmaQuestion"),
         enigmaAnswer = getString("enigmaAnswer"),
         fallbackAnswer = getString("fallbackAnswer"),

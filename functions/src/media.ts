@@ -4,6 +4,7 @@ import { db } from "./admin";
 
 /**
  * PHOEN-X v9.4.2 - Génération d'URL signée pour l'héritage média
+ * Mise à jour v9.4.11 : Ajout du support pour les portraits Cameo (persons)
  */
 export const getInheritedFileUrl = onCall(async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Non authentifié");
@@ -11,7 +12,8 @@ export const getInheritedFileUrl = onCall(async (request) => {
     const { creatorId, docType, docId } = request.data;
     const requesterUid = request.auth.uid;
 
-    const ALLOWED_TYPES = ["entries", "standaloneMedia", "book"];
+    // 1. Allowlist étendue aux portraits Cameo
+    const ALLOWED_TYPES = ["entries", "standaloneMedia", "book", "persons"];
     if (!ALLOWED_TYPES.includes(docType)) {
         throw new HttpsError("invalid-argument", "Type de document non supporté.");
     }
@@ -34,21 +36,25 @@ export const getInheritedFileUrl = onCall(async (request) => {
     const itemData = itemDoc.data()!;
     const recipientIds = (itemData.recipientIds || []) as string[];
 
+    // 5. Vérification des permissions
     if (docType === "entries") {
         const visibility = itemData.visibility || "RESTRICTED";
         if (visibility !== "EVERYONE" && !recipientIds.includes(requesterUid)) {
             throw new HttpsError("permission-denied", "Accès refusé.");
         }
     } else {
+        // standaloneMedia / book / persons (pas de recipientIds sur persons = accès à tous les héritiers)
         if (recipientIds.length > 0 && !recipientIds.includes(requesterUid)) {
             throw new HttpsError("permission-denied", "Accès refusé.");
         }
     }
 
+    // 6. Extraction du chemin Storage
     let storageUrl: string | null = null;
     if (docType === "entries") storageUrl = itemData.mediaUrl;
     else if (docType === "standaloneMedia" && itemData.type === "PHOTO") storageUrl = itemData.content;
     else if (docType === "book") storageUrl = itemData.coverImageUrl;
+    else if (docType === "persons") storageUrl = itemData.imageUrl; // Champ Cameo v8.9.9
 
     if (!storageUrl) throw new HttpsError("not-found", "Aucun fichier.");
 

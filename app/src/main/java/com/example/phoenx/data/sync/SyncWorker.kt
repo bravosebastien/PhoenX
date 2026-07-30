@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.StandaloneMediaDao
 import com.example.phoenx.data.media.MediaManager
@@ -22,7 +23,8 @@ class SyncWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val offlineEntryDao: OfflineEntryDao,
     private val standaloneMediaDao: StandaloneMediaDao, // v9.3.2
-    private val mediaManager: MediaManager
+    private val mediaManager: MediaManager,
+    private val encryptionManager: EncryptionManager
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
@@ -95,7 +97,7 @@ class SyncWorker @AssistedInject constructor(
                         entry.copy(mediaUrl = currentMediaUrl)
                     } else entry
 
-                    val firestoreMap = entryToSync.toFirestoreMap()
+                    val firestoreMap = entryToSync.toFirestoreMap(encryptionManager)
                     
                     // 3. ENVOI VERS FIRESTORE
                     db.collection("users").document(userId)

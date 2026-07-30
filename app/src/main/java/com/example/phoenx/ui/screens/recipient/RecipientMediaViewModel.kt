@@ -380,6 +380,24 @@ class RecipientMediaViewModel @Inject constructor(
         val recIds = (get("recipientIds") as? List<*>)?.joinToString(",") ?: ""
         val compIds = (get("compartmentIds") as? List<*>)?.joinToString(",") ?: ""
 
+        // DÉTECTION & DÉCHIFFREMENT AVEC CLÉ HÉRITIER (v9.4.12)
+        val heirKey = _heirKey.value
+
+        val summaryObj = get("aiSummary")
+        val finalSummary = when (summaryObj) {
+            is Blob -> encryptionManager.decryptText(summaryObj.toBytes(), heirKey)
+            is String -> summaryObj
+            else -> ""
+        }
+
+        val tagsObj = get("aiTags")
+        val finalTags = when (tagsObj) {
+            is Blob -> encryptionManager.decryptText(tagsObj.toBytes(), heirKey)
+            is List<*> -> tagsObj.joinToString(",")
+            is String -> tagsObj
+            else -> ""
+        }
+
         return OfflineEntry(
             id = id,
             creatorUid = getString("uid") ?: "",
@@ -393,8 +411,8 @@ class RecipientMediaViewModel @Inject constructor(
             isYoungSelfLetter = getBoolean("isYoungSelfLetter") ?: false,
             targetAge = getLong("targetAge")?.toInt(),
             createdAt = getLong("createdAt") ?: 0L,
-            aiSummary = getString("aiSummary") ?: "",
-            aiTags = (get("aiTags") as? List<*>)?.joinToString(",") ?: "",
+            aiSummary = finalSummary,
+            aiTags = finalTags,
             mediaUrl = getString("mediaUrl"),
             localMediaPath = null, // Pas de chemin local pour les entrées héritées
             memoryDate = getLong("memoryDate"),
