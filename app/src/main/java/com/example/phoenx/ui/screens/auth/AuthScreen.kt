@@ -61,15 +61,49 @@ fun AuthScreen(
     val accent = theme.accentColor
     val context = androidx.compose.ui.platform.LocalContext.current
     var isVerifying by remember { mutableStateOf(false) }
+    var showReactivateDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState) {
         if (uiState is AuthState.Success) {
             onAuthSuccess()
+        } else if (uiState is AuthState.AccountSuspended) {
+            showReactivateDialog = true
         } else if (uiState is AuthState.PasswordResetSent) {
             android.widget.Toast.makeText(context, "Un email de réinitialisation a été envoyé.", android.widget.Toast.LENGTH_SHORT).show()
         } else if (uiState is AuthState.EmailVerificationSent) {
             isVerifying = false
         }
+    }
+
+    if (showReactivateDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showReactivateDialog = false
+                viewModel.logout()
+            },
+            containerColor = theme.backgroundColor,
+            title = { Text("Compte en pause", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Ton compte est actuellement suspendu. Veux-tu le réactiver pour accéder à tes souvenirs ?", color = theme.contentColor.copy(alpha = 0.7f)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showReactivateDialog = false
+                        viewModel.reactivateAccount()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
+                ) {
+                    Text("Réactiver mon compte", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showReactivateDialog = false
+                    viewModel.logout()
+                }) {
+                    Text("Annuler", color = theme.contentColor)
+                }
+            }
+        )
     }
 
     Box(

@@ -3,6 +3,8 @@ package com.example.phoenx.ui.screens.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.storage.FirebaseStorage
@@ -14,6 +16,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
+
+sealed class DeleteResult {
+    object Success : DeleteResult()
+    object RequiresReauth : DeleteResult()
+    data class Error(val message: String) : DeleteResult()
+}
 
 data class ProfileUiState(
     val displayName: String = "",
@@ -106,5 +114,43 @@ class ProfileViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }
+    }
+
+    fun suspendAccount(onComplete: () -> Unit) {
+        val userId = auth.currentUser?.uid
+        if (userId == null) {
+            onComplete()
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(userId)
+                    .update(mapOf(
+                        "accountStatus" to "suspended",
+                        "suspendedAt" to FieldValue.serverTimestamp()
+                    )).await()
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileVM", "Erreur lors de la suspension: ${e.message}")
+            }
+            onComplete()
+        }
+    }
+
+    fun deleteAccount(onResult: (DeleteResult) -> Unit) {
+        val user = auth.currentUser
+        if (user == null) {
+            onResult(DeleteResult.Error("Aucun utilisateur connecté"))
+            return
+        }
+        user.delete()
+            .addOnSuccessListener { onResult(DeleteResult.Success) }
+            .addOnFailureListener { e ->
+                if (e is FirebaseAuthRecentLoginRequiredException) {
+                    onResult(DeleteResult.RequiresReauth)
+                } else {
+                    onResult(DeleteResult.Error(e.message ?: "Erreur inconnue"))
+                }
+            }
     }
 }

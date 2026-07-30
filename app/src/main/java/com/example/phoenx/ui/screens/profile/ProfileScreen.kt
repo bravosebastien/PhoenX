@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.profile
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.components.CameoCropDialog
 import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.navigation.Screen
@@ -41,6 +43,8 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToRichProfile: () -> Unit,
+    onLogoutSuccess: () -> Unit,
+    mainViewModel: MainViewModel,
     viewModel: ProfileViewModel = hiltViewModel(),
     themeViewModel: com.example.phoenx.ui.theme.ThemeViewModel = hiltViewModel()
 ) {
@@ -62,6 +66,11 @@ fun ProfileScreen(
     var showPhotoOptions by remember { mutableStateOf(false) }
     var showCropDialog by remember { mutableStateOf(false) }
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    var showSuspendDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var deleteConfirmText by remember { mutableStateOf("") }
+    val isDeleteButtonEnabled = deleteConfirmText == "SUPPRIMER"
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -90,6 +99,77 @@ fun ProfileScreen(
                 showCropDialog = false
             },
             accent = accent
+        )
+    }
+
+    if (showSuspendDialog) {
+        AlertDialog(
+            onDismissRequest = { showSuspendDialog = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("Suspendre mon compte ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Votre compte deviendra inactif et vous serez déconnecté. Vos proches ne recevront plus de notifications de votre part.\n\nRien ne sera supprimé. Vous pourrez réactiver votre compte à tout moment en vous reconnectant.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.suspendAccount {
+                        mainViewModel.logout()
+                        onLogoutSuccess()
+                    }
+                }) { Text("Confirmer la suspension", color = Error, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSuspendDialog = false }) { Text("Annuler", color = theme.contentColor) }
+            }
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("SUPPRESSION DÉFINITIVE", color = Error, fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text("Cette action est IRREVERSIBLE. Toutes vos données (souvenirs, photos, voix, cercle) seront définitivement effacées conformément au RGPD.\n\nPour confirmer, tapez SUPPRIMER ci-dessous :", color = theme.contentColor.copy(alpha = 0.7f))
+                    Spacer(Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = deleteConfirmText,
+                        onValueChange = { deleteConfirmText = it.uppercase() },
+                        placeholder = { Text("SUPPRIMER") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Error,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.4f),
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deleteAccount { result ->
+                            when(result) {
+                                is DeleteResult.Success -> { onLogoutSuccess() }
+                                is DeleteResult.RequiresReauth -> {
+                                    Toast.makeText(context, "Sécurité : Reconnectez-vous avant de supprimer votre compte.", Toast.LENGTH_LONG).show()
+                                    mainViewModel.logout()
+                                    onLogoutSuccess()
+                                }
+                                is DeleteResult.Error -> {
+                                    Toast.makeText(context, result.message, Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                    },
+                    enabled = isDeleteButtonEnabled,
+                    colors = ButtonDefaults.buttonColors(containerColor = Error)
+                ) { Text("Supprimer définitivement", color = Color.White, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Annuler", color = theme.contentColor) }
+            }
         )
     }
 
@@ -341,10 +421,10 @@ fun ProfileScreen(
 
                 // --- ZONE DE DANGER ---
                 Text("ZONE DE DANGER", style = MaterialTheme.typography.labelSmall, color = Error.copy(alpha = 0.7f), modifier = Modifier.align(Alignment.Start))
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 
                 OutlinedButton(
-                    onClick = { /* TODO: Dialogue de suspension */ },
+                    onClick = { showSuspendDialog = true },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = Error),
                     border = androidx.compose.foundation.BorderStroke(1.dp, Error.copy(alpha = 0.3f))
@@ -352,6 +432,18 @@ fun ProfileScreen(
                     Icon(Icons.Default.Block, null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(12.dp))
                     Text("Suspendre mon compte")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Error)
+                ) {
+                    Icon(Icons.Default.DeleteForever, null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Supprimer définitivement mon compte", color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(48.dp))

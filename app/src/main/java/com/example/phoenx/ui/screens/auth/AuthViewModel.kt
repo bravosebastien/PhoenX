@@ -75,6 +75,14 @@ class AuthViewModel @Inject constructor(
 
                 // ETAPE 3 - Récupération de la clé à la connexion
                 val userDoc = db.collection("users").document(user.uid).get().await()
+                
+                // ═══ DÉTECTION STATUT SUSPENDU (v9.4.5) ═══
+                val status = userDoc.getString("accountStatus")
+                if (status == "suspended") {
+                    _uiState.value = AuthState.AccountSuspended
+                    return@launch
+                }
+
                 var encryptionKeyBase64 = userDoc.getString("encryptionKey")
 
                 if (encryptionKeyBase64 == null) {
@@ -216,12 +224,45 @@ class AuthViewModel @Inject constructor(
             }
         }
     }
+
+    fun reactivateAccount() {
+        val user = auth.currentUser ?: return
+        _uiState.value = AuthState.Loading
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(user.uid)
+                    .update(mapOf(
+                        "accountStatus" to "active",
+                        "suspendedAt" to com.google.firebase.firestore.FieldValue.delete()
+                    )).await()
+                
+                // Une fois réactivé, on relance la fin du processus de login
+                val userDoc = db.collection("users").document(user.uid).get().await()
+                val key = userDoc.getString("encryptionKey") ?: throw Exception("Clé manquante")
+                val decodedKey = android.util.Base64.decode(key, android.util.Base64.NO_WRAP)
+                encryptionManager.setSessionKey(decodedKey)
+
+                val syncRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
+                WorkManager.getInstance(context).enqueue(syncRequest)
+
+                _uiState.value = AuthState.Success
+            } catch (e: Exception) {
+                _uiState.value = AuthState.Error(e.message ?: "Erreur de réactivation")
+            }
+        }
+    }
+
+    fun logout() {
+        auth.signOut()
+        _uiState.value = AuthState.Idle
+    }
 }
 
 sealed class AuthState {
     object Idle : AuthState()
     object Loading : AuthState()
     object Success : AuthState()
+    object AccountSuspended : AuthState() // AJOUT v9.4.5
     object EmailVerificationSent : AuthState()
     object EmailNotVerified : AuthState()
     object PasswordResetSent : AuthState()

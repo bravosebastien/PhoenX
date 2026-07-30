@@ -457,7 +457,13 @@ fun NavGraphBuilder.creatorGraph(
     composable(Screen.Profile.route) {
         ProfileScreen(
             onNavigateBack = { navController.popBackStack() },
-            onNavigateToRichProfile = { navController.navigate(Screen.CreatorRichProfile.route) }
+            onNavigateToRichProfile = { navController.navigate(Screen.CreatorRichProfile.route) },
+            mainViewModel = mainViewModel,
+            onLogoutSuccess = {
+                navController.navigate(Screen.Splash.route) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
         )
     }
 
