@@ -332,6 +332,7 @@ export const activateProtocol = onCall(async (request) => {
     const ref = await admin.firestore()
         .collection("activationProtocols").add({
             creatorId, depositaryId,
+            depositaryUid: request.auth.uid, // AJOUT v9.4.4
             status: "pending_contest",
             confirmedAt: now,
             contestDeadline,
@@ -754,29 +755,24 @@ export const redeemDepositaryShortCode = onCall(async (request) => {
                 transaction.get(codeRef)
             ]);
 
-            // 2. Évaluation Rate Limit (v9.3.9 : Plus de throw ici pour ne pas annuler l'écriture)
-            if (limitDoc.exists) {
-                const lData = limitDoc.data()!;
-                const lastAttempt = lData.lastAttemptAt?.toMillis() || 0;
-                if (lastAttempt > windowStart && lData.shortCodeAttempts >= 10) {
-                    return { ok: false, reason: "rate_limited" };
-                }
-            }
+            // 2. Évaluation pré-incrément (v9.4.5)
+            const lData = limitDoc.data();
+            const lastAttempt = lData?.lastAttemptAt?.toMillis() || 0;
+            const alreadyBlocked = limitDoc.exists && lastAttempt > windowStart && lData!.shortCodeAttempts >= 10;
 
-            // 3. Incrémenter les tentatives (Même si le code n'existe pas ou est expiré)
+            // 3. Incrément SYSTÉMATIQUE (Placé avant tout retour pour garantir l'écriture)
             updateRateLimitTransactional(transaction, limitRef, limitDoc, windowStart);
 
-            // 4. Évaluation Code
-            if (!codeDoc.exists) {
-                return { ok: false, reason: "not_found" };
-            }
+            // 4. Logique de sortie transactionnelle (Sans throw)
+            if (alreadyBlocked) return { ok: false, reason: "rate_limited" };
+            if (!codeDoc.exists) return { ok: false, reason: "not_found" };
 
             const cData = codeDoc.data()!;
             if (cData.expiresAt.toMillis() < now || cData.used) {
                 return { ok: false, reason: "expired_or_used" };
             }
 
-            // 5. Marquage comme utilisé (Uniquement si OK)
+            // 5. Marquage comme utilisé (Uniquement si tout est OK)
             transaction.update(codeRef, {
                 used: true,
                 redeemedByUid: uid,
@@ -790,7 +786,7 @@ export const redeemDepositaryShortCode = onCall(async (request) => {
             };
         });
 
-        // ═══ TRADUCTION DES ERREURS (v9.3.9) ═══
+        // ═══ TRADUCTION DES ERREURS HORS TRANSACTION (v9.4.5) ═══
         if (!result.ok) {
             const errorMap: Record<string, { code: any, msg: string }> = {
                 "rate_limited": { code: "resource-exhausted", msg: "Trop de tentatives. Réessayez dans 15 minutes." },
@@ -1175,6 +1171,10 @@ export const acceptUniversalInvitation = onCall(async (request) => {
                 // v9.1 : Champ spécifique requis par les Security Rules pour les Dépositaires
                 if (role === "depositary") {
                     sourceUpdates.depositaryUid = auth.uid;
+                    // v9.4.4 : Dénormalisation sur le document Créateur
+                    transaction.update(db.collection("users").doc(creatorId), {
+                        depositaryUids: admin.firestore.FieldValue.arrayUnion(auth.uid)
+                    });
                 }
 
                 transaction.update(sourceRef, sourceUpdates);
@@ -1228,9 +1228,11 @@ async function propagateUidLiaison(db: FirebaseFirestore.Firestore, creatorId: s
     // Nécessite une requête collectionGroup quand elles seront synchronisées.
 
     // 2. Collections avec champ simple recipientId (v9.3.6)
-    // TODO INACTIF : PactViewModel n'écrit pas encore recipientId.
-    // Cette boucle ne remonte rien tant que ce n'est pas le cas.
-    const simpleCollections = ["pendingQuestions", "portraits", "legacies", "pacts"];
+    const simpleCollections = [
+        "pendingQuestions",
+        "legacies",
+        "pacts" // "pacts" INACTIF : PactViewModel n'écrit pas encore recipientId.
+    ];
     for (const col of simpleCollections) {
         const snap = await userRef.collection(col)
             .where("recipientId", "==", oldDocId).get();
@@ -1427,10 +1429,14 @@ async function cleanupMemberRoles(creatorId: string, memberId: string, role: str
 
     // 1. Nettoyage myRoles sur le profil de l'invité
     if (linkedUid) {
-        const roleKey = `${creatorId}_${role}`;
-        await db.collection("users").doc(linkedUid).update({
-            [`myRoles.${roleKey}`]: admin.firestore.FieldValue.delete()
-        });
+        try {
+            const roleKey = `${creatorId}_${role}`;
+            await db.collection("users").doc(linkedUid).update({
+                [`myRoles.${roleKey}`]: admin.firestore.FieldValue.delete()
+            });
+        } catch (e) {
+            console.warn(`[CLEANUP] Impossible de nettoyer myRoles pour ${linkedUid} (Profil peut-être déjà supprimé)`);
+        }
 
         // v9.4.4 : Retrait du tableau depositaryUids si c'est un Dépositaire
         if (role === "depositary") {
