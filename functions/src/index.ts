@@ -34,6 +34,7 @@ import {
     getInvitationDetails,
     acceptUniversalInvitation,
     migrateLegacyRoles,
+    sendMail,
     becomeCreator
 } from "./invitations";
 
@@ -100,6 +101,7 @@ export {
     getInvitationDetails,
     acceptUniversalInvitation,
     migrateLegacyRoles,
+    sendMail,
     becomeCreator,
 
     // Lifecycle

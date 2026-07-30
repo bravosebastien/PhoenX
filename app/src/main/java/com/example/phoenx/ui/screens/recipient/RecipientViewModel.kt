@@ -132,18 +132,16 @@ class RecipientViewModel @Inject constructor(
                 val result = functions.getHttpsCallable("generateUniversalInvitation").call(inviteData).await()
                 val tokenId = (result.data as Map<*, *>)["tokenId"] as String
 
-                // 4. Envoi Email
+                // 4. Envoi Email via Cloud Function (v9.4.10)
                 val userDoc = db.collection("users").document(userId).get().await()
                 val creatorName = userDoc.getString("displayName") ?: "Ton proche"
                 
                 val emailData = hashMapOf(
                     "to" to email,
-                    "message" to hashMapOf(
-                        "subject" to "$creatorName t'a choisi comme héritier",
-                        "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous choisissant comme héritier de son récit de vie.\n\nLien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
-                    )
+                    "subject" to "$creatorName t'a choisi comme héritier",
+                    "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous choisissant comme héritier de son récit de vie.\n\nLien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
                 )
-                db.collection("mail").add(emailData).await()
+                functions.getHttpsCallable("sendMail").call(emailData).await()
 
             } catch (e: Exception) {
                 android.util.Log.e("RecipientVM", "Erreur ajout destinataire", e)

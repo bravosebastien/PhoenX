@@ -392,6 +392,38 @@ export const migrateLegacyRoles = onCall(async (request) => {
     return { status: "success", count: legacyIds.length };
 });
 
+/**
+ * PHOEN-X v9.4.10 - Envoi de mail via Cloud Function (Relais sécurisé)
+ */
+export const sendMail = onCall(
+    { region: "us-central1", invoker: "public" },
+    async (request) => {
+        if (!request.auth) {
+            throw new HttpsError("unauthenticated", "Authentification requise.");
+        }
+
+        const { to, subject, text } = request.data as {
+            to?: string;
+            subject?: string;
+            text?: string;
+        };
+
+        if (!to || !subject || !text) {
+            throw new HttpsError(
+                "invalid-argument",
+                "Les champs 'to', 'subject' et 'text' sont requis."
+            );
+        }
+
+        await db.collection("mail").add({
+            to,
+            message: { subject, text },
+        });
+
+        return { success: true };
+    }
+);
+
 export const becomeCreator = onCall(async (request) => {
     const uid = request.auth?.uid;
     if (!uid) throw new HttpsError("unauthenticated", "Utilisateur non connecté");

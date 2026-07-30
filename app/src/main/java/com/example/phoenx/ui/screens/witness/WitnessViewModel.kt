@@ -193,15 +193,13 @@ class WitnessViewModel @Inject constructor(
                 val result = functions.getHttpsCallable("generateUniversalInvitation").call(inviteData).await()
                 val tokenId = (result.data as Map<*, *>)["tokenId"] as String
 
-                // 4. Envoi de l'email (on garde la structure mais avec le nouveau lien)
+                // 4. Envoi de l'email via Cloud Function (v9.4.10)
                 val emailData = hashMapOf(
                     "to" to email,
-                    "message" to hashMapOf(
-                        "subject" to "$creatorName demande ton témoignage",
-                        "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous demandant de témoigner sur un souvenir partagé.\n\nLien pour rejoindre son cercle : https://phoenx.app/join/$tokenId"
-                    )
+                    "subject" to "$creatorName demande ton témoignage",
+                    "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous demandant de témoigner sur un souvenir partagé.\n\nLien pour rejoindre son cercle : https://phoenx.app/join/$tokenId"
                 )
-                db.collection("mail").add(emailData).await()
+                functions.getHttpsCallable("sendMail").call(emailData).await()
                 
                 _inviteSuccess.emit(true)
             } catch (e: Exception) {

@@ -132,16 +132,14 @@ class ProtocolViewModel @Inject constructor(
                 
                 _inviteToken.value = tokenId
 
-                // Email
+                // Email via Cloud Function (v9.4.10)
                 val creatorName = db.collection("users").document(userId).get().await().getString("displayName") ?: "Un proche"
                 val emailData = hashMapOf(
                     "to" to email,
-                    "message" to hashMapOf(
-                        "subject" to "$creatorName vous a choisi comme Gardien de confiance",
-                        "text" to "Bonjour $name,\n\n$creatorName souhaite vous confier le rôle de Gardien (Dépositaire) de son récit de vie sur PHOEN-X.\n\nRejoindre son cercle : https://phoenx.app/join/$tokenId"
-                    )
+                    "subject" to "$creatorName vous a choisi comme Gardien de confiance",
+                    "text" to "Bonjour $name,\n\n$creatorName souhaite vous confier le rôle de Gardien (Dépositaire) de son récit de vie sur PHOEN-X.\n\nRejoindre son cercle : https://phoenx.app/join/$tokenId"
                 )
-                db.collection("mail").add(emailData).await()
+                functions.getHttpsCallable("sendMail").call(emailData).await()
 
                 // Sync local
                 offlineEntryDao.insertDepositary(DepositaryEntity(
