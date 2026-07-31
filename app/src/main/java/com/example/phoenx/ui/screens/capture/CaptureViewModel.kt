@@ -17,12 +17,7 @@ import com.example.phoenx.ui.navigation.Screen
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
@@ -179,27 +174,24 @@ class CaptureViewModel @Inject constructor(
     }
 
     fun selectPerson(person: com.example.phoenx.data.local.PersonEntity) {
-        if (!_selectedPersons.value.any { it.id == person.id }) {
-            _selectedPersons.value = _selectedPersons.value + person
+        _selectedPersons.update { current ->
+            if (current.any { it.id == person.id }) current else current + person
         }
         _suggestedPersons.value = emptyList()
     }
 
     fun selectMe() {
         val user = auth.currentUser ?: return
-        viewModelScope.launch {
-            // On cherche s'il existe déjà une entité "Moi" ou on en crée une virtuelle
-            val me = com.example.phoenx.data.local.PersonEntity(
-                id = "ME_${user.uid}",
-                firstName = "Moi",
-                lastName = null,
-                relationship = "Auteur",
-                distinctionType = "autre",
-                distinctionValue = "Moi-même"
-            )
-            if (!_selectedPersons.value.any { it.id == me.id }) {
-                _selectedPersons.value = _selectedPersons.value + me
-            }
+        val me = com.example.phoenx.data.local.PersonEntity(
+            id = "ME_${user.uid}",
+            firstName = "Moi",
+            lastName = null,
+            relationship = "Auteur",
+            distinctionType = "autre",
+            distinctionValue = "Moi-même"
+        )
+        _selectedPersons.update { current ->
+            if (current.any { it.id == me.id }) current else current + me
         }
     }
 

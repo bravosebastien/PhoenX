@@ -189,8 +189,11 @@ fun PersonSelector(
                             },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),
                             modifier = Modifier.clickable { 
-                                onSelect(person)
-                                query = ""
+                                if (enabled) {
+                                    val p = person
+                                    query = "" // Vider immédiatement pour éviter le double clic (v9.4.19)
+                                    onSelect(p)
+                                }
                             }
                         )
                     }

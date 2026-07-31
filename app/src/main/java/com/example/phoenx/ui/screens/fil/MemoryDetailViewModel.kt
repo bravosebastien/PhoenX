@@ -57,41 +57,43 @@ class MemoryDetailViewModel @Inject constructor(
     private val _suggestedPersons = MutableStateFlow<List<PersonEntity>>(emptyList())
     val suggestedPersons: StateFlow<List<PersonEntity>> = _suggestedPersons.asStateFlow()
 
-    private val _selectedPersons = MutableStateFlow<List<PersonEntity>>(emptyList())
-    val selectedPersons: StateFlow<List<PersonEntity>> = _selectedPersons.asStateFlow()
-
     val recipients: StateFlow<List<RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val entry: StateFlow<OfflineEntry?> = _entryId
         .filterNotNull()
         .flatMapLatest { id -> offlineEntryDao.getEntryById(id) }
-        .combine(recipients) { entry, recipientsList ->
-            if (entry != null) {
-                // v9.2.2 : Résolution des Personnes liées
-                if (entry.personIds.isNotBlank()) {
-                    val ids = entry.personIds.split(",").filter { it.isNotBlank() }
-                    viewModelScope.launch {
-                        _selectedPersons.value = offlineEntryDao.getPersonsByIds(ids)
-                    }
-                } else {
-                    _selectedPersons.value = emptyList()
-                }
-
-                if (recipientsList.isNotEmpty()) {
-                    // v9.2 : Remappage des UIDs vers les DocIDs pour l'UI (RecipientSelector)
-                    val mappedIds = entry.recipientIds.split(",").map { persistentId ->
+        .combine(recipients) { rawEntry, recipientsList ->
+            if (rawEntry != null && recipientsList.isNotEmpty()) {
+                // v9.2 : Remappage des UIDs vers les DocIDs pour l'UI (RecipientSelector)
+                val mappedIds = rawEntry.recipientIds.split(",")
+                    .filter { it.isNotBlank() }
+                    .map { persistentId ->
                         recipientsList.find { it.linkedUid == persistentId }?.id ?: persistentId
                     }.joinToString(",")
-                    entry.copy(recipientIds = mappedIds)
-                } else {
-                    entry
-                }
+                rawEntry.copy(recipientIds = mappedIds)
             } else {
-                entry
+                rawEntry
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /**
+     * Source de vérité unique pour les personnes citées (v9.4.19)
+     * Réagit aux changements de personIds dans l'entrée.
+     */
+    val selectedPersons: StateFlow<List<PersonEntity>> = entry
+        .filterNotNull()
+        .map { it.personIds }
+        .distinctUntilChanged()
+        .flatMapLatest { idsCsv ->
+            val ids = idsCsv.split(",")
+                .filter { it.isNotBlank() }
+                .map { it.trim() }
+            if (ids.isEmpty()) flowOf(emptyList())
+            else flow { emit(offlineEntryDao.getPersonsByIds(ids)) }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val complements: StateFlow<List<OfflineEntry>> = _entryId
         .filterNotNull()
@@ -269,39 +271,34 @@ class MemoryDetailViewModel @Inject constructor(
     }
 
     fun selectPerson(person: PersonEntity) {
-        val current = _selectedPersons.value
-        if (!current.any { it.id == person.id }) {
-            val newList = current + person
-            _selectedPersons.value = newList
-            updatePersonsInDb(newList.map { it.id })
+        val currentIds = entry.value?.personIds?.split(",")
+            ?.filter { it.isNotBlank() }?.map { it.trim() } ?: emptyList()
+        
+        if (!currentIds.contains(person.id)) {
+            val newList = currentIds + person.id
+            updatePersonsInDb(newList)
         }
         _suggestedPersons.value = emptyList()
     }
 
     fun selectMe() {
         val user = auth.currentUser ?: return
-        viewModelScope.launch {
-            val me = PersonEntity(
-                id = "ME_${user.uid}",
-                firstName = "Moi",
-                lastName = null,
-                relationship = "Auteur",
-                distinctionType = "autre",
-                distinctionValue = "Moi-même"
-            )
-            val current = _selectedPersons.value
-            if (!current.any { it.id == me.id }) {
-                val newList = current + me
-                _selectedPersons.value = newList
-                updatePersonsInDb(newList.map { it.id })
-            }
+        val meId = "ME_${user.uid}"
+        val currentIds = entry.value?.personIds?.split(",")
+            ?.filter { it.isNotBlank() }?.map { it.trim() } ?: emptyList()
+
+        if (!currentIds.contains(meId)) {
+            val newList = currentIds + meId
+            updatePersonsInDb(newList)
         }
     }
 
     fun removePerson(personId: String) {
-        val newList = _selectedPersons.value.filter { it.id != personId }
-        _selectedPersons.value = newList
-        updatePersonsInDb(newList.map { it.id })
+        val currentIds = entry.value?.personIds?.split(",")
+            ?.filter { it.isNotBlank() }?.map { it.trim() } ?: emptyList()
+        
+        val newList = currentIds.filter { it != personId }
+        updatePersonsInDb(newList)
     }
 
     fun createAndSelectPerson(
