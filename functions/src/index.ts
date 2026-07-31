@@ -56,6 +56,8 @@ import {
     activateProtocol,
     scheduledNotifications,
     resolveCreatorSilence,
+    confirmCreatorProofOfLife,
+    markEntryAutoUnlocked,
     checkDeathRecord
 } from "./protocol";
 
@@ -120,6 +122,8 @@ export {
     activateProtocol,
     scheduledNotifications,
     resolveCreatorSilence,
+    confirmCreatorProofOfLife,
+    markEntryAutoUnlocked,
     checkDeathRecord,
 
     // Questions

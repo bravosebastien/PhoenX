@@ -9,34 +9,19 @@ import javax.inject.Singleton
 
 @Singleton
 class ActivationProtocolManager @Inject constructor(
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val functions: com.google.firebase.functions.FirebaseFunctions
 ) {
     /**
      * Confirme que le Créateur est en vie (Action hebdomadaire).
      */
     suspend fun confirmProofOfLife(userId: String) {
-        // 1. Mettre à jour le statut du profil
-        db.collection("users").document(userId)
-            .update(
-                "lastAliveConfirmedAt", Timestamp.now(),
-                // "protocolStatus", "dormant" // Temporairement désactivé pour tests (v9.3.3)
-            ).await()
-
-        // 2. Chercher et marquer le protocole en cours comme contesté
         try {
-            val pendingProtocols = db.collection("activationProtocols")
-                .whereEqualTo("creatorId", userId)
-                .whereEqualTo("status", "pending_contest")
-                .get()
-                .await()
-
-            for (doc in pendingProtocols.documents) {
-                db.collection("activationProtocols").document(doc.id)
-                    .update("status", "contested")
-                    .await()
-            }
+            // Appeler la Cloud Function sécurisée (v9.4.14)
+            functions.getHttpsCallable("confirmCreatorProofOfLife").call().await()
         } catch (e: Exception) {
-            android.util.Log.e("ProtocolManager", "Erreur lors de la contestation du protocole", e)
+            android.util.Log.e("ProtocolManager", "Erreur lors de la confirmation de vie", e)
+            throw e
         }
     }
 

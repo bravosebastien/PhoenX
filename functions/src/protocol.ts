@@ -328,6 +328,120 @@ export const resolveCreatorSilence = onCall(async (request) => {
 });
 
 /**
+ * PHOEN-X v9.4.14 - Confirmation de vie par le Créateur
+ * Réinitialise le silence et annule les protocoles en cours.
+ */
+export const confirmCreatorProofOfLife = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Non authentifié");
+
+    const creatorId = request.auth.uid;
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const creatorRef = db.collection("users").doc(creatorId);
+            const protocolsQuery = db.collection("activationProtocols")
+                .where("creatorId", "==", creatorId)
+                .where("status", "==", "pending_contest");
+            const tasksQuery = db.collection("tasks")
+                .where("creatorId", "==", creatorId)
+                .where("type", "==", "notifyDeathContacts")
+                .where("status", "==", "pending");
+
+            const [creatorDoc, protocolsSnap, tasksSnap] = await Promise.all([
+                transaction.get(creatorRef),
+                transaction.get(protocolsQuery),
+                transaction.get(tasksQuery)
+            ]);
+
+            if (!creatorDoc.exists) throw new HttpsError("not-found", "Profil introuvable");
+
+            const currentStatus = creatorDoc.data()?.protocolStatus;
+            const updates: any = {
+                "silenceConfig.missedCycles": 0,
+                "silenceConfig.lastCheckInAt": admin.firestore.Timestamp.now(),
+                "silenceConfig.lastSilenceStatus": "present",
+                "silenceConfig.escalationLevel": 0,
+                "lastAliveConfirmedAt": admin.firestore.Timestamp.now()
+            };
+
+            if (currentStatus === "activated") {
+                console.warn(`[SECURITY] Signe de vie reçu pour un compte déjà activé : ${creatorId}`);
+            } else {
+                updates.protocolStatus = "dormant";
+            }
+
+            transaction.update(creatorRef, updates);
+
+            protocolsSnap.forEach(doc => {
+                transaction.update(doc.ref, {
+                    status: "contested",
+                    resolvedAt: admin.firestore.FieldValue.serverTimestamp(),
+                    reason: "creator_self_checkin"
+                });
+            });
+
+            tasksSnap.forEach(doc => {
+                transaction.update(doc.ref, {
+                    status: "cancelled",
+                    reason: "creator_self_checkin",
+                    cancelledAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+            });
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        if (error instanceof HttpsError) throw error;
+        throw new HttpsError("internal", error.message);
+    }
+});
+
+/**
+ * PHOEN-X v9.4.14 - Déverrouillage automatique d'une énigme par l'héritier
+ */
+export const markEntryAutoUnlocked = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Non authentifié");
+
+    const { creatorId, entryId } = request.data;
+    const requesterUid = request.auth.uid;
+
+    const userDoc = await db.collection("users").doc(requesterUid).get();
+    const myRoles = userDoc.data()?.myRoles || {};
+    if (!(`${creatorId}_recipient` in myRoles)) {
+        throw new HttpsError("permission-denied", "Accès refusé.");
+    }
+
+    const creatorDoc = await db.collection("users").doc(creatorId).get();
+    if (creatorDoc.data()?.protocolStatus !== "activated") {
+        throw new HttpsError("permission-denied", "Héritage encore scellé.");
+    }
+
+    const entryRef = db.collection("users").doc(creatorId).collection("entries").doc(entryId);
+    const entryDoc = await entryRef.get();
+
+    if (!entryDoc.exists) throw new HttpsError("not-found", "Souvenir introuvable");
+
+    const data = entryDoc.data()!;
+    if (!data.enigmaQuestion) throw new HttpsError("failed-precondition", "Ce souvenir n'est pas une énigme");
+
+    // Vérification du délai (v9.4.14 : Sécurité serveur)
+    const confirmedAt = creatorDoc.data()?.silenceConfig?.lastCheckInAt || admin.firestore.Timestamp.now();
+    const autoUnlockDays = data.enigmaAutoUnlockDays || 30;
+    const elapsedMillis = Date.now() - confirmedAt.toMillis();
+    const requiredMillis = autoUnlockDays * 24 * 60 * 60 * 1000;
+
+    if (elapsedMillis < requiredMillis) {
+        throw new HttpsError("permission-denied", "Le délai de déverrouillage automatique n'est pas encore atteint.");
+    }
+
+    await entryRef.update({
+        unlockedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    return { success: true };
+});
+
+/**
  * PHOEN-X v9.4.9 - Vérification automatique du décès via deces.matchid.io (INSEE)
  */
 export const checkDeathRecord = onCall(async (request) => {

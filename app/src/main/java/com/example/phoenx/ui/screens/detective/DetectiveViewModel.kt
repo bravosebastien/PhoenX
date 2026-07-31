@@ -118,10 +118,17 @@ class DetectiveViewModel @Inject constructor(
     fun markAsAutoUnlocked(creatorId: String, entryId: String) {
         viewModelScope.launch {
             try {
-                db.collection("users").document(creatorId)
-                    .collection("entries").document(entryId)
-                    .update("unlockedAt", com.google.firebase.Timestamp.now()).await()
-            } catch (e: Exception) {}
+                val functions = com.google.firebase.functions.FirebaseFunctions.getInstance()
+                functions.getHttpsCallable("markEntryAutoUnlocked")
+                    .call(mapOf("creatorId" to creatorId, "entryId" to entryId))
+                    .await()
+                
+                // Mettre à jour l'UI locale
+                _uiState.update { it.copy(unlockedEntryId = entryId) }
+                
+            } catch (e: Exception) {
+                android.util.Log.e("DetectiveVM", "Erreur lors du déverrouillage automatique", e)
+            }
         }
     }
 
