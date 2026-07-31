@@ -29,8 +29,17 @@ export async function propagateUidLiaison(creatorId: string, oldDocId: string, n
         });
     }
 
-    // TODO v9.3.9 : amendments sont des sous-collections de entries.
-    // Nécessite une requête collectionGroup quand elles seront synchronisées.
+    // 1b. Amendments (v9.4.15)
+    // Amendments sont des sous-sous-collections : users/{uid}/entries/{eid}/amendments/{aid}
+    const amendmentsSnap = await db.collectionGroup("amendments")
+        .where("uid", "==", creatorId)
+        .where("recipientIds", "array-contains", oldDocId).get();
+
+    amendmentsSnap.forEach(doc => {
+        const currentIds = doc.data().recipientIds as string[];
+        const updatedIds = currentIds.map(id => id === oldDocId ? newUid : id);
+        operations.push({ ref: doc.ref, data: { recipientIds: updatedIds } });
+    });
 
     // 2. Collections avec champ simple recipientId (v9.3.6)
     const simpleCollections = [
@@ -89,6 +98,17 @@ export async function revokeUidAccess(creatorId: string, uidToRemove: string) {
             operations.push({ ref: doc.ref, data: { recipientIds: updatedIds } });
         });
     }
+
+    // 1b. Amendments (v9.4.15)
+    const amendmentsSnap = await db.collectionGroup("amendments")
+        .where("uid", "==", creatorId)
+        .where("recipientIds", "array-contains", uidToRemove).get();
+
+    amendmentsSnap.forEach(doc => {
+        const currentIds = doc.data().recipientIds as string[];
+        const updatedIds = currentIds.filter(id => id !== uidToRemove);
+        operations.push({ ref: doc.ref, data: { recipientIds: updatedIds } });
+    });
 
     // 2. Collections avec champ simple recipientId
     const simpleCollections = ["pendingQuestions", "legacies"];
