@@ -116,7 +116,7 @@ fun GuestDashboardScreen(
                                     "depositary" -> navController.navigate(Screen.DepositaryDashboard.createRoute(role.creatorId))
                                     "witness" -> {
                                         // Accès via UID lié (v7.2)
-                                        navController.navigate("witness_response/${role.creatorId}/${role.sourceId}/none")
+                                        navController.navigate(Screen.WitnessResponse.createRoute(role.creatorId, role.sourceId ?: ""))
                                     }
                                     "recipient" -> navController.navigate(Screen.RecipientCube.createRoute(role.creatorId))
                                 }

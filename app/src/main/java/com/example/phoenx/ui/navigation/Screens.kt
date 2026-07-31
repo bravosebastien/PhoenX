@@ -153,6 +153,10 @@ sealed class Screen(val route: String) {
         fun createRoute(personId: String) = "characters/edit/$personId"
     }
     object WitnessInvite : Screen("witness_invite")
+    object WitnessResponse : Screen("witness_response/{creatorId}/{witnessId}/{token}") {
+        fun createRoute(creatorId: String, witnessId: String, token: String? = "none") = 
+            "witness_response/$creatorId/$witnessId/$token"
+    }
     object UniversalJoin : Screen("join/{token}") {
         fun createRoute(token: String) = "join/$token"
     }

@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.PhoenXAvatar
+import com.example.phoenx.ui.components.SealedHeritageBanner
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,6 +82,15 @@ fun DepositaryDashboardScreen(
                     .padding(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                if (!uiState.isActivated) {
+                    item {
+                        SealedHeritageBanner(
+                            role = "depositary",
+                            creatorName = uiState.creatorName
+                        )
+                    }
+                }
+
                 item {
                     StatusCard(
                         name = uiState.creatorName,

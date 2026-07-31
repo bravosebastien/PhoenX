@@ -17,7 +17,10 @@ data class UniversalJoinUiState(
     val isLoading: Boolean = false,
     val invitation: InvitationDetails? = null,
     val error: String? = null,
-    val success: Boolean = false
+    val success: Boolean = false,
+    val acceptedRole: String? = null,
+    val creatorId: String? = null,
+    val sourceId: String? = null
 )
 
 data class InvitationDetails(
@@ -25,7 +28,8 @@ data class InvitationDetails(
     val creatorId: String,
     val role: String,
     val label: String,
-    val targetEmail: String
+    val targetEmail: String,
+    val sourceId: String? = null
 )
 
 @HiltViewModel
@@ -53,7 +57,8 @@ class UniversalJoinViewModel @Inject constructor(
                         creatorId = data["creatorId"] as String,
                         role = data["role"] as String,
                         label = data["label"] as String,
-                        targetEmail = data["targetEmail"] as String
+                        targetEmail = data["targetEmail"] as String,
+                        sourceId = data["sourceId"] as? String
                     )
                 ) }
             } catch (e: Exception) {
@@ -69,11 +74,21 @@ class UniversalJoinViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                functions.getHttpsCallable("acceptUniversalInvitation")
+                val result = functions.getHttpsCallable("acceptUniversalInvitation")
                     .call(mapOf("tokenId" to token))
                     .await()
                 
-                _uiState.update { it.copy(isLoading = false, success = true) }
+                val resData = result.data as Map<*, *>
+                val role = resData["role"] as? String
+                val invitation = _uiState.value.invitation
+
+                _uiState.update { it.copy(
+                    isLoading = false, 
+                    success = true,
+                    acceptedRole = role,
+                    creatorId = invitation?.creatorId,
+                    sourceId = invitation?.sourceId
+                ) }
             } catch (e: Exception) {
                 val message = when {
                     e.message?.contains("already-exists") == true -> "Cette invitation a déjà été utilisée."

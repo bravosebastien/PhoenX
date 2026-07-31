@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.components.SealedHeritageBanner
 import com.example.phoenx.ui.theme.*
 
 /**
@@ -148,21 +149,11 @@ fun RecipientCubeScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         if (!state.isActivated) {
-                            Card(
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
-                                colors = CardDefaults.cardColors(containerColor = Warning.copy(alpha = 0.1f)),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, Warning.copy(alpha = 0.3f))
-                            ) {
-                                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Default.Lock, null, tint = Warning, modifier = Modifier.size(16.dp))
-                                    Spacer(Modifier.width(12.dp))
-                                    Text(
-                                        "Cet héritage est encore scellé. Tu y auras accès le moment venu.",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = theme.contentColor
-                                    )
-                                }
-                            }
+                            SealedHeritageBanner(
+                                role = "recipient",
+                                creatorName = state.creatorName,
+                                modifier = Modifier.padding(bottom = 20.dp)
+                            )
                         }
 
                         Text(

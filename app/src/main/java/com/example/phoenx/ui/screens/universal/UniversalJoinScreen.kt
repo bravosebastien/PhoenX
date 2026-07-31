@@ -26,7 +26,7 @@ import com.google.firebase.auth.FirebaseAuth
 fun UniversalJoinScreen(
     token: String,
     onNavigateToAuth: (String) -> Unit,
-    onSuccess: () -> Unit,
+    onSuccess: (String?, String?, String?) -> Unit,
     viewModel: UniversalJoinViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -40,9 +40,14 @@ fun UniversalJoinScreen(
 
     LaunchedEffect(uiState.success) {
         if (uiState.success) {
-            onSuccess()
+            onSuccess(uiState.acceptedRole, uiState.creatorId, uiState.sourceId)
         }
     }
+
+    // Détection mismatch email (v9.4.16)
+    val emailMismatch = currentUser != null && 
+                        uiState.invitation != null && 
+                        currentUser.email?.lowercase() != uiState.invitation?.targetEmail?.lowercase()
 
     Box(
         modifier = Modifier
@@ -58,6 +63,18 @@ fun UniversalJoinScreen(
             uiState.error != null -> {
                 ErrorView(uiState.error!!, accent, theme)
             }
+            emailMismatch -> {
+                EmailMismatchView(
+                    currentEmail = currentUser?.email ?: "",
+                    targetEmail = uiState.invitation?.targetEmail ?: "",
+                    accent = accent,
+                    theme = theme,
+                    onLogoutAndContinue = {
+                        FirebaseAuth.getInstance().signOut()
+                        onNavigateToAuth(token)
+                    }
+                )
+            }
             uiState.invitation != null -> {
                 InvitationView(
                     invitation = uiState.invitation!!,
@@ -67,6 +84,79 @@ fun UniversalJoinScreen(
                     onAccept = { viewModel.acceptInvitation(token) }
                 ) { onNavigateToAuth(token) }
             }
+        }
+    }
+}
+
+@Composable
+fun EmailMismatchView(
+    currentEmail: String,
+    targetEmail: String,
+    accent: Color,
+    theme: AppThemeState,
+    onLogoutAndContinue: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Icon(
+            imageVector = Icons.Default.ErrorOutline,
+            contentDescription = null,
+            tint = Error,
+            modifier = Modifier.size(64.dp)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = "Mauvais compte détecté",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+            color = theme.contentColor,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Cette invitation est destinée à :\n",
+            style = MaterialTheme.typography.bodyMedium,
+            color = theme.contentColor.copy(alpha = 0.6f),
+            textAlign = TextAlign.Center
+        )
+        
+        Text(
+            text = targetEmail,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            color = accent,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "\nMais vous êtes actuellement connecté avec :\n",
+            style = MaterialTheme.typography.bodyMedium,
+            color = theme.contentColor.copy(alpha = 0.6f),
+            textAlign = TextAlign.Center
+        )
+
+        Text(
+            text = currentEmail,
+            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+            color = theme.contentColor,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(48.dp))
+
+        Button(
+            onClick = onLogoutAndContinue,
+            modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+            colors = ButtonDefaults.buttonColors(containerColor = accent),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Se déconnecter et continuer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
     }
 }

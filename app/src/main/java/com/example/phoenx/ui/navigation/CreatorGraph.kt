@@ -154,16 +154,8 @@ fun NavGraphBuilder.creatorGraph(
                     } else if (role?.role == "witness") {
                         navController.navigate("witness_response/$id/${role.sourceId}/none")
                     } else {
-                        // v9.1 : Recipient - Navigation Guard
-                        android.util.Log.d("NavigationDebug", "Checking protocol status for recipient: $id")
-                        mainViewModel.checkProtocolStatus(id) { isActivated ->
-                            android.util.Log.d("NavigationDebug", "Protocol status for $id: isActivated=$isActivated")
-                            if (isActivated) {
-                                navController.navigate(Screen.RecipientCube.createRoute(id))
-                            } else {
-                                android.widget.Toast.makeText(context, "L'héritage de ${role?.creatorName ?: "ton proche"} est encore scellé.", android.widget.Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                        // v9.1 : Recipient - Navigation Directe (Gérée par bandeau interne v9.4.16)
+                        navController.navigate(Screen.RecipientCube.createRoute(id))
                     }
                 },
             onAcceptInvite = { token -> 

@@ -160,6 +160,7 @@ class DepositaryViewModel @Inject constructor(
                 val missedCycles = doc.get("silenceConfig.missedCycles")?.toString()?.toInt() ?: 0
                 val threshold = doc.get("silenceConfig.thresholdHours")?.toString()?.toInt() ?: 72
                 val lastCheckInAt = doc.getTimestamp("silenceConfig.lastCheckInAt")
+                val protocolStatus = doc.getString("protocolStatus") ?: "dormant"
                 
                 val daysSince = if (lastCheckInAt != null) {
                     (System.currentTimeMillis() - lastCheckInAt.toDate().time) / (1000 * 60 * 60 * 24)
@@ -171,7 +172,8 @@ class DepositaryViewModel @Inject constructor(
                     creatorPhotoUrl = doc.getString("photoUrl"),
                     missedCycles = missedCycles,
                     daysSinceLastCheckIn = daysSince.toInt(),
-                    thresholdHours = threshold
+                    thresholdHours = threshold,
+                    isActivated = protocolStatus == "activated"
                 ) }
                 android.util.Log.d("PHOENX_DEBUG", "UI débloquée pour $name")
 
@@ -340,6 +342,7 @@ data class DepositaryUiState(
     val daysSinceLastCheckIn: Int = 0,
     val thresholdHours: Int = 72,
     val isLoading: Boolean = true,
+    val isActivated: Boolean = false,
     val personalName: String = "",
     val personalEmail: String = "",
     val notifications: List<PhoenXNotification> = emptyList()

@@ -167,7 +167,7 @@ fun NavGraphBuilder.recipientGraph(
     }
 
     composable(
-        route = "witness_response/{creatorId}/{witnessId}/{token}",
+        route = Screen.WitnessResponse.route,
         arguments = listOf(
             navArgument("creatorId") { type = NavType.StringType },
             navArgument("witnessId") { type = NavType.StringType },
@@ -351,11 +351,19 @@ fun NavGraphBuilder.recipientGraph(
             onNavigateToAuth = { t ->
                 navController.navigate(Screen.Auth.Signup.createRoute(Screen.UniversalJoin.createRoute(t)))
             },
-            onSuccess = {
+            onSuccess = { role, creatorId, sourceId ->
                 val uid = FirebaseAuth.getInstance().currentUser?.uid
                 if (uid != null) mainViewModel.checkSilenceOnLaunch(uid)
-                navController.navigate(Screen.Home.route) {
-                    popUpTo(Screen.UniversalJoin.route) { inclusive = true }
+                
+                if (role == "witness" && creatorId != null && sourceId != null) {
+                    // Redirection directe pour le Témoin (v9.4.16)
+                    navController.navigate(Screen.WitnessResponse.createRoute(creatorId, sourceId)) {
+                        popUpTo(Screen.UniversalJoin.route) { inclusive = true }
+                    }
+                } else {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.UniversalJoin.route) { inclusive = true }
+                    }
                 }
             }
         )
