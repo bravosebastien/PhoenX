@@ -32,6 +32,7 @@ import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
 import androidx.compose.animation.core.*
 import androidx.compose.material.icons.filled.CheckCircle
+import com.example.phoenx.ui.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,12 +41,16 @@ fun WitnessResponseScreen(
     witnessId: String,
     token: String?,
     navController: NavController,
+    mainViewModel: com.example.phoenx.ui.MainViewModel,
     viewModel: WitnessViewModel = hiltViewModel()
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    val isCreator by mainViewModel.isCreator.collectAsState()
+    val hasSeenPrompt by mainViewModel.hasSeenBecomeCreatorPrompt.collectAsState()
     
     var testimonyText by remember { mutableStateOf("") }
     var isRitualPlaying by remember { mutableStateOf(false) }
@@ -113,7 +118,13 @@ fun WitnessResponseScreen(
         }
         LaunchedEffect(Unit) {
             delay(4000)
-            navController.popBackStack()
+            if (isCreator == false && !hasSeenPrompt) {
+                navController.navigate(Screen.BecomeCreatorPrompt.createRoute("witness", creatorName ?: "Votre proche")) {
+                    popUpTo(Screen.WitnessResponse.route) { inclusive = true }
+                }
+            } else {
+                navController.popBackStack()
+            }
         }
         return
     }
@@ -154,7 +165,7 @@ fun WitnessResponseScreen(
                 val instructionText = if (!witnessConfig?.requestPrompt.isNullOrBlank()) {
                     witnessConfig!!.requestPrompt!!
                 } else {
-                    "Raconte un moment où ${creatorName ?: "ton proche"} t'a surpris. Ce souvenir sera gardé précieusement et transmis à ses héritiers."
+                    "Raconte un moment où ${creatorName ?: "ton proche"} t'a surpris. Ce souvenir sera gardé précieusement et transmis à ses destinataires choisis."
                 }
 
                 Text(
@@ -219,9 +230,9 @@ fun WitnessResponseScreen(
                 val (transparencyTitle, transparencyDesc) = if (witnessConfig?.allowReject == true) {
                     "Validation préalable" to "Ton proche pourra lire ce témoignage avant de le transmettre, et pourra choisir de ne pas le transmettre s'il le juge inapproprié."
                 } else if (witnessConfig?.allowRead == true) {
-                    "Témoignage ouvert" to "Ton proche a demandé à pouvoir lire ce témoignage de son vivant. Il sera également transmis à ses héritiers."
+                    "Témoignage ouvert" to "Ton proche a demandé à pouvoir lire ce témoignage de son vivant. Il sera également transmis à ses destinataires."
                 } else {
-                    "Confidentialité totale" to "Ton témoignage est chiffré. Seul ton proche et ses héritiers pourront le lire après l'activation du protocole."
+                    "Confidentialité totale" to "Ton témoignage est chiffré. Seul ton proche et ses destinataires pourront le lire après l'activation du protocole."
                 }
 
                 Text(

@@ -126,7 +126,7 @@ class RecipientViewModel @Inject constructor(
                     "email" to email,
                     "role" to "recipient",
                     "sourceId" to docRef.id,
-                    "label" to "Héritier"
+                    "label" to "Destinataire"
                 )
                 val result = functions.getHttpsCallable("generateUniversalInvitation").call(inviteData).await()
                 val tokenId = (result.data as Map<*, *>)["tokenId"] as String
@@ -137,8 +137,8 @@ class RecipientViewModel @Inject constructor(
                 
                 val emailData = hashMapOf(
                     "to" to email,
-                    "subject" to "$creatorName t'a choisi comme héritier",
-                    "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous choisissant comme héritier de son récit de vie.\n\nLien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
+                    "subject" to "$creatorName souhaite vous partager son histoire",
+                    "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous choisissant comme destinataire de son récit de vie.\n\nLien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
                 )
                 functions.getHttpsCallable("sendMail").call(emailData).await()
 

@@ -54,8 +54,10 @@ fun HeirAllocationScreen(
         topBar = {
             TopAppBar(
                 title = { 
+                    val theme = LocalAppTheme.current
+                    val accent = theme.accentColor
                     Column {
-                        Text("Fiche Héritier", style = MaterialTheme.typography.labelSmall, color = accent)
+                        Text("Fiche Destinataire", style = MaterialTheme.typography.labelSmall, color = accent)
                         Text(recipient?.name ?: "Détails", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                     }
                 },

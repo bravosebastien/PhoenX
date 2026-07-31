@@ -92,7 +92,7 @@ fun HomeHeader(name: String, photoUrl: String?, date: String, onProfileClick: ()
                     "VOTRE LÉGENDE : C'est ici que vous gérez votre héritage émotionnel et numérique.",
                     "LE SILENCE : Votre état de présence est surveillé pour garantir que vos secrets ne seront libérés qu'au bon moment.",
                     "LA BIBLIOTHÈQUE : Accédez à tous vos compartiments (Photos, Vidéos, Secrets, Quiz).",
-                    "CERCLE DE CONFIANCE : Gérez qui sont vos héritiers et vos témoins."
+                    "CERCLE DE CONFIANCE : Gérez qui sont vos destinataires et vos témoins."
                 )
             )
             Spacer(modifier = Modifier.width(8.dp))

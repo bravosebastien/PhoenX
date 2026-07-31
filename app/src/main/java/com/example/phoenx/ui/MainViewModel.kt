@@ -60,6 +60,9 @@ class MainViewModel @Inject constructor(
     private val _isCreator = MutableStateFlow<Boolean?>(null)
     val isCreator: StateFlow<Boolean?> = _isCreator.asStateFlow()
 
+    private val _hasSeenBecomeCreatorPrompt = MutableStateFlow<Boolean>(false)
+    val hasSeenBecomeCreatorPrompt: StateFlow<Boolean> = _hasSeenBecomeCreatorPrompt.asStateFlow()
+
     private val _currentPerspective = MutableStateFlow(Perspective.MY_MEMORY)
     val currentPerspective: StateFlow<Perspective> = _currentPerspective.asStateFlow()
 
@@ -286,6 +289,7 @@ class MainViewModel @Inject constructor(
             
             _isCreator.value = isCreatorVal
             _isDepositaryAccount.value = !isCreatorVal
+            _hasSeenBecomeCreatorPrompt.value = doc.getBoolean("hasSeenBecomeCreatorPrompt") ?: false
 
             if (isCreatorVal) {
                 viewModelScope.launch {
@@ -446,6 +450,18 @@ class MainViewModel @Inject constructor(
     fun toggleBiometric(enabled: Boolean) {
         viewModelScope.launch {
             preferenceManager.setBiometricEnabled(enabled)
+        }
+    }
+
+    fun markBecomeCreatorPromptSeen() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(userId)
+                    .update("hasSeenBecomeCreatorPrompt", true).await()
+            } catch (e: Exception) {
+                android.util.Log.e("MainViewModel", "Error updating prompt seen", e)
+            }
         }
     }
 

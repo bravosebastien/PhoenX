@@ -23,11 +23,13 @@ import com.example.phoenx.ui.screens.recipient.*
 import com.example.phoenx.ui.screens.silence.SilenceBlockScreen
 import com.example.phoenx.ui.screens.silence.SilenceCheckInScreen
 import com.example.phoenx.ui.screens.silence.SilenceOnboardingScreen
+import com.example.phoenx.ui.screens.universal.BecomeCreatorPromptScreen
 import com.example.phoenx.ui.screens.universal.GuestDashboardScreen
 import com.example.phoenx.ui.screens.universal.UniversalFeedScreen
 import com.example.phoenx.ui.screens.universal.UniversalJoinScreen
 import com.example.phoenx.ui.screens.universal.UniversalMessageScreen
 import com.example.phoenx.ui.screens.witness.WitnessResponseScreen
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -188,7 +190,8 @@ fun NavGraphBuilder.recipientGraph(
             creatorId = creatorId,
             witnessId = witnessId,
             token = finalToken,
-            navController = navController
+            navController = navController,
+            mainViewModel = mainViewModel
         )
     }
 
@@ -216,16 +219,30 @@ fun NavGraphBuilder.recipientGraph(
         } else {
             remember { mutableStateOf(true) }
         }
+
+        val viewModel: com.example.phoenx.ui.screens.depositary.DepositaryViewModel = hiltViewModel()
+        val uiState by viewModel.uiState.collectAsState()
         
         DepositaryWelcomeScreen(
             shortCode = shortCode,
             onUnderstood = {
-                if (!onboardingSeen) navController.navigate("depositary_onboarding")
-                else navController.navigate(Screen.Home.route)
+                val isCreator = mainViewModel.isCreator.value
+                val hasSeenPrompt = mainViewModel.hasSeenBecomeCreatorPrompt.value
+
+                if (!onboardingSeen) {
+                    navController.navigate("depositary_onboarding")
+                } else if (isCreator == false && !hasSeenPrompt) {
+                    navController.navigate(Screen.BecomeCreatorPrompt.createRoute("depositary", uiState.creatorName)) {
+                        popUpTo(Screen.DepositaryWelcome.route) { inclusive = true }
+                    }
+                } else {
+                    navController.navigate(Screen.Home.route)
+                }
             },
             onNavigateToAuth = { code ->
                 navController.navigate(Screen.Auth.Signup.createRoute(Screen.DepositaryWelcome.createRoute(code)))
-            }
+            },
+            viewModel = viewModel
         )
     }
 
@@ -355,9 +372,16 @@ fun NavGraphBuilder.recipientGraph(
                 val uid = FirebaseAuth.getInstance().currentUser?.uid
                 if (uid != null) mainViewModel.checkSilenceOnLaunch(uid)
                 
+                val isCreator = mainViewModel.isCreator.value
+                val hasSeenPrompt = mainViewModel.hasSeenBecomeCreatorPrompt.value
+
                 if (role == "witness" && creatorId != null && sourceId != null) {
                     // Redirection directe pour le Témoin (v9.4.16)
                     navController.navigate(Screen.WitnessResponse.createRoute(creatorId, sourceId)) {
+                        popUpTo(Screen.UniversalJoin.route) { inclusive = true }
+                    }
+                } else if (isCreator == false && !hasSeenPrompt) {
+                    navController.navigate(Screen.BecomeCreatorPrompt.createRoute(role ?: "recipient", "Votre proche")) {
                         popUpTo(Screen.UniversalJoin.route) { inclusive = true }
                     }
                 } else {
@@ -376,6 +400,33 @@ fun NavGraphBuilder.recipientGraph(
             onLogout = {
                 mainViewModel.logout()
                 navController.navigate(Screen.Splash.route) { popUpTo(0) { inclusive = true } }
+            }
+        )
+    }
+
+    composable(
+        route = Screen.BecomeCreatorPrompt.route,
+        arguments = listOf(
+            navArgument("role") { type = NavType.StringType },
+            navArgument("creatorName") { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val role = backStackEntry.arguments?.getString("role") ?: ""
+        val creatorName = backStackEntry.arguments?.getString("creatorName") ?: ""
+        BecomeCreatorPromptScreen(
+            role = role,
+            creatorName = creatorName,
+            onBecomeCreator = {
+                mainViewModel.markBecomeCreatorPromptSeen()
+                navController.navigate(Screen.SilenceOnboarding.route) {
+                    popUpTo(Screen.BecomeCreatorPrompt.route) { inclusive = true }
+                }
+            },
+            onLater = {
+                mainViewModel.markBecomeCreatorPromptSeen()
+                navController.navigate(Screen.Home.route) {
+                    popUpTo(Screen.BecomeCreatorPrompt.route) { inclusive = true }
+                }
             }
         )
     }

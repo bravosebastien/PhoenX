@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
@@ -42,6 +43,7 @@ fun GuestDashboardScreen(
     val myRoles by mainViewModel.myRoles.collectAsState()
     val pendingByEmail by mainViewModel.pendingInvitations.collectAsState()
     val isCreator by mainViewModel.isCreator.collectAsState()
+    val hasSeenPrompt by mainViewModel.hasSeenBecomeCreatorPrompt.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
@@ -71,38 +73,56 @@ fun GuestDashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp)
+                .padding(horizontal = 24.dp)
         ) {
-            Text(
-                "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = theme.contentColor.copy(alpha = 0.7f),
-                lineHeight = 22.sp
-            )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = theme.contentColor.copy(alpha = 0.7f),
+                        lineHeight = 22.sp
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            if (pendingByEmail.isNotEmpty()) {
-                Text(
-                    "INVITATIONS EN ATTENTE",
-                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                    color = accent,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                pendingByEmail.forEach { invite ->
-                    PendingInviteCard(invite, accent, theme) {
-                        navController.navigate(Screen.UniversalJoin.createRoute(invite.id))
+                if (isCreator == false) {
+                    item {
+                        BecomeCreatorCard(
+                            theme = theme,
+                            accent = accent,
+                            onClick = { navController.navigate(Screen.SilenceOnboarding.route) }
+                        )
                     }
                 }
-                Spacer(modifier = Modifier.height(24.dp))
-            }
 
-            if (myRoles.isEmpty() && pendingByEmail.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Aucun rôle actif pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), fontWeight = FontWeight.Bold)
+                if (pendingByEmail.isNotEmpty()) {
+                    item {
+                        Text(
+                            "INVITATIONS EN ATTENTE",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = accent,
+                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                        )
+                    }
+                    items(pendingByEmail) { invite ->
+                        PendingInviteCard(invite, accent, theme) {
+                            navController.navigate(Screen.UniversalJoin.createRoute(invite.id))
+                        }
+                    }
                 }
-            } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+
+                if (myRoles.isEmpty() && pendingByEmail.isEmpty()) {
+                    item {
+                        Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Aucun rôle actif pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), fontWeight = FontWeight.Bold)
+                        }
+                    }
+                } else {
                     // Trier par nom du créateur pour la lisibilité
                     val sortedRoles = myRoles.values.toList().sortedBy { it.creatorName }
                     
@@ -125,34 +145,41 @@ fun GuestDashboardScreen(
                     }
                 }
             }
-            
-            Spacer(modifier = Modifier.weight(1f))
-            
-            // Encouragement à devenir Créateur (Uniquement si pas déjà Créateur)
-            if (isCreator == false) {
-                Card(
-                    onClick = { navController.navigate(Screen.SilenceOnboarding.route) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
-                        Text(
-                            "Vous aussi, commencez à sceller vos souvenirs pour ceux que vous aimez.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = theme.contentColor.copy(alpha = 0.6f)
-                        )
-                        Text(
-                            "Devenir Créateur →",
-                            modifier = Modifier.padding(top = 8.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = accent,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+        }
+    }
+}
+
+@Composable
+fun BecomeCreatorCard(
+    theme: AppThemeState,
+    accent: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.08f)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(12.dp))
+                Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
             }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                "Commencez à sceller vos propres souvenirs pour ceux que vous aimez.",
+                style = MaterialTheme.typography.bodySmall,
+                color = theme.contentColor.copy(alpha = 0.7f)
+            )
+            Text(
+                "Devenir Créateur →",
+                modifier = Modifier.padding(top = 12.dp),
+                style = MaterialTheme.typography.labelMedium,
+                color = accent,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }
@@ -200,7 +227,7 @@ fun RoleCard(
     val (icon, label, color) = when(role.role) {
         "depositary" -> Triple(Icons.Default.Lock, "Je suis son Gardien de Confiance", Success)
         "witness" -> Triple(Icons.Default.People, "Je porte témoignage", Warning)
-        "recipient" -> Triple(Icons.Default.Person, "Je suis l'un de ses héritiers", accent)
+        "recipient" -> Triple(Icons.Default.Person, "Je suis l'un de ses destinataires", accent)
         else -> Triple(Icons.Default.People, "Lien de confiance", accent)
     }
 
@@ -256,36 +283,47 @@ fun GuestPerspectiveContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .padding(horizontal = 24.dp)
     ) {
-        Text(
-            "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = theme.contentColor.copy(alpha = 0.7f),
-            lineHeight = 22.sp
-        )
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            item {
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = theme.contentColor.copy(alpha = 0.7f),
+                    lineHeight = 22.sp
+                )
+            }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        if (pendingInvites.isNotEmpty()) {
-            Text(
-                "INVITATIONS EN ATTENTE",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = accent,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-            pendingInvites.forEach { invite ->
-                PendingInviteCard(invite, accent, theme) {
-                    onAcceptInvite(invite.id)
+            if (!isCreator) {
+                item {
+                    BecomeCreatorCard(theme = theme, accent = accent, onClick = onBecomeCreator)
                 }
             }
-            Spacer(modifier = Modifier.height(24.dp))
-        }
 
-        // REMPLACEMENT LAZYCOLUMN PAR COLUMN POUR ÉVITER ANR (v8.5.0)
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            if (pendingInvites.isNotEmpty()) {
+                item {
+                    Text(
+                        "INVITATIONS EN ATTENTE",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = accent,
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                    )
+                }
+                items(pendingInvites) { invite ->
+                    PendingInviteCard(invite, accent, theme) {
+                        onAcceptInvite(invite.id)
+                    }
+                }
+            }
+
             val sortedRoles = myRoles.values.toList().sortedBy { it.creatorName }
-            sortedRoles.forEach { role ->
+            items(sortedRoles) { role ->
                 RoleCard(
                     role = role,
                     accent = accent,
@@ -294,34 +332,6 @@ fun GuestPerspectiveContent(
                         onNavigateToCube(role.creatorId)
                     }
                 )
-            }
-        }
-
-        if (!isCreator) {
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Encouragement à devenir Créateur (v8.5.9)
-            Card(
-                onClick = onBecomeCreator,
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
-                    Text(
-                        "Vous aussi, commencez à sceller vos souvenirs pour ceux que vous aimez.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = theme.contentColor.copy(alpha = 0.6f)
-                    )
-                    Text(
-                        "Devenir Créateur →",
-                        modifier = Modifier.padding(top = 8.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = accent,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
             }
         }
     }

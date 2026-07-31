@@ -207,7 +207,7 @@ fun InvitationView(
         val roleText = when(invitation.role) {
             "depositary" -> "à être son Gardien de Confiance"
             "witness" -> "à porter témoignage sur son histoire"
-            "recipient" -> "à être l'un de ses héritiers"
+            "recipient" -> "à être l'un de ses destinataires"
             else -> "à rejoindre son cercle"
         }
 

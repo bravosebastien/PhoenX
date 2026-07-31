@@ -167,6 +167,9 @@ sealed class Screen(val route: String) {
     object AccessibilitySettings : Screen("settings/accessibility")
     object NotificationContacts : Screen("notification_contacts")
     object QuizCreate : Screen("quiz_create")
+    object BecomeCreatorPrompt : Screen("become_creator_prompt/{role}/{creatorName}") {
+        fun createRoute(role: String, creatorName: String) = "become_creator_prompt/$role/$creatorName"
+    }
 
     // GRAPHE DESTINATAIRE
     object RecipientWelcome : Screen("recipient/welcome")

@@ -252,7 +252,7 @@ fun TrustCircleCard(
                     color = theme.contentColor
                 )
                 Text(
-                    "Gérer mes héritiers et dépositaires",
+                    "Gérer mes destinataires et dépositaires",
                     style = MaterialTheme.typography.bodySmall,
                     color = theme.contentColor.copy(alpha = 0.6f)
                 )

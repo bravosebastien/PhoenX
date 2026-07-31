@@ -152,7 +152,7 @@ fun NavGraphBuilder.creatorGraph(
                     if (role?.role == "depositary") {
                         navController.navigate(Screen.DepositaryDashboard.createRoute(id))
                     } else if (role?.role == "witness") {
-                        navController.navigate("witness_response/$id/${role.sourceId}/none")
+                        navController.navigate(Screen.WitnessResponse.createRoute(id, role.sourceId ?: ""))
                     } else {
                         // v9.1 : Recipient - Navigation Directe (Gérée par bandeau interne v9.4.16)
                         navController.navigate(Screen.RecipientCube.createRoute(id))

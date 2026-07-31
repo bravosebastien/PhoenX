@@ -208,7 +208,7 @@ fun RecipientDetailScreen(
                         onClick = { navController.navigate(Screen.RecipientAllocation.createRoute(recipient.id)) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Voir la fiche héritier complète →", color = accent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        Text("Voir la fiche de transmission complète →", color = accent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
                     }
                 }
 
