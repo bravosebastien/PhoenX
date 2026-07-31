@@ -21,9 +21,13 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.phoenx.data.local.OfflineEntry
+import com.example.phoenx.data.media.MediaManager
+import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.AppThemeState
 import com.example.phoenx.ui.theme.Error
+import dagger.hilt.android.EntryPointAccessors
+import androidx.compose.ui.platform.LocalContext
 
 /**
  * MemoryComplementsSection — Gestion de la galerie de médias rattachés (Photos, Vidéos, Audios).
@@ -41,6 +45,16 @@ fun MemoryComplementsSection(
     isReadOnly: Boolean = false
 ) {
     var showAddMediaMenu by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val heirKey by viewModel.heirKey.collectAsState()
+
+    // Récupération du MediaManager via EntryPoint (v9.4.17)
+    val mediaManager = remember(context) {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            MediaManager.MediaManagerEntryPoint::class.java
+        ).mediaManager()
+    }
 
     Column {
         Row(
@@ -118,9 +132,11 @@ fun MemoryComplementsSection(
                         ) {
                             if (complement.entryType == "PHOTO" || complement.entryType == "GALLERY") {
                                 Box(modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp)).background(Color.Black)) {
-                                    AsyncImage(
-                                        model = complement.localMediaPath ?: complement.mediaUrl,
-                                        contentDescription = null,
+                                    SecureAsyncImage(
+                                        mediaUrl = complement.mediaUrl,
+                                        localPath = complement.localMediaPath,
+                                        explicitKey = heirKey,
+                                        mediaManager = mediaManager,
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop
                                     )

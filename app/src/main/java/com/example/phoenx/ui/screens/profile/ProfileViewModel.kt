@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.data.media.MediaManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
 import com.google.firebase.firestore.FieldValue
@@ -35,7 +36,8 @@ data class ProfileUiState(
 class ProfileViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val storage: FirebaseStorage
+    private val storage: FirebaseStorage,
+    private val mediaManager: MediaManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -56,8 +58,12 @@ class ProfileViewModel @Inject constructor(
             try {
                 val doc = db.collection("users").document(user.uid).get().await()
                 val name = doc.getString("displayName") ?: ""
-                val photo = doc.getString("photoUrl")
-                _uiState.update { it.copy(displayName = name, photoUrl = photo, isLoading = false) }
+                val photoPath = doc.getString("photoUrl")
+                
+                // Résolution v9.4.17
+                val photoUrl = mediaManager.getSafeUrl(photoPath)
+                
+                _uiState.update { it.copy(displayName = name, photoUrl = photoUrl, isLoading = false) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
@@ -94,12 +100,16 @@ class ProfileViewModel @Inject constructor(
         }.addOnSuccessListener {
             viewModelScope.launch {
                 try {
-                    val downloadUrl = ref.downloadUrl.await().toString()
+                    // Stockage du CHEMIN (v9.4.17)
+                    val storagePath = ref.path
                     db.collection("users").document(userId)
-                        .set(mapOf("photoUrl" to downloadUrl), SetOptions.merge())
+                        .set(mapOf("photoUrl" to storagePath), SetOptions.merge())
                         .await()
                     
-                    _uiState.update { it.copy(photoUrl = downloadUrl, isLoading = false) }
+                    // Résolution pour affichage immédiat
+                    val displayUrl = mediaManager.getSafeUrl(storagePath)
+                    
+                    _uiState.update { it.copy(photoUrl = displayUrl, isLoading = false) }
                     _uploadProgress.value = null
                 } catch (e: Exception) {
                     _uiState.update { it.copy(isLoading = false, error = e.message) }

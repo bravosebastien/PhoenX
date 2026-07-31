@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.local.DepositaryEntity
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.media.MediaManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
@@ -19,7 +20,8 @@ class ProtocolViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val functions: FirebaseFunctions
+    private val functions: FirebaseFunctions,
+    private val mediaManager: MediaManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProtocolUiState())
@@ -100,7 +102,7 @@ class ProtocolViewModel @Inject constructor(
                         val ref = com.google.firebase.storage.FirebaseStorage.getInstance().reference
                             .child("users/$userId/depositaries/$role.jpg")
                         ref.putFile(imageUri).await()
-                        finalPhotoUrl = ref.downloadUrl.await().toString()
+                        finalPhotoUrl = ref.path // Stockage du CHEMIN (v9.4.17)
                     } catch (e: Exception) {
                         android.util.Log.e("ProtocolVM", "Erreur upload photo dépositaire", e)
                     }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.model.BookDraft
 import com.example.phoenx.service.BookGeneratorService
 import com.google.firebase.auth.FirebaseAuth
@@ -27,6 +28,7 @@ class BookViewerViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val functions: com.google.firebase.functions.FirebaseFunctions,
     private val encryptionManager: EncryptionManager,
+    val mediaManager: MediaManager,
     private val offlineEntryDao: OfflineEntryDao,
     private val db: FirebaseFirestore
 ) : ViewModel() {

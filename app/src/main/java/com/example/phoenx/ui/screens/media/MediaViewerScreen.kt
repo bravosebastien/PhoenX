@@ -147,11 +147,24 @@ fun VideoPlayer(
     mediaManager: com.example.phoenx.data.media.MediaManager
 ) {
     val context = LocalContext.current
-    val exoPlayer = remember(mediaUrl) {
+    var resolvedUrl by remember(mediaUrl) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(mediaUrl) {
+        resolvedUrl = mediaManager.getSafeUrl(mediaUrl)
+    }
+
+    if (resolvedUrl == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = AccentPrimary)
+        }
+        return
+    }
+
+    val exoPlayer = remember(resolvedUrl) {
         ExoPlayer.Builder(context).build().apply {
             val factory = mediaManager.getEncryptedDataSourceFactory(explicitKey)
             val mediaSource = ProgressiveMediaSource.Factory(factory)
-                .createMediaSource(MediaItem.fromUri(mediaUrl.toUri()))
+                .createMediaSource(MediaItem.fromUri(resolvedUrl!!.toUri()))
             setMediaSource(mediaSource)
             prepare()
             playWhenReady = true
@@ -182,11 +195,24 @@ fun AudioPlayer(
     title: String
 ) {
     val context = LocalContext.current
-    val exoPlayer = remember(mediaUrl) {
+    var resolvedUrl by remember(mediaUrl) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(mediaUrl) {
+        resolvedUrl = mediaManager.getSafeUrl(mediaUrl)
+    }
+
+    if (resolvedUrl == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = AccentPrimary)
+        }
+        return
+    }
+
+    val exoPlayer = remember(resolvedUrl) {
         ExoPlayer.Builder(context).build().apply {
             val factory = mediaManager.getEncryptedDataSourceFactory(explicitKey)
             val mediaSource = ProgressiveMediaSource.Factory(factory)
-                .createMediaSource(MediaItem.fromUri(mediaUrl.toUri()))
+                .createMediaSource(MediaItem.fromUri(resolvedUrl!!.toUri()))
             setMediaSource(mediaSource)
             prepare()
         }

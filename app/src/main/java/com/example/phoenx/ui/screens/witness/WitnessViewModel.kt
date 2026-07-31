@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.WitnessEntity
+import com.example.phoenx.data.media.MediaManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
@@ -21,7 +22,8 @@ class WitnessViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
     private val encryptionManager: EncryptionManager,
-    private val offlineEntryDao: OfflineEntryDao
+    private val offlineEntryDao: OfflineEntryDao,
+    private val mediaManager: MediaManager
 ) : ViewModel() {
 
     private val _witnesses = MutableStateFlow<List<WitnessEntity>>(emptyList())
@@ -151,7 +153,7 @@ class WitnessViewModel @Inject constructor(
                         val ref = com.google.firebase.storage.FirebaseStorage.getInstance().reference
                             .child("users/$userId/witnesses/${UUID.randomUUID()}.jpg")
                         ref.putFile(imageUri).await()
-                        finalPhotoUrl = ref.downloadUrl.await().toString()
+                        finalPhotoUrl = ref.path // Stockage du CHEMIN (v9.4.17)
                     } catch (e: Exception) {
                         android.util.Log.e("WitnessVM", "Erreur upload photo témoin", e)
                     }

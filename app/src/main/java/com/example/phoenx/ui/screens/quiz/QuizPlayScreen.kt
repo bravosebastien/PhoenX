@@ -161,33 +161,45 @@ fun QuizPlayScreen(
                                                 )
                                             } else {
                                                 val context = LocalContext.current
-                                                val exoPlayer = remember(currentQuestion.mediaUrl) {
-                                                    ExoPlayer.Builder(context).build().apply {
-                                                        val factory = viewModel.mediaManager.getEncryptedDataSourceFactory()
-                                                        val mediaSource = ProgressiveMediaSource.Factory(factory)
-                                                            .createMediaSource(MediaItem.fromUri(currentQuestion.mediaUrl.toUri()))
-                                                        
-                                                        setMediaSource(mediaSource)
-                                                        repeatMode = if (currentQuestion.mediaType == "VIDEO") Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
-                                                        prepare()
-                                                    }
-                                                }
-                                                DisposableEffect(exoPlayer) {
-                                                    onDispose { exoPlayer.release() }
-                                                }
+                                                var resolvedUrl by remember(currentQuestion.mediaUrl) { mutableStateOf<String?>(null) }
                                                 
-                                                if (currentQuestion.mediaType == "VIDEO") {
-                                                    AndroidView(
-                                                        factory = { PlayerView(it).apply { player = exoPlayer; useController = false } },
-                                                        modifier = Modifier.fillMaxSize()
-                                                    )
-                                                    LaunchedEffect(exoPlayer) { exoPlayer.play() }
-                                                } else {
-                                                    // AUDIO
-                                                    Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
-                                                        IconButton(onClick = { if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play() }) {
-                                                            Icon(if (exoPlayer.isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle, null, tint = accent, modifier = Modifier.size(64.dp))
+                                                LaunchedEffect(currentQuestion.mediaUrl) {
+                                                    resolvedUrl = viewModel.mediaManager.getSafeUrl(currentQuestion.mediaUrl)
+                                                }
+
+                                                if (resolvedUrl != null) {
+                                                    val exoPlayer = remember(resolvedUrl) {
+                                                        ExoPlayer.Builder(context).build().apply {
+                                                            val factory = viewModel.mediaManager.getEncryptedDataSourceFactory()
+                                                            val mediaSource = ProgressiveMediaSource.Factory(factory)
+                                                                .createMediaSource(MediaItem.fromUri(resolvedUrl!!.toUri()))
+                                                            
+                                                            setMediaSource(mediaSource)
+                                                            repeatMode = if (currentQuestion.mediaType == "VIDEO") Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
+                                                            prepare()
                                                         }
+                                                    }
+                                                    DisposableEffect(exoPlayer) {
+                                                        onDispose { exoPlayer.release() }
+                                                    }
+                                                    
+                                                    if (currentQuestion.mediaType == "VIDEO") {
+                                                        AndroidView(
+                                                            factory = { PlayerView(it).apply { player = exoPlayer; useController = false } },
+                                                            modifier = Modifier.fillMaxSize()
+                                                        )
+                                                        LaunchedEffect(exoPlayer) { exoPlayer.play() }
+                                                    } else {
+                                                        // AUDIO
+                                                        Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+                                                            IconButton(onClick = { if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play() }) {
+                                                                Icon(if (exoPlayer.isPlaying) Icons.Default.PauseCircle else Icons.Default.PlayCircle, null, tint = accent, modifier = Modifier.size(64.dp))
+                                                            }
+                                                        }
+                                                    }
+                                                } else {
+                                                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                                        CircularProgressIndicator(color = accent)
                                                     }
                                                 }
                                             }

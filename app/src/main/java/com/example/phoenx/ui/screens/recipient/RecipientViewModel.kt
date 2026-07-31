@@ -5,14 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.RecipientEntity
+import com.example.phoenx.data.media.MediaManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -22,7 +20,8 @@ class RecipientViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val functions: FirebaseFunctions
+    private val functions: FirebaseFunctions,
+    private val mediaManager: MediaManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<RecipientUiState>(RecipientUiState.Loading)
@@ -93,7 +92,7 @@ class RecipientViewModel @Inject constructor(
                         val ref = com.google.firebase.storage.FirebaseStorage.getInstance().reference
                             .child("users/$userId/recipients/${java.util.UUID.randomUUID()}.jpg")
                         ref.putFile(imageUri).await()
-                        finalPhotoUrl = ref.downloadUrl.await().toString()
+                        finalPhotoUrl = ref.path // Stockage du CHEMIN (v9.4.17)
                     } catch (e: Exception) {
                         android.util.Log.e("RecipientVM", "Erreur upload photo destinataire", e)
                     }

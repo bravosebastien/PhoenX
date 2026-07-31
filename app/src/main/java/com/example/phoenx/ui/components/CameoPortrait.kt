@@ -19,11 +19,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.theme.LocalAppTheme
+import dagger.hilt.android.EntryPointAccessors
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.runtime.*
 
 /**
  * Composant Cameo (v8.9.9) : Affiche le portrait d'un proche dans un ovale "médaillon"
  * avec un filtre artistique "Portrait au Fusain" (Grayscale + High Contrast).
+ * Supporte désormais la résolution de chemin Storage (v9.4.17).
  */
 @Composable
 fun CameoPortrait(
@@ -34,6 +39,27 @@ fun CameoPortrait(
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val context = LocalContext.current
+
+    // Récupération du MediaManager via EntryPoint (v9.4.17)
+    val mediaManager = remember(context) {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            MediaManager.MediaManagerEntryPoint::class.java
+        ).mediaManager()
+    }
+
+    var displayUrl by remember(imagePath) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(imagePath) {
+        if (!imagePath.isNullOrBlank()) {
+            if (java.io.File(imagePath).exists()) {
+                displayUrl = imagePath // Chemin local
+            } else {
+                displayUrl = mediaManager.getSafeUrl(imagePath) // Chemin Storage ou URL
+            }
+        }
+    }
 
     // Forme Ovale Cameo (plus haut que large, ratio ~1.2)
     val cameoShape = GenericShape { size, _ ->
@@ -48,7 +74,7 @@ fun CameoPortrait(
             .border(1.dp, accent.copy(alpha = 0.3f), cameoShape),
         contentAlignment = Alignment.Center
     ) {
-        if (!imagePath.isNullOrBlank()) {
+        if (!displayUrl.isNullOrBlank()) {
             // Filtre "Portrait au Fusain" via ColorMatrix
             val charcoalMatrix = ColorMatrix().apply {
                 setToSaturation(0f) // Noir et blanc
@@ -64,7 +90,7 @@ fun CameoPortrait(
             }
 
             AsyncImage(
-                model = imagePath,
+                model = displayUrl,
                 contentDescription = "Portrait de $firstName",
                 contentScale = ContentScale.Crop,
                 colorFilter = ColorFilter.colorMatrix(charcoalMatrix),

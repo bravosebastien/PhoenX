@@ -31,6 +31,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.phoenx.data.local.OfflineEntry
+import com.example.phoenx.data.media.MediaManager
+import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.example.phoenx.ui.theme.LocalAccentColor
 
@@ -204,7 +206,7 @@ fun BookViewerScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 val decryptedText = decryptedChapters[chapter.id] ?: ""
-                IllustrableText(decryptedText, mediaMap)
+                IllustrableText(decryptedText, mediaMap, viewModel.mediaManager)
 
                 Spacer(modifier = Modifier.height(80.dp))
             }
@@ -304,7 +306,8 @@ fun BookViewerScreen(
 @Composable
 fun IllustrableText(
     text: String,
-    mediaMap: Map<String, OfflineEntry>
+    mediaMap: Map<String, OfflineEntry>,
+    mediaManager: MediaManager
 ) {
     val accent = LocalAccentColor.current
     // Regex pour détecter [PHOTO:uuid] ou [AUDIO:uuid]
@@ -333,19 +336,17 @@ fun IllustrableText(
                 val entry = mediaMap[id]
 
                 if (type == "PHOTO" && entry != null) {
-                    val mediaSource = entry.localMediaPath ?: entry.mediaUrl
-                    if (mediaSource != null) {
-                        AsyncImage(
-                            model = mediaSource,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 400.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .padding(vertical = 16.dp),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                    SecureAsyncImage(
+                        mediaUrl = entry.mediaUrl,
+                        localPath = entry.localMediaPath,
+                        mediaManager = mediaManager,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 400.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .padding(vertical = 16.dp),
+                        contentScale = ContentScale.Crop
+                    )
                 } else if (type == "AUDIO" && entry != null) {
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),

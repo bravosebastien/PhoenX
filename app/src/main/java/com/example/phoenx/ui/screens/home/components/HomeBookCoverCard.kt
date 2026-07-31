@@ -20,7 +20,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.theme.AppThemeState
+import dagger.hilt.android.EntryPointAccessors
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun BookCoverCard(
@@ -33,8 +36,24 @@ fun BookCoverCard(
     theme: AppThemeState
 ) {
     val accent = theme.accentColor
+    val context = LocalContext.current
+    
+    // Récupération du MediaManager via EntryPoint (v9.4.17)
+    val mediaManager = remember(context) {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            MediaManager.MediaManagerEntryPoint::class.java
+        ).mediaManager()
+    }
+
+    var displayUrl by remember(coverImageUrl, defaultCoverUrl) { mutableStateOf<String?>(null) }
     val finalCoverUrl = coverImageUrl ?: defaultCoverUrl
-    val hasBackgroundImage = finalCoverUrl != null
+
+    LaunchedEffect(finalCoverUrl) {
+        displayUrl = mediaManager.getSafeUrl(finalCoverUrl)
+    }
+
+    val hasBackgroundImage = displayUrl != null
     
     val titleBrush = getTitleBrush(coverTitleStyle)
     val titleColor = when(coverTitleStyle) {
@@ -75,7 +94,7 @@ fun BookCoverCard(
                 // FOND : Image personnalisée ou par défaut Remote Config (v9.2.5)
                 if (hasBackgroundImage) {
                     coil3.compose.AsyncImage(
-                        model = finalCoverUrl,
+                        model = displayUrl,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop

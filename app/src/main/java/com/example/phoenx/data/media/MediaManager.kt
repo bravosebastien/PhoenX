@@ -14,35 +14,51 @@ class MediaManager @Inject constructor(
     private val storage: FirebaseStorage,
     private val encryptionManager: EncryptionManager
 ) {
+    /**
+     * Entry Point pour accès depuis les Composables (v9.4.17)
+     */
+    @dagger.hilt.EntryPoint
+    @dagger.hilt.InstallIn(dagger.hilt.components.SingletonComponent::class)
+    interface MediaManagerEntryPoint {
+        fun mediaManager(): MediaManager
+    }
+
+    /**
+     * Résout un chemin Storage ou une ancienne URL en URL de téléchargement (v9.4.17).
+     * Utilisé uniquement pour l'affichage en mémoire (Coil/ExoPlayer).
+     */
+    suspend fun getSafeUrl(pathOrUrl: String?): String? {
+        if (pathOrUrl.isNullOrBlank()) return null
+        if (pathOrUrl.startsWith("http")) return pathOrUrl
+        return try {
+            storage.getReference(pathOrUrl).downloadUrl.await().toString()
+        } catch (e: Exception) {
+            android.util.Log.e("MediaManager", "Erreur résolution chemin : $pathOrUrl", e)
+            null
+        }
+    }
 
     /**
      * Chiffre et uploade un fichier vers Firebase Storage.
-     * Retourne l'URL de téléchargement.
+     * Retourne le CHEMIN Storage (v9.4.17).
      */
     suspend fun encryptAndUpload(userId: String, entryId: String, localFile: File): String {
-        // 1. Lire le fichier
         val fileBytes = localFile.readBytes()
-
-        // 2. Chiffrer (AES-256-GCM)
         val encryptedBytes = encryptionManager.encryptBytes(fileBytes)
 
-        // 3. Préparer le chemin Storage : users/{uid}/entries/{entryId}/media
         val storageRef = storage.reference
             .child("users")
             .child(userId)
             .child("entries")
             .child(entryId)
-            .child(localFile.name + ".enc") // On ajoute l'extension .enc pour indiquer que c'est chiffré
+            .child(localFile.name + ".enc")
 
-        // 4. Upload
         storageRef.putBytes(encryptedBytes).await()
-
-        // 5. Récupérer l'URL publique (mais le contenu reste illisible sans la clé)
-        return storageRef.downloadUrl.await().toString()
+        return storageRef.path
     }
 
     /**
-     * Chiffre et uploade une photo Standalone vers Firebase Storage (v9.3.2).
+     * Chiffre et uploade une photo Standalone vers Firebase Storage (v9.4.17).
      */
     suspend fun encryptAndUploadStandalone(userId: String, mediaId: String, localFile: File): String {
         val fileBytes = localFile.readBytes()
@@ -55,22 +71,26 @@ class MediaManager @Inject constructor(
             .child("$mediaId.jpg.enc")
 
         storageRef.putBytes(encryptedBytes).await()
-        return storageRef.downloadUrl.await().toString()
+        return storageRef.path
     }
 
     /**
      * Télécharge et déchiffre un média.
-     * Supporte la clé explicite pour les héritiers (v8.4.5)
+     * Supporte URLs héritées et Chemins Storage (v9.4.17).
      */
-    suspend fun downloadAndDecrypt(url: String, explicitKey: ByteArray? = null): ByteArray {
-        val storageRef = storage.getReferenceFromUrl(url)
+    suspend fun downloadAndDecrypt(pathOrUrl: String, explicitKey: ByteArray? = null): ByteArray {
+        val storageRef = if (pathOrUrl.startsWith("http")) {
+            storage.getReferenceFromUrl(pathOrUrl)
+        } else {
+            storage.getReference(pathOrUrl)
+        }
         val encryptedBytes = storageRef.getBytes(Long.MAX_VALUE).await()
         return encryptionManager.decryptBytes(encryptedBytes, explicitKey)
     }
 
     /**
-     * Uploade un portrait Cameo vers Firebase Storage (SANS CHIFFREMENT - v8.9.9).
-     * Retourne l'URL de téléchargement.
+     * Uploade un portrait Cameo vers Firebase Storage.
+     * Retourne le CHEMIN Storage (v9.4.17).
      */
     suspend fun uploadCameo(userId: String, personId: String, localFile: File): String {
         val storageRef = storage.reference
@@ -80,14 +100,18 @@ class MediaManager @Inject constructor(
             .child("$personId.jpg")
 
         storageRef.putFile(android.net.Uri.fromFile(localFile)).await()
-        return storageRef.downloadUrl.await().toString()
+        return storageRef.path
     }
 
     /**
-     * Télécharge un portrait Cameo depuis Storage vers un fichier local (v8.9.9).
+     * Télécharge un portrait Cameo depuis Storage (v9.4.17).
      */
-    suspend fun downloadCameo(url: String, destFile: File) {
-        val storageRef = storage.getReferenceFromUrl(url)
+    suspend fun downloadCameo(pathOrUrl: String, destFile: File) {
+        val storageRef = if (pathOrUrl.startsWith("http")) {
+            storage.getReferenceFromUrl(pathOrUrl)
+        } else {
+            storage.getReference(pathOrUrl)
+        }
         storageRef.getFile(destFile).await()
     }
 
