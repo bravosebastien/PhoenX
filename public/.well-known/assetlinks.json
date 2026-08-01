@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "app.phoenx.mobile",
+      "sha256_cert_fingerprints": ["49:C1:4D:84:BC:45:35:58:0A:02:72:EC:06:0F:DD:54:32:00:C9:47:FB:81:0F:E2:41:F8:74:AC:57:D6:FF:39"]
+    }
+  }
+]
