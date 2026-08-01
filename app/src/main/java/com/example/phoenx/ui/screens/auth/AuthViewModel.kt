@@ -32,6 +32,7 @@ class AuthViewModel @Inject constructor(
     private val encryptionManager: EncryptionManager,
     private val preferenceManager: PreferenceManager,
     private val database: PhoenXDatabase,
+    private val functions: com.google.firebase.functions.FirebaseFunctions,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -135,7 +136,6 @@ class AuthViewModel @Inject constructor(
                     "uid" to user.uid,
                     "email" to email,
                     "termsAcceptedAt" to Timestamp.now(), // v8.6.0
-                    "isCreator" to true, // AFFIRMATION EXPLICITE DU RÔLE (Signature 7.6)
                     "encryptionKey" to encryptionKeyBase64,
                     "dateOfBirth" to Timestamp(Date.from(birthDateInstant)),
                     "createdAt" to Timestamp.now(),
@@ -149,6 +149,14 @@ class AuthViewModel @Inject constructor(
                 
                 // Activer la clé immédiatement pour la session en cours
                 encryptionManager.setSessionKey(newKey)
+
+                // Attribution sécurisée du rôle Créateur via la logique serveur (v9.4.21)
+                // Évite la violation de règle "isCreator" à la création tout en garantissant le statut.
+                try {
+                    functions.getHttpsCallable("becomeCreator").call(mapOf("rhythmDays" to 30)).await()
+                } catch (e: Exception) {
+                    android.util.Log.e("AuthViewModel", "Erreur promotion créateur post-inscription", e)
+                }
 
                 _uiState.value = AuthState.EmailVerificationSent
             } catch (e: Exception) {
