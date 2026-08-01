@@ -88,7 +88,11 @@ fun DirectPhotoDialog(
                 Text("Visibilité", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                 RecipientSelector(
                     recipients = recipients,
-                    selectedIds = selectedIds,
+                    selectedIds = selectedIds.toList(),
+                    onToggleRecipient = { id ->
+                        if (selectedIds.contains(id)) selectedIds.remove(id)
+                        else selectedIds.add(id)
+                    },
                     visibility = visibility,
                     onVisibilityChange = { visibility = it },
                     accent = theme.accentColor

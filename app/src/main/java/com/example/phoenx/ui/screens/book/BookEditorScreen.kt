@@ -473,7 +473,11 @@ fun BookEditorScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     RecipientSelector(
                         recipients = recipients,
-                        selectedIds = selectedRecipientIds,
+                        selectedIds = selectedRecipientIds.toList(),
+                        onToggleRecipient = { id ->
+                            if (selectedRecipientIds.contains(id)) selectedRecipientIds.remove(id)
+                            else selectedRecipientIds.add(id)
+                        },
                         visibility = if (selectedRecipientIds.isEmpty() && !forceRestricted) "EVERYONE" else "RESTRICTED",
                         onVisibilityChange = { newVis -> 
                             forceRestricted = (newVis == "RESTRICTED")

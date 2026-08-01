@@ -199,7 +199,11 @@ fun AudioCaptureContent(
                         Spacer(modifier = Modifier.height(12.dp))
                         com.example.phoenx.ui.components.RecipientSelector(
                             recipients = recipients,
-                            selectedIds = selectedRecipientIds,
+                            selectedIds = selectedRecipientIds.toList(),
+                            onToggleRecipient = { id ->
+                                if (selectedRecipientIds.contains(id)) selectedRecipientIds.remove(id)
+                                else selectedRecipientIds.add(id)
+                            },
                             visibility = visibility,
                             onVisibilityChange = onVisibilityChange,
                             accent = accent,

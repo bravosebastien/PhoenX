@@ -378,7 +378,11 @@ fun MemoryMetadataSection(
 
             RecipientSelector(
                 recipients = recipients,
-                selectedIds = selectedRecipientIds,
+                selectedIds = selectedRecipientIds.toList(),
+                onToggleRecipient = { id ->
+                    if (selectedRecipientIds.contains(id)) selectedRecipientIds.remove(id)
+                    else selectedRecipientIds.add(id)
+                },
                 visibility = entry.visibility,
                 onVisibilityChange = { if (!isReadOnly) viewModel.updateVisibility(it) },
                 accent = accent,

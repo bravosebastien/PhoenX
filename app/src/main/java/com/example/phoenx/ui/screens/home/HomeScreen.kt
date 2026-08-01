@@ -240,6 +240,9 @@ fun HomeScreen(
                         coverImageUrl = uiState.coverImageUrl,
                         defaultCoverUrl = uiState.defaultCoverUrl,
                         coverTitleStyle = uiState.coverTitleStyle,
+                        scale = uiState.coverScale,
+                        offsetX = uiState.coverOffsetX,
+                        offsetY = uiState.coverOffsetY,
                         onClick = onNavigateToBookEditor,
                         theme = theme
                     )

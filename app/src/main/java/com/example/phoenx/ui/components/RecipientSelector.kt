@@ -28,7 +28,8 @@ import com.example.phoenx.ui.theme.SurfaceCard
 @Composable
 fun RecipientSelector(
     recipients: List<RecipientEntity>,
-    selectedIds: MutableList<String>,
+    selectedIds: List<String>,
+    onToggleRecipient: (String) -> Unit,
     visibility: String,
     onVisibilityChange: (String) -> Unit,
     accent: Color,
@@ -70,8 +71,9 @@ fun RecipientSelector(
                         color = theme.contentColor
                     )
                     if (!isEveryone) {
+                        val realCount = selectedIds.filter { it.isNotBlank() }.size
                         Text(
-                            text = "${selectedIds.size} personne(s) autorisée(s)",
+                            text = "$realCount personne(s) autorisée(s)",
                             style = MaterialTheme.typography.labelSmall,
                             color = theme.contentColor.copy(alpha = 0.6f)
                         )
@@ -119,8 +121,7 @@ fun RecipientSelector(
                                 selected = isSelected,
                                 onClick = {
                                     if (enabled) {
-                                        if (isSelected) selectedIds.remove(recipient.id)
-                                        else selectedIds.add(recipient.id)
+                                        onToggleRecipient(recipient.id)
                                     }
                                 },
                                 label = { Text(recipient.name) },
@@ -150,8 +151,7 @@ fun RecipientSelector(
                                         // Cliquer sur un nom individuel désactive "Tout le monde" 
                                         // et ne garde que ce destinataire
                                         onVisibilityChange("RESTRICTED")
-                                        selectedIds.clear()
-                                        selectedIds.add(recipient.id)
+                                        onToggleRecipient(recipient.id)
                                     }
                                 },
                                 label = { Text(recipient.name) },

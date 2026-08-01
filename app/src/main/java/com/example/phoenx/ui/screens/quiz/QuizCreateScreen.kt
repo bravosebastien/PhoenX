@@ -138,7 +138,11 @@ fun QuizCreateScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         RecipientSelector(
                             recipients = recipients,
-                            selectedIds = selectedRecipientIds,
+                            selectedIds = selectedRecipientIds.toList(),
+                            onToggleRecipient = { id ->
+                                if (selectedRecipientIds.contains(id)) selectedRecipientIds.remove(id)
+                                else selectedRecipientIds.add(id)
+                            },
                             visibility = "RESTRICTED", // Quiz est restreint par défaut
                             onVisibilityChange = {},
                             accent = accent

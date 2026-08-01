@@ -370,7 +370,11 @@ fun EditableMemoryCard(
             text = {
                 RecipientSelector(
                     recipients = recipients,
-                    selectedIds = selectedIds,
+                    selectedIds = selectedIds.toList(),
+                    onToggleRecipient = { id ->
+                        if (selectedIds.contains(id)) selectedIds.remove(id)
+                        else selectedIds.add(id)
+                    },
                     visibility = entry.visibility,
                     onVisibilityChange = { onUpdateVisibility(it) },
                     accent = accent

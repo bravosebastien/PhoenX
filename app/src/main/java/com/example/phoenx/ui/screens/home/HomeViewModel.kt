@@ -122,12 +122,18 @@ class HomeViewModel @Inject constructor(
                         val title = snapshot?.getString("bookTitle")
                         val coverUrl = snapshot?.getString("coverImageUrl")
                         val style = snapshot?.getString("coverTitleStyle") ?: "GOLD"
+                        val scale = snapshot?.getDouble("coverScale")?.toFloat() ?: 1f
+                        val offsetX = snapshot?.getDouble("coverOffsetX")?.toFloat() ?: 0f
+                        val offsetY = snapshot?.getDouble("coverOffsetY")?.toFloat() ?: 0f
                         
                         _uiState.update { it.copy(
                             validatedChaptersCount = validatedCount,
                             bookTitle = title,
                             coverImageUrl = coverUrl,
-                            coverTitleStyle = style
+                            coverTitleStyle = style,
+                            coverScale = scale,
+                            coverOffsetX = offsetX,
+                            coverOffsetY = offsetY
                         ) }
                     }
             } catch (e: Exception) {}
@@ -274,6 +280,9 @@ data class HomeUiState(
     val defaultCoverUrl: String? = null, // v9.2.5
     val earthTextureUrl: String? = null, // v9.2.8
     val coverTitleStyle: String = "GOLD", // v9.2.6
+    val coverScale: Float = 1f,
+    val coverOffsetX: Float = 0f,
+    val coverOffsetY: Float = 0f,
     val presentationVideos: List<PresentationVideo> = emptyList(), // v9.2.6
     val latestEntries: List<OfflineEntry> = emptyList()
 )

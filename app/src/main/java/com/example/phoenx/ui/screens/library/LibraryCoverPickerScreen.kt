@@ -9,10 +9,15 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -45,8 +50,33 @@ fun LibraryCoverPickerScreen(
     val context = LocalContext.current
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    
+    val covers by viewModel.covers.collectAsState()
+    val existingCover = covers[compartmentId]
+
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
     var selectedType by remember { mutableStateOf("none") }
+    
+    // Métadonnées de positionnement (v9.4.19)
+    var scale by remember { mutableFloatStateOf(1f) }
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    var offsetY by remember { mutableFloatStateOf(0f) }
+
+    // Résolution de l'URL existante (v9.4.17)
+    val entryPoint = dagger.hilt.android.EntryPointAccessors.fromApplication(context, com.example.phoenx.data.media.MediaManager.MediaManagerEntryPoint::class.java)
+    val mediaManager = entryPoint.mediaManager()
+    var resolvedUrl by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(existingCover) {
+        if (existingCover != null) {
+            selectedType = existingCover.mediaType
+            scale = existingCover.scale
+            offsetX = existingCover.offsetX
+            offsetY = existingCover.offsetY
+            resolvedUrl = mediaManager.getSafeUrl(existingCover.mediaUrl)
+        }
+    }
+
     val isUploading by viewModel.isUploading.collectAsState()
     val uploadProgress by viewModel.uploadProgress.collectAsState()
 
@@ -54,6 +84,11 @@ fun LibraryCoverPickerScreen(
         if (uri != null) {
             selectedUri = uri
             selectedType = "photo"
+            // Reset position lors d'une nouvelle sélection
+            scale = 1f
+            offsetX = 0f
+            offsetY = 0f
+            resolvedUrl = null
         }
     }
 
@@ -61,6 +96,7 @@ fun LibraryCoverPickerScreen(
         if (uri != null) {
             selectedUri = uri
             selectedType = "video"
+            resolvedUrl = null
         }
     }
 
@@ -121,32 +157,59 @@ fun LibraryCoverPickerScreen(
                     .fillMaxWidth()
                     .height(220.dp)
                     .background(theme.contentColor.copy(alpha = 0.05f), MaterialTheme.shapes.large)
-                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), MaterialTheme.shapes.large),
+                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), MaterialTheme.shapes.large)
+                    .clip(MaterialTheme.shapes.large)
+                    .pointerInput(selectedUri, resolvedUrl) {
+                        if (selectedType == "photo") {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                scale = (scale * zoom).coerceIn(1f, 5f)
+                                offsetX += pan.x
+                                offsetY += pan.y
+                            }
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                if (selectedUri != null) {
+                val displayModel = selectedUri ?: resolvedUrl
+                
+                if (displayModel != null) {
                     if (selectedType == "photo") {
                         AsyncImage(
-                            model = selectedUri,
+                            model = displayModel,
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize().clip(MaterialTheme.shapes.large),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .graphicsLayer(
+                                    scaleX = scale,
+                                    scaleY = scale,
+                                    translationX = offsetX,
+                                    translationY = offsetY
+                                ),
                             contentScale = ContentScale.Crop
                         )
                     } else {
-                        VideoPreview(uri = selectedUri!!)
+                        // Pour la vidéo, on affiche l'aperçu si on a une URI locale, sinon un placeholder
+                        if (selectedUri != null) {
+                            VideoPreview(uri = selectedUri!!)
+                        } else {
+                            Icon(Icons.Default.VideoLibrary, null, tint = accent.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                        }
                     }
                 } else {
                     Text("Aucun média sélectionné", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                 }
             }
 
-            if (selectedUri != null) {
+            if (selectedUri != null || resolvedUrl != null) {
                 Spacer(modifier = Modifier.height(12.dp))
+                val baseMsg = if (selectedType == "photo") "Cette image s'affichera sur la carte." else "Cette vidéo défilera en silence sur la carte."
+                val instructions = if (selectedType == "photo") " Pince pour zoomer, glisse pour cadrer." else ""
                 Text(
-                    text = if (selectedType == "photo") "Cette image s'affichera sur la carte." else "Cette vidéo défilera en silence sur la carte.",
+                    text = baseMsg + instructions,
                     style = MaterialTheme.typography.bodySmall,
                     color = theme.contentColor.copy(alpha = 0.5f),
-                    fontStyle = FontStyle.Italic
+                    fontStyle = FontStyle.Italic,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
             }
 
@@ -165,11 +228,17 @@ fun LibraryCoverPickerScreen(
             } else {
                 Button(
                     onClick = { 
-                        if (selectedUri != null) {
-                            viewModel.uploadCover(compartmentId, selectedUri!!, selectedType)
-                            Toast.makeText(context, "Couverture mise à jour.", Toast.LENGTH_SHORT).show()
-                            navController.popBackStack()
-                        }
+                    if (selectedUri != null) {
+                        viewModel.uploadCover(compartmentId, selectedUri!!, selectedType, scale, offsetX, offsetY)
+                        Toast.makeText(context, "Couverture mise à jour.", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    } else if (resolvedUrl != null) {
+                        // Cas particulier : l'utilisateur a modifié le cadrage d'une image déjà uploadée (v9.4.19)
+                        // On uploade uniquement les métadonnées
+                        viewModel.updateCoverMetadata(compartmentId, scale, offsetX, offsetY)
+                        Toast.makeText(context, "Cadrage mis à jour.", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    }
                     },
                     enabled = selectedUri != null,
                     modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),

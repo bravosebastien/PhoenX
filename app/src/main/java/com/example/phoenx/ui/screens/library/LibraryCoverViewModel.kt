@@ -47,10 +47,12 @@ class LibraryCoverViewModel @Inject constructor(
         }
     }
 
-    fun uploadCover(compartmentId: String, uri: Uri, mediaType: String) {
+    fun uploadCover(compartmentId: String, uri: Uri, mediaType: String, scale: Float = 1f, offsetX: Float = 0f, offsetY: Float = 0f) {
         val userId = auth.currentUser?.uid ?: return
         val extension = if (mediaType == "video") "mp4" else "jpg"
-        val ref = storage.reference.child("users/$userId/library_covers/$compartmentId.$extension")
+        // v9.4.17 : Utilisation de chemins relatifs
+        val path = "users/$userId/library_covers/$compartmentId.$extension"
+        val ref = storage.reference.child(path)
 
         _isUploading.value = true
         _uploadProgress.value = 0f
@@ -62,12 +64,14 @@ class LibraryCoverViewModel @Inject constructor(
             _uploadProgress.value = progress
         }.addOnSuccessListener {
             viewModelScope.launch {
-                val downloadUrl = ref.downloadUrl.await().toString()
                 val cover = LibraryCover(
                     compartmentId = compartmentId,
                     mediaType = mediaType,
-                    mediaUrl = downloadUrl,
-                    uploadedAt = System.currentTimeMillis()
+                    mediaUrl = path, // On stocke le chemin relatif (v9.4.17)
+                    uploadedAt = System.currentTimeMillis(),
+                    scale = scale,
+                    offsetX = offsetX,
+                    offsetY = offsetY
                 )
                 db.collection("users").document(userId)
                     .collection("libraryCover").document(compartmentId)
@@ -100,6 +104,21 @@ class LibraryCoverViewModel @Inject constructor(
             } catch (e: Exception) {
                 // Erreur
             }
+        }
+    }
+    fun updateCoverMetadata(compartmentId: String, scale: Float, offsetX: Float, offsetY: Float) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(userId)
+                    .collection("libraryCover").document(compartmentId)
+                    .update(mapOf(
+                        "scale" to scale,
+                        "offsetX" to offsetX,
+                        "offsetY" to offsetY
+                    )).await()
+                loadCovers()
+            } catch (e: Exception) {}
         }
     }
 }

@@ -25,6 +25,8 @@ import com.example.phoenx.ui.theme.AppThemeState
 import dagger.hilt.android.EntryPointAccessors
 import androidx.compose.ui.platform.LocalContext
 
+import androidx.compose.ui.graphics.graphicsLayer
+
 @Composable
 fun BookCoverCard(
     title: String,
@@ -33,7 +35,11 @@ fun BookCoverCard(
     defaultCoverUrl: String? = null,
     coverTitleStyle: String = "GOLD",
     onClick: () -> Unit,
-    theme: AppThemeState
+    theme: AppThemeState,
+    // v9.4.19 : Prise en charge du cadrage
+    scale: Float = 1f,
+    offsetX: Float = 0f,
+    offsetY: Float = 0f
 ) {
     val accent = theme.accentColor
     val context = LocalContext.current
@@ -96,7 +102,12 @@ fun BookCoverCard(
                     coil3.compose.AsyncImage(
                         model = displayUrl,
                         contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().graphicsLayer(
+                            scaleX = scale,
+                            scaleY = scale,
+                            translationX = offsetX,
+                            translationY = offsetY
+                        ),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
                     // Voile sombre progressif réduit pour la visibilité du livre (v9.2.7)
