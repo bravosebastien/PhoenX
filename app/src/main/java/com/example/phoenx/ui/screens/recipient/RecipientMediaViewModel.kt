@@ -148,7 +148,8 @@ class RecipientMediaViewModel @Inject constructor(
         type: String, 
         recipientIds: List<String>,
         description: String? = null,
-        existingId: String? = null // v9.3.3 : Support modification
+        existingId: String? = null,
+        visibility: String = "RESTRICTED"
     ) {
         viewModelScope.launch {
             val mediaId = existingId ?: java.util.UUID.randomUUID().toString()
@@ -168,7 +169,8 @@ class RecipientMediaViewModel @Inject constructor(
                 title = title,
                 description = description,
                 content = finalContent,
-                recipientIds = recipientIds.joinToString(","),
+                recipientIds = recipientIds.distinct().joinToString(","),
+                visibility = visibility,
                 createdAt = System.currentTimeMillis(),
                 syncStatus = "pending"
             )
@@ -293,6 +295,7 @@ class RecipientMediaViewModel @Inject constructor(
                                             description = doc.getString("description"), // v9.3.3
                                             content = contentStr,
                                             recipientIds = recIds.joinToString(","),
+                                            visibility = doc.getString("visibility") ?: "RESTRICTED",
                                             createdAt = doc.getLong("createdAt") ?: 0L,
                                             syncStatus = "synced"
                                         )
@@ -546,7 +549,9 @@ class RecipientMediaViewModel @Inject constructor(
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = displayTitle,
             description = if (isHeirMode && !activated) null else description, // v9.3.3
-            mediaUrl = if (domainType == EntryType.PHOTO || domainType == EntryType.VIDEO || type == "SPOTIFY") finalContent else null
+            mediaUrl = if (domainType == EntryType.PHOTO || domainType == EntryType.VIDEO || type == "SPOTIFY") finalContent else null,
+            recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct(),
+            visibility = visibility
         )
     }
 }

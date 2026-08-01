@@ -44,6 +44,7 @@ fun RecipientDiscothequeScreen(
     val isCreatorMode = creatorId == null || creatorId == viewModel.currentUid
     var showAddDialog by remember { mutableStateOf(false) }
     var showInfoPopup by remember { mutableStateOf(false) }
+    var editingMedia by remember { mutableStateOf<PhoenXEntry?>(null) }
     var mediaToDelete by remember { mutableStateOf<PhoenXEntry?>(null) }
     val recipients by standaloneViewModel.recipients.collectAsState()
 
@@ -148,7 +149,8 @@ fun RecipientDiscothequeScreen(
                             entry = entry, 
                             theme = theme,
                             isCreatorMode = isCreatorMode,
-                            onDelete = { mediaToDelete = entry }
+                            onDelete = { mediaToDelete = entry },
+                            onEdit = { if (isCreatorMode) editingMedia = entry }
                         ) { 
                             if (entry.mediaUrl != null && (entry.mediaUrl!!.startsWith("http"))) {
                                 try {
@@ -172,10 +174,27 @@ fun RecipientDiscothequeScreen(
             type = "SPOTIFY",
             recipients = recipients,
             onDismiss = { showAddDialog = false },
-            onSave = { title, desc, url, ids ->
-                viewModel.addStandaloneMedia(title, url, "SPOTIFY", ids, desc)
+            onSave = { title, desc, url, ids, visibility ->
+                viewModel.addStandaloneMedia(title, url, "SPOTIFY", ids, desc, null, visibility)
                 showAddDialog = false
             }
+        )
+    }
+
+    if (editingMedia != null) {
+        com.example.phoenx.ui.components.DirectMediaDialog(
+            type = "SPOTIFY",
+            recipients = recipients,
+            onDismiss = { editingMedia = null },
+            onSave = { title, desc, url, ids, visibility ->
+                viewModel.addStandaloneMedia(title, url, "SPOTIFY", ids, desc, editingMedia!!.id, visibility)
+                editingMedia = null
+            },
+            initialTitle = editingMedia!!.aiSummary,
+            initialDescription = editingMedia!!.description,
+            initialUrl = editingMedia!!.mediaUrl ?: "",
+            initialRecipientIds = editingMedia!!.recipientIds,
+            initialVisibility = editingMedia!!.visibility
         )
     }
 
@@ -210,6 +229,7 @@ fun VinylItem(
     theme: AppThemeState, 
     isCreatorMode: Boolean,
     onDelete: () -> Unit,
+    onEdit: () -> Unit,
     onClick: () -> Unit
 ) {
     val accent = theme.accentColor
@@ -224,7 +244,7 @@ fun VinylItem(
                 .phoenXMatiere(),
             contentAlignment = Alignment.Center
         ) {
-            // Le disque (Cercle au centre)
+            // ... (disque et play) ...
             Surface(
                 modifier = Modifier.fillMaxSize(0.85f),
                 shape = CircleShape,
@@ -252,13 +272,18 @@ fun VinylItem(
                 Icon(Icons.Default.PlayArrow, null, tint = Color.White, modifier = Modifier.padding(12.dp))
             }
 
-            // Bouton Supprimer (v9.3.3)
+            // Boutons Actions (v9.3.3)
             if (isCreatorMode && entry.parentEntryId == null) {
-                IconButton(
-                    onClick = onDelete,
-                    modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)
-                ) {
-                    Icon(Icons.Default.Delete, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(20.dp))
+                Row(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                    // Éditer (uniquement si Standalone Spotify)
+                    if (entry.mediaUrl?.contains("spotify.com") == true) {
+                        IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Default.Edit, null, tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                        }
+                    }
+                    IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Delete, null, tint = Color.White.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
+                    }
                 }
             }
         }

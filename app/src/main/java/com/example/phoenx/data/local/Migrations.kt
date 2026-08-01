@@ -394,4 +394,13 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE standalone_media ADD COLUMN description TEXT")
         }
     }
+
+    /**
+     * MIGRATION_37_38 — Ajout visibilité StandaloneMedia v9.4.19
+     */
+    val MIGRATION_37_38 = object : Migration(37, 38) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE standalone_media ADD COLUMN visibility TEXT NOT NULL DEFAULT 'RESTRICTED'")
+        }
+    }
 }

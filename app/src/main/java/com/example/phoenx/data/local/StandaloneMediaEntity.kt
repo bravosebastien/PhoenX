@@ -20,6 +20,7 @@ data class StandaloneMediaEntity(
     val description: String? = null, // v9.3.3
     val content: String, // Texte chiffré (Base64) ou URL en clair
     val recipientIds: String = "", // CSV des vrais UIDs
+    val visibility: String = "RESTRICTED", // v9.4.19
     val createdAt: Long = System.currentTimeMillis(),
     val syncStatus: String = "pending" // "pending" | "synced" | "failed"
 )

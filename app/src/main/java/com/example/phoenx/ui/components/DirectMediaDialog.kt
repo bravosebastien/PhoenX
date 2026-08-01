@@ -13,7 +13,7 @@ fun DirectMediaDialog(
     type: String, // "SPOTIFY" or "YOUTUBE"
     recipients: List<RecipientEntity>,
     onDismiss: () -> Unit,
-    onSave: (title: String, description: String?, url: String, recipientIds: List<String>) -> Unit,
+    onSave: (title: String, description: String?, url: String, recipientIds: List<String>, visibility: String) -> Unit,
     initialTitle: String = "",
     initialDescription: String? = null,
     initialUrl: String = "",
@@ -29,11 +29,12 @@ fun DirectMediaDialog(
 
     val label = if (type == "SPOTIFY") "un morceau Spotify" else "une vidéo YouTube"
     val placeholder = if (type == "SPOTIFY") "https://open.spotify.com/track/..." else "https://www.youtube.com/watch?v=..."
+    val titleLabel = if (initialUrl.isEmpty()) "Déposer $label" else "Modifier le lien"
 
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = theme.backgroundColor,
-        title = { Text("Déposer $label", color = theme.contentColor) },
+        title = { Text(titleLabel, color = theme.contentColor) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedTextField(
@@ -72,7 +73,7 @@ fun DirectMediaDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onSave(title, description.ifBlank { null }, url, selectedIds.toList()) },
+                onClick = { onSave(title, description.ifBlank { null }, url, selectedIds.toList(), visibility) },
                 enabled = url.isNotBlank()
             ) {
                 Text("Sauvegarder")
