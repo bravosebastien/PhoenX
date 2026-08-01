@@ -178,8 +178,8 @@ class CaptureViewModel @Inject constructor(
 
     fun toggleRecipient(id: String) {
         _selectedRecipientIds.update { current ->
-            if (current.contains(id)) current.filter { it != id }
-            else current + id
+            if (current.contains(id)) current.filter { it != id }.distinct()
+            else (current + id).distinct()
         }
     }
 

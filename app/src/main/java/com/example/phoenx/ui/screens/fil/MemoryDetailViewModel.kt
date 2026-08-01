@@ -84,7 +84,7 @@ class MemoryDetailViewModel @Inject constructor(
      */
     val selectedRecipientIds: StateFlow<List<String>> = entry
         .filterNotNull()
-        .map { it.recipientIds.split(",").filter { id -> id.isNotBlank() }.map { id -> id.trim() } }
+        .map { it.recipientIds.split(",").filter { id -> id.isNotBlank() }.map { id -> id.trim() }.distinct() }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -100,6 +100,7 @@ class MemoryDetailViewModel @Inject constructor(
             val ids = idsCsv.split(",")
                 .filter { it.isNotBlank() }
                 .map { it.trim() }
+                .distinct()
             if (ids.isEmpty()) flowOf(emptyList())
             else flow { emit(offlineEntryDao.getPersonsByIds(ids)) }
         }
@@ -262,7 +263,7 @@ class MemoryDetailViewModel @Inject constructor(
             // v9.2 : On stocke les VRAIS UIDs pour la sécurité Firestore
             val persistentIds = newRecipientDocIds.map { docId ->
                 recipients.value.find { it.id == docId }?.linkedUid ?: docId
-            }
+            }.distinct() // v9.4.19
             offlineEntryDao.updateEntryRecipients(persistentIds.joinToString(","), id)
             triggerSync(id)
         }
@@ -369,7 +370,7 @@ class MemoryDetailViewModel @Inject constructor(
     private fun updatePersonsInDb(ids: List<String>) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            offlineEntryDao.updateEntryPersons(ids.joinToString(","), id)
+            offlineEntryDao.updateEntryPersons(ids.distinct().joinToString(","), id)
             triggerSync(id)
         }
     }

@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.*
@@ -115,6 +116,7 @@ fun RecipientSelector(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        // 1. Afficher les destinataires connus
                         recipients.forEach { recipient ->
                             val isSelected = selectedIds.contains(recipient.id)
                             FilterChip(
@@ -131,6 +133,23 @@ fun RecipientSelector(
                                     selectedContainerColor = accent, 
                                     selectedLabelColor = theme.backgroundColor,
                                     selectedLeadingIconColor = theme.backgroundColor
+                                )
+                            )
+                        }
+
+                        // 2. Afficher les IDs orphelins (v9.4.19 : Aide au debug/nettoyage)
+                        val knownIds = recipients.map { it.id }.toSet()
+                        val orphanIds = selectedIds.filter { it !in knownIds && it.isNotBlank() }
+                        
+                        orphanIds.forEach { id ->
+                            FilterChip(
+                                selected = true,
+                                onClick = { if (enabled) onToggleRecipient(id) },
+                                label = { Text("ID inconnu : ${id.take(5)}...") },
+                                leadingIcon = { Icon(Icons.Default.Info, null, modifier = Modifier.size(14.dp)) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = com.example.phoenx.ui.theme.Error.copy(alpha = 0.6f),
+                                    selectedLabelColor = Color.White
                                 )
                             )
                         }

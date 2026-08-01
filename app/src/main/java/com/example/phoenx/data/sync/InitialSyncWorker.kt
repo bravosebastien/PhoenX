@@ -85,6 +85,16 @@ class InitialSyncWorker @AssistedInject constructor(
                 offlineEntryDao.insertPerson(person.copy(imagePath = finalLocalPath))
             }
 
+            // ═══ 3. RÉCUPÉRATION DES DESTINATAIRES (RECIPIENTS) — v9.4.19 ═══
+            val recipientsSnapshot = db.collection("users").document(userId)
+                .collection("recipients")
+                .get()
+                .await()
+
+            recipientsSnapshot.documents.forEach { doc ->
+                offlineEntryDao.insertRecipient(doc.toRecipientEntity())
+            }
+
             Result.success()
         } catch (e: Exception) {
             Result.retry()
