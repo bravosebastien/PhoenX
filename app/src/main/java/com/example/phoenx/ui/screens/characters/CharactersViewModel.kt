@@ -27,7 +27,7 @@ class CharactersViewModel @Inject constructor(
         ) { persons, entries ->
             val characters = persons.map { person ->
                 val appearanceCount = entries.count { entry ->
-                    entry.personIds.split(",").contains(person.id)
+                    entry.personIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.contains(person.id)
                 }
                 CharacterWithStats(person, appearanceCount)
             }

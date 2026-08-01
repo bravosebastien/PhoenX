@@ -65,6 +65,9 @@ class CaptureViewModel @Inject constructor(
     private val _selectedPersons = MutableStateFlow<List<com.example.phoenx.data.local.PersonEntity>>(emptyList())
     val selectedPersons: StateFlow<List<com.example.phoenx.data.local.PersonEntity>> = _selectedPersons.asStateFlow()
 
+    private val _selectedRecipientIds = MutableStateFlow<List<String>>(emptyList())
+    val selectedRecipientIds: StateFlow<List<String>> = _selectedRecipientIds.asStateFlow()
+
     // Vocal
     val isSttListening = sttManager.isListening
     val sttPartialText = sttManager.partialText
@@ -170,6 +173,13 @@ class CaptureViewModel @Inject constructor(
         }
         viewModelScope.launch {
             _suggestedPersons.value = offlineEntryDao.searchPersonsByFirstName(query)
+        }
+    }
+
+    fun toggleRecipient(id: String) {
+        _selectedRecipientIds.update { current ->
+            if (current.contains(id)) current.filter { it != id }
+            else current + id
         }
     }
 

@@ -66,6 +66,7 @@ fun BookEditorScreen(
     val proposedPlan by viewModel.proposedPlan.collectAsState() // v9.3.1
     val selectedChapter by viewModel.selectedChapter.collectAsState()
     val recipients by viewModel.recipients.collectAsState()
+    val selectedRecipientIds by viewModel.selectedRecipientIds.collectAsState()
     val isModifyingWithAi by viewModel.isModifyingWithAi.collectAsState()
     val error by viewModel.error.collectAsState()
     val isSaving by viewModel.isSaving.collectAsState()
@@ -105,19 +106,7 @@ fun BookEditorScreen(
         // On évite ainsi de montrer deux popups à la suite
     }
 
-    // ÉTAPE 1 : Stabilisation de l'état au sommet (v8.6.3)
-    val selectedRecipientIds = remember(bookDraft?.recipientIds) {
-        mutableStateListOf<String>().apply { 
-            bookDraft?.recipientIds?.let { addAll(it) } 
-        }
-    }
-
-    // ÉTAPE 2 : Sauvegarde auto vers Firestore (v8.6.3)
-    LaunchedEffect(selectedRecipientIds.toList()) {
-        if (bookDraft != null && selectedRecipientIds.toList() != bookDraft!!.recipientIds) {
-            viewModel.updateRecipients(selectedRecipientIds.toList())
-        }
-    }
+    // v9.4.19 : État maintenant géré par le ViewModel (selectedRecipientIds)
 
     // Redirection de sécurité
     LaunchedEffect(isUserCreator) {
@@ -473,15 +462,12 @@ fun BookEditorScreen(
                     Spacer(modifier = Modifier.height(12.dp))
                     RecipientSelector(
                         recipients = recipients,
-                        selectedIds = selectedRecipientIds.toList(),
-                        onToggleRecipient = { id ->
-                            if (selectedRecipientIds.contains(id)) selectedRecipientIds.remove(id)
-                            else selectedRecipientIds.add(id)
-                        },
+                        selectedIds = selectedRecipientIds,
+                        onToggleRecipient = { viewModel.toggleRecipient(it) },
                         visibility = if (selectedRecipientIds.isEmpty() && !forceRestricted) "EVERYONE" else "RESTRICTED",
                         onVisibilityChange = { newVis -> 
                             forceRestricted = (newVis == "RESTRICTED")
-                            if (newVis == "EVERYONE") selectedRecipientIds.clear()
+                            if (newVis == "EVERYONE") viewModel.updateRecipients(emptyList())
                         },
                         accent = accent,
                         containerColor = theme.contentColor.copy(alpha = 0.05f)

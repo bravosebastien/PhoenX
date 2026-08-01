@@ -38,7 +38,8 @@ fun TextCaptureContent(
     selectedCategory: String,
     onCategoryChange: (String) -> Unit,
     recipients: List<com.example.phoenx.data.local.RecipientEntity>,
-    selectedRecipientIds: androidx.compose.runtime.snapshots.SnapshotStateList<String>,
+    selectedRecipientIds: List<String>,
+    onToggleRecipient: (String) -> Unit,
     visibility: String,
     onVisibilityChange: (String) -> Unit,
     currentStep: Int = 1, // v9.0 : Navigation interne
@@ -294,11 +295,8 @@ fun TextCaptureContent(
                         Spacer(modifier = Modifier.height(12.dp))
                         RecipientSelector(
                             recipients = recipients, 
-                            selectedIds = selectedRecipientIds.toList(),
-                            onToggleRecipient = { id ->
-                                if (selectedRecipientIds.contains(id)) selectedRecipientIds.remove(id)
-                                else selectedRecipientIds.add(id)
-                            },
+                            selectedIds = selectedRecipientIds,
+                            onToggleRecipient = onToggleRecipient,
                             visibility = visibility,
                             onVisibilityChange = onVisibilityChange,
                             accent = accent,

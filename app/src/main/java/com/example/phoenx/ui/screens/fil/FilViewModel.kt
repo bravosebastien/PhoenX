@@ -146,7 +146,8 @@ class FilViewModel @Inject constructor(
                     // Fil d'un proche : Filtrage accès héritier
                     offlineEntries.filter { entry ->
                         val isRoot = entry.parentEntryId.isNullOrBlank()
-                        val isForMe = entry.visibility == "EVERYONE" || entry.recipientIds.split(",").contains(currentUid)
+                        val isForMe = entry.visibility == "EVERYONE" || 
+                         entry.recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.contains(currentUid)
                         isRoot && isForMe
                     }
                 }
@@ -156,7 +157,7 @@ class FilViewModel @Inject constructor(
                     // v9.2 : On doit filtrer par DocID OU par UID (si lié)
                     val recipientUid = recipients.value.find { it.id == recipientId }?.linkedUid
                     rootEntries.filter { entry ->
-                        val ids = entry.recipientIds.split(",")
+                        val ids = entry.recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }
                         ids.contains(recipientId) || (recipientUid != null && ids.contains(recipientUid)) || entry.visibility == "EVERYONE"
                     }
                 } else {
@@ -256,7 +257,7 @@ class FilViewModel @Inject constructor(
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = aiSummary,
             hasEnigma = enigmaQuestion != null,
-            recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
+            recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() },
             visibility = visibility,
             silentAttribution = silentAttribution
         )
@@ -280,7 +281,7 @@ class FilViewModel @Inject constructor(
             targetAge = targetAge,
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = aiSummary,
-            aiTags = aiTags.split(",").filter { it.isNotEmpty() },
+            aiTags = aiTags.split(",").filter { it.isNotEmpty() }.map { it.trim() },
             amendments = amendments,
             temporalEvolution = if (amendments.isNotEmpty()) {
                 // On récupère l'évolution depuis Room si disponible
@@ -292,7 +293,7 @@ class FilViewModel @Inject constructor(
             parentEntryId = parentEntryId,
             mediaUrl = mediaUrl,
             localMediaPath = localMediaPath,
-            recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
+            recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() },
             visibility = visibility,
             silentAttribution = silentAttribution
         )

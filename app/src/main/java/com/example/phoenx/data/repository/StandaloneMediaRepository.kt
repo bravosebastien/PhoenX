@@ -80,7 +80,7 @@ class StandaloneMediaRepository @Inject constructor(
             title = title,
             description = description, // v9.3.3
             content = decryptedContent,
-            recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
+            recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() },
             createdAt = createdAt
         )
     }

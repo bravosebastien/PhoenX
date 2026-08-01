@@ -360,7 +360,7 @@ fun EditableMemoryCard(
     if (showRecipientDialog) {
         val selectedIds = remember { 
             mutableStateListOf<String>().apply { 
-                addAll(entry.recipientIds.split(",").filter { it.isNotBlank() }) 
+                addAll(entry.recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() })
             }
         }
         AlertDialog(

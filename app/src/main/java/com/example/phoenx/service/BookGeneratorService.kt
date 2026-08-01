@@ -94,7 +94,7 @@ class BookGeneratorService @Inject constructor(
             val age = AgeUtils.parseAgeJson(parent.ageAtCreation)
             
             // v9.0 : Résolution des personnages cités dans cette scène
-            val taggedIds = parent.personIds.split(",").filter { it.isNotBlank() }
+            val taggedIds = parent.personIds.split(",").filter { it.isNotBlank() }.map { it.trim() }
             val characters = taggedIds.mapNotNull { id ->
                 personMap[id]?.let { p ->
                     mapOf(

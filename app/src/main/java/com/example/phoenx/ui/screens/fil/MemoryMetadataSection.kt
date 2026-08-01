@@ -43,6 +43,7 @@ fun MemoryMetadataSection(
 ) {
     val selectedPersons by viewModel.selectedPersons.collectAsState()
     val suggestedPersons by viewModel.suggestedPersons.collectAsState()
+    val selectedRecipientIds by viewModel.selectedRecipientIds.collectAsState()
 
     var isPeriodMode by remember(entry) {
         mutableStateOf(entry.memoryDateStart != null || entry.memoryDateEnd != null)
@@ -219,7 +220,7 @@ fun MemoryMetadataSection(
                         color = theme.contentColor.copy(alpha = 0.4f)
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        val currentCompartments = entry.compartmentIds.trim(',').split(",").filter { it.isNotBlank() }
+                        val currentCompartments = entry.compartmentIds.trim(',').split(",").filter { it.isNotBlank() }.map { it.trim() }
                         val count = currentCompartments.size
                         val label = if (entry.visibility == "EVERYONE") "Tout le monde" else if (count == 0) "Privé" else "$count tiroir(s)"
                         
@@ -370,19 +371,10 @@ fun MemoryMetadataSection(
             Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
             Spacer(modifier = Modifier.height(12.dp))
             
-            val selectedRecipientIds = remember(entry.recipientIds) {
-                mutableStateListOf<String>().apply {
-                    addAll(entry.recipientIds.split(",").filter { it.isNotBlank() })
-                }
-            }
-
             RecipientSelector(
                 recipients = recipients,
-                selectedIds = selectedRecipientIds.toList(),
-                onToggleRecipient = { id ->
-                    if (selectedRecipientIds.contains(id)) selectedRecipientIds.remove(id)
-                    else selectedRecipientIds.add(id)
-                },
+                selectedIds = selectedRecipientIds,
+                onToggleRecipient = { if (!isReadOnly) viewModel.toggleRecipient(it) },
                 visibility = entry.visibility,
                 onVisibilityChange = { if (!isReadOnly) viewModel.updateVisibility(it) },
                 accent = accent,
@@ -390,13 +382,6 @@ fun MemoryMetadataSection(
                 onNotifyByEmailChange = { if (!isReadOnly) viewModel.updateSilentAttribution(!it) },
                 enabled = !isReadOnly
             )
-            
-            LaunchedEffect(selectedRecipientIds.toList()) {
-                val csv = selectedRecipientIds.toList().joinToString(",")
-                if (csv != entry.recipientIds) {
-                    viewModel.updateRecipients(selectedRecipientIds.toList())
-                }
-            }
 
             // NOUVEAUTÉ v8.9.8 : Lien Vivant
             if (selectedRecipientIds.size == 1) {

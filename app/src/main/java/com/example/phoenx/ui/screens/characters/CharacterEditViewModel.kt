@@ -47,7 +47,7 @@ class CharacterEditViewModel @Inject constructor(
             
             if (person != null) {
                 val entries = offlineEntryDao.getAllEntriesSync()
-                _appearanceCount.value = entries.count { it.personIds.split(",").contains(personId) }
+                _appearanceCount.value = entries.count { it.personIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.contains(personId) }
             }
         }
     }
@@ -59,7 +59,7 @@ class CharacterEditViewModel @Inject constructor(
                 // 1. Nettoyage des références dans les souvenirs Room
                 val allEntries = offlineEntryDao.getAllEntriesSync()
                 allEntries.forEach { entry ->
-                    val ids = entry.personIds.split(",").filter { it.isNotBlank() }
+                    val ids = entry.personIds.split(",").filter { it.isNotBlank() }.map { it.trim() }
                     if (ids.contains(personId)) {
                         val newIds = ids.filter { it != personId }.joinToString(",")
                         val finalCsv = if (newIds.isEmpty()) "" else ",$newIds,"

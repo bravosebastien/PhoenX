@@ -45,7 +45,8 @@ fun PhotoCaptureContent(
     onPhotoCaptured: (File) -> Unit,
     preselectedName: String? = null,
     recipients: List<com.example.phoenx.data.local.RecipientEntity> = emptyList(),
-    selectedRecipientIds: MutableList<String>,
+    selectedRecipientIds: List<String>,
+    onToggleRecipient: (String) -> Unit,
     visibility: String,
     onVisibilityChange: (String) -> Unit,
     // NOUVEAUTÉ v8.9.8
@@ -228,11 +229,8 @@ fun PhotoCaptureContent(
                                 Spacer(modifier = Modifier.height(12.dp))
                                 com.example.phoenx.ui.components.RecipientSelector(
                                     recipients = recipients,
-                                    selectedIds = selectedRecipientIds.toList(),
-                                    onToggleRecipient = { id ->
-                                        if (selectedRecipientIds.contains(id)) selectedRecipientIds.remove(id)
-                                        else selectedRecipientIds.add(id)
-                                    },
+                                    selectedIds = selectedRecipientIds,
+                                    onToggleRecipient = onToggleRecipient,
                                     visibility = visibility,
                                     onVisibilityChange = onVisibilityChange,
                                     accent = accent,

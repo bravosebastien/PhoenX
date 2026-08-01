@@ -14,7 +14,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.phoenx"
+        applicationId = "app.phoenx.mobile"
         minSdk = 24
         targetSdk = 35
         versionCode = 1
@@ -41,7 +41,8 @@ android {
         jvmTarget = "17"
         freeCompilerArgs = freeCompilerArgs + listOf(
             "-opt-in=androidx.media3.common.util.UnstableApi",
-            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api"
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-opt-in=androidx.compose.foundation.layout.ExperimentalLayoutApi"
         )
     }
     buildFeatures {

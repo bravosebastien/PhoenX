@@ -318,7 +318,7 @@ class RecipientMediaViewModel @Inject constructor(
                     parents 
                 } else {
                     parents.filter { parent ->
-                        parent.visibility == "EVERYONE" || parent.recipientIds.split(",").contains(currentUid)
+                        parent.visibility == "EVERYONE" || parent.recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.contains(currentUid)
                     }
                 }
 

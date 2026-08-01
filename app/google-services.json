@@ -7,6 +7,35 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:962448590786:android:d57272fd57b13be063b85b",
+        "android_client_info": {
+          "package_name": "app.phoenx.mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "962448590786-1acj9gek2a362ml254n2kkjn68u0ntpl.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSzKcxZfVZ4ietkgNJZROu8Y36jQMHuH4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "962448590786-1acj9gek2a362ml254n2kkjn68u0ntpl.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:962448590786:android:fd417693a40f73c163b85b",
         "android_client_info": {
           "package_name": "com.example.phoenx"

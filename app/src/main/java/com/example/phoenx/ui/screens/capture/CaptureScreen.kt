@@ -110,7 +110,7 @@ fun CaptureScreen(
     var currentStep by remember { mutableIntStateOf(1) }
     var selectedCategory by remember { mutableStateOf("Sagesse") }
     var visibility by remember { mutableStateOf("RESTRICTED") }
-    val selectedRecipientIds = remember { mutableStateListOf<String>() }
+    val selectedRecipientIds by viewModel.selectedRecipientIds.collectAsState()
     var notifyByEmail by remember { mutableStateOf(true) } // Nouveauté v8.9.8
     var isTonaliteExpanded by remember { mutableStateOf(false) }
     var isTiroirsExpanded by remember { mutableStateOf(false) }
@@ -358,6 +358,7 @@ fun CaptureScreen(
                                 },
                                 recipients = recipients,
                                 selectedRecipientIds = selectedRecipientIds,
+                                onToggleRecipient = { viewModel.toggleRecipient(it) },
                                 visibility = visibility,
                                 onVisibilityChange = { visibility = it },
                                 notifyByEmail = notifyByEmail,
@@ -395,6 +396,7 @@ fun CaptureScreen(
                                 preselectedName = preselectedName,
                                 recipients = recipients,
                                 selectedRecipientIds = selectedRecipientIds,
+                                onToggleRecipient = { viewModel.toggleRecipient(it) },
                                 visibility = visibility,
                                 onVisibilityChange = { visibility = it },
                                 notifyByEmail = notifyByEmail,
@@ -431,6 +433,7 @@ fun CaptureScreen(
                                 onCategoryChange = { selectedCategory = it },
                                 recipients = recipients,
                                 selectedRecipientIds = selectedRecipientIds,
+                                onToggleRecipient = { viewModel.toggleRecipient(it) },
                                 visibility = visibility,
                                 onVisibilityChange = { visibility = it },
                                 notifyByEmail = notifyByEmail,
@@ -469,6 +472,7 @@ fun CaptureScreen(
                                 onCategoryChange = { selectedCategory = it },
                                 recipients = recipients,
                                 selectedRecipientIds = selectedRecipientIds,
+                                onToggleRecipient = { viewModel.toggleRecipient(it) },
                                 visibility = visibility,
                                 onVisibilityChange = { visibility = it },
                                 notifyByEmail = notifyByEmail,

@@ -73,6 +73,11 @@ class BookEditorViewModel @Inject constructor(
     val recipients: StateFlow<List<com.example.phoenx.data.local.RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val selectedRecipientIds: StateFlow<List<String>> = bookDraft
+        .map { it?.recipientIds ?: emptyList() }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val entryCount: StateFlow<Int> = offlineEntryDao.getAllEntries()
         .map { entries -> entries.filter { it.parentEntryId == null }.size }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
@@ -284,8 +289,6 @@ class BookEditorViewModel @Inject constructor(
         val allRecipients = recipients.value
         
         // v9.2 : On stocke les VRAIS UIDs pour la sécurité Firestore/Functions
-        // Si un proche n'est pas encore lié (pas de linkedUid), on garde son DocID 
-        // comme placeholder (il ne pourra pas lire tant qu'il n'est pas lié anyway).
         val persistentIds = selectedDocIds.map { docId ->
             allRecipients.find { it.id == docId }?.linkedUid ?: docId
         }
@@ -304,6 +307,19 @@ class BookEditorViewModel @Inject constructor(
                 _isSaving.value = false
             }
         }
+    }
+
+    /**
+     * Alterne la sélection d'un destinataire (v9.4.19)
+     */
+    fun toggleRecipient(docId: String) {
+        val current = selectedRecipientIds.value
+        val newList = if (current.contains(docId)) {
+            current.filter { it != docId }
+        } else {
+            current + docId
+        }
+        updateRecipients(newList)
     }
 
     fun updateSealedMessage(message: String) {

@@ -17,7 +17,7 @@ fun StandaloneMediaEntity.toFirestoreMap(): Map<String, Any?> {
         } else {
             content
         },
-        "recipientIds" to recipientIds.split(",").filter { it.isNotBlank() },
+        "recipientIds" to recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() },
         "createdAt" to createdAt
     )
 }

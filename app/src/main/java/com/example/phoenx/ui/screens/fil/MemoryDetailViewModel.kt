@@ -68,6 +68,7 @@ class MemoryDetailViewModel @Inject constructor(
                 // v9.2 : Remappage des UIDs vers les DocIDs pour l'UI (RecipientSelector)
                 val mappedIds = rawEntry.recipientIds.split(",")
                     .filter { it.isNotBlank() }
+                    .map { it.trim() }
                     .map { persistentId ->
                         recipientsList.find { it.linkedUid == persistentId }?.id ?: persistentId
                     }.joinToString(",")
@@ -77,6 +78,15 @@ class MemoryDetailViewModel @Inject constructor(
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /**
+     * Source de vérité unique pour les destinataires sélectionnés (v9.4.19)
+     */
+    val selectedRecipientIds: StateFlow<List<String>> = entry
+        .filterNotNull()
+        .map { it.recipientIds.split(",").filter { id -> id.isNotBlank() }.map { id -> id.trim() } }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
      * Source de vérité unique pour les personnes citées (v9.4.19)
@@ -256,6 +266,19 @@ class MemoryDetailViewModel @Inject constructor(
             offlineEntryDao.updateEntryRecipients(persistentIds.joinToString(","), id)
             triggerSync(id)
         }
+    }
+
+    /**
+     * Alterne la sélection d'un destinataire (v9.4.19)
+     */
+    fun toggleRecipient(docId: String) {
+        val current = selectedRecipientIds.value
+        val newList = if (current.contains(docId)) {
+            current.filter { it != docId }
+        } else {
+            current + docId
+        }
+        updateRecipients(newList)
     }
 
     // --- GESTION DES PERSONNES (v9.2.2) ---
