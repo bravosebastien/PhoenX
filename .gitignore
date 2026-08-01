@@ -30,3 +30,11 @@ migration*.txt
 
 # Firebase temp
 .firebase/
+
+# Temp debug/diff files
+click_*.txt
+diff_*.txt
+earth_debug.txt
+
+# Release artifacts
+*.aab
