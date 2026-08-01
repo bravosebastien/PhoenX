@@ -52,11 +52,20 @@ fun BookCoverCard(
         ).mediaManager()
     }
 
-    var displayUrl by remember(coverImageUrl, defaultCoverUrl) { mutableStateOf<String?>(null) }
+    var displayUrl by remember { mutableStateOf<String?>(null) }
     val finalCoverUrl = coverImageUrl ?: defaultCoverUrl
 
     LaunchedEffect(finalCoverUrl) {
-        displayUrl = mediaManager.getSafeUrl(finalCoverUrl)
+        if (finalCoverUrl == null) {
+            displayUrl = null
+        } else {
+            val resolved = mediaManager.getSafeUrl(finalCoverUrl)
+            // v9.4.19 : On ne met à jour displayUrl que si la résolution réussit,
+            // évitant de repasser par null (flicker) si les données Firestore changent.
+            if (resolved != null) {
+                displayUrl = resolved
+            }
+        }
     }
 
     val hasBackgroundImage = displayUrl != null

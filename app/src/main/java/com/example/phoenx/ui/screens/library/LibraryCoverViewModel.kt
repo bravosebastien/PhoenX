@@ -36,11 +36,30 @@ class LibraryCoverViewModel @Inject constructor(
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
+                // 1. Charger la couverture du Livre (BIBLIOTHEQUE) depuis current_draft (v9.4.19)
+                val bookDoc = db.collection("users").document(userId).collection("book").document("current_draft").get().await()
+                val coversMap = mutableMapOf<String, LibraryCover>()
+                
+                if (bookDoc.exists() && bookDoc.contains("coverImageUrl")) {
+                    coversMap["BIBLIOTHEQUE"] = LibraryCover(
+                        compartmentId = "BIBLIOTHEQUE",
+                        mediaType = "photo",
+                        mediaUrl = bookDoc.getString("coverImageUrl") ?: "",
+                        scale = bookDoc.getDouble("coverScale")?.toFloat() ?: 1f,
+                        offsetX = bookDoc.getDouble("coverOffsetX")?.toFloat() ?: 0f,
+                        offsetY = bookDoc.getDouble("coverOffsetY")?.toFloat() ?: 0f
+                    )
+                }
+
+                // 2. Charger les autres compartiments depuis libraryCover
                 val snapshot = db.collection("users").document(userId).collection("libraryCover").get().await()
-                val coverMap = snapshot.documents.mapNotNull { 
-                    it.toObject(LibraryCover::class.java) 
-                }.associateBy { it.compartmentId }
-                _covers.value = coverMap
+                snapshot.documents.forEach { doc ->
+                    val c = doc.toObject(LibraryCover::class.java)
+                    if (c != null && c.compartmentId != "BIBLIOTHEQUE") {
+                        coversMap[c.compartmentId] = c
+                    }
+                }
+                _covers.value = coversMap
             } catch (e: Exception) {
                 // Erreur silencieuse
             }
@@ -50,7 +69,6 @@ class LibraryCoverViewModel @Inject constructor(
     fun uploadCover(compartmentId: String, uri: Uri, mediaType: String, scale: Float = 1f, offsetX: Float = 0f, offsetY: Float = 0f) {
         val userId = auth.currentUser?.uid ?: return
         val extension = if (mediaType == "video") "mp4" else "jpg"
-        // v9.4.17 : Utilisation de chemins relatifs
         val path = "users/$userId/library_covers/$compartmentId.$extension"
         val ref = storage.reference.child(path)
 
@@ -64,18 +82,31 @@ class LibraryCoverViewModel @Inject constructor(
             _uploadProgress.value = progress
         }.addOnSuccessListener {
             viewModelScope.launch {
-                val cover = LibraryCover(
-                    compartmentId = compartmentId,
-                    mediaType = mediaType,
-                    mediaUrl = path, // On stocke le chemin relatif (v9.4.17)
-                    uploadedAt = System.currentTimeMillis(),
-                    scale = scale,
-                    offsetX = offsetX,
-                    offsetY = offsetY
-                )
-                db.collection("users").document(userId)
-                    .collection("libraryCover").document(compartmentId)
-                    .set(cover).await()
+                if (compartmentId == "BIBLIOTHEQUE") {
+                    // Unification sur current_draft (v9.4.19)
+                    db.collection("users").document(userId)
+                        .collection("book").document("current_draft")
+                        .update(mapOf(
+                            "coverImageUrl" to path,
+                            "coverScale" to scale,
+                            "coverOffsetX" to offsetX,
+                            "coverOffsetY" to offsetY,
+                            "coverUploadedAt" to System.currentTimeMillis()
+                        )).await()
+                } else {
+                    val cover = LibraryCover(
+                        compartmentId = compartmentId,
+                        mediaType = mediaType,
+                        mediaUrl = path,
+                        uploadedAt = System.currentTimeMillis(),
+                        scale = scale,
+                        offsetX = offsetX,
+                        offsetY = offsetY
+                    )
+                    db.collection("users").document(userId)
+                        .collection("libraryCover").document(compartmentId)
+                        .set(cover).await()
+                }
                 
                 loadCovers()
                 _isUploading.value = false
@@ -89,34 +120,53 @@ class LibraryCoverViewModel @Inject constructor(
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                // On tente de supprimer les deux extensions possibles par précaution
                 val photoRef = storage.reference.child("users/$userId/library_covers/$compartmentId.jpg")
                 val videoRef = storage.reference.child("users/$userId/library_covers/$compartmentId.mp4")
                 
-                photoRef.delete().addOnCompleteListener { /* ignore results */ }
-                videoRef.delete().addOnCompleteListener { /* ignore results */ }
+                photoRef.delete().addOnCompleteListener { }
+                videoRef.delete().addOnCompleteListener { }
 
-                db.collection("users").document(userId)
-                    .collection("libraryCover").document(compartmentId)
-                    .delete().await()
+                if (compartmentId == "BIBLIOTHEQUE") {
+                    db.collection("users").document(userId)
+                        .collection("book").document("current_draft")
+                        .update(mapOf(
+                            "coverImageUrl" to com.google.firebase.firestore.FieldValue.delete(),
+                            "coverScale" to com.google.firebase.firestore.FieldValue.delete(),
+                            "coverOffsetX" to com.google.firebase.firestore.FieldValue.delete(),
+                            "coverOffsetY" to com.google.firebase.firestore.FieldValue.delete()
+                        )).await()
+                } else {
+                    db.collection("users").document(userId)
+                        .collection("libraryCover").document(compartmentId)
+                        .delete().await()
+                }
 
                 loadCovers()
-            } catch (e: Exception) {
-                // Erreur
-            }
+            } catch (e: Exception) { }
         }
     }
+
     fun updateCoverMetadata(compartmentId: String, scale: Float, offsetX: Float, offsetY: Float) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                db.collection("users").document(userId)
-                    .collection("libraryCover").document(compartmentId)
-                    .update(mapOf(
-                        "scale" to scale,
-                        "offsetX" to offsetX,
-                        "offsetY" to offsetY
-                    )).await()
+                if (compartmentId == "BIBLIOTHEQUE") {
+                    db.collection("users").document(userId)
+                        .collection("book").document("current_draft")
+                        .update(mapOf(
+                            "coverScale" to scale,
+                            "coverOffsetX" to offsetX,
+                            "coverOffsetY" to offsetY
+                        )).await()
+                } else {
+                    db.collection("users").document(userId)
+                        .collection("libraryCover").document(compartmentId)
+                        .update(mapOf(
+                            "scale" to scale,
+                            "offsetX" to offsetX,
+                            "offsetY" to offsetY
+                        )).await()
+                }
                 loadCovers()
             } catch (e: Exception) {}
         }
