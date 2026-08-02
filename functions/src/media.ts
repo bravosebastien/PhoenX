@@ -13,7 +13,7 @@ export const getInheritedFileUrl = onCall(async (request) => {
     const requesterUid = request.auth.uid;
 
     // 1. Allowlist étendue aux portraits Cameo
-    const ALLOWED_TYPES = ["entries", "standaloneMedia", "book", "persons"];
+    const ALLOWED_TYPES = ["entries", "standaloneMedia", "book", "persons", "personMedia"];
     if (!ALLOWED_TYPES.includes(docType)) {
         throw new HttpsError("invalid-argument", "Type de document non supporté.");
     }
@@ -29,7 +29,9 @@ export const getInheritedFileUrl = onCall(async (request) => {
         throw new HttpsError("permission-denied", "Héritage encore scellé.");
     }
 
-    const docRef = db.collection("users").doc(creatorId).collection(docType).doc(docId);
+    const docRef = docType === "personMedia"
+        ? db.collection("users").doc(creatorId).collection("persons").doc(request.data.personId).collection("media").doc(docId)
+        : db.collection("users").doc(creatorId).collection(docType).doc(docId);
     const itemDoc = await docRef.get();
     if (!itemDoc.exists) throw new HttpsError("not-found", "Document introuvable.");
 
@@ -55,6 +57,7 @@ export const getInheritedFileUrl = onCall(async (request) => {
     else if (docType === "standaloneMedia" && itemData.type === "PHOTO") storageUrl = itemData.content;
     else if (docType === "book") storageUrl = itemData.coverImageUrl;
     else if (docType === "persons") storageUrl = itemData.imageUrl; // Champ Cameo v8.9.9
+    else if (docType === "personMedia") storageUrl = itemData.mediaPath; // Arbre v9.4.22
 
     if (!storageUrl) throw new HttpsError("not-found", "Aucun fichier.");
 
