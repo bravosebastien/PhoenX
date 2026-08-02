@@ -25,5 +25,10 @@ data class PersonEntity(
     val profession: String? = null,
     val hasChildren: Boolean? = null,
     val relationshipDetail: String? = null,
-    val characterType: String? = "HUMAN" // v9.1 : "HUMAN" | "ANIMAL"
+    val characterType: String? = "HUMAN", // v9.1 : "HUMAN" | "ANIMAL"
+
+    // ARBRE GÉNÉALOGIQUE v9.4.22
+    val parentIds: String = "", // Format CSV sécurisé : ",ID1,ID2,"
+    val isDeceased: Boolean = false,
+    val biography: String = ""
 )

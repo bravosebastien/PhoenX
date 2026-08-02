@@ -50,7 +50,8 @@ object DatabaseModule {
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_34_35,
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_35_36,
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_36_37,
-            com.example.phoenx.data.local.RoomMigrations.MIGRATION_37_38
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_37_38,
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_38_39
         ).build()
     }
 
@@ -62,5 +63,10 @@ object DatabaseModule {
     @Provides
     fun provideStandaloneMediaDao(db: PhoenXDatabase): com.example.phoenx.data.local.StandaloneMediaDao {
         return db.standaloneMediaDao()
+    }
+
+    @Provides
+    fun providePersonMediaDao(db: PhoenXDatabase): com.example.phoenx.data.local.PersonMediaDao {
+        return db.personMediaDao()
     }
 }

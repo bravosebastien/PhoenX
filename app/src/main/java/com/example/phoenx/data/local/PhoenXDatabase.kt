@@ -16,9 +16,11 @@ import androidx.room.RoomDatabase
     NotificationContactEntity::class,
     PersonEntity::class,
     CreatorProfileEntity::class,
-    StandaloneMediaEntity::class
-], version = 38, exportSchema = false)
+    StandaloneMediaEntity::class,
+    PersonMediaEntity::class
+], version = 39, exportSchema = false)
 abstract class PhoenXDatabase : RoomDatabase() {
     abstract fun offlineEntryDao(): OfflineEntryDao
     abstract fun standaloneMediaDao(): StandaloneMediaDao
+    abstract fun personMediaDao(): PersonMediaDao
 }

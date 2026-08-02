@@ -403,4 +403,33 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE standalone_media ADD COLUMN visibility TEXT NOT NULL DEFAULT 'RESTRICTED'")
         }
     }
+
+    /**
+     * MIGRATION_38_39 — Arbre Généalogique v9.4.22
+     * 1. Extension PersonEntity (parentIds, isDeceased, biography)
+     * 2. Création de la table person_media pour les galeries dédiées.
+     */
+    val MIGRATION_38_39 = object : Migration(38, 39) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Extension PersonEntity
+            db.execSQL("ALTER TABLE persons ADD COLUMN parentIds TEXT NOT NULL DEFAULT ''")
+            db.execSQL("ALTER TABLE persons ADD COLUMN isDeceased INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE persons ADD COLUMN biography TEXT NOT NULL DEFAULT ''")
+
+            // Création de la table person_media
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `person_media` (
+                    `id` TEXT NOT NULL, 
+                    `personId` TEXT NOT NULL, 
+                    `mediaPath` TEXT NOT NULL, 
+                    `mediaType` TEXT NOT NULL, 
+                    `capturedAt` INTEGER NOT NULL, 
+                    `syncStatus` TEXT NOT NULL, 
+                    PRIMARY KEY(`id`), 
+                    FOREIGN KEY(`personId`) REFERENCES `persons`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+                )
+            """.trimIndent())
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_person_media_personId` ON `person_media` (`personId`)")
+        }
+    }
 }
