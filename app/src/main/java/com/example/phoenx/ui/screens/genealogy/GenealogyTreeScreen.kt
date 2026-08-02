@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -49,10 +50,12 @@ fun GenealogyTreeScreen(
     val accent = theme.accentColor
     val rootPersons by viewModel.rootPersons.collectAsState()
     val allPersons by viewModel.allPersons.collectAsState()
+    val treeLayout by viewModel.treeLayout.collectAsState()
 
     var selectedPersonForDetails by remember { mutableStateOf<PersonEntity?>(null) }
     var selectedPersonForAddingChild by remember { mutableStateOf<PersonEntity?>(null) }
     var showPersonSelector by remember { mutableStateOf(false) }
+    var isTreeView by remember { mutableStateOf(true) }
 
     Scaffold(
         topBar = {
@@ -63,59 +66,72 @@ fun GenealogyTreeScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
+                actions = {
+                    IconButton(onClick = { isTreeView = !isTreeView }) {
+                        Icon(if (isTreeView) Icons.AutoMirrored.Filled.List else Icons.Default.AccountTree, null, tint = accent)
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         },
         containerColor = Color.Transparent,
         modifier = Modifier.background(LocalBackgroundBrush.current)
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 32.dp)
-        ) {
-            if (rootPersons.isEmpty()) {
-                item {
-                    Box(modifier = Modifier.fillMaxWidth().padding(top = 100.dp), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.AccountTree, null, modifier = Modifier.size(64.dp), tint = theme.contentColor.copy(alpha = 0.2f))
-                            Spacer(Modifier.height(16.dp))
-                            Text("Ton arbre est encore vide.", color = theme.contentColor.copy(alpha = 0.4f))
-                            Button(
-                                onClick = { showPersonSelector = true; selectedPersonForAddingChild = null },
-                                modifier = Modifier.padding(top = 24.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = accent)
-                            ) {
-                                Text("Ajouter la première personne", color = theme.backgroundColor)
-                            }
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            if (allPersons.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.AccountTree, null, modifier = Modifier.size(64.dp), tint = theme.contentColor.copy(alpha = 0.2f))
+                        Spacer(Modifier.height(16.dp))
+                        Text("Ton arbre est encore vide.", color = theme.contentColor.copy(alpha = 0.4f))
+                        Button(
+                            onClick = { showPersonSelector = true; selectedPersonForAddingChild = null },
+                            modifier = Modifier.padding(top = 24.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = accent)
+                        ) {
+                            Text("Ajouter la première personne", color = theme.backgroundColor)
                         }
                     }
                 }
+            } else if (isTreeView) {
+                GenealogyTreeRenderer(
+                    layout = treeLayout,
+                    onPersonClick = { resolved ->
+                        selectedPersonForDetails = allPersons.find { it.id == resolved.id }
+                    },
+                    onAddChild = { resolved ->
+                        selectedPersonForAddingChild = allPersons.find { it.id == resolved.id }
+                        showPersonSelector = true
+                    }
+                )
             } else {
-                items(rootPersons) { person ->
-                    PersonTreeNode(
-                        person = person,
-                        level = 0,
-                        viewModel = viewModel,
-                        onAddChild = { 
-                            selectedPersonForAddingChild = it
-                            showPersonSelector = true 
-                        },
-                        onShowDetails = { selectedPersonForDetails = it }
-                    )
-                }
-                
-                item {
-                    TextButton(
-                        onClick = { showPersonSelector = true; selectedPersonForAddingChild = null },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.Add, null, tint = accent)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Ajouter une autre racine", color = accent)
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(bottom = 32.dp)
+                ) {
+                    items(rootPersons) { person ->
+                        PersonTreeNode(
+                            person = person,
+                            level = 0,
+                            viewModel = viewModel,
+                            onAddChild = { 
+                                selectedPersonForAddingChild = it
+                                showPersonSelector = true 
+                            },
+                            onShowDetails = { selectedPersonForDetails = it }
+                        )
+                    }
+                    
+                    item {
+                        TextButton(
+                            onClick = { showPersonSelector = true; selectedPersonForAddingChild = null },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(Icons.Default.Add, null, tint = accent)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Ajouter une autre racine", color = accent)
+                        }
                     }
                 }
             }

@@ -6,6 +6,8 @@ import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.PersonMediaDao
 import com.example.phoenx.data.local.PersonMediaEntity
+import com.example.phoenx.domain.genealogy.TreeAlgorithm
+import com.example.phoenx.domain.model.TreeLayout
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -19,6 +21,14 @@ class GenealogyTreeViewModel @Inject constructor(
 
     val allPersons: StateFlow<List<PersonEntity>> = offlineEntryDao.getAllPersons()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * Calcul du layout pour le rendu visuel (v9.4.22)
+     */
+    val treeLayout: StateFlow<TreeLayout> = allPersons.map { persons ->
+        val resolved = persons.map { it.toResolvedPerson(it.imagePath) }
+        TreeAlgorithm.calculateLayout(resolved)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TreeLayout(emptyList(), emptyList()))
 
     /**
      * Reconstruit la hiérarchie en mémoire (v9.4.22)
