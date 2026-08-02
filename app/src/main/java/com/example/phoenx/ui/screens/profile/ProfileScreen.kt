@@ -393,31 +393,6 @@ fun ProfileScreen(
                     }
                 }
 
-                // --- ARBRE GÉNÉALOGIQUE ---
-                Spacer(modifier = Modifier.height(16.dp))
-                Card(
-                    onClick = onNavigateToGenealogy,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = theme.contentColor.copy(alpha = 0.05f)
-                    ),
-                    shape = MaterialTheme.shapes.large,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.AccountTree, null, tint = accent)
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text("Ma Généalogie", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor)
-                            Text("Visualise ton cercle de confiance", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
-                        }
-                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.4f))
-                    }
-                }
-
                 Spacer(modifier = Modifier.height(48.dp))
 
                 // --- ZONE DE DANGER ---

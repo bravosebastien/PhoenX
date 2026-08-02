@@ -236,32 +236,19 @@ fun HomeScreen(
                 }
 
                 if (currentPerspective == MainViewModel.Perspective.MY_MEMORY) {
-                    // --- GALERIE DES GRANDES CARTES (Livre, Arbre, etc.) v9.4.22 ---
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        BookCoverCard(
-                            title = uiState.bookTitle ?: "Livre de Vie",
-                            chaptersCount = uiState.validatedChaptersCount,
-                            coverImageUrl = uiState.coverImageUrl,
-                            defaultCoverUrl = uiState.defaultCoverUrl,
-                            coverTitleStyle = uiState.coverTitleStyle,
-                            scale = uiState.coverScale,
-                            offsetX = uiState.coverOffsetX,
-                            offsetY = uiState.coverOffsetY,
-                            onClick = onNavigateToBookEditor,
-                            theme = theme
-                        )
-
-                        GenealogyCard(
-                            imageUrl = uiState.genealogyCardImageUrl,
-                            onClick = onNavigateToGenealogy,
-                            theme = theme
-                        )
-                    }
+                    // --- MON LIVRE (Positionné en haut v9.2.3) ---
+                    BookCoverCard(
+                        title = uiState.bookTitle ?: "Livre de Vie",
+                        chaptersCount = uiState.validatedChaptersCount,
+                        coverImageUrl = uiState.coverImageUrl,
+                        defaultCoverUrl = uiState.defaultCoverUrl,
+                        coverTitleStyle = uiState.coverTitleStyle,
+                        scale = uiState.coverScale,
+                        offsetX = uiState.coverOffsetX,
+                        offsetY = uiState.coverOffsetY,
+                        onClick = onNavigateToBookEditor,
+                        theme = theme
+                    )
 
                     // --- VUE CRÉATEUR ---
                     
@@ -387,13 +374,23 @@ fun HomeScreen(
                         theme = theme
                     )
 
-                    // --- AJOUT v9.2.6 : GALERIE DE VIDÉOS DE PRÉSENTATION (TOUJOURS VISIBLE v9.2.7) ---
+                    // --- MASQUÉ v9.4.22 : GALERIE DE VIDÉOS DE PRÉSENTATION ---
+                    /*
                     PresentationVideoGallery(
                         videos = uiState.presentationVideos,
                         theme = theme,
                         onVideoClick = { video ->
                             selectedPresentationVideo = video
                         }
+                    )
+                    */
+
+                    // --- NOUVEL EMPLACEMENT v9.4.22 : MON ARBRE GÉNÉALOGIQUE ---
+                    GenealogyCard(
+                        imageUrl = uiState.genealogyCardImageUrl,
+                        onClick = onNavigateToGenealogy,
+                        theme = theme,
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     // ACTIONS RAPIDES

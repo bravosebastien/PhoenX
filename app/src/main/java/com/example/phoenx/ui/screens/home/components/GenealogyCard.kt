@@ -31,14 +31,14 @@ import com.example.phoenx.ui.theme.AppThemeState
 fun GenealogyCard(
     imageUrl: String?,
     onClick: () -> Unit,
-    theme: AppThemeState
+    theme: AppThemeState,
+    modifier: Modifier = Modifier
 ) {
     val accent = theme.accentColor
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .padding(horizontal = 12.dp, vertical = 8.dp)
-            .width(160.dp) // Légèrement plus petit que le livre pour tenir à côté si besoin
     ) {
         Text(
             "MA GÉNÉALOGIE",
