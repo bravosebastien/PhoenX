@@ -53,7 +53,9 @@ fun GenealogyTreeScreen(
     val allPersons by viewModel.allPersons.collectAsState()
     val treeLayout by viewModel.treeLayout.collectAsState()
     
-    val isReadOnly = targetCreatorId != null && targetCreatorId != com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+    val myUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+    var isPreviewMode by remember { mutableStateOf(false) }
+    val isReadOnly = (targetCreatorId != null && targetCreatorId != myUid) || isPreviewMode
 
     var selectedPersonForDetails by remember { mutableStateOf<PersonEntity?>(null) }
     var selectedPersonForAddingChild by remember { mutableStateOf<PersonEntity?>(null) }
@@ -77,6 +79,15 @@ fun GenealogyTreeScreen(
                     }
                 },
                 actions = {
+                    if (targetCreatorId == null || targetCreatorId == myUid) {
+                        IconButton(onClick = { isPreviewMode = !isPreviewMode }) {
+                            Icon(
+                                if (isPreviewMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
+                                contentDescription = "Aperçu Destinataire",
+                                tint = if (isPreviewMode) accent else theme.contentColor.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
                     IconButton(onClick = { isTreeView = !isTreeView }) {
                         Icon(if (isTreeView) Icons.AutoMirrored.Filled.List else Icons.Default.AccountTree, null, tint = accent)
                     }
@@ -112,7 +123,8 @@ fun GenealogyTreeScreen(
                     onAddChild = { resolved ->
                         selectedPersonForAddingChild = allPersons.find { it.id == resolved.id }
                         showPersonSelector = true
-                    }
+                    },
+                    enabled = !isReadOnly
                 )
             } else {
                 LazyColumn(
@@ -129,18 +141,21 @@ fun GenealogyTreeScreen(
                                 selectedPersonForAddingChild = it
                                 showPersonSelector = true 
                             },
-                            onShowDetails = { selectedPersonForDetails = it }
+                            onShowDetails = { selectedPersonForDetails = it },
+                            enabled = !isReadOnly
                         )
                     }
                     
-                    item {
-                        TextButton(
-                            onClick = { showPersonSelector = true; selectedPersonForAddingChild = null },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(Icons.Default.Add, null, tint = accent)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Ajouter une autre racine", color = accent)
+                    if (!isReadOnly) {
+                        item {
+                            TextButton(
+                                onClick = { showPersonSelector = true; selectedPersonForAddingChild = null },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Default.Add, null, tint = accent)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Ajouter une autre racine", color = accent)
+                            }
                         }
                     }
                 }
@@ -204,7 +219,8 @@ fun PersonTreeNode(
     level: Int,
     viewModel: GenealogyTreeViewModel,
     onAddChild: (PersonEntity) -> Unit,
-    onShowDetails: (PersonEntity) -> Unit
+    onShowDetails: (PersonEntity) -> Unit,
+    enabled: Boolean = true
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -239,8 +255,10 @@ fun PersonTreeNode(
                         Text("Décédé(e)", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.3f))
                     }
                 }
-                IconButton(onClick = { onAddChild(person) }) {
-                    Icon(Icons.Default.Add, null, tint = accent, modifier = Modifier.size(20.dp))
+                if (enabled) {
+                    IconButton(onClick = { onAddChild(person) }) {
+                        Icon(Icons.Default.Add, null, tint = accent, modifier = Modifier.size(20.dp))
+                    }
                 }
             }
         }
@@ -253,7 +271,8 @@ fun PersonTreeNode(
                     level = level + 1,
                     viewModel = viewModel,
                     onAddChild = onAddChild,
-                    onShowDetails = onShowDetails
+                    onShowDetails = onShowDetails,
+                    enabled = enabled
                 )
                 Spacer(Modifier.height(8.dp))
             }

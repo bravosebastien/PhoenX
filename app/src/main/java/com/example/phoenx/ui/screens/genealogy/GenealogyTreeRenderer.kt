@@ -39,7 +39,8 @@ fun GenealogyTreeRenderer(
     layout: TreeLayout,
     onPersonClick: (ResolvedPerson) -> Unit,
     onAddChild: (ResolvedPerson) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -98,7 +99,8 @@ fun GenealogyTreeRenderer(
                         person = node.person,
                         onClick = { onPersonClick(node.person) },
                         onAddChild = { onAddChild(node.person) },
-                        accent = accent
+                        accent = accent,
+                        enabled = enabled
                     )
                 }
             }
@@ -111,7 +113,8 @@ fun PersonNodeCard(
     person: ResolvedPerson,
     onClick: () -> Unit,
     onAddChild: () -> Unit,
-    accent: Color
+    accent: Color,
+    enabled: Boolean = true
 ) {
     val theme = LocalAppTheme.current
     
@@ -169,14 +172,16 @@ fun PersonNodeCard(
         }
 
         // Bouton "+" pour ajouter un enfant
-        IconButton(
-            onClick = onAddChild,
-            modifier = Modifier
-                .padding(top = 4.dp)
-                .size(24.dp)
-                .background(accent.copy(alpha = 0.1f), CircleShape)
-        ) {
-            Icon(Icons.Default.Add, null, tint = accent, modifier = Modifier.size(16.dp))
+        if (enabled) {
+            IconButton(
+                onClick = onAddChild,
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .size(24.dp)
+                    .background(accent.copy(alpha = 0.1f), CircleShape)
+            ) {
+                Icon(Icons.Default.Add, null, tint = accent, modifier = Modifier.size(16.dp))
+            }
         }
     }
 }
