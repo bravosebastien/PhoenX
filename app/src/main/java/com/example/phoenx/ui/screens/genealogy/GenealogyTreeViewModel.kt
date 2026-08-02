@@ -6,27 +6,115 @@ import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.PersonMediaDao
 import com.example.phoenx.data.local.PersonMediaEntity
+import com.example.phoenx.data.sync.toPersonEntity
 import com.example.phoenx.domain.genealogy.TreeAlgorithm
 import com.example.phoenx.domain.model.TreeLayout
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class GenealogyTreeViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
-    private val personMediaDao: PersonMediaDao
+    private val personMediaDao: PersonMediaDao,
+    private val auth: com.google.firebase.auth.FirebaseAuth,
+    private val db: com.google.firebase.firestore.FirebaseFirestore,
+    private val functions: com.google.firebase.functions.FirebaseFunctions,
+    private val mediaManager: com.example.phoenx.data.media.MediaManager
 ) : ViewModel() {
 
-    val allPersons: StateFlow<List<PersonEntity>> = offlineEntryDao.getAllPersons()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _targetCreatorId = MutableStateFlow<String?>(null)
+
+    // Cache des URLs résolues (Id du média/personne -> URL signée ou locale)
+    private val _resolvedUrls = MutableStateFlow<Map<String, String>>(emptyMap())
+    val resolvedUrls: StateFlow<Map<String, String>> = _resolvedUrls.asStateFlow()
+
+    val allPersons: StateFlow<List<PersonEntity>> = _targetCreatorId.flatMapLatest { targetId ->
+        if (targetId == null || targetId == auth.currentUser?.uid) {
+            offlineEntryDao.getAllPersons()
+        } else {
+            // Lecture Firestore directe pour les Destinataires (v9.4.22)
+            callbackFlow {
+                val listener = db.collection("users").document(targetId)
+                    .collection("persons")
+                    .addSnapshotListener { snapshot, _ ->
+                        val list = snapshot?.documents?.map { doc ->
+                            doc.toPersonEntity().copy(
+                                parentIds = doc.getString("parentIds") ?: "",
+                                isDeceased = doc.getBoolean("isDeceased") ?: false,
+                                biography = doc.getString("biography") ?: ""
+                            )
+                        } ?: emptyList<PersonEntity>()
+                        trySend(list)
+                        
+                        // Déclenche la résolution des avatars
+                        resolveAvatars(targetId, list)
+                    }
+                awaitClose { listener.remove() }
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private fun resolveAvatars(creatorId: String, persons: List<PersonEntity>) {
+        persons.forEach { person ->
+            if (!person.imagePath.isNullOrBlank()) {
+                resolveSingleUrl(creatorId, "persons", person.id, person.imagePath)
+            }
+        }
+    }
+
+    private fun resolveSingleUrl(creatorId: String, docType: String, docId: String, path: String, personId: String? = null) {
+        if (_resolvedUrls.value.containsKey(docId)) return
+        
+        viewModelScope.launch {
+            try {
+                if (creatorId == auth.currentUser?.uid) {
+                    // Mode Créateur : Résolution locale sécurisée
+                    val url = mediaManager.getSafeUrl(path)
+                    if (url != null) _resolvedUrls.update { it + (docId to url) }
+                } else {
+                    // Mode Destinataire : Appel Cloud Function v9.4.22
+                    val params = mutableMapOf(
+                        "creatorId" to creatorId,
+                        "docType" to docType,
+                        "docId" to docId
+                    )
+                    if (personId != null) params["personId"] = personId
+                    
+                    val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
+                    val data = result.data as? Map<*, *>
+                    val url = data?.get("url") as? String
+                    if (url != null) _resolvedUrls.update { it + (docId to url) }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("GenealogyVM", "Erreur résolution URL $docId", e)
+            }
+        }
+    }
+
+    fun loadTree(creatorId: String?) {
+        _targetCreatorId.value = creatorId
+        // Si mode Créateur, on pré-résout les avatars locaux
+        if (creatorId == null || creatorId == auth.currentUser?.uid) {
+            viewModelScope.launch {
+                allPersons.first().forEach { person ->
+                    if (!person.imagePath.isNullOrBlank()) {
+                        resolveSingleUrl(auth.currentUser?.uid ?: "", "persons", person.id, person.imagePath)
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Calcul du layout pour le rendu visuel (v9.4.22)
      */
-    val treeLayout: StateFlow<TreeLayout> = allPersons.map { persons ->
-        val resolved = persons.map { it.toResolvedPerson(it.imagePath) }
+    val treeLayout: StateFlow<TreeLayout> = combine(allPersons, _resolvedUrls) { persons, urls ->
+        val resolved = persons.map { it.toResolvedPerson(urls[it.id]) }
         TreeAlgorithm.calculateLayout(resolved)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TreeLayout(emptyList(), emptyList()))
 
@@ -104,5 +192,10 @@ class GenealogyTreeViewModel @Inject constructor(
         viewModelScope.launch {
             personMediaDao.deleteMedia(media)
         }
+    }
+
+    fun resolveMediaUrl(personId: String, media: PersonMediaEntity) {
+        val creatorId = _targetCreatorId.value ?: auth.currentUser?.uid ?: return
+        resolveSingleUrl(creatorId, "personMedia", media.id, media.mediaPath, personId)
     }
 }

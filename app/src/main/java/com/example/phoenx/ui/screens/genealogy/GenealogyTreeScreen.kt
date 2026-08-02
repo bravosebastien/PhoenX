@@ -44,6 +44,7 @@ import java.util.*
 @Composable
 fun GenealogyTreeScreen(
     navController: NavController,
+    targetCreatorId: String? = null,
     viewModel: GenealogyTreeViewModel = hiltViewModel()
 ) {
     val theme = LocalAppTheme.current
@@ -51,16 +52,25 @@ fun GenealogyTreeScreen(
     val rootPersons by viewModel.rootPersons.collectAsState()
     val allPersons by viewModel.allPersons.collectAsState()
     val treeLayout by viewModel.treeLayout.collectAsState()
+    
+    val isReadOnly = targetCreatorId != null && targetCreatorId != com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
 
     var selectedPersonForDetails by remember { mutableStateOf<PersonEntity?>(null) }
     var selectedPersonForAddingChild by remember { mutableStateOf<PersonEntity?>(null) }
     var showPersonSelector by remember { mutableStateOf(false) }
     var isTreeView by remember { mutableStateOf(true) }
 
+    LaunchedEffect(targetCreatorId) {
+        viewModel.loadTree(targetCreatorId)
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mon Arbre Généalogique", style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { 
+                    val title = if (isReadOnly) "L'Arbre de votre proche" else "Mon Arbre Généalogique"
+                    Text(title, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor) 
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -182,7 +192,8 @@ fun GenealogyTreeScreen(
             person = selectedPersonForDetails!!,
             viewModel = viewModel,
             onDismiss = { selectedPersonForDetails = null },
-            accent = accent
+            accent = accent,
+            isReadOnly = isReadOnly
         )
     }
 }
@@ -256,11 +267,20 @@ fun PersonDetailsDialog(
     person: PersonEntity,
     viewModel: GenealogyTreeViewModel,
     onDismiss: () -> Unit,
-    accent: Color
+    accent: Color,
+    isReadOnly: Boolean = false
 ) {
     val theme = LocalAppTheme.current
     val context = LocalContext.current
     val mediaList by viewModel.getMediaForPerson(person.id).collectAsState(initial = emptyList())
+    val resolvedUrls by viewModel.resolvedUrls.collectAsState()
+    
+    // Déclenche la résolution des médias de la galerie (v9.4.22)
+    LaunchedEffect(mediaList) {
+        mediaList.forEach { media ->
+            viewModel.resolveMediaUrl(person.id, media)
+        }
+    }
     
     var biography by remember(person) { mutableStateOf(person.biography) }
     var isDeceased by remember(person) { mutableStateOf(person.isDeceased) }
@@ -290,16 +310,20 @@ fun PersonDetailsDialog(
                     Spacer(Modifier.width(16.dp))
                     Column {
                         Text(person.firstName, style = MaterialTheme.typography.headlineSmall, color = theme.contentColor)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Checkbox(
-                                checked = isDeceased,
-                                onCheckedChange = { 
-                                    isDeceased = it
-                                    viewModel.toggleDeceased(person.id)
-                                },
-                                colors = CheckboxDefaults.colors(checkedColor = accent)
-                            )
-                            Text("Décédé(e)", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                        if (!isReadOnly) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(
+                                    checked = isDeceased,
+                                    onCheckedChange = { 
+                                        isDeceased = it
+                                        viewModel.toggleDeceased(person.id)
+                                    },
+                                    colors = CheckboxDefaults.colors(checkedColor = accent)
+                                )
+                                Text("Décédé(e)", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                            }
+                        } else if (person.isDeceased) {
+                            Text("Décédé(e)", style = MaterialTheme.typography.labelSmall, color = accent, modifier = Modifier.padding(top = 4.dp))
                         }
                     }
                 }
@@ -307,43 +331,62 @@ fun PersonDetailsDialog(
                 Spacer(Modifier.height(24.dp))
                 
                 Text("BIOGRAPHIE", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
-                OutlinedTextField(
-                    value = biography,
-                    onValueChange = { biography = it },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                    placeholder = { Text("Quelques mots sur sa vie...", fontStyle = FontStyle.Italic) },
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
-                )
-                Button(
-                    onClick = { viewModel.updateBiography(person.id, biography) },
-                    modifier = Modifier.align(Alignment.End).padding(top = 8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = accent.copy(alpha = 0.1f), contentColor = accent)
-                ) { Text("Enregistrer bio") }
+                if (!isReadOnly) {
+                    OutlinedTextField(
+                        value = biography,
+                        onValueChange = { biography = it },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
+                        placeholder = { Text("Quelques mots sur sa vie...", fontStyle = FontStyle.Italic) },
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                    )
+                    Button(
+                        onClick = { viewModel.updateBiography(person.id, biography) },
+                        modifier = Modifier.align(Alignment.End).padding(top = 8.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = accent.copy(alpha = 0.1f), contentColor = accent)
+                    ) { Text("Enregistrer bio") }
+                } else {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
+                    ) {
+                        Text(
+                            text = biography.ifBlank { "Aucune biographie renseignée." },
+                            style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 24.sp),
+                            color = theme.contentColor.copy(alpha = 0.8f),
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
+                }
 
                 Spacer(Modifier.height(32.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("GALERIE MÉDIA", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
-                    IconButton(onClick = { photoPicker.launch("image/*") }) {
-                        Icon(Icons.Default.AddPhotoAlternate, null, tint = accent)
+                    if (!isReadOnly) {
+                        IconButton(onClick = { photoPicker.launch("image/*") }) {
+                            Icon(Icons.Default.AddPhotoAlternate, null, tint = accent)
+                        }
                     }
                 }
                 
                 // Privacy Warning
-                Surface(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                    color = accent.copy(alpha = 0.05f),
-                    shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, accent.copy(alpha = 0.2f))
-                ) {
-                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(12.dp))
-                        Text(
-                            "Ce média sera visible par TOUS vos Destinataires une fois l'héritage activé, sans restriction possible.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = theme.contentColor.copy(alpha = 0.7f)
-                        )
+                if (!isReadOnly) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                        color = accent.copy(alpha = 0.05f),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                    ) {
+                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                "Ce média sera visible par TOUS vos Destinataires une fois l'héritage activé, sans restriction possible.",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = theme.contentColor.copy(alpha = 0.7f)
+                            )
+                        }
                     }
                 }
 
@@ -353,7 +396,11 @@ fun PersonDetailsDialog(
                     mediaList.chunked(3).forEach { row ->
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             row.forEach { media ->
-                                MediaThumbnail(media = media, onRemove = { viewModel.removeMedia(media) })
+                                MediaThumbnail(
+                                    media = media.copy(mediaPath = resolvedUrls[media.id] ?: media.mediaPath),
+                                    onRemove = { viewModel.removeMedia(media) },
+                                    isReadOnly = isReadOnly
+                                )
                             }
                         }
                         Spacer(Modifier.height(8.dp))
@@ -373,7 +420,7 @@ fun PersonDetailsDialog(
 }
 
 @Composable
-fun MediaThumbnail(media: PersonMediaEntity, onRemove: () -> Unit) {
+fun MediaThumbnail(media: PersonMediaEntity, onRemove: () -> Unit, isReadOnly: Boolean = false) {
     Box(modifier = Modifier.size(90.dp).clip(RoundedCornerShape(8.dp))) {
         AsyncImage(
             model = media.mediaPath,
@@ -381,11 +428,13 @@ fun MediaThumbnail(media: PersonMediaEntity, onRemove: () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
-        IconButton(
-            onClick = onRemove,
-            modifier = Modifier.align(Alignment.TopEnd).size(24.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape)
-        ) {
-            Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(14.dp))
+        if (!isReadOnly) {
+            IconButton(
+                onClick = onRemove,
+                modifier = Modifier.align(Alignment.TopEnd).size(24.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape)
+            ) {
+                Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(14.dp))
+            }
         }
     }
 }
