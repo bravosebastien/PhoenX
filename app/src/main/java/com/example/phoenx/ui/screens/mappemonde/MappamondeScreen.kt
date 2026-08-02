@@ -127,11 +127,23 @@ fun MappamondeScreen(
         viewModel.setMode(mode)
     }
 
+    // --- DEBUG MAPS (v9.4.22) ---
+    var mapLoadedState by remember { mutableStateOf("Initialisation...") }
+    val currentPackage = context.packageName
+    val apiKeySnapshot = remember {
+        try {
+            val appInfo = context.packageManager.getApplicationInfo(currentPackage, android.content.pm.PackageManager.GET_META_DATA)
+            val key = appInfo.metaData.getString("com.google.android.geo.API_KEY")
+            if (key.isNullOrBlank()) "Clé manquante dans Manifest !" else "Clé : ${key.take(8)}..."
+        } catch (e: Exception) { "Erreur lecture Manifest: ${e.message}" }
+    }
+
     Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
         // ── La Carte Google Maps ──────────────────
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
+            onMapLoaded = { mapLoadedState = "Carte chargée avec succès !" },
             properties = MapProperties(
                 // RESTAURATION : Vue claire (NORMAL standard Google Maps)
                 mapType = if (isGlobeView) MapType.HYBRID else MapType.NORMAL,
@@ -369,6 +381,21 @@ fun MappamondeScreen(
                 },
                 onDismiss = { showAddLocationDialog = false }
             )
+        }
+
+        // --- OVERLAY DEBUG MAPS (v9.4.22) ---
+        Surface(
+            modifier = Modifier.align(Alignment.BottomStart).padding(16.dp).padding(bottom = 80.dp),
+            color = Color.Black.copy(alpha = 0.7f),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text("DEBUG MAPS", color = Color.Yellow, fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                Text("Package : $currentPackage", color = Color.White, fontSize = 11.sp)
+                Text("Etat : $mapLoadedState", color = if (mapLoadedState.contains("succès")) Success else Color.White, fontSize = 11.sp)
+                Text(apiKeySnapshot, color = Color.White, fontSize = 11.sp)
+                Text("GPS : ${com.google.android.gms.common.GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(context)}", color = Color.White, fontSize = 11.sp)
+            }
         }
     }
 }

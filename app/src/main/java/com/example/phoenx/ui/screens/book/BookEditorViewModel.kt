@@ -29,7 +29,6 @@ class BookEditorViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _bookDraft = MutableStateFlow<BookDraft?>(null)
-    val bookDraft: StateFlow<BookDraft?> = _bookDraft
 
     private val _decryptedContents = MutableStateFlow<Map<String, String>>(emptyMap())
     val decryptedContents: StateFlow<Map<String, String>> = _decryptedContents
@@ -73,6 +72,17 @@ class BookEditorViewModel @Inject constructor(
     val recipients: StateFlow<List<com.example.phoenx.data.local.RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // v9.4.22 : Version réactive mappée pour l'UI (UIDs -> DocIDs)
+    val bookDraft: StateFlow<BookDraft?> = _bookDraft.combine(recipients) { draft, allRecipients ->
+        if (draft == null || allRecipients.isEmpty()) draft
+        else {
+            val mappedIds = draft.recipientIds.map { persistentId ->
+                allRecipients.find { it.linkedUid == persistentId }?.id ?: persistentId
+            }.distinct()
+            draft.copy(recipientIds = mappedIds)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
     val selectedRecipientIds: StateFlow<List<String>> = bookDraft
         .map { it?.recipientIds ?: emptyList() }
         .distinctUntilChanged()
@@ -115,16 +125,6 @@ class BookEditorViewModel @Inject constructor(
                 if (draft.globalIntroduction.isNotEmpty()) {
                     val bookKey = bookService.getBookKey(userId)
                     _decryptedGlobalIntro.value = bookService.decryptChapter(draft.globalIntroduction, bookKey)
-                }
-
-                // Remappage des IDs pour l'UI en asynchrone dès que les destinataires sont là
-                recipients.collect { allRecipients ->
-                    if (allRecipients.isNotEmpty()) {
-                        val mappedIds = draft.recipientIds.map { persistentId ->
-                            allRecipients.find { it.linkedUid == persistentId }?.id ?: persistentId
-                        }
-                        _bookDraft.value = draft.copy(recipientIds = mappedIds)
-                    }
                 }
             } else {
                 _bookDraft.value = null
@@ -291,7 +291,7 @@ class BookEditorViewModel @Inject constructor(
         // v9.2 : On stocke les VRAIS UIDs pour la sécurité Firestore/Functions
         val persistentIds = selectedDocIds.map { docId ->
             allRecipients.find { it.id == docId }?.linkedUid ?: docId
-        }
+        }.distinct()
 
         val updated = current.copy(recipientIds = persistentIds)
         _bookDraft.value = updated
