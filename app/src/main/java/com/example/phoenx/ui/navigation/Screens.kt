@@ -167,6 +167,10 @@ sealed class Screen(val route: String) {
     object AccessibilitySettings : Screen("settings/accessibility")
     object NotificationContacts : Screen("notification_contacts")
     object QuizCreate : Screen("quiz_create")
+    object Genealogy : Screen("genealogy?creatorId={creatorId}") {
+        fun createRoute(creatorId: String? = null) = 
+            if (creatorId != null) "genealogy?creatorId=$creatorId" else "genealogy"
+    }
     object BecomeCreatorPrompt : Screen("become_creator_prompt/{role}/{creatorName}") {
         fun createRoute(role: String, creatorName: String) = "become_creator_prompt/$role/$creatorName"
     }

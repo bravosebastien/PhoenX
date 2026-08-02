@@ -43,6 +43,7 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToRichProfile: () -> Unit,
+    onNavigateToGenealogy: () -> Unit,
     onLogoutSuccess: () -> Unit,
     mainViewModel: MainViewModel,
     viewModel: ProfileViewModel = hiltViewModel(),
@@ -395,7 +396,7 @@ fun ProfileScreen(
                 // --- ARBRE GÉNÉALOGIQUE ---
                 Spacer(modifier = Modifier.height(16.dp))
                 Card(
-                    onClick = { /* TODO: Navigation vers Arbre */ },
+                    onClick = onNavigateToGenealogy,
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
                         containerColor = theme.contentColor.copy(alpha = 0.05f)

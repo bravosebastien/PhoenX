@@ -25,6 +25,7 @@ import com.example.phoenx.ui.screens.detective.DetectiveHomeScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
 import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.fil.MemoryDetailScreen
+import com.example.phoenx.ui.screens.genealogy.GenealogyTreeScreen
 import com.example.phoenx.ui.screens.home.HomeScreen
 import com.example.phoenx.ui.screens.legacy.UniqueKeyScreen
 import com.example.phoenx.ui.screens.library.LibraryCoverPickerScreen
@@ -450,6 +451,7 @@ fun NavGraphBuilder.creatorGraph(
         ProfileScreen(
             onNavigateBack = { navController.popBackStack() },
             onNavigateToRichProfile = { navController.navigate(Screen.CreatorRichProfile.route) },
+            onNavigateToGenealogy = { navController.navigate(Screen.Genealogy.route) },
             mainViewModel = mainViewModel,
             onLogoutSuccess = {
                 navController.navigate(Screen.Splash.route) {
@@ -554,4 +556,15 @@ fun NavGraphBuilder.creatorGraph(
     composable("le_pacte") { PactScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToDetail = { id -> navController.navigate("pact/$id") }) }
     composable("lettres") { com.example.phoenx.ui.screens.mailbox.MailboxScreen(onNavigateBack = { navController.popBackStack() }) }
     composable("mappemonde") { MappamondeScreen(navController = navController, mode = MapMode.CREATOR) }
+
+    composable(
+        route = Screen.Genealogy.route,
+        arguments = listOf(navArgument("creatorId") { nullable = true; type = NavType.StringType })
+    ) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        GenealogyTreeScreen(
+            navController = navController,
+            targetCreatorId = creatorId
+        )
+    }
 }

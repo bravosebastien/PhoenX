@@ -12,6 +12,7 @@ import com.example.phoenx.ui.screens.book.BookReaderFlowScreen
 import com.example.phoenx.ui.screens.depositary.*
 import com.example.phoenx.ui.screens.detective.DetectivePlayerScreen
 import com.example.phoenx.ui.screens.fil.MemoryDetailScreen
+import com.example.phoenx.ui.screens.genealogy.GenealogyTreeScreen
 import com.example.phoenx.ui.screens.library.RecipientLibraryScreen
 import com.example.phoenx.ui.screens.mappemonde.MapMode
 import com.example.phoenx.ui.screens.mappemonde.MappamondeScreen
@@ -138,7 +139,7 @@ fun NavGraphBuilder.recipientGraph(
             creatorId = creatorId,
             onNavigateBack = { navController.popBackStack() },
             onNavigateToCapture = { navController.navigate("capture/AUDIO") },
-            onNavigateToDetail = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }
+            onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) }
         )
     }
 
@@ -151,7 +152,7 @@ fun NavGraphBuilder.recipientGraph(
             creatorId = creatorId,
             onNavigateBack = { navController.popBackStack() },
             onNavigateToCapture = { navController.navigate("capture/VIDEO") },
-            onNavigateToDetail = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }
+            onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) }
         )
     }
 
@@ -164,7 +165,7 @@ fun NavGraphBuilder.recipientGraph(
             creatorId = creatorId,
             onNavigateBack = { navController.popBackStack() },
             onNavigateToCapture = { navController.navigate("capture/PHOTO") },
-            onNavigateToDetail = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) }
+            onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) }
         )
     }
 
@@ -501,6 +502,17 @@ fun NavGraphBuilder.recipientGraph(
             creatorId = backStackEntry.arguments?.getString("creatorId") ?: "",
             quizId = backStackEntry.arguments?.getString("quizId") ?: "",
             navController = navController
+        )
+    }
+
+    composable(
+        route = Screen.Genealogy.route,
+        arguments = listOf(navArgument("creatorId") { nullable = true; type = NavType.StringType })
+    ) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        GenealogyTreeScreen(
+            navController = navController,
+            targetCreatorId = creatorId
         )
     }
 }
