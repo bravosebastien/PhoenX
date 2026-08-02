@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -54,6 +55,7 @@ import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.PhoenXAvatar
 import com.example.phoenx.ui.screens.home.components.AnimatedEarthCard
 import com.example.phoenx.ui.screens.home.components.BookCoverCard
+import com.example.phoenx.ui.screens.home.components.GenealogyCard
 import com.example.phoenx.ui.screens.home.components.HomeHeader
 import com.example.phoenx.ui.screens.home.components.HomeNavigationBar
 import com.example.phoenx.ui.screens.home.components.LastMemoryCard
@@ -89,6 +91,7 @@ fun HomeScreen(
     onNavigateToMap: () -> Unit,
     onNavigateToLibrary: () -> Unit,
     onNavigateToBookEditor: () -> Unit,
+    onNavigateToGenealogy: () -> Unit,
     onNavigateToDetective: () -> Unit,
     onNavigateToNotificationContacts: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
@@ -233,19 +236,32 @@ fun HomeScreen(
                 }
 
                 if (currentPerspective == MainViewModel.Perspective.MY_MEMORY) {
-                    // --- AJOUT v9.2 : CARTE MON LIVRE (Positionnée en haut v9.2.3) ---
-                    BookCoverCard(
-                        title = uiState.bookTitle ?: "Livre de Vie",
-                        chaptersCount = uiState.validatedChaptersCount,
-                        coverImageUrl = uiState.coverImageUrl,
-                        defaultCoverUrl = uiState.defaultCoverUrl,
-                        coverTitleStyle = uiState.coverTitleStyle,
-                        scale = uiState.coverScale,
-                        offsetX = uiState.coverOffsetX,
-                        offsetY = uiState.coverOffsetY,
-                        onClick = onNavigateToBookEditor,
-                        theme = theme
-                    )
+                    // --- GALERIE DES GRANDES CARTES (Livre, Arbre, etc.) v9.4.22 ---
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        BookCoverCard(
+                            title = uiState.bookTitle ?: "Livre de Vie",
+                            chaptersCount = uiState.validatedChaptersCount,
+                            coverImageUrl = uiState.coverImageUrl,
+                            defaultCoverUrl = uiState.defaultCoverUrl,
+                            coverTitleStyle = uiState.coverTitleStyle,
+                            scale = uiState.coverScale,
+                            offsetX = uiState.coverOffsetX,
+                            offsetY = uiState.coverOffsetY,
+                            onClick = onNavigateToBookEditor,
+                            theme = theme
+                        )
+
+                        GenealogyCard(
+                            imageUrl = uiState.genealogyCardImageUrl,
+                            onClick = onNavigateToGenealogy,
+                            theme = theme
+                        )
+                    }
 
                     // --- VUE CRÉATEUR ---
                     

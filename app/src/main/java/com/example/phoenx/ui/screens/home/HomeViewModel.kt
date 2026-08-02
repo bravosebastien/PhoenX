@@ -50,6 +50,21 @@ class HomeViewModel @Inject constructor(
         loadExtraStats()
         fetchRemoteConfig()
         loadPresentationVideos()
+        loadHomeCardsConfig() // v9.4.22
+    }
+
+    private fun loadHomeCardsConfig() {
+        viewModelScope.launch {
+            try {
+                db.collection("appConfig").document("homeCards")
+                    .addSnapshotListener { snapshot, _ ->
+                        val url = snapshot?.getString("genealogyCardImageUrl")
+                        _uiState.update { it.copy(genealogyCardImageUrl = url) }
+                    }
+            } catch (e: Exception) {
+                android.util.Log.e("HomeViewModel", "Erreur chargement config homeCards", e)
+            }
+        }
     }
 
     private fun loadPresentationVideos() {
@@ -283,6 +298,7 @@ data class HomeUiState(
     val coverScale: Float = 1f,
     val coverOffsetX: Float = 0f,
     val coverOffsetY: Float = 0f,
+    val genealogyCardImageUrl: String? = null, // v9.4.22
     val presentationVideos: List<PresentationVideo> = emptyList(), // v9.2.6
     val latestEntries: List<OfflineEntry> = emptyList()
 )
