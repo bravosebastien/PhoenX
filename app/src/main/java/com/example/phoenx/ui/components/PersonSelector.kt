@@ -54,7 +54,8 @@ fun PersonSelector(
     onRemove: (String) -> Unit,
     onManageCharacters: () -> Unit = {},
     accent: Color,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    simpleMode: Boolean = false // v9.4.22 : Masque "Gérer" et "Moi"
 ) {
     val theme = LocalAppTheme.current
     var query by remember { mutableStateOf("") }
@@ -73,7 +74,7 @@ fun PersonSelector(
                 color = theme.contentColor.copy(alpha = 0.4f)
             )
             
-            if (enabled) {
+            if (enabled && !simpleMode) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TextButton(
                         onClick = onManageCharacters,
@@ -161,7 +162,10 @@ fun PersonSelector(
                     focusedBorderColor = accent,
                     unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
                     focusedTextColor = theme.contentColor,
-                    unfocusedTextColor = theme.contentColor
+                    unfocusedTextColor = theme.contentColor,
+                    focusedLabelColor = accent,
+                    unfocusedLabelColor = theme.contentColor.copy(alpha = 0.6f),
+                    cursorColor = accent
                 )
             )
         }

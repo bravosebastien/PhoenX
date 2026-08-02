@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
@@ -59,7 +60,7 @@ fun GenealogyTreeScreen(
 
     var selectedPersonForDetails by remember { mutableStateOf<PersonEntity?>(null) }
     var selectedPersonForAddingChild by remember { mutableStateOf<PersonEntity?>(null) }
-    var showPersonSelector by remember { mutableStateOf(false) }
+    var showCreateDialog by remember { mutableStateOf(false) }
     var isTreeView by remember { mutableStateOf(true) }
 
     LaunchedEffect(targetCreatorId) {
@@ -106,7 +107,7 @@ fun GenealogyTreeScreen(
                         Spacer(Modifier.height(16.dp))
                         Text("Ton arbre est encore vide.", color = theme.contentColor.copy(alpha = 0.4f))
                         Button(
-                            onClick = { showPersonSelector = true; selectedPersonForAddingChild = null },
+                            onClick = { showCreateDialog = true; selectedPersonForAddingChild = null },
                             modifier = Modifier.padding(top = 24.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = accent)
                         ) {
@@ -122,7 +123,7 @@ fun GenealogyTreeScreen(
                     },
                     onAddChild = { resolved ->
                         selectedPersonForAddingChild = allPersons.find { it.id == resolved.id }
-                        showPersonSelector = true
+                        showCreateDialog = true
                     },
                     enabled = !isReadOnly
                 )
@@ -139,7 +140,7 @@ fun GenealogyTreeScreen(
                             viewModel = viewModel,
                             onAddChild = { 
                                 selectedPersonForAddingChild = it
-                                showPersonSelector = true 
+                                showCreateDialog = true 
                             },
                             onShowDetails = { selectedPersonForDetails = it },
                             enabled = !isReadOnly
@@ -149,7 +150,7 @@ fun GenealogyTreeScreen(
                     if (!isReadOnly) {
                         item {
                             TextButton(
-                                onClick = { showPersonSelector = true; selectedPersonForAddingChild = null },
+                                onClick = { showCreateDialog = true; selectedPersonForAddingChild = null },
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 Icon(Icons.Default.Add, null, tint = accent)
@@ -163,52 +164,37 @@ fun GenealogyTreeScreen(
         }
     }
 
-    if (showPersonSelector) {
-        val suggestedPersons = allPersons.filter { 
-            val isAlreadyRoot = rootPersons.any { root -> root.id == it.id }
-            !isAlreadyRoot && it.id != selectedPersonForAddingChild?.id
-        }
-
-        ModalBottomSheet(onDismissRequest = { showPersonSelector = false; selectedPersonForAddingChild = null }) {
-            Column(modifier = Modifier.padding(16.dp).padding(bottom = 32.dp)) {
-                Text(
-                    text = if (selectedPersonForAddingChild != null) "Ajouter un enfant de ${selectedPersonForAddingChild!!.firstName}" else "Ajouter une personne à l'arbre",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = theme.contentColor
-                )
-                Spacer(Modifier.height(16.dp))
-                
-                PersonSelector(
-                    selectedPersons = emptyList(),
-                    suggestedPersons = suggestedPersons,
-                    onSearch = { /* Implementation handled by ViewModel if needed, but here simple filter is enough */ },
-                    onSelect = { person ->
-                        if (selectedPersonForAddingChild != null) {
-                            viewModel.linkParent(selectedPersonForAddingChild!!.id, person.id)
-                        }
-                        showPersonSelector = false
-                        selectedPersonForAddingChild = null
-                    },
-                    onCreate = { f, l, r, dt, dv, uri, ct ->
-                        // TODO: Create person and link parent if needed
-                        // This would need a separate function in VM to create and link
-                        showPersonSelector = false
-                        selectedPersonForAddingChild = null
-                    },
-                    onRemove = {},
-                    accent = accent
-                )
-            }
-        }
-    }
-
     if (selectedPersonForDetails != null) {
         PersonDetailsDialog(
             person = selectedPersonForDetails!!,
             viewModel = viewModel,
             onDismiss = { selectedPersonForDetails = null },
             accent = accent,
-            isReadOnly = isReadOnly
+            isReadOnly = isReadOnly,
+            onEditLinks = { showCreateDialog = true }
+        )
+    }
+
+    if (showCreateDialog) {
+        CreateOrEditPersonInTreeDialog(
+            initialPerson = if (selectedPersonForAddingChild == null) selectedPersonForDetails else null,
+            initialParents = selectedPersonForAddingChild?.let { listOf(it) } ?: emptyList(),
+            allPersons = allPersons,
+            onConfirm = { firstName, lastName, parentIds ->
+                if (selectedPersonForAddingChild == null && selectedPersonForDetails != null) {
+                    viewModel.updatePersonIdentity(selectedPersonForDetails!!.id, firstName, lastName, parentIds)
+                } else {
+                    viewModel.createAndLinkPerson(firstName, lastName, parentIds)
+                }
+                showCreateDialog = false
+                selectedPersonForAddingChild = null
+                selectedPersonForDetails = null 
+            },
+            onDismiss = { 
+                showCreateDialog = false
+                selectedPersonForAddingChild = null
+            },
+            accent = accent
         )
     }
 }
@@ -287,14 +273,14 @@ fun PersonDetailsDialog(
     viewModel: GenealogyTreeViewModel,
     onDismiss: () -> Unit,
     accent: Color,
-    isReadOnly: Boolean = false
+    isReadOnly: Boolean = false,
+    onEditLinks: () -> Unit = {}
 ) {
     val theme = LocalAppTheme.current
     val context = LocalContext.current
     val mediaList by viewModel.getMediaForPerson(person.id).collectAsState(initial = emptyList())
     val resolvedUrls by viewModel.resolvedUrls.collectAsState()
     
-    // Déclenche la résolution des médias de la galerie (v9.4.22)
     LaunchedEffect(mediaList) {
         mediaList.forEach { media ->
             viewModel.resolveMediaUrl(person.id, media)
@@ -306,7 +292,6 @@ fun PersonDetailsDialog(
 
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
-            // Save to internal storage then add to DB
             val fileName = "person_media_${UUID.randomUUID()}.jpg"
             val file = File(context.filesDir, fileName)
             context.contentResolver.openInputStream(uri)?.use { input ->
@@ -340,6 +325,14 @@ fun PersonDetailsDialog(
                                     colors = CheckboxDefaults.colors(checkedColor = accent)
                                 )
                                 Text("Décédé(e)", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                                
+                                Spacer(Modifier.width(16.dp))
+                                
+                                TextButton(onClick = onEditLinks) {
+                                    Icon(Icons.Default.Link, null, modifier = Modifier.size(14.dp))
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("Modifier identité / liens", style = MaterialTheme.typography.labelSmall)
+                                }
                             }
                         } else if (person.isDeceased) {
                             Text("Décédé(e)", style = MaterialTheme.typography.labelSmall, color = accent, modifier = Modifier.padding(top = 4.dp))
@@ -389,7 +382,6 @@ fun PersonDetailsDialog(
                     }
                 }
                 
-                // Privacy Warning
                 if (!isReadOnly) {
                     Surface(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
@@ -453,6 +445,152 @@ fun MediaThumbnail(media: PersonMediaEntity, onRemove: () -> Unit, isReadOnly: B
                 modifier = Modifier.align(Alignment.TopEnd).size(24.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape)
             ) {
                 Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(14.dp))
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun CreateOrEditPersonInTreeDialog(
+    initialPerson: PersonEntity? = null,
+    initialParents: List<PersonEntity> = emptyList(),
+    allPersons: List<PersonEntity>,
+    onConfirm: (firstName: String, lastName: String?, parentIds: List<String>) -> Unit,
+    onDismiss: () -> Unit,
+    accent: Color
+) {
+    val theme = LocalAppTheme.current
+    var firstName by remember { mutableStateOf(initialPerson?.firstName ?: "") }
+    var lastName by remember { mutableStateOf(initialPerson?.lastName ?: "") }
+    
+    val selectedParentIds = remember { mutableStateListOf<String>().apply { 
+        if (initialPerson != null) {
+            addAll(initialPerson.parentIds.trim(',').split(",").filter { it.isNotBlank() })
+        } else {
+            addAll(initialParents.map { it.id })
+        }
+    } }
+
+    var query by remember { mutableStateOf("") }
+    val suggestedParents = if (query.isBlank()) emptyList() else allPersons.filter { 
+        it.firstName.contains(query, ignoreCase = true) && 
+        it.id != initialPerson?.id && 
+        !selectedParentIds.contains(it.id)
+    }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = theme.backgroundColor,
+            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+            modifier = Modifier.fillMaxWidth().padding(16.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = if (initialPerson == null) "Nouvelle Personne" else "Modifier les liens",
+                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                    color = theme.contentColor
+                )
+                Spacer(Modifier.height(24.dp))
+
+                OutlinedTextField(
+                    value = firstName,
+                    onValueChange = { firstName = it },
+                    label = { Text("Prénom") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                )
+                
+                Spacer(Modifier.height(12.dp))
+                
+                OutlinedTextField(
+                    value = lastName,
+                    onValueChange = { lastName = it },
+                    label = { Text("Nom (optionnel)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                )
+
+                Spacer(Modifier.height(32.dp))
+
+                Text(
+                    "PARENT(S) DE CETTE PERSONNE",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = theme.contentColor.copy(alpha = 0.4f),
+                    modifier = Modifier.align(Alignment.Start)
+                )
+                Spacer(Modifier.height(12.dp))
+
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    selectedParentIds.forEach { pid ->
+                        val p = allPersons.find { it.id == pid }
+                        if (p != null) {
+                            InputChip(
+                                selected = true,
+                                onClick = { selectedParentIds.remove(pid) },
+                                label = { Text(p.firstName) },
+                                trailingIcon = { Icon(Icons.Default.Close, null, modifier = Modifier.size(14.dp)) },
+                                colors = InputChipDefaults.inputChipColors(selectedContainerColor = accent.copy(alpha = 0.2f))
+                            )
+                        }
+                    }
+                }
+
+                if (selectedParentIds.size < 2) {
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        placeholder = { Text("Rechercher un parent...", fontSize = 14.sp) },
+                        modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = { Icon(Icons.Default.Search, null, tint = accent) },
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                    )
+
+                    if (suggestedParents.isNotEmpty()) {
+                        Surface(
+                            modifier = Modifier.padding(top = 4.dp).fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            color = theme.contentColor.copy(alpha = 0.05f),
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+                        ) {
+                            Column {
+                                suggestedParents.forEach { p ->
+                                    ListItem(
+                                        headlineContent = { Text(p.firstName, fontWeight = FontWeight.Bold, color = theme.contentColor) },
+                                        supportingContent = { Text(p.relationship ?: "Proche", color = theme.contentColor.copy(alpha = 0.6f)) },
+                                        modifier = Modifier.clickable {
+                                            selectedParentIds.add(p.id)
+                                            query = ""
+                                        },
+                                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(40.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f)) }
+                    Button(
+                        onClick = { onConfirm(firstName, lastName.ifBlank { null }, selectedParentIds.toList()) },
+                        colors = ButtonDefaults.buttonColors(containerColor = accent),
+                        enabled = firstName.isNotBlank()
+                    ) { 
+                        Text(if (initialPerson == null) "Créer" else "Enregistrer", color = theme.backgroundColor, fontWeight = FontWeight.Bold) 
+                    }
+                }
             }
         }
     }

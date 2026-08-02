@@ -39,6 +39,7 @@ fun GenealogyCard(
     Column(
         modifier = modifier
             .padding(horizontal = 12.dp, vertical = 8.dp)
+            .fillMaxWidth() // Parent column fills width
     ) {
         Text(
             "MA GÉNÉALOGIE",
@@ -50,16 +51,18 @@ fun GenealogyCard(
         Card(
             onClick = onClick,
             modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(0.72f)
+                .align(Alignment.CenterHorizontally)
+                .width(180.dp) // Identique au livre
+                .aspectRatio(0.72f) // Identique au livre
                 .shadow(
-                    elevation = 8.dp,
+                    elevation = 14.dp, // Aligné sur le livre
                     shape = RoundedCornerShape(14.dp),
-                    spotColor = accent.copy(alpha = 0.3f)
+                    spotColor = accent.copy(alpha = 0.5f),
+                    ambientColor = accent.copy(alpha = 0.3f)
                 ),
             shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White), // Fond BLANC par défaut
-            border = BorderStroke(0.8.dp, accent.copy(alpha = 0.3f))
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            border = BorderStroke(0.8.dp, accent.copy(alpha = 0.6f)) // Aligné sur le livre
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 if (!imageUrl.isNullOrBlank()) {

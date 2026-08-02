@@ -170,6 +170,33 @@ class GenealogyTreeViewModel @Inject constructor(
         }
     }
 
+    fun createAndLinkPerson(firstName: String, lastName: String?, parentIds: List<String>) {
+        viewModelScope.launch {
+            val parentCsv = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ","
+            val newPerson = PersonEntity(
+                firstName = firstName,
+                lastName = lastName,
+                parentIds = parentCsv,
+                syncStatus = "pending"
+            )
+            offlineEntryDao.insertPerson(newPerson)
+        }
+    }
+
+    fun updatePersonIdentity(personId: String, firstName: String, lastName: String?, parentIds: List<String>) {
+        viewModelScope.launch {
+            val person = allPersons.value.find { it.id == personId } ?: return@launch
+            val parentCsv = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ","
+            val updated = person.copy(
+                firstName = firstName,
+                lastName = lastName,
+                parentIds = parentCsv,
+                syncStatus = "pending"
+            )
+            offlineEntryDao.insertPerson(updated)
+        }
+    }
+
     // --- GESTION MÉDIAS ---
 
     fun getMediaForPerson(personId: String): Flow<List<PersonMediaEntity>> {
