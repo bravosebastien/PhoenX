@@ -6,6 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.local.PersonMediaDao
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.sync.toOfflineEntry
 import com.example.phoenx.data.sync.toPersonEntity
@@ -26,6 +27,7 @@ class InitialSyncWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val offlineEntryDao: OfflineEntryDao,
+    private val personMediaDao: PersonMediaDao, // v9.4.22
     private val mediaManager: MediaManager,
     private val encryptionManager: EncryptionManager,
     private val db: FirebaseFirestore
@@ -93,6 +95,21 @@ class InitialSyncWorker @AssistedInject constructor(
 
             recipientsSnapshot.documents.forEach { doc ->
                 offlineEntryDao.insertRecipient(doc.toRecipientEntity())
+            }
+
+            // ═══ 4. RÉCUPÉRATION DES MÉDIAS DE L'ARBRE (v9.4.22) ═══
+            // On itère sur les personnes déjà téléchargées à l'étape 2
+            val persons = offlineEntryDao.getAllPersons().first()
+            persons.forEach { person ->
+                val mediaSnapshot = db.collection("users").document(userId)
+                    .collection("persons").document(person.id)
+                    .collection("media")
+                    .get()
+                    .await()
+                
+                mediaSnapshot.documents.forEach { doc ->
+                    personMediaDao.insertMedia(doc.toPersonMediaEntity())
+                }
             }
 
             Result.success()

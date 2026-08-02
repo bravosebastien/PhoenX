@@ -6,6 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.local.PersonMediaDao
 import com.example.phoenx.data.local.StandaloneMediaDao
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.sync.toFirestoreMap
@@ -22,7 +23,8 @@ class SyncWorker @AssistedInject constructor(
     @Assisted appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val offlineEntryDao: OfflineEntryDao,
-    private val standaloneMediaDao: StandaloneMediaDao, // v9.3.2
+    private val standaloneMediaDao: StandaloneMediaDao,
+    private val personMediaDao: PersonMediaDao, // v9.4.22
     private val mediaManager: MediaManager,
     private val encryptionManager: EncryptionManager
 ) : CoroutineWorker(appContext, workerParams) {
@@ -35,11 +37,12 @@ class SyncWorker @AssistedInject constructor(
         // Récupération des entrées en attente
         val pendingEntries = offlineEntryDao.getPendingEntries().first()
         val pendingPersons = offlineEntryDao.getAllPersons().first().filter { it.syncStatus == "pending" }
-        val pendingStandalone = standaloneMediaDao.getPendingSync() // v9.3.2
+        val pendingStandalone = standaloneMediaDao.getPendingSync()
+        val pendingPersonMedia = personMediaDao.getPendingSync() // v9.4.22
         
-        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées, ${pendingPersons.size} personnes et ${pendingStandalone.size} standalone en attente")
+        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées, ${pendingPersons.size} personnes, ${pendingStandalone.size} standalone et ${pendingPersonMedia.size} personMedia en attente")
 
-        if (pendingEntries.isEmpty() && pendingPersons.isEmpty() && pendingStandalone.isEmpty()) return Result.success()
+        if (pendingEntries.isEmpty() && pendingPersons.isEmpty() && pendingStandalone.isEmpty() && pendingPersonMedia.isEmpty()) return Result.success()
 
         val db = FirebaseFirestore.getInstance()
         var hasError = false
@@ -125,6 +128,36 @@ class SyncWorker @AssistedInject constructor(
                     standaloneMediaDao.updateSyncStatus(media.id, "synced")
                 } catch (e: Exception) {
                     android.util.Log.e("SyncWorker", "Erreur upload standalone ${media.id}: ${e.message}")
+                    hasError = true
+                }
+            }
+
+            // 4. Synchronisation Person Media (Arbre Généalogique v9.4.22)
+            pendingPersonMedia.forEach { media ->
+                try {
+                    var currentPath = media.mediaPath
+                    
+                    // Upload vers Storage si c'est un chemin local
+                    if (!currentPath.startsWith("http") && !currentPath.startsWith("users/")) {
+                        val localFile = File(currentPath)
+                        if (localFile.exists()) {
+                            // On réutilise uploadCameo pour la simplicité (dossier persons)
+                            currentPath = mediaManager.uploadCameo(userId, "person_media_${media.id}", localFile)
+                            // Mise à jour locale pour éviter de re-uploader
+                            personMediaDao.insertMedia(media.copy(mediaPath = currentPath))
+                        }
+                    }
+
+                    val firestoreMap = media.toFirestoreMap()
+                    db.collection("users").document(userId)
+                        .collection("persons").document(media.personId)
+                        .collection("media").document(media.id)
+                        .set(firestoreMap)
+                        .await()
+                    
+                    personMediaDao.updateSyncStatus(media.id, "synced")
+                } catch (e: Exception) {
+                    android.util.Log.e("SyncWorker", "Erreur upload personMedia ${media.id}: ${e.message}")
                     hasError = true
                 }
             }
