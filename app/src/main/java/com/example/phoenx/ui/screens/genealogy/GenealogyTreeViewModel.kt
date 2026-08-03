@@ -14,6 +14,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.io.File
 import javax.inject.Inject
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -199,6 +200,61 @@ class GenealogyTreeViewModel @Inject constructor(
                 syncStatus = "pending"
             )
             offlineEntryDao.insertPerson(updated)
+        }
+    }
+
+    fun deletePerson(personId: String) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                // 1. Suppression Firestore (v9.4.22)
+                db.collection("users").document(userId)
+                    .collection("persons").document(personId)
+                    .delete()
+                    .await()
+
+                // 2. Nettoyage des liens de parenté orphelins chez les enfants
+                val children = allPersons.value.filter { it.parentIds.contains(",$personId,") }
+                children.forEach { child ->
+                    val newParentIds = child.parentIds.replace(",$personId,", ",")
+                    val cleanedChild = child.copy(
+                        parentIds = if (newParentIds == ",") "" else newParentIds,
+                        syncStatus = "pending"
+                    )
+                    offlineEntryDao.insertPerson(cleanedChild)
+                }
+
+                // 3. Suppression des médias associés (Local + Room)
+                val mediaList = personMediaDao.getMediaForPerson(personId).first()
+                mediaList.forEach { media ->
+                    try {
+                        val file = File(media.mediaPath)
+                        if (file.exists()) file.delete()
+                    } catch (e: Exception) {}
+                    personMediaDao.deleteMedia(media)
+                    
+                    // Suppression média Firestore
+                    db.collection("users").document(userId)
+                        .collection("persons").document(personId)
+                        .collection("media").document(media.id)
+                        .delete()
+                }
+
+                // 4. Suppression de la personne (Room)
+                val person = allPersons.value.find { it.id == personId }
+                if (person != null) {
+                    offlineEntryDao.deletePerson(person)
+                    // Suppression du portrait Cameo local
+                    if (!person.imagePath.isNullOrBlank()) {
+                        try {
+                            File(person.imagePath).delete()
+                        } catch (e: Exception) {}
+                    }
+                }
+
+            } catch (e: Exception) {
+                android.util.Log.e("GenealogyVM", "Erreur lors de la suppression de la personne $personId", e)
+            }
         }
     }
 

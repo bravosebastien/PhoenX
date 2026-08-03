@@ -35,6 +35,7 @@ import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.PersonMediaEntity
 import com.example.phoenx.ui.components.CameoPortrait
 import com.example.phoenx.ui.components.PersonSelector
+import com.example.phoenx.ui.theme.Error
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.LocalBackgroundBrush
 import java.io.File
@@ -289,6 +290,7 @@ fun PersonDetailsDialog(
     
     var biography by remember(person) { mutableStateOf(person.biography) }
     var isDeceased by remember(person) { mutableStateOf(person.isDeceased) }
+    var showDeleteConfirm by remember { mutableStateOf(false) } // v9.4.22
 
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
@@ -420,6 +422,18 @@ fun PersonDetailsDialog(
 
                 Spacer(Modifier.height(32.dp))
                 
+                if (!isReadOnly) {
+                    TextButton(
+                        onClick = { showDeleteConfirm = true },
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                    ) {
+                        Icon(Icons.Default.DeleteForever, null, modifier = Modifier.size(16.dp), tint = Error)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Supprimer du répertoire et de l'arbre", color = Error, style = MaterialTheme.typography.labelSmall)
+                    }
+                    Spacer(Modifier.height(16.dp))
+                }
+                
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth(),
@@ -427,6 +441,25 @@ fun PersonDetailsDialog(
                 ) { Text("Fermer") }
             }
         }
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("Supprimer cette personne ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Cette action est irréversible. Elle sera retirée de votre répertoire, de l'arbre généalogique et tous ses médias seront effacés.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.deletePerson(person.id)
+                    showDeleteConfirm = false
+                    onDismiss()
+                }) { Text("Supprimer définitivement", color = Error, fontWeight = FontWeight.Bold) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("Annuler", color = theme.contentColor) }
+            }
+        )
     }
 }
 
