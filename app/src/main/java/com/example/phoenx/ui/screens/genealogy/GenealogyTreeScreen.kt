@@ -35,6 +35,7 @@ import coil3.compose.AsyncImage
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.PersonMediaEntity
 import com.example.phoenx.ui.components.CameoPortrait
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.PersonSelector
 import com.example.phoenx.ui.theme.Error
 import com.example.phoenx.ui.theme.LocalAppTheme
@@ -86,6 +87,10 @@ fun GenealogyTreeScreen(
                     }
                 },
                 actions = {
+                    InfoButton(
+                        title = "Confidentialité de l'Arbre",
+                        points = listOf("Cet arbre sera visible dans son intégralité par tous vos Destinataires une fois votre héritage activé, sans restriction personne par personne — contrairement au reste de l'application.")
+                    )
                     if (targetCreatorId == null || targetCreatorId == myUid) {
                         IconButton(onClick = { isPreviewMode = !isPreviewMode }) {
                             Icon(
@@ -167,12 +172,23 @@ fun GenealogyTreeScreen(
             containerColor = theme.backgroundColor
         ) {
             Column(modifier = Modifier.padding(24.dp).padding(bottom = 32.dp)) {
-                Text(
-                    "Nouvelle relation pour ${selectedPersonForAddingRelation!!.firstName}",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = theme.contentColor,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "Nouvelle relation pour ${selectedPersonForAddingRelation!!.firstName}",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = theme.contentColor,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    InfoButton(
+                        title = "Types de liens",
+                        points = listOf(
+                            "Parent : Cette personne apparaîtra au-dessus, reliée par un lien de filiation directe.",
+                            "Enfant : Cette personne apparaîtra en dessous.",
+                            "Co-parent : Pour lier une personne qui partage un enfant déjà existant avec celle-ci."
+                        )
+                    )
+                }
                 Spacer(Modifier.height(24.dp))
                 
                 RelationOption(
@@ -609,7 +625,13 @@ fun PersonDetailsDialog(
                     Spacer(Modifier.height(32.dp))
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Text("GALERIE MÉDIA", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("GALERIE MÉDIA", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                            InfoButton(
+                                title = "Photo de profil vs Galerie",
+                                points = listOf("La photo de profil est celle affichée dans l'arbre. La galerie peut contenir d'autres photos et vidéos, visibles uniquement en ouvrant le détail de cette personne.")
+                            )
+                        }
                         if (!isReadOnly) {
                             IconButton(onClick = { photoPicker.launch("image/*") }) {
                                 Icon(Icons.Default.AddPhotoAlternate, null, tint = accent)
@@ -702,7 +724,15 @@ fun PersonDetailsDialog(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             containerColor = theme.backgroundColor,
-            title = { Text("Supprimer cette personne ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            title = { 
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Supprimer cette personne ?", color = theme.contentColor, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    InfoButton(
+                        title = "Continuité des liens",
+                        points = listOf("Si cette personne a des parents renseignés, ses enfants seront automatiquement rattachés à eux plutôt que de perdre tout lien. Vous pourrez préciser vous-même la nature de ce nouveau lien juste après.")
+                    )
+                }
+            },
             text = {
                 Column {
                     Text("Cette action est irréversible. Elle sera retirée de votre répertoire, de l'arbre généalogique et tous ses médias seront effacés.", color = theme.contentColor.copy(alpha = 0.7f))

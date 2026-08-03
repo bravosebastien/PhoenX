@@ -123,6 +123,17 @@ fun PersonNodeCard(
     enabled: Boolean = true
 ) {
     val theme = LocalAppTheme.current
+    var showReparentInfo by remember { mutableStateOf(false) }
+
+    if (showReparentInfo) {
+        AlertDialog(
+            onDismissRequest = { showReparentInfo = false },
+            confirmButton = { TextButton(onClick = { showReparentInfo = false }) { Text("Compris", color = accent) } },
+            title = { Text("Lien automatique", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Cette personne a été automatiquement repositionnée après la suppression d'un intermédiaire dans la lignée.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            containerColor = theme.backgroundColor
+        )
+    }
     
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -167,6 +178,7 @@ fun PersonNodeCard(
                         .offset(y = (-6).dp) // Décalage vers le haut pour longer le contour
                         .background(accent, RoundedCornerShape(10.dp)) // Plus arrondi pour l'effet arc
                         .border(1.dp, theme.backgroundColor, RoundedCornerShape(10.dp))
+                        .clickable { showReparentInfo = true }
                         .padding(horizontal = 6.dp, vertical = 2.dp),
                     contentAlignment = Alignment.Center
                 ) {
