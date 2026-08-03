@@ -34,14 +34,19 @@ class GenealogyTreeViewModel @Inject constructor(
     val resolvedUrls: StateFlow<Map<String, String>> = _resolvedUrls.asStateFlow()
 
     val allPersons: StateFlow<List<PersonEntity>> = _targetCreatorId.flatMapLatest { targetId ->
+        android.util.Log.d("GenealogySecurityDebug", "allPersons query: targetId='$targetId', currentUser.uid='${auth.currentUser?.uid}'")
         if (targetId == null || targetId == auth.currentUser?.uid) {
             offlineEntryDao.getAllPersons()
         } else {
             // Lecture Firestore directe pour les Destinataires (v9.4.22)
             callbackFlow {
+                android.util.Log.d("GenealogySecurityDebug", "Initiating Firestore listen for users/$targetId/persons")
                 val listener = db.collection("users").document(targetId)
                     .collection("persons")
-                    .addSnapshotListener { snapshot, _ ->
+                    .addSnapshotListener { snapshot, error ->
+                        if (error != null) {
+                            android.util.Log.e("GenealogySecurityDebug", "Firestore listen error: ${error.message}")
+                        }
                         val list = snapshot?.documents?.map { doc ->
                             doc.toPersonEntity().copy(
                                 parentIds = doc.getString("parentIds") ?: "",

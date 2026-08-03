@@ -144,7 +144,7 @@ fun NavGraphBuilder.creatorGraph(
             onNavigateToMap = { navController.navigate(Screen.Map.createRoute()) },
             onNavigateToLibrary = { navController.navigate(Screen.Library.route) },
             onNavigateToBookEditor = { navController.navigate("book_editor") },
-            onNavigateToGenealogy = { navController.navigate(Screen.Genealogy.route) },
+            onNavigateToGenealogy = { navController.navigate(Screen.Genealogy.createRoute()) },
             onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
             onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
             onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
@@ -452,7 +452,7 @@ fun NavGraphBuilder.creatorGraph(
         ProfileScreen(
             onNavigateBack = { navController.popBackStack() },
             onNavigateToRichProfile = { navController.navigate(Screen.CreatorRichProfile.route) },
-            onNavigateToGenealogy = { navController.navigate(Screen.Genealogy.route) },
+            onNavigateToGenealogy = { navController.navigate(Screen.Genealogy.createRoute()) },
             mainViewModel = mainViewModel,
             onLogoutSuccess = {
                 navController.navigate(Screen.Splash.route) {
