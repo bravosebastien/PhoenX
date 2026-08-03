@@ -1,15 +1,18 @@
 package com.example.phoenx.ui.screens.genealogy
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.PersonMediaDao
 import com.example.phoenx.data.local.PersonMediaEntity
+import com.example.phoenx.data.sync.SyncWorker
 import com.example.phoenx.data.sync.toPersonEntity
 import com.example.phoenx.domain.genealogy.TreeAlgorithm
 import com.example.phoenx.domain.model.TreeLayout
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -25,7 +28,8 @@ class GenealogyTreeViewModel @Inject constructor(
     private val auth: com.google.firebase.auth.FirebaseAuth,
     private val db: com.google.firebase.firestore.FirebaseFirestore,
     private val functions: com.google.firebase.functions.FirebaseFunctions,
-    private val mediaManager: com.example.phoenx.data.media.MediaManager
+    private val mediaManager: com.example.phoenx.data.media.MediaManager,
+    @ApplicationContext private val context: Context // v9.4.24
 ) : ViewModel() {
 
     private val _targetCreatorId = MutableStateFlow<String?>(null)
@@ -49,11 +53,7 @@ class GenealogyTreeViewModel @Inject constructor(
                             android.util.Log.e("GenealogySecurityDebug", "Firestore listen error: ${error.message}")
                         }
                         val list = snapshot?.documents?.map { doc ->
-                            doc.toPersonEntity().copy(
-                                parentIds = doc.getString("parentIds") ?: "",
-                                isDeceased = doc.getBoolean("isDeceased") ?: false,
-                                biography = doc.getString("biography") ?: ""
-                            )
+                            doc.toPersonEntity() // v9.4.24: Utilise le mapper centralisé complet
                         } ?: emptyList<PersonEntity>()
                         trySend(list)
                         
@@ -65,6 +65,25 @@ class GenealogyTreeViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    init {
+        // Observation réactive pour le fallback photo (Point 4)
+        combine(allPersons, personMediaDao.getAllMedia()) { persons, media ->
+            val creatorId = _targetCreatorId.value ?: auth.currentUser?.uid ?: return@combine
+            persons.forEach { person ->
+                if (person.imagePath.isNullOrBlank()) {
+                    // Fallback sur la galerie si pas de photo de profil
+                    val firstMedia = media.find { it.personId == person.id }
+                    if (firstMedia != null) {
+                        resolveSingleUrl(creatorId, "personMedia", person.id, firstMedia.mediaPath, person.id)
+                    }
+                } else {
+                    // Photo de profil dédiée
+                    resolveSingleUrl(creatorId, "persons", person.id, person.imagePath)
+                }
+            }
+        }.launchIn(viewModelScope)
+    }
+
     private fun resolveAvatars(creatorId: String, persons: List<PersonEntity>) {
         persons.forEach { person ->
             if (!person.imagePath.isNullOrBlank()) {
@@ -74,7 +93,10 @@ class GenealogyTreeViewModel @Inject constructor(
     }
 
     private fun resolveSingleUrl(creatorId: String, docType: String, docId: String, path: String, personId: String? = null) {
-        if (_resolvedUrls.value.containsKey(docId)) return
+        // v9.4.24: On ne bloque que si l'URL est déjà une URL distante (http/https)
+        // pour permettre la mise à jour chemin local -> URL Storage
+        val current = _resolvedUrls.value[docId]
+        if (current != null && current.startsWith("http")) return
         
         viewModelScope.launch {
             try {
@@ -120,7 +142,15 @@ class GenealogyTreeViewModel @Inject constructor(
      * Calcul du layout pour le rendu visuel (v9.4.22)
      */
     val treeLayout: StateFlow<TreeLayout> = combine(allPersons, _resolvedUrls) { persons, urls ->
-        val resolved = persons.map { it.toResolvedPerson(urls[it.id]) }
+        // On récupère le premier média de galerie pour ceux qui n'ont pas de photo de profil
+        val resolved = persons.map { person ->
+            var finalPhotoUrl = urls[person.id]
+            
+            // Si pas d'avatar, on pourrait chercher dans urls par média ID mais on ne sait pas lesquels sont liés.
+            // Pour l'instant, on assure déjà que l'avatar s'affiche avec file://
+            
+            person.toResolvedPerson(finalPhotoUrl) 
+        }
         TreeAlgorithm.calculateLayout(resolved)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TreeLayout(emptyList(), emptyList()))
 
@@ -156,6 +186,7 @@ class GenealogyTreeViewModel @Inject constructor(
                 val newCsv = "," + currentParents.joinToString(",") + ","
                 val updatedChild = child.copy(parentIds = newCsv, syncStatus = "pending")
                 offlineEntryDao.insertPerson(updatedChild)
+                SyncWorker.trigger(context) // v9.4.24
             }
         }
     }
@@ -165,6 +196,7 @@ class GenealogyTreeViewModel @Inject constructor(
             val person = allPersons.value.find { it.id == personId } ?: return@launch
             val updated = person.copy(biography = bio, syncStatus = "pending")
             offlineEntryDao.insertPerson(updated)
+            SyncWorker.trigger(context) // v9.4.24
         }
     }
 
@@ -173,10 +205,11 @@ class GenealogyTreeViewModel @Inject constructor(
             val person = allPersons.value.find { it.id == personId } ?: return@launch
             val updated = person.copy(isDeceased = !person.isDeceased, syncStatus = "pending")
             offlineEntryDao.insertPerson(updated)
+            SyncWorker.trigger(context) // v9.4.24
         }
     }
 
-    fun createAndLinkPerson(firstName: String, lastName: String?, parentIds: List<String>) {
+    fun createAndLinkPerson(firstName: String, lastName: String?, parentIds: List<String>, childrenIdsToLink: List<String> = emptyList()) {
         viewModelScope.launch {
             val parentCsv = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ","
             val newPerson = PersonEntity(
@@ -186,10 +219,16 @@ class GenealogyTreeViewModel @Inject constructor(
                 syncStatus = "pending"
             )
             offlineEntryDao.insertPerson(newPerson)
+            
+            // Si on créait un ascendant ou un co-parent, on lie les enfants au nouveau parent (v9.4.23)
+            childrenIdsToLink.forEach { childId ->
+                linkParent(newPerson.id, childId)
+            }
+            SyncWorker.trigger(context) // v9.4.24
         }
     }
 
-    fun updatePersonIdentity(personId: String, firstName: String, lastName: String?, parentIds: List<String>) {
+    fun updatePersonIdentity(personId: String, firstName: String, lastName: String?, parentIds: List<String>, relationLabel: String? = null) {
         viewModelScope.launch {
             val person = allPersons.value.find { it.id == personId } ?: return@launch
             val parentCsv = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ","
@@ -197,34 +236,107 @@ class GenealogyTreeViewModel @Inject constructor(
                 firstName = firstName,
                 lastName = lastName,
                 parentIds = parentCsv,
+                reparentedRelationLabel = relationLabel,
                 syncStatus = "pending"
             )
             offlineEntryDao.insertPerson(updated)
         }
     }
 
-    fun deletePerson(personId: String) {
+    /**
+     * Enregistre l'intégralité des détails modifiables d'une personne (v9.4.24)
+     */
+    fun savePersonDetails(
+        personId: String,
+        biography: String,
+        reparentedRelationLabel: String?,
+        isDeceased: Boolean,
+        imagePath: String?
+    ) {
+        viewModelScope.launch {
+            val person = allPersons.value.find { it.id == personId } ?: return@launch
+            val updated = person.copy(
+                biography = biography,
+                reparentedRelationLabel = reparentedRelationLabel,
+                isDeceased = isDeceased,
+                imagePath = imagePath,
+                syncStatus = "pending"
+            )
+            offlineEntryDao.insertPerson(updated)
+            
+            // Sync immédiate Firestore (v9.4.24: SANS imagePath local)
+            val updates = mutableMapOf<String, Any?>(
+                "biography" to biography,
+                "reparentedRelationLabel" to reparentedRelationLabel,
+                "isDeceased" to isDeceased
+            )
+            db.collection("users").document(auth.currentUser?.uid ?: "")
+                .collection("persons").document(personId)
+                .update(updates)
+            
+            SyncWorker.trigger(context) // v9.4.24
+        }
+    }
+
+    fun deletePerson(personId: String, childRelationLabels: Map<String, String> = emptyMap()) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                // 1. Suppression Firestore (v9.4.22)
+                // Snapshot actuel
+                val currentPersons = allPersons.value
+                val personToDelete = currentPersons.find { it.id == personId } ?: return@launch
+                
+                // 1. Identification des parents de P (Grands-parents des futurs orphelins)
+                val grandparentIds = personToDelete.parentIds.trim(',').split(",").filter { it.isNotBlank() }
+
+                // 2. Nettoyage et REMONTÉE des liens chez les enfants (v9.4.23)
+                val children = currentPersons.filter { it.parentIds.contains(",$personId,") }
+                
+                children.forEach { child ->
+                    val parentList = child.parentIds.trim(',').split(",").filter { it.isNotBlank() }.toMutableList()
+                    parentList.remove(personId)
+                    
+                    // Si P avait des parents, on les injecte (remontée)
+                    var hasBeenPromoted = false
+                    grandparentIds.forEach { gpid ->
+                        if (!parentList.contains(gpid) && parentList.size < 2) {
+                            parentList.add(gpid)
+                            hasBeenPromoted = true
+                        }
+                    }
+                    
+                    val newParentCsv = if (parentList.isEmpty()) "" else "," + parentList.joinToString(",") + ","
+                    val customLabel = childRelationLabels[child.id]
+                    
+                    val updatedChild = child.copy(
+                        parentIds = newParentCsv,
+                        isReparented = hasBeenPromoted,
+                        reparentedRelationLabel = customLabel ?: child.reparentedRelationLabel,
+                        syncStatus = "pending"
+                    )
+                    
+                    offlineEntryDao.insertPerson(updatedChild)
+                    
+                    // Mise à jour Firestore immédiate
+                    val updates = mutableMapOf<String, Any?>(
+                        "parentIds" to newParentCsv,
+                        "isReparented" to hasBeenPromoted,
+                        "reparentedRelationLabel" to (customLabel ?: child.reparentedRelationLabel)
+                    )
+                    db.collection("users").document(userId)
+                        .collection("persons").document(child.id)
+                        .update(updates)
+                }
+
+                // 3. Suppression Firestore du document principal
                 db.collection("users").document(userId)
                     .collection("persons").document(personId)
                     .delete()
                     .await()
 
-                // 2. Nettoyage des liens de parenté orphelins chez les enfants
-                val children = allPersons.value.filter { it.parentIds.contains(",$personId,") }
-                children.forEach { child ->
-                    val newParentIds = child.parentIds.replace(",$personId,", ",")
-                    val cleanedChild = child.copy(
-                        parentIds = if (newParentIds == ",") "" else newParentIds,
-                        syncStatus = "pending"
-                    )
-                    offlineEntryDao.insertPerson(cleanedChild)
-                }
+                SyncWorker.trigger(context) // v9.4.24
 
-                // 3. Suppression des médias associés (Local + Room)
+                // 4. Suppression des médias associés (Fichiers + Room + Firestore)
                 val mediaList = personMediaDao.getMediaForPerson(personId).first()
                 mediaList.forEach { media ->
                     try {
@@ -240,16 +352,13 @@ class GenealogyTreeViewModel @Inject constructor(
                         .delete()
                 }
 
-                // 4. Suppression de la personne (Room)
-                val person = allPersons.value.find { it.id == personId }
-                if (person != null) {
-                    offlineEntryDao.deletePerson(person)
-                    // Suppression du portrait Cameo local
-                    if (!person.imagePath.isNullOrBlank()) {
-                        try {
-                            File(person.imagePath).delete()
-                        } catch (e: Exception) {}
-                    }
+                // 5. Suppression finale de la personne (Room)
+                offlineEntryDao.deletePerson(personToDelete)
+                // Suppression du portrait Cameo local
+                if (!personToDelete.imagePath.isNullOrBlank()) {
+                    try {
+                        File(personToDelete.imagePath).delete()
+                    } catch (e: Exception) {}
                 }
 
             } catch (e: Exception) {
@@ -273,6 +382,7 @@ class GenealogyTreeViewModel @Inject constructor(
                 syncStatus = "pending"
             )
             personMediaDao.insertMedia(media)
+            SyncWorker.trigger(context) // v9.4.24
         }
     }
 

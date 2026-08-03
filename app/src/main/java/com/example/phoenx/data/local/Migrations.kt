@@ -432,4 +432,24 @@ object RoomMigrations {
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_person_media_personId` ON `person_media` (`personId`)")
         }
     }
+
+    /**
+     * MIGRATION_39_40 — Arbre Généalogique v9.4.23
+     * Ajout du champ isReparented à PersonEntity.
+     */
+    val MIGRATION_39_40 = object : Migration(39, 40) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE persons ADD COLUMN isReparented INTEGER NOT NULL DEFAULT 0")
+        }
+    }
+
+    /**
+     * MIGRATION_40_41 — Arbre Généalogique v9.4.23
+     * Ajout du champ reparentedRelationLabel à PersonEntity.
+     */
+    val MIGRATION_40_41 = object : Migration(40, 41) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE persons ADD COLUMN reparentedRelationLabel TEXT")
+        }
+    }
 }

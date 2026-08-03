@@ -30,5 +30,7 @@ data class PersonEntity(
     // ARBRE GÉNÉALOGIQUE v9.4.22
     val parentIds: String = "", // Format CSV sécurisé : ",ID1,ID2,"
     val isDeceased: Boolean = false,
-    val biography: String = ""
+    val biography: String = "",
+    val isReparented: Boolean = false, // v9.4.23 : Marqueur pour remontée automatique
+    val reparentedRelationLabel: String? = null // v9.4.23 : Libellé de lien personnalisé
 )

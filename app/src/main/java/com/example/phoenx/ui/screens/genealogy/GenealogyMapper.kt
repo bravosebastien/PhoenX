@@ -11,6 +11,8 @@ fun PersonEntity.toResolvedPerson(photoUrl: String?): ResolvedPerson {
         photoUrl = photoUrl,
         isDeceased = isDeceased,
         biography = biography,
-        parentIds = parentIds.trim(',').split(",").filter { it.isNotBlank() }
+        parentIds = parentIds.trim(',').split(",").filter { it.isNotBlank() },
+        isReparented = isReparented,
+        reparentedRelationLabel = reparentedRelationLabel
     )
 }

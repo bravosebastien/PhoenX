@@ -6,14 +6,17 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -62,8 +65,9 @@ fun GenealogyTreeRenderer(
                     val childNode = layout.nodes.find { it.person.id == childId }
                     
                     if (parentNode != null && childNode != null) {
-                        val start = Offset(parentNode.x * canvasWidth, parentNode.y * canvasHeight + 50f)
-                        val end = Offset(childNode.x * canvasWidth, childNode.y * canvasHeight - 50f)
+                        // Positionnement dynamique des ancres de connexion (v9.4.23)
+                        val start = Offset(parentNode.x * canvasWidth, parentNode.y * canvasHeight + 40.dp.toPx())
+                        val end = Offset(childNode.x * canvasWidth, childNode.y * canvasHeight - 40.dp.toPx())
                         
                         val path = Path().apply {
                             moveTo(start.x, start.y)
@@ -85,6 +89,7 @@ fun GenealogyTreeRenderer(
 
             // 2. DESSIN DES NŒUDS (COMPOSABLES)
             layout.nodes.forEach { node ->
+                // v9.4.23 : Calcul d'offset sécurisé
                 val xOffset = (node.x * treeScope.maxWidth.value).dp - (nodeWidth / 2)
                 val yOffset = (node.y * treeScope.maxHeight.value).dp - (nodeHeight / 2)
 
@@ -92,7 +97,8 @@ fun GenealogyTreeRenderer(
                     modifier = Modifier
                         .offset(x = xOffset, y = yOffset)
                         .width(nodeWidth)
-                        .height(nodeHeight),
+                        .height(nodeHeight)
+                        .zIndex(1f), // On s'assure que les nœuds sont au-dessus des liens
                     contentAlignment = Alignment.Center
                 ) {
                     PersonNodeCard(
@@ -122,30 +128,63 @@ fun PersonNodeCard(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxWidth()
     ) {
-        // Portrait
-        Box(
-            modifier = Modifier
-                .size(70.dp)
-                .clip(CircleShape)
-                .background(theme.contentColor.copy(alpha = 0.05f))
-                .border(2.dp, if (person.isDeceased) Color.Gray.copy(alpha = 0.5f) else accent, CircleShape)
-                .clickable { onClick() },
-            contentAlignment = Alignment.Center
-        ) {
-            if (person.photoUrl != null) {
-                AsyncImage(
-                    model = person.photoUrl,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Icon(
-                    Icons.Default.Person, 
-                    null, 
-                    tint = theme.contentColor.copy(alpha = 0.2f),
-                    modifier = Modifier.size(40.dp)
-                )
+        // Portrait + Badge (v9.4.23: Positionnement en arc sur le contour)
+        Box(contentAlignment = Alignment.TopCenter) {
+            Box(
+                modifier = Modifier
+                    .size(70.dp)
+                    .clip(CircleShape)
+                    .background(theme.contentColor.copy(alpha = 0.05f))
+                    .border(
+                        width = 2.dp, 
+                        color = if (person.isDeceased) Color.Gray.copy(alpha = 0.5f) else accent, 
+                        shape = CircleShape
+                    )
+                    .clickable { onClick() },
+                contentAlignment = Alignment.Center
+            ) {
+                if (person.photoUrl != null) {
+                    AsyncImage(
+                        model = person.photoUrl,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        Icons.Default.Person, 
+                        null, 
+                        tint = theme.contentColor.copy(alpha = 0.2f),
+                        modifier = Modifier.size(40.dp)
+                    )
+                }
+            }
+
+            // Signe visuel pour remontée automatique (v9.4.23)
+            if (person.isReparented) {
+                Box(
+                    modifier = Modifier
+                        .offset(y = (-6).dp) // Décalage vers le haut pour longer le contour
+                        .background(accent, RoundedCornerShape(10.dp)) // Plus arrondi pour l'effet arc
+                        .border(1.dp, theme.backgroundColor, RoundedCornerShape(10.dp))
+                        .padding(horizontal = 6.dp, vertical = 2.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (!person.reparentedRelationLabel.isNullOrBlank()) {
+                        Text(
+                            text = person.reparentedRelationLabel,
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.ExtraBold),
+                            color = theme.backgroundColor
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Link, 
+                            null, 
+                            tint = theme.backgroundColor, 
+                            modifier = Modifier.size(10.dp)
+                        )
+                    }
+                }
             }
         }
 

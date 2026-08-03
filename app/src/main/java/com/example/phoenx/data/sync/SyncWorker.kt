@@ -29,38 +29,70 @@ class SyncWorker @AssistedInject constructor(
     private val encryptionManager: EncryptionManager
 ) : CoroutineWorker(appContext, workerParams) {
 
+    companion object {
+        /**
+         * Déclenche une synchronisation immédiate (v9.4.24)
+         */
+        fun trigger(context: Context) {
+            val constraints = androidx.work.Constraints.Builder()
+                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                .build()
+            val request = androidx.work.OneTimeWorkRequestBuilder<SyncWorker>()
+                .setConstraints(constraints)
+                .build()
+            androidx.work.WorkManager.getInstance(context).enqueueUniqueWork(
+                "phoenx_immediate_sync",
+                androidx.work.ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
+    }
+
     override suspend fun doWork(): Result {
         // Récupération de l'utilisateur actuel
         val userId = FirebaseAuth.getInstance().currentUser?.uid 
             ?: return Result.failure() // Échec si déconnecté
 
-        // Récupération des entrées en attente
+        // v9.4.24: Détection des données à synchroniser OU à nettoyer (Point 3)
         val pendingEntries = offlineEntryDao.getPendingEntries().first()
-        val pendingPersons = offlineEntryDao.getAllPersons().first().filter { it.syncStatus == "pending" }
-        val pendingStandalone = standaloneMediaDao.getPendingSync()
-        val pendingPersonMedia = personMediaDao.getPendingSync() // v9.4.22
         
-        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées, ${pendingPersons.size} personnes, ${pendingStandalone.size} standalone et ${pendingPersonMedia.size} personMedia en attente")
+        val allPersons = offlineEntryDao.getAllPersons().first()
+        val personsToSync = allPersons.filter { 
+            it.syncStatus == "pending" || (!it.imagePath.isNullOrBlank() && it.imagePath!!.startsWith("/data/")) 
+        }
 
-        if (pendingEntries.isEmpty() && pendingPersons.isEmpty() && pendingStandalone.isEmpty() && pendingPersonMedia.isEmpty()) return Result.success()
+        val pendingStandalone = standaloneMediaDao.getPendingSync()
+        
+        val allPersonMedia = personMediaDao.getAllMediaSync()
+        val mediaToSync = allPersonMedia.filter {
+            it.syncStatus == "pending" || (it.mediaPath.startsWith("/data/"))
+        }
+        
+        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées, ${personsToSync.size} personnes, ${pendingStandalone.size} standalone et ${mediaToSync.size} personMedia en attente")
+
+        if (pendingEntries.isEmpty() && personsToSync.isEmpty() && pendingStandalone.isEmpty() && mediaToSync.isEmpty()) return Result.success()
 
         val db = FirebaseFirestore.getInstance()
         var hasError = false
+        val ensuredPersonIds = mutableSetOf<String>()
 
         return try {
             // 1. Synchronisation des Personnes (v8.8 + v8.9.9 Cameo Sync)
-            pendingPersons.forEach { person ->
+            personsToSync.forEach { person ->
                 try {
                     android.util.Log.d("PersonSync", "Tentative upload pour : ${person.firstName} (${person.id})")
                     var storageUrl: String? = null
                     
-                    // Upload du portrait vers Storage si présent (v8.9.9)
-                    if (!person.imagePath.isNullOrBlank()) {
-                        val file = File(person.imagePath)
+                    // v9.4.24: Upload si chemin local (ne commence pas par "users/")
+                    val path = person.imagePath
+                    if (!path.isNullOrBlank() && (path.startsWith("/data/") || !path.startsWith("users/"))) {
+                        val file = File(path)
                         if (file.exists()) {
                             android.util.Log.d("PersonSync", "Upload portrait Storage pour ${person.firstName}")
                             storageUrl = mediaManager.uploadCameo(userId, person.id, file)
                         }
+                    } else {
+                        storageUrl = path // C'est déjà une référence Storage
                     }
 
                     db.collection("users").document(userId)
@@ -68,7 +100,8 @@ class SyncWorker @AssistedInject constructor(
                         .set(person.toFirestoreMap(storageUrl))
                         .await()
                     
-                    offlineEntryDao.insertPerson(person.copy(syncStatus = "synced"))
+                    ensuredPersonIds.add(person.id)
+                    offlineEntryDao.insertPerson(person.copy(imagePath = storageUrl, syncStatus = "synced"))
                     android.util.Log.d("PersonSync", "Upload Firestore RÉUSSI pour ${person.firstName}")
                 } catch (e: Exception) {
                     android.util.Log.e("PersonSync", "ÉCHEC upload pour ${person.firstName}: ${e.message}")
@@ -133,12 +166,33 @@ class SyncWorker @AssistedInject constructor(
             }
 
             // 4. Synchronisation Person Media (Arbre Généalogique v9.4.22)
-            pendingPersonMedia.forEach { media ->
+            mediaToSync.forEach { media ->
                 try {
+                    // Point 2 (v9.4.24): Garantir l'existence du parent
+                    if (!ensuredPersonIds.contains(media.personId)) {
+                        val parentDoc = db.collection("users").document(userId)
+                            .collection("persons").document(media.personId).get().await()
+                        
+                        if (!parentDoc.exists()) {
+                            // On tente de recréer le parent s'il manque sur Firestore mais existe en Room
+                            val person = allPersons.find { it.id == media.personId }
+                            if (person != null) {
+                                db.collection("users").document(userId)
+                                    .collection("persons").document(person.id)
+                                    .set(person.toFirestoreMap(person.imagePath)) // imagePath local ou storage
+                                    .await()
+                            } else {
+                                android.util.Log.e("SyncWorker", "Parent inexistant pour media ${media.id}")
+                                return@forEach
+                            }
+                        }
+                        ensuredPersonIds.add(media.personId)
+                    }
+
                     var currentPath = media.mediaPath
                     
                     // Upload vers Storage si c'est un chemin local
-                    if (!currentPath.startsWith("http") && !currentPath.startsWith("users/")) {
+                    if (currentPath.startsWith("/data/") || (!currentPath.startsWith("http") && !currentPath.startsWith("users/"))) {
                         val localFile = File(currentPath)
                         if (localFile.exists()) {
                             // On réutilise uploadCameo pour la simplicité (dossier persons)

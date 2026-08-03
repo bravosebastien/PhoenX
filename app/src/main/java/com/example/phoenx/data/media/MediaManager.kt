@@ -30,9 +30,20 @@ class MediaManager @Inject constructor(
     suspend fun getSafeUrl(pathOrUrl: String?): String? {
         if (pathOrUrl.isNullOrBlank()) return null
         if (pathOrUrl.startsWith("http")) return pathOrUrl
+        
+        // v9.4.24: Support des chemins locaux (Preview immédiate avant upload)
+        if (pathOrUrl.startsWith("/") || pathOrUrl.contains("/app.phoenx.mobile/files/")) {
+            val file = File(pathOrUrl)
+            if (file.exists()) return "file://$pathOrUrl"
+        }
+
         return try {
             storage.getReference(pathOrUrl).downloadUrl.await().toString()
         } catch (e: Exception) {
+            // Repli de secours : si la résolution Storage échoue mais que c'est un chemin local valide
+            val file = File(pathOrUrl)
+            if (file.exists()) return "file://$pathOrUrl"
+
             android.util.Log.e("MediaManager", "Erreur résolution chemin : $pathOrUrl", e)
             null
         }

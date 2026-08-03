@@ -11,7 +11,9 @@ data class ResolvedPerson(
     val photoUrl: String?, // URL déjà résolue (signée ou locale)
     val isDeceased: Boolean,
     val biography: String,
-    val parentIds: List<String>
+    val parentIds: List<String>,
+    val isReparented: Boolean = false, // v9.4.23
+    val reparentedRelationLabel: String? = null // v9.4.23
 )
 
 /**

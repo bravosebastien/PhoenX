@@ -64,8 +64,8 @@ object TreeAlgorithm {
             personsAtLevel.forEachIndexed { index, person ->
                 // X : Distribution horizontale équilibrée (0..1)
                 val x = (index + 1).toFloat() / (personsAtLevel.size + 1)
-                // Y : Position verticale (0..1) basée sur la profondeur
-                val y = level.toFloat() / maxGen
+                // Y : Position verticale (0..1) basée sur la profondeur (v9.4.23: Ajusté pour éviter les bords)
+                val y = (level + 0.5f) / (maxGen + 1)
                 
                 visualNodes.add(VisualTreeNode(person, level, x, y))
                 

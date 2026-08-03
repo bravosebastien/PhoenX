@@ -14,8 +14,14 @@ interface PersonMediaDao {
     @Delete
     suspend fun deleteMedia(media: PersonMediaEntity)
 
+    @Query("SELECT * FROM person_media")
+    fun getAllMedia(): Flow<List<PersonMediaEntity>>
+
     @Query("SELECT * FROM person_media WHERE syncStatus = 'pending'")
     suspend fun getPendingSync(): List<PersonMediaEntity>
+
+    @Query("SELECT * FROM person_media")
+    suspend fun getAllMediaSync(): List<PersonMediaEntity>
 
     @Query("UPDATE person_media SET syncStatus = :status WHERE id = :id")
     suspend fun updateSyncStatus(id: String, status: String)

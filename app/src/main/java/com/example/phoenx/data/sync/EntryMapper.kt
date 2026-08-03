@@ -71,8 +71,14 @@ fun com.example.phoenx.data.local.PersonEntity.toFirestoreMap(storageUrl: String
         "lien" to relationship,
         "distinctionType" to distinctionType,
         "distinctionValeur" to distinctionValue,
-        "imageUrl" to storageUrl, // v8.9.9 : URL Storage pour synchronisation
-        "createdAt" to createdAt
+        "imageUrl" to (storageUrl ?: imagePath), // v8.9.9 : URL Storage pour synchronisation
+        "createdAt" to createdAt,
+        // v9.4.24: Genealogy fields
+        "parentIds" to parentIds,
+        "isDeceased" to isDeceased,
+        "biography" to biography,
+        "isReparented" to isReparented,
+        "reparentedRelationLabel" to reparentedRelationLabel
     )
 }
 
@@ -88,7 +94,14 @@ fun DocumentSnapshot.toPersonEntity(): com.example.phoenx.data.local.PersonEntit
         distinctionType = getString("distinctionType"),
         distinctionValue = getString("distinctionValeur"),
         createdAt = getLong("createdAt") ?: System.currentTimeMillis(),
-        syncStatus = "synced"
+        syncStatus = "synced",
+        // v9.4.24: Genealogy fields
+        parentIds = getString("parentIds") ?: "",
+        isDeceased = getBoolean("isDeceased") ?: false,
+        biography = getString("biography") ?: "",
+        isReparented = getBoolean("isReparented") ?: false,
+        reparentedRelationLabel = getString("reparentedRelationLabel"),
+        imagePath = getString("imageUrl")
     )
 }
 

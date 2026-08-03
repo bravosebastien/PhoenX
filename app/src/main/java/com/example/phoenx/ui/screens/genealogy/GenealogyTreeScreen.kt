@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -60,7 +61,11 @@ fun GenealogyTreeScreen(
     val isReadOnly = (targetCreatorId != null && targetCreatorId != myUid) || isPreviewMode
 
     var selectedPersonForDetails by remember { mutableStateOf<PersonEntity?>(null) }
-    var selectedPersonForAddingChild by remember { mutableStateOf<PersonEntity?>(null) }
+    var selectedPersonForAddingRelation by remember { mutableStateOf<PersonEntity?>(null) }
+    var isAddingAscendant by remember { mutableStateOf(false) }
+    var showRelationTypeChoice by remember { mutableStateOf(false) }
+    var showChildSelectionForCoParent by remember { mutableStateOf(false) }
+    val selectedChildrenIds = remember { mutableStateListOf<String>() }
     var showCreateDialog by remember { mutableStateOf(false) }
     var isTreeView by remember { mutableStateOf(true) }
 
@@ -108,7 +113,11 @@ fun GenealogyTreeScreen(
                         Spacer(Modifier.height(16.dp))
                         Text("Ton arbre est encore vide.", color = theme.contentColor.copy(alpha = 0.4f))
                         Button(
-                            onClick = { showCreateDialog = true; selectedPersonForAddingChild = null },
+                            onClick = { 
+                                selectedPersonForAddingRelation = null
+                                isAddingAscendant = false
+                                showCreateDialog = true 
+                            },
                             modifier = Modifier.padding(top = 24.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = accent)
                         ) {
@@ -123,8 +132,8 @@ fun GenealogyTreeScreen(
                         selectedPersonForDetails = allPersons.find { it.id == resolved.id }
                     },
                     onAddChild = { resolved ->
-                        selectedPersonForAddingChild = allPersons.find { it.id == resolved.id }
-                        showCreateDialog = true
+                        selectedPersonForAddingRelation = allPersons.find { it.id == resolved.id }
+                        showRelationTypeChoice = true
                     },
                     enabled = !isReadOnly
                 )
@@ -140,29 +149,137 @@ fun GenealogyTreeScreen(
                             level = 0,
                             viewModel = viewModel,
                             onAddChild = { 
-                                selectedPersonForAddingChild = it
-                                showCreateDialog = true 
+                                selectedPersonForAddingRelation = it
+                                showRelationTypeChoice = true
                             },
                             onShowDetails = { selectedPersonForDetails = it },
                             enabled = !isReadOnly
                         )
                     }
-                    
-                    if (!isReadOnly) {
-                        item {
-                            TextButton(
-                                onClick = { showCreateDialog = true; selectedPersonForAddingChild = null },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Icon(Icons.Default.Add, null, tint = accent)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Ajouter une autre racine", color = accent)
+                }
+            }
+        }
+    }
+
+    if (showRelationTypeChoice && selectedPersonForAddingRelation != null) {
+        ModalBottomSheet(
+            onDismissRequest = { showRelationTypeChoice = false },
+            containerColor = theme.backgroundColor
+        ) {
+            Column(modifier = Modifier.padding(24.dp).padding(bottom = 32.dp)) {
+                Text(
+                    "Nouvelle relation pour ${selectedPersonForAddingRelation!!.firstName}",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = theme.contentColor,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(Modifier.height(24.dp))
+                
+                RelationOption(
+                    title = "Ajouter un parent",
+                    description = "Cette personne apparaîtra au-dessus, reliée par un lien de filiation directe.",
+                    icon = Icons.Default.ArrowUpward,
+                    accent = accent,
+                    contentColor = theme.contentColor,
+                    onClick = {
+                        isAddingAscendant = true
+                        showRelationTypeChoice = false
+                        showCreateDialog = true
+                    }
+                )
+                
+                Spacer(Modifier.height(16.dp))
+                
+                RelationOption(
+                    title = "Ajouter un enfant",
+                    description = "Cette personne apparaîtra en dessous.",
+                    icon = Icons.Default.ArrowDownward,
+                    accent = accent,
+                    contentColor = theme.contentColor,
+                    onClick = {
+                        isAddingAscendant = false
+                        showRelationTypeChoice = false
+                        showCreateDialog = true
+                    }
+                )
+                
+                Spacer(Modifier.height(16.dp))
+                
+                RelationOption(
+                    title = "Ajouter un co-parent",
+                    description = "Pour lier une personne qui partage un enfant déjà existant avec celle-ci.",
+                    icon = Icons.Default.Group,
+                    accent = accent,
+                    contentColor = theme.contentColor,
+                    onClick = {
+                        showRelationTypeChoice = false
+                        showChildSelectionForCoParent = true
+                    }
+                )
+            }
+        }
+    }
+
+    if (showChildSelectionForCoParent && selectedPersonForAddingRelation != null) {
+        val children by viewModel.getChildrenOf(selectedPersonForAddingRelation!!.id).collectAsState(initial = emptyList())
+        
+        AlertDialog(
+            onDismissRequest = { showChildSelectionForCoParent = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("Sélectionner l'enfant concerné", color = theme.contentColor) },
+            text = {
+                if (children.isEmpty()) {
+                    Text("Cette personne n'a pas encore d'enfant dans l'arbre — ajoutez d'abord un enfant avant de pouvoir lui associer un co-parent.", color = theme.contentColor.copy(alpha = 0.7f))
+                } else {
+                    Column {
+                        Text("À quel(s) enfant(s) de ${selectedPersonForAddingRelation!!.firstName} souhaitez-vous lier ce nouveau parent ?", 
+                            style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                        Spacer(Modifier.height(16.dp))
+                        LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
+                            items(children) { child ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth().clickable {
+                                        if (selectedChildrenIds.contains(child.id)) selectedChildrenIds.remove(child.id)
+                                        else selectedChildrenIds.add(child.id)
+                                    }.padding(vertical = 4.dp)
+                                ) {
+                                    Checkbox(
+                                        checked = selectedChildrenIds.contains(child.id),
+                                        onCheckedChange = null,
+                                        colors = CheckboxDefaults.colors(checkedColor = accent)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(child.firstName, color = theme.contentColor)
+                                }
                             }
                         }
                     }
                 }
+            },
+            confirmButton = {
+                if (children.isNotEmpty()) {
+                    Button(
+                        onClick = {
+                            showChildSelectionForCoParent = false
+                            showCreateDialog = true
+                        },
+                        enabled = selectedChildrenIds.isNotEmpty(),
+                        colors = ButtonDefaults.buttonColors(containerColor = accent)
+                    ) { Text("Suivant", color = theme.backgroundColor) }
+                } else {
+                    TextButton(onClick = { showChildSelectionForCoParent = false }) { Text("Compris", color = accent) }
+                }
+            },
+            dismissButton = {
+                if (children.isNotEmpty()) {
+                    TextButton(onClick = { 
+                        showChildSelectionForCoParent = false
+                        selectedChildrenIds.clear()
+                    }) { Text("Annuler", color = theme.contentColor) }
+                }
             }
-        }
+        )
     }
 
     if (selectedPersonForDetails != null) {
@@ -172,31 +289,91 @@ fun GenealogyTreeScreen(
             onDismiss = { selectedPersonForDetails = null },
             accent = accent,
             isReadOnly = isReadOnly,
-            onEditLinks = { showCreateDialog = true }
+            onEditLinks = { 
+                selectedPersonForAddingRelation = null
+                showCreateDialog = true 
+            }
         )
     }
 
     if (showCreateDialog) {
         CreateOrEditPersonInTreeDialog(
-            initialPerson = if (selectedPersonForAddingChild == null) selectedPersonForDetails else null,
-            initialParents = selectedPersonForAddingChild?.let { listOf(it) } ?: emptyList(),
+            initialPerson = if (selectedPersonForAddingRelation == null) selectedPersonForDetails else null,
+            initialParents = if (!isAddingAscendant) {
+                selectedPersonForAddingRelation?.let { listOf(it) } ?: emptyList()
+            } else emptyList(),
             allPersons = allPersons,
             onConfirm = { firstName, lastName, parentIds ->
-                if (selectedPersonForAddingChild == null && selectedPersonForDetails != null) {
+                if (selectedPersonForAddingRelation == null && selectedPersonForDetails != null) {
                     viewModel.updatePersonIdentity(selectedPersonForDetails!!.id, firstName, lastName, parentIds)
                 } else {
-                    viewModel.createAndLinkPerson(firstName, lastName, parentIds)
+                    val childrenToLink = if (selectedChildrenIds.isNotEmpty()) {
+                        selectedChildrenIds.toList()
+                    } else if (isAddingAscendant) {
+                        listOfNotNull(selectedPersonForAddingRelation?.id)
+                    } else {
+                        emptyList()
+                    }
+
+                    viewModel.createAndLinkPerson(
+                        firstName = firstName, 
+                        lastName = lastName, 
+                        parentIds = parentIds,
+                        childrenIdsToLink = childrenToLink
+                    )
                 }
                 showCreateDialog = false
-                selectedPersonForAddingChild = null
+                selectedPersonForAddingRelation = null
                 selectedPersonForDetails = null 
+                selectedChildrenIds.clear()
+                isAddingAscendant = false
             },
             onDismiss = { 
                 showCreateDialog = false
-                selectedPersonForAddingChild = null
+                selectedPersonForAddingRelation = null
+                selectedChildrenIds.clear()
+                isAddingAscendant = false
             },
             accent = accent
         )
+    }
+}
+
+@Composable
+fun RelationOption(
+    title: String,
+    description: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    accent: Color,
+    contentColor: Color,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = contentColor.copy(alpha = 0.05f)),
+        border = BorderStroke(1.dp, contentColor.copy(alpha = 0.1f))
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                modifier = Modifier.size(40.dp),
+                shape = CircleShape,
+                color = accent.copy(alpha = 0.1f)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(icon, null, tint = accent, modifier = Modifier.size(20.dp))
+                }
+            }
+            Spacer(Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = contentColor)
+                Text(description, style = MaterialTheme.typography.labelSmall, color = contentColor.copy(alpha = 0.6f))
+            }
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = contentColor.copy(alpha = 0.3f))
+        }
     }
 }
 
@@ -290,7 +467,11 @@ fun PersonDetailsDialog(
     
     var biography by remember(person) { mutableStateOf(person.biography) }
     var isDeceased by remember(person) { mutableStateOf(person.isDeceased) }
+    var relationLabel by remember(person) { mutableStateOf(person.reparentedRelationLabel ?: "") }
+    var profilePhotoPath by remember(person) { mutableStateOf(person.imagePath) }
     var showDeleteConfirm by remember { mutableStateOf(false) } // v9.4.22
+    val children by viewModel.getChildrenOf(person.id).collectAsState(initial = emptyList())
+    val deleteRelationLabels = remember { mutableStateMapOf<String, String>() }
 
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
@@ -303,6 +484,17 @@ fun PersonDetailsDialog(
         }
     }
 
+    val profilePhotoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            val fileName = "person_profile_${UUID.randomUUID()}.jpg"
+            val file = File(context.filesDir, fileName)
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(file).use { output -> input.copyTo(output) }
+            }
+            profilePhotoPath = file.absolutePath
+        }
+    }
+
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier.fillMaxWidth().fillMaxHeight(0.9f),
@@ -310,135 +502,198 @@ fun PersonDetailsDialog(
             color = theme.backgroundColor,
             border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
         ) {
-            Column(modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState())) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CameoPortrait(imagePath = person.imagePath, firstName = person.firstName, size = 64.dp)
-                    Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text(person.firstName, style = MaterialTheme.typography.headlineSmall, color = theme.contentColor)
-                        if (!isReadOnly) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Checkbox(
-                                    checked = isDeceased,
-                                    onCheckedChange = { 
-                                        isDeceased = it
-                                        viewModel.toggleDeceased(person.id)
-                                    },
-                                    colors = CheckboxDefaults.colors(checkedColor = accent)
-                                )
-                                Text("Décédé(e)", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
-                                
-                                Spacer(Modifier.width(16.dp))
-                                
-                                TextButton(onClick = onEditLinks) {
-                                    Icon(Icons.Default.Link, null, modifier = Modifier.size(14.dp))
-                                    Spacer(Modifier.width(4.dp))
-                                    Text("Modifier identité / liens", style = MaterialTheme.typography.labelSmall)
+            Column(modifier = Modifier.fillMaxSize()) {
+                // CONTENU SCROLLABLE
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 24.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    Spacer(Modifier.height(24.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Box(contentAlignment = Alignment.BottomEnd) {
+                            CameoPortrait(
+                                imagePath = profilePhotoPath, 
+                                firstName = person.firstName, 
+                                size = 80.dp
+                            )
+                            if (!isReadOnly) {
+                                IconButton(
+                                    onClick = { profilePhotoPicker.launch("image/*") },
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .background(accent, CircleShape)
+                                        .border(2.dp, theme.backgroundColor, CircleShape)
+                                ) {
+                                    Icon(Icons.Default.CameraAlt, null, tint = theme.backgroundColor, modifier = Modifier.size(14.dp))
                                 }
                             }
-                        } else if (person.isDeceased) {
-                            Text("Décédé(e)", style = MaterialTheme.typography.labelSmall, color = accent, modifier = Modifier.padding(top = 4.dp))
+                        }
+                        
+                        Spacer(Modifier.width(16.dp))
+                        
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(person.firstName, style = MaterialTheme.typography.headlineSmall, color = theme.contentColor)
+                            
+                            if (!isReadOnly) {
+                                // Case "Décédé(e)"
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Checkbox(
+                                        checked = isDeceased,
+                                        onCheckedChange = { isDeceased = it },
+                                        colors = CheckboxDefaults.colors(checkedColor = accent)
+                                    )
+                                    Text("Décédé(e)", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                                }
+                                
+                                // Bouton "Modifier identité / liens" (v9.4.24: Correction Layout)
+                                OutlinedButton(
+                                    onClick = onEditLinks,
+                                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                                    colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor)
+                                ) {
+                                    Icon(Icons.Default.Link, null, modifier = Modifier.size(14.dp))
+                                    Spacer(Modifier.width(6.dp))
+                                    Text("Modifier identité / liens", style = MaterialTheme.typography.labelSmall)
+                                }
+                            } else if (person.isDeceased) {
+                                Text("Décédé(e)", style = MaterialTheme.typography.labelSmall, color = accent, modifier = Modifier.padding(top = 4.dp))
+                            }
                         }
                     }
-                }
 
-                Spacer(Modifier.height(24.dp))
-                
-                Text("BIOGRAPHIE", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
-                if (!isReadOnly) {
-                    OutlinedTextField(
-                        value = biography,
-                        onValueChange = { biography = it },
-                        modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                        placeholder = { Text("Quelques mots sur sa vie...", fontStyle = FontStyle.Italic) },
-                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
-                    )
-                    Button(
-                        onClick = { viewModel.updateBiography(person.id, biography) },
-                        modifier = Modifier.align(Alignment.End).padding(top = 8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = accent.copy(alpha = 0.1f), contentColor = accent)
-                    ) { Text("Enregistrer bio") }
-                } else {
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
-                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
-                    ) {
-                        Text(
-                            text = biography.ifBlank { "Aucune biographie renseignée." },
-                            style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 24.sp),
-                            color = theme.contentColor.copy(alpha = 0.8f),
-                            modifier = Modifier.padding(16.dp)
+                    if (person.isReparented) {
+                        Spacer(Modifier.height(16.dp))
+                        OutlinedTextField(
+                            value = relationLabel,
+                            onValueChange = { relationLabel = it },
+                            label = { Text("Nature du lien (ex: Petit-fils)") },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                         )
                     }
-                }
 
-                Spacer(Modifier.height(32.dp))
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text("GALERIE MÉDIA", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                    Spacer(Modifier.height(24.dp))
+                    
+                    Text("BIOGRAPHIE", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                     if (!isReadOnly) {
-                        IconButton(onClick = { photoPicker.launch("image/*") }) {
-                            Icon(Icons.Default.AddPhotoAlternate, null, tint = accent)
-                        }
-                    }
-                }
-                
-                if (!isReadOnly) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                        color = accent.copy(alpha = 0.05f),
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, accent.copy(alpha = 0.2f))
-                    ) {
-                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(12.dp))
+                        OutlinedTextField(
+                            value = biography,
+                            onValueChange = { biography = it },
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
+                            placeholder = { Text("Quelques mots sur sa vie...", fontStyle = FontStyle.Italic) },
+                            colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                        )
+                    } else {
+                        Card(
+                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
+                        ) {
                             Text(
-                                "Ce média sera visible par TOUS vos Destinataires une fois l'héritage activé, sans restriction possible.",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = theme.contentColor.copy(alpha = 0.7f)
+                                text = biography.ifBlank { "Aucune biographie renseignée." },
+                                style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 24.sp),
+                                color = theme.contentColor.copy(alpha = 0.8f),
+                                modifier = Modifier.padding(16.dp)
                             )
                         }
                     }
-                }
 
-                if (mediaList.isEmpty()) {
-                    Text("Aucun média ajouté.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 16.dp))
-                } else {
-                    mediaList.chunked(3).forEach { row ->
-                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            row.forEach { media ->
-                                MediaThumbnail(
-                                    media = media.copy(mediaPath = resolvedUrls[media.id] ?: media.mediaPath),
-                                    onRemove = { viewModel.removeMedia(media) },
-                                    isReadOnly = isReadOnly
+                    Spacer(Modifier.height(32.dp))
+
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text("GALERIE MÉDIA", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                        if (!isReadOnly) {
+                            IconButton(onClick = { photoPicker.launch("image/*") }) {
+                                Icon(Icons.Default.AddPhotoAlternate, null, tint = accent)
+                            }
+                        }
+                    }
+                    
+                    if (!isReadOnly) {
+                        Surface(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                            color = accent.copy(alpha = 0.05f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                        ) {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    "Ce média sera visible par TOUS vos Destinataires une fois l'héritage activé, sans restriction possible.",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = theme.contentColor.copy(alpha = 0.7f)
                                 )
                             }
                         }
-                        Spacer(Modifier.height(8.dp))
                     }
+
+                    if (mediaList.isEmpty()) {
+                        Text("Aucun média ajouté.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 16.dp))
+                    } else {
+                        mediaList.chunked(3).forEach { row ->
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                row.forEach { media ->
+                                    MediaThumbnail(
+                                        media = media.copy(mediaPath = resolvedUrls[media.id] ?: media.mediaPath),
+                                        onRemove = { viewModel.removeMedia(media) },
+                                        isReadOnly = isReadOnly
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(8.dp))
+                        }
+                    }
+                    Spacer(Modifier.height(32.dp))
                 }
 
-                Spacer(Modifier.height(32.dp))
-                
-                if (!isReadOnly) {
-                    TextButton(
-                        onClick = { showDeleteConfirm = true },
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    ) {
-                        Icon(Icons.Default.DeleteForever, null, modifier = Modifier.size(16.dp), tint = Error)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Supprimer du répertoire et de l'arbre", color = Error, style = MaterialTheme.typography.labelSmall)
-                    }
-                    Spacer(Modifier.height(16.dp))
-                }
-                
-                Button(
-                    onClick = onDismiss,
+                // BARRE D'ACTIONS FIXE (STICKY)
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.05f), contentColor = theme.contentColor)
-                ) { Text("Fermer") }
+                    color = theme.backgroundColor,
+                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f)),
+                    shadowElevation = 8.dp
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        if (!isReadOnly) {
+                            Button(
+                                onClick = { 
+                                    viewModel.savePersonDetails(person.id, biography, relationLabel.ifBlank { null }, isDeceased, profilePhotoPath)
+                                    onDismiss()
+                                },
+                                modifier = Modifier.fillMaxWidth().height(54.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = accent)
+                            ) {
+                                Text("Enregistrer les modifications", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                            }
+
+                            Spacer(Modifier.height(12.dp))
+
+                            TextButton(
+                                onClick = { showDeleteConfirm = true },
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            ) {
+                                Icon(Icons.Default.DeleteForever, null, modifier = Modifier.size(16.dp), tint = Error)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Supprimer de l'arbre", color = Error, style = MaterialTheme.typography.labelSmall)
+                            }
+                        } else {
+                            Button(
+                                onClick = onDismiss,
+                                modifier = Modifier.fillMaxWidth().height(54.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.05f), contentColor = theme.contentColor)
+                            ) { Text("Fermer") }
+                        }
+                    }
+                }
             }
         }
     }
@@ -448,10 +703,31 @@ fun PersonDetailsDialog(
             onDismissRequest = { showDeleteConfirm = false },
             containerColor = theme.backgroundColor,
             title = { Text("Supprimer cette personne ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = { Text("Cette action est irréversible. Elle sera retirée de votre répertoire, de l'arbre généalogique et tous ses médias seront effacés.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            text = {
+                Column {
+                    Text("Cette action est irréversible. Elle sera retirée de votre répertoire, de l'arbre généalogique et tous ses médias seront effacés.", color = theme.contentColor.copy(alpha = 0.7f))
+                    
+                    if (children.isNotEmpty() && !person.parentIds.isNullOrBlank()) {
+                        Spacer(Modifier.height(16.dp))
+                        Text("Les enfants suivants seront rattachés directement à leurs grands-parents. Comment décrire ce nouveau lien ?", style = MaterialTheme.typography.labelSmall, color = accent)
+                        
+                        children.forEach { child ->
+                            Spacer(Modifier.height(8.dp))
+                            OutlinedTextField(
+                                value = deleteRelationLabels[child.id] ?: "",
+                                onValueChange = { deleteRelationLabels[child.id] = it },
+                                label = { Text("Lien pour ${child.firstName}") },
+                                placeholder = { Text("ex: Petit-fils") },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                            )
+                        }
+                    }
+                }
+            },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.deletePerson(person.id)
+                    viewModel.deletePerson(person.id, deleteRelationLabels.toMap())
                     showDeleteConfirm = false
                     onDismiss()
                 }) { Text("Supprimer définitivement", color = Error, fontWeight = FontWeight.Bold) }
