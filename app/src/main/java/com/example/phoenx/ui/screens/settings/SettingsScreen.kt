@@ -128,7 +128,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             
             SettingsItem(
-                title = "Protocole d'activation",
+                title = "Transmission & Protocole",
                 subtitle = "Gère ton dépositaire et tes délais",
                 icon = Icons.Default.Lock,
                 theme = theme,
@@ -138,8 +138,8 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Mon Cercle de Confiance",
-                subtitle = "Gère tes destinataires",
+                title = "Mes Destinataires",
+                subtitle = "Gère ton cercle de confiance",
                 icon = Icons.Default.Person,
                 theme = theme,
                 onClick = onNavigateToRecipients

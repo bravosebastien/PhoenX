@@ -339,7 +339,7 @@ fun HomeScreen(
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(Icons.Outlined.AutoStories, null, tint = accent, modifier = Modifier.size(18.dp))
-                                Text("Ma biblio", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                Text("Ma Bibliothèque", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Medium))
                             }
                         }
 
@@ -357,7 +357,7 @@ fun HomeScreen(
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(Icons.Outlined.HistoryEdu, null, tint = accent, modifier = Modifier.size(18.dp))
-                                Text("Mon Fil", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                Text("Mon Fil de Pensée", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Medium))
                             }
                         }
                     }

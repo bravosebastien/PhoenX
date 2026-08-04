@@ -182,7 +182,7 @@ fun RecipientLibraryScreen(
             val itemModifier = Modifier.weight(1f)
             
             CompactGridItem(
-                label = "Coffre Fort",
+                label = "Le Coffre-Fort",
                 icon = Icons.Outlined.Lock,
                 onClick = { 
                     if (isCreatorMode) navController.navigate("coffre_fort")

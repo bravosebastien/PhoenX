@@ -57,7 +57,7 @@ fun CharactersScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        if (selectionMode) "Choisir un personnage" else "Les Personnages de mon Livre", 
+                        if (selectionMode) "Choisir un personnage" else "Mes Personnages",
                         style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                         color = theme.contentColor
                     ) 

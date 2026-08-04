@@ -135,7 +135,7 @@ fun CercleConfianceScreen(
 
             // 5. PERSONNAGES (v9.0)
             TrustHubItem(
-                title = "Les Personnages",
+                title = "Mes Personnages",
                 subtitle = "Ceux qui peuplent tes souvenirs",
                 icon = Icons.Default.People,
                 accent = accent,

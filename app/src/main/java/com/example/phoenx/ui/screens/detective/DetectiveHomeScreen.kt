@@ -65,7 +65,7 @@ fun DetectiveHomeScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Mode Détective",
+                                text = "Le Coffre-Fort",
                                 style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                                 color = theme.contentColor
                             )
@@ -76,7 +76,7 @@ fun DetectiveHomeScreen(
                             )
                         }
                         InfoButton(
-                            title = "Mode Détective",
+                            title = "Le Coffre-Fort",
                             points = listOf(
                                 "Cache un contenu derrière une question secrète.",
                                 "La réponse est protégée localement par SHA-256.",

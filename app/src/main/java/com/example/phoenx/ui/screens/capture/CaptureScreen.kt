@@ -203,7 +203,7 @@ fun CaptureScreen(
                 TopAppBar(
                     title = {
                         Text(
-                            text = if (currentStep == 1) "L'Âme du souvenir" else "Habillage",
+                            text = if (currentStep == 1) "Déposer un souvenir" else "Habillage",
                             style = MaterialTheme.typography.labelLarge.copy(
                                 fontWeight = FontWeight.Bold
                             ),

@@ -49,7 +49,7 @@ fun RecipientScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Mon Cercle", 
+                        "Mes Destinataires",
                         style = MaterialTheme.typography.displaySmall.copy(
                             fontFamily = theme.fontFamily,
                             fontWeight = FontWeight.Bold,
