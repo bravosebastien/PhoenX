@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.PersonMediaEntity
+import com.example.phoenx.domain.model.VisualGroup
 import com.example.phoenx.ui.components.CameoPortrait
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.PersonSelector
@@ -58,7 +59,7 @@ fun GenealogyTreeScreen(
     val assistantY by assistantViewModel.bubbleY.collectAsState()
     val isAssistantChatOpen by assistantViewModel.isChatOpen.collectAsState()
 
-    val rootPersons by viewModel.rootPersons.collectAsState()
+    val treeGroups by viewModel.treeGroups.collectAsState() // v9.4.26
     val allPersons by viewModel.allPersons.collectAsState()
     val treeLayout by viewModel.treeLayout.collectAsState()
     
@@ -76,7 +77,6 @@ fun GenealogyTreeScreen(
     var isTreeView by remember { mutableStateOf(true) }
 
     LaunchedEffect(targetCreatorId) {
-        android.util.Log.d("PhoenXBuild", "Version logicielle active : v9.4.26-DIAG (Build ID: ${System.currentTimeMillis()})")
         viewModel.loadTree(targetCreatorId)
     }
 
@@ -149,22 +149,23 @@ fun GenealogyTreeScreen(
                     enabled = !isReadOnly
                 )
             } else {
+                // VUE LISTE PAR GROUPES (v9.4.26)
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     contentPadding = PaddingValues(bottom = 32.dp)
                 ) {
-                    items(rootPersons) { person ->
-                        PersonTreeNode(
-                            person = person,
-                            level = 0,
-                            viewModel = viewModel,
+                    items(treeGroups) { group ->
+                        GroupTreeNode(
+                            group = group,
+                            allPersons = allPersons,
                             onAddChild = { 
                                 selectedPersonForAddingRelation = it
                                 showRelationTypeChoice = true
                             },
                             onShowDetails = { selectedPersonForDetails = it },
-                            enabled = !isReadOnly
+                            enabled = !isReadOnly,
+                            accent = accent
                         )
                     }
                 }
@@ -361,7 +362,7 @@ fun GenealogyTreeScreen(
         )
     }
 
-    // v9.4.25 : Bulle Assistant IA (v9.4.25)
+    // v9.4.25 : Bulle Assistant IA
     com.example.phoenx.ui.components.FloatingAssistantBubble(
         initialX = assistantX,
         initialY = assistantY,
@@ -415,66 +416,82 @@ fun RelationOption(
     }
 }
 
+/**
+ * Composant de rendu pour un groupe de co-parents (v9.4.26)
+ */
 @Composable
-fun PersonTreeNode(
-    person: PersonEntity,
-    level: Int,
-    viewModel: GenealogyTreeViewModel,
+fun GroupTreeNode(
+    group: VisualGroup,
+    allPersons: List<PersonEntity>,
     onAddChild: (PersonEntity) -> Unit,
     onShowDetails: (PersonEntity) -> Unit,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    accent: Color
 ) {
     val theme = LocalAppTheme.current
-    val accent = theme.accentColor
-    val children by viewModel.getChildrenOf(person.id).collectAsState(initial = emptyList())
 
-    Column(modifier = Modifier.padding(start = (level * 24).dp)) {
+    Column(modifier = Modifier.padding(start = (if (group.level > 0) 24 else 0).dp)) {
         Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onShowDetails(person) },
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             color = theme.contentColor.copy(alpha = 0.05f),
             border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
         ) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CameoPortrait(
-                    imagePath = person.imagePath,
-                    firstName = person.firstName,
-                    size = 40.dp
-                )
-                Spacer(Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = person.firstName + (person.lastName?.let { " $it" } ?: ""),
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        color = if (person.isDeceased) theme.contentColor.copy(alpha = 0.5f) else theme.contentColor
-                    )
-                    if (person.isDeceased) {
-                        Text("Décédé(e)", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.3f))
-                    }
-                }
-                if (enabled) {
-                    IconButton(onClick = { onAddChild(person) }) {
-                        Icon(Icons.Default.Add, null, tint = accent, modifier = Modifier.size(20.dp))
+            Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                group.members.forEachIndexed { index, resolved ->
+                    val personEntity = allPersons.find { it.id == resolved.id }
+                    if (personEntity != null) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onShowDetails(personEntity) }
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CameoPortrait(
+                                imagePath = resolved.photoUrl,
+                                firstName = resolved.firstName,
+                                size = 40.dp
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = resolved.firstName + (resolved.lastName?.let { " $it" } ?: ""),
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = if (resolved.isDeceased) theme.contentColor.copy(alpha = 0.5f) else theme.contentColor
+                                )
+                                if (resolved.isDeceased) {
+                                    Text("Décédé(e)", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.3f))
+                                }
+                            }
+                            if (enabled) {
+                                IconButton(onClick = { onAddChild(personEntity) }) {
+                                    Icon(Icons.Default.Add, null, tint = accent, modifier = Modifier.size(20.dp))
+                                }
+                            }
+                        }
+                        
+                        if (index < group.members.size - 1) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                                color = theme.contentColor.copy(alpha = 0.05f)
+                            )
+                        }
                     }
                 }
             }
         }
 
-        if (children.isNotEmpty()) {
+        if (group.children.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
-            children.forEach { child ->
-                PersonTreeNode(
-                    person = child,
-                    level = level + 1,
-                    viewModel = viewModel,
+            group.children.forEach { childGroup ->
+                GroupTreeNode(
+                    group = childGroup,
+                    allPersons = allPersons,
                     onAddChild = onAddChild,
                     onShowDetails = onShowDetails,
-                    enabled = enabled
+                    enabled = enabled,
+                    accent = accent
                 )
                 Spacer(Modifier.height(8.dp))
             }

@@ -11,6 +11,8 @@ import com.example.phoenx.data.sync.SyncWorker
 import com.example.phoenx.data.sync.toPersonEntity
 import com.example.phoenx.domain.genealogy.TreeAlgorithm
 import com.example.phoenx.domain.model.TreeLayout
+import com.example.phoenx.domain.model.VisualGroup
+import com.example.phoenx.domain.model.VisualTreeNode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
@@ -145,22 +147,40 @@ class GenealogyTreeViewModel @Inject constructor(
         // On récupère le premier média de galerie pour ceux qui n'ont pas de photo de profil
         val resolved = persons.map { person ->
             var finalPhotoUrl = urls[person.id]
-            
-            // Si pas d'avatar, on pourrait chercher dans urls par média ID mais on ne sait pas lesquels sont liés.
-            // Pour l'instant, on assure déjà que l'avatar s'affiche avec file://
-            
             person.toResolvedPerson(finalPhotoUrl) 
         }
         TreeAlgorithm.calculateLayout(resolved)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TreeLayout(emptyList(), emptyList()))
 
     /**
-     * Reconstruit la hiérarchie en mémoire (v9.4.22)
-     * On cherche les "racines" (ceux qui n'ont pas de parents enregistrés)
+     * Reconstruit la hiérarchie par GROUPES pour la vue Liste (v9.4.26)
      */
-    val rootPersons: StateFlow<List<PersonEntity>> = allPersons.map { list ->
-        list.filter { it.parentIds.isBlank() || it.parentIds == ",," }
+    val treeGroups: StateFlow<List<VisualGroup>> = treeLayout.map { layout ->
+        val nodes = layout.nodes
+        if (nodes.isEmpty()) return@map emptyList()
+
+        val groupsById = nodes.groupBy { it.groupId }
+        val rootGroupIds = nodes.filter { it.generation == 0 }.map { it.groupId }.distinct()
+        
+        rootGroupIds.map { gid -> buildGroupHierarchy(gid, groupsById, nodes) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private fun buildGroupHierarchy(groupId: String, groupsById: Map<String, List<VisualTreeNode>>, allNodes: List<VisualTreeNode>): VisualGroup {
+        val members = groupsById[groupId]?.map { it.person } ?: emptyList()
+        val generation = groupsById[groupId]?.firstOrNull()?.generation ?: 0
+        val memberIds = members.map { it.id }
+        
+        val childGroupIds = allNodes.filter { node ->
+            node.groupId != groupId && node.person.parentIds.any { pid -> memberIds.contains(pid) }
+        }.map { it.groupId }.distinct()
+        
+        return VisualGroup(
+            id = groupId,
+            members = members,
+            level = generation,
+            children = childGroupIds.map { buildGroupHierarchy(it, groupsById, allNodes) }
+        )
+    }
 
     /**
      * Récupère les enfants d'une personne donnée (Reverse Lookup)

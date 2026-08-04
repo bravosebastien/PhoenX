@@ -23,7 +23,18 @@ data class VisualTreeNode(
     val person: ResolvedPerson,
     val generation: Int,
     val x: Float, // Position horizontale relative (0..1)
-    val y: Float  // Position verticale relative (dérivée de la génération)
+    val y: Float, // Position verticale relative (dérivée de la génération)
+    val groupId: String // v9.4.26 : ID du groupe de co-parenté
+)
+
+/**
+ * Modèle pour l'affichage en liste hiérarchique par groupes (v9.4.26)
+ */
+data class VisualGroup(
+    val id: String,
+    val members: List<ResolvedPerson>,
+    val level: Int,
+    val children: List<VisualGroup> = emptyList()
 )
 
 data class TreeLayout(
