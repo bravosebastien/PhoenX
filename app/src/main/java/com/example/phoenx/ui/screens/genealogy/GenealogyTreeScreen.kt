@@ -49,10 +49,15 @@ import java.util.*
 fun GenealogyTreeScreen(
     navController: NavController,
     targetCreatorId: String? = null,
-    viewModel: GenealogyTreeViewModel = hiltViewModel()
+    viewModel: GenealogyTreeViewModel = hiltViewModel(),
+    assistantViewModel: com.example.phoenx.ui.screens.assistant.AssistantViewModel = hiltViewModel()
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val assistantX by assistantViewModel.bubbleX.collectAsState()
+    val assistantY by assistantViewModel.bubbleY.collectAsState()
+    val isAssistantChatOpen by assistantViewModel.isChatOpen.collectAsState()
+
     val rootPersons by viewModel.rootPersons.collectAsState()
     val allPersons by viewModel.allPersons.collectAsState()
     val treeLayout by viewModel.treeLayout.collectAsState()
@@ -315,7 +320,8 @@ fun GenealogyTreeScreen(
     if (showCreateDialog) {
         CreateOrEditPersonInTreeDialog(
             initialPerson = if (selectedPersonForAddingRelation == null) selectedPersonForDetails else null,
-            initialParents = if (!isAddingAscendant) {
+            initialParents = if (!isAddingAscendant && selectedChildrenIds.isEmpty()) {
+                // v9.4.25: On ne pré-remplit le parent que pour le flux "Ajouter un enfant"
                 selectedPersonForAddingRelation?.let { listOf(it) } ?: emptyList()
             } else emptyList(),
             allPersons = allPersons,
@@ -351,6 +357,21 @@ fun GenealogyTreeScreen(
                 isAddingAscendant = false
             },
             accent = accent
+        )
+    }
+
+    // v9.4.25 : Bulle Assistant IA (v9.4.25)
+    com.example.phoenx.ui.components.FloatingAssistantBubble(
+        initialX = assistantX,
+        initialY = assistantY,
+        onPositionChanged = { x, y -> assistantViewModel.savePosition(x, y) },
+        onClick = { assistantViewModel.toggleChat() }
+    )
+
+    if (isAssistantChatOpen) {
+        com.example.phoenx.ui.screens.assistant.AssistantChatPanel(
+            viewModel = assistantViewModel,
+            onDismiss = { assistantViewModel.toggleChat() }
         )
     }
 }

@@ -100,9 +100,14 @@ fun HomeScreen(
     onBecomeCreator: () -> Unit,
     onLogoutSuccess: () -> Unit,
     mainViewModel: MainViewModel,
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    assistantViewModel: com.example.phoenx.ui.screens.assistant.AssistantViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val assistantX by assistantViewModel.bubbleX.collectAsState()
+    val assistantY by assistantViewModel.bubbleY.collectAsState()
+    val isAssistantChatOpen by assistantViewModel.isChatOpen.collectAsState()
+
     val daysSincePresence by viewModel.daysSincePresence.collectAsState()
     val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
     val isVideoBannerDismissed by mainViewModel.isVideoBannerDismissed.collectAsState()
@@ -453,6 +458,21 @@ fun HomeScreen(
                     )
                 }
             }
+        }
+
+        // v9.4.25 : Bulle Assistant IA
+        com.example.phoenx.ui.components.FloatingAssistantBubble(
+            initialX = assistantX,
+            initialY = assistantY,
+            onPositionChanged = { x, y -> assistantViewModel.savePosition(x, y) },
+            onClick = { assistantViewModel.toggleChat() }
+        )
+
+        if (isAssistantChatOpen) {
+            com.example.phoenx.ui.screens.assistant.AssistantChatPanel(
+                viewModel = assistantViewModel,
+                onDismiss = { assistantViewModel.toggleChat() }
+            )
         }
     }
 }

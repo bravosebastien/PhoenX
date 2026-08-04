@@ -13,7 +13,8 @@ import {
     generateBookPlan,
     generateDistractors,
     modifyBookChapter,
-    generateGlobalIntro
+    generateGlobalIntro,
+    askAssistant
 } from "./ai";
 
 import {
@@ -86,6 +87,7 @@ export {
     generateDistractors,
     modifyBookChapter,
     generateGlobalIntro,
+    askAssistant,
 
     // Book
     getCreatorBookStatus,

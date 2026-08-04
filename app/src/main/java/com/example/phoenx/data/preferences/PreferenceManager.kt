@@ -37,6 +37,10 @@ class PreferenceManager @Inject constructor(
     private val GLOBAL_BACKGROUND_ID_KEY = androidx.datastore.preferences.core.stringPreferencesKey("global_background_id")
     private val GLOBAL_FONT_ID_KEY = androidx.datastore.preferences.core.stringPreferencesKey("global_font_id")
 
+    // v9.4.25 : Assistant IA Flottant
+    private val ASSISTANT_BUBBLE_X_KEY = androidx.datastore.preferences.core.floatPreferencesKey("assistant_bubble_x")
+    private val ASSISTANT_BUBBLE_Y_KEY = androidx.datastore.preferences.core.floatPreferencesKey("assistant_bubble_y")
+
     fun isSyncMigrationV1Done(): Flow<Boolean> = context.dataStore.data
         .map { it[SYNC_MIGRATION_V1_DONE_KEY] ?: false }
 
@@ -180,6 +184,17 @@ class PreferenceManager @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[GLOBAL_BACKGROUND_ID_KEY] = backgroundId
             preferences[GLOBAL_FONT_ID_KEY] = fontId
+        }
+    }
+
+    // --- ASSISTANT IA (v9.4.25) ---
+    val assistantBubbleX: Flow<Float?> = context.dataStore.data.map { it[ASSISTANT_BUBBLE_X_KEY] }
+    val assistantBubbleY: Flow<Float?> = context.dataStore.data.map { it[ASSISTANT_BUBBLE_Y_KEY] }
+
+    suspend fun saveAssistantBubblePosition(x: Float, y: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[ASSISTANT_BUBBLE_X_KEY] = x
+            preferences[ASSISTANT_BUBBLE_Y_KEY] = y
         }
     }
 

@@ -1,5 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { GoogleGenAI } from "@google/genai";
+import { db } from "./admin";
 
 /**
  * PHOEN-X Intelligence Layer - AI Module
@@ -268,4 +269,48 @@ export const generateGlobalIntro = onCall({
 
     const content = await generateWithGemini(prompt);
     return { content: content || "" };
+});
+
+// 22. Assistant IA (v9.4.25)
+export const askAssistant = onCall({
+    secrets: ["GEMINI_API_KEY"]
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
+    const { question, userName } = request.data;
+    if (!question) throw new HttpsError("invalid-argument", "Question manquante");
+
+    // 1. Récupération STRICTE de la base de connaissance (Point 2.2 & Point 3 v9.4.25)
+    // Sécurité : Cette fonction ne consulte AUCUNE donnée utilisateur (entries, persons, etc.)
+    const kbSnapshot = await db.collection("assistantKnowledgeBase").get();
+    const kbContent = kbSnapshot.docs.map(doc => `[Sujet: ${doc.id}]\n${doc.data().content}`).join("\n\n");
+
+    const systemPrompt = `Tu es l'Assistant de PHOEN-X. Ton rôle est d'aider l'utilisateur à naviguer et à utiliser l'application avec bienveillance et clarté.
+
+    Ton ton est chaleureux, sobre et rassurant. Évite les formulations trop lyriques ou les métaphores complexes. La chaleur doit se ressentir dans ton attention et ton respect pour l'utilisateur, pas dans un style d'écriture chargé.
+
+    PRIORITÉ AUX ÉTAPES CONCRÈTES :
+    - Quand on te demande comment faire quelque chose, donne d'abord le CHEMIN PRATIQUE (quel écran, quel bouton, dans quel ordre).
+    - Sois précis sur les manipulations à effectuer dans l'interface.
+    - Tu peux ajouter un mot doux ou rassurant autour de ces étapes, mais ne les remplace jamais par une description générale.
+
+    GESTION DE L'AMBIGUÏTÉ :
+    - Si une question peut correspondre à plusieurs fonctionnalités différentes, essaie d'interpréter l'intention la plus probable.
+    - Si un doute persiste, propose explicitement 2 ou 3 choix clairs. Format type : "Souhaitez-vous savoir comment [Option A], ou plutôt comment [Option B] ?"
+
+    RÈGLES STRICTES :
+    - Utilise le prénom (${userName || "Utilisateur"}) de façon naturelle.
+    - RÈGLE DE CONFIDENTIALITÉ ABSOLUE : Tu ne réponds JAMAIS à une question portant sur le contenu personnel (souvenirs, personnes de l'Arbre, destinataires). Tu ne connais rien de la vie privée de l'utilisateur.
+    - Si on te pose une question sur son contenu personnel, refuse poliment et redirige vers l'aide au fonctionnement de l'app.
+    - Réponds UNIQUEMENT à partir de la BASE DE CONNAISSANCE fournie ci-dessous.
+    - Si l'information est absente, dis-le simplement et chaleureusement sans rien inventer.
+
+    BASE DE CONNAISSANCE :
+    ${kbContent}`;
+
+    const prompt = `${systemPrompt}\n\nQuestion : ${question}`;
+
+    const answer = await generateWithGemini(prompt);
+    return { answer: answer || "Désolé, je ne parviens pas à répondre pour le moment." };
 });
