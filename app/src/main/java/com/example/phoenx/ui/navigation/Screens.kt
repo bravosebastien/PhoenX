@@ -31,6 +31,8 @@ sealed class Screen(val route: String) {
     
     object Home : Screen("home")
     
+    object StepByStepCapture : Screen("capture/step_by_step") // v9.4.26
+
     object Capture : Screen("capture/{type}?prompt={prompt}&pactId={pactId}&pendingQuestionId={pendingQuestionId}&lat={lat}&lng={lng}&locationName={locationName}&locationId={locationId}&parentEntryId={parentEntryId}") {
         fun createRoute(
             type: String, 

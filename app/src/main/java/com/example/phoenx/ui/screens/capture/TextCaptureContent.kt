@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.theme.*
@@ -53,10 +54,10 @@ fun TextCaptureContent(
     isComplement: Boolean = false,
     initialType: String = "TEXT", // v8.4
     // Personnes citées (v8.8)
-    selectedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
-    suggestedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
+    selectedPersons: List<SimplifiedPerson> = emptyList(),
+    suggestedPersons: List<SimplifiedPerson> = emptyList(),
     onSearchPersons: (String) -> Unit = {},
-    onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
+    onSelectPerson: (SimplifiedPerson) -> Unit = {},
     onSelectMe: () -> Unit = {}, // v9.0
     onCreatePerson: (String, String?, String?, String?, String?, android.net.Uri?, String) -> Unit = { _, _, _, _, _, _, _ -> },
     onRemovePerson: (String) -> Unit = {},

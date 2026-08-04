@@ -6,6 +6,7 @@ import com.example.phoenx.data.ai.AIManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.model.PresentationVideo
+import com.example.phoenx.data.preferences.PreferenceManager
 import com.example.phoenx.domain.usecase.ActivationProtocolManager
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
@@ -16,9 +17,11 @@ import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -33,11 +36,21 @@ class HomeViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val aiManager: AIManager,
     private val protocolManager: ActivationProtocolManager,
-    private val offlineEntryDao: OfflineEntryDao
+    private val offlineEntryDao: OfflineEntryDao,
+    private val preferenceManager: PreferenceManager // v9.4.26
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState
+
+    val hasSeenStepByStepNudge: StateFlow<Boolean> = preferenceManager.hasSeenStepByStepNudge
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun markStepByStepNudgeSeen() {
+        viewModelScope.launch {
+            preferenceManager.setStepByStepNudgeSeen()
+        }
+    }
 
     private val _daysSincePresence = MutableStateFlow(0)
     val daysSincePresence: StateFlow<Int> = _daysSincePresence.asStateFlow()

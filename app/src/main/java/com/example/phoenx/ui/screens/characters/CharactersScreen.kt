@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.components.CameoPortrait
 import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.theme.*
@@ -33,7 +34,7 @@ fun CharactersScreen(
     onEditCharacter: (String) -> Unit,
     onAddCharacter: () -> Unit,
     selectionMode: Boolean = false,
-    onPersonSelected: ((com.example.phoenx.data.local.PersonEntity) -> Unit)? = null,
+    onPersonSelected: ((SimplifiedPerson) -> Unit)? = null,
     viewModel: CharactersViewModel = hiltViewModel(),
     themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
@@ -138,8 +139,8 @@ fun CharacterItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             CameoPortrait(
-                imagePath = character.person.imagePath,
-                firstName = character.person.firstName,
+                imagePath = character.person.photoUrl,
+                firstName = character.person.name,
                 size = 48.dp
             )
             
@@ -147,7 +148,7 @@ fun CharacterItem(
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = character.person.firstName + (character.person.lastName?.let { " $it" } ?: ""),
+                    text = character.person.name,
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor
                 )

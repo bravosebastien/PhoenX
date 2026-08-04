@@ -93,6 +93,7 @@ fun HomeScreen(
     onNavigateToBookEditor: () -> Unit,
     onNavigateToGenealogy: () -> Unit,
     onNavigateToDetective: () -> Unit,
+    onNavigateToStepByStep: () -> Unit, // v9.4.26
     onNavigateToNotificationContacts: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
     onNavigateToCube: (String) -> Unit,
@@ -115,6 +116,7 @@ fun HomeScreen(
     val isCreator by mainViewModel.isCreator.collectAsState()
     val myRoles by mainViewModel.myRoles.collectAsState()
     val currentPerspective by mainViewModel.currentPerspective.collectAsState()
+    val hasSeenStepByStepNudge by viewModel.hasSeenStepByStepNudge.collectAsState()
     
     // v8.9.0 : Thème Global
     val theme = LocalAppTheme.current
@@ -125,6 +127,7 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
 
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showStepByStepNudge by remember { mutableStateOf(false) } // v9.4.26
     var selectedPresentationVideo by remember { mutableStateOf<PresentationVideo?>(null) }
 
     if (showLogoutDialog) {
@@ -145,6 +148,27 @@ fun HomeScreen(
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
                     Text("Annuler", color = theme.contentColor)
+                }
+            }
+        )
+    }
+
+    if (showStepByStepNudge) {
+        AlertDialog(
+            onDismissRequest = { 
+                showStepByStepNudge = false
+                viewModel.markStepByStepNudgeSeen()
+            },
+            containerColor = theme.backgroundColor,
+            title = { Text("Nouvel outil", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Vous pouvez aussi créer votre souvenir étape par étape — appuyez sur la petite flèche pour choisir.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showStepByStepNudge = false
+                    viewModel.markStepByStepNudgeSeen()
+                    onNavigateToCapture(Screen.Capture.TYPE_TEXT, null)
+                }) {
+                    Text("Compris", color = accent, fontWeight = FontWeight.Bold)
                 }
             }
         )
@@ -303,25 +327,68 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 4.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Button(
-                            onClick = { onNavigateToCapture(Screen.Capture.TYPE_TEXT, null) },
-                            modifier = Modifier.weight(1.3f).height(56.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = accent),
-                            shape = RoundedCornerShape(14.dp),
-                            contentPadding = PaddingValues(0.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Surface(
-                                    modifier = Modifier.size(20.dp),
-                                    shape = CircleShape,
-                                    color = Color.Black.copy(alpha = 0.25f)
-                                ) {
-                                    Box(contentAlignment = Alignment.Center) {
-                                        Text("+", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        var showModeMenu by remember { mutableStateOf(false) }
+
+                        Box(modifier = Modifier.weight(1.3f)) {
+                            Button(
+                                onClick = { 
+                                    if (!hasSeenStepByStepNudge) {
+                                        showStepByStepNudge = true
+                                    } else {
+                                        onNavigateToCapture(Screen.Capture.TYPE_TEXT, null)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = accent),
+                                shape = RoundedCornerShape(14.dp),
+                                contentPadding = PaddingValues(0.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 4.dp)) {
+                                    Surface(
+                                        modifier = Modifier.size(20.dp),
+                                        shape = CircleShape,
+                                        color = Color.Black.copy(alpha = 0.25f)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Text("+", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Déposer", color = theme.backgroundColor, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold))
+                                    
+                                    // Petit bouton pour menu (v9.4.26)
+                                    IconButton(
+                                        onClick = { showModeMenu = true },
+                                        modifier = Modifier.size(32.dp)
+                                    ) {
+                                        Icon(Icons.Outlined.ArrowDropDown, null, tint = theme.backgroundColor.copy(alpha = 0.6f))
                                     }
                                 }
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Déposer", color = theme.backgroundColor, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold))
+                            }
+
+                            DropdownMenu(
+                                expanded = showModeMenu,
+                                onDismissRequest = { showModeMenu = false },
+                                containerColor = theme.backgroundColor
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("L'Atelier (Rapide)", color = theme.contentColor) },
+                                    leadingIcon = { Icon(Icons.Outlined.FlashOn, null, tint = accent) },
+                                    onClick = {
+                                        showModeMenu = false
+                                        viewModel.markStepByStepNudgeSeen()
+                                        onNavigateToCapture(Screen.Capture.TYPE_TEXT, null)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Étape par étape", color = theme.contentColor) },
+                                    leadingIcon = { Icon(Icons.Outlined.List, null, tint = accent) },
+                                    onClick = {
+                                        showModeMenu = false
+                                        viewModel.markStepByStepNudgeSeen()
+                                        onNavigateToStepByStep()
+                                    }
+                                )
                             }
                         }
 

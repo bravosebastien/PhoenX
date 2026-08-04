@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.phoenx.data.local.PersonEntity
+import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.theme.*
 import java.io.File
 import java.io.FileOutputStream
@@ -45,10 +45,10 @@ import java.util.UUID
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PersonSelector(
-    selectedPersons: List<PersonEntity>,
-    suggestedPersons: List<PersonEntity>,
+    selectedPersons: List<SimplifiedPerson>,
+    suggestedPersons: List<SimplifiedPerson>,
     onSearch: (String) -> Unit,
-    onSelect: (PersonEntity) -> Unit,
+    onSelect: (SimplifiedPerson) -> Unit,
     onSelectMe: () -> Unit = {},
     onCreate: (firstName: String, lastName: String?, relation: String?, distType: String?, distValue: String?, imageUri: Uri?, characterType: String) -> Unit,
     onRemove: (String) -> Unit,
@@ -113,12 +113,12 @@ fun PersonSelector(
                 InputChip(
                     selected = true,
                     onClick = { if (enabled) onRemove(person.id) },
-                    label = { Text(person.firstName) },
+                    label = { Text(person.name) },
                     enabled = enabled,
                     leadingIcon = {
                         CameoPortrait(
-                            imagePath = person.imagePath,
-                            firstName = person.firstName,
+                            imagePath = person.photoUrl,
+                            firstName = person.name,
                             size = 20.dp
                         )
                     },
@@ -147,7 +147,7 @@ fun PersonSelector(
                 trailingIcon = {
                     if (query.isNotBlank()) {
                         IconButton(onClick = {
-                            val existing = suggestedPersons.find { it.firstName.equals(query, ignoreCase = true) }
+                            val existing = suggestedPersons.find { it.name.equals(query, ignoreCase = true) }
                             if (existing != null) {
                                 duplicateNameDialog = query
                             } else {
@@ -182,12 +182,12 @@ fun PersonSelector(
                 Column {
                     suggestedPersons.forEach { person ->
                         ListItem(
-                            headlineContent = { Text(person.firstName + (person.lastName?.let { " $it" } ?: ""), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                            headlineContent = { Text(person.name, color = theme.contentColor, fontWeight = FontWeight.Bold) },
                             supportingContent = { Text(person.relationship ?: "Proche", color = theme.contentColor.copy(alpha = 0.6f)) },
                             leadingContent = {
                                 CameoPortrait(
-                                    imagePath = person.imagePath,
-                                    firstName = person.firstName,
+                                    imagePath = person.photoUrl,
+                                    firstName = person.name,
                                     size = 32.dp
                                 )
                             },
@@ -234,7 +234,7 @@ fun PersonSelector(
             },
             dismissButton = {
                 TextButton(onClick = { 
-                    val p = suggestedPersons.first { it.firstName.equals(duplicateNameDialog, ignoreCase = true) }
+                    val p = suggestedPersons.first { it.name.equals(duplicateNameDialog, ignoreCase = true) }
                     onSelect(p)
                     duplicateNameDialog = null
                     query = ""

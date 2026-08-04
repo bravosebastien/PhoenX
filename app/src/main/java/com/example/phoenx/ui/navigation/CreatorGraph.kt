@@ -18,7 +18,9 @@ import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.screens.book.BookEditorScreen
 import com.example.phoenx.ui.screens.book.BookReaderFlowScreen
 import com.example.phoenx.ui.screens.capture.CaptureScreen
+import com.example.phoenx.ui.screens.capture.StepByStepCaptureScreen
 import com.example.phoenx.ui.screens.characters.CharactersScreen
+import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.screens.characters.CharacterEditScreen
 import com.example.phoenx.ui.screens.detective.DetectiveCreateScreen
 import com.example.phoenx.ui.screens.detective.DetectiveHomeScreen
@@ -146,6 +148,7 @@ fun NavGraphBuilder.creatorGraph(
             onNavigateToBookEditor = { navController.navigate("book_editor") },
             onNavigateToGenealogy = { navController.navigate(Screen.Genealogy.createRoute()) },
             onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
+            onNavigateToStepByStep = { navController.navigate(Screen.StepByStepCapture.route) }, // v9.4.26
             onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
             onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
                 onNavigateToCube = { id -> 
@@ -230,7 +233,7 @@ fun NavGraphBuilder.creatorGraph(
         // ÉCOUTE DU RETOUR DE SÉLECTION DE PERSONNAGE (v9.2.3)
         val selectedPerson by navController.currentBackStackEntry
             ?.savedStateHandle
-            ?.getStateFlow<com.example.phoenx.data.local.PersonEntity?>("selected_person", null)
+            ?.getStateFlow<SimplifiedPerson?>("selected_person", null)
             ?.collectAsState() ?: remember { mutableStateOf(null) }
 
         val viewModel: com.example.phoenx.ui.screens.capture.CaptureViewModel = androidx.hilt.navigation.compose.hiltViewModel()
@@ -238,7 +241,7 @@ fun NavGraphBuilder.creatorGraph(
         LaunchedEffect(selectedPerson) {
             selectedPerson?.let { person ->
                 viewModel.selectPerson(person)
-                navController.currentBackStackEntry?.savedStateHandle?.set<com.example.phoenx.data.local.PersonEntity?>("selected_person", null)
+                navController.currentBackStackEntry?.savedStateHandle?.set<SimplifiedPerson?>("selected_person", null)
             }
         }
     }
@@ -246,6 +249,12 @@ fun NavGraphBuilder.creatorGraph(
     composable(Screen.YoungSelfLetters.route) {
         YoungSelfLetterScreen(
             navController = navController,
+            onNavigateBack = { navController.popBackStack() }
+        )
+    }
+
+    composable(Screen.StepByStepCapture.route) { // v9.4.26
+        StepByStepCaptureScreen(
             onNavigateBack = { navController.popBackStack() }
         )
     }

@@ -7,17 +7,17 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.*
 import com.example.phoenx.data.ai.OnDeviceAIManager
 import com.example.phoenx.data.encryption.EncryptionManager
-import com.example.phoenx.data.local.OfflineEntry
-import com.example.phoenx.data.local.OfflineEntryDao
-import com.example.phoenx.data.local.PersonEntity
-import com.example.phoenx.data.local.RecipientEntity
+import com.example.phoenx.data.local.*
 import com.example.phoenx.data.sync.SyncWorker
+import com.example.phoenx.domain.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -54,8 +54,8 @@ class MemoryDetailViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
-    private val _suggestedPersons = MutableStateFlow<List<PersonEntity>>(emptyList())
-    val suggestedPersons: StateFlow<List<PersonEntity>> = _suggestedPersons.asStateFlow()
+    private val _suggestedPersons = MutableStateFlow<List<SimplifiedPerson>>(emptyList())
+    val suggestedPersons: StateFlow<List<SimplifiedPerson>> = _suggestedPersons.asStateFlow()
 
     val recipients: StateFlow<List<RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -89,22 +89,39 @@ class MemoryDetailViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
-     * Source de vérité unique pour les personnes citées (v9.4.19)
+     * Source de vérité unique pour les personnes citées (v9.4.26 : Unifiée)
      * Réagit aux changements de personIds dans l'entrée.
      */
-    val selectedPersons: StateFlow<List<PersonEntity>> = entry
-        .filterNotNull()
-        .map { it.personIds }
-        .distinctUntilChanged()
-        .flatMapLatest { idsCsv ->
-            val ids = idsCsv.split(",")
-                .filter { it.isNotBlank() }
-                .map { it.trim() }
-                .distinct()
-            if (ids.isEmpty()) flowOf(emptyList())
-            else flow { emit(offlineEntryDao.getPersonsByIds(ids)) }
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val selectedPersons: StateFlow<List<SimplifiedPerson>> = combine(
+        entry.filterNotNull().map { it.personIds }.distinctUntilChanged(),
+        offlineEntryDao.getAllPersons(),
+        offlineEntryDao.getAllRecipients(),
+        offlineEntryDao.getAllWitnesses(),
+        offlineEntryDao.getAllDepositaries()
+    ) { idsCsv, persons, recipients, witnesses, depositaries ->
+        val ids = idsCsv.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct()
+        if (ids.isEmpty()) return@combine emptyList()
+
+        val allSimplified = persons.toSimplified() + 
+                        recipients.toSimplifiedRecipient() + 
+                        witnesses.toSimplifiedWitness() + 
+                        depositaries.toSimplifiedDepositary()
+        
+        // On inclut aussi "Moi" si présent dans les IDs
+        val user = auth.currentUser
+        val me = if (user != null && ids.contains("ME_${user.uid}")) {
+            listOf(SimplifiedPerson(
+                id = "ME_${user.uid}",
+                name = user.displayName ?: "Moi",
+                photoUrl = user.photoUrl?.toString(),
+                sourceType = "auteur",
+                relationship = "Auteur",
+                isMe = true
+            ))
+        } else emptyList()
+
+        (allSimplified + me).filter { ids.contains(it.id) }.distinctBy { it.id }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val complements: StateFlow<List<OfflineEntry>> = _entryId
         .filterNotNull()
@@ -282,19 +299,37 @@ class MemoryDetailViewModel @Inject constructor(
         updateRecipients(newList)
     }
 
-    // --- GESTION DES PERSONNES (v9.2.2) ---
+    // --- GESTION DES PERSONNES (v9.4.26 : Unifiée & Stabilisée) ---
+
+    private var searchJob: Job? = null
 
     fun searchPersons(query: String) {
+        searchJob?.cancel()
         if (query.isBlank()) {
             _suggestedPersons.value = emptyList()
             return
         }
-        viewModelScope.launch {
-            _suggestedPersons.value = offlineEntryDao.searchPersonsByFirstName(query)
+        searchJob = viewModelScope.launch {
+            delay(300)
+            try {
+                val persons = offlineEntryDao.getAllPersons().first().toSimplified()
+                val recipientsList = offlineEntryDao.getAllRecipients().first().toSimplifiedRecipient()
+                val witnesses = offlineEntryDao.getAllWitnesses().first().toSimplifiedWitness()
+                val depositaries = offlineEntryDao.getAllDepositaries().first().toSimplifiedDepositary()
+
+                val allSimplified = persons + recipientsList + witnesses + depositaries
+                val filtered = allSimplified
+                    .filter { it.name.contains(query, ignoreCase = true) }
+                    .distinctBy { it.name.lowercase().trim() }
+                
+                _suggestedPersons.value = filtered
+            } catch (e: Exception) {
+                android.util.Log.e("MemoryDetailVM", "Erreur recherche personnes", e)
+            }
         }
     }
 
-    fun selectPerson(person: PersonEntity) {
+    fun selectPerson(person: SimplifiedPerson) {
         val currentIds = entry.value?.personIds?.split(",")
             ?.filter { it.isNotBlank() }?.map { it.trim() } ?: emptyList()
         
@@ -362,7 +397,16 @@ class MemoryDetailViewModel @Inject constructor(
                     characterType = characterType
                 )
                 offlineEntryDao.insertPerson(newPerson)
-                selectPerson(newPerson)
+                
+                // Point 1 : Conversion pour le sélecteur unifié
+                val simplified = SimplifiedPerson(
+                    id = newPerson.id,
+                    name = newPerson.firstName + (newPerson.lastName?.let { l -> " $l" } ?: ""),
+                    photoUrl = newPerson.imagePath,
+                    sourceType = "arbre_livre",
+                    relationship = newPerson.relationship
+                )
+                selectPerson(simplified)
             } catch (_: Exception) { }
         }
     }

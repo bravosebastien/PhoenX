@@ -41,6 +41,9 @@ class PreferenceManager @Inject constructor(
     private val ASSISTANT_BUBBLE_X_KEY = androidx.datastore.preferences.core.floatPreferencesKey("assistant_bubble_x")
     private val ASSISTANT_BUBBLE_Y_KEY = androidx.datastore.preferences.core.floatPreferencesKey("assistant_bubble_y")
 
+    // v9.4.26 : Step-by-Step Nudge
+    private val HAS_SEEN_STEP_BY_STEP_NUDGE_KEY = booleanPreferencesKey("has_seen_step_by_step_nudge")
+
     fun isSyncMigrationV1Done(): Flow<Boolean> = context.dataStore.data
         .map { it[SYNC_MIGRATION_V1_DONE_KEY] ?: false }
 
@@ -196,6 +199,14 @@ class PreferenceManager @Inject constructor(
             preferences[ASSISTANT_BUBBLE_X_KEY] = x
             preferences[ASSISTANT_BUBBLE_Y_KEY] = y
         }
+    }
+
+    // --- CRÉATION ÉTAPE PAR ÉTAPE (v9.4.26) ---
+    val hasSeenStepByStepNudge: Flow<Boolean> = context.dataStore.data
+        .map { it[HAS_SEEN_STEP_BY_STEP_NUDGE_KEY] ?: false }
+
+    suspend fun setStepByStepNudgeSeen() {
+        context.dataStore.edit { it[HAS_SEEN_STEP_BY_STEP_NUDGE_KEY] = true }
     }
 
     // --- SYSTÈME D'ONBOARDING PAR PAGE (v9.2.2) ---

@@ -8,9 +8,8 @@ import com.example.phoenx.data.audio.PhoenXAudioRecorder
 import com.example.phoenx.data.audio.SpeechToTextManager
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.haptic.HapticManager
-import com.example.phoenx.data.local.OfflineEntry
-import com.example.phoenx.data.local.OfflineEntryDao
-import com.example.phoenx.data.local.RecipientEntity
+import com.example.phoenx.data.local.*
+import com.example.phoenx.domain.model.*
 import com.example.phoenx.domain.util.EnigmaUtils
 import com.example.phoenx.domain.util.AgeUtils
 import com.example.phoenx.ui.navigation.Screen
@@ -21,6 +20,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.util.*
@@ -58,12 +59,12 @@ class CaptureViewModel @Inject constructor(
     private val _recipients = MutableStateFlow<List<RecipientEntity>>(emptyList())
     val recipients: StateFlow<List<RecipientEntity>> = _recipients.asStateFlow()
 
-    // Personnes citées (v8.8)
-    private val _suggestedPersons = MutableStateFlow<List<com.example.phoenx.data.local.PersonEntity>>(emptyList())
-    val suggestedPersons: StateFlow<List<com.example.phoenx.data.local.PersonEntity>> = _suggestedPersons.asStateFlow()
+    // Personnes citées unifiées (v9.4.26)
+    private val _suggestedPersons = MutableStateFlow<List<SimplifiedPerson>>(emptyList())
+    val suggestedPersons: StateFlow<List<SimplifiedPerson>> = _suggestedPersons.asStateFlow()
 
-    private val _selectedPersons = MutableStateFlow<List<com.example.phoenx.data.local.PersonEntity>>(emptyList())
-    val selectedPersons: StateFlow<List<com.example.phoenx.data.local.PersonEntity>> = _selectedPersons.asStateFlow()
+    private val _selectedPersons = MutableStateFlow<List<SimplifiedPerson>>(emptyList())
+    val selectedPersons: StateFlow<List<SimplifiedPerson>> = _selectedPersons.asStateFlow()
 
     private val _selectedRecipientIds = MutableStateFlow<List<String>>(emptyList())
     val selectedRecipientIds: StateFlow<List<String>> = _selectedRecipientIds.asStateFlow()
@@ -164,15 +165,37 @@ class CaptureViewModel @Inject constructor(
         _transcript.value = text
     }
 
-    // --- GESTION DES PERSONNES (v8.8) ---
+    // --- GESTION DES PERSONNES UNIFIÉE (v9.4.26) ---
+
+    private var searchJob: Job? = null
 
     fun searchPersons(query: String) {
+        searchJob?.cancel() // Point 2 : Annulation de la recherche précédente
         if (query.isBlank()) {
             _suggestedPersons.value = emptyList()
             return
         }
-        viewModelScope.launch {
-            _suggestedPersons.value = offlineEntryDao.searchPersonsByFirstName(query)
+        searchJob = viewModelScope.launch {
+            delay(300) // Point 2 : Debounce pour stabiliser la saisie
+            
+            try {
+                // Point 1 : Combinaison des 4 tables via extensions (v9.4.26)
+                val persons = offlineEntryDao.getAllPersons().first().toSimplified()
+                val recipientsList = offlineEntryDao.getAllRecipients().first().toSimplifiedRecipient()
+                val witnesses = offlineEntryDao.getAllWitnesses().first().toSimplifiedWitness()
+                val depositaries = offlineEntryDao.getAllDepositaries().first().toSimplifiedDepositary()
+
+                val allSimplified = persons + recipientsList + witnesses + depositaries
+
+                // Déduplication & Filtrage
+                val filtered = allSimplified
+                    .filter { it.name.contains(query, ignoreCase = true) }
+                    .distinctBy { it.name.lowercase().trim() }
+                
+                _suggestedPersons.value = filtered
+            } catch (e: Exception) {
+                Log.e("CaptureVM", "Erreur recherche personnes", e)
+            }
         }
     }
 
@@ -183,25 +206,26 @@ class CaptureViewModel @Inject constructor(
         }
     }
 
-    fun selectPerson(person: com.example.phoenx.data.local.PersonEntity) {
+    fun selectPerson(person: SimplifiedPerson) {
         _selectedPersons.update { current ->
-            if (current.any { it.id == person.id }) current else current + person
+            if (current.any { it.id == person.id || it.name.lowercase() == person.name.lowercase() }) current 
+            else current + person
         }
         _suggestedPersons.value = emptyList()
     }
 
     fun selectMe() {
         val user = auth.currentUser ?: return
-        val me = com.example.phoenx.data.local.PersonEntity(
+        val me = SimplifiedPerson(
             id = "ME_${user.uid}",
-            firstName = "Moi",
-            lastName = null,
+            name = user.displayName ?: "Moi",
+            photoUrl = user.photoUrl?.toString(),
+            sourceType = "auteur",
             relationship = "Auteur",
-            distinctionType = "autre",
-            distinctionValue = "Moi-même"
+            isMe = true
         )
         _selectedPersons.update { current ->
-            if (current.any { it.id == me.id }) current else current + me
+            if (current.any { it.isMe }) current else current + me
         }
     }
 
@@ -253,7 +277,16 @@ class CaptureViewModel @Inject constructor(
                     characterType = characterType
                 )
                 offlineEntryDao.insertPerson(newPerson)
-                selectPerson(newPerson)
+                
+                // Point 1 : Conversion pour le sélecteur unifié
+                val simplified = SimplifiedPerson(
+                    id = newPerson.id,
+                    name = newPerson.firstName + (newPerson.lastName?.let { l -> " $l" } ?: ""),
+                    photoUrl = newPerson.imagePath,
+                    sourceType = "arbre_livre",
+                    relationship = newPerson.relationship
+                )
+                selectPerson(simplified)
 
                 // v8.9.9 : Déclenchement immédiat de la synchronisation pour la nouvelle personne
                 val constraints = Constraints.Builder()

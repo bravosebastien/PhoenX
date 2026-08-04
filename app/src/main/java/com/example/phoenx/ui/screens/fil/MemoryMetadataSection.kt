@@ -21,6 +21,7 @@ import androidx.navigation.NavController
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.domain.model.CompartmentIds
+import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.components.LienVivantBanner
 import com.example.phoenx.ui.components.PersonSelector

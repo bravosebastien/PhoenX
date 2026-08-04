@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
+import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.theme.*
 import java.io.File
@@ -53,10 +54,10 @@ fun PhotoCaptureContent(
     notifyByEmail: Boolean = false,
     onNotifyByEmailChange: ((Boolean) -> Unit)? = null,
     // Personnes citées (v8.8)
-    selectedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
-    suggestedPersons: List<com.example.phoenx.data.local.PersonEntity> = emptyList(),
+    selectedPersons: List<SimplifiedPerson> = emptyList(),
+    suggestedPersons: List<SimplifiedPerson> = emptyList(),
     onSearchPersons: (String) -> Unit = {},
-    onSelectPerson: (com.example.phoenx.data.local.PersonEntity) -> Unit = {},
+    onSelectPerson: (SimplifiedPerson) -> Unit = {},
     onSelectMe: () -> Unit = {}, // v9.0
     onCreatePerson: (String, String?, String?, String?, String?, android.net.Uri?, String) -> Unit = { _, _, _, _, _, _, _ -> },
     onRemovePerson: (String) -> Unit = {},
