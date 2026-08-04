@@ -32,6 +32,7 @@ import java.util.*
 @Composable
 fun StepByStepCaptureScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToMap: () -> Unit, // v9.4.26
     viewModel: StepByStepCaptureViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -116,7 +117,74 @@ fun StepByStepCaptureScreen(
                     theme = theme,
                     accent = accent
                 )
+                4 -> StepLieu(
+                    locationName = uiState.locationName,
+                    onChooseLocation = onNavigateToMap,
+                    onClearLocation = { viewModel.setLocation(null) },
+                    theme = theme,
+                    accent = accent
+                )
             }
+        }
+    }
+}
+
+@Composable
+fun StepLieu(
+    locationName: String?,
+    onChooseLocation: () -> Unit,
+    onClearLocation: () -> Unit,
+    theme: AppThemeState,
+    accent: Color
+) {
+    Text(
+        text = "LE LIEU",
+        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
+        color = accent
+    )
+    Text(
+        text = "Où ce souvenir s'est-il déroulé ? Tu peux l'épingler sur ta Mappemonde.",
+        style = MaterialTheme.typography.bodySmall,
+        color = theme.contentColor.copy(alpha = 0.5f),
+        textAlign = TextAlign.Center,
+        modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
+    )
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onChooseLocation() }
+            .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+        color = theme.contentColor.copy(alpha = 0.03f),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = if (locationName != null) Icons.Default.LocationOn else Icons.Default.AddLocation,
+                contentDescription = null,
+                tint = accent,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text = locationName ?: "Choisir un lieu sur la carte",
+                color = if (locationName != null) theme.contentColor else theme.contentColor.copy(alpha = 0.5f),
+                fontWeight = if (locationName != null) FontWeight.Bold else FontWeight.Normal,
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+
+    if (locationName != null) {
+        TextButton(
+            onClick = onClearLocation,
+            modifier = Modifier.padding(top = 16.dp)
+        ) {
+            Text("Retirer le lieu", color = Error.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall)
         }
     }
 }

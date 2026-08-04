@@ -76,6 +76,7 @@ fun GenealogyTreeScreen(
     var isTreeView by remember { mutableStateOf(true) }
 
     LaunchedEffect(targetCreatorId) {
+        android.util.Log.d("PhoenXBuild", "Version logicielle active : v9.4.26-DIAG (Build ID: ${System.currentTimeMillis()})")
         viewModel.loadTree(targetCreatorId)
     }
 

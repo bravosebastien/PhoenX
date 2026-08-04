@@ -13,6 +13,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.service.SilenceStatus
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.screens.book.BookEditorScreen
@@ -254,8 +255,27 @@ fun NavGraphBuilder.creatorGraph(
     }
 
     composable(Screen.StepByStepCapture.route) { // v9.4.26
+        val viewModel: com.example.phoenx.ui.screens.capture.StepByStepCaptureViewModel = hiltViewModel()
+        
+        // ÉCOUTE DU RETOUR DE LA MAPPEMONDE
+        val pickedLocationId by navController.currentBackStackEntry
+            ?.savedStateHandle
+            ?.getStateFlow<String?>("pickedLocationId", null)
+            ?.collectAsState() ?: remember { mutableStateOf(null) }
+
+        LaunchedEffect(pickedLocationId) {
+            pickedLocationId?.let { id ->
+                viewModel.setLocation(id)
+                navController.currentBackStackEntry?.savedStateHandle?.remove<String?>("pickedLocationId")
+            }
+        }
+
         StepByStepCaptureScreen(
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToMap = { 
+                navController.navigate(Screen.Map.createRoute(returnToEntryId = "step_by_step")) 
+            },
+            viewModel = viewModel
         )
     }
 
