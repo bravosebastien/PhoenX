@@ -54,7 +54,11 @@ fun MediaViewerScreen(
             .fillMaxSize()
             .background(Color.Black)
     ) {
+        android.util.Log.d("MediaViewerDiag", "État Entry: ${if (entry == null) "NULL" else "Présent (ID: ${entry!!.id}, Type: ${entry!!.entryType})"}")
+        
         if (entry != null) {
+            android.util.Log.d("MediaViewerDiag", "Détails Entry - LocalPath: ${entry!!.localMediaPath}, MediaUrl: ${entry!!.mediaUrl}")
+
             when (entry!!.entryType) {
                 "PHOTO", "GALLERY" -> {
                     ZoomableImage(
@@ -166,15 +170,38 @@ fun VideoPlayer(
     val exoPlayer = remember(resolvedUrl) {
         ExoPlayer.Builder(context).build().apply {
             val isLocal = localPath != null
+            android.util.Log.d("MediaViewerDiag", "Configuration Player - Local: $isLocal, Path: $localPath, Url: $mediaUrl")
+            
             val factory = if (isLocal) {
+                android.util.Log.d("MediaViewerDiag", "Utilisation DefaultDataSource (Fichier local)")
                 androidx.media3.datasource.DefaultDataSource.Factory(context)
             } else {
+                android.util.Log.d("MediaViewerDiag", "Utilisation EncryptedMediaDataSource (Distant/Chiffré)")
                 mediaManager.getEncryptedDataSourceFactory(explicitKey)
             }
             
-            val uri = if (resolvedUrl!!.startsWith("/")) resolvedUrl!!.toUri() else resolvedUrl!!.toUri()
+            val uri = resolvedUrl!!.toUri()
             val mediaSource = ProgressiveMediaSource.Factory(factory)
                 .createMediaSource(MediaItem.fromUri(uri))
+            
+            addListener(object : Player.Listener {
+                override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                    android.util.Log.e("MediaViewerDiag", "ERREUR ExoPlayer: ${error.message}", error)
+                    android.util.Log.e("MediaViewerDiag", "Cause: ${error.cause?.message}")
+                }
+                
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    val stateStr = when(playbackState) {
+                        Player.STATE_IDLE -> "IDLE"
+                        Player.STATE_BUFFERING -> "BUFFERING"
+                        Player.STATE_READY -> "READY"
+                        Player.STATE_ENDED -> "ENDED"
+                        else -> "UNKNOWN"
+                    }
+                    android.util.Log.d("MediaViewerDiag", "État Player: $stateStr")
+                }
+            })
+
             setMediaSource(mediaSource)
             prepare()
             playWhenReady = true
@@ -209,10 +236,13 @@ fun AudioPlayer(
     var resolvedUrl by remember(mediaUrl, localPath) { mutableStateOf<String?>(null) }
 
     LaunchedEffect(mediaUrl, localPath) {
+        android.util.Log.d("MediaViewerDiag", "AudioPlayer - Début résolution URL pour MediaUrl: $mediaUrl, LocalPath: $localPath")
         resolvedUrl = localPath ?: mediaManager.getSafeUrl(mediaUrl)
+        android.util.Log.d("MediaViewerDiag", "AudioPlayer - URL résolue: $resolvedUrl")
     }
 
     if (resolvedUrl == null) {
+        android.util.Log.d("MediaViewerDiag", "AudioPlayer - Affichage indicateur (resolvedUrl est NULL)")
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = AccentPrimary)
         }
@@ -222,15 +252,38 @@ fun AudioPlayer(
     val exoPlayer = remember(resolvedUrl) {
         ExoPlayer.Builder(context).build().apply {
             val isLocal = localPath != null
+            android.util.Log.d("MediaViewerDiag", "Configuration AudioPlayer - Local: $isLocal, Path: $localPath, Url: $mediaUrl")
+
             val factory = if (isLocal) {
+                android.util.Log.d("MediaViewerDiag", "Utilisation DefaultDataSource (Fichier local)")
                 androidx.media3.datasource.DefaultDataSource.Factory(context)
             } else {
+                android.util.Log.d("MediaViewerDiag", "Utilisation EncryptedMediaDataSource (Distant/Chiffré)")
                 mediaManager.getEncryptedDataSourceFactory(explicitKey)
             }
 
-            val uri = if (resolvedUrl!!.startsWith("/")) resolvedUrl!!.toUri() else resolvedUrl!!.toUri()
+            val uri = resolvedUrl!!.toUri()
             val mediaSource = ProgressiveMediaSource.Factory(factory)
                 .createMediaSource(MediaItem.fromUri(uri))
+
+            addListener(object : Player.Listener {
+                override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                    android.util.Log.e("MediaViewerDiag", "ERREUR Audio ExoPlayer: ${error.message}", error)
+                    android.util.Log.e("MediaViewerDiag", "Cause: ${error.cause?.message}")
+                }
+                
+                override fun onPlaybackStateChanged(playbackState: Int) {
+                    val stateStr = when(playbackState) {
+                        Player.STATE_IDLE -> "IDLE"
+                        Player.STATE_BUFFERING -> "BUFFERING"
+                        Player.STATE_READY -> "READY"
+                        Player.STATE_ENDED -> "ENDED"
+                        else -> "UNKNOWN"
+                    }
+                    android.util.Log.d("MediaViewerDiag", "État Audio Player: $stateStr")
+                }
+            })
+
             setMediaSource(mediaSource)
             prepare()
         }
