@@ -54,13 +54,14 @@ fun MediaViewerScreen(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        android.util.Log.d("MediaViewerDiag", "État Entry: ${if (entry == null) "NULL" else "Présent (ID: ${entry!!.id}, Type: ${entry!!.entryType})"}")
+        android.util.Log.d("MediaSupportDiag", "État Entry: ${if (entry == null) "NULL" else "Présent (ID: ${entry!!.id}, Type: ${entry!!.type})"}")
         
         if (entry != null) {
-            android.util.Log.d("MediaViewerDiag", "Détails Entry - LocalPath: ${entry!!.localMediaPath}, MediaUrl: ${entry!!.mediaUrl}")
+            android.util.Log.d("MediaSupportDiag", "Détails Entry - LocalPath: ${entry!!.localMediaPath}, MediaUrl: ${entry!!.mediaUrl}")
 
-            when (entry!!.entryType) {
-                "PHOTO", "GALLERY" -> {
+            when (entry!!.type) {
+                com.example.phoenx.domain.model.EntryType.PHOTO -> {
+                    android.util.Log.d("MediaSupportDiag", "Branche PHOTO choisie")
                     ZoomableImage(
                         mediaUrl = entry!!.mediaUrl,
                         localPath = entry!!.localMediaPath,
@@ -68,7 +69,8 @@ fun MediaViewerScreen(
                         mediaManager = viewModel.mediaManager
                     )
                 }
-                "VIDEO" -> {
+                com.example.phoenx.domain.model.EntryType.VIDEO -> {
+                    android.util.Log.d("MediaSupportDiag", "Branche VIDEO choisie")
                     VideoPlayer(
                         mediaUrl = entry!!.mediaUrl,
                         localPath = entry!!.localMediaPath,
@@ -76,7 +78,9 @@ fun MediaViewerScreen(
                         mediaManager = viewModel.mediaManager
                     )
                 }
-                "AUDIO" -> {
+                com.example.phoenx.domain.model.EntryType.AUDIO,
+                com.example.phoenx.domain.model.EntryType.EMOTION -> {
+                    android.util.Log.d("MediaSupportDiag", "Branche AUDIO/EMOTION choisie")
                     AudioPlayer(
                         mediaUrl = entry!!.mediaUrl,
                         localPath = entry!!.localMediaPath,
@@ -86,12 +90,14 @@ fun MediaViewerScreen(
                     )
                 }
                 else -> {
+                    android.util.Log.e("MediaSupportDiag", "Branche ELSE atteinte. Type inconnu: ${entry!!.type}")
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Média non supporté", color = Color.White)
+                        Text("Média non supporté (${entry!!.type})", color = Color.White)
                     }
                 }
             }
         } else {
+            android.util.Log.d("MediaSupportDiag", "Entry est NULL, affichage loader")
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = AccentPrimary)
         }
 
