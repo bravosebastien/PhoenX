@@ -21,9 +21,6 @@ object PhoenXAnimations {
     val RitualDepositEnter = fadeIn(tween(800)) + slideInVertically(tween(800)) { it / 4 }
     val RitualDepositExit = fadeOut(tween(600)) + slideOutVertically(tween(600)) { -it / 4 }
 
-    // Animation de pulsation pour la "matière" (Mode Nuit / 3h du matin)
-    val NightPulse = tween<Float>(durationMillis = 2000, easing = FastOutSlowInEasing)
-
     // Animation PressDown pour l'effet de poids/matière
     @Composable
     fun pressScale(pressed: Boolean): Float {

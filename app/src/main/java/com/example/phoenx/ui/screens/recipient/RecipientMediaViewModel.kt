@@ -355,8 +355,8 @@ class RecipientMediaViewModel @Inject constructor(
                 }
 
                 _discothequeEntries.value = decodedParents.filter { parent ->
-                    val mainMatches = parent.type == EntryType.AUDIO || parent.type == EntryType.NIGHT_CAPTURE || parent.type == EntryType.EMOTION
-                    val compMatches = complements.any { it.parentEntryId == parent.id && (it.entryType == "AUDIO" || it.entryType == "NIGHT" || it.entryType == "EMOTION") }
+                    val mainMatches = parent.type == EntryType.AUDIO || parent.type == EntryType.EMOTION
+                    val compMatches = complements.any { it.parentEntryId == parent.id && (it.entryType == "AUDIO" || it.entryType == "EMOTION") }
                     mainMatches || compMatches
                 }
 
@@ -475,7 +475,6 @@ class RecipientMediaViewModel @Inject constructor(
             "AUDIO" -> EntryType.AUDIO
             "PHOTO" -> EntryType.PHOTO
             "VIDEO" -> EntryType.VIDEO
-            "NIGHT" -> EntryType.NIGHT_CAPTURE
             else -> try { EntryType.valueOf(entryType) } catch(_: Exception) { EntryType.THOUGHT }
         }
 

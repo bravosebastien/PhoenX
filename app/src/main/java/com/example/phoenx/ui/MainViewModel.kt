@@ -519,7 +519,6 @@ class MainViewModel @Inject constructor(
             cmd.contains("voix") || cmd.contains("enregistrer") -> navigate("capture/AUDIO")
             cmd.contains("photo") || cmd.contains("image") -> navigate("capture/PHOTO")
             cmd.contains("fil") || cmd.contains("timeline") || cmd.contains("historique") -> navigate("fil")
-            cmd.contains("nuit") || cmd.contains("sommeil") -> navigate("capture/NIGHT")
             cmd.contains("accueil") || cmd.contains("maison") -> navigate("home")
             cmd.contains("ia") || cmd.contains("essence") || cmd.contains("portrait") -> navigate("essence")
             cmd.contains("meilleurs") || cmd.contains("favoris") -> navigate("favorites")

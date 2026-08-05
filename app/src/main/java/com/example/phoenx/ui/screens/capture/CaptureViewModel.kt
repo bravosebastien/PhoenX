@@ -101,15 +101,24 @@ class CaptureViewModel @Inject constructor(
         }
     }
 
-    fun setPreselectedLocation(locationId: String?) {
+    fun setPreselectedLocation(locationId: String?, name: String? = null) {
         if (locationId == null) return
+        if (name != null) {
+            _preselectedLocationName.value = name
+        }
+        
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
                 val doc = db.collection("users").document(userId)
                     .collection("locations").document(locationId).get().await()
-                _preselectedLocationName.value = doc.getString("placeName")
-            } catch (e: Exception) {}
+                val fetchedName = doc.getString("placeName")
+                if (fetchedName != null) {
+                    _preselectedLocationName.value = fetchedName
+                }
+            } catch (e: Exception) {
+                Log.w("CaptureVM", "Offline: using preselected location name")
+            }
         }
     }
 
@@ -341,12 +350,12 @@ class CaptureViewModel @Inject constructor(
 
     fun saveEntry(
         content: String?,
-        mediaFile: File?,
-        type: String,
-        category: String,
-        visibility: String,
+        mediaFile: File? = null,
+        type: String = Screen.Capture.TYPE_TEXT,
+        category: String = "Sagesse",
+        visibility: String = "RESTRICTED",
         recipientIds: List<String> = emptyList(),
-        silentAttribution: Boolean = false, // v8.9.8
+        silentAttribution: Boolean = false,
         isYoungSelfLetter: Boolean = false,
         targetAge: Int? = null,
         pendingQuestionId: String? = null,
@@ -362,77 +371,35 @@ class CaptureViewModel @Inject constructor(
         locationId: String? = null,
         parentEntryId: String? = null,
         includeInBook: Boolean = true,
-        soulTone: String? = null
+        soulTone: String? = null,
+        onSuccess: (String) -> Unit = {} // v9.4.26
     ) {
-        Toast.makeText(context, "saveEntry() appelée !", Toast.LENGTH_LONG).show()
-        Log.d("SaveEntryDebug", "saveEntry() appelée, uid actuel = ${auth.currentUser?.uid}")
-
         val user = auth.currentUser ?: return
-        Log.d("SaveEntryDebug", "Utilisateur confirmé, entrée dans viewModelScope.launch")
-
-        val rawText = content ?: if (type == Screen.Capture.TYPE_AUDIO) "Message vocal" else if (type == Screen.Capture.TYPE_NIGHT) "Capture nocturne à compléter" else "Photo souvenir"
         _uiState.value = CaptureUiState.Loading
 
         viewModelScope.launch {
             try {
-                Log.d("SaveEntryDebug", "Début du bloc try, lancement de l'analyse IA locale")
+                val rawText = content ?: "Nouveau souvenir"
                 
-                // 1. ANALYSE IA LOCALE OU LÉGENDE MANUELLE (Signature 7.7)
-                // Si c'est un complément et que l'utilisateur a saisi du texte, on le garde tel quel
-                // comme "âme" du média pour l'IA Narrative.
-                val manualSoul = if (parentEntryId != null && !content.isNullOrBlank()) content else null
+                // 1. ANALYSE IA LOCALE SIMPLIFIÉE POUR LE SQUELETTE
+                val analysis = LocalAnalysis(
+                    summary = rawText, 
+                    tags = emptyList(),
+                    emotionalTone = "Neutral", 
+                    lifePeriod = "Current"
+                )
                 
-        val analysis = if (manualSoul != null) {
-                    LocalAnalysis(
-                        summary = manualSoul, 
-                        tags = emptyList(),
-                        emotionalTone = "Manual", 
-                        lifePeriod = "Current"
-                    )
-                } else {
-                    onDeviceAIManager.analyzeLocally(rawText)
-                }
-                
-                Log.d("SaveEntryDebug", "Analyse/Légende terminée : ${analysis.summary}")
-
                 // 2. CALCUL DE L'ÂGE
                 val userDoc = db.collection("users").document(user.uid).get().await()
-                Log.d("SaveEntryDebug", "Document utilisateur récupéré, dateOfBirth = ${userDoc.getTimestamp("dateOfBirth")}")
                 val birthDate = userDoc.getTimestamp("dateOfBirth")?.toDate() ?: Date()
                 val age = AgeUtils.calculateAge(birthDate)
                 
-                // 3. CHIFFREMENT E2EE (Signature 7.0 - Clé de session réelle)
+                // 3. CHIFFREMENT
                 val encrypted = encryptionManager.encryptText(rawText)
-                Log.d("SaveEntryDebug", "Chiffrement terminé, taille = ${encrypted.size} octets")
                 
-                // 4. GESTION DU MÉDIA LOCAL (Signature 7.3)
-                var finalLocalPath: String? = null
-                if (mediaFile != null && mediaFile.exists()) {
-                    try {
-                        val mediaDir = File(context.filesDir, "media")
-                        if (!mediaDir.exists()) mediaDir.mkdirs()
-                        
-                        val destFile = File(mediaDir, "PHX_${UUID.randomUUID()}_${mediaFile.name}")
-                        mediaFile.inputStream().use { input ->
-                            destFile.outputStream().use { output ->
-                                input.copyTo(output)
-                            }
-                        }
-                        finalLocalPath = destFile.absolutePath
-                        Log.d("SaveEntryDebug", "Média copié vers : $finalLocalPath")
-                    } catch (e: Exception) {
-                        Log.e("SaveEntryDebug", "Erreur lors de la copie du média", e)
-                    }
-                }
-
-                // 5. SAUVEGARDE HORS-LIGNE
+                // 4. SAUVEGARDE HORS-LIGNE IMMÉDIATE
                 val entryId = UUID.randomUUID().toString()
                 
-                // v9.2 : On stocke les VRAIS UIDs pour la sécurité Firestore
-                val persistentRecipientIds = recipientIds.map { docId ->
-                    _recipients.value.find { it.id == docId }?.linkedUid ?: docId
-                }
-
                 val entry = OfflineEntry(
                     id = entryId,
                     creatorUid = user.uid,
@@ -441,63 +408,25 @@ class CaptureViewModel @Inject constructor(
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",
                     emotionalCategory = category,
                     visibility = visibility,
-                    recipientIds = persistentRecipientIds.joinToString(","),
-                    silentAttribution = silentAttribution, // v8.9.8
-                    personIds = selectedPersons.value.joinToString(",") { it.id }, // v8.8
-                    isYoungSelfLetter = isYoungSelfLetter,
-                    targetAge = targetAge,
+                    recipientIds = recipientIds.joinToString(","),
                     createdAt = System.currentTimeMillis(),
                     aiSummary = analysis.summary,
-                    aiTags = analysis.tags.joinToString(","),
-                    enigmaQuestion = enigmaQuestion,
-                    enigmaAnswer = EnigmaUtils.hashAnswer(enigmaAnswer), // Sécurité unifiée (v8.3)
-                    enigmaHint = enigmaHint,
-                    enigmaAutoUnlockDays = enigmaAutoUnlockDays,
-                    scheduledTimestamp = scheduledTimestamp,
-                    pactId = pactId,
-                    latitude = latitude,
-                    longitude = longitude,
-                    locationName = locationName,
+                    locationName = locationName ?: _preselectedLocationName.value,
                     locationId = locationId,
-                    localMediaPath = finalLocalPath,
-                    parentEntryId = parentEntryId,
                     includeInBook = includeInBook,
-                    soulTone = soulTone
+                    syncStatus = "pending"
                 )
-                offlineEntryDao.insertEntry(entry)
-                Log.d("SaveEntryDebug", "Entrée insérée en local avec id = $entryId")
-
-                // ETAPE 5 : Déclenchement immédiat de la synchronisation
-                val constraints = Constraints.Builder()
-                    .setRequiredNetworkType(NetworkType.CONNECTED)
-                    .build()
-                val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
-                    .setConstraints(constraints)
-                    .build()
-                WorkManager.getInstance(context).enqueue(syncRequest)
-                android.util.Log.d("SaveEntryDebug", "Synchronisation déclenchée")
-
-                // 5. UPDATE PENDING QUESTION STATUS (Signature 7.0)
-                if (pendingQuestionId != null) {
-                    db.collection("users").document(user.uid)
-                        .collection("pendingQuestions").document(pendingQuestionId)
-                        .update(mapOf(
-                            "status" to "answered",
-                            "linkedEntryId" to entryId,
-                            "answeredAt" to com.google.firebase.Timestamp.now(),
-                            "answerType" to type.lowercase()
-                        )).await()
-                }
                 
-                android.util.Log.d("SaveEntryDebug", "Avant signal haptique, uiState va passer à Success")
-                hapticManager.signalSaveSuccess()
+                offlineEntryDao.insertEntry(entry)
+                
+                // Déclenchement sync
+                SyncWorker.trigger(context)
+
                 _uiState.value = CaptureUiState.Success
-                _newEntryId.emit(entryId)
-                android.util.Log.d("SaveEntryDebug", "uiState positionné à Success et ID émis: $entryId")
+                onSuccess(entryId)
             } catch (e: Exception) {
-                Log.e("SaveEntryDebug", "EXCEPTION dans saveEntry: ${e.javaClass.simpleName} - ${e.message}")
-                Log.e("SaveEntryDebug", "Exception complète", e)
-                _uiState.value = CaptureUiState.Error(e.message ?: "Erreur lors du dépôt")
+                Log.e("CaptureVM", "Error saving skeleton", e)
+                _uiState.value = CaptureUiState.Error(e.message ?: "Erreur")
             }
         }
     }

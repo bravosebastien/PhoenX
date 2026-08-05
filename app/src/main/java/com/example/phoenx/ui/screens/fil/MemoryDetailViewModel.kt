@@ -27,6 +27,7 @@ import java.util.*
 import javax.inject.Inject
 
 import org.json.JSONArray
+import com.example.phoenx.data.audio.PhoenXAudioRecorder
 import org.json.JSONObject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -38,8 +39,34 @@ class MemoryDetailViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
+    private val audioRecorder: com.example.phoenx.data.audio.PhoenXAudioRecorder,
+    private val sttManager: com.example.phoenx.data.audio.SpeechToTextManager, // v9.4.27
     @ApplicationContext private val context: Context
 ) : ViewModel() {
+
+    private val _isRecording = MutableStateFlow(false)
+    val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
+
+    val sttPartialText = sttManager.partialText // v9.4.27
+
+    private var currentAudioFile: File? = null
+
+    fun startAudioRecording() {
+        val file = File(context.cacheDir, "temp_complement_${System.currentTimeMillis()}.mp4")
+        currentAudioFile = file
+        audioRecorder.start(file)
+        sttManager.startListening { /* On ne garde pas le texte final ici car c'est un média AUDIO */ }
+        _isRecording.value = true
+    }
+
+    fun stopAudioRecording(parentId: String) {
+        audioRecorder.stop()
+        sttManager.stopListening()
+        _isRecording.value = false
+        currentAudioFile?.let { file ->
+            addMediaComplement(parentId, file, "AUDIO")
+        }
+    }
 
     private val _entryId = MutableStateFlow<String?>(null)
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
@@ -551,5 +578,55 @@ class MemoryDetailViewModel @Inject constructor(
             .build()
         WorkManager.getInstance(context).enqueue(syncRequest)
         android.util.Log.d("MemoryDetailDebug", "OneTimeWorkRequest enqueue pour id=$entryId")
+    }
+
+    /**
+     * Ajoute un complément média directement (v9.4.26)
+     */
+    fun addMediaComplement(parentId: String, file: File, type: String) {
+        viewModelScope.launch {
+            try {
+                // Copie locale pour affichage immédiat hors-ligne
+                val mediaDir = File(context.filesDir, "media")
+                if (!mediaDir.exists()) mediaDir.mkdirs()
+                val destFile = File(mediaDir, "PHX_COMP_${UUID.randomUUID()}_${file.name}")
+                file.inputStream().use { input -> destFile.outputStream().use { output -> input.copyTo(output) } }
+                
+                // On récupère le parent pour hériter des visibilités
+                val parent = offlineEntryDao.getEntryById(parentId).first() ?: return@launch
+                
+                val entry = OfflineEntry(
+                    id = UUID.randomUUID().toString(),
+                    creatorUid = parent.creatorUid,
+                    encryptedPayload = encryptionManager.encryptText("Média complémentaire"),
+                    entryType = type,
+                    ageAtCreation = parent.ageAtCreation,
+                    emotionalCategory = parent.emotionalCategory,
+                    visibility = parent.visibility,
+                    recipientIds = parent.recipientIds,
+                    parentEntryId = parentId,
+                    localMediaPath = destFile.absolutePath,
+                    syncStatus = "pending"
+                )
+                offlineEntryDao.insertEntry(entry)
+                triggerSync(entry.id)
+            } catch (e: Exception) {
+                android.util.Log.e("MemoryDetailVM", "Erreur ajout média", e)
+                _error.value = "Erreur lors de l'ajout du média"
+            }
+        }
+    }
+
+    fun uriToFile(uri: android.net.Uri): File? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val tempFile = File(context.cacheDir, "temp_gallery_${UUID.randomUUID()}.jpg")
+            inputStream?.use { input ->
+                tempFile.outputStream().use { output -> input.copyTo(output) }
+            }
+            tempFile
+        } catch (e: Exception) {
+            null
+        }
     }
 }

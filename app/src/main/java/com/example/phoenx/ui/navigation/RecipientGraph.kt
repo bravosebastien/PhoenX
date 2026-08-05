@@ -337,7 +337,7 @@ fun NavGraphBuilder.recipientGraph(
             },
             onTraversingSomething = { action ->
                 mainViewModel.recordCheckIn("traversing")
-                if (action == "record") navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_NIGHT))
+                if (action == "record") navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_AUDIO))
                 else navController.navigate(Screen.Home.route) {
                     popUpTo(Screen.SilenceCheckIn.route) { inclusive = true }
                 }
@@ -448,16 +448,20 @@ fun NavGraphBuilder.recipientGraph(
         route = Screen.MemoryDetail.route,
         arguments = listOf(
             navArgument("entryId") { type = NavType.StringType },
-            navArgument("creatorId") { nullable = true; type = NavType.StringType }
+            navArgument("creatorId") { nullable = true; type = NavType.StringType },
+            navArgument("triggerAction") { nullable = true; type = NavType.StringType }
         )
     ) { backStackEntry ->
         val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
         val creatorId = backStackEntry.arguments?.getString("creatorId")
+        val triggerAction = backStackEntry.arguments?.getString("triggerAction")
+
         MemoryDetailScreen(
             entryId = entryId,
             onNavigateBack = { navController.popBackStack() },
             navController = navController,
-            targetCreatorId = creatorId
+            targetCreatorId = creatorId,
+            triggerAction = triggerAction
         )
     }
 

@@ -210,34 +210,18 @@ fun LocationDetailScreen(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
-                                        val checkConnectionAndNavigate = { route: String ->
-                                            val cm = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
-                                            val network = cm.activeNetwork
-                                            val capabilities = cm.getNetworkCapabilities(network)
-                                            val isConnected = capabilities != null && (
-                                                capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
-                                                capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) ||
-                                                capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET)
-                                            )
-                                            
-                                            if (isConnected) {
-                                                navController.navigate(route)
-                                            } else {
-                                                Toast.makeText(context, "Pas de connexion internet. Réessayez plus tard.", Toast.LENGTH_SHORT).show()
-                                            }
-                                        }
-
-                                        MediaAddButton(Icons.Default.CameraAlt, "Caméra", accent, theme, Modifier.weight(1f)) {
-                                            checkConnectionAndNavigate(Screen.Capture.createRoute(Screen.Capture.TYPE_PHOTO, locationId = locationId))
-                                        }
-                                        MediaAddButton(Icons.Default.PhotoLibrary, "Galerie", accent, theme, Modifier.weight(1f)) {
-                                            checkConnectionAndNavigate(Screen.Capture.createRoute(Screen.Capture.TYPE_GALLERY, locationId = locationId))
-                                        }
-                                        MediaAddButton(Icons.Default.Mic, "Vocal", accent, theme, Modifier.weight(1f)) {
-                                            checkConnectionAndNavigate(Screen.Capture.createRoute(Screen.Capture.TYPE_AUDIO, locationId = locationId))
-                                        }
-                                        MediaAddButton(Icons.Default.EditNote, "Texte", accent, theme, Modifier.weight(1f)) {
-                                            checkConnectionAndNavigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, locationId = locationId))
+                                        // UNIFICATION : Tous les boutons média redirigent d'abord vers le TITRE (v9.4.26)
+                                        Button(
+                                            onClick = { 
+                                                navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, locationId = locationId, locationName = location.placeName))
+                                            },
+                                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                                            colors = ButtonDefaults.buttonColors(containerColor = accent),
+                                            shape = RoundedCornerShape(12.dp)
+                                        ) {
+                                            Icon(Icons.Default.Add, null, tint = theme.backgroundColor)
+                                            Spacer(Modifier.width(8.dp))
+                                            Text("Épingler un nouveau souvenir", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                                         }
                                     }
                                 }
@@ -321,7 +305,18 @@ fun EditableMemoryCard(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     val date = SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(entry.createdAt))
-                    Text(text = "Souvenir du $date", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "Souvenir du $date", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                        if (entry.syncStatus == "pending") {
+                            Spacer(Modifier.width(6.dp))
+                            Icon(
+                                Icons.Default.CloudUpload,
+                                contentDescription = "En attente d'envoi",
+                                tint = accent.copy(alpha = 0.5f),
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
+                    }
                     Text(text = entry.entryType, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                 }
                 Box {

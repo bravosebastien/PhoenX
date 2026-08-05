@@ -1,5 +1,8 @@
 package com.example.phoenx.ui.screens.fil
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,7 +34,7 @@ import androidx.compose.ui.platform.LocalContext
 
 /**
  * MemoryComplementsSection — Gestion de la galerie de médias rattachés (Photos, Vidéos, Audios).
- * v8.9.8 : Extraction modulaire.
+ * v9.4.26 : Unification et sélection multiple.
  */
 @Composable
 fun MemoryComplementsSection(
@@ -48,7 +51,23 @@ fun MemoryComplementsSection(
     val context = LocalContext.current
     val heirKey by viewModel.heirKey.collectAsState()
 
-    // Récupération du MediaManager via EntryPoint (v9.4.17)
+    // SÉLECTEUR MULTIPLE (v9.4.26)
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            uris.forEach { uri ->
+                val file = viewModel.uriToFile(uri)
+                if (file != null) {
+                    val mime = context.contentResolver.getType(uri)
+                    val type = if (mime?.contains("video") == true) "VIDEO" else "PHOTO"
+                    viewModel.addMediaComplement(entryId, file, type)
+                }
+            }
+        }
+    }
+
+    // Récupération du MediaManager via EntryPoint
     val mediaManager = remember(context) {
         EntryPointAccessors.fromApplication(
             context.applicationContext,
@@ -82,22 +101,32 @@ fun MemoryComplementsSection(
                         onDismissRequest = { showAddMediaMenu = false },
                         containerColor = theme.backgroundColor
                     ) {
-                        val types = listOf(
-                            Triple("Texte", Icons.Default.Description, "TEXT"),
-                            Triple("Photo", Icons.Default.PhotoCamera, "PHOTO"),
-                            Triple("Galerie", Icons.Default.Collections, "GALLERY"),
-                            Triple("Vocal", Icons.Default.Mic, "AUDIO")
+                        DropdownMenuItem(
+                            text = { Text("Ajouter un récit", color = theme.contentColor) },
+                            leadingIcon = { Icon(Icons.Default.Description, null, tint = accent) },
+                            onClick = {
+                                showAddMediaMenu = false
+                                navController.navigate(Screen.Capture.createRoute(type = "TEXT", parentEntryId = entryId))
+                            }
                         )
-                        types.forEach { (label, icon, type) ->
-                            DropdownMenuItem(
-                                text = { Text(if (type == "TEXT") "Ajouter un récit" else label, color = theme.contentColor) },
-                                leadingIcon = { Icon(icon, null, tint = accent) },
-                                onClick = {
-                                    showAddMediaMenu = false
-                                    navController.navigate(Screen.Capture.createRoute(type = type, parentEntryId = entryId))
-                                }
-                            )
-                        }
+                        
+                        DropdownMenuItem(
+                            text = { Text("Photos / Vidéos", color = theme.contentColor) },
+                            leadingIcon = { Icon(Icons.Default.Collections, null, tint = accent) },
+                            onClick = {
+                                showAddMediaMenu = false
+                                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+                            }
+                        )
+                        
+                        DropdownMenuItem(
+                            text = { Text("Note Vocale", color = theme.contentColor) },
+                            leadingIcon = { Icon(Icons.Default.Mic, null, tint = accent) },
+                            onClick = {
+                                showAddMediaMenu = false
+                                navController.navigate(Screen.Capture.createRoute(type = "AUDIO", parentEntryId = entryId))
+                            }
+                        )
                     }
                 }
             }
@@ -181,6 +210,11 @@ fun MemoryComplementsSection(
                                         style = MaterialTheme.typography.labelSmall,
                                         color = theme.contentColor.copy(alpha = 0.4f)
                                     )
+                                    
+                                    if (complement.syncStatus == "pending") {
+                                        Spacer(Modifier.width(8.dp))
+                                        Icon(Icons.Default.CloudUpload, null, modifier = Modifier.size(10.dp), tint = accent.copy(alpha = 0.5f))
+                                    }
                                 }
                             }
 

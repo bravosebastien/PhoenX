@@ -544,6 +544,15 @@ fun LocationBottomSheet(
                                     Icon(Icons.Default.AutoStories, null, tint = accent.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
                                     Spacer(Modifier.width(6.dp))
                                     Text("SOUVENIR", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                                    if (entry.syncStatus == "pending") {
+                                        Spacer(Modifier.weight(1f))
+                                        Icon(
+                                            Icons.Default.CloudUpload,
+                                            contentDescription = "En attente d'envoi",
+                                            tint = accent.copy(alpha = 0.5f),
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
@@ -567,26 +576,9 @@ fun LocationBottomSheet(
             
             if (mode == MapMode.CREATOR) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    val checkConnectionAndNavigate = { route: String ->
-                        val cm = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
-                        val network = cm.activeNetwork
-                        val capabilities = cm.getNetworkCapabilities(network)
-                        val isConnected = capabilities != null && (
-                            capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
-                            capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) ||
-                            capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET)
-                        )
-                        
-                        if (isConnected) {
-                            navController.navigate(route)
-                        } else {
-                            Toast.makeText(context, "Pas de connexion internet. Réessayez plus tard.", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-
                     Button(
                         onClick = { 
-                            checkConnectionAndNavigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, locationId = location.id))
+                            navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, locationId = location.id, locationName = location.placeName))
                             onClose() 
                         },
                         modifier = Modifier.weight(1.4f).height(56.dp),

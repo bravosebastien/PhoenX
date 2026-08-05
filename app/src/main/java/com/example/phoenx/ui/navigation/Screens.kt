@@ -40,15 +40,18 @@ sealed class Screen(val route: String) {
             pactId: String? = null, 
             pendingQuestionId: String? = null,
             locationId: String? = null,
+            locationName: String? = null, // v9.4.26
             parentEntryId: String? = null
         ): String {
             val encodedPrompt = prompt?.let { URLEncoder.encode(it, StandardCharsets.UTF_8.toString()) }
+            val encodedLocName = locationName?.let { URLEncoder.encode(it, StandardCharsets.UTF_8.toString()) }
             var route = "capture/$type"
             val params = mutableListOf<String>()
             if (encodedPrompt != null) params.add("prompt=$encodedPrompt")
             if (pactId != null) params.add("pactId=$pactId")
             if (pendingQuestionId != null) params.add("pendingQuestionId=$pendingQuestionId")
             if (locationId != null) params.add("locationId=$locationId")
+            if (encodedLocName != null) params.add("locationName=$encodedLocName")
             if (parentEntryId != null) params.add("parentEntryId=$parentEntryId")
             if (params.isNotEmpty()) route += "?" + params.joinToString("&")
             return route
@@ -57,7 +60,6 @@ sealed class Screen(val route: String) {
         const val TYPE_AUDIO = "AUDIO"
         const val TYPE_PHOTO = "PHOTO"
         const val TYPE_GALLERY = "GALLERY"
-        const val TYPE_NIGHT = "NIGHT"
     }
     
     object Fil : Screen("fil") {
@@ -83,9 +85,15 @@ sealed class Screen(val route: String) {
     object Questions : Screen("questions")
     object PendingQuestions : Screen("questions/pending")
     object DetectiveHome : Screen("detective/home")
-    object MemoryDetail : Screen("memory_detail/{entryId}?creatorId={creatorId}") {
-        fun createRoute(entryId: String, creatorId: String? = null) = 
-            if (creatorId != null) "memory_detail/$entryId?creatorId=$creatorId" else "memory_detail/$entryId"
+    object MemoryDetail : Screen("memory_detail/{entryId}?creatorId={creatorId}&triggerAction={triggerAction}") {
+        fun createRoute(entryId: String, creatorId: String? = null, triggerAction: String? = null): String {
+            var route = "memory_detail/$entryId"
+            val params = mutableListOf<String>()
+            if (creatorId != null) params.add("creatorId=$creatorId")
+            if (triggerAction != null) params.add("triggerAction=$triggerAction")
+            if (params.isNotEmpty()) route += "?" + params.joinToString("&")
+            return route
+        }
     }
     object MediaViewer : Screen("media_viewer/{entryId}?creatorId={creatorId}") {
         fun createRoute(entryId: String, creatorId: String? = null) = 

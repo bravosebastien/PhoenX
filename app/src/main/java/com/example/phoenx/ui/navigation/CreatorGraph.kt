@@ -190,61 +190,36 @@ fun NavGraphBuilder.creatorGraph(
         route = Screen.Capture.route,
         arguments = listOf(
             navArgument("type") { defaultValue = Screen.Capture.TYPE_TEXT },
-            navArgument("prompt") { nullable = true },
-            navArgument("pactId") { nullable = true },
-            navArgument("pendingQuestionId") { nullable = true },
-            navArgument("lat") { nullable = true },
-            navArgument("lng") { nullable = true },
+            navArgument("prompt") { nullable = true }, // v9.4.27
             navArgument("locationName") { nullable = true },
             navArgument("locationId") { nullable = true },
+            navArgument("pactId") { nullable = true },
+            navArgument("pendingQuestionId") { nullable = true },
             navArgument("parentEntryId") { nullable = true }
         )
     ) { backStackEntry ->
         val type = backStackEntry.arguments?.getString("type") ?: Screen.Capture.TYPE_TEXT
         val prompt = backStackEntry.arguments?.getString("prompt")
-        val pactId = backStackEntry.arguments?.getString("pactId")
-        val pendingQuestionId = backStackEntry.arguments?.getString("pendingQuestionId")
-        val lat = backStackEntry.arguments?.getString("lat")?.toDoubleOrNull()
-        val lng = backStackEntry.arguments?.getString("lng")?.toDoubleOrNull()
         val locationName = backStackEntry.arguments?.getString("locationName")
         val locationId = backStackEntry.arguments?.getString("locationId")
+        val pactId = backStackEntry.arguments?.getString("pactId")
+        val pendingQuestionId = backStackEntry.arguments?.getString("pendingQuestionId")
         val parentEntryId = backStackEntry.arguments?.getString("parentEntryId")
 
         CaptureScreen(
-            initialType = type, 
-            initialText = prompt ?: "",
+            initialTitle = prompt,
+            locationId = locationId,
+            locationName = locationName,
             pactId = pactId,
             pendingQuestionId = pendingQuestionId,
-            latitude = lat,
-            longitude = lng,
-            locationName = locationName,
-            locationId = locationId,
             parentEntryId = parentEntryId,
             onNavigateBack = { navController.popBackStack() },
-            onNavigateToCharacters = { 
-                navController.navigate(Screen.Characters.route + "?selectionMode=true") 
-            },
-            onNavigateToDetail = { id: String -> 
-                navController.navigate(Screen.MemoryDetail.createRoute(id)) {
+            onNext = { id -> 
+                navController.navigate(Screen.MemoryDetail.createRoute(id, triggerAction = type)) {
                     popUpTo(Screen.Home.route)
                 }
             }
         )
-
-        // ÉCOUTE DU RETOUR DE SÉLECTION DE PERSONNAGE (v9.2.3)
-        val selectedPerson by navController.currentBackStackEntry
-            ?.savedStateHandle
-            ?.getStateFlow<SimplifiedPerson?>("selected_person", null)
-            ?.collectAsState() ?: remember { mutableStateOf(null) }
-
-        val viewModel: com.example.phoenx.ui.screens.capture.CaptureViewModel = androidx.hilt.navigation.compose.hiltViewModel()
-        
-        LaunchedEffect(selectedPerson) {
-            selectedPerson?.let { person ->
-                viewModel.selectPerson(person)
-                navController.currentBackStackEntry?.savedStateHandle?.set<SimplifiedPerson?>("selected_person", null)
-            }
-        }
     }
     
     composable(Screen.YoungSelfLetters.route) {

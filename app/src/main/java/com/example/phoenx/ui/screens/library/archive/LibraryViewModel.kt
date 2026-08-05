@@ -55,7 +55,7 @@ class OldLibraryViewModel @Inject constructor(
                 entries.forEach { entry ->
                     val compId = when(entry.entryType) {
                         "TEXT" -> CompartmentId.BIBLIOTHEQUE
-                        "AUDIO", "NIGHT" -> CompartmentId.DISCOTHEQUE
+                        "AUDIO" -> CompartmentId.DISCOTHEQUE
                         "PHOTO", "VIDEO" -> CompartmentId.VIDEOTHEQUE
                         "LOCATION" -> CompartmentId.MAPPEMONDE
                         "QUESTION_ANSWER" -> CompartmentId.CENT_QUESTIONS

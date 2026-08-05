@@ -51,7 +51,6 @@ enum class EntryType {
     THOUGHT,
     EMOTION,
     LEGACY,
-    NIGHT_CAPTURE,
     PHOTO,
     AUDIO,
     VIDEO,
