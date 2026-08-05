@@ -102,15 +102,6 @@ fun MemoryComplementsSection(
                         containerColor = theme.backgroundColor
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Ajouter un récit", color = theme.contentColor) },
-                            leadingIcon = { Icon(Icons.Default.Description, null, tint = accent) },
-                            onClick = {
-                                showAddMediaMenu = false
-                                navController.navigate(Screen.Capture.createRoute(type = "TEXT", parentEntryId = entryId))
-                            }
-                        )
-                        
-                        DropdownMenuItem(
                             text = { Text("Photos / Vidéos", color = theme.contentColor) },
                             leadingIcon = { Icon(Icons.Default.Collections, null, tint = accent) },
                             onClick = {

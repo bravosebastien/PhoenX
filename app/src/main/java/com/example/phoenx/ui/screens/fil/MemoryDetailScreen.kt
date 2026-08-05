@@ -110,6 +110,7 @@ fun MemoryDetailScreen(
 
     var editableTitle by remember { mutableStateOf("") }
     var editableText by remember { mutableStateOf("") }
+    var isStoryEditorOpen by remember { mutableStateOf(false) } // v9.4.27
 
     LaunchedEffect(entryId, targetCreatorId) {
         viewModel.loadEntry(entryId, targetCreatorId)
@@ -320,68 +321,31 @@ fun MemoryDetailScreen(
                                     border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                                 ) {
                                     Text(
-                                        text = editableText,
+                                        text = editableText.ifEmpty { "Aucun récit pour le moment." },
                                         modifier = Modifier.padding(16.dp),
                                         style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 26.sp, color = theme.contentColor)
                                     )
                                 }
-                            } else if (isChildEntry || textComplements.isEmpty()) {
-                                // Édition en place pour les réponses atomiques
+                            } else {
+                                // APERÇU COMPACT CLIQUABLE (v9.4.27)
                                 Card(
-                                    modifier = Modifier.fillMaxWidth(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { isStoryEditorOpen = true },
                                     colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                                     shape = RoundedCornerShape(12.dp),
                                     border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                                 ) {
-                                    TextField(
-                                        value = editableText,
-                                        onValueChange = { editableText = it },
-                                        modifier = Modifier.fillMaxWidth().padding(8.dp),
-                                        textStyle = MaterialTheme.typography.bodyLarge.copy(lineHeight = 26.sp, color = theme.contentColor),
-                                        colors = TextFieldDefaults.colors(
-                                            focusedContainerColor = Color.Transparent,
-                                            unfocusedContainerColor = Color.Transparent,
-                                            focusedIndicatorColor = Color.Transparent,
-                                            unfocusedIndicatorColor = Color.Transparent,
-                                            focusedTextColor = theme.contentColor,
-                                            unfocusedTextColor = theme.contentColor
+                                    Text(
+                                        text = editableText.ifEmpty { "Appuyer pour écrire ton récit..." },
+                                        modifier = Modifier.padding(16.dp),
+                                        maxLines = 5,
+                                        overflow = TextOverflow.Ellipsis,
+                                        style = MaterialTheme.typography.bodyLarge.copy(
+                                            lineHeight = 26.sp, 
+                                            color = if (editableText.isEmpty()) theme.contentColor.copy(alpha = 0.4f) else theme.contentColor
                                         )
                                     )
-                                }
-                            } else {
-                                // Liste des compléments texte
-                                textComplements.forEach { (compId, text) ->
-                                    Card(
-                                        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
-                                        shape = RoundedCornerShape(12.dp),
-                                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
-                                    ) {
-                                        Column(modifier = Modifier.padding(16.dp)) {
-                                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(Icons.Default.FormatQuote, null, tint = accent.copy(alpha = 0.3f), modifier = Modifier.size(20.dp))
-                                                if (!isReadOnly) {
-                                                    Row {
-                                                        IconButton(onClick = { navController.navigate(Screen.MemoryDetail.createRoute(compId, targetCreatorId)) }, modifier = Modifier.size(24.dp)) {
-                                                            Icon(Icons.Default.Edit, null, tint = accent.copy(alpha = 0.7f), modifier = Modifier.size(16.6.dp))
-                                                        }
-                                                        Spacer(Modifier.width(8.dp))
-                                                        IconButton(onClick = { viewModel.deleteComplement(compId) }, modifier = Modifier.size(24.dp)) {
-                                                            Icon(Icons.Default.Close, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            Text(
-                                                text = text,
-                                                style = MaterialTheme.typography.bodyMedium.copy(
-                                                    fontFamily = theme.fontFamily,
-                                                    lineHeight = 24.sp
-                                                ),
-                                                color = theme.contentColor
-                                            )
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -466,6 +430,53 @@ fun MemoryDetailScreen(
                                 Spacer(Modifier.width(8.dp))
                                 Text("Terminer", color = theme.backgroundColor)
                             }
+                        }
+                    }
+                }
+
+                // ÉDITEUR DE RÉCIT EN PLEIN ÉCRAN (v9.4.27)
+                if (isStoryEditorOpen) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = theme.backgroundColor
+                    ) {
+                        Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "TON RÉCIT", 
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
+                                    color = accent
+                                )
+                                IconButton(onClick = { 
+                                    viewModel.updateContent(editableText) // Sauvegarde IMMÉDIATE (v9.4.27)
+                                    isStoryEditorOpen = false 
+                                }) {
+                                    Icon(Icons.Default.Check, null, tint = accent)
+                                }
+                            }
+                            
+                            TextField(
+                                value = editableText,
+                                onValueChange = { editableText = it },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                                    .padding(horizontal = 24.dp),
+                                placeholder = { Text("Écris ton récit ici...", color = theme.contentColor.copy(alpha = 0.3f)) },
+                                textStyle = MaterialTheme.typography.bodyLarge.copy(lineHeight = 28.sp, color = theme.contentColor),
+                                colors = TextFieldDefaults.colors(
+                                    focusedContainerColor = Color.Transparent,
+                                    unfocusedContainerColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    focusedTextColor = theme.contentColor,
+                                    unfocusedTextColor = theme.contentColor
+                                )
+                            )
                         }
                     }
                 }

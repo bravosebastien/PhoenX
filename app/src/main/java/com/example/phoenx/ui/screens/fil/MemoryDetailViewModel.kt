@@ -47,15 +47,19 @@ class MemoryDetailViewModel @Inject constructor(
     private val _isRecording = MutableStateFlow(false)
     val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
 
-    val sttPartialText = sttManager.partialText // v9.4.27
+    val sttPartialText = sttManager.partialText
+    private var _finalSttText = "" // v9.4.27 : Capture de la transcription finale
 
     private var currentAudioFile: File? = null
 
     fun startAudioRecording() {
         val file = File(context.cacheDir, "temp_complement_${System.currentTimeMillis()}.mp4")
         currentAudioFile = file
+        _finalSttText = "" 
         audioRecorder.start(file)
-        sttManager.startListening { /* On ne garde pas le texte final ici car c'est un média AUDIO */ }
+        sttManager.startListening { finalResult ->
+            _finalSttText = finalResult // Capture du texte final (v9.4.27)
+        }
         _isRecording.value = true
     }
 
@@ -63,8 +67,13 @@ class MemoryDetailViewModel @Inject constructor(
         audioRecorder.stop()
         sttManager.stopListening()
         _isRecording.value = false
-        currentAudioFile?.let { file ->
-            addMediaComplement(parentId, file, "AUDIO")
+        
+        // On laisse un petit délai pour que le callback STT ait le temps de revenir
+        viewModelScope.launch {
+            delay(500)
+            currentAudioFile?.let { file ->
+                addMediaComplement(parentId, file, "AUDIO", _finalSttText)
+            }
         }
     }
 
@@ -583,7 +592,7 @@ class MemoryDetailViewModel @Inject constructor(
     /**
      * Ajoute un complément média directement (v9.4.26)
      */
-    fun addMediaComplement(parentId: String, file: File, type: String) {
+    fun addMediaComplement(parentId: String, file: File, type: String, transcription: String? = null) {
         viewModelScope.launch {
             try {
                 // Copie locale pour affichage immédiat hors-ligne
@@ -595,10 +604,12 @@ class MemoryDetailViewModel @Inject constructor(
                 // On récupère le parent pour hériter des visibilités
                 val parent = offlineEntryDao.getEntryById(parentId).first() ?: return@launch
                 
+                val finalTranscription = if (transcription.isNullOrBlank()) "Média complémentaire" else transcription
+
                 val entry = OfflineEntry(
                     id = UUID.randomUUID().toString(),
                     creatorUid = parent.creatorUid,
-                    encryptedPayload = encryptionManager.encryptText("Média complémentaire"),
+                    encryptedPayload = encryptionManager.encryptText(finalTranscription),
                     entryType = type,
                     ageAtCreation = parent.ageAtCreation,
                     emotionalCategory = parent.emotionalCategory,
@@ -606,6 +617,7 @@ class MemoryDetailViewModel @Inject constructor(
                     recipientIds = parent.recipientIds,
                     parentEntryId = parentId,
                     localMediaPath = destFile.absolutePath,
+                    aiSummary = finalTranscription, // Utilisation de la transcription comme titre
                     syncStatus = "pending"
                 )
                 offlineEntryDao.insertEntry(entry)
