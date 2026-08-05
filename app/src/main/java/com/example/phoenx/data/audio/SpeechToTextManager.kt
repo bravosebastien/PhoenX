@@ -88,6 +88,8 @@ class SpeechToTextManager @Inject constructor(
 
     override fun onError(error: Int) {
         Log.d("STTManager", "SpeechRecognizer error: $error")
+        android.util.Log.e("VoiceNoteDiag", "STT Error: $error")
+        onFinalResult?.invoke("") // Assure le déblocage en cas d'erreur
         _isListening.value = false
     }
 

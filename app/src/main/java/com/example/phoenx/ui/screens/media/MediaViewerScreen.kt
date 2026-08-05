@@ -66,14 +66,16 @@ fun MediaViewerScreen(
                 }
                 "VIDEO" -> {
                     VideoPlayer(
-                        mediaUrl = entry!!.mediaUrl!!,
+                        mediaUrl = entry!!.mediaUrl,
+                        localPath = entry!!.localMediaPath,
                         explicitKey = heirKey,
                         mediaManager = viewModel.mediaManager
                     )
                 }
                 "AUDIO" -> {
                     AudioPlayer(
-                        mediaUrl = entry!!.mediaUrl!!,
+                        mediaUrl = entry!!.mediaUrl,
+                        localPath = entry!!.localMediaPath,
                         explicitKey = heirKey,
                         mediaManager = viewModel.mediaManager,
                         title = entry!!.aiSummary
@@ -142,15 +144,16 @@ fun ZoomableImage(
 @UnstableApi
 @Composable
 fun VideoPlayer(
-    mediaUrl: String,
+    mediaUrl: String?,
+    localPath: String?,
     explicitKey: ByteArray?,
     mediaManager: com.example.phoenx.data.media.MediaManager
 ) {
     val context = LocalContext.current
-    var resolvedUrl by remember(mediaUrl) { mutableStateOf<String?>(null) }
+    var resolvedUrl by remember(mediaUrl, localPath) { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(mediaUrl) {
-        resolvedUrl = mediaManager.getSafeUrl(mediaUrl)
+    LaunchedEffect(mediaUrl, localPath) {
+        resolvedUrl = localPath ?: mediaManager.getSafeUrl(mediaUrl)
     }
 
     if (resolvedUrl == null) {
@@ -162,9 +165,16 @@ fun VideoPlayer(
 
     val exoPlayer = remember(resolvedUrl) {
         ExoPlayer.Builder(context).build().apply {
-            val factory = mediaManager.getEncryptedDataSourceFactory(explicitKey)
+            val isLocal = localPath != null
+            val factory = if (isLocal) {
+                androidx.media3.datasource.DefaultDataSource.Factory(context)
+            } else {
+                mediaManager.getEncryptedDataSourceFactory(explicitKey)
+            }
+            
+            val uri = if (resolvedUrl!!.startsWith("/")) resolvedUrl!!.toUri() else resolvedUrl!!.toUri()
             val mediaSource = ProgressiveMediaSource.Factory(factory)
-                .createMediaSource(MediaItem.fromUri(resolvedUrl!!.toUri()))
+                .createMediaSource(MediaItem.fromUri(uri))
             setMediaSource(mediaSource)
             prepare()
             playWhenReady = true
@@ -189,16 +199,17 @@ fun VideoPlayer(
 @UnstableApi
 @Composable
 fun AudioPlayer(
-    mediaUrl: String,
+    mediaUrl: String?,
+    localPath: String?,
     explicitKey: ByteArray?,
     mediaManager: com.example.phoenx.data.media.MediaManager,
     title: String
 ) {
     val context = LocalContext.current
-    var resolvedUrl by remember(mediaUrl) { mutableStateOf<String?>(null) }
+    var resolvedUrl by remember(mediaUrl, localPath) { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(mediaUrl) {
-        resolvedUrl = mediaManager.getSafeUrl(mediaUrl)
+    LaunchedEffect(mediaUrl, localPath) {
+        resolvedUrl = localPath ?: mediaManager.getSafeUrl(mediaUrl)
     }
 
     if (resolvedUrl == null) {
@@ -210,9 +221,16 @@ fun AudioPlayer(
 
     val exoPlayer = remember(resolvedUrl) {
         ExoPlayer.Builder(context).build().apply {
-            val factory = mediaManager.getEncryptedDataSourceFactory(explicitKey)
+            val isLocal = localPath != null
+            val factory = if (isLocal) {
+                androidx.media3.datasource.DefaultDataSource.Factory(context)
+            } else {
+                mediaManager.getEncryptedDataSourceFactory(explicitKey)
+            }
+
+            val uri = if (resolvedUrl!!.startsWith("/")) resolvedUrl!!.toUri() else resolvedUrl!!.toUri()
             val mediaSource = ProgressiveMediaSource.Factory(factory)
-                .createMediaSource(MediaItem.fromUri(resolvedUrl!!.toUri()))
+                .createMediaSource(MediaItem.fromUri(uri))
             setMediaSource(mediaSource)
             prepare()
         }

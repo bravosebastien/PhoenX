@@ -45,7 +45,8 @@ fun MemoryComplementsSection(
     theme: AppThemeState,
     accent: Color,
     navController: NavController,
-    isReadOnly: Boolean = false
+    isReadOnly: Boolean = false,
+    onStartAudioRecording: () -> Unit = {} // v9.4.27
 ) {
     var showAddMediaMenu by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -115,7 +116,7 @@ fun MemoryComplementsSection(
                             leadingIcon = { Icon(Icons.Default.Mic, null, tint = accent) },
                             onClick = {
                                 showAddMediaMenu = false
-                                navController.navigate(Screen.Capture.createRoute(type = "AUDIO", parentEntryId = entryId))
+                                onStartAudioRecording() // ACTION DIRECTE AVEC CHECK PERMISSIONS (v9.4.27)
                             }
                         )
                     }

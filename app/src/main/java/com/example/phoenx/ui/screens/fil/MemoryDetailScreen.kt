@@ -1,5 +1,10 @@
 package com.example.phoenx.ui.screens.fil
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -19,11 +24,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.ui.navigation.Screen
@@ -51,19 +58,37 @@ fun MemoryDetailScreen(
     val deleteSuccess by viewModel.deleteSuccess.collectAsState()
     val error by viewModel.error.collectAsState()
     val isRecording by viewModel.isRecording.collectAsState()
-    val sttPartialText by viewModel.sttPartialText.collectAsState() // v9.4.27
+    val isVoiceNoteOverlayOpen by viewModel.isVoiceNoteOverlayOpen.collectAsState() // v9.4.27
+    val sttPartialText by viewModel.sttPartialText.collectAsState()
     
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val context = androidx.compose.ui.platform.LocalContext.current
+    val context = LocalContext.current
+
+    // Gestion des permissions (v9.4.27)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.openVoiceNoteOverlay()
+        }
+    }
+
+    val requestAudioPermission = {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            viewModel.openVoiceNoteOverlay()
+        } else {
+            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 
     val isReadOnly = targetCreatorId != null && targetCreatorId != com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
 
     // Sélecteur MULTIPLE (v9.4.26)
-    val galleryLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia()
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia()
     ) { uris ->
         if (uris.isNotEmpty()) {
             uris.forEach { uri ->
@@ -83,13 +108,13 @@ fun MemoryDetailScreen(
             when (triggerAction) {
                 "PHOTO", "GALLERY" -> {
                     galleryLauncher.launch(
-                        androidx.activity.result.PickVisualMediaRequest(
-                            androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageAndVideo
+                        PickVisualMediaRequest(
+                            ActivityResultContracts.PickVisualMedia.ImageAndVideo
                         )
                     )
                 }
                 "AUDIO" -> {
-                    viewModel.startAudioRecording()
+                    requestAudioPermission() // v9.4.27: Check permissions before auto-starting
                 }
             }
         }
@@ -249,7 +274,7 @@ fun MemoryDetailScreen(
                                 Column(modifier = Modifier.padding(20.dp)) {
                                     if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER" || isReadOnly) {
                                         Text(
-                                            text = if (isReadOnly) entry!!.aiSummary else entry!!.aiSummary,
+                                            text = entry!!.aiSummary,
                                             style = MaterialTheme.typography.bodyLarge.copy(
                                                 fontFamily = theme.fontFamily,
                                                 fontStyle = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") FontStyle.Italic else null,
@@ -376,7 +401,8 @@ fun MemoryDetailScreen(
                             theme = theme,
                             accent = accent,
                             navController = navController,
-                            isReadOnly = isReadOnly
+                            isReadOnly = isReadOnly,
+                            onStartAudioRecording = requestAudioPermission // v9.4.27
                         )
                     }
                     
@@ -384,7 +410,7 @@ fun MemoryDetailScreen(
                 }
 
                 // OVERLAY ENREGISTREMENT VOCAL (v9.4.27)
-                if (isRecording) {
+                if (isVoiceNoteOverlayOpen) {
                     Surface(
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
@@ -400,35 +426,61 @@ fun MemoryDetailScreen(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(12.dp)
-                                        .background(Color.Red, CircleShape)
-                                )
-                                Spacer(Modifier.width(12.dp))
-                                Column {
-                                    Text("Enregistrement...", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
-                                    if (sttPartialText.isNotEmpty()) {
-                                        Text(
-                                            text = sttPartialText,
-                                            color = theme.contentColor,
-                                            style = MaterialTheme.typography.bodySmall,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
+                            if (!isRecording) {
+                                // ÉTAT PRÊT (v9.4.27)
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                                    Icon(Icons.Default.Mic, null, tint = accent.copy(alpha = 0.4f))
+                                    Spacer(Modifier.width(12.dp))
+                                    Text("Prêt à enregistrer", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
+                                }
+                                
+                                Row {
+                                    TextButton(onClick = { viewModel.closeVoiceNoteOverlay() }) {
+                                        Text("Annuler", color = theme.contentColor.copy(alpha = 0.4f))
+                                    }
+                                    Spacer(Modifier.width(8.dp))
+                                    Button(
+                                        onClick = { viewModel.startAudioRecording() },
+                                        colors = ButtonDefaults.buttonColors(containerColor = accent),
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Icon(Icons.Default.PlayArrow, null, tint = theme.backgroundColor)
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("Démarrer", color = theme.backgroundColor)
                                     }
                                 }
-                            }
-                            
-                            Button(
-                                onClick = { viewModel.stopAudioRecording(entryId) },
-                                colors = ButtonDefaults.buttonColors(containerColor = accent),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(Icons.Default.Stop, null, tint = theme.backgroundColor)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Terminer", color = theme.backgroundColor)
+                            } else {
+                                // ÉTAT ENREGISTREMENT EN COURS
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(12.dp)
+                                            .background(Color.Red, CircleShape)
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Column {
+                                        Text("Enregistrement...", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
+                                        if (sttPartialText.isNotEmpty()) {
+                                            Text(
+                                                text = sttPartialText,
+                                                color = theme.contentColor,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
+                                }
+                                
+                                Button(
+                                    onClick = { viewModel.stopAudioRecording(entryId) },
+                                    colors = ButtonDefaults.buttonColors(containerColor = accent),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(Icons.Default.Stop, null, tint = theme.backgroundColor)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Terminer", color = theme.backgroundColor)
+                                }
                             }
                         }
                     }

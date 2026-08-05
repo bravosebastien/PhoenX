@@ -1,5 +1,9 @@
 package com.example.phoenx.ui.screens.capture
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -18,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.theme.LocalAppTheme
 
@@ -46,6 +51,15 @@ fun CaptureScreen(
     val uiState by viewModel.uiState.collectAsState()
     val isSttListening by viewModel.isSttListening.collectAsState()
     val transcript by viewModel.transcript.collectAsState()
+
+    // Gestion des permissions (v9.4.27)
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.startVocalCapture(title)
+        }
+    }
 
     LaunchedEffect(transcript) {
         if (transcript.isNotEmpty()) title = transcript
@@ -132,8 +146,15 @@ fun CaptureScreen(
                 
                 IconButton(
                     onClick = {
-                        if (isSttListening) viewModel.stopVocalCapture()
-                        else viewModel.startVocalCapture(title)
+                        if (isSttListening) {
+                            viewModel.stopVocalCapture()
+                        } else {
+                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                                viewModel.startVocalCapture(title)
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                            }
+                        }
                     },
                     modifier = Modifier.align(Alignment.TopEnd).background(if (isSttListening) Color.Red.copy(alpha = 0.1f) else Color.Transparent, CircleShape)
                 ) {

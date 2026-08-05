@@ -23,6 +23,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.FileOutputStream
+import android.media.MediaExtractor
+import android.media.MediaFormat
 import java.util.*
 import javax.inject.Inject
 
@@ -40,40 +42,69 @@ class MemoryDetailViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
     private val audioRecorder: com.example.phoenx.data.audio.PhoenXAudioRecorder,
-    private val sttManager: com.example.phoenx.data.audio.SpeechToTextManager, // v9.4.27
+    private val wavRecorder: com.example.phoenx.data.audio.WavAudioRecorder, // v9.4.27 : Alternative robuste
+    private val sttManager: com.example.phoenx.data.audio.SpeechToTextManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _isRecording = MutableStateFlow(false)
     val isRecording: StateFlow<Boolean> = _isRecording.asStateFlow()
 
+    private val _isVoiceNoteOverlayOpen = MutableStateFlow(false) // v9.4.27
+    val isVoiceNoteOverlayOpen: StateFlow<Boolean> = _isVoiceNoteOverlayOpen.asStateFlow()
+
     val sttPartialText = sttManager.partialText
-    private var _finalSttText = "" // v9.4.27 : Capture de la transcription finale
 
     private var currentAudioFile: File? = null
 
+    fun openVoiceNoteOverlay() {
+        _isVoiceNoteOverlayOpen.value = true
+    }
+
+    fun closeVoiceNoteOverlay() {
+        _isVoiceNoteOverlayOpen.value = false
+    }
+
     fun startAudioRecording() {
-        val file = File(context.cacheDir, "temp_complement_${System.currentTimeMillis()}.mp4")
+        val file = File(context.cacheDir, "temp_complement_${System.currentTimeMillis()}.wav") // Extension .wav
         currentAudioFile = file
-        _finalSttText = "" 
-        audioRecorder.start(file)
-        sttManager.startListening { finalResult ->
-            _finalSttText = finalResult // Capture du texte final (v9.4.27)
-        }
+        
+        android.util.Log.d("VoiceNoteDiag", "Démarrage WavRecorder (Alternative robuste)...")
+        wavRecorder.start(file)
         _isRecording.value = true
     }
 
     fun stopAudioRecording(parentId: String) {
-        audioRecorder.stop()
-        sttManager.stopListening()
+        android.util.Log.d("VoiceNoteDiag", "Arrêt de l'enregistrement demandé")
         _isRecording.value = false
+        _isVoiceNoteOverlayOpen.value = false
         
-        // On laisse un petit délai pour que le callback STT ait le temps de revenir
-        viewModelScope.launch {
-            delay(500)
-            currentAudioFile?.let { file ->
-                addMediaComplement(parentId, file, "AUDIO", _finalSttText)
+        wavRecorder.stop()
+        
+        currentAudioFile?.let { file ->
+            val size = if (file.exists()) file.length() else -1
+            android.util.Log.d("VoiceNoteDiag", "Fichier WAV final: ${file.absolutePath}, Taille: $size octets")
+            
+            // Diagnostic MediaExtractor (même si c'est du WAV, on vérifie si l'en-tête est valide)
+            inspectAudioFile(file)
+            
+            addMediaComplement(parentId, file, "AUDIO", "Note vocale")
+        }
+    }
+
+    private fun inspectAudioFile(file: File) {
+        try {
+            val extractor = MediaExtractor()
+            extractor.setDataSource(file.absolutePath)
+            val trackCount = extractor.trackCount
+            android.util.Log.d("VoiceNoteDiag", "DIAGNOSTIC MediaExtractor : $trackCount piste(s) trouvée(s)")
+            for (i in 0 until trackCount) {
+                val format = extractor.getTrackFormat(i)
+                android.util.Log.d("VoiceNoteDiag", "Piste #$i : ${format.getString(MediaFormat.KEY_MIME)}")
             }
+            extractor.release()
+        } catch (e: Exception) {
+            android.util.Log.e("VoiceNoteDiag", "ÉCHEC DIAGNOSTIC MediaExtractor : ${e.message}")
         }
     }
 
