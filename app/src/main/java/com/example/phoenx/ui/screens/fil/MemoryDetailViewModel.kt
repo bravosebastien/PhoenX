@@ -42,8 +42,9 @@ class MemoryDetailViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
     private val audioRecorder: com.example.phoenx.data.audio.PhoenXAudioRecorder,
-    private val wavRecorder: com.example.phoenx.data.audio.WavAudioRecorder, // v9.4.27 : Alternative robuste
+    private val wavRecorder: com.example.phoenx.data.audio.WavAudioRecorder,
     private val sttManager: com.example.phoenx.data.audio.SpeechToTextManager,
+    private val mediaManager: com.example.phoenx.data.media.MediaManager, // v9.4.27
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -583,20 +584,51 @@ class MemoryDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // 1. Suppression Firestore d'abord (Sécurité)
-                db.collection("users").document(uid)
-                    .collection("entries").document(id)
-                    .delete()
-                    .await()
-                
-                android.util.Log.d("MemoryDetailDebug", "Document Firestore supprimé pour id=$id")
-
-                // 2. Suppression Room seulement après succès Cloud
-                offlineEntryDao.deleteEntry(id)
-                android.util.Log.d("MemoryDetailDebug", "Entrée locale supprimée pour id=$id")
-
                 if (isParent) {
+                    // SUPPRESSION EN CASCADE (v9.4.27)
+                    val parent = offlineEntryDao.getEntryById(id).first()
+                    val children = offlineEntryDao.getComplements(id).first()
+                    
+                    // 1. Suppression Storage (Parent + Enfants + Couvertures)
+                    parent?.let {
+                        mediaManager.deleteFile(it.mediaUrl)
+                        mediaManager.deleteFile(it.coverUrl)
+                    }
+                    children.forEach { child ->
+                        mediaManager.deleteFile(child.mediaUrl)
+                        mediaManager.deleteFile(child.coverUrl)
+                    }
+
+                    // 2. Suppression Firestore du parent et de chaque enfant
+                    val batch = db.batch()
+                    val userRef = db.collection("users").document(uid)
+                    
+                    batch.delete(userRef.collection("entries").document(id))
+                    children.forEach { child ->
+                        batch.delete(userRef.collection("entries").document(child.id))
+                    }
+                    batch.commit().await()
+                    
+                    // 3. Suppression Room locale (Parent + Enfants via le DAO)
+                    offlineEntryDao.deleteEntry(id) // Le parent
+                    children.forEach { child ->
+                        offlineEntryDao.deleteEntry(child.id) // Les enfants
+                    }
+                    
                     _deleteSuccess.value = true
+                } else {
+                    // Suppression simple d'un complément
+                    val complement = offlineEntryDao.getEntryById(id).first()
+                    complement?.let {
+                        mediaManager.deleteFile(it.mediaUrl)
+                        mediaManager.deleteFile(it.coverUrl)
+                    }
+
+                    db.collection("users").document(uid)
+                        .collection("entries").document(id)
+                        .delete()
+                        .await()
+                    offlineEntryDao.deleteEntry(id)
                 }
             } catch (e: Exception) {
                 android.util.Log.e("MemoryDetailVM", "Erreur lors de la suppression de $id", e)

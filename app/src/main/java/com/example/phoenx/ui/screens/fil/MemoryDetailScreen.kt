@@ -59,7 +59,7 @@ fun MemoryDetailScreen(
     val error by viewModel.error.collectAsState()
     val isRecording by viewModel.isRecording.collectAsState()
     val isVoiceNoteOverlayOpen by viewModel.isVoiceNoteOverlayOpen.collectAsState() // v9.4.27
-    val sttPartialText by viewModel.sttPartialText.collectAsState()
+    val sttPartialText by viewModel.sttPartialText.collectAsState() 
     
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -132,6 +132,7 @@ fun MemoryDetailScreen(
     }
 
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var deleteConfirmStep by remember { mutableIntStateOf(1) } // v9.4.27 : Double confirmation
 
     var editableTitle by remember { mutableStateOf("") }
     var editableText by remember { mutableStateOf("") }
@@ -185,22 +186,50 @@ fun MemoryDetailScreen(
 
     if (showDeleteDialog) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = { 
+                showDeleteDialog = false
+                deleteConfirmStep = 1 
+            },
             containerColor = theme.backgroundColor,
-            title = { Text("Supprimer ce souvenir ?", color = theme.contentColor) },
-            text = { Text("Cette action est irréversible et supprimera le souvenir de votre fil ainsi que du Cloud.", color = theme.contentColor.copy(alpha = 0.7f)) },
-            confirmButton = {
-                TextButton(
-                    onClick = { 
-                        viewModel.deleteMemory()
-                        showDeleteDialog = false
+            title = { 
+                Text(
+                    if (deleteConfirmStep == 1) "Supprimer ce souvenir ?" else "Confirmer la suppression ?", 
+                    color = theme.contentColor
+                ) 
+            },
+            text = {
+                if (deleteConfirmStep == 1) {
+                    val mediaCount = complements.count { it.entryType != "TEXT" }
+                    val message = if (mediaCount > 0) {
+                        "Ce souvenir contient $mediaCount média(s). Tout sera supprimé définitivement."
+                    } else {
+                        "Cette action supprimera le souvenir de votre fil ainsi que du Cloud."
                     }
+                    Text(message, color = theme.contentColor.copy(alpha = 0.7f))
+                } else {
+                    Text("Cette action est définitive et ne peut pas être annulée. Confirmer la suppression ?", color = Error)
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { 
+                        if (deleteConfirmStep == 1) {
+                            deleteConfirmStep = 2
+                        } else {
+                            viewModel.deleteMemory()
+                            showDeleteDialog = false
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = if (deleteConfirmStep == 1) accent else Error)
                 ) {
-                    Text("Supprimer", color = Error)
+                    Text(if (deleteConfirmStep == 1) "Continuer" else "Supprimer définitivement", color = theme.backgroundColor)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(onClick = { 
+                    showDeleteDialog = false
+                    deleteConfirmStep = 1
+                }) {
                     Text("Annuler", color = theme.contentColor)
                 }
             }

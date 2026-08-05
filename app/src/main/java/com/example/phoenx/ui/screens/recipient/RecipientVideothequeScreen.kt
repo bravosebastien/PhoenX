@@ -209,7 +209,7 @@ fun RecipientVideothequeScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.deleteStandaloneMedia(mediaToDelete!!)
+                        viewModel.deleteMediaEntry(mediaToDelete!!) // v9.4.27 : Correction type suppression
                         mediaToDelete = null
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)
@@ -277,10 +277,10 @@ fun VHSCard(
             Icon(Icons.Default.PlayCircle, null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(48.dp))
 
             // Boutons Actions (v9.3.3)
-            if (isCreatorMode && entry.parentEntryId == null) {
+            if (isCreatorMode) {
                 Row(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
                     // Éditer (uniquement si Standalone)
-                    if (entry.mediaUrl?.contains("youtube.com") == true || entry.mediaUrl?.contains("youtu.be") == true) {
+                    if (entry.parentEntryId == null && (entry.mediaUrl?.contains("youtube.com") == true || entry.mediaUrl?.contains("youtu.be") == true)) {
                         IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
                             Icon(Icons.Default.Edit, null, tint = Color.White.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
                         }

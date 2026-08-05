@@ -180,9 +180,38 @@ class RecipientMediaViewModel @Inject constructor(
     }
 
     /**
+     * Supprime un média (Standalone ou rattaché à un souvenir) - v9.4.27
+     */
+    fun deleteMediaEntry(entry: PhoenXEntry) {
+        viewModelScope.launch {
+            try {
+                if (entry.parentEntryId != null) {
+                    // C'est un complément : On utilise la logique de MemoryDetail
+                    // Mais on l'implémente ici pour éviter les dépendances croisées de VM
+                    val uid = auth.currentUser?.uid ?: return@launch
+                    
+                    // 1. Suppression Firestore
+                    db.collection("users").document(uid)
+                        .collection("entries").document(entry.id)
+                        .delete().await()
+                    
+                    // 2. Suppression Room locale
+                    offlineEntryDao.deleteEntry(entry.id)
+                    android.util.Log.d("RecipientMediaVM", "Complément supprimé: ${entry.id}")
+                } else {
+                    // C'est un standalone : Logique existante
+                    deleteStandaloneMedia(entry)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientMediaVM", "Erreur lors de la suppression du média ${entry.id}", e)
+            }
+        }
+    }
+
+    /**
      * Supprime un média Standalone (v9.3.3)
      */
-    fun deleteStandaloneMedia(media: PhoenXEntry) {
+    private fun deleteStandaloneMedia(media: PhoenXEntry) {
         viewModelScope.launch {
             try {
                 // 1. Suppression Firestore

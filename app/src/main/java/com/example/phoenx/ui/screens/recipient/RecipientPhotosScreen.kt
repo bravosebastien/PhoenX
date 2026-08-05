@@ -184,7 +184,7 @@ fun RecipientPhotosScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.deleteStandaloneMedia(mediaToDelete!!)
+                        viewModel.deleteMediaEntry(mediaToDelete!!) // v9.4.27 : Correction type suppression
                         mediaToDelete = null
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)
@@ -232,7 +232,7 @@ fun PhotoItem(
         }
 
         // Bouton Supprimer (v9.3.3)
-        if (isCreatorMode && entry.parentEntryId == null) {
+        if (isCreatorMode) {
             IconButton(
                 onClick = onDelete,
                 modifier = Modifier.align(Alignment.TopEnd).padding(2.dp)

@@ -452,4 +452,22 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE persons ADD COLUMN reparentedRelationLabel TEXT")
         }
     }
+
+    /**
+     * MIGRATION_41_42 — Enrichissement Médiathèques v9.4.27
+     * Ajout des champs coverUrl, localCoverPath et mediaProvider.
+     */
+    val MIGRATION_41_42 = object : Migration(41, 42) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Extension offline_entries
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN coverUrl TEXT")
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN localCoverPath TEXT")
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN mediaProvider TEXT")
+
+            // Extension standalone_media
+            db.execSQL("ALTER TABLE standalone_media ADD COLUMN coverUrl TEXT")
+            db.execSQL("ALTER TABLE standalone_media ADD COLUMN localCoverPath TEXT")
+            db.execSQL("ALTER TABLE standalone_media ADD COLUMN mediaProvider TEXT")
+        }
+    }
 }

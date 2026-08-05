@@ -127,6 +127,26 @@ class MediaManager @Inject constructor(
     }
 
     /**
+     * Supprime un fichier du Firebase Storage (v9.4.27)
+     */
+    suspend fun deleteFile(pathOrUrl: String?) {
+        if (pathOrUrl.isNullOrBlank()) return
+        if (pathOrUrl.startsWith("/")) return // Chemin local, pas de suppression Storage
+
+        try {
+            val storageRef = if (pathOrUrl.startsWith("http")) {
+                storage.getReferenceFromUrl(pathOrUrl)
+            } else {
+                storage.getReference(pathOrUrl)
+            }
+            storageRef.delete().await()
+            android.util.Log.d("MediaManager", "Fichier Storage supprimé : $pathOrUrl")
+        } catch (e: Exception) {
+            android.util.Log.w("MediaManager", "Échec suppression Storage (peut-être déjà supprimé) : $pathOrUrl")
+        }
+    }
+
+    /**
      * Fournit une factory de source de données pour ExoPlayer (Streaming Chiffré).
      */
     @UnstableApi

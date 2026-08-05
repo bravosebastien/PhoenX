@@ -9,7 +9,7 @@ import { db } from "./admin";
 export const getInheritedFileUrl = onCall(async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Non authentifié");
 
-    const { creatorId, docType, docId } = request.data;
+    const { creatorId, docType, docId, field = "default" } = request.data;
     const requesterUid = request.auth.uid;
 
     // 1. Allowlist étendue aux portraits Cameo
@@ -51,13 +51,18 @@ export const getInheritedFileUrl = onCall(async (request) => {
         }
     }
 
-    // 6. Extraction du chemin Storage
+    // 6. Extraction du chemin Storage (v9.4.27 : Support du paramètre field)
     let storageUrl: string | null = null;
-    if (docType === "entries") storageUrl = itemData.mediaUrl;
-    else if (docType === "standaloneMedia" && itemData.type === "PHOTO") storageUrl = itemData.content;
-    else if (docType === "book") storageUrl = itemData.coverImageUrl;
-    else if (docType === "persons") storageUrl = itemData.imageUrl; // Champ Cameo v8.9.9
-    else if (docType === "personMedia") storageUrl = itemData.mediaPath; // Arbre v9.4.22
+
+    if (field === "coverUrl") {
+        storageUrl = itemData.coverUrl;
+    } else {
+        if (docType === "entries") storageUrl = itemData.mediaUrl;
+        else if (docType === "standaloneMedia" && itemData.type === "PHOTO") storageUrl = itemData.content;
+        else if (docType === "book") storageUrl = itemData.coverImageUrl;
+        else if (docType === "persons") storageUrl = itemData.imageUrl;
+        else if (docType === "personMedia") storageUrl = itemData.mediaPath;
+    }
 
     if (!storageUrl) throw new HttpsError("not-found", "Aucun fichier.");
 

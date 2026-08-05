@@ -22,5 +22,10 @@ data class StandaloneMediaEntity(
     val recipientIds: String = "", // CSV des vrais UIDs
     val visibility: String = "RESTRICTED", // v9.4.19
     val createdAt: Long = System.currentTimeMillis(),
-    val syncStatus: String = "pending" // "pending" | "synced" | "failed"
+    val syncStatus: String = "pending", // "pending" | "synced" | "failed"
+
+    // ENRICHISSEMENT MÉDIA v9.4.27 (Migration v42)
+    val coverUrl: String? = null,
+    val localCoverPath: String? = null,
+    val mediaProvider: String? = null // "SPOTIFY", "DEEZER", "YOUTUBE"
 )

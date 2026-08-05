@@ -94,7 +94,12 @@ data class OfflineEntry(
     val includeInBook: Boolean = true,
 
     // IA NARRATIVE v8.9.9 (Ton de l'Âme)
-    val soulTone: String? = null
+    val soulTone: String? = null,
+
+    // ENRICHISSEMENT MÉDIA v9.4.27 (Migration v42)
+    val coverUrl: String? = null,
+    val localCoverPath: String? = null,
+    val mediaProvider: String? = null // "PHOENX", "SPOTIFY", "DEEZER", "YOUTUBE"
 ) {
     fun isChild(): Boolean = parentEntryId != null
 
