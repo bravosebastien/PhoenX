@@ -210,17 +210,34 @@ fun LocationDetailScreen(
                                         modifier = Modifier.fillMaxWidth(),
                                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
+                                        val checkConnectionAndNavigate = { route: String ->
+                                            val cm = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+                                            val network = cm.activeNetwork
+                                            val capabilities = cm.getNetworkCapabilities(network)
+                                            val isConnected = capabilities != null && (
+                                                capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
+                                                capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                                                capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET)
+                                            )
+                                            
+                                            if (isConnected) {
+                                                navController.navigate(route)
+                                            } else {
+                                                Toast.makeText(context, "Pas de connexion internet. Réessayez plus tard.", Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+
                                         MediaAddButton(Icons.Default.CameraAlt, "Caméra", accent, theme, Modifier.weight(1f)) {
-                                            navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_PHOTO, locationId = locationId))
+                                            checkConnectionAndNavigate(Screen.Capture.createRoute(Screen.Capture.TYPE_PHOTO, locationId = locationId))
                                         }
                                         MediaAddButton(Icons.Default.PhotoLibrary, "Galerie", accent, theme, Modifier.weight(1f)) {
-                                            navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_GALLERY, locationId = locationId))
+                                            checkConnectionAndNavigate(Screen.Capture.createRoute(Screen.Capture.TYPE_GALLERY, locationId = locationId))
                                         }
                                         MediaAddButton(Icons.Default.Mic, "Vocal", accent, theme, Modifier.weight(1f)) {
-                                            navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_AUDIO, locationId = locationId))
+                                            checkConnectionAndNavigate(Screen.Capture.createRoute(Screen.Capture.TYPE_AUDIO, locationId = locationId))
                                         }
                                         MediaAddButton(Icons.Default.EditNote, "Texte", accent, theme, Modifier.weight(1f)) {
-                                            navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, locationId = locationId))
+                                            checkConnectionAndNavigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, locationId = locationId))
                                         }
                                     }
                                 }

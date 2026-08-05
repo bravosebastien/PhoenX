@@ -451,6 +451,7 @@ fun LocationBottomSheet(
     val entries = data.entries
     val accent = LocalAccentColor.current
     val theme = LocalAppTheme.current
+    val context = LocalContext.current
 
     val datePickerColors = DatePickerDefaults.colors(
         containerColor = theme.backgroundColor,
@@ -566,9 +567,26 @@ fun LocationBottomSheet(
             
             if (mode == MapMode.CREATOR) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                    val checkConnectionAndNavigate = { route: String ->
+                        val cm = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE) as android.net.ConnectivityManager
+                        val network = cm.activeNetwork
+                        val capabilities = cm.getNetworkCapabilities(network)
+                        val isConnected = capabilities != null && (
+                            capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
+                            capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                            capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET)
+                        )
+                        
+                        if (isConnected) {
+                            navController.navigate(route)
+                        } else {
+                            Toast.makeText(context, "Pas de connexion internet. Réessayez plus tard.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+
                     Button(
                         onClick = { 
-                            navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, locationId = location.id))
+                            checkConnectionAndNavigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, locationId = location.id))
                             onClose() 
                         },
                         modifier = Modifier.weight(1.4f).height(56.dp),
@@ -661,10 +679,14 @@ fun AddLocationDialog(latLng: LatLng, onConfirm: (String, String, Long) -> Unit,
 
     LaunchedEffect(latLng) {
         withContext(Dispatchers.IO) {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            @Suppress("DEPRECATION")
-            val results = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
-            results?.firstOrNull()?.let { placeName = it.locality ?: it.countryName ?: "" }
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                @Suppress("DEPRECATION")
+                val results = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1)
+                results?.firstOrNull()?.let { placeName = it.locality ?: it.countryName ?: "" }
+            } catch (e: Exception) {
+                android.util.Log.e("Mappemonde", "Geocoder error in AddLocationDialog", e)
+            }
         }
     }
 
