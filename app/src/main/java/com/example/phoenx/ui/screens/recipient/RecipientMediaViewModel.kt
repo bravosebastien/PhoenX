@@ -301,9 +301,10 @@ class RecipientMediaViewModel @Inject constructor(
     }
 
     /**
-     * Chiffre et uploade une photo de couverture pour un standalone (v9.4.27)
+     * Chiffre et uploade une photo de couverture pour un média (v9.4.27)
+     * Gère Standalone et Compléments.
      */
-    fun updateStandaloneCover(id: String, imageUri: android.net.Uri) {
+    fun updateMediaCover(id: String, imageUri: android.net.Uri, isComplement: Boolean) {
         val context = com.google.firebase.FirebaseApp.getInstance().applicationContext
         viewModelScope.launch {
             val file = try {
@@ -315,9 +316,16 @@ class RecipientMediaViewModel @Inject constructor(
             
             try {
                 val storagePath = mediaManager.encryptAndUpload(currentUid, id, file)
-                standaloneMediaDao.updateMediaCover(id, storagePath, file.absolutePath)
+                if (isComplement) {
+                    offlineEntryDao.updateEntryCover(storagePath, file.absolutePath, id)
+                    offlineEntryDao.updateSyncStatus(id, "pending")
+                } else {
+                    standaloneMediaDao.updateMediaCover(id, storagePath, file.absolutePath)
+                    standaloneMediaDao.updateSyncStatus(id, "pending")
+                }
+                android.util.Log.d("RecipientMediaVM", "Couverture mise à jour pour $id")
             } catch (e: Exception) {
-                android.util.Log.e("RecipientMediaVM", "Erreur upload couverture standalone", e)
+                android.util.Log.e("RecipientMediaVM", "Erreur upload couverture", e)
             }
         }
     }
@@ -561,10 +569,16 @@ class RecipientMediaViewModel @Inject constructor(
             targetAge = targetAge,
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = aiSummary,
-            userComment = userComment, // v9.4.27
+            userComment = userComment,
             parentEntryId = parentEntryId,
             mediaUrl = mediaUrl,
-            localMediaPath = localMediaPath
+            localMediaPath = localMediaPath,
+            coverUrl = coverUrl,
+            localCoverPath = localCoverPath,
+            mediaProvider = mediaProvider,
+            recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
+            visibility = visibility,
+            silentAttribution = silentAttribution
         )
     }
 
@@ -621,8 +635,11 @@ class RecipientMediaViewModel @Inject constructor(
             type = domainType,
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = displayTitle,
-            userComment = if (isHeirMode && !activated) null else userComment, // v9.4.27
+            userComment = if (isHeirMode && !activated) null else userComment,
             mediaUrl = if (domainType == EntryType.PHOTO || domainType == EntryType.VIDEO || type == "SPOTIFY") finalContent else null,
+            coverUrl = coverUrl,
+            localCoverPath = localCoverPath,
+            mediaProvider = mediaProvider,
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct(),
             visibility = visibility
         )

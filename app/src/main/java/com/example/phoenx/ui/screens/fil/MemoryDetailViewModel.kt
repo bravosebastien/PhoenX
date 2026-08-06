@@ -525,12 +525,32 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Met à jour la visibilité d'une entrée spécifique (v9.4.27)
+     */
+    fun updateEntryVisibility(entryId: String, visibility: String) {
+        viewModelScope.launch {
+            offlineEntryDao.updateEntryVisibility(visibility, entryId)
+            triggerSync(entryId)
+        }
+    }
+
+    /**
+     * Met à jour les destinataires d'une entrée spécifique (v9.4.27)
+     */
+    fun updateEntryRecipients(entryId: String, recipientDocIds: List<String>) {
+        viewModelScope.launch {
+            val persistentIds = recipientDocIds.map { docId ->
+                recipients.value.find { it.id == docId }?.linkedUid ?: docId
+            }.distinct()
+            offlineEntryDao.updateEntryRecipients(persistentIds.joinToString(","), entryId)
+            triggerSync(entryId)
+        }
+    }
+
     fun updateVisibility(visibility: String) {
         val id = _entryId.value ?: return
-        viewModelScope.launch {
-            offlineEntryDao.updateEntryVisibility(visibility, id)
-            triggerSync(id)
-        }
+        updateEntryVisibility(id, visibility)
     }
 
     fun updateSilentAttribution(silent: Boolean) {

@@ -51,8 +51,8 @@ fun MemoryComplementsSection(
     onStartAudioRecording: () -> Unit = {} // v9.4.27
 ) {
     var showAddMediaMenu by remember { mutableStateOf(false) }
-    var editingAudioId by remember { mutableStateOf<String?>(null) } // v9.4.27
-    var initialAudioTitle by remember { mutableStateOf("") }
+    var editingMedia by remember { mutableStateOf<OfflineEntry?>(null) } // v9.4.27
+    val recipients by viewModel.recipients.collectAsState()
 
     val context = LocalContext.current
     val heirKey by viewModel.heirKey.collectAsState()
@@ -61,9 +61,9 @@ fun MemoryComplementsSection(
     val coverLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        if (uri != null && editingAudioId != null) {
-            viewModel.updateComplementCover(editingAudioId!!, uri)
-            editingAudioId = null
+        if (uri != null && editingMedia != null) {
+            viewModel.updateComplementCover(editingMedia!!.id, uri)
+            editingMedia = null
         }
     }
 
@@ -229,13 +229,8 @@ fun MemoryComplementsSection(
 
                             if (!isReadOnly) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    if (complement.entryType == "AUDIO") {
-                                        IconButton(onClick = { 
-                                            editingAudioId = complement.id
-                                            initialAudioTitle = complement.aiSummary
-                                        }) {
-                                            Icon(Icons.Default.Edit, null, tint = accent.copy(alpha = 0.7f), modifier = Modifier.size(18.dp))
-                                        }
+                                    IconButton(onClick = { editingMedia = complement }) {
+                                        Icon(Icons.Default.Edit, null, tint = accent.copy(alpha = 0.7f), modifier = Modifier.size(18.dp))
                                     }
                                     IconButton(onClick = { viewModel.deleteComplement(complement.id) }) {
                                         Icon(Icons.Default.DeleteOutline, null, tint = Error.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
@@ -249,42 +244,24 @@ fun MemoryComplementsSection(
         }
     }
 
-    // DIALOGUE ÉDITION AUDIO (v9.4.27)
-    if (editingAudioId != null && !isReadOnly) {
-        var editedTitle by remember { mutableStateOf(initialAudioTitle) }
-        AlertDialog(
-            onDismissRequest = { editingAudioId = null },
-            containerColor = theme.backgroundColor,
-            title = { Text("Personnaliser la Note Vocale", color = theme.contentColor) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    OutlinedTextField(
-                        value = editedTitle,
-                        onValueChange = { editedTitle = it },
-                        label = { Text("Titre") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    
-                    Button(
-                        onClick = { coverLauncher.launch("image/*") },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = accent.copy(alpha = 0.1f), contentColor = accent)
-                    ) {
-                        Icon(Icons.Default.AddPhotoAlternate, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Changer la pochette")
-                    }
-                }
+    // DIALOGUE ÉDITION MÉDIA (v9.4.27 : Unifié pour Photos, Vidéos, Audios)
+    if (editingMedia != null && !isReadOnly) {
+        com.example.phoenx.ui.components.DirectMediaDialog(
+            type = editingMedia!!.entryType,
+            recipients = recipients,
+            onDismiss = { editingMedia = null },
+            onSave = { title, comment, _, ids, visibility ->
+                viewModel.updateComplementTitle(editingMedia!!.id, title)
+                viewModel.updateComplementComment(editingMedia!!.id, comment)
+                viewModel.updateEntryVisibility(editingMedia!!.id, visibility)
+                viewModel.updateEntryRecipients(editingMedia!!.id, ids)
+                editingMedia = null
             },
-            confirmButton = {
-                Button(onClick = { 
-                    viewModel.updateComplementTitle(editingAudioId!!, editedTitle)
-                    editingAudioId = null
-                }) { Text("Enregistrer") }
-            },
-            dismissButton = {
-                TextButton(onClick = { editingAudioId = null }) { Text("Annuler") }
-            }
+            initialTitle = editingMedia!!.aiSummary,
+            initialUserComment = editingMedia!!.userComment,
+            initialRecipientIds = editingMedia!!.recipientIds.split(",").filter { it.isNotBlank() },
+            initialVisibility = editingMedia!!.visibility,
+            onChangeCover = if (editingMedia!!.entryType == "AUDIO") { { coverLauncher.launch("image/*") } } else null
         )
     }
 }

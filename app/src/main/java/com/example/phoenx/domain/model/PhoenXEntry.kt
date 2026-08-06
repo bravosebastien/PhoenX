@@ -33,6 +33,11 @@ data class PhoenXEntry(
     // MÉDIA (v8.4.5)
     val mediaUrl: String? = null,
     val localMediaPath: String? = null,
+    
+    // ENRICHISSEMENT MÉDIA v9.4.27
+    val coverUrl: String? = null,
+    val localCoverPath: String? = null,
+    val mediaProvider: String? = null,
 
     // GESTION RÉSEAU (v8.9.2)
     val recipientIds: List<String> = emptyList(),

@@ -74,7 +74,7 @@ fun DirectMediaDialog(
                 }
 
                 // URL (Uniquement pour liens externes)
-                if (type != "AUDIO") {
+                if (type != "AUDIO" && type != "PHOTO") {
                     OutlinedTextField(
                         value = url,
                         onValueChange = { url = it },
@@ -116,7 +116,7 @@ fun DirectMediaDialog(
         confirmButton = {
             Button(
                 onClick = { onSave(title, userComment.ifBlank { null }, url, selectedIds.toList(), visibility) },
-                enabled = (type == "AUDIO" && title.isNotBlank()) || (type != "AUDIO" && url.isNotBlank())
+                enabled = if (type == "AUDIO" || type == "PHOTO" || type == "VIDEO") title.isNotBlank() else url.isNotBlank()
             ) {
                 Text("Enregistrer")
             }

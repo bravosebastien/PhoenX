@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.media.MediaManager
+import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.*
@@ -73,7 +74,8 @@ fun RecipientDiscothequeScreen(
         androidx.activity.result.contract.ActivityResultContracts.GetContent()
     ) { uri: android.net.Uri? ->
         if (uri != null && editingMedia != null) {
-            viewModel.updateStandaloneCover(editingMedia!!.id, uri)
+            val isComplement = editingMedia!!.parentEntryId != null
+            viewModel.updateMediaCover(editingMedia!!.id, uri, isComplement)
             editingMedia = null
         }
     }
@@ -227,11 +229,18 @@ fun VinylItem(
                 contentAlignment = Alignment.Center
             ) {
                 // Pochette ou Disque
-                if (entry.mediaUrl != null && (entry.mediaUrl!!.contains("storage") || entry.localMediaPath != null)) {
-                    // C'est une Note Vocale avec couverture possible
+                if (entry.mediaUrl != null && (entry.mediaUrl!!.contains("storage") || entry.localMediaPath != null || entry.coverUrl != null)) {
+                    // C'est une Note Vocale avec couverture possible (v9.4.27)
+                    val displayUrl = entry.coverUrl ?: entry.mediaUrl
+                    val displayPath = entry.localCoverPath ?: entry.localMediaPath
+                    
+                    if (entry.type == EntryType.AUDIO) {
+                        android.util.Log.d("MediaSupportDiag", "Discothèque NV - ID: ${entry.id}, coverUrl: ${entry.coverUrl}, localCover: ${entry.localCoverPath}")
+                    }
+
                     SecureAsyncImage(
-                        mediaUrl = entry.mediaUrl, // coverUrl si Note Vocale
-                        localPath = entry.localMediaPath,
+                        mediaUrl = displayUrl,
+                        localPath = displayPath,
                         explicitKey = heirKey,
                         mediaManager = mediaManager,
                         modifier = Modifier.fillMaxSize(),
