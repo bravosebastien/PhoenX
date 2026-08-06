@@ -142,8 +142,14 @@ class MediaViewerViewModel @Inject constructor(
             type = domainType,
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = aiSummary,
+            userComment = userComment,
             mediaUrl = mediaUrl,
-            localMediaPath = localMediaPath
+            localMediaPath = localMediaPath,
+            coverUrl = coverUrl,
+            localCoverPath = localCoverPath,
+            mediaProvider = mediaProvider,
+            recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
+            visibility = visibility
         )
     }
 
@@ -165,7 +171,12 @@ class MediaViewerViewModel @Inject constructor(
             type = domainType,
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = title,
+            userComment = userComment,
             mediaUrl = content,
+            coverUrl = coverUrl,
+            localCoverPath = localCoverPath,
+            mediaProvider = mediaProvider,
+            recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct(),
             visibility = visibility
         )
     }

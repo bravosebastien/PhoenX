@@ -198,15 +198,29 @@ fun MemoryComplementsSection(
                             Spacer(modifier = Modifier.width(16.dp))
 
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = complement.aiSummary.ifEmpty { "Média ${complement.entryType.lowercase()}" },
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = theme.contentColor,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                                // ... (visibilité et sync)
                                 Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = complement.aiSummary.ifEmpty { "Média ${complement.entryType.lowercase()}" },
+                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                        color = theme.contentColor,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.weight(1f, fill = false)
+                                    )
+                                    
+                                    // INDICATEUR COMMENTAIRE (v9.4.27)
+                                    if (!complement.userComment.isNullOrBlank()) {
+                                        Spacer(Modifier.width(8.dp))
+                                        Icon(
+                                            Icons.Default.ChatBubbleOutline, 
+                                            null, 
+                                            tint = accent.copy(alpha = 0.6f), 
+                                            modifier = Modifier.size(12.dp)
+                                        )
+                                    }
+                                }
+
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
                                     Icon(
                                         imageVector = if (complement.visibility == "EVERYONE") Icons.Default.Public else Icons.Default.Lock,
                                         contentDescription = null,
