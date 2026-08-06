@@ -7,7 +7,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
@@ -20,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
@@ -114,9 +114,9 @@ fun RecipientDiscothequeScreen(
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(24.dp),
+                    contentPadding = PaddingValues(20.dp),
                     horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     items(entries) { entry ->
                         val isExpanded = expandedMediaId == entry.id
@@ -129,7 +129,7 @@ fun RecipientDiscothequeScreen(
                             mediaManager = mediaManager,
                             onDelete = { mediaToDelete = entry },
                             onEdit = { if (isCreatorMode) editingMedia = entry },
-                            onToggleExpand = { expandedMediaId = if (isExpanded) null else entry.id },
+                            onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
                             onPlay = {
                                 android.util.Log.d("MediaSupportDiag", "Clic Écouter - ID: ${entry.id}, Title: ${entry.aiSummary}, Type: ${entry.type}")
                                 if (entry.mediaUrl?.startsWith("http") == true) {
@@ -146,7 +146,7 @@ fun RecipientDiscothequeScreen(
         }
     }
 
-    // DIALOGUES (Suppression, Ajout, Édition...)
+    // --- DIALOGUES DE PERSISTANCE (INCHANGÉS) ---
     if (mediaToDelete != null) {
         AlertDialog(
             onDismissRequest = { mediaToDelete = null },
@@ -206,117 +206,113 @@ fun VinylItem(
     mediaManager: MediaManager,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
-    onToggleExpand: () -> Unit,
+    onToggleInfo: () -> Unit,
     onPlay: () -> Unit
 ) {
     val accent = theme.accentColor
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(0.dp)
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier = Modifier
-                    .aspectRatio(1f)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Color(0xFF121215))
-                    .clickable { onToggleExpand() }
-                    .phoenXMatiere(),
-                contentAlignment = Alignment.Center
-            ) {
-                // Pochette ou Disque
-                if (entry.mediaUrl != null && (entry.mediaUrl!!.contains("storage") || entry.localMediaPath != null || entry.coverUrl != null)) {
-                    // C'est une Note Vocale avec couverture possible (v9.4.27)
-                    val displayUrl = entry.coverUrl ?: entry.mediaUrl
-                    val displayPath = entry.localCoverPath ?: entry.localMediaPath
-                    
-                    if (entry.type == EntryType.AUDIO) {
-                        android.util.Log.d("MediaSupportDiag", "Discothèque NV - ID: ${entry.id}, coverUrl: ${entry.coverUrl}, localCover: ${entry.localCoverPath}")
-                    }
-
-                    SecureAsyncImage(
-                        mediaUrl = displayUrl,
-                        localPath = displayPath,
-                        explicitKey = heirKey,
-                        mediaManager = mediaManager,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    // Disque vinyle générique
-                    Surface(
-                        modifier = Modifier.fillMaxSize(0.85f),
-                        shape = CircleShape,
-                        color = Color.Black,
-                        border = BorderStroke(2.dp, Color.DarkGray.copy(alpha = 0.5f))
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Surface(modifier = Modifier.size(40.dp), shape = CircleShape, color = accent) {
-                                Icon(Icons.Default.MusicNote, null, tint = Color.Black, modifier = Modifier.padding(10.dp))
-                            }
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .aspectRatio(1f)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(0xFF121215))
+                .clickable { onPlay() }
+                .phoenXMatiere(),
+            contentAlignment = Alignment.Center
+        ) {
+            // Pochette ou Disque
+            if (entry.mediaUrl != null && (entry.mediaUrl!!.contains("storage") || entry.localMediaPath != null || entry.coverUrl != null)) {
+                val displayUrl = entry.coverUrl ?: entry.mediaUrl
+                val displayPath = entry.localCoverPath ?: entry.localMediaPath
+                
+                SecureAsyncImage(
+                    mediaUrl = displayUrl,
+                    localPath = displayPath,
+                    explicitKey = heirKey,
+                    mediaManager = mediaManager,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Disque vinyle générique
+                Surface(
+                    modifier = Modifier.fillMaxSize(0.85f),
+                    shape = CircleShape,
+                    color = Color.Black,
+                    border = BorderStroke(2.dp, Color.DarkGray.copy(alpha = 0.5f))
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Surface(modifier = Modifier.size(40.dp), shape = CircleShape, color = accent) {
+                            Icon(Icons.Default.MusicNote, null, tint = Color.Black, modifier = Modifier.padding(10.dp))
                         }
                     }
                 }
+            }
 
-                // Actions rapides (Supprimer)
-                if (isCreatorMode) {
+            // OVERLAY UNIFIÉ (v9.4.27)
+            
+            // 1. INFO (Haut Gauche)
+            if (!entry.userComment.isNullOrBlank()) {
+                Box(modifier = Modifier.align(Alignment.TopStart).padding(4.dp)) {
                     IconButton(
-                        onClick = onDelete,
-                        modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).background(Color.Black.copy(alpha = 0.3f), CircleShape).size(32.dp)
+                        onClick = { onToggleInfo() },
+                        modifier = Modifier.size(32.dp)
                     ) {
-                        Icon(Icons.Default.Delete, null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.ChatBubbleOutline, null, tint = Color.White, modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape))
                     }
                 }
             }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Text(
-                text = entry.aiSummary.ifEmpty { "Souvenir vocal" },
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                color = theme.contentColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
 
-            if (isExpanded) {
-                Column(modifier = Modifier.padding(top = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (!entry.userComment.isNullOrBlank()) {
-                        Text(
-                            text = entry.userComment!!,
-                            style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
-                            color = theme.contentColor.copy(alpha = 0.6f),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                    
-                    Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Button(
-                            onClick = onPlay,
-                            colors = ButtonDefaults.buttonColors(containerColor = accent),
-                            shape = CircleShape,
-                            modifier = Modifier.height(36.dp)
-                        ) {
-                            Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Écouter", fontSize = 12.sp)
-                        }
-                        if (isCreatorMode) {
-                            OutlinedIconButton(
-                                onClick = onEdit,
-                                modifier = Modifier.size(36.dp),
-                                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.2f))
-                            ) {
-                                Icon(Icons.Default.Edit, null, tint = theme.contentColor, modifier = Modifier.size(16.dp))
-                            }
-                        }
+            // 2. SUPPRIMER (Haut Droite)
+            if (isCreatorMode) {
+                Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                    IconButton(
+                        onClick = { onDelete() },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(Icons.Default.Delete, null, tint = Color.White.copy(alpha = 0.9f), modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape))
                     }
                 }
             }
+
+            // 3. ÉDITER (Bas GAUCHE)
+            if (isCreatorMode) {
+                Box(modifier = Modifier.align(Alignment.BottomStart).padding(4.dp)) {
+                    IconButton(
+                        onClick = { onEdit() },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(Icons.Default.Edit, null, tint = Color.White, modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape))
+                    }
+                }
+            }
+
+            // 4. INDICATEUR PLAY CENTRAL (Discret)
+            Icon(Icons.Default.PlayArrow, null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(40.dp))
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // TITRE SOUS LE BLOC
+        Text(
+            text = entry.aiSummary.ifEmpty { "Souvenir vocal" },
+            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+            color = theme.contentColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+
+        // ACCORDÉON DE COMMENTAIRE
+        AnimatedVisibility(visible = isExpanded) {
+            Text(
+                text = entry.userComment ?: "",
+                style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
+                color = theme.contentColor.copy(alpha = 0.6f),
+                modifier = Modifier.padding(top = 4.dp, start = 8.dp, end = 8.dp),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

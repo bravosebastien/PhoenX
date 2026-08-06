@@ -19,7 +19,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -27,8 +29,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.domain.model.PhoenXEntry
+import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.*
+import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,12 +50,21 @@ fun RecipientVideothequeScreen(
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val context = androidx.compose.ui.platform.LocalContext.current
+    val heirKey by viewModel.heirKey.collectAsState()
+    
+    val mediaManager = remember(context) {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            MediaManager.MediaManagerEntryPoint::class.java
+        ).mediaManager()
+    }
+
     val isCreatorMode = creatorId == null || creatorId == viewModel.currentUid
     var showAddDialog by remember { mutableStateOf(false) }
     var showInfoPopup by remember { mutableStateOf(false) }
     var editingMedia by remember { mutableStateOf<PhoenXEntry?>(null) }
     var mediaToDelete by remember { mutableStateOf<PhoenXEntry?>(null) }
-    var expandedMediaId by remember { mutableStateOf<String?>(null) } // v9.4.27
+    var expandedMediaId by remember { mutableStateOf<String?>(null) } 
     
     val recipients by standaloneViewModel.recipients.collectAsState()
 
@@ -88,9 +102,9 @@ fun RecipientVideothequeScreen(
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(24.dp),
+                    contentPadding = PaddingValues(20.dp),
                     horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     items(entries) { entry ->
                         val isExpanded = expandedMediaId == entry.id
@@ -99,9 +113,11 @@ fun RecipientVideothequeScreen(
                             theme = theme,
                             isCreatorMode = isCreatorMode,
                             isExpanded = isExpanded,
+                            heirKey = heirKey,
+                            mediaManager = mediaManager,
                             onDelete = { mediaToDelete = entry },
                             onEdit = { if (isCreatorMode) editingMedia = entry },
-                            onToggleExpand = { expandedMediaId = if (isExpanded) null else entry.id },
+                            onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
                             onPlay = {
                                 android.util.Log.d("MediaSupportDiag", "Clic Voir - ID: ${entry.id}, Title: ${entry.aiSummary}, Type: ${entry.type}")
                                 if (entry.mediaUrl?.startsWith("http") == true) {
@@ -153,8 +169,8 @@ fun RecipientVideothequeScreen(
             type = type,
             recipients = recipients,
             onDismiss = { editingMedia = null },
-            onSave = { title, desc, url, ids, visibility ->
-                viewModel.updateMediaEntry(editingMedia!!.id, title, desc, url, ids, visibility, isComplement)
+            onSave = { title, comment, url, ids, visibility ->
+                viewModel.updateMediaEntry(editingMedia!!.id, title, comment, url, ids, visibility, isComplement)
                 editingMedia = null
             },
             initialTitle = editingMedia!!.aiSummary,
@@ -172,91 +188,122 @@ fun VHSCard(
     theme: AppThemeState, 
     isCreatorMode: Boolean,
     isExpanded: Boolean,
+    heirKey: ByteArray?,
+    mediaManager: MediaManager,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
-    onToggleExpand: () -> Unit,
+    onToggleInfo: () -> Unit,
     onPlay: () -> Unit
 ) {
     val accent = theme.accentColor
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .animateContentSize(),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(0.dp)
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFF1A1A2A))
-                    .clickable { onToggleExpand() }
-                    .phoenXMatiere(),
-                contentAlignment = Alignment.Center
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .aspectRatio(1.6f) // Ratio VHS plus large
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFF1A1A2A))
+                .clickable { onPlay() }
+                .phoenXMatiere(),
+            contentAlignment = Alignment.Center
+        ) {
+            // MINIATURE (v9.4.27 : Cover First Strategy)
+            val thumbnailPath = entry.coverUrl ?: entry.localCoverPath ?: entry.localMediaPath
+            
+            if (thumbnailPath != null) {
+                SecureAsyncImage(
+                    mediaUrl = if (thumbnailPath.startsWith("http") || thumbnailPath.startsWith("users/")) thumbnailPath else null,
+                    localPath = if (thumbnailPath.startsWith("/")) thumbnailPath else null,
+                    explicitKey = heirKey,
+                    mediaManager = mediaManager,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // PLACEHOLDER VHS DYNAMIQUE
+                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.5f))) {
+                    Icon(
+                        Icons.Default.Videocam, 
+                        null, 
+                        tint = accent.copy(alpha = 0.3f), 
+                        modifier = Modifier.size(48.dp).align(Alignment.Center)
+                    )
+                }
+            }
+
+            // Étiquette VHS (Braise)
+            Surface(
+                modifier = Modifier.fillMaxWidth(0.85f).height(32.dp).align(Alignment.BottomCenter).padding(bottom = 6.dp),
+                color = theme.contentColor.copy(alpha = 0.9f),
+                shape = RoundedCornerShape(4.dp)
             ) {
-                // Étiquette VHS (Braise)
-                Surface(
-                    modifier = Modifier.fillMaxWidth(0.9f).height(40.dp).align(Alignment.BottomCenter).padding(bottom = 8.dp),
-                    color = theme.contentColor.copy(alpha = 0.9f),
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Row(modifier = Modifier.padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Videocam, null, tint = accent, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(entry.aiSummary.ifEmpty { "Vidéo" }, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = Color.Black, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
+                Row(modifier = Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Videocam, null, tint = accent, modifier = Modifier.size(14.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        entry.aiSummary.ifEmpty { "Vidéo" }, 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp), 
+                        color = Color.Black, 
+                        maxLines = 1, 
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
+            }
 
-                Icon(Icons.Default.PlayCircle, null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(48.dp))
-
-                if (isCreatorMode) {
-                    IconButton(
-                        onClick = onDelete,
-                        modifier = Modifier.align(Alignment.TopEnd).padding(4.dp).background(Color.Black.copy(alpha = 0.3f), CircleShape).size(32.dp)
-                    ) {
-                        Icon(Icons.Default.Delete, null, tint = Color.White.copy(alpha = 0.7f), modifier = Modifier.size(16.dp))
+            // OVERLAY UNIFIÉ (Icônes discrètes)
+            
+            // 1. INFO (Haut Gauche)
+            if (!entry.userComment.isNullOrBlank()) {
+                Box(modifier = Modifier.align(Alignment.TopStart).padding(4.dp)) {
+                    IconButton(onClick = onToggleInfo, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.ChatBubbleOutline, null, tint = Color.White, modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape))
                     }
                 }
             }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            if (isExpanded) {
-                Column(modifier = Modifier.padding(top = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    if (!entry.userComment.isNullOrBlank()) {
-                        Text(
-                            text = entry.userComment!!,
-                            style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
-                            color = theme.contentColor.copy(alpha = 0.6f),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                    
-                    Row(modifier = Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        Button(
-                            onClick = onPlay,
-                            colors = ButtonDefaults.buttonColors(containerColor = accent),
-                            shape = CircleShape,
-                            modifier = Modifier.height(36.dp)
-                        ) {
-                            Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text("Voir", fontSize = 12.sp)
-                        }
-                        if (isCreatorMode) {
-                            OutlinedIconButton(
-                                onClick = onEdit,
-                                modifier = Modifier.size(36.dp),
-                                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.2f))
-                            ) {
-                                Icon(Icons.Default.Edit, null, tint = theme.contentColor, modifier = Modifier.size(16.dp))
-                            }
-                        }
+
+            // 2. SUPPRIMER (Haut Droite)
+            if (isCreatorMode) {
+                Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                    IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Delete, null, tint = Color.White.copy(alpha = 0.9f), modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape))
                     }
                 }
             }
+
+            // 3. ÉDITER (Bas GAUCHE)
+            if (isCreatorMode) {
+                Box(modifier = Modifier.align(Alignment.BottomStart).padding(4.dp)) {
+                    IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
+                        Icon(Icons.Default.Edit, null, tint = Color.White, modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape))
+                    }
+                }
+            }
+
+            // INDICATEUR PLAY CENTRAL
+            Icon(Icons.Default.PlayCircle, null, tint = Color.White.copy(alpha = 0.2f), modifier = Modifier.size(40.dp))
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // TITRE SOUS LE BLOC
+        Text(
+            text = entry.aiSummary.ifEmpty { "Vidéo" },
+            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+            color = theme.contentColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+
+        // ACCORDÉON DE COMMENTAIRE
+        AnimatedVisibility(visible = isExpanded) {
+            Text(
+                text = entry.userComment ?: "",
+                style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
+                color = theme.contentColor.copy(alpha = 0.6f),
+                modifier = Modifier.padding(top = 4.dp, start = 8.dp, end = 8.dp),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
