@@ -193,9 +193,21 @@ fun LiteraryLibraryScreen(
         AlertDialog(
             onDismissRequest = { readingExcerpt = null },
             containerColor = theme.backgroundColor,
-            title = { Text(readingExcerpt!!.title.ifEmpty { "Extrait Littéraire" }, color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            title = { 
+                Column {
+                    Text(readingExcerpt!!.title.ifEmpty { "Extrait Littéraire" }, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                    if (!readingExcerpt!!.userComment.isNullOrBlank()) {
+                        Text(
+                            text = readingExcerpt!!.userComment!!,
+                            style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
+                            color = theme.contentColor.copy(alpha = 0.6f)
+                        )
+                    }
+                }
+            },
             text = {
                 Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = theme.contentColor.copy(alpha = 0.1f))
                     Text(
                         text = readingExcerpt!!.content,
                         style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, lineHeight = 28.sp),
@@ -245,28 +257,26 @@ fun ManuscriptItem(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
+                // Overlay sombre pour lisibilité du titre au centre
+                Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))
             } else {
-                // FOND TEXTURÉ + TEXTE STYLISÉ (Aperçu)
-                Column(
-                    modifier = Modifier.padding(16.dp).fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = excerpt.content.take(80) + "...",
-                        style = MaterialTheme.typography.bodySmall.copy(
-                            fontFamily = FontFamily.Serif,
-                            fontStyle = FontStyle.Italic,
-                            fontSize = 10.sp,
-                            lineHeight = 14.sp
-                        ),
-                        color = Color.DarkGray.copy(alpha = 0.5f),
-                        textAlign = TextAlign.Center,
-                        maxLines = 6,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+                // FOND TEXTURÉ
+                Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF5F2E9)))
             }
+
+            // TITRE CENTRAL (v9.4.27 : Toujours visible, gros et lisible)
+            Text(
+                text = excerpt.title.ifEmpty { "Manuscrit" },
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                ),
+                color = if (excerpt.coverUrl != null || excerpt.localCoverPath != null) Color.White else Color.DarkGray,
+                modifier = Modifier.padding(16.dp),
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
 
             // OVERLAY UNIFIÉ (Icônes discrètes)
             

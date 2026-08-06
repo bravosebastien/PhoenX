@@ -207,13 +207,13 @@ fun VHSCard(
                 .phoenXMatiere(),
             contentAlignment = Alignment.Center
         ) {
-            // MINIATURE (v9.4.27 : Cover First Strategy)
-            val thumbnailPath = entry.coverUrl ?: entry.localCoverPath ?: entry.localMediaPath
+            // MINIATURE (v9.4.27 : Cover First Strategy - Corrigée)
+            val hasImage = entry.coverUrl != null || entry.localCoverPath != null || entry.localMediaPath != null
             
-            if (thumbnailPath != null) {
+            if (hasImage) {
                 SecureAsyncImage(
-                    mediaUrl = if (thumbnailPath.startsWith("http") || thumbnailPath.startsWith("users/")) thumbnailPath else null,
-                    localPath = if (thumbnailPath.startsWith("/")) thumbnailPath else null,
+                    mediaUrl = entry.coverUrl ?: entry.mediaUrl?.takeIf { !it.startsWith("/") },
+                    localPath = entry.localCoverPath ?: entry.localMediaPath?.takeIf { it.startsWith("/") },
                     explicitKey = heirKey,
                     mediaManager = mediaManager,
                     modifier = Modifier.fillMaxSize(),
@@ -238,14 +238,14 @@ fun VHSCard(
                 shape = RoundedCornerShape(4.dp)
             ) {
                 Row(modifier = Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Videocam, null, tint = accent, modifier = Modifier.size(14.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         entry.aiSummary.ifEmpty { "Vidéo" }, 
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp), 
                         color = Color.Black, 
                         maxLines = 1, 
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
@@ -261,11 +261,22 @@ fun VHSCard(
                 }
             }
 
-            // 2. SUPPRIMER (Haut Droite)
-            if (isCreatorMode) {
-                Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-                    IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Delete, null, tint = Color.White.copy(alpha = 0.9f), modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape))
+            // 2. ACTIONS HAUT DROITE (v9.4.27 : Unification & Position Camera)
+            Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Indicateur Caméra (Discret)
+                    Icon(
+                        Icons.Default.Videocam, 
+                        null, 
+                        tint = Color.White.copy(alpha = 0.7f), 
+                        modifier = Modifier.size(18.dp).shadow(1.dp, CircleShape)
+                    )
+                    
+                    if (isCreatorMode) {
+                        Spacer(Modifier.width(4.dp))
+                        IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
+                            Icon(Icons.Default.Delete, null, tint = Color.White.copy(alpha = 0.9f), modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape))
+                        }
                     }
                 }
             }
