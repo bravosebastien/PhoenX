@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.screens.library.components.LibraryOnboardingData
@@ -68,7 +69,6 @@ fun LiteraryLibraryScreen(
     }
     
     var showAddDialog by remember { mutableStateOf(false) }
-    var showInfoPopup by remember { mutableStateOf(false) }
     var editingExcerpt by remember { mutableStateOf<StandaloneMedia?>(null) }
     var excerptToDelete by remember { mutableStateOf<StandaloneMedia?>(null) }
     var readingExcerpt by remember { mutableStateOf<StandaloneMedia?>(null) }
@@ -87,52 +87,6 @@ fun LiteraryLibraryScreen(
         )
     }
 
-    if (showInfoPopup) {
-        AlertDialog(
-            onDismissRequest = { showInfoPopup = false },
-            containerColor = theme.backgroundColor,
-            title = { Text(LibraryOnboardingData.getTitle("LITERARY"), color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    LibraryOnboardingData.getContent("LITERARY").forEach { point ->
-                        Row(verticalAlignment = Alignment.Top) {
-                            Text("•", color = accent, modifier = Modifier.padding(end = 8.dp))
-                            Text(point, style = MaterialTheme.typography.bodyMedium, color = theme.contentColor.copy(alpha = 0.8f))
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(onClick = { showInfoPopup = false }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
-                    Text("Fermer", color = theme.backgroundColor)
-                }
-            }
-        )
-    }
-
-    if (showInfoPopup) {
-        AlertDialog(
-            onDismissRequest = { showInfoPopup = false },
-            containerColor = theme.backgroundColor,
-            title = { Text(LibraryOnboardingData.getTitle("LITERARY"), color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    LibraryOnboardingData.getContent("LITERARY").forEach { point ->
-                        Row(verticalAlignment = Alignment.Top) {
-                            Text("•", color = accent, modifier = Modifier.padding(end = 8.dp))
-                            Text(point, style = MaterialTheme.typography.bodyMedium, color = theme.contentColor.copy(alpha = 0.8f))
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(onClick = { showInfoPopup = false }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
-                    Text("Fermer", color = theme.backgroundColor)
-                }
-            }
-        )
-    }
-
     Scaffold(
         containerColor = theme.backgroundColor,
         modifier = Modifier.background(com.example.phoenx.ui.theme.LocalBackgroundBrush.current),
@@ -146,7 +100,10 @@ fun LiteraryLibraryScreen(
                 },
                 actions = {
                     if (isCreatorMode) {
-                        IconButton(onClick = { showInfoPopup = true }) { Icon(Icons.Default.Info, null, tint = accent) }
+                        InfoButton(
+                            title = LibraryOnboardingData.getTitle("LITERARY"),
+                            points = LibraryOnboardingData.getContent("LITERARY")
+                        )
                         IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
                     }
                 },

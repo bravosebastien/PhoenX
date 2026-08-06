@@ -9,8 +9,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -26,6 +29,22 @@ fun InfoButton(
     var showDialog by remember { mutableStateOf(false) }
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+
+    // Helper pour parser le gras ** (v9.4.27)
+    val parseBold = @Composable { text: String ->
+        buildAnnotatedString {
+            val parts = text.split("**")
+            parts.forEachIndexed { index, part ->
+                if (index % 2 == 1) {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                        append(part)
+                    }
+                } else {
+                    append(part)
+                }
+            }
+        }
+    }
 
     // Le bouton ℹ️ discret (v9.2.6 : Harmonisé au thème)
     IconButton(
@@ -101,7 +120,7 @@ fun InfoButton(
                                 )
                             )
                             Text(
-                                text = point,
+                                text = parseBold(point),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = theme.contentColor.copy(alpha = 0.7f),
                                 lineHeight = 20.sp

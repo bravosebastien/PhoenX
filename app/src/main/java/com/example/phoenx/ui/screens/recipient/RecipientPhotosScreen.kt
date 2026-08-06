@@ -30,7 +30,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.domain.model.PhoenXEntry
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.SecureAsyncImage
+import com.example.phoenx.ui.screens.library.components.LibraryOnboardingData
 import com.example.phoenx.ui.theme.*
 import dagger.hilt.android.EntryPointAccessors
 
@@ -60,7 +62,6 @@ fun RecipientPhotosScreen(
 
     val isCreatorMode = creatorId == null || creatorId == viewModel.currentUid
     var showAddDialog by remember { mutableStateOf(false) }
-    var showInfoPopup by remember { mutableStateOf(false) }
     var editingMedia by remember { mutableStateOf<PhoenXEntry?>(null) }
     var mediaToDelete by remember { mutableStateOf<PhoenXEntry?>(null) }
     var expandedMediaId by remember { mutableStateOf<String?>(null) } // Pour affichage commentaire (v9.4.27)
@@ -71,26 +72,12 @@ fun RecipientPhotosScreen(
         viewModel.setTargetCreator(creatorId)
     }
 
-    if (showInfoPopup) {
-        AlertDialog(
-            onDismissRequest = { showInfoPopup = false },
-            containerColor = theme.backgroundColor,
-            title = { Text(com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("PHOTO"), color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("PHOTO").forEach { point ->
-                        Row(verticalAlignment = Alignment.Top) {
-                            Text("•", color = accent, modifier = Modifier.padding(end = 8.dp))
-                            Text(point, style = MaterialTheme.typography.bodyMedium, color = theme.contentColor.copy(alpha = 0.8f))
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(onClick = { showInfoPopup = false }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
-                    Text("Fermer", color = theme.backgroundColor)
-                }
-            }
+    if (isCreatorMode) {
+        com.example.phoenx.ui.components.OnboardingPopup(
+            pageKey = "phototheque",
+            title = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("PHOTO"),
+            contentPoints = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("PHOTO"),
+            preferenceManager = themeViewModel.preferenceManager
         )
     }
 
@@ -107,7 +94,10 @@ fun RecipientPhotosScreen(
                 },
                 actions = {
                     if (isCreatorMode) {
-                        IconButton(onClick = { showInfoPopup = true }) { Icon(Icons.Default.Info, null, tint = accent) }
+                        InfoButton(
+                            title = LibraryOnboardingData.getTitle("PHOTO"),
+                            points = LibraryOnboardingData.getContent("PHOTO")
+                        )
                         IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
                     }
                 },

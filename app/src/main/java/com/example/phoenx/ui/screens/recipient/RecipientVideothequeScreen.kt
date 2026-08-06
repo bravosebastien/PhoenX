@@ -31,7 +31,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.domain.model.PhoenXEntry
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.SecureAsyncImage
+import com.example.phoenx.ui.screens.library.components.LibraryOnboardingData
 import com.example.phoenx.ui.theme.*
 import dagger.hilt.android.EntryPointAccessors
 
@@ -61,7 +63,6 @@ fun RecipientVideothequeScreen(
 
     val isCreatorMode = creatorId == null || creatorId == viewModel.currentUid
     var showAddDialog by remember { mutableStateOf(false) }
-    var showInfoPopup by remember { mutableStateOf(false) }
     var editingMedia by remember { mutableStateOf<PhoenXEntry?>(null) }
     var mediaToDelete by remember { mutableStateOf<PhoenXEntry?>(null) }
     var expandedMediaId by remember { mutableStateOf<String?>(null) } 
@@ -72,26 +73,12 @@ fun RecipientVideothequeScreen(
         viewModel.setTargetCreator(creatorId)
     }
 
-    if (showInfoPopup) {
-        AlertDialog(
-            onDismissRequest = { showInfoPopup = false },
-            containerColor = theme.backgroundColor,
-            title = { Text(com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("VIDEO"), color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("VIDEO").forEach { point ->
-                        Row(verticalAlignment = Alignment.Top) {
-                            Text("•", color = accent, modifier = Modifier.padding(end = 8.dp))
-                            Text(point, style = MaterialTheme.typography.bodyMedium, color = theme.contentColor.copy(alpha = 0.8f))
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(onClick = { showInfoPopup = false }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
-                    Text("Fermer", color = theme.backgroundColor)
-                }
-            }
+    if (isCreatorMode) {
+        com.example.phoenx.ui.components.OnboardingPopup(
+            pageKey = "videotheque",
+            title = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("VIDEO"),
+            contentPoints = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("VIDEO"),
+            preferenceManager = themeViewModel.preferenceManager
         )
     }
 
@@ -108,7 +95,10 @@ fun RecipientVideothequeScreen(
                 },
                 actions = {
                     if (isCreatorMode) {
-                        IconButton(onClick = { showInfoPopup = true }) { Icon(Icons.Default.Info, null, tint = accent) }
+                        InfoButton(
+                            title = LibraryOnboardingData.getTitle("VIDEO"),
+                            points = LibraryOnboardingData.getContent("VIDEO")
+                        )
                         IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
                     }
                 },
