@@ -1,6 +1,8 @@
 package com.example.phoenx.ui.screens.recipient
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -16,12 +18,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.layout.ContentScale
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.components.SecureAsyncImage
@@ -55,127 +61,84 @@ fun RecipientPhotosScreen(
     val isCreatorMode = creatorId == null || creatorId == viewModel.currentUid
     var showAddDialog by remember { mutableStateOf(false) }
     var showInfoPopup by remember { mutableStateOf(false) }
-    var editingMedia by remember { mutableStateOf<PhoenXEntry?>(null) } // v9.4.27
+    var editingMedia by remember { mutableStateOf<PhoenXEntry?>(null) }
     var mediaToDelete by remember { mutableStateOf<PhoenXEntry?>(null) }
+    var expandedMediaId by remember { mutableStateOf<String?>(null) } // Pour affichage commentaire (v9.4.27)
+    
     val recipients by standaloneViewModel.recipients.collectAsState()
 
     LaunchedEffect(creatorId) {
         viewModel.setTargetCreator(creatorId)
     }
 
-    if (isCreatorMode) {
-        com.example.phoenx.ui.components.OnboardingPopup(
-            pageKey = "phototheque",
-            title = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("PHOTO"),
-            contentPoints = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("PHOTO"),
-            preferenceManager = themeViewModel.preferenceManager
-        )
-    }
-
-    if (showInfoPopup) {
-        AlertDialog(
-            onDismissRequest = { showInfoPopup = false },
-            containerColor = theme.backgroundColor,
-            title = { Text(com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("PHOTO"), color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("PHOTO").forEach { point ->
-                        Row(verticalAlignment = Alignment.Top) {
-                            Text("•", color = accent, modifier = Modifier.padding(end = 8.dp))
-                            Text(point, style = MaterialTheme.typography.bodyMedium, color = theme.contentColor.copy(alpha = 0.8f))
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(onClick = { showInfoPopup = false }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
-                    Text("Fermer", color = theme.backgroundColor)
-                }
-            }
-        )
-    }
-
     Scaffold(
         containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
-            Column {
-                TopAppBar(
-                    title = { Text("Grande Photothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
-                    navigationIcon = {
-                        IconButton(onClick = onNavigateBack) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
-                        }
-                    },
-                    actions = {
-                        if (isCreatorMode) {
-                            IconButton(onClick = { showInfoPopup = true }) {
-                                Icon(Icons.Default.Info, null, tint = accent)
-                            }
-                            IconButton(onClick = { showAddDialog = true }) {
-                                Icon(Icons.Default.Add, null, tint = accent)
-                            }
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-                )
-                
-                // BANDEAU D'AIDE (v9.3.2)
-                if (isCreatorMode) {
-                    Surface(
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                        color = accent.copy(alpha = 0.05f),
-                        shape = RoundedCornerShape(12.dp),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
-                    ) {
-                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(12.dp))
-                            Text(
-                                "Note : Ce média sera déposé seul. Pour l'associer à un souvenir précis, utilisez l'écran de Capture.",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = theme.contentColor.copy(alpha = 0.7f)
-                            )
-                        }
+            TopAppBar(
+                title = { Text("Grande Photothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
-                }
-            }
+                },
+                actions = {
+                    if (isCreatorMode) {
+                        IconButton(onClick = { showInfoPopup = true }) { Icon(Icons.Default.Info, null, tint = accent) }
+                        IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+            )
         }
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("L'album est encore vide.", color = theme.contentColor.copy(alpha = 0.4f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                    Text("L'album est encore vide.", color = theme.contentColor.copy(alpha = 0.4f))
                 }
             } else {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(3),
+                    columns = GridCells.Fixed(2), // v9.4.27 : Passage à 2 colonnes pour lisibilité titres
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding = PaddingValues(20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     items(entries) { entry ->
+                        val isExpanded = expandedMediaId == entry.id
                         PhotoItem(
                             entry = entry, 
                             theme = theme,
                             isCreatorMode = isCreatorMode,
+                            isExpanded = isExpanded,
                             heirKey = heirKey,
                             mediaManager = mediaManager,
                             onDelete = { mediaToDelete = entry },
-                            onEdit = { if (isCreatorMode) editingMedia = entry } // v9.4.27
-                        ) { 
-                            android.util.Log.d("MediaSupportDiag", "Clic Photo - ID: ${entry.id}, Title: ${entry.aiSummary}")
-                            onNavigateToDetail(entry.id) 
-                        }
+                            onEdit = { if (isCreatorMode) editingMedia = entry },
+                            onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
+                            onClick = { onNavigateToDetail(entry.id) }
+                        )
                     }
                 }
             }
         }
+    }
+
+    // --- DIALOGUES DE PERSISTANCE (INCHANGÉS) ---
+    if (mediaToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { mediaToDelete = null },
+            containerColor = theme.backgroundColor,
+            title = { Text("Supprimer cette photo ?", color = theme.contentColor) },
+            text = { Text("Cette action est irréversible.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            confirmButton = {
+                Button(onClick = { viewModel.deleteMediaEntry(mediaToDelete!!); mediaToDelete = null }, colors = ButtonDefaults.buttonColors(containerColor = Error)) {
+                    Text("Supprimer", color = Color.White)
+                }
+            },
+            dismissButton = { TextButton(onClick = { mediaToDelete = null }) { Text("Annuler", color = theme.contentColor) } }
+        )
     }
 
     if (showAddDialog) {
@@ -183,46 +146,16 @@ fun RecipientPhotosScreen(
             recipients = recipients,
             onDismiss = { showAddDialog = false },
             onSave = { title, userComment, uri, ids ->
-                // Conversion Uri -> File temporaire pour upload
                 val tempFile = java.io.File(context.cacheDir, "standalone_photo_${java.util.UUID.randomUUID()}.jpg")
-                context.contentResolver.openInputStream(uri)?.use { input ->
-                    java.io.FileOutputStream(tempFile).use { output ->
-                        input.copyTo(output)
-                    }
-                }
+                context.contentResolver.openInputStream(uri)?.use { input -> tempFile.outputStream().use { output -> input.copyTo(output) } }
                 viewModel.uploadAndAddStandalonePhoto(title, userComment, tempFile, ids)
                 showAddDialog = false
             }
         )
     }
 
-    if (mediaToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { mediaToDelete = null },
-            title = { Text("Supprimer cette photo ?", color = theme.contentColor) },
-            text = { Text("Cette action est irréversible.", color = theme.contentColor.copy(alpha = 0.7f)) },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.deleteMediaEntry(mediaToDelete!!)
-                        mediaToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)
-                ) {
-                    Text("Supprimer", color = Color.White)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { mediaToDelete = null }) {
-                    Text("Annuler", color = theme.contentColor)
-                }
-            }
-        )
-    }
-
     if (editingMedia != null) {
         val isComplement = editingMedia!!.parentEntryId != null
-        
         com.example.phoenx.ui.components.DirectMediaDialog(
             type = "PHOTO",
             recipients = recipients,
@@ -245,65 +178,110 @@ fun PhotoItem(
     entry: PhoenXEntry, 
     theme: AppThemeState, 
     isCreatorMode: Boolean,
+    isExpanded: Boolean,
     heirKey: ByteArray?,
     mediaManager: MediaManager,
     onDelete: () -> Unit,
-    onEdit: () -> Unit, // v9.4.27
+    onEdit: () -> Unit,
+    onToggleInfo: () -> Unit,
     onClick: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .aspectRatio(1f)
-            .clip(MaterialTheme.shapes.medium)
-            .background(theme.contentColor.copy(alpha = 0.05f))
-            .clickable(onClick = onClick)
-            .phoenXMatiere(),
-        contentAlignment = Alignment.Center
-    ) {
-        // AFFICHAGE SÉCURISÉ DE LA MINIATURE (v9.4.27)
-        SecureAsyncImage(
-            mediaUrl = entry.mediaUrl,
-            localPath = entry.localMediaPath,
-            explicitKey = heirKey,
-            mediaManager = mediaManager,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-
-        // Overlay pour le titre en bas
+    val accent = theme.accentColor
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
+                .aspectRatio(1f)
                 .fillMaxWidth()
-                .background(androidx.compose.ui.graphics.Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f))))
-                .padding(4.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(theme.contentColor.copy(alpha = 0.05f))
+                .clickable { onClick() }
+                .phoenXMatiere(),
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = entry.aiSummary.ifEmpty { "Photo" },
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = Color.White,
-                fontSize = 10.sp,
-                maxLines = 1,
-                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            // MINIATURE PHOTO SÉCURISÉE (v9.4.27)
+            SecureAsyncImage(
+                mediaUrl = entry.mediaUrl,
+                localPath = entry.localMediaPath,
+                explicitKey = heirKey,
+                mediaManager = mediaManager,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
-        }
 
-        // Boutons Actions (v9.4.27)
-        if (isCreatorMode) {
-            Row(modifier = Modifier.align(Alignment.TopEnd).padding(2.dp)) {
-                IconButton(
-                    onClick = onEdit,
-                    modifier = Modifier.size(24.dp).background(Color.Black.copy(alpha = 0.3f), CircleShape)
-                ) {
-                    Icon(Icons.Default.Edit, null, tint = Color.White, modifier = Modifier.size(14.dp))
-                }
-                IconButton(
-                    onClick = onDelete,
-                    modifier = Modifier.size(24.dp).background(Color.Black.copy(alpha = 0.3f), CircleShape)
-                ) {
-                    Icon(Icons.Default.Delete, null, tint = Color.White, modifier = Modifier.size(14.dp))
+            // OVERLAY UNIFIÉ (Icônes aux 4 coins)
+            
+            // 1. INFO (Haut Gauche)
+            if (!entry.userComment.isNullOrBlank()) {
+                Box(modifier = Modifier.align(Alignment.TopStart).padding(4.dp)) {
+                    IconButton(
+                        onClick = { onToggleInfo() },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.ChatBubbleOutline, 
+                            contentDescription = null, 
+                            tint = Color.White, 
+                            modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape)
+                        )
+                    }
                 }
             }
+
+            // 2. SUPPRIMER (Haut Droite)
+            if (isCreatorMode) {
+                Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+                    IconButton(
+                        onClick = { onDelete() },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete, 
+                            contentDescription = null, 
+                            tint = Color.White.copy(alpha = 0.9f), 
+                            modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape)
+                        )
+                    }
+                }
+            }
+
+            // 3. ÉDITER (Bas GAUCHE - conforme layout unifié)
+            if (isCreatorMode) {
+                Box(modifier = Modifier.align(Alignment.BottomStart).padding(4.dp)) {
+                    IconButton(
+                        onClick = { onEdit() },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit, 
+                            contentDescription = null, 
+                            tint = Color.White, 
+                            modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape)
+                        )
+                    }
+                }
+            }
+        }
+
+        // TITRE SOUS LE BLOC (aiSummary)
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = entry.aiSummary.ifEmpty { "Photo" },
+            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+            color = theme.contentColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+
+        // ACCORDÉON DE COMMENTAIRE (Si déplé)
+        AnimatedVisibility(visible = isExpanded) {
+            Text(
+                text = entry.userComment ?: "",
+                style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
+                color = theme.contentColor.copy(alpha = 0.6f),
+                modifier = Modifier.padding(top = 4.dp, start = 8.dp, end = 8.dp),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
