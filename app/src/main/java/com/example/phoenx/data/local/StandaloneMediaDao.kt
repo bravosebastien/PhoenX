@@ -23,6 +23,9 @@ interface StandaloneMediaDao {
     @Query("UPDATE standalone_media SET title = :title, userComment = :userComment, content = :url, recipientIds = :recipientIds, visibility = :visibility WHERE id = :id")
     suspend fun updateMedia(id: String, title: String, userComment: String?, url: String, recipientIds: String, visibility: String)
 
+    @Query("UPDATE standalone_media SET type = :type WHERE id = :id")
+    suspend fun updateMediaType(id: String, type: String)
+
     @Query("UPDATE standalone_media SET coverUrl = :coverUrl, localCoverPath = :localPath WHERE id = :id")
     suspend fun updateMediaCover(id: String, coverUrl: String?, localPath: String?)
 

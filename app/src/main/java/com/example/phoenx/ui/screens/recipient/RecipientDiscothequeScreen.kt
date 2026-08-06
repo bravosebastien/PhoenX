@@ -70,6 +70,7 @@ fun RecipientDiscothequeScreen(
 
     val isCreatorMode = creatorId == null || creatorId == viewModel.currentUid
     var showAddDialog by remember { mutableStateOf(false) }
+    var showHowToPopup by remember { mutableStateOf(false) } // v9.4.27
     var editingMedia by remember { mutableStateOf<PhoenXEntry?>(null) }
     var mediaToDelete by remember { mutableStateOf<PhoenXEntry?>(null) }
     var expandedMediaId by remember { mutableStateOf<String?>(null) } // v9.4.27
@@ -134,7 +135,7 @@ fun RecipientDiscothequeScreen(
                                 title = LibraryOnboardingData.getTitle("DISCO"),
                                 points = LibraryOnboardingData.getContent("DISCO")
                             )
-                            IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
+                            IconButton(onClick = { showHowToPopup = true }) { Icon(Icons.Default.Add, null, tint = accent) }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -253,13 +254,44 @@ fun RecipientDiscothequeScreen(
         )
     }
 
+    if (showHowToPopup) {
+        AlertDialog(
+            onDismissRequest = { showHowToPopup = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("Comment récupérer un lien ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("1. Ouvre l'app Spotify ou Deezer.", color = theme.contentColor.copy(alpha = 0.8f))
+                    Text("2. Trouve la chanson que tu veux.", color = theme.contentColor.copy(alpha = 0.8f))
+                    Text("3. Appuie sur 'Partager' puis 'Copier le lien'.", color = theme.contentColor.copy(alpha = 0.8f))
+                    Text("4. Reviens ici et colle-le.", color = theme.contentColor.copy(alpha = 0.8f))
+                }
+            },
+            confirmButton = {
+                Button(onClick = { 
+                    showHowToPopup = false
+                    showAddDialog = true 
+                }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
+                    Text("Continuer", color = theme.backgroundColor)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showHowToPopup = false }) {
+                    Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+                }
+            }
+        )
+    }
+
     if (showAddDialog) {
         com.example.phoenx.ui.components.DirectMediaDialog(
             type = "SPOTIFY",
             recipients = recipients,
             onDismiss = { showAddDialog = false },
             onSave = { title, desc, url, ids, visibility ->
-                viewModel.addStandaloneMedia(title, url, "SPOTIFY", ids, desc, null, visibility)
+                // v9.4.27 : Détection automatique Deezer
+                val provider = if (url.contains("deezer")) "DEEZER" else "SPOTIFY"
+                viewModel.addStandaloneMedia(title, url, provider, ids, desc, null, visibility)
                 showAddDialog = false
             }
         )
@@ -267,14 +299,21 @@ fun RecipientDiscothequeScreen(
 
     if (editingMedia != null) {
         val isComplement = editingMedia!!.parentEntryId != null
-        val type = if (isComplement) "AUDIO" else "SPOTIFY"
+        val initialType = if (isComplement) "AUDIO" else (editingMedia!!.mediaProvider ?: "SPOTIFY")
 
         com.example.phoenx.ui.components.DirectMediaDialog(
-            type = type,
+            type = initialType,
             recipients = recipients,
             onDismiss = { editingMedia = null },
             onSave = { title, desc, url, ids, visibility ->
+                // v9.4.27 : Détection automatique Deezer à l'édition aussi
+                val finalProvider = if (!isComplement && url.contains("deezer")) "DEEZER" 
+                                   else if (!isComplement) "SPOTIFY" 
+                                   else initialType
+                                   
                 viewModel.updateMediaEntry(editingMedia!!.id, title, desc, url, ids, visibility, isComplement)
+                // Note: updateMediaEntry updates the entity, and we might need to ensure mediaProvider is updated
+                // for standalone if it changes.
                 editingMedia = null
             },
             initialTitle = editingMedia!!.aiSummary,
@@ -282,7 +321,7 @@ fun RecipientDiscothequeScreen(
             initialUrl = editingMedia!!.mediaUrl ?: "",
             initialRecipientIds = editingMedia!!.recipientIds,
             initialVisibility = editingMedia!!.visibility,
-            onChangeCover = if (type == "AUDIO") { { coverLauncher.launch("image/*") } } else null
+            onChangeCover = { coverLauncher.launch("image/*") }
         )
     }
 }
@@ -326,7 +365,13 @@ fun VinylItem(
                     contentScale = ContentScale.Crop
                 )
             } else {
-                // Disque vinyle générique
+                // Disque vinyle générique (v9.4.27 : Couleur selon Provider)
+                val providerColor = when(entry.mediaProvider) {
+                    "DEEZER" -> Color(0xFF007BFF) // Bleu Deezer
+                    "SPOTIFY" -> Color(0xFF1DB954) // Vert Spotify
+                    else -> accent
+                }
+                
                 Surface(
                     modifier = Modifier.fillMaxSize(0.85f),
                     shape = CircleShape,
@@ -334,8 +379,13 @@ fun VinylItem(
                     border = BorderStroke(2.dp, Color.DarkGray.copy(alpha = 0.5f))
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Surface(modifier = Modifier.size(40.dp), shape = CircleShape, color = accent) {
-                            Icon(Icons.Default.MusicNote, null, tint = Color.Black, modifier = Modifier.padding(10.dp))
+                        Surface(modifier = Modifier.size(40.dp), shape = CircleShape, color = providerColor) {
+                            Icon(
+                                imageVector = if (entry.mediaProvider == "DEEZER") Icons.Default.LibraryMusic else Icons.Default.MusicNote,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.padding(10.dp)
+                            )
                         }
                     }
                 }
@@ -343,6 +393,24 @@ fun VinylItem(
 
             // OVERLAY UNIFIÉ (v9.4.27)
             
+            // LOGO PLATEFORME (Bas Droite - v9.4.27)
+            if (entry.mediaProvider == "SPOTIFY" || entry.mediaProvider == "DEEZER") {
+                Box(modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)) {
+                    Surface(
+                        color = Color.Black.copy(alpha = 0.6f),
+                        shape = CircleShape,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (entry.mediaProvider == "SPOTIFY") Icons.Default.MusicNote else Icons.Default.LibraryMusic,
+                            contentDescription = null,
+                            tint = if (entry.mediaProvider == "SPOTIFY") Color(0xFF1DB954) else Color(0xFF007BFF),
+                            modifier = Modifier.padding(4.dp)
+                        )
+                    }
+                }
+            }
+
             // 1. INFO (Haut Gauche)
             if (!entry.userComment.isNullOrBlank()) {
                 Box(modifier = Modifier.align(Alignment.TopStart).padding(4.dp)) {

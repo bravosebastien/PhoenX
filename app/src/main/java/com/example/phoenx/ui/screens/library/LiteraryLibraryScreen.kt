@@ -485,6 +485,7 @@ fun AddExcerptDialog(
                     value = userComment,
                     onValueChange = { userComment = it },
                     label = { Text("Commentaire personnel (optionnel)") },
+                    placeholder = { Text("Ex : Nom de l'auteur, genre de la citation, pensée personnelle...", style = MaterialTheme.typography.bodySmall.copy(color = theme.contentColor.copy(alpha = 0.4f))) },
                     modifier = Modifier.fillMaxWidth()
                 )
 

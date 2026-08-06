@@ -19,9 +19,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.firestore.DocumentSnapshot
 import com.example.phoenx.ui.theme.AppThemeState
@@ -267,6 +266,9 @@ class RecipientMediaViewModel @Inject constructor(
             val mediaId = existingId ?: java.util.UUID.randomUUID().toString()
             val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
             
+            // v9.4.27 : Détection auto YouTube si type générique envoyé
+            val finalType = if (content.contains("youtube") || content.contains("youtu.be")) "YOUTUBE" else type
+
             val finalContent = if (needsEncryption) {
                 val encrypted = encryptionManager.encryptText(content)
                 android.util.Base64.encodeToString(encrypted, android.util.Base64.DEFAULT)
@@ -277,7 +279,7 @@ class RecipientMediaViewModel @Inject constructor(
             val entity = com.example.phoenx.data.local.StandaloneMediaEntity(
                 id = mediaId,
                 creatorUid = currentUid,
-                type = type,
+                type = finalType,
                 title = title,
                 userComment = userComment,
                 content = finalContent,
@@ -288,6 +290,47 @@ class RecipientMediaViewModel @Inject constructor(
             )
 
             standaloneMediaDao.insertMedia(entity)
+            
+            // v9.4.27 : Auto-Miniature YouTube
+            if (finalType == "YOUTUBE") {
+                fetchAndStoreYouTubeThumbnail(mediaId, content)
+            }
+        }
+    }
+
+    private fun extractYouTubeId(url: String): String? {
+        val pattern = "(?<=watch\\?v=|/videos/|embed/|youtu.be/|/v/|/e/|watch\\?v%3D|watch\\?feature=player_embedded&v=|%2Fvideos%2F|embed%2F|youtu.be%2F|%2Fv%2F)[^#&?\\n]*".toRegex()
+        val match = pattern.find(url)
+        return match?.value
+    }
+
+    private suspend fun fetchAndStoreYouTubeThumbnail(mediaId: String, youtubeUrl: String) {
+        val videoId = extractYouTubeId(youtubeUrl) ?: return
+        val thumbUrl = "https://img.youtube.com/vi/$videoId/hqdefault.jpg"
+        val uid = auth.currentUser?.uid ?: return
+        val context = com.google.firebase.FirebaseApp.getInstance().applicationContext
+
+        withContext(Dispatchers.IO) {
+            try {
+                val url = java.net.URL(thumbUrl)
+                val connection = url.openConnection()
+                connection.connect()
+                val inputStream = connection.getInputStream()
+                val tempFile = java.io.File(context.cacheDir, "yt_thumb_$mediaId.jpg")
+                
+                java.io.FileOutputStream(tempFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+
+                // Chiffrement et Upload (Comme une couverture manuelle)
+                val storagePath = mediaManager.encryptAndUpload(uid, mediaId, tempFile)
+                standaloneMediaDao.updateMediaCover(mediaId, storagePath, tempFile.absolutePath)
+                standaloneMediaDao.updateSyncStatus(mediaId, "pending")
+                
+                android.util.Log.d("YouTubeThumb", "Miniature YouTube auto-récupérée : $videoId")
+            } catch (e: Exception) {
+                android.util.Log.e("YouTubeThumb", "Échec récupération miniature YouTube", e)
+            }
         }
     }
 
@@ -337,7 +380,19 @@ class RecipientMediaViewModel @Inject constructor(
                     offlineEntryDao.updateEntryRecipients(recipientIds.joinToString(","), id)
                 } else {
                     // Média isolé
+                    val provider = when {
+                        url.contains("deezer") -> "DEEZER"
+                        url.contains("youtube") || url.contains("youtu.be") -> "YOUTUBE"
+                        else -> "SPOTIFY"
+                    }
                     standaloneMediaDao.updateMedia(id, title, comment, url, recipientIds.joinToString(","), visibility)
+                    // On s'assure que le type est mis à jour (v9.4.27)
+                    standaloneMediaDao.updateMediaType(id, provider)
+
+                    // v9.4.27 : Si YouTube, on tente de récupérer la miniature automatique
+                    if (provider == "YOUTUBE") {
+                        fetchAndStoreYouTubeThumbnail(id, url)
+                    }
                 }
                 if (isComplement) offlineEntryDao.updateSyncStatus(id, "pending")
                 else standaloneMediaDao.updateSyncStatus(id, "pending")

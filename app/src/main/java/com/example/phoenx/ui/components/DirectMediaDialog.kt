@@ -1,11 +1,13 @@
 package com.example.phoenx.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.ui.theme.LocalAppTheme
@@ -39,21 +41,20 @@ fun DirectMediaDialog(
     
     var visibility by remember { mutableStateOf(initialVisibility) }
 
-    val label = when(type) {
-        "SPOTIFY" -> "un morceau Spotify"
-        "DEEZER" -> "un morceau Deezer"
-        "YOUTUBE" -> "une vidéo YouTube"
-        "AUDIO" -> "ma Note Vocale"
-        "VIDEO" -> "ma Vidéo"
-        "PHOTO" -> "ma Photo"
+    val label = when {
+        type == "SPOTIFY" || url.contains("spotify") -> "un morceau Spotify"
+        type == "DEEZER" || url.contains("deezer") -> "un morceau Deezer"
+        type == "YOUTUBE" || url.contains("youtube") || url.contains("youtu.be") -> "une vidéo YouTube"
+        type == "AUDIO" -> "ma Note Vocale"
+        type == "VIDEO" -> "ma Vidéo"
+        type == "PHOTO" -> "ma Photo"
         else -> "un média"
     }
     
-    val placeholder = when(type) {
-        "SPOTIFY" -> "https://open.spotify.com/track/..."
-        "DEEZER" -> "https://www.deezer.com/track/..."
-        "YOUTUBE" -> "https://www.youtube.com/watch?v=..."
-        else -> ""
+    val placeholder = when {
+        type == "DEEZER" || url.contains("deezer") -> "https://www.deezer.com/track/..."
+        type == "YOUTUBE" || url.contains("youtube") -> "https://www.youtube.com/watch?v=..."
+        else -> "https://open.spotify.com/track/..."
     }
 
     AlertDialog(
@@ -62,6 +63,25 @@ fun DirectMediaDialog(
         title = { Text(if (initialUrl.isEmpty() && initialTitle.isEmpty()) "Déposer $label" else "Personnaliser", color = theme.contentColor) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                // INSTRUCTIONS (v9.4.27 : Uniquement à l'ajout d'un lien externe)
+                if (initialUrl.isEmpty() && (type == "SPOTIFY" || type == "DEEZER" || type == "YOUTUBE")) {
+                    Surface(
+                        color = accent.copy(alpha = 0.05f),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text("Comment récupérer le lien ?", style = MaterialTheme.typography.labelSmall, color = accent, fontWeight = FontWeight.Bold)
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                "1. Ouvre l'app (Spotify, Deezer ou YouTube).\n2. Trouve ton contenu.\n3. Partager > Copier le lien.\n4. Reviens ici et colle-le.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = theme.contentColor.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                }
+
                 // TITRE (Caché pour Spotify/Deezer au Lot 4.2)
                 if (type != "SPOTIFY" && type != "DEEZER") {
                     OutlinedTextField(
@@ -94,8 +114,8 @@ fun DirectMediaDialog(
                     )
                 }
                 
-                // BOUTON COUVERTURE (Uniquement AUDIO)
-                if (type == "AUDIO" && onChangeCover != null) {
+                // BOUTON COUVERTURE (v9.4.27 : Dispo pour tous si initialisé)
+                if (onChangeCover != null && (type == "AUDIO" || type == "SPOTIFY" || type == "DEEZER" || type == "PHOTO" || type == "VIDEO")) {
                     Button(
                         onClick = onChangeCover,
                         modifier = Modifier.fillMaxWidth(),
@@ -103,7 +123,7 @@ fun DirectMediaDialog(
                     ) {
                         Icon(androidx.compose.material.icons.Icons.Default.AddPhotoAlternate, null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Changer la photo de couverture")
+                        Text(if (type == "PHOTO" || type == "VIDEO") "Changer la miniature" else "Changer la photo de couverture")
                     }
                 }
                 

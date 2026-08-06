@@ -69,11 +69,23 @@ fun RecipientVideothequeScreen(
 
     val isCreatorMode = creatorId == null || creatorId == viewModel.currentUid
     var showAddDialog by remember { mutableStateOf(false) }
+    var showHowToPopup by remember { mutableStateOf(false) } // v9.4.27
     var editingMedia by remember { mutableStateOf<PhoenXEntry?>(null) }
     var mediaToDelete by remember { mutableStateOf<PhoenXEntry?>(null) }
     var expandedMediaId by remember { mutableStateOf<String?>(null) } 
     
     val recipients by standaloneViewModel.recipients.collectAsState()
+
+    // SÉLECTEUR DE COUVERTURE (v9.4.27)
+    val coverLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri: android.net.Uri? ->
+        if (uri != null && editingMedia != null) {
+            val isComplement = editingMedia!!.parentEntryId != null
+            viewModel.updateMediaCover(editingMedia!!.id, uri, isComplement)
+            editingMedia = null
+        }
+    }
 
     LaunchedEffect(creatorId) {
         viewModel.setTargetCreator(creatorId)
@@ -122,7 +134,7 @@ fun RecipientVideothequeScreen(
                                 title = LibraryOnboardingData.getTitle("VIDEO"),
                                 points = LibraryOnboardingData.getContent("VIDEO")
                             )
-                            IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
+                            IconButton(onClick = { showHowToPopup = true }) { Icon(Icons.Default.Add, null, tint = accent) }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -226,6 +238,35 @@ fun RecipientVideothequeScreen(
         )
     }
 
+    if (showHowToPopup) {
+        AlertDialog(
+            onDismissRequest = { showHowToPopup = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("Comment récupérer un lien ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("1. Ouvre l'app YouTube.", color = theme.contentColor.copy(alpha = 0.8f))
+                    Text("2. Trouve la vidéo que tu veux.", color = theme.contentColor.copy(alpha = 0.8f))
+                    Text("3. Appuie sur 'Partager' puis 'Copier le lien'.", color = theme.contentColor.copy(alpha = 0.8f))
+                    Text("4. Reviens ici et colle-le.", color = theme.contentColor.copy(alpha = 0.8f))
+                }
+            },
+            confirmButton = {
+                Button(onClick = { 
+                    showHowToPopup = false
+                    showAddDialog = true 
+                }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
+                    Text("Continuer", color = theme.backgroundColor)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showHowToPopup = false }) {
+                    Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+                }
+            }
+        )
+    }
+
     if (showAddDialog) {
         com.example.phoenx.ui.components.DirectMediaDialog(
             type = "YOUTUBE",
@@ -254,7 +295,8 @@ fun RecipientVideothequeScreen(
             initialUserComment = editingMedia!!.userComment,
             initialUrl = editingMedia!!.mediaUrl ?: "",
             initialRecipientIds = editingMedia!!.recipientIds,
-            initialVisibility = editingMedia!!.visibility
+            initialVisibility = editingMedia!!.visibility,
+            onChangeCover = { coverLauncher.launch("image/*") }
         )
     }
 }
@@ -329,6 +371,24 @@ fun VHSCard(
 
             // OVERLAY UNIFIÉ (Icônes discrètes)
             
+            // LOGO YOUTUBE (Bas Droite - v9.4.27)
+            if (entry.mediaProvider == "YOUTUBE") {
+                Box(modifier = Modifier.align(Alignment.BottomEnd).padding(8.dp)) {
+                    Surface(
+                        color = Color.Black.copy(alpha = 0.6f),
+                        shape = CircleShape,
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PlayCircle,
+                            contentDescription = null,
+                            tint = Color.Red,
+                            modifier = Modifier.padding(4.dp)
+                        )
+                    }
+                }
+            }
+
             // 1. INFO (Haut Gauche)
             if (!entry.userComment.isNullOrBlank()) {
                 Box(modifier = Modifier.align(Alignment.TopStart).padding(4.dp)) {
