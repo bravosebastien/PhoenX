@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
@@ -48,6 +49,11 @@ fun RecipientPhotosScreen(
     themeViewModel: com.example.phoenx.ui.theme.ThemeViewModel = hiltViewModel()
 ) {
     val entries by viewModel.archiveEntries.collectAsState()
+    val viewMode by viewModel.viewMode.collectAsState()
+    val filterRecipientId by viewModel.filterRecipientId.collectAsState()
+    val parentTitles by viewModel.parentTitles.collectAsState()
+    val recipientsList by viewModel.recipientsFlow.collectAsState()
+
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -81,28 +87,59 @@ fun RecipientPhotosScreen(
         )
     }
 
+    val filteredEntries = remember(entries, viewMode, filterRecipientId) {
+        when (viewMode) {
+            MediaViewMode.BY_RECIPIENT -> {
+                if (filterRecipientId == null) entries
+                else entries.filter { it.visibility == "EVERYONE" || it.recipientIds.contains(filterRecipientId!!) }
+            }
+            else -> entries
+        }
+    }
+
+    val groupedEntries = remember(filteredEntries, viewMode) {
+        if (viewMode == MediaViewMode.BY_MEMORY) {
+            filteredEntries.groupBy { it.parentEntryId ?: "standalone" }
+        } else emptyMap()
+    }
+
     Scaffold(
         containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
-            TopAppBar(
-                title = { Text("Grande Photothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
-                    }
-                },
-                actions = {
-                    if (isCreatorMode) {
-                        InfoButton(
-                            title = LibraryOnboardingData.getTitle("PHOTO"),
-                            points = LibraryOnboardingData.getContent("PHOTO")
-                        )
-                        IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+            Column {
+                TopAppBar(
+                    title = { Text("Grande Photothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
+                        }
+                    },
+                    actions = {
+                        if (isCreatorMode) {
+                            InfoButton(
+                                title = LibraryOnboardingData.getTitle("PHOTO"),
+                                points = LibraryOnboardingData.getContent("PHOTO")
+                            )
+                            IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+
+                // SÉLECTEUR DE MODE DE TRI (v9.4.27 : Créateur Uniquement)
+                if (isCreatorMode) {
+                    com.example.phoenx.ui.screens.recipient.MediaViewModeSelector(
+                        currentMode = viewMode,
+                        onModeChange = { viewModel.setViewMode(it) },
+                        filterRecipientId = filterRecipientId,
+                        onRecipientChange = { viewModel.setFilterRecipient(it) },
+                        recipients = recipientsList,
+                        theme = theme,
+                        accent = accent
+                    )
+                }
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
@@ -112,26 +149,61 @@ fun RecipientPhotosScreen(
                 }
             } else {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2), // v9.4.27 : Passage à 2 colonnes pour lisibilité titres
+                    columns = GridCells.Fixed(2),
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(20.dp),
                     horizontalArrangement = Arrangement.spacedBy(20.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    items(entries) { entry ->
-                        val isExpanded = expandedMediaId == entry.id
-                        PhotoItem(
-                            entry = entry, 
-                            theme = theme,
-                            isCreatorMode = isCreatorMode,
-                            isExpanded = isExpanded,
-                            heirKey = heirKey,
-                            mediaManager = mediaManager,
-                            onDelete = { mediaToDelete = entry },
-                            onEdit = { if (isCreatorMode) editingMedia = entry },
-                            onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
-                            onClick = { onNavigateToDetail(entry.id) }
-                        )
+                    if (viewMode == MediaViewMode.BY_MEMORY) {
+                        groupedEntries.forEach { (parentId, group) ->
+                            item(span = { GridItemSpan(2) }) {
+                                val title = if (parentId == "standalone") "Photos isolées" else parentTitles[parentId] ?: "Souvenir"
+                                Surface(
+                                    modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 8.dp),
+                                    color = accent.copy(alpha = 0.1f),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    Text(
+                                        title,
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                        color = accent,
+                                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                    )
+                                }
+                            }
+                            items(group) { entry ->
+                                val isExpanded = expandedMediaId == entry.id
+                                PhotoItem(
+                                    entry = entry,
+                                    theme = theme,
+                                    isCreatorMode = isCreatorMode,
+                                    isExpanded = isExpanded,
+                                    heirKey = heirKey,
+                                    mediaManager = mediaManager,
+                                    onDelete = { mediaToDelete = entry },
+                                    onEdit = { if (isCreatorMode) editingMedia = entry },
+                                    onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
+                                    onClick = { onNavigateToDetail(entry.id) }
+                                )
+                            }
+                        }
+                    } else {
+                        items(filteredEntries) { entry ->
+                            val isExpanded = expandedMediaId == entry.id
+                            PhotoItem(
+                                entry = entry,
+                                theme = theme,
+                                isCreatorMode = isCreatorMode,
+                                isExpanded = isExpanded,
+                                heirKey = heirKey,
+                                mediaManager = mediaManager,
+                                onDelete = { mediaToDelete = entry },
+                                onEdit = { if (isCreatorMode) editingMedia = entry },
+                                onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
+                                onClick = { onNavigateToDetail(entry.id) }
+                            )
+                        }
                     }
                 }
             }

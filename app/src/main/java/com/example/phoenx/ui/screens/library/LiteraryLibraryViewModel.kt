@@ -31,6 +31,20 @@ class LiteraryLibraryViewModel @Inject constructor(
     private val _targetCreatorId = MutableStateFlow<String?>(null)
     val currentUid: String get() = auth.currentUser?.uid ?: ""
 
+    private val _viewMode = MutableStateFlow(com.example.phoenx.ui.screens.recipient.MediaViewMode.DEFAULT)
+    val viewMode: StateFlow<com.example.phoenx.ui.screens.recipient.MediaViewMode> = _viewMode.asStateFlow()
+
+    private val _filterRecipientId = MutableStateFlow<String?>(null)
+    val filterRecipientId: StateFlow<String?> = _filterRecipientId.asStateFlow()
+
+    fun setViewMode(mode: com.example.phoenx.ui.screens.recipient.MediaViewMode) {
+        _viewMode.value = mode
+    }
+
+    fun setFilterRecipient(uid: String?) {
+        _filterRecipientId.value = uid
+    }
+
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
     private val _isProtocolActivated = MutableStateFlow(false)

@@ -5,6 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Color
 import com.example.phoenx.domain.model.AgeSnapshot
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
@@ -17,11 +24,85 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import com.google.firebase.firestore.DocumentSnapshot
+import com.example.phoenx.ui.theme.AppThemeState
 import com.google.firebase.firestore.Blob
 import kotlinx.coroutines.channels.awaitClose
 import org.json.JSONObject
 import java.time.Instant
 import javax.inject.Inject
+
+@Composable
+fun MediaViewModeSelector(
+    currentMode: MediaViewMode,
+    onModeChange: (MediaViewMode) -> Unit,
+    filterRecipientId: String?,
+    onRecipientChange: (String?) -> Unit,
+    recipients: List<com.example.phoenx.data.local.RecipientEntity>,
+    theme: com.example.phoenx.ui.theme.AppThemeState,
+    accent: Color
+) {
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
+        androidx.compose.foundation.lazy.LazyRow(
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+        ) {
+            item {
+                FilterChip(
+                    selected = currentMode == MediaViewMode.DEFAULT,
+                    onClick = { onModeChange(MediaViewMode.DEFAULT) },
+                    label = { Text("Standard", style = MaterialTheme.typography.labelSmall) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
+                )
+            }
+            item {
+                FilterChip(
+                    selected = currentMode == MediaViewMode.BY_MEMORY,
+                    onClick = { onModeChange(MediaViewMode.BY_MEMORY) },
+                    label = { Text("Par Souvenir", style = MaterialTheme.typography.labelSmall) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
+                )
+            }
+            item {
+                FilterChip(
+                    selected = currentMode == MediaViewMode.BY_RECIPIENT,
+                    onClick = { onModeChange(MediaViewMode.BY_RECIPIENT) },
+                    label = { Text("Par Destinataire", style = MaterialTheme.typography.labelSmall) },
+                    colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
+                )
+            }
+        }
+
+        if (currentMode == MediaViewMode.BY_RECIPIENT) {
+            androidx.compose.foundation.lazy.LazyRow(
+                modifier = androidx.compose.ui.Modifier.padding(top = 8.dp),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+            ) {
+                item {
+                    FilterChip(
+                        selected = filterRecipientId == null,
+                        onClick = { onRecipientChange(null) },
+                        label = { Text("Tous", style = MaterialTheme.typography.labelSmall) },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
+                    )
+                }
+                items(recipients) { recipient ->
+                    FilterChip(
+                        selected = filterRecipientId == recipient.linkedUid,
+                        onClick = { onRecipientChange(recipient.linkedUid) },
+                        label = { Text(recipient.name, style = MaterialTheme.typography.labelSmall) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = accent,
+                            selectedLabelColor = Color.Black
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+enum class MediaViewMode {
+    DEFAULT, BY_MEMORY, BY_RECIPIENT
+}
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
@@ -35,6 +116,24 @@ class RecipientMediaViewModel @Inject constructor(
     val mediaManager: com.example.phoenx.data.media.MediaManager
 ) : ViewModel() {
 
+    private val _viewMode = MutableStateFlow(MediaViewMode.DEFAULT)
+    val viewMode: StateFlow<MediaViewMode> = _viewMode.asStateFlow()
+
+    private val _filterRecipientId = MutableStateFlow<String?>(null) // UID du destinataire
+    val filterRecipientId: StateFlow<String?> = _filterRecipientId.asStateFlow()
+
+    fun setViewMode(mode: MediaViewMode) {
+        _viewMode.value = mode
+    }
+
+    fun setFilterRecipient(uid: String?) {
+        _filterRecipientId.value = uid
+    }
+
+    // Cache des titres de parents pour le groupage (v9.4.27)
+    private val _parentTitles = MutableStateFlow<Map<String, String>>(emptyMap())
+    val parentTitles: StateFlow<Map<String, String>> = _parentTitles.asStateFlow()
+
     private val _libraryEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
     val libraryEntries: StateFlow<List<PhoenXEntry>> = _libraryEntries
 
@@ -46,6 +145,9 @@ class RecipientMediaViewModel @Inject constructor(
 
     private val _videoEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
     val videoEntries: StateFlow<List<PhoenXEntry>> = _videoEntries
+
+    val recipientsFlow: StateFlow<List<com.example.phoenx.data.local.RecipientEntity>> = offlineEntryDao.getAllRecipients()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _heritageEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
     val heritageEntries: StateFlow<List<PhoenXEntry>> = _heritageEntries
@@ -77,6 +179,16 @@ class RecipientMediaViewModel @Inject constructor(
 
     init {
         loadAllMedia()
+        loadParentTitles() // v9.4.27
+    }
+
+    private fun loadParentTitles() {
+        viewModelScope.launch {
+            offlineEntryDao.getAllEntries().collect { entries ->
+                val titles = entries.associate { it.id to it.aiSummary }
+                _parentTitles.value = titles
+            }
+        }
     }
 
     fun setTargetCreator(creatorId: String?) {

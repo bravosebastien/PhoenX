@@ -7,6 +7,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
@@ -58,6 +59,10 @@ fun LiteraryLibraryScreen(
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val excerpts by viewModel.excerpts.collectAsState()
+    val viewMode by viewModel.viewMode.collectAsState()
+    val filterRecipientId by viewModel.filterRecipientId.collectAsState()
+    val recipientsList by viewModel.recipients.collectAsState()
+
     val context = androidx.compose.ui.platform.LocalContext.current
     val heirKey by viewModel.heirKey.collectAsState()
     
@@ -87,34 +92,59 @@ fun LiteraryLibraryScreen(
         )
     }
 
+    val filteredExcerpts = remember(excerpts, viewMode, filterRecipientId) {
+        when (viewMode) {
+            com.example.phoenx.ui.screens.recipient.MediaViewMode.BY_RECIPIENT -> {
+                if (filterRecipientId == null) excerpts
+                else excerpts.filter { it.recipientIds.contains(filterRecipientId) }
+            }
+            else -> excerpts
+        }
+    }
+
     Scaffold(
         containerColor = theme.backgroundColor,
         modifier = Modifier.background(com.example.phoenx.ui.theme.LocalBackgroundBrush.current),
         topBar = {
-            TopAppBar(
-                title = { Text("Bibliothèque Littéraire", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
-                    }
-                },
-                actions = {
-                    if (isCreatorMode) {
-                        InfoButton(
-                            title = LibraryOnboardingData.getTitle("LITERARY"),
-                            points = LibraryOnboardingData.getContent("LITERARY")
-                        )
-                        IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+            Column {
+                TopAppBar(
+                    title = { Text("Bibliothèque Littéraire", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
+                        }
+                    },
+                    actions = {
+                        if (isCreatorMode) {
+                            InfoButton(
+                                title = LibraryOnboardingData.getTitle("LITERARY"),
+                                points = LibraryOnboardingData.getContent("LITERARY")
+                            )
+                            IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+
+                // SÉLECTEUR DE MODE DE TRI (v9.4.27 : Créateur Uniquement)
+                if (isCreatorMode) {
+                    com.example.phoenx.ui.screens.recipient.MediaViewModeSelector(
+                        currentMode = viewMode,
+                        onModeChange = { viewModel.setViewMode(it) },
+                        filterRecipientId = filterRecipientId,
+                        onRecipientChange = { viewModel.setFilterRecipient(it) },
+                        recipients = recipientsList,
+                        theme = theme,
+                        accent = accent
+                    )
+                }
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (excerpts.isEmpty()) {
+            if (filteredExcerpts.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Les rayons sont vides...", color = theme.contentColor.copy(alpha = 0.4f))
+                    Text(if (filterRecipientId != null) "Aucun extrait pour ce destinataire." else "Les rayons sont vides...", color = theme.contentColor.copy(alpha = 0.4f))
                 }
             } else {
                 LazyVerticalGrid(
@@ -124,20 +154,53 @@ fun LiteraryLibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(20.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    items(excerpts) { excerpt ->
-                        val isExpanded = expandedMediaId == excerpt.id
-                        ManuscriptItem(
-                            excerpt = excerpt,
-                            theme = theme,
-                            isCreatorMode = isCreatorMode,
-                            isExpanded = isExpanded,
-                            heirKey = heirKey,
-                            mediaManager = mediaManager,
-                            onDelete = { excerptToDelete = excerpt },
-                            onEdit = { editingExcerpt = excerpt },
-                            onToggleInfo = { expandedMediaId = if (isExpanded) null else excerpt.id },
-                            onClick = { readingExcerpt = excerpt }
-                        )
+                    if (viewMode == com.example.phoenx.ui.screens.recipient.MediaViewMode.BY_MEMORY) {
+                        // En-tête unique car Standalone
+                        item(span = { GridItemSpan(2) }) {
+                            Surface(
+                                modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 8.dp),
+                                color = accent.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    "Extraits isolés",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = accent,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                )
+                            }
+                        }
+                        items(filteredExcerpts) { excerpt ->
+                            val isExpanded = expandedMediaId == excerpt.id
+                            ManuscriptItem(
+                                excerpt = excerpt,
+                                theme = theme,
+                                isCreatorMode = isCreatorMode,
+                                isExpanded = isExpanded,
+                                heirKey = heirKey,
+                                mediaManager = mediaManager,
+                                onDelete = { excerptToDelete = excerpt },
+                                onEdit = { editingExcerpt = excerpt },
+                                onToggleInfo = { expandedMediaId = if (isExpanded) null else excerpt.id },
+                                onClick = { readingExcerpt = excerpt }
+                            )
+                        }
+                    } else {
+                        items(filteredExcerpts) { excerpt ->
+                            val isExpanded = expandedMediaId == excerpt.id
+                            ManuscriptItem(
+                                excerpt = excerpt,
+                                theme = theme,
+                                isCreatorMode = isCreatorMode,
+                                isExpanded = isExpanded,
+                                heirKey = heirKey,
+                                mediaManager = mediaManager,
+                                onDelete = { excerptToDelete = excerpt },
+                                onEdit = { editingExcerpt = excerpt },
+                                onToggleInfo = { expandedMediaId = if (isExpanded) null else excerpt.id },
+                                onClick = { readingExcerpt = excerpt }
+                            )
+                        }
                     }
                 }
             }
