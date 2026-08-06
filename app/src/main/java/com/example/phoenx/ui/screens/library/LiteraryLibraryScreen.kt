@@ -87,6 +87,52 @@ fun LiteraryLibraryScreen(
         )
     }
 
+    if (showInfoPopup) {
+        AlertDialog(
+            onDismissRequest = { showInfoPopup = false },
+            containerColor = theme.backgroundColor,
+            title = { Text(LibraryOnboardingData.getTitle("LITERARY"), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    LibraryOnboardingData.getContent("LITERARY").forEach { point ->
+                        Row(verticalAlignment = Alignment.Top) {
+                            Text("•", color = accent, modifier = Modifier.padding(end = 8.dp))
+                            Text(point, style = MaterialTheme.typography.bodyMedium, color = theme.contentColor.copy(alpha = 0.8f))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = { showInfoPopup = false }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
+                    Text("Fermer", color = theme.backgroundColor)
+                }
+            }
+        )
+    }
+
+    if (showInfoPopup) {
+        AlertDialog(
+            onDismissRequest = { showInfoPopup = false },
+            containerColor = theme.backgroundColor,
+            title = { Text(LibraryOnboardingData.getTitle("LITERARY"), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    LibraryOnboardingData.getContent("LITERARY").forEach { point ->
+                        Row(verticalAlignment = Alignment.Top) {
+                            Text("•", color = accent, modifier = Modifier.padding(end = 8.dp))
+                            Text(point, style = MaterialTheme.typography.bodyMedium, color = theme.contentColor.copy(alpha = 0.8f))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = { showInfoPopup = false }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
+                    Text("Fermer", color = theme.backgroundColor)
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = theme.backgroundColor,
         modifier = Modifier.background(com.example.phoenx.ui.theme.LocalBackgroundBrush.current),
@@ -190,35 +236,68 @@ fun LiteraryLibraryScreen(
     }
 
     if (readingExcerpt != null) {
-        AlertDialog(
-            onDismissRequest = { readingExcerpt = null },
-            containerColor = theme.backgroundColor,
-            title = { 
-                Column {
-                    Text(readingExcerpt!!.title.ifEmpty { "Extrait Littéraire" }, color = theme.contentColor, fontWeight = FontWeight.Bold)
+        // LECTURE PLEIN ÉCRAN (v9.4.27)
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = Color(0xFFFCF9F2) // Blanc cassé / Parchemin chaud
+        ) {
+            Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { readingExcerpt = null }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.DarkGray)
+                    }
+                    Text(
+                        "LECTURE", 
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
+                        color = Color.DarkGray.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.width(48.dp)) // Équilibre visuel
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                ) {
+                    Text(
+                        text = readingExcerpt!!.title.ifEmpty { "Extrait Littéraire" },
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = Color.Black
+                    )
+                    
                     if (!readingExcerpt!!.userComment.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = readingExcerpt!!.userComment!!,
-                            style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
-                            color = theme.contentColor.copy(alpha = 0.6f)
+                            style = MaterialTheme.typography.bodyMedium.copy(fontStyle = FontStyle.Italic),
+                            color = Color.DarkGray.copy(alpha = 0.7f)
                         )
                     }
-                }
-            },
-            text = {
-                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = theme.contentColor.copy(alpha = 0.1f))
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp), color = Color.Black.copy(alpha = 0.1f))
+
                     Text(
                         text = readingExcerpt!!.content,
-                        style = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Serif, lineHeight = 28.sp),
-                        color = theme.contentColor.copy(alpha = 0.9f)
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            lineHeight = 32.sp,
+                            fontSize = 18.sp
+                        ),
+                        color = Color.Black.copy(alpha = 0.9f)
                     )
+                    
+                    Spacer(modifier = Modifier.height(100.dp))
                 }
-            },
-            confirmButton = {
-                Button(onClick = { readingExcerpt = null }) { Text("Fermer") }
             }
-        )
+        }
     }
 }
 
@@ -349,6 +428,7 @@ fun AddExcerptDialog(
     var title by remember { mutableStateOf(initialExcerpt?.title ?: "") }
     var userComment by remember { mutableStateOf(initialExcerpt?.userComment ?: "") }
     var content by remember { mutableStateOf(initialExcerpt?.content ?: "") }
+    var isFullEditorOpen by remember { mutableStateOf(false) } // v9.4.27
     val recipients by viewModel.recipients.collectAsState()
     val selectedIds = remember { mutableStateListOf<String>().apply { 
         initialExcerpt?.recipientIds?.let { addAll(it) }
@@ -387,12 +467,24 @@ fun AddExcerptDialog(
                     label = { Text("Commentaire personnel (optionnel)") },
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
-                    value = content,
-                    onValueChange = { content = it },
-                    label = { Text("Texte de l'extrait") },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp)
-                )
+
+                // TEXTE DE L'EXTRAIT (Cliquable -> Éditeur plein écran)
+                Box(modifier = Modifier.fillMaxWidth().clickable { isFullEditorOpen = true }) {
+                    OutlinedTextField(
+                        value = content,
+                        onValueChange = { },
+                        label = { Text("Texte de l'extrait") },
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
+                        readOnly = true,
+                        enabled = false, // Désactivé pour le texte mais le Box capte le clic
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = theme.contentColor,
+                            disabledBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                            disabledLabelColor = theme.contentColor.copy(alpha = 0.4f),
+                            disabledPlaceholderColor = theme.contentColor.copy(alpha = 0.2f)
+                        )
+                    )
+                }
                 
                 Text("Visibilité & Destinataires", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                 RecipientSelector(
@@ -422,4 +514,57 @@ fun AddExcerptDialog(
             }
         }
     )
+
+    // ÉDITEUR LITTÉRAIRE PLEIN ÉCRAN (v9.4.27)
+    if (isFullEditorOpen) {
+        androidx.compose.ui.window.Dialog(
+            onDismissRequest = { isFullEditorOpen = false },
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxSize(),
+                color = theme.backgroundColor
+            ) {
+                Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "ÉDITION DE L'EXTRAIT", 
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
+                            color = accent
+                        )
+                        IconButton(onClick = { isFullEditorOpen = false }) {
+                            Icon(Icons.Default.Check, null, tint = accent)
+                        }
+                    }
+                    
+                    TextField(
+                        value = content,
+                        onValueChange = { content = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .padding(horizontal = 24.dp),
+                        placeholder = { Text("Saisis ou colle ton extrait ici...", color = theme.contentColor.copy(alpha = 0.3f)) },
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(
+                            fontFamily = FontFamily.Serif,
+                            lineHeight = 28.sp, 
+                            color = theme.contentColor
+                        ),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
+                        )
+                    )
+                }
+            }
+        }
+    }
 }

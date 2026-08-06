@@ -84,6 +84,29 @@ fun RecipientDiscothequeScreen(
         viewModel.setTargetCreator(creatorId)
     }
 
+    if (showInfoPopup) {
+        AlertDialog(
+            onDismissRequest = { showInfoPopup = false },
+            containerColor = theme.backgroundColor,
+            title = { Text(com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("DISCO"), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("DISCO").forEach { point ->
+                        Row(verticalAlignment = Alignment.Top) {
+                            Text("•", color = accent, modifier = Modifier.padding(end = 8.dp))
+                            Text(point, style = MaterialTheme.typography.bodyMedium, color = theme.contentColor.copy(alpha = 0.8f))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = { showInfoPopup = false }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
+                    Text("Fermer", color = theme.backgroundColor)
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = theme.backgroundColor,
         modifier = Modifier.background(LocalBackgroundBrush.current),
