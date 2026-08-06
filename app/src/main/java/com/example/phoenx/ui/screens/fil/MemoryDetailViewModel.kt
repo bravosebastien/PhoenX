@@ -25,6 +25,8 @@ import java.io.File
 import java.io.FileOutputStream
 import android.media.MediaExtractor
 import android.media.MediaFormat
+import android.media.MediaMetadataRetriever
+import android.graphics.Bitmap
 import java.util.*
 import javax.inject.Inject
 
@@ -712,17 +714,45 @@ class MemoryDetailViewModel @Inject constructor(
 
     /**
      * Ajoute un complément média directement (v9.4.26)
+     * v9.4.27 : Extraction automatique de miniature pour VIDEO.
      */
     fun addMediaComplement(parentId: String, file: File, type: String, transcription: String? = null) {
+        val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                // Copie locale pour affichage immédiat hors-ligne
+                // 1. Copie locale de la vidéo
                 val mediaDir = File(context.filesDir, "media")
                 if (!mediaDir.exists()) mediaDir.mkdirs()
                 val destFile = File(mediaDir, "PHX_COMP_${UUID.randomUUID()}_${file.name}")
                 file.inputStream().use { input -> destFile.outputStream().use { output -> input.copyTo(output) } }
                 
-                // On récupère le parent pour hériter des visibilités
+                var coverUrl: String? = null
+                var localCoverPath: String? = null
+
+                // 2. Extraction de la miniature si c'est une VIDEO (v9.4.27)
+                if (type == "VIDEO") {
+                    try {
+                        val retriever = MediaMetadataRetriever()
+                        retriever.setDataSource(destFile.absolutePath)
+                        val bitmap = retriever.getFrameAtTime(0)
+                        retriever.release()
+
+                        if (bitmap != null) {
+                            val thumbFile = File(mediaDir, "THUMB_${destFile.name}.jpg")
+                            FileOutputStream(thumbFile).use { out ->
+                                bitmap.compress(Bitmap.CompressFormat.JPEG, 70, out)
+                            }
+                            // Chiffrement et upload de la miniature
+                            coverUrl = mediaManager.encryptAndUpload(uid, UUID.randomUUID().toString(), thumbFile)
+                            localCoverPath = thumbFile.absolutePath
+                            android.util.Log.d("MemoryDetailVM", "Miniature vidéo extraite et uploadée : $coverUrl")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("MemoryDetailVM", "Échec extraction miniature vidéo", e)
+                    }
+                }
+
+                // 3. Récupération du parent pour héritage
                 val parent = offlineEntryDao.getEntryById(parentId).first() ?: return@launch
                 
                 val finalTranscription = if (transcription.isNullOrBlank()) "Média complémentaire" else transcription
@@ -738,7 +768,9 @@ class MemoryDetailViewModel @Inject constructor(
                     recipientIds = parent.recipientIds,
                     parentEntryId = parentId,
                     localMediaPath = destFile.absolutePath,
-                    aiSummary = finalTranscription, // Utilisation de la transcription comme titre
+                    coverUrl = coverUrl,
+                    localCoverPath = localCoverPath,
+                    aiSummary = finalTranscription,
                     syncStatus = "pending"
                 )
                 offlineEntryDao.insertEntry(entry)

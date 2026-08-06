@@ -20,16 +20,19 @@ import javax.inject.Inject
 class LiteraryLibraryViewModel @Inject constructor(
     private val repository: StandaloneMediaRepository,
     private val offlineEntryDao: OfflineEntryDao,
+    private val standaloneMediaDao: com.example.phoenx.data.local.StandaloneMediaDao, // v9.4.27
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
-    private val encryptionManager: com.example.phoenx.data.encryption.EncryptionManager
+    private val encryptionManager: com.example.phoenx.data.encryption.EncryptionManager,
+    private val mediaManager: com.example.phoenx.data.media.MediaManager // v9.4.27
 ) : ViewModel() {
 
     private val _targetCreatorId = MutableStateFlow<String?>(null)
     val currentUid: String get() = auth.currentUser?.uid ?: ""
 
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
+    val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
     private val _isProtocolActivated = MutableStateFlow(false)
 
     // Liste des extraits (Combinaison local/distant selon le mode)
@@ -117,6 +120,30 @@ class LiteraryLibraryViewModel @Inject constructor(
                 recipientIds = recipientIds
             )
             repository.saveMedia(media)
+        }
+    }
+
+    /**
+     * Chiffre et uploade une photo de couverture pour un extrait (v9.4.27)
+     */
+    fun updateExcerptCover(id: String, imageUri: android.net.Uri) {
+        val context = com.google.firebase.FirebaseApp.getInstance().applicationContext
+        viewModelScope.launch {
+            val file = try {
+                val inputStream = context.contentResolver.openInputStream(imageUri)
+                val tempFile = java.io.File(context.cacheDir, "temp_cover_lit_${java.util.UUID.randomUUID()}.jpg")
+                inputStream?.use { input -> tempFile.outputStream().use { output -> input.copyTo(output) } }
+                tempFile
+            } catch(_: Exception) { null } ?: return@launch
+            
+            try {
+                val storagePath = mediaManager.encryptAndUpload(currentUid, id, file)
+                standaloneMediaDao.updateMediaCover(id, storagePath, file.absolutePath)
+                standaloneMediaDao.updateSyncStatus(id, "pending")
+                android.util.Log.d("LitLibraryVM", "Couverture manuscrit mise à jour : $id")
+            } catch (e: Exception) {
+                android.util.Log.e("LitLibraryVM", "Erreur upload couverture manuscrit", e)
+            }
         }
     }
 

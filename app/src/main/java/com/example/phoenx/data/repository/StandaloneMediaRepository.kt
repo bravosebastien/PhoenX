@@ -81,7 +81,9 @@ class StandaloneMediaRepository @Inject constructor(
             userComment = userComment, // v9.4.27
             content = decryptedContent,
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() },
-            createdAt = createdAt
+            createdAt = createdAt,
+            coverUrl = coverUrl,
+            localCoverPath = localCoverPath
         )
     }
 }

@@ -167,7 +167,8 @@ fun MemoryComplementsSection(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             if (complement.entryType == "PHOTO" || complement.entryType == "GALLERY" || 
-                                (complement.entryType == "AUDIO" && complement.coverUrl != null)) {
+                                (complement.entryType == "AUDIO" && complement.coverUrl != null) ||
+                                (complement.entryType == "VIDEO" && (complement.coverUrl != null || complement.localCoverPath != null))) {
                                 Box(modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp)).background(Color.Black)) {
                                     SecureAsyncImage(
                                         mediaUrl = complement.coverUrl ?: complement.mediaUrl, // v9.4.27 : Priorité couverture

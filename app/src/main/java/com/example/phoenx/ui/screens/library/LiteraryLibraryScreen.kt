@@ -39,6 +39,11 @@ import com.example.phoenx.ui.screens.library.components.LibraryOnboardingData
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.ThemeViewModel
 import com.example.phoenx.data.model.StandaloneMedia
+import com.example.phoenx.data.media.MediaManager
+import com.example.phoenx.ui.components.SecureAsyncImage
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +57,15 @@ fun LiteraryLibraryScreen(
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val excerpts by viewModel.excerpts.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val heirKey by viewModel.heirKey.collectAsState()
+    
+    val mediaManager = remember(context) {
+        dagger.hilt.android.EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            MediaManager.MediaManagerEntryPoint::class.java
+        ).mediaManager()
+    }
     
     var showAddDialog by remember { mutableStateOf(false) }
     var showInfoPopup by remember { mutableStateOf(false) }
@@ -114,6 +128,8 @@ fun LiteraryLibraryScreen(
                             theme = theme,
                             isCreatorMode = isCreatorMode,
                             isExpanded = isExpanded,
+                            heirKey = heirKey,
+                            mediaManager = mediaManager,
                             onDelete = { excerptToDelete = excerpt },
                             onEdit = { editingExcerpt = excerpt },
                             onToggleInfo = { expandedMediaId = if (isExpanded) null else excerpt.id },
@@ -127,6 +143,16 @@ fun LiteraryLibraryScreen(
 
     // --- DIALOGUES ---
 
+    // SÉLECTEUR DE COUVERTURE (v9.4.27)
+    val coverLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: android.net.Uri? ->
+        if (uri != null && editingExcerpt != null) {
+            viewModel.updateExcerptCover(editingExcerpt!!.id, uri)
+            editingExcerpt = null
+        }
+    }
+
     if (showAddDialog || editingExcerpt != null) {
         AddExcerptDialog(
             onDismiss = { 
@@ -137,6 +163,11 @@ fun LiteraryLibraryScreen(
                 viewModel.addExcerpt(title, content, recipients, userComment, editingExcerpt?.id)
                 showAddDialog = false
                 editingExcerpt = null
+            },
+            onEditCover = {
+                if (editingExcerpt != null) {
+                    coverLauncher.launch("image/*")
+                }
             },
             viewModel = viewModel,
             initialExcerpt = editingExcerpt
@@ -185,6 +216,8 @@ fun ManuscriptItem(
     theme: com.example.phoenx.ui.theme.AppThemeState,
     isCreatorMode: Boolean,
     isExpanded: Boolean,
+    heirKey: ByteArray?,
+    mediaManager: MediaManager,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
     onToggleInfo: () -> Unit,
@@ -202,25 +235,37 @@ fun ManuscriptItem(
                 .clickable { onClick() },
             contentAlignment = Alignment.Center
         ) {
-            // FOND TEXTURÉ + TEXTE STYLISÉ (Aperçu)
-            Column(
-                modifier = Modifier.padding(16.dp).fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = excerpt.content.take(80) + "...",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontFamily = FontFamily.Serif,
-                        fontStyle = FontStyle.Italic,
-                        fontSize = 10.sp,
-                        lineHeight = 14.sp
-                    ),
-                    color = Color.DarkGray.copy(alpha = 0.5f),
-                    textAlign = TextAlign.Center,
-                    maxLines = 6,
-                    overflow = TextOverflow.Ellipsis
+            // FOND PERSONNALISÉ (Si coverUrl présent) v9.4.27
+            if (excerpt.coverUrl != null || excerpt.localCoverPath != null) {
+                SecureAsyncImage(
+                    mediaUrl = excerpt.coverUrl,
+                    localPath = excerpt.localCoverPath,
+                    explicitKey = heirKey,
+                    mediaManager = mediaManager,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
                 )
+            } else {
+                // FOND TEXTURÉ + TEXTE STYLISÉ (Aperçu)
+                Column(
+                    modifier = Modifier.padding(16.dp).fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = excerpt.content.take(80) + "...",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontFamily = FontFamily.Serif,
+                            fontStyle = FontStyle.Italic,
+                            fontSize = 10.sp,
+                            lineHeight = 14.sp
+                        ),
+                        color = Color.DarkGray.copy(alpha = 0.5f),
+                        textAlign = TextAlign.Center,
+                        maxLines = 6,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
 
             // OVERLAY UNIFIÉ (Icônes discrètes)
@@ -285,10 +330,12 @@ fun ManuscriptItem(
 fun AddExcerptDialog(
     onDismiss: () -> Unit,
     onSave: (String, String?, String, List<String>) -> Unit,
+    onEditCover: () -> Unit, // v9.4.27
     viewModel: LiteraryLibraryViewModel,
     initialExcerpt: StandaloneMedia? = null
 ) {
     val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var title by remember { mutableStateOf(initialExcerpt?.title ?: "") }
     var userComment by remember { mutableStateOf(initialExcerpt?.userComment ?: "") }
     var content by remember { mutableStateOf(initialExcerpt?.content ?: "") }
@@ -310,6 +357,20 @@ fun AddExcerptDialog(
                     label = { Text("Titre de l'ouvrage") },
                     modifier = Modifier.fillMaxWidth()
                 )
+                
+                // BOUTON COUVERTURE (v9.4.27)
+                if (initialExcerpt != null) {
+                    Button(
+                        onClick = onEditCover,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = accent.copy(alpha = 0.1f), contentColor = accent)
+                    ) {
+                        Icon(Icons.Default.AddPhotoAlternate, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Changer la photo de couverture")
+                    }
+                }
+
                 OutlinedTextField(
                     value = userComment,
                     onValueChange = { userComment = it },
