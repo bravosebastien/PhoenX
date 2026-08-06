@@ -133,29 +133,21 @@ class MemoryDetailViewModel @Inject constructor(
     val entry: StateFlow<OfflineEntry?> = _entryId
         .filterNotNull()
         .flatMapLatest { id -> offlineEntryDao.getEntryById(id) }
-        .combine(recipients) { rawEntry, recipientsList ->
-            if (rawEntry != null && recipientsList.isNotEmpty()) {
-                // v9.2 : Remappage des UIDs vers les DocIDs pour l'UI (RecipientSelector)
-                val mappedIds = rawEntry.recipientIds.split(",")
-                    .filter { it.isNotBlank() }
-                    .map { it.trim() }
-                    .map { persistentId ->
-                        recipientsList.find { it.linkedUid == persistentId }?.id ?: persistentId
-                    }.joinToString(",")
-                rawEntry.copy(recipientIds = mappedIds)
-            } else {
-                rawEntry
-            }
-        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /**
-     * Source de vérité unique pour les destinataires sélectionnés (v9.4.19)
+     * Source de vérité unique pour les destinataires sélectionnés (remappés en DocIDs pour l'UI)
      */
     val selectedRecipientIds: StateFlow<List<String>> = entry
         .filterNotNull()
-        .map { it.recipientIds.split(",").filter { id -> id.isNotBlank() }.map { id -> id.trim() }.distinct() }
-        .distinctUntilChanged()
+        .combine(recipients) { rawEntry, recipientsList ->
+            rawEntry.recipientIds.split(",")
+                .filter { it.isNotBlank() }
+                .map { it.trim() }
+                .map { persistentId ->
+                    recipientsList.find { it.linkedUid == persistentId }?.id ?: persistentId
+                }.distinct()
+        }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
@@ -784,8 +776,18 @@ class MemoryDetailViewModel @Inject constructor(
 
     fun uriToFile(uri: android.net.Uri): File? {
         return try {
-            val inputStream = context.contentResolver.openInputStream(uri)
-            val tempFile = File(context.cacheDir, "temp_gallery_${UUID.randomUUID()}.jpg")
+            val contentResolver = context.contentResolver
+            val mimeType = contentResolver.getType(uri)
+            
+            // v9.4.27 : Détection robuste de l'extension (inclut support caméra)
+            val extension = when {
+                mimeType?.contains("video") == true -> "mp4"
+                uri.toString().contains(".mp4") -> "mp4"
+                else -> "jpg"
+            }
+            
+            val inputStream = contentResolver.openInputStream(uri)
+            val tempFile = File(context.cacheDir, "temp_media_${UUID.randomUUID()}.$extension")
             inputStream?.use { input ->
                 tempFile.outputStream().use { output -> input.copyTo(output) }
             }

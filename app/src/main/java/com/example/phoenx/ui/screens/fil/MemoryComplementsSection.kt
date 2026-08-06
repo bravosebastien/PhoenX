@@ -48,7 +48,9 @@ fun MemoryComplementsSection(
     accent: Color,
     navController: NavController,
     isReadOnly: Boolean = false,
-    onStartAudioRecording: () -> Unit = {} // v9.4.27
+    onStartAudioRecording: () -> Unit = {}, // v9.4.27
+    onStartCameraPhoto: () -> Unit = {}, // v9.4.27
+    onStartCameraVideo: () -> Unit = {} // v9.4.27
 ) {
     var showAddMediaMenu by remember { mutableStateOf(false) }
     var editingMedia by remember { mutableStateOf<OfflineEntry?>(null) } // v9.4.27
@@ -131,7 +133,25 @@ fun MemoryComplementsSection(
                             leadingIcon = { Icon(Icons.Default.Mic, null, tint = accent) },
                             onClick = {
                                 showAddMediaMenu = false
-                                onStartAudioRecording() // ACTION DIRECTE AVEC CHECK PERMISSIONS (v9.4.27)
+                                onStartAudioRecording()
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Appareil Photo", color = theme.contentColor) },
+                            leadingIcon = { Icon(Icons.Default.CameraAlt, null, tint = accent) },
+                            onClick = {
+                                showAddMediaMenu = false
+                                onStartCameraPhoto()
+                            }
+                        )
+
+                        DropdownMenuItem(
+                            text = { Text("Enregistrer Vidéo", color = theme.contentColor) },
+                            leadingIcon = { Icon(Icons.Default.Videocam, null, tint = accent) },
+                            onClick = {
+                                showAddMediaMenu = false
+                                onStartCameraVideo()
                             }
                         )
                     }

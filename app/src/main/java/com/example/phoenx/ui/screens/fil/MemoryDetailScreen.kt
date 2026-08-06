@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.fil
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -67,12 +68,45 @@ fun MemoryDetailScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    // v9.4.27 : Gestion des fichiers temporaires pour la caméra
+    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+    var tempVideoUri by remember { mutableStateOf<Uri?>(null) }
+
+    // Launcher PHOTO (Caméra)
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempPhotoUri != null) {
+            val file = viewModel.uriToFile(tempPhotoUri!!)
+            if (file != null) viewModel.addMediaComplement(entryId, file, "PHOTO")
+        }
+    }
+
+    // Launcher VIDÉO (Caméra)
+    val recordVideoLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CaptureVideo()
+    ) { success ->
+        if (success && tempVideoUri != null) {
+            val file = viewModel.uriToFile(tempVideoUri!!)
+            if (file != null) viewModel.addMediaComplement(entryId, file, "VIDEO")
+        }
+    }
+
     // Gestion des permissions (v9.4.27)
     val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            viewModel.openVoiceNoteOverlay()
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val cameraGranted = permissions[Manifest.permission.CAMERA] ?: false
+        val audioGranted = permissions[Manifest.permission.RECORD_AUDIO] ?: false
+        
+        // On ne fait rien de spécial ici, l'utilisateur devra recliquer sur l'action
+    }
+
+    val checkCameraPermission = { onGranted: () -> Unit ->
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            onGranted()
+        } else {
+            permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO))
         }
     }
 
@@ -80,7 +114,33 @@ fun MemoryDetailScreen(
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
             viewModel.openVoiceNoteOverlay()
         } else {
-            permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            permissionLauncher.launch(arrayOf(Manifest.permission.RECORD_AUDIO))
+        }
+    }
+
+    val startCameraPhoto = {
+        checkCameraPermission {
+            val photoFile = java.io.File(context.cacheDir, "PHX_CAM_${UUID.randomUUID()}.jpg")
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                photoFile
+            )
+            tempPhotoUri = uri
+            takePictureLauncher.launch(uri)
+        }
+    }
+
+    val startCameraVideo = {
+        checkCameraPermission {
+            val videoFile = java.io.File(context.cacheDir, "PHX_CAM_${UUID.randomUUID()}.mp4")
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                videoFile
+            )
+            tempVideoUri = uri
+            recordVideoLauncher.launch(uri)
         }
     }
 
@@ -115,6 +175,12 @@ fun MemoryDetailScreen(
                 }
                 "AUDIO" -> {
                     requestAudioPermission() // v9.4.27: Check permissions before auto-starting
+                }
+                Screen.Capture.TYPE_CAMERA_PHOTO -> {
+                    startCameraPhoto()
+                }
+                Screen.Capture.TYPE_CAMERA_VIDEO -> {
+                    startCameraVideo()
                 }
             }
         }
@@ -431,7 +497,9 @@ fun MemoryDetailScreen(
                             accent = accent,
                             navController = navController,
                             isReadOnly = isReadOnly,
-                            onStartAudioRecording = requestAudioPermission // v9.4.27
+                            onStartAudioRecording = requestAudioPermission, // v9.4.27
+                            onStartCameraPhoto = startCameraPhoto,
+                            onStartCameraVideo = startCameraVideo
                         )
                     }
                     

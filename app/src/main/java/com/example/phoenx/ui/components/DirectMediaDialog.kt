@@ -28,7 +28,15 @@ fun DirectMediaDialog(
     var title by remember { mutableStateOf(initialTitle) }
     var userComment by remember { mutableStateOf(initialUserComment ?: "") }
     var url by remember { mutableStateOf(initialUrl) }
-    val selectedIds = remember { mutableStateListOf<String>().apply { addAll(initialRecipientIds) } }
+    
+    // v9.4.27 : Normalisation interne UIDs -> DocIDs pour le sélecteur
+    val selectedIds = remember(initialRecipientIds, recipients) {
+        val docIds = initialRecipientIds.map { uidOrId ->
+            recipients.find { it.linkedUid == uidOrId }?.id ?: uidOrId
+        }
+        mutableStateListOf<String>().apply { addAll(docIds) }
+    }
+    
     var visibility by remember { mutableStateOf(initialVisibility) }
 
     val label = when(type) {
@@ -36,6 +44,8 @@ fun DirectMediaDialog(
         "DEEZER" -> "un morceau Deezer"
         "YOUTUBE" -> "une vidéo YouTube"
         "AUDIO" -> "ma Note Vocale"
+        "VIDEO" -> "ma Vidéo"
+        "PHOTO" -> "ma Photo"
         else -> "un média"
     }
     
@@ -73,8 +83,8 @@ fun DirectMediaDialog(
                     )
                 }
 
-                // URL (Uniquement pour liens externes)
-                if (type != "AUDIO" && type != "PHOTO") {
+                // URL (Uniquement pour liens externes type SPOTIFY/YOUTUBE)
+                if (type == "SPOTIFY" || type == "DEEZER" || type == "YOUTUBE") {
                     OutlinedTextField(
                         value = url,
                         onValueChange = { url = it },
@@ -115,7 +125,13 @@ fun DirectMediaDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onSave(title, userComment.ifBlank { null }, url, selectedIds.toList(), visibility) },
+                onClick = { 
+                    // v9.4.27 : Conversion DocIDs -> UIDs avant retour à l'appelant
+                    val uids = selectedIds.map { docId ->
+                        recipients.find { it.id == docId }?.linkedUid ?: docId
+                    }
+                    onSave(title, userComment.ifBlank { null }, url, uids, visibility) 
+                },
                 enabled = if (type == "AUDIO" || type == "PHOTO" || type == "VIDEO") title.isNotBlank() else url.isNotBlank()
             ) {
                 Text("Enregistrer")

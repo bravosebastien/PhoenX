@@ -60,6 +60,8 @@ sealed class Screen(val route: String) {
         const val TYPE_AUDIO = "AUDIO"
         const val TYPE_PHOTO = "PHOTO"
         const val TYPE_GALLERY = "GALLERY"
+        const val TYPE_CAMERA_PHOTO = "CAMERA_PHOTO" // v9.4.27
+        const val TYPE_CAMERA_VIDEO = "CAMERA_VIDEO" // v9.4.27
     }
     
     object Fil : Screen("fil") {

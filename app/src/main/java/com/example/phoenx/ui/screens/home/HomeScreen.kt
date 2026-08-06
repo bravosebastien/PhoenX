@@ -389,6 +389,22 @@ fun HomeScreen(
                                         onNavigateToStepByStep()
                                     }
                                 )
+                                DropdownMenuItem(
+                                    text = { Text("Appareil Photo", color = theme.contentColor) },
+                                    leadingIcon = { Icon(Icons.Outlined.CameraAlt, null, tint = accent) },
+                                    onClick = {
+                                        showModeMenu = false
+                                        onNavigateToCapture(Screen.Capture.TYPE_CAMERA_PHOTO, null)
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    text = { Text("Caméra Vidéo", color = theme.contentColor) },
+                                    leadingIcon = { Icon(Icons.Outlined.Videocam, null, tint = accent) },
+                                    onClick = {
+                                        showModeMenu = false
+                                        onNavigateToCapture(Screen.Capture.TYPE_CAMERA_VIDEO, null)
+                                    }
+                                )
                             }
                         }
 
