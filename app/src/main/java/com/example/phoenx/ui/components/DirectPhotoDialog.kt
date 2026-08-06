@@ -25,11 +25,11 @@ import com.example.phoenx.ui.theme.LocalAppTheme
 fun DirectPhotoDialog(
     recipients: List<RecipientEntity>,
     onDismiss: () -> Unit,
-    onSave: (title: String, description: String?, uri: Uri, recipientIds: List<String>) -> Unit
+    onSave: (title: String, userComment: String?, uri: Uri, recipientIds: List<String>) -> Unit
 ) {
     val theme = LocalAppTheme.current
     var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var userComment by remember { mutableStateOf("") }
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
     val selectedIds = remember { mutableStateListOf<String>() }
     var visibility by remember { mutableStateOf("EVERYONE") }
@@ -79,8 +79,8 @@ fun DirectPhotoDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
+                    value = userComment,
+                    onValueChange = { userComment = it },
                     label = { Text("Description (optionnelle)") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -101,7 +101,7 @@ fun DirectPhotoDialog(
         },
         confirmButton = {
             Button(
-                onClick = { selectedUri?.let { onSave(title, description.ifBlank { null }, it, selectedIds.toList()) } },
+                onClick = { selectedUri?.let { onSave(title, userComment.ifBlank { null }, it, selectedIds.toList()) } },
                 enabled = selectedUri != null
             ) {
                 Text("Sauvegarder")

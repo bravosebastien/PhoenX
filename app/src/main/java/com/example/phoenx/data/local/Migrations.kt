@@ -454,7 +454,7 @@ object RoomMigrations {
     }
 
     /**
-     * MIGRATION_41_42 — Enrichissement Médiathèques v9.4.27
+     * MIGRATION_41_42 — Enrichissement Médiathèques v9.4.27 (Lot 4.1)
      * Ajout des champs coverUrl, localCoverPath et mediaProvider.
      */
     val MIGRATION_41_42 = object : Migration(41, 42) {
@@ -468,6 +468,20 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE standalone_media ADD COLUMN coverUrl TEXT")
             db.execSQL("ALTER TABLE standalone_media ADD COLUMN localCoverPath TEXT")
             db.execSQL("ALTER TABLE standalone_media ADD COLUMN mediaProvider TEXT")
+        }
+    }
+
+    /**
+     * MIGRATION_42_43 — Personnalisation v9.4.27 (Lot 4.2)
+     * Ajout du champ userComment et renommage de description.
+     */
+    val MIGRATION_42_43 = object : Migration(42, 43) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // Extension offline_entries
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN userComment TEXT")
+
+            // Renommage standalone_media
+            db.execSQL("ALTER TABLE standalone_media RENAME COLUMN description TO userComment")
         }
     }
 }

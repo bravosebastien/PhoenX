@@ -159,6 +159,18 @@ interface OfflineEntryDao {
     @Query("UPDATE offline_entries SET aiSummary = :newSummary WHERE id = :entryId")
     suspend fun updateEntrySummary(newSummary: String, entryId: String): Int
 
+    @Query("UPDATE offline_entries SET aiSummary = :title WHERE id = :entryId")
+    suspend fun updateEntryMediaTitle(title: String, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET userComment = :newComment WHERE id = :entryId")
+    suspend fun updateEntryComment(newComment: String?, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET coverUrl = :coverUrl, localCoverPath = :localPath WHERE id = :entryId")
+    suspend fun updateEntryCover(coverUrl: String?, localPath: String?, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET mediaProvider = :provider WHERE id = :entryId")
+    suspend fun updateEntryProvider(provider: String?, entryId: String): Int
+
     @Query("UPDATE offline_entries SET visibility = :visibility WHERE id = :entryId")
     suspend fun updateEntryVisibility(visibility: String, entryId: String): Int
 

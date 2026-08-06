@@ -60,7 +60,11 @@ fun OfflineEntry.toFirestoreMap(encryptionManager: EncryptionManager): Map<Strin
         "isUltimateSecret" to isUltimateSecret,
         "silentAttribution" to silentAttribution,
         "includeInBook" to includeInBook,
-        "soulTone" to soulTone
+        "soulTone" to soulTone,
+        // ENRICHISSEMENT MÉDIA v9.4.27 (Migration v43)
+        "userComment" to userComment,
+        "coverUrl" to coverUrl,
+        "mediaProvider" to mediaProvider
     )
 }
 
@@ -164,6 +168,10 @@ fun DocumentSnapshot.toOfflineEntry(encryptionManager: EncryptionManager, explic
         isUltimateSecret = getBoolean("isUltimateSecret") ?: false,
         silentAttribution = getBoolean("silentAttribution") ?: false,
         includeInBook = getBoolean("includeInBook") ?: true,
-        soulTone = getString("soulTone")
+        soulTone = getString("soulTone"),
+        // v9.4.27
+        userComment = getString("userComment"),
+        coverUrl = getString("coverUrl"),
+        mediaProvider = getString("mediaProvider")
     )
 }

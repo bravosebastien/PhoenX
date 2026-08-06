@@ -67,7 +67,7 @@ class LiteraryLibraryViewModel @Inject constructor(
                         id = doc.id,
                         type = "TEXT_EXCERPT",
                         title = doc.getString("title") ?: "",
-                        description = doc.getString("description"), // v9.3.3
+                        userComment = doc.getString("userComment"), // v9.4.27
                         content = decrypted,
                         recipientIds = (doc.get("recipientIds") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList(),
                         createdAt = doc.getLong("createdAt") ?: 0L
@@ -106,13 +106,13 @@ class LiteraryLibraryViewModel @Inject constructor(
         }
     }
 
-    fun addExcerpt(title: String, content: String, recipientIds: List<String>, description: String? = null, existingId: String? = null) {
+    fun addExcerpt(title: String, content: String, recipientIds: List<String>, userComment: String? = null, existingId: String? = null) {
         viewModelScope.launch {
             val media = StandaloneMedia(
                 id = existingId ?: java.util.UUID.randomUUID().toString(),
                 type = "TEXT_EXCERPT",
                 title = title,
-                description = description,
+                userComment = userComment,
                 content = content,
                 recipientIds = recipientIds
             )

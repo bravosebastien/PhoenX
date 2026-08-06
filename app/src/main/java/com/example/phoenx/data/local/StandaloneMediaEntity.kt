@@ -17,7 +17,7 @@ data class StandaloneMediaEntity(
     val creatorUid: String = "",
     val type: String, // "TEXT_EXCERPT", "SPOTIFY", "YOUTUBE", "PHOTO"
     val title: String = "",
-    val description: String? = null, // v9.3.3
+    val userComment: String? = null, // v9.4.27 (anciennement description)
     val content: String, // Texte chiffré (Base64) ou URL en clair
     val recipientIds: String = "", // CSV des vrais UIDs
     val visibility: String = "RESTRICTED", // v9.4.19

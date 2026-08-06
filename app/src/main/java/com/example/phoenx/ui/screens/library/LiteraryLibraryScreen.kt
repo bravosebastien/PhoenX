@@ -166,8 +166,8 @@ fun LiteraryLibraryScreen(
                 showAddDialog = false
                 editingExcerpt = null
             },
-            onSave = { title, desc, content, recipients ->
-                viewModel.addExcerpt(title, content, recipients, desc, editingExcerpt?.id)
+            onSave = { title, userComment, content, recipients ->
+                viewModel.addExcerpt(title, content, recipients, userComment, editingExcerpt?.id)
                 showAddDialog = false
                 editingExcerpt = null
             },
@@ -222,7 +222,7 @@ fun ExcerptCard(
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = theme.contentColor
                     )
-                    excerpt.description?.let {
+                    excerpt.userComment?.let {
                         Text(
                             it,
                             style = MaterialTheme.typography.bodySmall,
@@ -255,7 +255,7 @@ fun AddExcerptDialog(
 ) {
     val theme = LocalAppTheme.current
     var title by remember { mutableStateOf(initialExcerpt?.title ?: "") }
-    var description by remember { mutableStateOf(initialExcerpt?.description ?: "") }
+    var userComment by remember { mutableStateOf(initialExcerpt?.userComment ?: "") }
     var content by remember { mutableStateOf(initialExcerpt?.content ?: "") }
     val recipients by viewModel.recipients.collectAsState()
     val selectedIds = remember { mutableStateListOf<String>().apply { 
@@ -276,8 +276,8 @@ fun AddExcerptDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
+                    value = userComment,
+                    onValueChange = { userComment = it },
                     label = { Text("Description (optionnelle)") },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -304,7 +304,7 @@ fun AddExcerptDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onSave(title, description.ifBlank { null }, content, selectedIds.toList()) },
+                onClick = { onSave(title, userComment.ifBlank { null }, content, selectedIds.toList()) },
                 enabled = content.isNotBlank()
             ) {
                 Text("Sauvegarder")

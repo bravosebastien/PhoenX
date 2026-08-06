@@ -342,6 +342,44 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Met à jour le titre d'un complément (v9.4.27)
+     */
+    fun updateComplementTitle(complementId: String, newTitle: String) {
+        viewModelScope.launch {
+            offlineEntryDao.updateEntryMediaTitle(newTitle, complementId)
+            triggerSync(complementId)
+        }
+    }
+
+    /**
+     * Met à jour le commentaire d'un complément (v9.4.27)
+     */
+    fun updateComplementComment(complementId: String, newComment: String?) {
+        viewModelScope.launch {
+            offlineEntryDao.updateEntryComment(newComment, complementId)
+            triggerSync(complementId)
+        }
+    }
+
+    /**
+     * Chiffre et uploade une photo de couverture pour un complément (v9.4.27)
+     */
+    fun updateComplementCover(complementId: String, imageUri: Uri) {
+        val uid = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            val file = uriToFile(imageUri) ?: return@launch
+            try {
+                // Chiffrement et upload de la couverture (Souveraineté maintenue)
+                val storagePath = mediaManager.encryptAndUpload(uid, complementId, file)
+                offlineEntryDao.updateEntryCover(storagePath, file.absolutePath, complementId)
+                triggerSync(complementId)
+            } catch (e: Exception) {
+                android.util.Log.e("MemoryDetailVM", "Erreur upload couverture", e)
+            }
+        }
+    }
+
     fun updateRecipients(newRecipientDocIds: List<String>) {
         val id = _entryId.value ?: return
         viewModelScope.launch {

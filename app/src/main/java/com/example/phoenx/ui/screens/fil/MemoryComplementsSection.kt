@@ -31,10 +31,12 @@ import com.example.phoenx.ui.theme.AppThemeState
 import com.example.phoenx.ui.theme.Error
 import dagger.hilt.android.EntryPointAccessors
 import androidx.compose.ui.platform.LocalContext
+import android.net.Uri
 
 /**
  * MemoryComplementsSection — Gestion de la galerie de médias rattachés (Photos, Vidéos, Audios).
  * v9.4.26 : Unification et sélection multiple.
+ * v9.4.27 : Édition Titre & Couverture pour Notes Vocales.
  */
 @Composable
 fun MemoryComplementsSection(
@@ -49,8 +51,21 @@ fun MemoryComplementsSection(
     onStartAudioRecording: () -> Unit = {} // v9.4.27
 ) {
     var showAddMediaMenu by remember { mutableStateOf(false) }
+    var editingAudioId by remember { mutableStateOf<String?>(null) } // v9.4.27
+    var initialAudioTitle by remember { mutableStateOf("") }
+
     val context = LocalContext.current
     val heirKey by viewModel.heirKey.collectAsState()
+
+    // SÉLECTEUR DE COUVERTURE (v9.4.27)
+    val coverLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null && editingAudioId != null) {
+            viewModel.updateComplementCover(editingAudioId!!, uri)
+            editingAudioId = null
+        }
+    }
 
     // SÉLECTEUR MULTIPLE (v9.4.26)
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -151,11 +166,12 @@ fun MemoryComplementsSection(
                             modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (complement.entryType == "PHOTO" || complement.entryType == "GALLERY") {
+                            if (complement.entryType == "PHOTO" || complement.entryType == "GALLERY" || 
+                                (complement.entryType == "AUDIO" && complement.coverUrl != null)) {
                                 Box(modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp)).background(Color.Black)) {
                                     SecureAsyncImage(
-                                        mediaUrl = complement.mediaUrl,
-                                        localPath = complement.localMediaPath,
+                                        mediaUrl = complement.coverUrl ?: complement.mediaUrl, // v9.4.27 : Priorité couverture
+                                        localPath = complement.localCoverPath ?: complement.localMediaPath,
                                         explicitKey = heirKey,
                                         mediaManager = mediaManager,
                                         modifier = Modifier.fillMaxSize(),
@@ -189,6 +205,7 @@ fun MemoryComplementsSection(
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
+                                // ... (visibilité et sync)
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = if (complement.visibility == "EVERYONE") Icons.Default.Public else Icons.Default.Lock,
@@ -211,8 +228,18 @@ fun MemoryComplementsSection(
                             }
 
                             if (!isReadOnly) {
-                                IconButton(onClick = { viewModel.deleteComplement(complement.id) }) {
-                                    Icon(Icons.Default.DeleteOutline, null, tint = Error.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    if (complement.entryType == "AUDIO") {
+                                        IconButton(onClick = { 
+                                            editingAudioId = complement.id
+                                            initialAudioTitle = complement.aiSummary
+                                        }) {
+                                            Icon(Icons.Default.Edit, null, tint = accent.copy(alpha = 0.7f), modifier = Modifier.size(18.dp))
+                                        }
+                                    }
+                                    IconButton(onClick = { viewModel.deleteComplement(complement.id) }) {
+                                        Icon(Icons.Default.DeleteOutline, null, tint = Error.copy(alpha = 0.7f), modifier = Modifier.size(20.dp))
+                                    }
                                 }
                             }
                         }
@@ -220,5 +247,44 @@ fun MemoryComplementsSection(
                 }
             }
         }
+    }
+
+    // DIALOGUE ÉDITION AUDIO (v9.4.27)
+    if (editingAudioId != null && !isReadOnly) {
+        var editedTitle by remember { mutableStateOf(initialAudioTitle) }
+        AlertDialog(
+            onDismissRequest = { editingAudioId = null },
+            containerColor = theme.backgroundColor,
+            title = { Text("Personnaliser la Note Vocale", color = theme.contentColor) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OutlinedTextField(
+                        value = editedTitle,
+                        onValueChange = { editedTitle = it },
+                        label = { Text("Titre") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    
+                    Button(
+                        onClick = { coverLauncher.launch("image/*") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = accent.copy(alpha = 0.1f), contentColor = accent)
+                    ) {
+                        Icon(Icons.Default.AddPhotoAlternate, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Changer la pochette")
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = { 
+                    viewModel.updateComplementTitle(editingAudioId!!, editedTitle)
+                    editingAudioId = null
+                }) { Text("Enregistrer") }
+            },
+            dismissButton = {
+                TextButton(onClick = { editingAudioId = null }) { Text("Annuler") }
+            }
+        )
     }
 }

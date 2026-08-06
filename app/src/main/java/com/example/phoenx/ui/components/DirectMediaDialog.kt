@@ -1,6 +1,8 @@
 package com.example.phoenx.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.filled.AddPhotoAlternate
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -10,54 +12,94 @@ import com.example.phoenx.ui.theme.LocalAppTheme
 
 @Composable
 fun DirectMediaDialog(
-    type: String, // "SPOTIFY" or "YOUTUBE"
+    type: String, // "SPOTIFY", "DEEZER", "YOUTUBE", "AUDIO"
     recipients: List<RecipientEntity>,
     onDismiss: () -> Unit,
-    onSave: (title: String, description: String?, url: String, recipientIds: List<String>, visibility: String) -> Unit,
+    onSave: (title: String, userComment: String?, url: String, recipientIds: List<String>, visibility: String) -> Unit,
     initialTitle: String = "",
-    initialDescription: String? = null,
+    initialUserComment: String? = null,
     initialUrl: String = "",
     initialRecipientIds: List<String> = emptyList(),
-    initialVisibility: String = "EVERYONE"
+    initialVisibility: String = "EVERYONE",
+    onChangeCover: (() -> Unit)? = null // v9.4.27
 ) {
     val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     var title by remember { mutableStateOf(initialTitle) }
-    var description by remember { mutableStateOf(initialDescription ?: "") }
+    var userComment by remember { mutableStateOf(initialUserComment ?: "") }
     var url by remember { mutableStateOf(initialUrl) }
     val selectedIds = remember { mutableStateListOf<String>().apply { addAll(initialRecipientIds) } }
     var visibility by remember { mutableStateOf(initialVisibility) }
 
-    val label = if (type == "SPOTIFY") "un morceau Spotify" else "une vidéo YouTube"
-    val placeholder = if (type == "SPOTIFY") "https://open.spotify.com/track/..." else "https://www.youtube.com/watch?v=..."
-    val titleLabel = if (initialUrl.isEmpty()) "Déposer $label" else "Modifier le lien"
+    val label = when(type) {
+        "SPOTIFY" -> "un morceau Spotify"
+        "DEEZER" -> "un morceau Deezer"
+        "YOUTUBE" -> "une vidéo YouTube"
+        "AUDIO" -> "ma Note Vocale"
+        else -> "un média"
+    }
+    
+    val placeholder = when(type) {
+        "SPOTIFY" -> "https://open.spotify.com/track/..."
+        "DEEZER" -> "https://www.deezer.com/track/..."
+        "YOUTUBE" -> "https://www.youtube.com/watch?v=..."
+        else -> ""
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = theme.backgroundColor,
-        title = { Text(titleLabel, color = theme.contentColor) },
+        title = { Text(if (initialUrl.isEmpty() && initialTitle.isEmpty()) "Déposer $label" else "Personnaliser", color = theme.contentColor) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Titre") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description (optionnelle)") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = { url = it },
-                    label = { Text("Lien (URL)") },
-                    placeholder = { Text(placeholder, style = MaterialTheme.typography.bodySmall.copy(color = theme.contentColor.copy(alpha = 0.4f))) },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                // TITRE (Caché pour Spotify/Deezer au Lot 4.2)
+                if (type != "SPOTIFY" && type != "DEEZER") {
+                    OutlinedTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = { Text("Titre") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                // COMMENTAIRE / DESCRIPTION (Tous sauf AUDIO)
+                if (type != "AUDIO") {
+                    OutlinedTextField(
+                        value = userComment,
+                        onValueChange = { userComment = it },
+                        label = { Text("Pourquoi ce média est important ?") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3
+                    )
+                }
+
+                // URL (Uniquement pour liens externes)
+                if (type != "AUDIO") {
+                    OutlinedTextField(
+                        value = url,
+                        onValueChange = { url = it },
+                        label = { Text("Lien (URL)") },
+                        placeholder = { Text(placeholder, style = MaterialTheme.typography.bodySmall.copy(color = theme.contentColor.copy(alpha = 0.4f))) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
                 
-                Text("Visibilité", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                // BOUTON COUVERTURE (Uniquement AUDIO)
+                if (type == "AUDIO" && onChangeCover != null) {
+                    Button(
+                        onClick = onChangeCover,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = accent.copy(alpha = 0.1f), contentColor = accent)
+                    ) {
+                        Icon(androidx.compose.material.icons.Icons.Default.AddPhotoAlternate, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Changer la photo de couverture")
+                    }
+                }
+                
+                HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
+
+                Text("Visibilité & Destinataires", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                 RecipientSelector(
                     recipients = recipients,
                     selectedIds = selectedIds.toList(),
@@ -67,16 +109,16 @@ fun DirectMediaDialog(
                     },
                     visibility = visibility,
                     onVisibilityChange = { visibility = it },
-                    accent = theme.accentColor
+                    accent = accent
                 )
             }
         },
         confirmButton = {
             Button(
-                onClick = { onSave(title, description.ifBlank { null }, url, selectedIds.toList(), visibility) },
-                enabled = url.isNotBlank()
+                onClick = { onSave(title, userComment.ifBlank { null }, url, selectedIds.toList(), visibility) },
+                enabled = (type == "AUDIO" && title.isNotBlank()) || (type != "AUDIO" && url.isNotBlank())
             ) {
-                Text("Sauvegarder")
+                Text("Enregistrer")
             }
         },
         dismissButton = {

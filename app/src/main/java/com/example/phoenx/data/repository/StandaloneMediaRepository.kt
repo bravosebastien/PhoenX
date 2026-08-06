@@ -38,7 +38,7 @@ class StandaloneMediaRepository @Inject constructor(
             creatorUid = currentUid,
             type = media.type,
             title = media.title,
-            description = media.description, // v9.3.3
+            userComment = media.userComment, // v9.4.27
             content = finalContent,
             recipientIds = media.recipientIds.joinToString(","),
             createdAt = media.createdAt,
@@ -78,7 +78,7 @@ class StandaloneMediaRepository @Inject constructor(
             id = id,
             type = type,
             title = title,
-            description = description, // v9.3.3
+            userComment = userComment, // v9.4.27
             content = decryptedContent,
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() },
             createdAt = createdAt

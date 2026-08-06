@@ -10,7 +10,7 @@ fun StandaloneMediaEntity.toFirestoreMap(): Map<String, Any?> {
         "uid" to creatorUid,
         "type" to type,
         "title" to title,
-        "description" to description, // v9.3.3
+        "userComment" to userComment, // v9.4.27 (anciennement description)
         "content" to if (needsEncryption) {
             val bytes = android.util.Base64.decode(content, android.util.Base64.DEFAULT)
             Blob.fromBytes(bytes)
@@ -19,6 +19,8 @@ fun StandaloneMediaEntity.toFirestoreMap(): Map<String, Any?> {
         },
         "recipientIds" to recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct(),
         "visibility" to visibility,
-        "createdAt" to createdAt
+        "createdAt" to createdAt,
+        "coverUrl" to coverUrl,
+        "mediaProvider" to mediaProvider
     )
 }

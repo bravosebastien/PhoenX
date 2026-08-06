@@ -147,7 +147,7 @@ class RecipientMediaViewModel @Inject constructor(
         content: String, 
         type: String, 
         recipientIds: List<String>,
-        description: String? = null,
+        userComment: String? = null,
         existingId: String? = null,
         visibility: String = "RESTRICTED"
     ) {
@@ -167,7 +167,7 @@ class RecipientMediaViewModel @Inject constructor(
                 creatorUid = currentUid,
                 type = type,
                 title = title,
-                description = description,
+                userComment = userComment,
                 content = finalContent,
                 recipientIds = recipientIds.distinct().joinToString(","),
                 visibility = visibility,
@@ -190,12 +190,15 @@ class RecipientMediaViewModel @Inject constructor(
                     // Mais on l'implémente ici pour éviter les dépendances croisées de VM
                     val uid = auth.currentUser?.uid ?: return@launch
                     
-                    // 1. Suppression Firestore
+                    // 1. Suppression Storage (v9.4.27)
+                    mediaManager.deleteFile(entry.mediaUrl)
+                    
+                    // 2. Suppression Firestore
                     db.collection("users").document(uid)
                         .collection("entries").document(entry.id)
                         .delete().await()
                     
-                    // 2. Suppression Room locale
+                    // 3. Suppression Room locale
                     offlineEntryDao.deleteEntry(entry.id)
                     android.util.Log.d("RecipientMediaVM", "Complément supprimé: ${entry.id}")
                 } else {
@@ -204,6 +207,30 @@ class RecipientMediaViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 android.util.Log.e("RecipientMediaVM", "Erreur lors de la suppression du média ${entry.id}", e)
+            }
+        }
+    }
+
+    /**
+     * Met à jour un média (v9.4.27)
+     */
+    fun updateMediaEntry(id: String, title: String, comment: String?, url: String, recipientIds: List<String>, visibility: String, isComplement: Boolean) {
+        viewModelScope.launch {
+            try {
+                if (isComplement) {
+                    // Note Vocale rattachée
+                    offlineEntryDao.updateEntryMediaTitle(title, id)
+                    offlineEntryDao.updateEntryComment(comment, id)
+                    offlineEntryDao.updateEntryVisibility(visibility, id)
+                    offlineEntryDao.updateEntryRecipients(recipientIds.joinToString(","), id)
+                } else {
+                    // Média isolé
+                    standaloneMediaDao.updateMedia(id, title, comment, url, recipientIds.joinToString(","), visibility)
+                }
+                if (isComplement) offlineEntryDao.updateSyncStatus(id, "pending")
+                else standaloneMediaDao.updateSyncStatus(id, "pending")
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientMediaVM", "Erreur lors de la mise à jour du média $id", e)
             }
         }
     }
@@ -245,7 +272,7 @@ class RecipientMediaViewModel @Inject constructor(
     /**
      * Gère l'upload chiffré d'une photo et son enregistrement Standalone (v9.3.2)
      */
-    fun uploadAndAddStandalonePhoto(title: String, description: String?, localFile: java.io.File, recipientIds: List<String>) {
+    fun uploadAndAddStandalonePhoto(title: String, userComment: String?, localFile: java.io.File, recipientIds: List<String>) {
         viewModelScope.launch {
             try {
                 val mediaId = java.util.UUID.randomUUID().toString()
@@ -253,9 +280,44 @@ class RecipientMediaViewModel @Inject constructor(
                 val downloadUrl = mediaManager.encryptAndUploadStandalone(currentUid, mediaId, localFile)
                 
                 // 2. Enregistrement de l'entité avec l'URL (qui sera elle-même chiffrée dans Firestore)
-                addStandaloneMedia(title, downloadUrl, "PHOTO", recipientIds, description, mediaId)
+                addStandaloneMedia(title, downloadUrl, "PHOTO", recipientIds, userComment, mediaId)
             } catch (e: Exception) {
                 android.util.Log.e("RecipientMediaVM", "Erreur upload photo standalone: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Met à jour un média standalone existant (v9.4.27)
+     */
+    fun updateStandaloneMedia(id: String, title: String, userComment: String?, url: String, recipientIds: List<String>, visibility: String) {
+        viewModelScope.launch {
+            try {
+                standaloneMediaDao.updateMedia(id, title, userComment, url, recipientIds.joinToString(","), visibility)
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientMediaVM", "Erreur update standalone", e)
+            }
+        }
+    }
+
+    /**
+     * Chiffre et uploade une photo de couverture pour un standalone (v9.4.27)
+     */
+    fun updateStandaloneCover(id: String, imageUri: android.net.Uri) {
+        val context = com.google.firebase.FirebaseApp.getInstance().applicationContext
+        viewModelScope.launch {
+            val file = try {
+                val inputStream = context.contentResolver.openInputStream(imageUri)
+                val tempFile = java.io.File(context.cacheDir, "temp_cover_${java.util.UUID.randomUUID()}.jpg")
+                inputStream?.use { input -> tempFile.outputStream().use { output -> input.copyTo(output) } }
+                tempFile
+            } catch(_: Exception) { null } ?: return@launch
+            
+            try {
+                val storagePath = mediaManager.encryptAndUpload(currentUid, id, file)
+                standaloneMediaDao.updateMediaCover(id, storagePath, file.absolutePath)
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientMediaVM", "Erreur upload couverture standalone", e)
             }
         }
     }
@@ -321,12 +383,14 @@ class RecipientMediaViewModel @Inject constructor(
                                             creatorUid = targetId,
                                             type = type,
                                             title = doc.getString("title") ?: "",
-                                            description = doc.getString("description"), // v9.3.3
+                                            userComment = doc.getString("userComment"), // v9.4.27
                                             content = contentStr,
                                             recipientIds = recIds.joinToString(","),
                                             visibility = doc.getString("visibility") ?: "RESTRICTED",
                                             createdAt = doc.getLong("createdAt") ?: 0L,
-                                            syncStatus = "synced"
+                                            syncStatus = "synced",
+                                            coverUrl = doc.getString("coverUrl"),
+                                            mediaProvider = doc.getString("mediaProvider")
                                         )
                                     } else null
                                 } ?: emptyList()
@@ -341,62 +405,42 @@ class RecipientMediaViewModel @Inject constructor(
                 val targetId = _targetCreatorId.value
                 val isHeirMode = targetId != null && targetId != currentUid
 
-                // 1. On sépare parents et compléments (Entries classiques)
-                val parents = allOfflineEntries.filter { it.parentEntryId == null }
-                val complements = allOfflineEntries.filter { it.parentEntryId != null }
-
-                // 2. Filtrage par ACCÈS STRICT (Entries classiques)
-                val accessibleParents = if (!isHeirMode) {
-                    parents 
+                // 1. Filtrage par ACCÈS STRICT (Entries classiques)
+                val accessibleEntries = if (!isHeirMode) {
+                    allOfflineEntries 
                 } else {
-                    parents.filter { parent ->
-                        parent.visibility == "EVERYONE" || parent.recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.contains(currentUid)
+                    allOfflineEntries.filter { entry ->
+                        entry.visibility == "EVERYONE" || entry.recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.contains(currentUid)
                     }
                 }
 
-                // 3. Conversion en domaine (Déchiffrement Tink pour les entries)
-                val decodedParents = accessibleParents.map { 
+                // 2. Conversion en domaine (Déchiffrement Tink pour les entries)
+                val decodedEntries = accessibleEntries.map { 
                     if (isHeirMode && !activated) it.toSealedDomain()
                     else it.toDomain(encryptionManager) 
                 }.toMutableList()
 
-                // 4. Conversion et Injection des Standalone Media (v9.3.2)
+                // 3. Conversion et Injection des Standalone Media (v9.3.2)
                 allStandalone.forEach { standalone ->
                     val domainEntry = standalone.toStandaloneDomain(isHeirMode, activated)
-                    decodedParents.add(domainEntry)
+                    decodedEntries.add(domainEntry)
                 }
 
-                Triple(decodedParents.toList(), complements, activated)
+                Triple(decodedEntries.toList(), activated, isHeirMode)
             }
             .flowOn(Dispatchers.Default)
-            .collectLatest { (decodedParents, complements, _) ->
-                // 4. Indexation automatique par type
-                _libraryEntries.value = decodedParents.filter { parent ->
-                    val hasMatch = parent.type == EntryType.THOUGHT || parent.type == EntryType.LEGACY || parent.isYoungSelfLetter ||
-                        complements.any { it.parentEntryId == parent.id && it.entryType == "TEXT" }
-                    hasMatch
-                }
+            .collectLatest { (allDecoded, activated, _) ->
+                // 4. Indexation par type (v9.4.27 : Chaque média, parent ou complément, est listé individuellement)
+                _libraryEntries.value = allDecoded.filter { it.parentEntryId == null && (it.type == EntryType.THOUGHT || it.type == EntryType.LEGACY || it.isYoungSelfLetter) }
 
-                _videoEntries.value = decodedParents.filter { parent ->
-                    val hasMatch = parent.type == EntryType.VIDEO || 
-                        complements.any { it.parentEntryId == parent.id && it.entryType == "VIDEO" }
-                    hasMatch
-                }
+                _videoEntries.value = allDecoded.filter { it.type == EntryType.VIDEO }
 
-                _discothequeEntries.value = decodedParents.filter { parent ->
-                    val mainMatches = parent.type == EntryType.AUDIO || parent.type == EntryType.EMOTION
-                    val compMatches = complements.any { it.parentEntryId == parent.id && (it.entryType == "AUDIO" || it.entryType == "EMOTION") }
-                    mainMatches || compMatches
-                }
+                _discothequeEntries.value = allDecoded.filter { it.type == EntryType.AUDIO }
 
-                _archiveEntries.value = decodedParents.filter { parent ->
-                    val hasMatch = parent.type == EntryType.PHOTO || 
-                        complements.any { it.parentEntryId == parent.id && it.entryType == "PHOTO" }
-                    hasMatch
-                }
+                _archiveEntries.value = allDecoded.filter { it.type == EntryType.PHOTO }
 
-                // 5. Unified Heritage List (v8.5.3)
-                _heritageEntries.value = decodedParents.sortedByDescending { it.timestamp }
+                // 5. Unified Heritage List (v8.5.3) - On ne garde que les parents pour le flux chronologique principal
+                _heritageEntries.value = allDecoded.filter { it.parentEntryId == null }.sortedByDescending { it.timestamp }
             }
         }
     }
@@ -501,7 +545,7 @@ class RecipientMediaViewModel @Inject constructor(
 
         val domainType = when(entryType) {
             "TEXT" -> EntryType.THOUGHT
-            "AUDIO" -> EntryType.AUDIO
+            "AUDIO", "EMOTION" -> EntryType.AUDIO // v9.4.27 : Unification du type AUDIO
             "PHOTO" -> EntryType.PHOTO
             "VIDEO" -> EntryType.VIDEO
             else -> try { EntryType.valueOf(entryType) } catch(_: Exception) { EntryType.THOUGHT }
@@ -517,6 +561,7 @@ class RecipientMediaViewModel @Inject constructor(
             targetAge = targetAge,
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = aiSummary,
+            userComment = userComment, // v9.4.27
             parentEntryId = parentEntryId,
             mediaUrl = mediaUrl,
             localMediaPath = localMediaPath
@@ -576,7 +621,7 @@ class RecipientMediaViewModel @Inject constructor(
             type = domainType,
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = displayTitle,
-            description = if (isHeirMode && !activated) null else description, // v9.3.3
+            userComment = if (isHeirMode && !activated) null else userComment, // v9.4.27
             mediaUrl = if (domainType == EntryType.PHOTO || domainType == EntryType.VIDEO || type == "SPOTIFY") finalContent else null,
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct(),
             visibility = visibility

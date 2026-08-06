@@ -151,7 +151,10 @@ fun RecipientPhotosScreen(
                             theme = theme,
                             isCreatorMode = isCreatorMode,
                             onDelete = { mediaToDelete = entry }
-                        ) { onNavigateToDetail(entry.id) }
+                        ) { 
+                            android.util.Log.d("MediaSupportDiag", "Clic Photo - ID: ${entry.id}, Title: ${entry.aiSummary}")
+                            onNavigateToDetail(entry.id) 
+                        }
                     }
                 }
             }
@@ -162,7 +165,7 @@ fun RecipientPhotosScreen(
         com.example.phoenx.ui.components.DirectPhotoDialog(
             recipients = recipients,
             onDismiss = { showAddDialog = false },
-            onSave = { title, desc, uri, ids ->
+            onSave = { title, userComment, uri, ids ->
                 // Conversion Uri -> File temporaire pour upload
                 val tempFile = java.io.File(context.cacheDir, "standalone_photo_${java.util.UUID.randomUUID()}.jpg")
                 context.contentResolver.openInputStream(uri)?.use { input ->
@@ -170,7 +173,7 @@ fun RecipientPhotosScreen(
                         input.copyTo(output)
                     }
                 }
-                viewModel.uploadAndAddStandalonePhoto(title, desc, tempFile, ids)
+                viewModel.uploadAndAddStandalonePhoto(title, userComment, tempFile, ids)
                 showAddDialog = false
             }
         )

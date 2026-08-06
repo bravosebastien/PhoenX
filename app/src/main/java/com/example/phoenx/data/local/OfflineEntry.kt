@@ -96,7 +96,8 @@ data class OfflineEntry(
     // IA NARRATIVE v8.9.9 (Ton de l'Âme)
     val soulTone: String? = null,
 
-    // ENRICHISSEMENT MÉDIA v9.4.27 (Migration v42)
+    // ENRICHISSEMENT MÉDIA v9.4.27 (Migration v43)
+    val userComment: String? = null,
     val coverUrl: String? = null,
     val localCoverPath: String? = null,
     val mediaProvider: String? = null // "PHOENX", "SPOTIFY", "DEEZER", "YOUTUBE"
@@ -122,6 +123,7 @@ data class OfflineEntry(
         if (createdAt != other.createdAt) return false
         if (syncStatus != other.syncStatus) return false
         if (aiSummary != other.aiSummary) return false
+        if (userComment != other.userComment) return false // v9.4.27
         if (aiTags != other.aiTags) return false
         if (enigmaQuestion != other.enigmaQuestion) return false
         if (enigmaAnswer != other.enigmaAnswer) return false
@@ -133,6 +135,9 @@ data class OfflineEntry(
         if (compartmentIds != other.compartmentIds) return false
         if (mediaUrl != other.mediaUrl) return false
         if (localMediaPath != other.localMediaPath) return false
+        if (coverUrl != other.coverUrl) return false // v9.4.27
+        if (localCoverPath != other.localCoverPath) return false // v9.4.27
+        if (mediaProvider != other.mediaProvider) return false // v9.4.27
         if (memoryDate != other.memoryDate) return false
         if (memoryDateStart != other.memoryDateStart) return false
         if (memoryDateEnd != other.memoryDateEnd) return false
@@ -155,6 +160,7 @@ data class OfflineEntry(
         result = 31 * result + createdAt.hashCode()
         result = 31 * result + syncStatus.hashCode()
         result = 31 * result + aiSummary.hashCode()
+        result = 31 * result + (userComment?.hashCode() ?: 0) // v9.4.27
         result = 31 * result + aiTags.hashCode()
         result = 31 * result + (enigmaQuestion?.hashCode() ?: 0)
         result = 31 * result + (enigmaAnswer?.hashCode() ?: 0)
@@ -166,6 +172,9 @@ data class OfflineEntry(
         result = 31 * result + compartmentIds.hashCode()
         result = 31 * result + (mediaUrl?.hashCode() ?: 0)
         result = 31 * result + (localMediaPath?.hashCode() ?: 0)
+        result = 31 * result + (coverUrl?.hashCode() ?: 0) // v9.4.27
+        result = 31 * result + (localCoverPath?.hashCode() ?: 0) // v9.4.27
+        result = 31 * result + (mediaProvider?.hashCode() ?: 0) // v9.4.27
         result = 31 * result + (memoryDate?.hashCode() ?: 0)
         result = 31 * result + (memoryDateStart?.hashCode() ?: 0)
         result = 31 * result + (memoryDateEnd?.hashCode() ?: 0)
