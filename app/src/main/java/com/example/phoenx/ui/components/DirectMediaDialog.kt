@@ -92,8 +92,8 @@ fun DirectMediaDialog(
                     )
                 }
 
-                // COMMENTAIRE / DESCRIPTION (Tous sauf AUDIO)
-                if (type != "AUDIO") {
+                // COMMENTAIRE / DESCRIPTION (Masqué uniquement pour Notes Vocales - v9.4.27)
+                if (type != "AUDIO" && type != "PHOENX") {
                     OutlinedTextField(
                         value = userComment,
                         onValueChange = { userComment = it },

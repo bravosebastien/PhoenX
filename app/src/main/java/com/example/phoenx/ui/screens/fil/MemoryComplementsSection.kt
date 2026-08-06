@@ -282,7 +282,7 @@ fun MemoryComplementsSection(
     // DIALOGUE ÉDITION MÉDIA (v9.4.27 : Unifié pour Photos, Vidéos, Audios)
     if (editingMedia != null && !isReadOnly) {
         com.example.phoenx.ui.components.DirectMediaDialog(
-            type = editingMedia!!.entryType,
+            type = editingMedia!!.mediaProvider ?: editingMedia!!.entryType,
             recipients = recipients,
             onDismiss = { editingMedia = null },
             onSave = { title, comment, _, ids, visibility ->

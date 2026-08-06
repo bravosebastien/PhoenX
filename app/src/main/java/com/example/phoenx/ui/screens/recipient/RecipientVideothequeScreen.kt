@@ -73,8 +73,6 @@ fun RecipientVideothequeScreen(
     var editingMedia by remember { mutableStateOf<PhoenXEntry?>(null) }
     var mediaToDelete by remember { mutableStateOf<PhoenXEntry?>(null) }
     var expandedMediaId by remember { mutableStateOf<String?>(null) } 
-    
-    val recipients by standaloneViewModel.recipients.collectAsState()
 
     // SÉLECTEUR DE COUVERTURE (v9.4.27)
     val coverLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
@@ -270,7 +268,7 @@ fun RecipientVideothequeScreen(
     if (showAddDialog) {
         com.example.phoenx.ui.components.DirectMediaDialog(
             type = "YOUTUBE",
-            recipients = recipients,
+            recipients = recipientsList,
             onDismiss = { showAddDialog = false },
             onSave = { title, desc, url, ids, visibility ->
                 viewModel.addStandaloneMedia(title, url, "YOUTUBE", ids, desc, null, visibility)
@@ -285,7 +283,7 @@ fun RecipientVideothequeScreen(
 
         com.example.phoenx.ui.components.DirectMediaDialog(
             type = type,
-            recipients = recipients,
+            recipients = recipientsList,
             onDismiss = { editingMedia = null },
             onSave = { title, comment, url, ids, visibility ->
                 viewModel.updateMediaEntry(editingMedia!!.id, title, comment, url, ids, visibility, isComplement)

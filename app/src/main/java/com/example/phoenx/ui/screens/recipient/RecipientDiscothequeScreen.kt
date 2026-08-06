@@ -74,8 +74,6 @@ fun RecipientDiscothequeScreen(
     var editingMedia by remember { mutableStateOf<PhoenXEntry?>(null) }
     var mediaToDelete by remember { mutableStateOf<PhoenXEntry?>(null) }
     var expandedMediaId by remember { mutableStateOf<String?>(null) } // v9.4.27
-    
-    val recipients by standaloneViewModel.recipients.collectAsState()
 
     // SÉLECTEUR DE COUVERTURE (v9.4.27)
     val coverLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
@@ -286,7 +284,7 @@ fun RecipientDiscothequeScreen(
     if (showAddDialog) {
         com.example.phoenx.ui.components.DirectMediaDialog(
             type = "SPOTIFY",
-            recipients = recipients,
+            recipients = recipientsList,
             onDismiss = { showAddDialog = false },
             onSave = { title, desc, url, ids, visibility ->
                 // v9.4.27 : Détection automatique Deezer
@@ -303,7 +301,7 @@ fun RecipientDiscothequeScreen(
 
         com.example.phoenx.ui.components.DirectMediaDialog(
             type = initialType,
-            recipients = recipients,
+            recipients = recipientsList,
             onDismiss = { editingMedia = null },
             onSave = { title, desc, url, ids, visibility ->
                 // v9.4.27 : Détection automatique Deezer à l'édition aussi

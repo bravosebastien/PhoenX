@@ -758,7 +758,7 @@ class RecipientMediaViewModel @Inject constructor(
         
         val displayTitle = if (isHeirMode && !activated) {
             when(type) {
-                "SPOTIFY" -> "Musique scellée"
+                "SPOTIFY", "DEEZER" -> "Musique scellée"
                 "YOUTUBE" -> "Vidéo scellée"
                 "PHOTO" -> "Photo scellée"
                 "TEXT_EXCERPT" -> "Écrit scellé"
@@ -766,14 +766,14 @@ class RecipientMediaViewModel @Inject constructor(
             }
         } else title.ifEmpty { 
             when(type) {
-                "SPOTIFY" -> "Morceau partagé"
+                "SPOTIFY", "DEEZER" -> "Morceau partagé"
                 "YOUTUBE" -> "Vidéo partagée"
                 else -> "Média"
             }
         }
 
         val domainType = when(type) {
-            "SPOTIFY" -> EntryType.AUDIO
+            "SPOTIFY", "DEEZER" -> EntryType.AUDIO
             "YOUTUBE" -> EntryType.VIDEO
             "PHOTO" -> EntryType.PHOTO
             "TEXT_EXCERPT" -> EntryType.THOUGHT
@@ -803,10 +803,10 @@ class RecipientMediaViewModel @Inject constructor(
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = displayTitle,
             userComment = if (isHeirMode && !activated) null else userComment,
-            mediaUrl = if (domainType == EntryType.PHOTO || domainType == EntryType.VIDEO || type == "SPOTIFY") finalContent else null,
+            mediaUrl = if (domainType == EntryType.PHOTO || domainType == EntryType.VIDEO || type == "SPOTIFY" || type == "DEEZER") finalContent else null,
             coverUrl = coverUrl,
             localCoverPath = localCoverPath,
-            mediaProvider = mediaProvider,
+            mediaProvider = mediaProvider ?: type, // v9.4.27 : Fallback sur type si provider null
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct(),
             visibility = visibility
         )
