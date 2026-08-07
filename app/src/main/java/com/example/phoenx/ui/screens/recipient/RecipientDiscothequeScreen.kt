@@ -52,6 +52,7 @@ fun RecipientDiscothequeScreen(
 ) {
     val entries by viewModel.discothequeEntries.collectAsState()
     val viewMode by viewModel.viewMode.collectAsState()
+    val discothequeFilter by viewModel.discothequeFilter.collectAsState()
     val filterRecipientId by viewModel.filterRecipientId.collectAsState()
     val parentTitles by viewModel.parentTitles.collectAsState()
     val recipientsList by viewModel.recipientsFlow.collectAsState()
@@ -99,13 +100,19 @@ fun RecipientDiscothequeScreen(
         )
     }
 
-    val filteredEntries = remember(entries, viewMode, filterRecipientId) {
+    val filteredEntries = remember(entries, viewMode, discothequeFilter, filterRecipientId) {
+        val typeFiltered = when (discothequeFilter) {
+            DiscothequeFilter.VOCALS -> entries.filter { it.mediaProvider == "PHOENX" || it.mediaProvider == "AUDIO" }
+            DiscothequeFilter.MUSIC -> entries.filter { it.mediaProvider == "SPOTIFY" || it.mediaProvider == "DEEZER" }
+            else -> entries
+        }
+
         when (viewMode) {
             MediaViewMode.BY_RECIPIENT -> {
-                if (filterRecipientId == null) entries
-                else entries.filter { it.visibility == "EVERYONE" || it.recipientIds.contains(filterRecipientId!!) }
+                if (filterRecipientId == null) typeFiltered
+                else typeFiltered.filter { it.visibility == "EVERYONE" || it.recipientIds.contains(filterRecipientId!!) }
             }
-            else -> entries
+            else -> typeFiltered
         }
     }
 
@@ -148,7 +155,9 @@ fun RecipientDiscothequeScreen(
                         onRecipientChange = { viewModel.setFilterRecipient(it) },
                         recipients = recipientsList,
                         theme = theme,
-                        accent = accent
+                        accent = accent,
+                        currentContentFilter = discothequeFilter,
+                        onContentFilterChange = { viewModel.setDiscothequeFilter(it) }
                     )
                 }
             }

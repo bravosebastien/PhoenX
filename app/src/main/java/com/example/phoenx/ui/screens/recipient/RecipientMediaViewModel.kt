@@ -38,7 +38,10 @@ fun MediaViewModeSelector(
     onRecipientChange: (String?) -> Unit,
     recipients: List<com.example.phoenx.data.local.RecipientEntity>,
     theme: com.example.phoenx.ui.theme.AppThemeState,
-    accent: Color
+    accent: Color,
+    // v9.4.27 : Filtre de contenu (Optionnel, utilisé pour Discothèque)
+    currentContentFilter: DiscothequeFilter? = null,
+    onContentFilterChange: ((DiscothequeFilter) -> Unit)? = null
 ) {
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
         androidx.compose.foundation.lazy.LazyRow(
@@ -67,6 +70,39 @@ fun MediaViewModeSelector(
                     label = { Text("Par Destinataire", style = MaterialTheme.typography.labelSmall) },
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
                 )
+            }
+        }
+
+        // v9.4.27 : Filtre de contenu (Vocaux / Musiques)
+        if (currentContentFilter != null && onContentFilterChange != null) {
+            androidx.compose.foundation.lazy.LazyRow(
+                modifier = Modifier.padding(top = 8.dp),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+            ) {
+                item {
+                    FilterChip(
+                        selected = currentContentFilter == DiscothequeFilter.ALL,
+                        onClick = { onContentFilterChange(DiscothequeFilter.ALL) },
+                        label = { Text("Tous les audios", style = MaterialTheme.typography.labelSmall) },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
+                    )
+                }
+                item {
+                    FilterChip(
+                        selected = currentContentFilter == DiscothequeFilter.VOCALS,
+                        onClick = { onContentFilterChange(DiscothequeFilter.VOCALS) },
+                        label = { Text("Vocaux uniquement", style = MaterialTheme.typography.labelSmall) },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
+                    )
+                }
+                item {
+                    FilterChip(
+                        selected = currentContentFilter == DiscothequeFilter.MUSIC,
+                        onClick = { onContentFilterChange(DiscothequeFilter.MUSIC) },
+                        label = { Text("Musiques uniquement", style = MaterialTheme.typography.labelSmall) },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
+                    )
+                }
             }
         }
 
@@ -103,6 +139,10 @@ enum class MediaViewMode {
     DEFAULT, BY_MEMORY, BY_RECIPIENT
 }
 
+enum class DiscothequeFilter {
+    ALL, VOCALS, MUSIC
+}
+
 data class ExternalMetadata(
     val title: String? = null,
     val thumbnailUrl: String? = null
@@ -123,11 +163,18 @@ class RecipientMediaViewModel @Inject constructor(
     private val _viewMode = MutableStateFlow(MediaViewMode.DEFAULT)
     val viewMode: StateFlow<MediaViewMode> = _viewMode.asStateFlow()
 
+    private val _discothequeFilter = MutableStateFlow(DiscothequeFilter.ALL)
+    val discothequeFilter: StateFlow<DiscothequeFilter> = _discothequeFilter.asStateFlow()
+
     private val _filterRecipientId = MutableStateFlow<String?>(null) // UID du destinataire
     val filterRecipientId: StateFlow<String?> = _filterRecipientId.asStateFlow()
 
     fun setViewMode(mode: MediaViewMode) {
         _viewMode.value = mode
+    }
+
+    fun setDiscothequeFilter(filter: DiscothequeFilter) {
+        _discothequeFilter.value = filter
     }
 
     fun setFilterRecipient(uid: String?) {
@@ -783,7 +830,7 @@ class RecipientMediaViewModel @Inject constructor(
             localMediaPath = localMediaPath,
             coverUrl = coverUrl,
             localCoverPath = localCoverPath,
-            mediaProvider = mediaProvider,
+            mediaProvider = mediaProvider ?: if (domainType == EntryType.AUDIO) "PHOENX" else null, // v9.4.27 : Fallback pour filtres
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
             visibility = visibility,
             silentAttribution = silentAttribution
