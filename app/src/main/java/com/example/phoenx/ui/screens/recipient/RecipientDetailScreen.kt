@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -67,6 +66,7 @@ fun RecipientDetailScreen(
     
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     Scaffold(
         containerColor = theme.backgroundColor,
@@ -237,20 +237,19 @@ fun RecipientDetailScreen(
                     accent = accent,
                     theme = theme,
                     items = dashboard.audios.map { it.aiSummary to it.id },
-                    onClickItem = { id -> navController.navigate(Screen.MediaViewer.createRoute(id)) },
+                    onClickItem = { id -> 
+                        val entry = dashboard.audios.find { it.id == id }
+                        if (entry?.mediaUrl?.startsWith("http") == true && 
+                            (entry.mediaProvider == "SPOTIFY" || entry.mediaProvider == "DEEZER")) {
+                            try {
+                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(entry.mediaUrl!!))
+                                context.startActivity(intent)
+                            } catch(_: Exception) { navController.navigate(Screen.MediaViewer.createRoute(id)) }
+                        } else {
+                            navController.navigate(Screen.MediaViewer.createRoute(id))
+                        }
+                    },
                     onSeeAll = { navController.navigate(Screen.RecipientDiscotheque.createRoute(recipient.id)) }
-                )
-
-                // 5. EXTRAITS (LITTÉRATURE)
-                ContentSection(
-                    title = "EXTRAITS",
-                    count = dashboard.extraits.size,
-                    icon = Icons.Default.TextFields,
-                    accent = accent,
-                    theme = theme,
-                    items = dashboard.extraits.map { it.aiSummary to it.id },
-                    onClickItem = { id -> /* Lecture directe ? */ },
-                    onSeeAll = { navController.navigate(Screen.RecipientLibrary.createRoute(recipient.id)) }
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))

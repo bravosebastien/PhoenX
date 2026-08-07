@@ -21,8 +21,7 @@ data class RecipientContentDashboard(
     val souvenirs: List<OfflineEntry> = emptyList(),
     val photos: List<com.example.phoenx.domain.model.PhoenXEntry> = emptyList(),
     val videos: List<com.example.phoenx.domain.model.PhoenXEntry> = emptyList(),
-    val audios: List<com.example.phoenx.domain.model.PhoenXEntry> = emptyList(),
-    val extraits: List<com.example.phoenx.domain.model.PhoenXEntry> = emptyList()
+    val audios: List<com.example.phoenx.domain.model.PhoenXEntry> = emptyList()
 )
 
 @HiltViewModel
@@ -77,8 +76,7 @@ class RecipientViewModel @Inject constructor(
                 souvenirs = filteredEntries.filter { it.parentEntryId == null && it.entryType != "PORTRAIT" },
                 photos = allMapped.filter { it.type == com.example.phoenx.domain.model.EntryType.PHOTO },
                 videos = allMapped.filter { it.type == com.example.phoenx.domain.model.EntryType.VIDEO },
-                audios = allMapped.filter { it.type == com.example.phoenx.domain.model.EntryType.AUDIO },
-                extraits = allMapped.filter { it.type == com.example.phoenx.domain.model.EntryType.THOUGHT && it.mediaProvider == null } // Extraits littéraires
+                audios = allMapped.filter { it.type == com.example.phoenx.domain.model.EntryType.AUDIO }
             )
         }
     }
