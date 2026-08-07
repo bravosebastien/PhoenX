@@ -428,12 +428,32 @@ fun GeographicTimeline(currentAge: Int, selectedAge: Int, onAgeChange: (Int) -> 
                 Text(if (selectedAge >= currentAge) "Aujourd'hui" else "$selectedAge ans", color = accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
             }
             Spacer(Modifier.height(4.dp))
-            Slider(
-                value = selectedAge.toFloat(),
-                onValueChange = { onAgeChange(it.toInt()) },
-                valueRange = 0f..currentAge.toFloat().coerceAtLeast(1f),
-                colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent, inactiveTrackColor = theme.contentColor.copy(alpha = 0.1f))
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                IconButton(
+                    onClick = { onAgeChange((selectedAge - 1).coerceAtLeast(0)) },
+                    enabled = selectedAge > 0
+                ) {
+                    Icon(Icons.Default.Remove, null, tint = accent)
+                }
+
+                Text(
+                    text = if (selectedAge >= currentAge) "Aujourd'hui" else "$selectedAge ans",
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    color = theme.contentColor,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+
+                IconButton(
+                    onClick = { onAgeChange((selectedAge + 1).coerceAtMost(currentAge)) },
+                    enabled = selectedAge < currentAge
+                ) {
+                    Icon(Icons.Default.Add, null, tint = accent)
+                }
+            }
         }
     }
 }
