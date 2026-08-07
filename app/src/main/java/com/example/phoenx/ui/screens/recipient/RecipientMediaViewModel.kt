@@ -619,48 +619,54 @@ class RecipientMediaViewModel @Inject constructor(
             }
 
             val standaloneMediaFlow = _targetCreatorId.flatMapLatest { targetId ->
-                if (targetId == null || targetId == currentUid) {
-                    standaloneMediaDao.getAllStandaloneMedia()
-                } else {
-                    // Lecture Firestore directe pour les héritiers (v9.3.2)
-                    callbackFlow {
-                        val listener = db.collection("users").document(targetId)
-                            .collection("standaloneMedia")
-                            .addSnapshotListener { snapshot, _ ->
-                                val list = snapshot?.documents?.mapNotNull { doc ->
-                                    val recIds = (doc.get("recipientIds") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
-                                    // Filtrage visibilité v9.3.2
-                                    if (recIds.isEmpty() || recIds.contains(currentUid)) {
-                                        val type = doc.getString("type") ?: ""
-                                        val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
-                                        
-                                        val contentStr = if (needsEncryption) {
-                                            val blob = doc.get("content") as? Blob
-                                            blob?.toBytes()?.let { android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT) } ?: ""
-                                        } else {
-                                            doc.getString("content") ?: ""
-                                        }
+                val effectiveId = targetId ?: currentUid
+                if (effectiveId.isEmpty()) return@flatMapLatest kotlinx.coroutines.flow.flowOf(emptyList())
 
-                                        com.example.phoenx.data.local.StandaloneMediaEntity(
-                                            id = doc.id,
-                                            creatorUid = targetId,
-                                            type = type,
-                                            title = doc.getString("title") ?: "",
-                                            userComment = doc.getString("userComment"), // v9.4.27
-                                            content = contentStr,
-                                            recipientIds = recIds.joinToString(","),
-                                            visibility = doc.getString("visibility") ?: "RESTRICTED",
-                                            createdAt = doc.getLong("createdAt") ?: 0L,
-                                            syncStatus = "synced",
-                                            coverUrl = doc.getString("coverUrl"),
-                                            mediaProvider = doc.getString("mediaProvider")
-                                        )
-                                    } else null
-                                } ?: emptyList()
-                                trySend(list)
-                            }
-                        awaitClose { listener.remove() }
-                    }
+                // On utilise Firestore directement pour garantir la visibilité des 8 éléments (v9.4.27)
+                callbackFlow {
+                    val listener = db.collection("users").document(effectiveId)
+                        .collection("standaloneMedia")
+                        .addSnapshotListener { snapshot, _ ->
+                            val list = snapshot?.documents?.mapNotNull { doc ->
+                                val recIds = (doc.get("recipientIds") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
+                                
+                                // Filtrage : Le créateur voit tout, l'héritier voit si public ou s'il est destinataire
+                                val isCreator = effectiveId == currentUid
+                                if (isCreator || recIds.isEmpty() || recIds.contains(currentUid)) {
+                                    val type = doc.getString("type") ?: ""
+                                    val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
+                                    
+                                    val contentStr = if (needsEncryption) {
+                                        val blob = doc.get("content") as? com.google.firebase.firestore.Blob
+                                        blob?.toBytes()?.let { android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT) } ?: ""
+                                    } else {
+                                        doc.getString("content") ?: ""
+                                    }
+
+                                    com.example.phoenx.data.local.StandaloneMediaEntity(
+                                        id = doc.id,
+                                        creatorUid = effectiveId,
+                                        type = type,
+                                        title = doc.getString("title") ?: "",
+                                        userComment = doc.getString("userComment"),
+                                        content = contentStr,
+                                        recipientIds = recIds.joinToString(","),
+                                        visibility = doc.getString("visibility") ?: "RESTRICTED",
+                                        createdAt = doc.getLong("createdAt") ?: 0L,
+                                        syncStatus = "synced",
+                                        coverUrl = doc.getString("coverUrl"),
+                                        mediaProvider = doc.getString("mediaProvider")
+                                    ).also {
+                                        // Auto-réparation : On synchronise en local si on est le créateur
+                                        if (isCreator) {
+                                            viewModelScope.launch { standaloneMediaDao.insertMedia(it) }
+                                        }
+                                    }
+                                } else null
+                            } ?: emptyList()
+                            trySend(list)
+                        }
+                    awaitClose { listener.remove() }
                 }
             }
 

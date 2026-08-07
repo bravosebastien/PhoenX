@@ -175,3 +175,35 @@ fun DocumentSnapshot.toOfflineEntry(encryptionManager: EncryptionManager, explic
         mediaProvider = getString("mediaProvider")
     )
 }
+
+/**
+ * Extension pour convertir un DocumentSnapshot Firestore en StandaloneMediaEntity (Room).
+ */
+fun DocumentSnapshot.toStandaloneMediaEntity(): com.example.phoenx.data.local.StandaloneMediaEntity {
+    val type = getString("type") ?: ""
+    val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
+    
+    val contentStr = if (needsEncryption) {
+        val blob = get("content") as? Blob
+        blob?.toBytes()?.let { android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT) } ?: ""
+    } else {
+        getString("content") ?: ""
+    }
+
+    val recIds = (get("recipientIds") as? List<*>)?.mapNotNull { it.toString() }?.joinToString(",") ?: ""
+
+    return com.example.phoenx.data.local.StandaloneMediaEntity(
+        id = id,
+        creatorUid = getString("uid") ?: "",
+        type = type,
+        title = getString("title") ?: "",
+        userComment = getString("userComment"),
+        content = contentStr,
+        recipientIds = recIds,
+        visibility = getString("visibility") ?: "RESTRICTED",
+        createdAt = getLong("createdAt") ?: System.currentTimeMillis(),
+        syncStatus = "synced",
+        coverUrl = getString("coverUrl"),
+        mediaProvider = getString("mediaProvider")
+    )
+}

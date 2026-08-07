@@ -7,9 +7,11 @@ import androidx.work.WorkerParameters
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.PersonMediaDao
+import com.example.phoenx.data.local.StandaloneMediaDao
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.sync.toOfflineEntry
 import com.example.phoenx.data.sync.toPersonEntity
+import com.example.phoenx.data.sync.toStandaloneMediaEntity // v9.4.27
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.assisted.Assisted
@@ -27,6 +29,7 @@ class InitialSyncWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val offlineEntryDao: OfflineEntryDao,
+    private val standaloneMediaDao: StandaloneMediaDao,
     private val personMediaDao: PersonMediaDao, // v9.4.22
     private val mediaManager: MediaManager,
     private val encryptionManager: EncryptionManager,
@@ -110,6 +113,16 @@ class InitialSyncWorker @AssistedInject constructor(
                 mediaSnapshot.documents.forEach { doc ->
                     personMediaDao.insertMedia(doc.toPersonMediaEntity())
                 }
+            }
+
+            // ═══ 5. RÉCUPÉRATION DES MÉDIAS STANDALONE (v9.4.27) ═══
+            val standaloneSnapshot = db.collection("users").document(userId)
+                .collection("standaloneMedia")
+                .get()
+                .await()
+            
+            standaloneSnapshot.documents.forEach { doc ->
+                standaloneMediaDao.insertMedia(doc.toStandaloneMediaEntity())
             }
 
             Result.success()
