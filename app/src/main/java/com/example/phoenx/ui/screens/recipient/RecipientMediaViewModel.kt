@@ -103,6 +103,11 @@ enum class MediaViewMode {
     DEFAULT, BY_MEMORY, BY_RECIPIENT
 }
 
+data class ExternalMetadata(
+    val title: String? = null,
+    val thumbnailUrl: String? = null
+)
+
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class RecipientMediaViewModel @Inject constructor(
@@ -127,6 +132,36 @@ class RecipientMediaViewModel @Inject constructor(
 
     fun setFilterRecipient(uid: String?) {
         _filterRecipientId.value = uid
+    }
+
+    /**
+     * Récupère les métadonnées (titre, miniature) d'un média externe via oEmbed (v9.4.27)
+     */
+    suspend fun fetchExternalMetadata(url: String): ExternalMetadata? = withContext(Dispatchers.IO) {
+        try {
+            val endpoint = when {
+                url.contains("spotify.com") -> "https://open.spotify.com/oembed?url=$url"
+                url.contains("deezer.com") -> "https://api.deezer.com/oembed?url=$url"
+                url.contains("youtube.com") || url.contains("youtu.be") -> "https://www.youtube.com/oembed?url=$url&format=json"
+                else -> return@withContext null
+            }
+
+            val connection = java.net.URL(endpoint).openConnection()
+            connection.connect()
+            val response = connection.getInputStream().bufferedReader().use { it.readText() }
+            val json = org.json.JSONObject(response)
+            
+            val rawTitle = json.optString("title")
+            val thumbUrl = json.optString("thumbnail_url")
+
+            ExternalMetadata(
+                title = if (rawTitle.isNullOrBlank()) null else rawTitle,
+                thumbnailUrl = if (thumbUrl.isNullOrBlank()) null else thumbUrl
+            )
+        } catch (e: Exception) {
+            android.util.Log.e("ExternalMetadata", "Erreur oEmbed pour $url", e)
+            null
+        }
     }
 
     // Cache des titres de parents pour le groupage (v9.4.27)
@@ -260,7 +295,8 @@ class RecipientMediaViewModel @Inject constructor(
         recipientIds: List<String>,
         userComment: String? = null,
         existingId: String? = null,
-        visibility: String = "RESTRICTED"
+        visibility: String = "RESTRICTED",
+        autoThumbUrl: String? = null // v9.4.27
     ) {
         viewModelScope.launch {
             val mediaId = existingId ?: java.util.UUID.randomUUID().toString()
@@ -291,9 +327,14 @@ class RecipientMediaViewModel @Inject constructor(
 
             standaloneMediaDao.insertMedia(entity)
             
-            // v9.4.27 : Auto-Miniature YouTube
-            if (finalType == "YOUTUBE") {
-                fetchAndStoreYouTubeThumbnail(mediaId, content)
+            // v9.4.27 : Auto-Miniature (YouTube ou oEmbed Thumbnail)
+            if (autoThumbUrl != null) {
+                fetchAndStoreExternalThumbnail(mediaId, autoThumbUrl)
+            } else if (finalType == "YOUTUBE") {
+                // Fallback pour YouTube si oEmbed a échoué mais qu'on a l'ID
+                extractYouTubeId(content)?.let { id ->
+                    fetchAndStoreExternalThumbnail(mediaId, "https://img.youtube.com/vi/$id/hqdefault.jpg")
+                }
             }
         }
     }
@@ -304,19 +345,17 @@ class RecipientMediaViewModel @Inject constructor(
         return match?.value
     }
 
-    private suspend fun fetchAndStoreYouTubeThumbnail(mediaId: String, youtubeUrl: String) {
-        val videoId = extractYouTubeId(youtubeUrl) ?: return
-        val thumbUrl = "https://img.youtube.com/vi/$videoId/hqdefault.jpg"
+    private suspend fun fetchAndStoreExternalThumbnail(mediaId: String, thumbnailUrl: String) {
         val uid = auth.currentUser?.uid ?: return
         val context = com.google.firebase.FirebaseApp.getInstance().applicationContext
 
         withContext(Dispatchers.IO) {
             try {
-                val url = java.net.URL(thumbUrl)
+                val url = java.net.URL(thumbnailUrl)
                 val connection = url.openConnection()
                 connection.connect()
                 val inputStream = connection.getInputStream()
-                val tempFile = java.io.File(context.cacheDir, "yt_thumb_$mediaId.jpg")
+                val tempFile = java.io.File(context.cacheDir, "ext_thumb_$mediaId.jpg")
                 
                 java.io.FileOutputStream(tempFile).use { outputStream ->
                     inputStream.copyTo(outputStream)
@@ -327,9 +366,9 @@ class RecipientMediaViewModel @Inject constructor(
                 standaloneMediaDao.updateMediaCover(mediaId, storagePath, tempFile.absolutePath)
                 standaloneMediaDao.updateSyncStatus(mediaId, "pending")
                 
-                android.util.Log.d("YouTubeThumb", "Miniature YouTube auto-récupérée : $videoId")
+                android.util.Log.d("ExternalThumb", "Miniature externe auto-récupérée pour $mediaId")
             } catch (e: Exception) {
-                android.util.Log.e("YouTubeThumb", "Échec récupération miniature YouTube", e)
+                android.util.Log.e("ExternalThumb", "Échec récupération miniature externe", e)
             }
         }
     }
@@ -391,7 +430,9 @@ class RecipientMediaViewModel @Inject constructor(
 
                     // v9.4.27 : Si YouTube, on tente de récupérer la miniature automatique
                     if (provider == "YOUTUBE") {
-                        fetchAndStoreYouTubeThumbnail(id, url)
+                        extractYouTubeId(url)?.let { ytId ->
+                            fetchAndStoreExternalThumbnail(id, "https://img.youtube.com/vi/$ytId/hqdefault.jpg")
+                        }
                     }
                 }
                 if (isComplement) offlineEntryDao.updateSyncStatus(id, "pending")

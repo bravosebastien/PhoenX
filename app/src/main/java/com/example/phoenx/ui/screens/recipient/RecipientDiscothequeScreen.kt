@@ -286,12 +286,13 @@ fun RecipientDiscothequeScreen(
             type = "SPOTIFY",
             recipients = recipientsList,
             onDismiss = { showAddDialog = false },
-            onSave = { title, desc, url, ids, visibility ->
+            onSave = { title, desc, url, ids, visibility, autoThumb ->
                 // v9.4.27 : Détection automatique Deezer
                 val provider = if (url.contains("deezer")) "DEEZER" else "SPOTIFY"
-                viewModel.addStandaloneMedia(title, url, provider, ids, desc, null, visibility)
+                viewModel.addStandaloneMedia(title, url, provider, ids, desc, null, visibility, autoThumb)
                 showAddDialog = false
-            }
+            },
+            onFetchMetadata = { url -> viewModel.fetchExternalMetadata(url) }
         )
     }
 
@@ -303,7 +304,7 @@ fun RecipientDiscothequeScreen(
             type = initialType,
             recipients = recipientsList,
             onDismiss = { editingMedia = null },
-            onSave = { title, desc, url, ids, visibility ->
+            onSave = { title, desc, url, ids, visibility, _ ->
                 // v9.4.27 : Détection automatique Deezer à l'édition aussi
                 val finalProvider = if (!isComplement && url.contains("deezer")) "DEEZER" 
                                    else if (!isComplement) "SPOTIFY" 
@@ -319,7 +320,8 @@ fun RecipientDiscothequeScreen(
             initialUrl = editingMedia!!.mediaUrl ?: "",
             initialRecipientIds = editingMedia!!.recipientIds,
             initialVisibility = editingMedia!!.visibility,
-            onChangeCover = { coverLauncher.launch("image/*") }
+            onChangeCover = { coverLauncher.launch("image/*") },
+            onFetchMetadata = { url -> viewModel.fetchExternalMetadata(url) }
         )
     }
 }

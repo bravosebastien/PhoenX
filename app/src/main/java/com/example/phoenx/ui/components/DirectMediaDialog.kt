@@ -17,19 +17,38 @@ fun DirectMediaDialog(
     type: String, // "SPOTIFY", "DEEZER", "YOUTUBE", "AUDIO"
     recipients: List<RecipientEntity>,
     onDismiss: () -> Unit,
-    onSave: (title: String, userComment: String?, url: String, recipientIds: List<String>, visibility: String) -> Unit,
+    onSave: (title: String, userComment: String?, url: String, recipientIds: List<String>, visibility: String, autoThumbUrl: String?) -> Unit,
     initialTitle: String = "",
     initialUserComment: String? = null,
     initialUrl: String = "",
     initialRecipientIds: List<String> = emptyList(),
     initialVisibility: String = "EVERYONE",
-    onChangeCover: (() -> Unit)? = null // v9.4.27
+    onChangeCover: (() -> Unit)? = null, // v9.4.27
+    onFetchMetadata: (suspend (String) -> com.example.phoenx.ui.screens.recipient.ExternalMetadata?)? = null // v9.4.27
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     var title by remember { mutableStateOf(initialTitle) }
     var userComment by remember { mutableStateOf(initialUserComment ?: "") }
     var url by remember { mutableStateOf(initialUrl) }
+    var isFetchingMetadata by remember { mutableStateOf(false) } // v9.4.27
+    var autoThumbnailUrl by remember { mutableStateOf<String?>(null) } // v9.4.27
+
+    // AUTO-RÉCUPÉRATION DES MÉTADONNÉES (v9.4.27)
+    // Uniquement pour un nouveau lien (initialUrl vide)
+    LaunchedEffect(url) {
+        if (initialUrl.isEmpty() && onFetchMetadata != null && url.isNotBlank() && 
+            (url.contains("spotify.com") || url.contains("deezer.com") || url.contains("youtube.com") || url.contains("youtu.be"))) {
+            
+            isFetchingMetadata = true
+            val metadata = onFetchMetadata(url)
+            if (metadata != null) {
+                if (title.isEmpty()) title = metadata.title ?: ""
+                autoThumbnailUrl = metadata.thumbnailUrl
+            }
+            isFetchingMetadata = false
+        }
+    }
     
     // v9.4.27 : Normalisation interne UIDs -> DocIDs pour le sélecteur
     val selectedIds = remember(initialRecipientIds, recipients) {
@@ -82,12 +101,23 @@ fun DirectMediaDialog(
                     }
                 }
 
-                // TITRE (Caché pour Spotify/Deezer au Lot 4.2)
-                if (type != "SPOTIFY" && type != "DEEZER") {
+                // TITRE (v9.4.27 : Toujours éditable si présent ou en cours de récup)
+                val showTitleField = type != "SPOTIFY" && type != "DEEZER" || title.isNotEmpty() || isFetchingMetadata
+                if (showTitleField) {
                     OutlinedTextField(
                         value = title,
                         onValueChange = { title = it },
-                        label = { Text("Titre") },
+                        label = { 
+                            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                                Text("Titre")
+                                if (isFetchingMetadata) {
+                                    Spacer(Modifier.width(8.dp))
+                                    CircularProgressIndicator(modifier = Modifier.size(12.dp), strokeWidth = 1.5.dp, color = accent)
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("Récupération...", style = MaterialTheme.typography.labelSmall, color = accent)
+                                }
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -150,7 +180,7 @@ fun DirectMediaDialog(
                     val uids = selectedIds.map { docId ->
                         recipients.find { it.id == docId }?.linkedUid ?: docId
                     }
-                    onSave(title, userComment.ifBlank { null }, url, uids, visibility) 
+                    onSave(title, userComment.ifBlank { null }, url, uids, visibility, autoThumbnailUrl)
                 },
                 enabled = if (type == "AUDIO" || type == "PHOTO" || type == "VIDEO") title.isNotBlank() else url.isNotBlank()
             ) {

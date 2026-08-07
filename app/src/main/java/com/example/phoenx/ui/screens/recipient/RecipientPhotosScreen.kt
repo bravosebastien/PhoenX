@@ -245,7 +245,7 @@ fun RecipientPhotosScreen(
             type = "PHOTO",
             recipients = recipients,
             onDismiss = { editingMedia = null },
-            onSave = { title, comment, url, ids, visibility ->
+            onSave = { title, comment, url, ids, visibility, _ ->
                 viewModel.updateMediaEntry(editingMedia!!.id, title, comment, url, ids, visibility, isComplement)
                 editingMedia = null
             },

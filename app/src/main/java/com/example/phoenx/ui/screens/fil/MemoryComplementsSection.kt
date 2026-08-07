@@ -285,7 +285,7 @@ fun MemoryComplementsSection(
             type = editingMedia!!.mediaProvider ?: editingMedia!!.entryType,
             recipients = recipients,
             onDismiss = { editingMedia = null },
-            onSave = { title, comment, _, ids, visibility ->
+            onSave = { title, comment, _, ids, visibility, _ ->
                 viewModel.updateComplementTitle(editingMedia!!.id, title)
                 viewModel.updateComplementComment(editingMedia!!.id, comment)
                 viewModel.updateEntryVisibility(editingMedia!!.id, visibility)

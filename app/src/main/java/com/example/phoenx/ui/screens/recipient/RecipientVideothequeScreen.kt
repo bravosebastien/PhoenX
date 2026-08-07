@@ -286,10 +286,11 @@ fun RecipientVideothequeScreen(
             type = "YOUTUBE",
             recipients = recipientsList,
             onDismiss = { showAddDialog = false },
-            onSave = { title, desc, url, ids, visibility ->
-                viewModel.addStandaloneMedia(title, url, "YOUTUBE", ids, desc, null, visibility)
+            onSave = { title, desc, url, ids, visibility, autoThumb ->
+                viewModel.addStandaloneMedia(title, url, "YOUTUBE", ids, desc, null, visibility, autoThumb)
                 showAddDialog = false
-            }
+            },
+            onFetchMetadata = { url -> viewModel.fetchExternalMetadata(url) }
         )
     }
 
@@ -301,7 +302,7 @@ fun RecipientVideothequeScreen(
             type = type,
             recipients = recipientsList,
             onDismiss = { editingMedia = null },
-            onSave = { title, comment, url, ids, visibility ->
+            onSave = { title, comment, url, ids, visibility, _ ->
                 viewModel.updateMediaEntry(editingMedia!!.id, title, comment, url, ids, visibility, isComplement)
                 editingMedia = null
             },
@@ -310,7 +311,8 @@ fun RecipientVideothequeScreen(
             initialUrl = editingMedia!!.mediaUrl ?: "",
             initialRecipientIds = editingMedia!!.recipientIds,
             initialVisibility = editingMedia!!.visibility,
-            onChangeCover = { coverLauncher.launch("image/*") }
+            onChangeCover = { coverLauncher.launch("image/*") },
+            onFetchMetadata = { url -> viewModel.fetchExternalMetadata(url) }
         )
     }
 }
