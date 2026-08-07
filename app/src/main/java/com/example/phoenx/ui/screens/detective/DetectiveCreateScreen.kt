@@ -63,7 +63,7 @@ fun DetectiveCreateScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        if (uiState.isUltimateSecret) "Le Secret Ultime" else "Mode Détective", 
+                        if (uiState.isUltimateSecret) "Le Secret Ultime" else "Le Coffre-Fort", 
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                         fontFamily = theme.fontFamily
                     ) 
@@ -131,7 +131,7 @@ fun DetectiveCreateScreen(
                     color = theme.contentColor
                 )
                 InfoButton(
-                    title = if (uiState.isUltimateSecret) "Le Secret Ultime" else "Mode Détective",
+                    title = if (uiState.isUltimateSecret) "Le Secret Ultime" else "Le Coffre-Fort",
                     points = if (uiState.isUltimateSecret) {
                         listOf(
                             "La pièce maîtresse de ton héritage : le secret le plus précieux et le plus intime.",

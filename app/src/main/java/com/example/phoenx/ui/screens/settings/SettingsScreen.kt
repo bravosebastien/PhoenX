@@ -230,7 +230,7 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Tester le Mode Détective",
+                title = "Tester le Coffre-Fort",
                 subtitle = "Déchiffre tes propres énigmes",
                 icon = Icons.Default.Fingerprint,
                 theme = theme,

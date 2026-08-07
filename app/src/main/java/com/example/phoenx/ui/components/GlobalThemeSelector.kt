@@ -70,6 +70,9 @@ fun GlobalThemeSelector(
                         .height(50.dp)
                         .clickable { onThemeChange(currentBackgroundId, font.id) },
                     shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White
+                    ),
                     border = BorderStroke(1.dp, if (isSelected) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -78,7 +81,7 @@ fun GlobalThemeSelector(
                             style = TextStyle(
                                 fontFamily = font.fontFamily, 
                                 fontSize = 16.sp, 
-                                color = if (isSelected) accent else theme.contentColor
+                                color = if (isSelected) accent else Color.Black
                             )
                         )
                     }

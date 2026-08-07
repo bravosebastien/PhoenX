@@ -47,7 +47,7 @@ fun DetectivePlayerScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Mode Détective", 
+                        "Le Coffre-Fort",
                         style = MaterialTheme.typography.displaySmall.copy(
                             fontFamily = theme.fontFamily,
                             fontWeight = FontWeight.Bold,

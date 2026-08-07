@@ -41,7 +41,7 @@ fun DetectiveHomeScreen(
 
     OnboardingPopup(
         pageKey = "detective_home",
-        title = "Mode Détective",
+        title = "Le Coffre-Fort",
         contentPoints = listOf(
             "Cache un contenu derrière une question secrète.",
             "La réponse est protégée localement par SHA-256.",

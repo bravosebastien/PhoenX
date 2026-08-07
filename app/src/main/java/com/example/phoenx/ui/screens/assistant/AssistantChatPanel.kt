@@ -32,19 +32,23 @@ fun AssistantChatPanel(
     val messages by viewModel.chatMessages.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var question by remember { mutableStateOf("") }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
+        sheetState = sheetState,
         containerColor = theme.backgroundColor,
         dragHandle = { BottomSheetDefaults.DragHandle(color = theme.contentColor.copy(alpha = 0.2f)) }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.75f)
+                .fillMaxHeight(0.85f) // v9.4.27 : Un peu plus grand pour confort
                 .padding(horizontal = 20.dp)
-                .padding(bottom = 32.dp)
+                .navigationBarsPadding()
+                .imePadding() // CRUCIAL : Remonte le contenu quand le clavier s'ouvre
+                .padding(bottom = 16.dp)
         ) {
             // Header
             Row(verticalAlignment = Alignment.CenterVertically) {

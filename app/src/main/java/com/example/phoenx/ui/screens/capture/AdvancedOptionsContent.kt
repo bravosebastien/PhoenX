@@ -67,7 +67,7 @@ fun AdvancedOptionsContent(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Fingerprint, null, tint = accent, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
-            Text("Mode Détective", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
+            Text("Le Coffre-Fort", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
             Spacer(modifier = Modifier.weight(1f))
             InfoPoint(
                 title = "Le Secret Scellé",
