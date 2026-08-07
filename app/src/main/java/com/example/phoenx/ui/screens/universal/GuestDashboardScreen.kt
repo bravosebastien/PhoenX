@@ -282,57 +282,50 @@ fun GuestPerspectiveContent(
 ) {
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp)
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = theme.contentColor.copy(alpha = 0.7f),
+            lineHeight = 22.sp
+        )
+
+        if (!isCreator) {
+            BecomeCreatorCard(theme = theme, accent = accent, onClick = onBecomeCreator)
+        }
+
+        if (pendingInvites.isNotEmpty()) {
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = theme.contentColor.copy(alpha = 0.7f),
-                    lineHeight = 22.sp
+                    "INVITATIONS EN ATTENTE",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = accent,
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                 )
-            }
-
-            if (!isCreator) {
-                item {
-                    BecomeCreatorCard(theme = theme, accent = accent, onClick = onBecomeCreator)
-                }
-            }
-
-            if (pendingInvites.isNotEmpty()) {
-                item {
-                    Text(
-                        "INVITATIONS EN ATTENTE",
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = accent,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                    )
-                }
-                items(pendingInvites) { invite ->
+                pendingInvites.forEach { invite ->
                     PendingInviteCard(invite, accent, theme) {
                         onAcceptInvite(invite.id)
                     }
                 }
             }
-
-            val sortedRoles = myRoles.values.toList().sortedBy { it.creatorName }
-            items(sortedRoles) { role ->
-                RoleCard(
-                    role = role,
-                    accent = accent,
-                    theme = theme,
-                    onClick = {
-                        onNavigateToCube(role.creatorId)
-                    }
-                )
-            }
         }
+
+        val sortedRoles = myRoles.values.toList().sortedBy { it.creatorName }
+        sortedRoles.forEach { role ->
+            RoleCard(
+                role = role,
+                accent = accent,
+                theme = theme,
+                onClick = {
+                    onNavigateToCube(role.creatorId)
+                }
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
