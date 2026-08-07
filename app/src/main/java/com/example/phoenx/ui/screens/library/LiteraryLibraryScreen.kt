@@ -450,9 +450,15 @@ fun AddExcerptDialog(
     var content by remember { mutableStateOf(initialExcerpt?.content ?: "") }
     var isFullEditorOpen by remember { mutableStateOf(false) } // v9.4.27
     val recipients by viewModel.recipients.collectAsState()
-    val selectedIds = remember { mutableStateListOf<String>().apply { 
-        initialExcerpt?.recipientIds?.let { addAll(it) }
-    } }
+    
+    // v9.4.27 : Normalisation UIDs -> DocIDs pour le sélecteur
+    val selectedIds = remember(initialExcerpt, recipients) {
+        val docIds = initialExcerpt?.recipientIds?.map { uid ->
+            recipients.find { it.linkedUid == uid }?.id ?: uid
+        } ?: emptyList()
+        mutableStateListOf<String>().apply { addAll(docIds) }
+    }
+
     var visibility by remember { mutableStateOf(if (selectedIds.isEmpty()) "EVERYONE" else "RESTRICTED") }
 
     AlertDialog(
@@ -460,7 +466,10 @@ fun AddExcerptDialog(
         containerColor = theme.backgroundColor,
         title = { Text(if (initialExcerpt == null) "Déposer un extrait" else "Modifier l'extrait", color = theme.contentColor) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
@@ -523,7 +532,13 @@ fun AddExcerptDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onSave(title, userComment.ifBlank { null }, content, selectedIds.toList()) },
+                onClick = { 
+                    // v9.4.27 : Conversion DocIDs -> UIDs avant sauvegarde
+                    val uids = selectedIds.map { docId ->
+                        recipients.find { it.id == docId }?.linkedUid ?: docId
+                    }
+                    onSave(title, userComment.ifBlank { null }, content, uids) 
+                },
                 enabled = content.isNotBlank() && title.isNotBlank()
             ) {
                 Text("Enregistrer")

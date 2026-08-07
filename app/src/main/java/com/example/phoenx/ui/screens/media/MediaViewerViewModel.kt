@@ -127,7 +127,7 @@ class MediaViewerViewModel @Inject constructor(
 
         val domainType = when(entryType) {
             "PHOTO", "GALLERY" -> EntryType.PHOTO // v9.4.27 : Restauration GALLERY
-            "AUDIO" -> EntryType.AUDIO
+            "AUDIO", "EMOTION" -> EntryType.AUDIO
             "VIDEO" -> EntryType.VIDEO
             else -> EntryType.THOUGHT
         }
@@ -156,8 +156,8 @@ class MediaViewerViewModel @Inject constructor(
     private fun StandaloneMediaEntity.toStandaloneDomain(): PhoenXEntry {
         val domainType = when(type) {
             "PHOTO" -> EntryType.PHOTO
-            "SPOTIFY" -> EntryType.AUDIO
-            "YOUTUBE" -> EntryType.VIDEO
+            "SPOTIFY", "DEEZER" -> EntryType.AUDIO
+            "YOUTUBE", "VIDEO" -> EntryType.VIDEO
             else -> EntryType.THOUGHT
         }
 

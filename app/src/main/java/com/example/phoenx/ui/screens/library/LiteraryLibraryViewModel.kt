@@ -125,13 +125,18 @@ class LiteraryLibraryViewModel @Inject constructor(
 
     fun addExcerpt(title: String, content: String, recipientIds: List<String>, userComment: String? = null, existingId: String? = null) {
         viewModelScope.launch {
+            // v9.4.27 : Si modification, on préserve la couverture existante
+            val existingMedia = if (existingId != null) excerpts.value.find { it.id == existingId } else null
+            
             val media = StandaloneMedia(
                 id = existingId ?: java.util.UUID.randomUUID().toString(),
                 type = "TEXT_EXCERPT",
                 title = title,
                 userComment = userComment,
                 content = content,
-                recipientIds = recipientIds
+                recipientIds = recipientIds,
+                coverUrl = existingMedia?.coverUrl,
+                localCoverPath = existingMedia?.localCoverPath
             )
             repository.saveMedia(media)
         }

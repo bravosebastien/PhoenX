@@ -195,7 +195,15 @@ fun RecipientVideothequeScreen(
                                     onDelete = { mediaToDelete = entry },
                                     onEdit = { if (isCreatorMode) editingMedia = entry },
                                     onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
-                                    onPlay = { onNavigateToDetail(entry.id) }
+                                    onPlay = {
+                                        // v9.4.27 : Navigation Intelligente (YouTube vs Local)
+                                        if (entry.mediaUrl?.startsWith("http") == true) {
+                                            try {
+                                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(entry.mediaUrl!!))
+                                                context.startActivity(intent)
+                                            } catch(_: Exception) { onNavigateToDetail(entry.id) }
+                                        } else { onNavigateToDetail(entry.id) }
+                                    }
                                 )
                             }
                         }
@@ -212,7 +220,15 @@ fun RecipientVideothequeScreen(
                                 onDelete = { mediaToDelete = entry },
                                 onEdit = { if (isCreatorMode) editingMedia = entry },
                                 onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
-                                onPlay = { onNavigateToDetail(entry.id) }
+                                onPlay = {
+                                    // v9.4.27 : Navigation Intelligente (YouTube vs Local)
+                                    if (entry.mediaUrl?.startsWith("http") == true) {
+                                        try {
+                                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(entry.mediaUrl!!))
+                                            context.startActivity(intent)
+                                        } catch(_: Exception) { onNavigateToDetail(entry.id) }
+                                    } else { onNavigateToDetail(entry.id) }
+                                }
                             )
                         }
                     }

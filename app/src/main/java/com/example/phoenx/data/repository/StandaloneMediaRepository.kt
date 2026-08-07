@@ -42,7 +42,9 @@ class StandaloneMediaRepository @Inject constructor(
             content = finalContent,
             recipientIds = media.recipientIds.joinToString(","),
             createdAt = media.createdAt,
-            syncStatus = "pending"
+            syncStatus = "pending",
+            coverUrl = media.coverUrl,
+            localCoverPath = media.localCoverPath
         )
 
         standaloneMediaDao.insertMedia(entity)

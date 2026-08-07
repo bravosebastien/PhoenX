@@ -31,7 +31,12 @@ fun DirectPhotoDialog(
     var title by remember { mutableStateOf("") }
     var userComment by remember { mutableStateOf("") }
     var selectedUri by remember { mutableStateOf<Uri?>(null) }
-    val selectedIds = remember { mutableStateListOf<String>() }
+    
+    // v9.4.27 : Normalisation UIDs -> DocIDs pour le sélecteur
+    val selectedIds = remember(recipients) {
+        mutableStateListOf<String>()
+    }
+
     var visibility by remember { mutableStateOf("EVERYONE") }
 
     val launcher = rememberLauncherForActivityResult(
@@ -101,7 +106,15 @@ fun DirectPhotoDialog(
         },
         confirmButton = {
             Button(
-                onClick = { selectedUri?.let { onSave(title, userComment.ifBlank { null }, it, selectedIds.toList()) } },
+                onClick = { 
+                    selectedUri?.let { uri ->
+                        // v9.4.27 : Conversion DocIDs -> UIDs avant retour
+                        val uids = selectedIds.map { docId ->
+                            recipients.find { it.id == docId }?.linkedUid ?: docId
+                        }
+                        onSave(title, userComment.ifBlank { null }, uri, uids) 
+                    }
+                },
                 enabled = selectedUri != null
             ) {
                 Text("Sauvegarder")

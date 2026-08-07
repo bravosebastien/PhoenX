@@ -225,7 +225,21 @@ fun RecipientDetailScreen(
                     accent = accent,
                     theme = theme,
                     items = dashboard.videos.map { it.aiSummary to it.id },
-                    onClickItem = { id -> navController.navigate(Screen.MediaViewer.createRoute(id)) },
+                    onClickItem = { id -> 
+                        val entry = dashboard.videos.find { it.id == id }
+                        val isYouTube = entry?.mediaProvider == "YOUTUBE" || 
+                                       entry?.mediaUrl?.contains("youtube") == true || 
+                                       entry?.mediaUrl?.contains("youtu.be") == true
+                                       
+                        if (entry?.mediaUrl?.startsWith("http") == true && isYouTube) {
+                            try {
+                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(entry.mediaUrl!!))
+                                context.startActivity(intent)
+                            } catch(_: Exception) { navController.navigate(Screen.MediaViewer.createRoute(id)) }
+                        } else {
+                            navController.navigate(Screen.MediaViewer.createRoute(id))
+                        }
+                    },
                     onSeeAll = { navController.navigate(Screen.RecipientVideotheque.createRoute(recipient.id)) }
                 )
 
