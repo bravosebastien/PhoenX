@@ -520,8 +520,37 @@ class MemoryDetailViewModel @Inject constructor(
     }
 
     /**
-     * Met à jour la visibilité d'une entrée spécifique (v9.4.27)
+     * Met à jour les paramètres de l'énigme / Coffre-Fort (v9.4.27)
      */
+    fun updateEnigma(
+        question: String?,
+        answer: String?,
+        hint: String?,
+        autoUnlockDays: Int?,
+        isUltimate: Boolean
+    ) {
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            val currentEntry = offlineEntryDao.getEntryById(id).first() ?: return@launch
+            
+            // Hachage uniquement si une NOUVELLE réponse est saisie
+            val newHash = if (!answer.isNullOrBlank()) {
+                com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(answer)
+            } else {
+                currentEntry.enigmaAnswer // On conserve l'existant
+            }
+
+            offlineEntryDao.updateEntryEnigma(
+                question = question,
+                answerHash = newHash,
+                hint = hint,
+                unlockDays = autoUnlockDays,
+                isUltimate = isUltimate,
+                entryId = id
+            )
+            triggerSync(id)
+        }
+    }
     fun updateEntryVisibility(entryId: String, visibility: String) {
         viewModelScope.launch {
             offlineEntryDao.updateEntryVisibility(visibility, entryId)

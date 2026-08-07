@@ -20,7 +20,15 @@ data class StepByStepUiState(
     val memoryDateEnd: Long? = null,
     val isPeriodMode: Boolean = false,
     val locationId: String? = null,
-    val locationName: String? = null
+    val locationName: String? = null,
+    
+    // v9.4.27 : Coffre-Fort
+    val enigmaEnabled: Boolean = false,
+    val enigmaQuestion: String = "",
+    val enigmaAnswer: String = "",
+    val enigmaHint: String = "",
+    val autoUnlockDays: Int? = 30,
+    val isUltimateSecret: Boolean = false
 )
 
 @HiltViewModel
@@ -84,5 +92,25 @@ class StepByStepCaptureViewModel @Inject constructor(
                 android.util.Log.e("StepByStepVM", "Erreur résolution lieu", e)
             }
         }
+    }
+
+    // --- ENIGMA UPDATES (v9.4.27) ---
+    fun updateEnigmaEnabled(enabled: Boolean) {
+        _uiState.update { it.copy(enigmaEnabled = enabled) }
+    }
+    fun updateEnigmaQuestion(q: String) {
+        _uiState.update { it.copy(enigmaQuestion = q) }
+    }
+    fun updateEnigmaAnswer(a: String) {
+        _uiState.update { it.copy(enigmaAnswer = a) }
+    }
+    fun updateEnigmaHint(h: String) {
+        _uiState.update { it.copy(enigmaHint = h) }
+    }
+    fun updateAutoUnlockDays(days: Int?) {
+        _uiState.update { it.copy(autoUnlockDays = days) }
+    }
+    fun updateUltimateSecret(ultimate: Boolean) {
+        _uiState.update { it.copy(isUltimateSecret = ultimate) }
     }
 }

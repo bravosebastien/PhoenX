@@ -22,6 +22,7 @@ import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.domain.model.CompartmentIds
 import com.example.phoenx.domain.model.SimplifiedPerson
+import com.example.phoenx.ui.components.EnigmaForm
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.components.LienVivantBanner
 import com.example.phoenx.ui.components.PersonSelector
@@ -52,6 +53,37 @@ fun MemoryMetadataSection(
     var isTiroirsExpanded by remember { mutableStateOf(false) }
     var isTonaliteExpanded by remember { mutableStateOf(false) }
     var showLocationMenu by remember { mutableStateOf(false) }
+
+    // ÉNIGME / COFFRE-FORT (v9.4.27)
+    var enigmaEnabled by remember(entry) { mutableStateOf(entry.enigmaQuestion != null) }
+    var enigmaQuestion by remember(entry) { mutableStateOf(entry.enigmaQuestion ?: "") }
+    var enigmaAnswer by remember { mutableStateOf("") }
+    var enigmaHint by remember(entry) { mutableStateOf(entry.enigmaHint ?: "") }
+    var autoUnlockDays by remember(entry) { mutableStateOf(entry.enigmaAutoUnlockDays ?: 30) }
+    var isUltimateSecret by remember(entry) { mutableStateOf(entry.isUltimateSecret) }
+
+    LaunchedEffect(enigmaEnabled, enigmaQuestion, enigmaAnswer, enigmaHint, autoUnlockDays, isUltimateSecret) {
+        if (!isReadOnly) {
+            val wasEnabled = entry.enigmaQuestion != null
+            val hasChanged = enigmaEnabled != wasEnabled || 
+                (enigmaEnabled && (
+                    enigmaQuestion != (entry.enigmaQuestion ?: "") ||
+                    enigmaAnswer.isNotEmpty() ||
+                    enigmaHint != (entry.enigmaHint ?: "") ||
+                    autoUnlockDays != (entry.enigmaAutoUnlockDays ?: 30) ||
+                    isUltimateSecret != entry.isUltimateSecret
+                ))
+
+            if (hasChanged) {
+                kotlinx.coroutines.delay(1000)
+                if (enigmaEnabled) {
+                    viewModel.updateEnigma(enigmaQuestion, enigmaAnswer.ifBlank { null }, enigmaHint, autoUnlockDays, isUltimateSecret)
+                } else {
+                    viewModel.updateEnigma(null, null, null, null, false)
+                }
+            }
+        }
+    }
 
     val datePickerColors = DatePickerDefaults.colors(
         containerColor = theme.backgroundColor,
@@ -456,6 +488,30 @@ fun MemoryMetadataSection(
                     }
                 }
             }
+        }
+
+        // COFFRE-FORT / ÉNIGME (v9.4.27)
+        Column {
+            Text("PROTECTION", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
+            Spacer(modifier = Modifier.height(12.dp))
+            EnigmaForm(
+                isEnabled = enigmaEnabled,
+                onToggleEnabled = { enigmaEnabled = it },
+                question = enigmaQuestion,
+                onQuestionChange = { enigmaQuestion = it },
+                answer = enigmaAnswer,
+                onAnswerChange = { enigmaAnswer = it },
+                hasExistingAnswer = entry.enigmaAnswer != null,
+                hint = enigmaHint,
+                onHintChange = { enigmaHint = it },
+                autoUnlockDays = autoUnlockDays,
+                onAutoUnlockDaysChange = { autoUnlockDays = it ?: 30 },
+                isUltimateSecret = isUltimateSecret,
+                onUltimateSecretToggle = { isUltimateSecret = it },
+                theme = theme,
+                accent = accent,
+                isReadOnly = isReadOnly
+            )
         }
     }
 }

@@ -94,15 +94,6 @@ fun DetectiveHomeScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { navController.navigate("detective_create") },
-                containerColor = accent,
-                contentColor = theme.backgroundColor
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Créer une énigme")
-            }
         }
     ) { padding ->
         if (isLoading) {
@@ -110,7 +101,7 @@ fun DetectiveHomeScreen(
                 CircularProgressIndicator(color = accent)
             }
         } else if (entries.isEmpty()) {
-            EmptyDetectiveState(onAddClick = { navController.navigate("detective_create") }, theme = theme)
+            EmptyDetectiveState(theme = theme)
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -128,7 +119,7 @@ fun DetectiveHomeScreen(
 }
 
 @Composable
-fun EmptyDetectiveState(onAddClick: () -> Unit, theme: AppThemeState) {
+fun EmptyDetectiveState(theme: AppThemeState) {
     val accent = theme.accentColor
     Column(
         modifier = Modifier.fillMaxSize().padding(32.dp),
@@ -153,20 +144,11 @@ fun EmptyDetectiveState(onAddClick: () -> Unit, theme: AppThemeState) {
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Crée ton premier mystère pour un proche.",
+            text = "Vos souvenirs verrouillés apparaîtront ici.",
             style = MaterialTheme.typography.bodySmall,
             color = theme.contentColor.copy(alpha = 0.4f),
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(
-            onClick = onAddClick,
-            colors = ButtonDefaults.buttonColors(containerColor = accent),
-            modifier = Modifier.phoenXMatiere(),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Text("+ Créer une énigme", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
-        }
     }
 }
 

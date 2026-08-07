@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.components.EnigmaForm
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.theme.*
 import java.text.SimpleDateFormat
@@ -45,7 +46,7 @@ fun StepByStepCaptureScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Étape ${uiState.currentStep} sur 7",
+                        "Étape ${uiState.currentStep} sur 8",
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                         fontFamily = theme.fontFamily
                     )
@@ -124,9 +125,69 @@ fun StepByStepCaptureScreen(
                     theme = theme,
                     accent = accent
                 )
+                5 -> StepEnigma(
+                    isEnabled = uiState.enigmaEnabled,
+                    onToggleEnabled = { viewModel.updateEnigmaEnabled(it) },
+                    question = uiState.enigmaQuestion,
+                    onQuestionChange = { viewModel.updateEnigmaQuestion(it) },
+                    answer = uiState.enigmaAnswer,
+                    onAnswerChange = { viewModel.updateEnigmaAnswer(it) },
+                    hint = uiState.enigmaHint,
+                    onHintChange = { viewModel.updateEnigmaHint(it) },
+                    autoUnlockDays = uiState.autoUnlockDays,
+                    onAutoUnlockDaysChange = { viewModel.updateAutoUnlockDays(it) },
+                    isUltimateSecret = uiState.isUltimateSecret,
+                    onUltimateSecretToggle = { viewModel.updateUltimateSecret(it) },
+                    theme = theme,
+                    accent = accent
+                )
             }
         }
     }
+}
+
+@Composable
+fun StepEnigma(
+    isEnabled: Boolean,
+    onToggleEnabled: (Boolean) -> Unit,
+    question: String,
+    onQuestionChange: (String) -> Unit,
+    answer: String,
+    onAnswerChange: (String) -> Unit,
+    hint: String,
+    onHintChange: (String) -> Unit,
+    autoUnlockDays: Int?,
+    onAutoUnlockDaysChange: (Int?) -> Unit,
+    isUltimateSecret: Boolean,
+    onUltimateSecretToggle: (Boolean) -> Unit,
+    theme: AppThemeState,
+    accent: Color
+) {
+    Text(
+        text = "LE COFFRE-FORT",
+        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
+        color = accent
+    )
+    Spacer(modifier = Modifier.height(24.dp))
+    
+    EnigmaForm(
+        isEnabled = isEnabled,
+        onToggleEnabled = onToggleEnabled,
+        question = question,
+        onQuestionChange = onQuestionChange,
+        answer = answer,
+        onAnswerChange = onAnswerChange,
+        hasExistingAnswer = false, // Toujours false en création
+        hint = hint,
+        onHintChange = onHintChange,
+        autoUnlockDays = autoUnlockDays,
+        onAutoUnlockDaysChange = onAutoUnlockDaysChange,
+        isUltimateSecret = isUltimateSecret,
+        onUltimateSecretToggle = onUltimateSecretToggle,
+        theme = theme,
+        accent = accent,
+        isReadOnly = false
+    )
 }
 
 @Composable
