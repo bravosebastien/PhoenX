@@ -12,7 +12,21 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -45,9 +59,11 @@ fun RecipientDetailScreen(
     val recipients = (uiState as? RecipientUiState.Success)?.recipients ?: emptyList()
     val recipient = recipients.find { it.id == recipientId }
     
-    // Charger le portrait et les souvenirs liés
+    // Charger le portrait et le dashboard de contenus (v9.4.27)
     val portraitEntry by viewModel.getPortraitForRecipient(recipientId).collectAsState(initial = null)
-    val linkedEntries by viewModel.getEntriesForRecipient(recipientId).collectAsState(initial = emptyList())
+    val dashboard by remember(recipient) {
+        viewModel.getAssignedContent(recipient?.linkedUid)
+    }.collectAsState(initial = RecipientContentDashboard())
     
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -168,49 +184,74 @@ fun RecipientDetailScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
+                // TABLEAU DE BORD DU CONTENU (v9.4.27)
                 Text(
-                    "CONTENUS LIÉS (${linkedEntries.filter { it.entryType != "PORTRAIT" }.size})", 
+                    "CONTENUS ATTRIBUÉS", 
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                     color = theme.contentColor.copy(alpha = 0.4f), 
                     letterSpacing = 2.sp
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
-                if (linkedEntries.none { it.entryType != "PORTRAIT" }) {
-                    Text(
-                        "Aucun souvenir spécifiquement alloué.",
-                        style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
-                        color = theme.contentColor.copy(alpha = 0.4f)
-                    )
-                } else {
-                    linkedEntries.filter { it.entryType != "PORTRAIT" }.take(3).forEach { entry ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                            colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
-                            border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
-                        ) {
-                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Mail, null, tint = theme.contentColor.copy(alpha = 0.2f), modifier = Modifier.size(14.dp))
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    entry.aiSummary.ifEmpty { "Souvenir" }, 
-                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = theme.fontFamily), 
-                                    color = theme.contentColor
-                                )
-                            }
-                        }
-                    }
-                }
-                
-                // Toujours afficher le lien vers la fiche complète si le portrait existe (v9.2.6)
-                if (isPortraitCompleted || linkedEntries.any { it.entryType != "PORTRAIT" }) {
-                    TextButton(
-                        onClick = { navController.navigate(Screen.RecipientAllocation.createRoute(recipient.id)) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Voir la fiche de transmission complète →", color = accent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
+                // 1. SOUVENIRS
+                ContentSection(
+                    title = "SOUVENIRS",
+                    count = dashboard.souvenirs.size,
+                    icon = Icons.Default.HistoryEdu,
+                    accent = accent,
+                    theme = theme,
+                    items = dashboard.souvenirs.map { it.aiSummary to it.id },
+                    onClickItem = { id -> navController.navigate(Screen.MemoryDetail.createRoute(id)) },
+                    onSeeAll = { navController.navigate(Screen.RecipientAllocation.createRoute(recipient.id)) }
+                )
+
+                // 2. PHOTOS
+                ContentSection(
+                    title = "PHOTOS",
+                    count = dashboard.photos.size,
+                    icon = Icons.Default.PhotoLibrary,
+                    accent = accent,
+                    theme = theme,
+                    items = dashboard.photos.map { it.aiSummary to it.id },
+                    onClickItem = { id -> navController.navigate(Screen.MediaViewer.createRoute(id)) },
+                    onSeeAll = { navController.navigate(Screen.RecipientPhotos.createRoute(recipient.id)) }
+                )
+
+                // 3. VIDÉOS
+                ContentSection(
+                    title = "VIDÉOS",
+                    count = dashboard.videos.size,
+                    icon = Icons.Default.VideoLibrary,
+                    accent = accent,
+                    theme = theme,
+                    items = dashboard.videos.map { it.aiSummary to it.id },
+                    onClickItem = { id -> navController.navigate(Screen.MediaViewer.createRoute(id)) },
+                    onSeeAll = { navController.navigate(Screen.RecipientVideotheque.createRoute(recipient.id)) }
+                )
+
+                // 4. AUDIOS
+                ContentSection(
+                    title = "AUDIOS",
+                    count = dashboard.audios.size,
+                    icon = Icons.Default.MusicNote,
+                    accent = accent,
+                    theme = theme,
+                    items = dashboard.audios.map { it.aiSummary to it.id },
+                    onClickItem = { id -> navController.navigate(Screen.MediaViewer.createRoute(id)) },
+                    onSeeAll = { navController.navigate(Screen.RecipientDiscotheque.createRoute(recipient.id)) }
+                )
+
+                // 5. EXTRAITS (LITTÉRATURE)
+                ContentSection(
+                    title = "EXTRAITS",
+                    count = dashboard.extraits.size,
+                    icon = Icons.Default.TextFields,
+                    accent = accent,
+                    theme = theme,
+                    items = dashboard.extraits.map { it.aiSummary to it.id },
+                    onClickItem = { id -> /* Lecture directe ? */ },
+                    onSeeAll = { navController.navigate(Screen.RecipientLibrary.createRoute(recipient.id)) }
+                )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
@@ -226,6 +267,92 @@ fun RecipientDetailScreen(
                 }
                 
                 Spacer(modifier = Modifier.height(40.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun ContentSection(
+    title: String,
+    count: Int,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    accent: Color,
+    theme: AppThemeState,
+    items: List<Pair<String, String>>, // Pair(Title, ID)
+    onClickItem: (String) -> Unit,
+    onSeeAll: () -> Unit
+) {
+    var isExpanded by remember { mutableStateOf(false) }
+
+    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { isExpanded = !isExpanded },
+            color = theme.contentColor.copy(alpha = 0.03f),
+            shape = RoundedCornerShape(12.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(icon, null, tint = accent, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(16.dp))
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+                    color = theme.contentColor,
+                    modifier = Modifier.weight(1f)
+                )
+                Surface(
+                    color = accent.copy(alpha = 0.1f),
+                    shape = CircleShape
+                ) {
+                    Text(
+                        count.toString(),
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = accent
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Icon(
+                    if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                    null,
+                    tint = theme.contentColor.copy(alpha = 0.3f),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+
+        androidx.compose.animation.AnimatedVisibility(visible = isExpanded && count > 0) {
+            Column(modifier = Modifier.padding(top = 8.dp, start = 8.dp)) {
+                items.take(5).forEach { (itemTitle, id) ->
+                    TextButton(
+                        onClick = { onClickItem(id) },
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = itemTitle.ifBlank { "Sans titre" },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = theme.contentColor.copy(alpha = 0.8f),
+                                maxLines = 1,
+                                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Icon(Icons.Default.ArrowForwardIos, null, tint = accent.copy(alpha = 0.4f), modifier = Modifier.size(10.dp))
+                        }
+                    }
+                }
+                if (count > 5) {
+                    TextButton(onClick = onSeeAll, modifier = Modifier.align(Alignment.End)) {
+                        Text("Voir tout ($count) →", style = MaterialTheme.typography.labelSmall, color = accent)
+                    }
+                }
             }
         }
     }

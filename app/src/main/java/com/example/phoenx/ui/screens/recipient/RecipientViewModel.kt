@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.RecipientEntity
+import com.example.phoenx.data.local.StandaloneMediaEntity
+import com.example.phoenx.data.local.StandaloneMediaDao
 import com.example.phoenx.data.media.MediaManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -15,9 +17,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
+data class RecipientContentDashboard(
+    val souvenirs: List<OfflineEntry> = emptyList(),
+    val photos: List<com.example.phoenx.domain.model.PhoenXEntry> = emptyList(),
+    val videos: List<com.example.phoenx.domain.model.PhoenXEntry> = emptyList(),
+    val audios: List<com.example.phoenx.domain.model.PhoenXEntry> = emptyList(),
+    val extraits: List<com.example.phoenx.domain.model.PhoenXEntry> = emptyList()
+)
+
 @HiltViewModel
 class RecipientViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
+    private val standaloneMediaDao: StandaloneMediaDao,
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
@@ -39,6 +50,73 @@ class RecipientViewModel @Inject constructor(
 
     fun getPortraitForRecipient(recipientId: String): Flow<OfflineEntry?> = 
         offlineEntryDao.getPortraitEntryForRecipient(recipientId)
+
+    /**
+     * Dashboard du contenu attribué (v9.4.27)
+     * Utilise l'UID (linkedUid) pour le filtrage sécurisé.
+     */
+    fun getAssignedContent(recipientUid: String?): Flow<RecipientContentDashboard> {
+        if (recipientUid == null) return flowOf(RecipientContentDashboard())
+
+        val entriesFlow = offlineEntryDao.getAllEntries()
+        val standaloneFlow = standaloneMediaDao.getAllStandaloneMedia()
+
+        return combine(entriesFlow, standaloneFlow) { entries, standalone ->
+            // Filtrage unifié : EVERYONE ou présence de l'UID dans recipientIds (CSV)
+            val filteredEntries = entries.filter { 
+                it.visibility == "EVERYONE" || it.recipientIds.split(",").map { id -> id.trim() }.contains(recipientUid) 
+            }
+            val filteredStandalone = standalone.filter { 
+                it.visibility == "EVERYONE" || it.recipientIds.split(",").map { id -> id.trim() }.contains(recipientUid) 
+            }
+
+            // v9.4.27 : Unification du mapping en PhoenXEntry pour le Dashboard
+            val allMapped = filteredEntries.map { it.toSimpleDomain() } + filteredStandalone.map { it.toSimpleStandaloneDomain() }
+
+            RecipientContentDashboard(
+                souvenirs = filteredEntries.filter { it.parentEntryId == null && it.entryType != "PORTRAIT" },
+                photos = allMapped.filter { it.type == com.example.phoenx.domain.model.EntryType.PHOTO },
+                videos = allMapped.filter { it.type == com.example.phoenx.domain.model.EntryType.VIDEO },
+                audios = allMapped.filter { it.type == com.example.phoenx.domain.model.EntryType.AUDIO },
+                extraits = allMapped.filter { it.type == com.example.phoenx.domain.model.EntryType.THOUGHT && it.mediaProvider == null } // Extraits littéraires
+            )
+        }
+    }
+
+    // Mappers simplifiés pour le Dashboard (v9.4.27)
+    private fun OfflineEntry.toSimpleDomain() = com.example.phoenx.domain.model.PhoenXEntry(
+        id = id,
+        aiSummary = aiSummary,
+        type = when(entryType) {
+            "PHOTO" -> com.example.phoenx.domain.model.EntryType.PHOTO
+            "VIDEO" -> com.example.phoenx.domain.model.EntryType.VIDEO
+            "AUDIO", "EMOTION" -> com.example.phoenx.domain.model.EntryType.AUDIO
+            else -> com.example.phoenx.domain.model.EntryType.THOUGHT
+        },
+        parentEntryId = parentEntryId,
+        mediaUrl = mediaUrl,
+        localMediaPath = localMediaPath,
+        mediaProvider = mediaProvider,
+        userComment = userComment,
+        ageAtCreation = com.example.phoenx.domain.model.AgeSnapshot(0, 0, 0),
+        encryptedContent = ByteArray(0)
+    )
+
+    private fun StandaloneMediaEntity.toSimpleStandaloneDomain() = com.example.phoenx.domain.model.PhoenXEntry(
+        id = id,
+        aiSummary = title,
+        type = when(type) {
+            "PHOTO" -> com.example.phoenx.domain.model.EntryType.PHOTO
+            "YOUTUBE", "VIDEO" -> com.example.phoenx.domain.model.EntryType.VIDEO
+            "SPOTIFY", "DEEZER" -> com.example.phoenx.domain.model.EntryType.AUDIO
+            else -> com.example.phoenx.domain.model.EntryType.THOUGHT
+        },
+        mediaUrl = if (type != "TEXT_EXCERPT") content else null,
+        mediaProvider = mediaProvider ?: type,
+        userComment = userComment,
+        ageAtCreation = com.example.phoenx.domain.model.AgeSnapshot(0, 0, 0),
+        encryptedContent = ByteArray(0)
+    )
 
     private fun loadRecipients() {
         val userId = auth.currentUser?.uid ?: return
