@@ -138,6 +138,8 @@ fun StepByStepCaptureScreen(
                     onAutoUnlockDaysChange = { viewModel.updateAutoUnlockDays(it) },
                     isUltimateSecret = uiState.isUltimateSecret,
                     onUltimateSecretToggle = { viewModel.updateUltimateSecret(it) },
+                    includeInBook = uiState.includeInBook,
+                    onIncludeInBookToggle = { viewModel.updateIncludeInBook(it) },
                     theme = theme,
                     accent = accent
                 )
@@ -160,34 +162,70 @@ fun StepEnigma(
     onAutoUnlockDaysChange: (Int?) -> Unit,
     isUltimateSecret: Boolean,
     onUltimateSecretToggle: (Boolean) -> Unit,
+    includeInBook: Boolean, // v9.4.27
+    onIncludeInBookToggle: (Boolean) -> Unit, // v9.4.27
     theme: AppThemeState,
     accent: Color
 ) {
-    Text(
-        text = "LE COFFRE-FORT",
-        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
-        color = accent
-    )
-    Spacer(modifier = Modifier.height(24.dp))
-    
-    EnigmaForm(
-        isEnabled = isEnabled,
-        onToggleEnabled = onToggleEnabled,
-        question = question,
-        onQuestionChange = onQuestionChange,
-        answer = answer,
-        onAnswerChange = onAnswerChange,
-        hasExistingAnswer = false, // Toujours false en création
-        hint = hint,
-        onHintChange = onHintChange,
-        autoUnlockDays = autoUnlockDays,
-        onAutoUnlockDaysChange = onAutoUnlockDaysChange,
-        isUltimateSecret = isUltimateSecret,
-        onUltimateSecretToggle = onUltimateSecretToggle,
-        theme = theme,
-        accent = accent,
-        isReadOnly = false
-    )
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = "LE COFFRE-FORT",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
+            color = accent
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        EnigmaForm(
+            isEnabled = isEnabled,
+            onToggleEnabled = onToggleEnabled,
+            question = question,
+            onQuestionChange = onQuestionChange,
+            answer = answer,
+            onAnswerChange = onAnswerChange,
+            hasExistingAnswer = false, // Toujours false en création
+            hint = hint,
+            onHintChange = onHintChange,
+            autoUnlockDays = autoUnlockDays,
+            onAutoUnlockDaysChange = onAutoUnlockDaysChange,
+            isUltimateSecret = isUltimateSecret,
+            onUltimateSecretToggle = onUltimateSecretToggle,
+            theme = theme,
+            accent = accent,
+            isReadOnly = false
+        )
+
+        Spacer(modifier = Modifier.height(40.dp))
+        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Option Souveraineté (v9.4.27)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onIncludeInBookToggle(!includeInBook) }
+                .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = includeInBook,
+                onCheckedChange = { onIncludeInBookToggle(it) },
+                colors = CheckboxDefaults.colors(checkedColor = accent)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    "Inclure dans mon Livre de Vie", 
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = theme.contentColor
+                )
+                Text(
+                    "Permettre à l'IA de s'appuyer sur ce souvenir pour rédiger votre récit.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = theme.contentColor.copy(alpha = 0.4f)
+                )
+            }
+        }
+    }
 }
 
 @Composable

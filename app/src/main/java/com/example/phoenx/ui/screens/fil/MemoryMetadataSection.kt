@@ -416,6 +416,37 @@ fun MemoryMetadataSection(
                 enabled = !isReadOnly
             )
 
+            // v9.4.27 : Option Souveraineté (Inclusion dans le Livre)
+            if (!isReadOnly) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.updateIncludeInBook(!entry.includeInBook) }
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = entry.includeInBook,
+                        onCheckedChange = { viewModel.updateIncludeInBook(it) },
+                        colors = CheckboxDefaults.colors(checkedColor = accent)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column {
+                        Text(
+                            "Inclure dans mon Livre de Vie", 
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = theme.contentColor
+                        )
+                        Text(
+                            "Permettre à l'IA de s'appuyer sur ce souvenir pour rédiger votre récit.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = theme.contentColor.copy(alpha = 0.4f)
+                        )
+                    }
+                }
+            }
+
             // NOUVEAUTÉ v8.9.8 : Lien Vivant
             if (selectedRecipientIds.size == 1) {
                 val recipientId = selectedRecipientIds.first()

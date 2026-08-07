@@ -87,11 +87,25 @@ class BookGeneratorService @Inject constructor(
         val allPersons = offlineEntryDao.getAllPersons().first()
         val personMap = allPersons.associateBy { it.id }
 
-        val parents = allEntries.filter { it.parentEntryId == null }
+        // v9.4.27 : Filtrage strict - Uniquement les racines incluses dans le livre ET hors Coffre-Fort
+        val parents = allEntries.filter { 
+            it.parentEntryId == null && it.includeInBook && it.enigmaQuestion == null 
+        }
         
         return parents.map { parent ->
             val complements = allEntries.filter { it.parentEntryId == parent.id }
             val age = AgeUtils.parseAgeJson(parent.ageAtCreation)
+            
+            // v9.4.27 : Priority 1 - Amendments (Evolution of thought)
+            val amendments = offlineEntryDao.getAmendmentsForEntrySync(parent.id)
+            val mappedAmendments = amendments.mapNotNull { am ->
+                if (!am.aiEvolution.isNullOrBlank()) {
+                    mapOf(
+                        "age" to AgeUtils.parseAgeJson(am.ageAtAmendment).years,
+                        "evolution" to am.aiEvolution
+                    )
+                } else null
+            }
             
             // v9.0 : Résolution des personnages cités dans cette scène
             val taggedIds = parent.personIds.split(",").filter { it.isNotBlank() }.map { it.trim() }
@@ -111,7 +125,10 @@ class BookGeneratorService @Inject constructor(
                         "clothingStyle" to p.clothingStyle,
                         "profession" to p.profession,
                         "hasChildren" to p.hasChildren,
-                        "relationshipDetail" to p.relationshipDetail
+                        "relationshipDetail" to p.relationshipDetail,
+                        // v9.4.27 : Priority 3 - Genealogy Context
+                        "parentIds" to p.parentIds,
+                        "biography" to p.biography
                     )
                 }
             }
@@ -130,12 +147,14 @@ class BookGeneratorService @Inject constructor(
                 "soulTone" to parent.soulTone,
                 "originType" to originType, // Injection v9.3.1
                 "characters" to characters, // Transmis à l'IA Biographe
+                "userComment" to parent.userComment, // Priority 2 : Personal context
+                "amendments" to mappedAmendments, // Priority 1 : Thought evolution
                 "photos" to complements.filter { it.entryType == "PHOTO" || it.entryType == "GALLERY" }
-                    .map { mapOf("id" to it.id, "description" to it.aiSummary) },
+                    .map { mapOf("id" to it.id, "description" to it.aiSummary, "userComment" to it.userComment) },
                 "vocal_essence" to complements.filter { it.entryType == "AUDIO" }
-                    .map { mapOf("id" to it.id, "description" to it.aiSummary) },
+                    .map { mapOf("id" to it.id, "description" to it.aiSummary, "userComment" to it.userComment) },
                 "stories" to complements.filter { it.entryType == "TEXT" || it.entryType == "THOUGHT" }
-                    .map { mapOf("id" to it.id, "description" to it.aiSummary) }
+                    .map { mapOf("id" to it.id, "description" to it.aiSummary, "userComment" to it.userComment) }
             )
         }.sortedBy { it["age"] as Int }
     }

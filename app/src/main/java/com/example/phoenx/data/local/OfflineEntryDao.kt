@@ -219,6 +219,9 @@ interface OfflineEntryDao {
     @Query("UPDATE offline_entries SET silentAttribution = :silent WHERE id = :entryId")
     suspend fun updateEntrySilentAttribution(silent: Boolean, entryId: String): Int
 
+    @Query("UPDATE offline_entries SET includeInBook = :include WHERE id = :entryId")
+    suspend fun updateEntryIncludeInBook(include: Boolean, entryId: String): Int
+
     // Creator Profile (v9.1)
     @Query("SELECT * FROM creator_profile WHERE userId = :userId")
     fun getCreatorProfile(userId: String): Flow<CreatorProfileEntity?>

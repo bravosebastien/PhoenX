@@ -164,11 +164,14 @@ export const generateBookChapters = onCall({
     ${insightsInstruction}
     Données source (Scènes) : ${JSON.stringify(scenes)}
 
-    Instructions :
+    Instructions de rédaction (v9.4.27) :
     1. Rédige un récit fluide, à la première personne du singulier ("Je"), en couvrant la période de ${ageMin} à ${ageMax} ans.
-    2. Pour chaque photo fournie (avec id et description), insère la balise [PHOTO:id_exact] à l'endroit le plus opportun dans ton texte. Utilise la description uniquement pour comprendre le contexte, ne l'affiche pas.
-    3. Pour chaque enregistrement vocal (id et description), intègre son essence émotionnelle dans le récit. Tu peux aussi insérer une balise [AUDIO:id_exact] si c'est un message clé.
-    4. Réponds UNIQUEMENT en JSON avec cette structure : {"chapters": [{"title": "Nom du chapitre", "content": "Texte avec balises [PHOTO:id] incluses", "orderIndex": 0}]}`;
+    2. Utilise les 'userComment' (commentaires personnels) pour enrichir la description des médias et des souvenirs : ils apportent le contexte émotionnel que le résumé n'a pas forcément capté.
+    3. Intègre les 'amendments' pour montrer comment la pensée de l'auteur a évolué sur un même sujet au fil des années.
+    4. Utilise les données de l'Arbre Généalogique ('characters' avec parentIds et biography) pour assurer la cohérence des liens familiaux et donner de l'épaisseur aux proches cités.
+    5. Pour chaque photo fournie (avec id et description), insère la balise [PHOTO:id_exact] à l'endroit le plus opportun dans ton texte.
+    6. Pour chaque enregistrement vocal (id et description), intègre son essence émotionnelle. Tu peux aussi insérer une balise [AUDIO:id_exact].
+    7. Réponds UNIQUEMENT en JSON avec cette structure : {"chapters": [{"title": "Nom du chapitre", "content": "Texte avec balises [PHOTO:id] incluses", "orderIndex": 0}]}`;
 
     const text = await generateWithGemini(prompt) || '{"chapters":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());
@@ -188,6 +191,7 @@ export const generateBookPlan = onCall({
     const prompt = `${AI_RULES}
     Tu es un architecte narratif. À partir des scènes de vie suivantes, propose un plan de livre cohérent.
     Regroupe les scènes par thèmes ou périodes chronologiques logiques.
+    Utilise les 'userComment' et les 'amendments' pour mieux saisir l'importance relative de chaque scène.
     Scènes : ${JSON.stringify(scenes)}
 
     Instructions :

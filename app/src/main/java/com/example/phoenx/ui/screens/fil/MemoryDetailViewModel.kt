@@ -584,6 +584,14 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
+    fun updateIncludeInBook(include: Boolean) {
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            offlineEntryDao.updateEntryIncludeInBook(include, id)
+            triggerSync(id)
+        }
+    }
+
     fun updateCompartments(selectedIds: List<String>) {
         val id = _entryId.value ?: return
         // Format CSV : ,ID1,ID2,
