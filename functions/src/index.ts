@@ -65,7 +65,8 @@ import {
 import {
     notifyQuestionRightGranted,
     notifyNewPendingQuestion,
-    sealPendingQuestion
+    sealPendingQuestion,
+    onPendingQuestionUpdated
 } from "./questions";
 
 import {
@@ -132,6 +133,7 @@ export {
     notifyQuestionRightGranted,
     notifyNewPendingQuestion,
     sealPendingQuestion,
+    onPendingQuestionUpdated,
 
     // Witnesses
     sendWitnessInvitation,

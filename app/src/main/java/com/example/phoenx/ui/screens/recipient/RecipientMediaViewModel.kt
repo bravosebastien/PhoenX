@@ -242,6 +242,12 @@ class RecipientMediaViewModel @Inject constructor(
     private val _canAskQuestions = MutableStateFlow(false)
     val canAskQuestions: StateFlow<Boolean> = _canAskQuestions.asStateFlow()
 
+    private val _maxQuestions = MutableStateFlow<Int?>(null)
+    val maxQuestions: StateFlow<Int?> = _maxQuestions.asStateFlow()
+
+    private val _questionsAsked = MutableStateFlow(0)
+    val questionsAsked: StateFlow<Int> = _questionsAsked.asStateFlow()
+
     private val _recipientId = MutableStateFlow<String?>(null)
     val recipientId: StateFlow<String?> = _recipientId.asStateFlow()
 
@@ -303,6 +309,8 @@ class RecipientMediaViewModel @Inject constructor(
                     if (!recipientsSnapshot.isEmpty) {
                         val recipientDoc = recipientsSnapshot.documents.first()
                         _canAskQuestions.value = recipientDoc.getBoolean("canAskQuestions") ?: false
+                        _maxQuestions.value = recipientDoc.getLong("maxQuestionsAllowed")?.toInt()
+                        _questionsAsked.value = recipientDoc.getLong("questionsAskedCount")?.toInt() ?: 0
                         _recipientId.value = recipientDoc.id
                     }
 

@@ -414,10 +414,35 @@ class CaptureViewModel @Inject constructor(
                     locationName = locationName ?: _preselectedLocationName.value,
                     locationId = locationId,
                     includeInBook = includeInBook,
+                    questionId = pendingQuestionId, // v9.4.27 : Lien avec la question
+                    enigmaQuestion = enigmaQuestion,
+                    enigmaAnswer = enigmaAnswer?.let { EnigmaUtils.hashAnswer(it) },
+                    enigmaHint = enigmaHint,
+                    enigmaAutoUnlockDays = enigmaAutoUnlockDays,
+                    scheduledTimestamp = scheduledTimestamp,
+                    pactId = pactId,
+                    latitude = latitude,
+                    longitude = longitude,
+                    soulTone = soulTone,
                     syncStatus = "pending"
                 )
                 
                 offlineEntryDao.insertEntry(entry)
+
+                // v9.4.27 : Marquer la question comme répondue dans Firestore
+                if (pendingQuestionId != null) {
+                    try {
+                        db.collection("users").document(user.uid)
+                            .collection("pendingQuestions").document(pendingQuestionId)
+                            .update(mapOf(
+                                "status" to "answered",
+                                "linkedEntryId" to entryId,
+                                "answeredAt" to System.currentTimeMillis()
+                            )).await()
+                    } catch (e: Exception) {
+                        Log.e("CaptureVM", "Erreur update pendingQuestion", e)
+                    }
+                }
                 
                 // Déclenchement sync
                 SyncWorker.trigger(context)

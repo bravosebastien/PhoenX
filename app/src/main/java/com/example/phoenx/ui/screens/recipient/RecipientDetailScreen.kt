@@ -64,6 +64,8 @@ fun RecipientDetailScreen(
         viewModel.getAssignedContent(recipient?.linkedUid)
     }.collectAsState(initial = RecipientContentDashboard())
     
+    val pendingCount by viewModel.getPendingQuestionsCount(recipientId).collectAsState(initial = 0)
+    
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -274,9 +276,28 @@ fun RecipientDetailScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
                     border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.5f))
                 ) {
-                    Icon(Icons.Default.Security, null, tint = accent)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Gérer les droits d'accès", color = theme.contentColor, fontWeight = FontWeight.Bold)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                        Icon(Icons.Default.Security, null, tint = accent)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Gérer les droits d'accès", color = theme.contentColor, fontWeight = FontWeight.Bold)
+                        
+                        if (pendingCount > 0) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Surface(
+                                color = Error,
+                                shape = CircleShape,
+                                modifier = Modifier.size(20.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(
+                                        text = pendingCount.toString(),
+                                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Bold),
+                                        color = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(40.dp))

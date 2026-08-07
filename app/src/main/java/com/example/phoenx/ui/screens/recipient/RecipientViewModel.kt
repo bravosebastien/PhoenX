@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -36,6 +37,23 @@ class RecipientViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<RecipientUiState>(RecipientUiState.Loading)
     val uiState: StateFlow<RecipientUiState> = _uiState
+
+    /**
+     * Retourne le nombre de questions en attente pour un destinataire précis (v9.4.27)
+     */
+    fun getPendingQuestionsCount(recipientId: String): Flow<Int> {
+        val userId = auth.currentUser?.uid ?: return flowOf(0)
+        return callbackFlow {
+            val listener = db.collection("users").document(userId)
+                .collection("pendingQuestions")
+                .whereEqualTo("recipientId", recipientId)
+                .whereEqualTo("status", "pending")
+                .addSnapshotListener { snapshot, _ ->
+                    trySend(snapshot?.size() ?: 0)
+                }
+            awaitClose { listener.remove() }
+        }
+    }
 
     init {
         loadRecipients()

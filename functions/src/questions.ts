@@ -1,5 +1,5 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
 import { db, messaging } from "./admin";
 
@@ -128,3 +128,66 @@ export const sealPendingQuestion = onCall(async (request) => {
         throw new HttpsError("internal", error.message || "Erreur lors du scellage de la question");
     }
 });
+
+// 20. Trigger sur modification de question (Réponse, Déclin, Remboursement quota)
+export const onPendingQuestionUpdated = onDocumentUpdated(
+    { document: "users/{userId}/pendingQuestions/{questionId}", region: "us-central1" },
+    async (event) => {
+        const newData = event.data?.after.data();
+        const oldData = event.data?.before.data();
+        if (!newData || !oldData) return;
+
+        const userId = event.params.userId;
+        const status = newData.status;
+        const oldStatus = oldData.status;
+
+        // On ne réagit que lors d'un changement de statut depuis "pending"
+        if (oldStatus !== "pending") return;
+
+        const recipientId = newData.recipientId;
+        if (!recipientId) return;
+
+        // ════ 1. RÉCUPÉRATION DU CRÉDIT (SI DÉCLINÉ) ════
+        if (status === "declined") {
+            const recipientRef = db.collection("users").doc(userId).collection("recipients").doc(recipientId);
+            await db.runTransaction(async (transaction) => {
+                const rDoc = await transaction.get(recipientRef);
+                if (rDoc.exists) {
+                    const currentCount = rDoc.data()?.questionsAskedCount || 0;
+                    // Sécurité : Ne jamais descendre sous 0
+                    if (currentCount > 0) {
+                        transaction.update(recipientRef, {
+                            questionsAskedCount: admin.firestore.FieldValue.increment(-1)
+                        });
+                    }
+                }
+            });
+        }
+
+        // ════ 2. NOTIFICATION PUSH AU DESTINATAIRE ════
+        if (status === "answered" || status === "declined") {
+            // A. Trouver l'UID réel du destinataire (linkedUid)
+            const recipientDoc = await db.collection("users").doc(userId).collection("recipients").doc(recipientId).get();
+            const linkedUid = recipientDoc.data()?.linkedUid;
+
+            if (linkedUid) {
+                // B. Récupérer son token FCM
+                const destUserDoc = await db.collection("users").doc(linkedUid).get();
+                const fcmToken = destUserDoc.data()?.fcmToken;
+
+                if (fcmToken) {
+                    const message = status === "answered"
+                        ? "Votre proche a répondu à votre question scellée."
+                        : "Votre proche a pris connaissance de votre question scellée.";
+
+                    await messaging.send({
+                        token: fcmToken,
+                        notification: {
+                            title: "Question PHOEN-X",
+                            body: message
+                        }
+                    });
+                }
+            }
+        }
+    });

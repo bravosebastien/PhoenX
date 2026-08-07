@@ -55,6 +55,8 @@ fun HeirHeritageScreen(
     val creatorName by viewModel.creatorName.collectAsState()
     val isActivated by viewModel.isProtocolActivated.collectAsState()
     val canAsk by viewModel.canAskQuestions.collectAsState()
+    val maxQuestions by viewModel.maxQuestions.collectAsState()
+    val questionsAsked by viewModel.questionsAsked.collectAsState()
     val recipientId by viewModel.recipientId.collectAsState()
 
     val theme = LocalAppTheme.current
@@ -84,8 +86,21 @@ fun HeirHeritageScreen(
                 },
                 actions = {
                     if (canAsk && recipientId != null) {
-                        IconButton(onClick = { navController.navigate(Screen.AskQuestion.createRoute(creatorId, recipientId!!)) }) {
-                            Icon(Icons.Default.HelpOutline, contentDescription = "Poser une question", tint = accent)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(end = 12.dp)) {
+                            IconButton(
+                                onClick = { navController.navigate(Screen.AskQuestion.createRoute(creatorId, recipientId!!)) },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(Icons.Default.HelpOutline, contentDescription = "Poser une question", tint = accent)
+                            }
+                            if (maxQuestions != null) {
+                                val remaining = (maxQuestions!! - questionsAsked).coerceAtLeast(0)
+                                Text(
+                                    text = "$remaining rest.",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp, fontWeight = FontWeight.Bold),
+                                    color = accent.copy(alpha = 0.8f)
+                                )
+                            }
                         }
                     }
                 },
