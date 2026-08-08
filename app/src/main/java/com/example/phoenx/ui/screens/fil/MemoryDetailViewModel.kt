@@ -306,16 +306,11 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             try {
-                val currentEntry = entry.value ?: return@launch
                 val encrypted = encryptionManager.encryptText(newText)
                 offlineEntryDao.updateEntryContent(encrypted, id)
                 
-                // On ne met à jour le résumé que pour les souvenirs "racines" (Étincelles)
-                // Les réponses au portrait et aux questions gardent leur titre (la question) (v8.5.9)
-                if (currentEntry.parentEntryId == null && currentEntry.entryType != "QUESTION_ANSWER") {
-                    val analysis = onDeviceAIManager.analyzeLocally(newText)
-                    offlineEntryDao.updateEntrySummary(analysis.summary, id)
-                }
+                // v9.4.27 : Suppression de la génération automatique du résumé (aiSummary)
+                // pour préserver le titre ("L'Étincelle") choisi par l'utilisateur.
 
                 triggerSync(id)
             } catch (e: Exception) {

@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -103,428 +104,324 @@ fun MemoryMetadataSection(
         todayDateBorderColor = accent
     )
 
-    Column(verticalArrangement = Arrangement.spacedBy(32.dp)) {
-        // DATE RÉELLE (MemoryDate / Période)
-        Column {
-            Row(
+    Column(verticalArrangement = Arrangement.spacedBy(40.dp)) {
+        // ── SECTION 2 : QUAND ET OÙ ────────────────
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("QUAND ET OÙ", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f), letterSpacing = 2.sp)
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                color = theme.contentColor.copy(alpha = 0.04f), // Renforcé
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.15f)) // Renforcé
             ) {
-                Text("QUAND ?", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
-                
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Date", style = MaterialTheme.typography.labelSmall, color = if (!isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
-                    Switch(
-                        checked = isPeriodMode,
-                        onCheckedChange = { isPeriodMode = it },
-                        modifier = Modifier.scale(0.7f),
-                        colors = SwitchDefaults.colors(checkedThumbColor = accent),
-                        enabled = !isReadOnly
-                    )
-                    Text("Période", style = MaterialTheme.typography.labelSmall, color = if (isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
-                }
-            }
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            if (!isPeriodMode) {
-                var showDatePicker by remember { mutableStateOf(false) }
-                val datePickerState = rememberDatePickerState(initialSelectedDateMillis = entry.memoryDate ?: entry.createdAt)
-
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .then(if (!isReadOnly) Modifier.clickable { showDatePicker = true } else Modifier)
-                        .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
-                    color = theme.contentColor.copy(alpha = 0.03f),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("DATE PRÉCISE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.CalendarToday, null, tint = accent, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(8.dp))
-                            val dateText = entry.memoryDate?.let { 
-                                SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(it))
-                            } ?: "Ajouter une date"
-                            Text(dateText, color = theme.contentColor, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-
-                if (showDatePicker) {
-                    DatePickerDialog(
-                        onDismissRequest = { showDatePicker = false },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                viewModel.updateMemoryDate(datePickerState.selectedDateMillis)
-                                showDatePicker = false
-                            }) { Text("Confirmer", color = accent) }
-                        },
-                        colors = datePickerColors
-                    ) { DatePicker(state = datePickerState, colors = datePickerColors) }
-                }
-            } else {
-                // MODE PÉRIODE
-                var showStartPicker by remember { mutableStateOf(false) }
-                var showEndPicker by remember { mutableStateOf(false) }
-                
-                val startState = rememberDatePickerState(initialSelectedDateMillis = entry.memoryDateStart ?: entry.createdAt)
-                val endState = rememberDatePickerState(initialSelectedDateMillis = entry.memoryDateEnd ?: System.currentTimeMillis())
-
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(
-                        onClick = { if (!isReadOnly) showStartPicker = true },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
-                        enabled = !isReadOnly
-                    ) {
-                        Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(8.dp))
-                        val txt = entry.memoryDateStart?.let { SimpleDateFormat("dd/MM/yy").format(Date(it)) } ?: "Début"
-                        Text(txt, color = theme.contentColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                    OutlinedButton(
-                        onClick = { if (!isReadOnly) showEndPicker = true },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
-                        colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
-                        enabled = !isReadOnly
-                    ) {
-                        Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
-                        Spacer(Modifier.width(8.dp))
-                        val txt = entry.memoryDateEnd?.let { SimpleDateFormat("dd/MM/yy").format(Date(it)) } ?: "Fin"
-                        Text(txt, color = theme.contentColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                if (showStartPicker) {
-                    DatePickerDialog(
-                        onDismissRequest = { showStartPicker = false },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                viewModel.updateMemoryPeriod(startState.selectedDateMillis, entry.memoryDateEnd)
-                                showStartPicker = false
-                            }) { Text("Confirmer", color = accent) }
-                        },
-                        colors = datePickerColors
-                    ) { DatePicker(state = startState, colors = datePickerColors) }
-                }
-                if (showEndPicker) {
-                    DatePickerDialog(
-                        onDismissRequest = { showEndPicker = false },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                viewModel.updateMemoryPeriod(entry.memoryDateStart, endState.selectedDateMillis)
-                                showEndPicker = false
-                            }) { Text("Confirmer", color = accent) }
-                        },
-                        colors = datePickerColors
-                    ) { DatePicker(state = endState, colors = datePickerColors) }
-                }
-            }
-        }
-
-        // TIROIRS / COMPARTIMENTS (v8.9.2 : Menu déroulant)
-        Column {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { isTiroirsExpanded = !isTiroirsExpanded }
-                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
-                color = theme.contentColor.copy(alpha = 0.03f),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        "DANS QUELS TIROIRS ?", 
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
-                        color = theme.contentColor.copy(alpha = 0.4f)
-                    )
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        val currentCompartments = entry.compartmentIds.trim(',').split(",").filter { it.isNotBlank() }.map { it.trim() }
-                        val count = currentCompartments.size
-                        val label = if (entry.visibility == "EVERYONE") "Tout le monde" else if (count == 0) "Privé" else "$count tiroir(s)"
-                        
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = accent
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Icon(
-                            imageVector = if (isTiroirsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = null,
-                            tint = theme.contentColor.copy(alpha = 0.2f),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-            }
-            
-            AnimatedVisibility(visible = isTiroirsExpanded) {
-                Column {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    val currentCompartments = entry.compartmentIds.trim(',').split(",").filter { it.isNotBlank() }
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        CompartmentIds.ALL.forEach { id ->
-                            val isSelected = currentCompartments.contains(id)
-                            FilterChip(
-                                selected = isSelected,
-                                onClick = {
-                                    if (!isReadOnly) {
-                                        val newList = if (isSelected) currentCompartments - id else currentCompartments + id
-                                        viewModel.updateCompartments(newList)
-                                    }
-                                },
-                                label = { Text(CompartmentIds.getLabel(id)) },
-                                enabled = !isReadOnly || isSelected,
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = accent,
-                                    selectedLabelColor = theme.backgroundColor,
-                                    containerColor = theme.contentColor.copy(alpha = 0.05f),
-                                    labelColor = theme.contentColor.copy(alpha = 0.6f)
-                                )
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
-        }
-
-        // PERSONNAGES (v9.2.2)
-        if (!isReadOnly || selectedPersons.isNotEmpty()) {
-            PersonSelector(
-                selectedPersons = selectedPersons,
-                suggestedPersons = suggestedPersons,
-                onSearch = { viewModel.searchPersons(it) },
-                onSelect = { viewModel.selectPerson(it) },
-                onSelectMe = { viewModel.selectMe() },
-                onCreate = { f, l, r, dt, dv, uri, ct -> 
-                    viewModel.createAndSelectPerson(f, l, r, dt, dv, uri, ct) 
-                },
-                onRemove = { viewModel.removePerson(it) },
-                onManageCharacters = { navController.navigate(Screen.Characters.route) },
-                accent = accent,
-                enabled = !isReadOnly
-            )
-        }
-
-        // CATÉGORIE ÉMOTIONNELLE (v8.9.2 : Menu déroulant)
-        Column {
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { isTonaliteExpanded = !isTonaliteExpanded }
-                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
-                color = theme.contentColor.copy(alpha = 0.03f),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            "QUELLE TONALITÉ ?", 
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
-                            color = theme.contentColor.copy(alpha = 0.4f)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        InfoPoint(
-                            title = "L'Esprit du Souvenir",
-                            content = "La tonalité influence l'écriture de ton Livre de Vie par l'IA."
-                        )
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = entry.emotionalCategory,
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = accent
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Icon(
-                            imageVector = if (isTonaliteExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                            contentDescription = null,
-                            tint = theme.contentColor.copy(alpha = 0.2f),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-            }
-            
-            AnimatedVisibility(visible = isTonaliteExpanded) {
-                Column {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour", "Nostalgie", "Humour", "Leçon", "Voyage", "Quotidien", "Épreuve")
-                    FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        categories.forEach { cat ->
-                            FilterChip(
-                                selected = entry.emotionalCategory == cat,
-                                onClick = { if (!isReadOnly) viewModel.updateCategory(cat) },
-                                label = { Text(cat) },
-                                enabled = !isReadOnly || entry.emotionalCategory == cat,
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = accent,
-                                    selectedLabelColor = theme.backgroundColor,
-                                    containerColor = theme.contentColor.copy(alpha = 0.05f),
-                                    labelColor = theme.contentColor.copy(alpha = 0.6f)
-                                ),
-                                border = BorderStroke(
-                                    1.dp, 
-                                    if (entry.emotionalCategory == cat) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f)
-                                )
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-            }
-        }
-
-        // DESTINATAIRES
-        Column {
-            Text("POUR QUI ?", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            RecipientSelector(
-                recipients = recipients,
-                selectedIds = selectedRecipientIds,
-                onToggleRecipient = { if (!isReadOnly) viewModel.toggleRecipient(it) },
-                visibility = entry.visibility,
-                onVisibilityChange = { if (!isReadOnly) viewModel.updateVisibility(it) },
-                accent = accent,
-                notifyByEmail = !entry.silentAttribution,
-                onNotifyByEmailChange = { if (!isReadOnly) viewModel.updateSilentAttribution(!it) },
-                enabled = !isReadOnly
-            )
-
-            // v9.4.27 : Option Souveraineté (Inclusion dans le Livre)
-            if (!isReadOnly) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { viewModel.updateIncludeInBook(!entry.includeInBook) }
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = entry.includeInBook,
-                        onCheckedChange = { viewModel.updateIncludeInBook(it) },
-                        colors = CheckboxDefaults.colors(checkedColor = accent)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                    // DATE RÉELLE
                     Column {
-                        Text(
-                            "Inclure dans mon Livre de Vie", 
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                            color = theme.contentColor
-                        )
-                        Text(
-                            "Permettre à l'IA de s'appuyer sur ce souvenir pour rédiger votre récit.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = theme.contentColor.copy(alpha = 0.4f)
-                        )
-                    }
-                }
-            }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("LE MOMENT", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Date", style = MaterialTheme.typography.labelSmall, color = if (!isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
+                                Switch(
+                                    checked = isPeriodMode,
+                                    onCheckedChange = { isPeriodMode = it },
+                                    modifier = Modifier.scale(0.7f),
+                                    colors = SwitchDefaults.colors(checkedThumbColor = accent),
+                                    enabled = !isReadOnly
+                                )
+                                Text("Période", style = MaterialTheme.typography.labelSmall, color = if (isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        if (!isPeriodMode) {
+                            var showDatePicker by remember { mutableStateOf(false) }
+                            val datePickerState = rememberDatePickerState(initialSelectedDateMillis = entry.memoryDate ?: entry.createdAt)
 
-            // NOUVEAUTÉ v8.9.8 : Lien Vivant
-            if (selectedRecipientIds.size == 1) {
-                val recipientId = selectedRecipientIds.first()
-                val recipient = recipients.find { it.id == recipientId }
-                if (recipient != null) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    LienVivantBanner(
-                        recipientName = recipient.name,
-                        recipientPhone = recipient.phone
-                    )
-                }
-            }
-        }
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .then(if (!isReadOnly) Modifier.clickable { showDatePicker = true } else Modifier)
+                                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                                color = theme.contentColor.copy(alpha = 0.03f),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text("DATE PRÉCISE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.CalendarToday, null, tint = accent, modifier = Modifier.size(16.dp))
+                                        Spacer(Modifier.width(8.dp))
+                                        val dateText = entry.memoryDate?.let { 
+                                            SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(it))
+                                        } ?: "Ajouter une date"
+                                        Text(dateText, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
 
-        // LIEU
-        Column {
-            Text("OÙ ?", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { 
-                        if (!isReadOnly) {
-                            if (entry.locationName == null) {
-                                navController.navigate(Screen.Map.createRoute(returnToEntryId = entry.id))
-                            } else {
-                                showLocationMenu = true
+                            if (showDatePicker) {
+                                DatePickerDialog(
+                                    onDismissRequest = { showDatePicker = false },
+                                    confirmButton = {
+                                        TextButton(onClick = {
+                                            viewModel.updateMemoryDate(datePickerState.selectedDateMillis)
+                                            showDatePicker = false
+                                        }) { Text("Confirmer", color = accent) }
+                                    },
+                                    colors = datePickerColors
+                                ) { DatePicker(state = datePickerState, colors = datePickerColors) }
+                            }
+                        } else {
+                            // MODE PÉRIODE
+                            var showStartPicker by remember { mutableStateOf(false) }
+                            var showEndPicker by remember { mutableStateOf(false) }
+                            
+                            val startState = rememberDatePickerState(initialSelectedDateMillis = entry.memoryDateStart ?: entry.createdAt)
+                            val endState = rememberDatePickerState(initialSelectedDateMillis = entry.memoryDateEnd ?: System.currentTimeMillis())
+
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedButton(
+                                    onClick = { if (!isReadOnly) showStartPicker = true },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                                    colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                                    enabled = !isReadOnly
+                                ) {
+                                    Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    val txt = entry.memoryDateStart?.let { SimpleDateFormat("dd/MM/yy").format(Date(it)) } ?: "Début"
+                                    Text(txt, color = theme.contentColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                                OutlinedButton(
+                                    onClick = { if (!isReadOnly) showEndPicker = true },
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                                    colors = ButtonDefaults.outlinedButtonColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                                    enabled = !isReadOnly
+                                ) {
+                                    Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    val txt = entry.memoryDateEnd?.let { SimpleDateFormat("dd/MM/yy").format(Date(it)) } ?: "Fin"
+                                    Text(txt, color = theme.contentColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+
+                            if (showStartPicker) {
+                                DatePickerDialog(
+                                    onDismissRequest = { showStartPicker = false },
+                                    confirmButton = {
+                                        TextButton(onClick = {
+                                            viewModel.updateMemoryPeriod(startState.selectedDateMillis, entry.memoryDateEnd)
+                                            showStartPicker = false
+                                        }) { Text("Confirmer", color = accent) }
+                                    },
+                                    colors = datePickerColors
+                                ) { DatePicker(state = startState, colors = datePickerColors) }
+                            }
+                            if (showEndPicker) {
+                                DatePickerDialog(
+                                    onDismissRequest = { showEndPicker = false },
+                                    confirmButton = {
+                                        TextButton(onClick = {
+                                            viewModel.updateMemoryPeriod(entry.memoryDateStart, endState.selectedDateMillis)
+                                            showEndPicker = false
+                                        }) { Text("Confirmer", color = accent) }
+                                    },
+                                    colors = datePickerColors
+                                ) { DatePicker(state = endState, colors = datePickerColors) }
                             }
                         }
                     }
-                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
-                color = theme.contentColor.copy(alpha = 0.03f),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.LocationOn, null, tint = accent, modifier = Modifier.size(20.dp))
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = entry.locationName ?: "Lieu non défini",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        color = if (entry.locationName != null) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (!isReadOnly) {
-                        Icon(Icons.Default.Edit, null, tint = theme.contentColor.copy(alpha = 0.2f), modifier = Modifier.size(16.dp))
 
-                        DropdownMenu(
-                            expanded = showLocationMenu,
-                            onDismissRequest = { showLocationMenu = false },
-                            containerColor = theme.backgroundColor
+                    // LIEU
+                    Column {
+                        Text("LE LIEU", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { 
+                                    if (!isReadOnly) {
+                                        if (entry.locationName == null) {
+                                            navController.navigate(Screen.Map.createRoute(returnToEntryId = entry.id))
+                                        } else {
+                                            showLocationMenu = true
+                                        }
+                                    }
+                                }
+                                .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                            color = theme.contentColor.copy(alpha = 0.03f),
+                            shape = RoundedCornerShape(12.dp)
                         ) {
-                            DropdownMenuItem(
-                                text = { Text("Changer de lieu", color = theme.contentColor) },
-                                leadingIcon = { Icon(Icons.Default.EditLocation, null, tint = accent) },
-                                onClick = {
-                                    showLocationMenu = false
-                                    navController.navigate(Screen.Map.createRoute(returnToEntryId = entry.id))
+                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.LocationOn, null, tint = accent, modifier = Modifier.size(20.dp))
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = entry.locationName ?: "Lieu non défini",
+                                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                    color = if (entry.locationName != null) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
+                                )
+                                Spacer(modifier = Modifier.weight(1f))
+                                if (!isReadOnly) {
+                                    Icon(Icons.Default.Edit, null, tint = theme.contentColor.copy(alpha = 0.2f), modifier = Modifier.size(16.dp))
+
+                                    DropdownMenu(
+                                        expanded = showLocationMenu,
+                                        onDismissRequest = { showLocationMenu = false },
+                                        containerColor = theme.backgroundColor
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Changer de lieu", color = theme.contentColor) },
+                                            leadingIcon = { Icon(Icons.Default.EditLocation, null, tint = accent) },
+                                            onClick = {
+                                                showLocationMenu = false
+                                                navController.navigate(Screen.Map.createRoute(returnToEntryId = entry.id))
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Voir sur la carte", color = theme.contentColor) },
+                                            leadingIcon = { Icon(Icons.Default.Map, null, tint = accent) },
+                                            onClick = {
+                                                showLocationMenu = false
+                                                navController.navigate(Screen.Map.createRoute())
+                                            }
+                                        )
+                                    }
                                 }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Voir sur la carte", color = theme.contentColor) },
-                                leadingIcon = { Icon(Icons.Default.Map, null, tint = accent) },
-                                onClick = {
-                                    showLocationMenu = false
-                                    navController.navigate(Screen.Map.createRoute())
-                                }
-                            )
+                            }
                         }
                     }
                 }
             }
         }
 
-        // COFFRE-FORT / ÉNIGME (v9.4.27)
-        Column {
-            Text("PROTECTION", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
-            Spacer(modifier = Modifier.height(12.dp))
+        // ── SECTION 3 : POUR QUI ──────────────────
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("POUR QUI", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f), letterSpacing = 2.sp)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = theme.contentColor.copy(alpha = 0.04f), // Renforcé
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.15f)) // Renforcé
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                    // DESTINATAIRES
+                    Column {
+                        Text("DESTINATAIRES", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                        Spacer(modifier = Modifier.height(12.dp))
+                        RecipientSelector(
+                            recipients = recipients,
+                            selectedIds = selectedRecipientIds,
+                            onToggleRecipient = { if (!isReadOnly) viewModel.toggleRecipient(it) },
+                            visibility = entry.visibility,
+                            onVisibilityChange = { if (!isReadOnly) viewModel.updateVisibility(it) },
+                            accent = accent,
+                            notifyByEmail = !entry.silentAttribution,
+                            onNotifyByEmailChange = { if (!isReadOnly) viewModel.updateSilentAttribution(!it) },
+                            enabled = !isReadOnly
+                        )
+
+                        // v9.4.27 : Bloc Souveraineté Premium (Livre de Vie)
+                        if (!isReadOnly) {
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { viewModel.updateIncludeInBook(!entry.includeInBook) }
+                                    .border(1.dp, if (entry.includeInBook) accent.copy(alpha = 0.3f) else theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                                color = if (entry.includeInBook) accent.copy(alpha = 0.05f) else theme.contentColor.copy(alpha = 0.02f),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Surface(
+                                        modifier = Modifier.size(36.dp),
+                                        shape = CircleShape,
+                                        color = if (entry.includeInBook) accent.copy(alpha = 0.1f) else theme.contentColor.copy(alpha = 0.05f)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(Icons.Default.AutoStories, null, tint = if (entry.includeInBook) accent else theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.size(18.dp))
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text("Inclure dans mon Livre", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                        Text("Nourrir le récit IA par ce souvenir.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                                    }
+                                    Switch(
+                                        checked = entry.includeInBook,
+                                        onCheckedChange = { viewModel.updateIncludeInBook(it) },
+                                        colors = SwitchDefaults.colors(checkedThumbColor = accent)
+                                    )
+                                }
+                            }
+                        }
+
+                        // Lien Vivant
+                        if (selectedRecipientIds.size == 1) {
+                            val recipientId = selectedRecipientIds.first()
+                            val recipient = recipients.find { it.id == recipientId }
+                            if (recipient != null) {
+                                Spacer(modifier = Modifier.height(24.dp))
+                                LienVivantBanner(recipientName = recipient.name, recipientPhone = recipient.phone)
+                            }
+                        }
+                    }
+
+                    // TIROIRS
+                    Column {
+                        Text("DANS QUELS TIROIRS ?", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { isTiroirsExpanded = !isTiroirsExpanded }
+                                .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                            color = theme.contentColor.copy(alpha = 0.03f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                                val currentCompartments = entry.compartmentIds.trim(',').split(",").filter { it.isNotBlank() }.map { it.trim() }
+                                Text(text = if (entry.visibility == "EVERYONE") "Tout le monde" else if (currentCompartments.isEmpty()) "Privé" else "${currentCompartments.size} tiroir(s)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+                                Icon(imageVector = if (isTiroirsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, contentDescription = null, tint = theme.contentColor.copy(alpha = 0.2f), modifier = Modifier.size(16.dp))
+                            }
+                        }
+                        AnimatedVisibility(visible = isTiroirsExpanded) {
+                            Column {
+                                Spacer(modifier = Modifier.height(12.dp))
+                                val currentCompartments = entry.compartmentIds.trim(',').split(",").filter { it.isNotBlank() }
+                                FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    CompartmentIds.ALL.forEach { id ->
+                                        val isSelected = currentCompartments.contains(id)
+                                        FilterChip(selected = isSelected, onClick = { if (!isReadOnly) { val newList = if (isSelected) currentCompartments - id else currentCompartments + id; viewModel.updateCompartments(newList) } }, label = { Text(CompartmentIds.getLabel(id)) }, enabled = !isReadOnly || isSelected, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor, containerColor = theme.contentColor.copy(alpha = 0.05f), labelColor = theme.contentColor.copy(alpha = 0.6f)))
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // PERSONNAGES
+                    if (!isReadOnly || selectedPersons.isNotEmpty()) {
+                        PersonSelector(selectedPersons = selectedPersons, suggestedPersons = suggestedPersons, onSearch = { viewModel.searchPersons(it) }, onSelect = { viewModel.selectPerson(it) }, onSelectMe = { viewModel.selectMe() }, onCreate = { f, l, r, dt, dv, uri, ct -> viewModel.createAndSelectPerson(f, l, r, dt, dv, uri, ct) }, onRemove = { viewModel.removePerson(it) }, onManageCharacters = { navController.navigate(Screen.Characters.route) }, accent = accent, enabled = !isReadOnly)
+                    }
+                }
+            }
+        }
+
+        // ── SECTION 4 : PROTECTION ──────────────────
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text("PROTECTION", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f), letterSpacing = 2.sp)
             EnigmaForm(
                 isEnabled = enigmaEnabled,
                 onToggleEnabled = { enigmaEnabled = it },
