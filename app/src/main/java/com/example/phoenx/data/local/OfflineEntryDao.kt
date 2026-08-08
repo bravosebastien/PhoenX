@@ -129,6 +129,9 @@ interface OfflineEntryDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPact(pact: PactEntity)
 
+    @Query("SELECT * FROM pacts WHERE id = :pactId")
+    suspend fun getPactById(pactId: String): PactEntity?
+
     @Query("SELECT * FROM offline_entries WHERE pactId = :pactId")
     fun getEntriesForPact(pactId: String): Flow<List<OfflineEntry>>
 
@@ -221,6 +224,9 @@ interface OfflineEntryDao {
 
     @Query("UPDATE offline_entries SET includeInBook = :include WHERE id = :entryId")
     suspend fun updateEntryIncludeInBook(include: Boolean, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET pactId = :pactId WHERE id = :entryId")
+    suspend fun updateEntryPactId(pactId: String?, entryId: String): Int
 
     // Creator Profile (v9.1)
     @Query("SELECT * FROM creator_profile WHERE userId = :userId")

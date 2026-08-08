@@ -381,6 +381,11 @@ fun NavGraphBuilder.recipientGraph(
                     navController.navigate(Screen.WitnessResponse.createRoute(creatorId, sourceId)) {
                         popUpTo(Screen.UniversalJoin.route) { inclusive = true }
                     }
+                } else if (role == "mirror_partner" && sourceId != null) {
+                    // Redirection directe pour le Miroir à Deux (v9.4.27)
+                    navController.navigate("pact/$sourceId") {
+                        popUpTo(Screen.UniversalJoin.route) { inclusive = true }
+                    }
                 } else if (isCreator == false && !hasSeenPrompt) {
                     navController.navigate(Screen.BecomeCreatorPrompt.createRoute(role ?: "recipient", "Votre proche")) {
                         popUpTo(Screen.UniversalJoin.route) { inclusive = true }

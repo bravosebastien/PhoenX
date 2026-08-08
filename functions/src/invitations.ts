@@ -195,6 +195,7 @@ export const generateUniversalInvitation = onCall(async (request) => {
     if (role === "depositary") sourcePath = `users/${auth.uid}/depositaries/${sourceId}`;
     else if (role === "witness") sourcePath = `users/${auth.uid}/witnesses/${sourceId}`;
     else if (role === "recipient") sourcePath = `users/${auth.uid}/recipients/${sourceId}`;
+    else if (role === "mirror_partner") sourcePath = `mirrors/${sourceId}`;
     else throw new HttpsError("invalid-argument", "Rôle invalide");
 
     const tokenId = crypto.randomBytes(32).toString('hex');
@@ -321,6 +322,13 @@ export const acceptUniversalInvitation = onCall(async (request) => {
                     linkedUid: auth.uid,
                     linkedAt: admin.firestore.FieldValue.serverTimestamp()
                 };
+
+                // v9.4.27 : Liaison spécifique pour le Miroir à Deux
+                if (role === "mirror_partner") {
+                    sourceUpdates.creatorBId = auth.uid;
+                    // On récupère le prénom de l'invité pour l'autre
+                    sourceUpdates.partnerBName = userData?.displayName || "Partenaire";
+                }
 
                 // v9.1 : Champ spécifique requis par les Security Rules pour les Dépositaires
                 if (role === "depositary") {

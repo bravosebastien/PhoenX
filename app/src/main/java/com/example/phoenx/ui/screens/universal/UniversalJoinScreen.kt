@@ -208,6 +208,7 @@ fun InvitationView(
             "depositary" -> "à être son Gardien de Confiance"
             "witness" -> "à porter témoignage sur son histoire"
             "recipient" -> "à être l'un de ses destinataires"
+            "mirror_partner" -> "à un Miroir à Deux"
             else -> "à rejoindre son cercle"
         }
 
@@ -223,6 +224,7 @@ fun InvitationView(
             "depositary" -> "En tant que Gardien, vous serez la clé qui déverrouille sa mémoire le moment venu. Votre rôle est de confirmer son absence définitive."
             "witness" -> "Votre témoignage enrichira son héritage. Ce que vous écrirez restera scellé et ne sera transmis qu'après son départ."
             "recipient" -> "Vous avez été choisi pour recevoir une partie de sa mémoire et de ses souvenirs les plus précieux."
+            "mirror_partner" -> "Deux points de vue pour une même histoire. Chacun écrit sa version de son côté, et le Miroir ne se révélera que lorsque vous aurez tous les deux terminé."
             else -> ""
         }
 

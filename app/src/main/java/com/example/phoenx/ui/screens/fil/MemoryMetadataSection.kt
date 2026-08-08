@@ -48,6 +48,7 @@ fun MemoryMetadataSection(
     val suggestedPersons by viewModel.suggestedPersons.collectAsState()
     val selectedRecipientIds by viewModel.selectedRecipientIds.collectAsState()
     val hasSeenIncludeInBookNudge by viewModel.hasSeenIncludeInBookNudge.collectAsState()
+    val allPacts by viewModel.allPacts.collectAsState()
 
     var isPeriodMode by remember(entry) {
         mutableStateOf(entry.memoryDateStart != null || entry.memoryDateEnd != null)
@@ -56,6 +57,7 @@ fun MemoryMetadataSection(
     var isTonaliteExpanded by remember { mutableStateOf(false) }
     var showLocationMenu by remember { mutableStateOf(false) }
     var showIncludeInBookNudge by remember { mutableStateOf(false) }
+    var showMirrorSelection by remember { mutableStateOf(false) }
 
     // ÉNIGME / COFFRE-FORT (v9.4.27)
     var enigmaEnabled by remember(entry) { mutableStateOf(entry.enigmaQuestion != null) }
@@ -424,7 +426,38 @@ fun MemoryMetadataSection(
                                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                     CompartmentIds.ALL.forEach { id ->
                                         val isSelected = currentCompartments.contains(id)
-                                        FilterChip(selected = isSelected, onClick = { if (!isReadOnly) { val newList = if (isSelected) currentCompartments - id else currentCompartments + id; viewModel.updateCompartments(newList) } }, label = { Text(CompartmentIds.getLabel(id)) }, enabled = !isReadOnly || isSelected, colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor, containerColor = theme.contentColor.copy(alpha = 0.05f), labelColor = theme.contentColor.copy(alpha = 0.6f)))
+                                        FilterChip(
+                                            selected = isSelected, 
+                                            onClick = { 
+                                                if (!isReadOnly) { 
+                                                    val isRemoving = isSelected
+                                                    val newList = if (isRemoving) currentCompartments - id else currentCompartments + id
+                                                    
+                                                    if (id == CompartmentIds.LE_PACTE) {
+                                                        if (isRemoving) {
+                                                            viewModel.updatePactId(null)
+                                                            viewModel.updateCompartments(newList)
+                                                        } else {
+                                                            when (allPacts.size) {
+                                                                0 -> { /* On laisse l'utilisateur créer un miroir d'abord */ }
+                                                                1 -> {
+                                                                    viewModel.updatePactId(allPacts.first().id)
+                                                                    viewModel.updateCompartments(newList)
+                                                                }
+                                                                else -> {
+                                                                    showMirrorSelection = true
+                                                                }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        viewModel.updateCompartments(newList) 
+                                                    }
+                                                } 
+                                            }, 
+                                            label = { Text(CompartmentIds.getLabel(id)) }, 
+                                            enabled = !isReadOnly || isSelected, 
+                                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor, containerColor = theme.contentColor.copy(alpha = 0.05f), labelColor = theme.contentColor.copy(alpha = 0.6f))
+                                        )
                                     }
                                 }
                             }
@@ -486,6 +519,32 @@ fun MemoryMetadataSection(
                     Text("Fermer", color = theme.contentColor)
                 }
             }
+        )
+    }
+
+    if (showMirrorSelection) {
+        AlertDialog(
+            onDismissRequest = { showMirrorSelection = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("Associer au Miroir", color = theme.contentColor) },
+            text = {
+                Column {
+                    allPacts.forEach { pact ->
+                        ListItem(
+                            headlineContent = { Text(pact.partnerName) },
+                            supportingContent = { Text(pact.partnerEmail) },
+                            modifier = Modifier.clickable { 
+                                viewModel.updatePactId(pact.id)
+                                val current = entry.compartmentIds.trim(',').split(",").filter { it.isNotBlank() }
+                                viewModel.updateCompartments(current + CompartmentIds.LE_PACTE)
+                                showMirrorSelection = false 
+                            },
+                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                        )
+                    }
+                }
+            },
+            confirmButton = {}
         )
     }
 }

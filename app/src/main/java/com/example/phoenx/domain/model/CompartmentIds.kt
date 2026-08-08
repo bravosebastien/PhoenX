@@ -30,7 +30,7 @@ object CompartmentIds {
         MAPPEMONDE -> "Mappemonde"
         CENT_QUESTIONS -> "100 Questions"
         COFFRE_FORT -> "Coffre Fort"
-        LE_PACTE -> "Le Pacte"
+        LE_PACTE -> "Le Miroir à Deux"
         PORTRAIT_PROCHE -> "Portrait Proche"
         RECONCILIATION -> "Réconciliation"
         else -> id

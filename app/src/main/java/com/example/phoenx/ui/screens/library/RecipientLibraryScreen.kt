@@ -271,7 +271,7 @@ fun RecipientLibraryScreen(
                     maxItemsInEachRow = 3
                 ) {
                     val itemModifier = Modifier.weight(1f)
-                    CompactGridItem("Le Pacte", Icons.Outlined.Handshake, { navController.navigate("le_pacte") }, theme, itemModifier)
+                    CompactGridItem("Le Miroir à Deux", Icons.Outlined.Handshake, { navController.navigate("le_pacte") }, theme, itemModifier)
                     CompactGridItem("Réconciliation", Icons.Outlined.Mail, { navController.navigate("reconciliation") }, theme, itemModifier)
                     CompactGridItem("Capsules", Icons.Outlined.MailOutline, { navController.navigate("lettres") }, theme, itemModifier)
                     // Remplissage si nécessaire

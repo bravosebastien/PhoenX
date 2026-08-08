@@ -86,10 +86,21 @@ class BookGeneratorService @Inject constructor(
         val allEntries = offlineEntryDao.getAllEntriesSync()
         val allPersons = offlineEntryDao.getAllPersons().first()
         val personMap = allPersons.associateBy { it.id }
+        
+        // Cache des pactes pour éviter des requêtes répétitives (v9.4.27)
+        val pacts = offlineEntryDao.getAllPacts().first().associateBy { it.id }
 
-        // v9.4.27 : Filtrage strict - Uniquement les racines incluses dans le livre ET hors Coffre-Fort
-        val parents = allEntries.filter { 
-            it.parentEntryId == null && it.includeInBook && it.enigmaQuestion == null 
+        // v9.4.27 : Filtrage strict
+        val parents = allEntries.filter { entry ->
+            val isIncluded = entry.parentEntryId == null && entry.includeInBook && entry.enigmaQuestion == null 
+            
+            if (isIncluded && entry.pactId != null) {
+                // Si c'est un Miroir à Deux, on vérifie le DOUBLE CONSENTEMENT (v9.4.27)
+                val pact = pacts[entry.pactId]
+                pact != null && pact.myConsentToBook && pact.partnerConsentToBook
+            } else {
+                isIncluded
+            }
         }
         
         return parents.map { parent ->

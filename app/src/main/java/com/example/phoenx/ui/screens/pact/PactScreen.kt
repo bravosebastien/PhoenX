@@ -35,8 +35,20 @@ fun PactScreen(
     val uiState by viewModel.uiState.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val context = androidx.compose.ui.platform.LocalContext.current
     var showInviteDialog by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(viewModel.invitationLink) {
+        viewModel.invitationLink.collect { link ->
+            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(android.content.Intent.EXTRA_SUBJECT, "Se refléter dans PHOEN-X")
+                putExtra(android.content.Intent.EXTRA_TEXT, "Je t'invite à créer un Miroir à Deux avec moi sur PHOEN-X pour partager nos souvenirs communs : $link")
+            }
+            context.startActivity(android.content.Intent.createChooser(intent, "Partager l'invitation"))
+        }
+    }
 
     LaunchedEffect(uiState.error) {
         uiState.error?.let {
@@ -51,7 +63,7 @@ fun PactScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Le Pacte", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text("Le Miroir à Deux", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -83,7 +95,7 @@ fun PactScreen(
                 ) {
                     item {
                         Text(
-                            "Tes histoires partagées",
+                            "Tes reflets croisés",
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = accent,
                             letterSpacing = 2.sp
@@ -132,7 +144,7 @@ fun PactCard(pact: PactEntity, theme: AppThemeState, onClick: () -> Unit) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(pact.partnerName, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                Text("Pacte avec ${pact.partnerEmail}", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                Text("Miroir avec ${pact.partnerEmail}", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
             }
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = accent)
         }
@@ -148,7 +160,7 @@ fun EmptyPactContent(modifier: Modifier = Modifier, theme: AppThemeState) {
     ) {
         Icon(Icons.Default.Handshake, null, modifier = Modifier.size(64.dp), tint = theme.contentColor.copy(alpha = 0.2f))
         Spacer(modifier = Modifier.height(24.dp))
-        Text("Aucun pacte en cours.", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+        Text("Aucun Miroir à Deux en cours.", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
         Text("Invite un proche à raconter votre histoire commune.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.4f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, modifier = Modifier.padding(horizontal = 40.dp))
     }
 }
@@ -162,10 +174,10 @@ fun InvitePactDialog(onDismiss: () -> Unit, theme: AppThemeState, onConfirm: (St
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = theme.backgroundColor,
-        title = { Text("Initier un Pacte", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+        title = { Text("Lancer un Miroir à Deux", color = theme.contentColor, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("Deux points de vue pour une même histoire. Chacun écrit de son côté, et les versions seront révélées ensemble plus tard.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
+                Text("Deux points de vue pour une même histoire. Chacun écrit de son côté, et les versions seront révélées ensemble une fois que les deux seront prêtes.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -199,7 +211,7 @@ fun InvitePactDialog(onDismiss: () -> Unit, theme: AppThemeState, onConfirm: (St
                 colors = ButtonDefaults.buttonColors(containerColor = accent),
                 modifier = Modifier.phoenXMatiere()
             ) {
-                Text("Envoyer l'invitation", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text("Inviter à se refléter", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     )

@@ -140,6 +140,9 @@ class MemoryDetailViewModel @Inject constructor(
     val recipients: StateFlow<List<RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val allPacts: StateFlow<List<PactEntity>> = offlineEntryDao.getAllPacts()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     val entry: StateFlow<OfflineEntry?> = _entryId
         .filterNotNull()
         .flatMapLatest { id -> offlineEntryDao.getEntryById(id) }
@@ -593,6 +596,14 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             offlineEntryDao.updateEntryIncludeInBook(include, id)
+            triggerSync(id)
+        }
+    }
+
+    fun updatePactId(pactId: String?) {
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            offlineEntryDao.updateEntryPactId(pactId, id)
             triggerSync(id)
         }
     }
