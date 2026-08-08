@@ -669,8 +669,18 @@ class RecipientMediaViewModel @Inject constructor(
                                     )
                                     
                                     if (isCreator) {
-                                        // Auto-réparation Room en arrière-plan
-                                        launch { standaloneMediaDao.insertMedia(entity) }
+                                        // Auto-réparation Room sécurisée (v9.4.27) : Préserve les chemins locaux
+                                        launch {
+                                            val existing = standaloneMediaDao.getMediaById(entity.id)
+                                            val repairedEntity = if (existing != null) {
+                                                entity.copy(
+                                                    localCoverPath = existing.localCoverPath,
+                                                    // content peut être un chemin local pour PHOTO standalone
+                                                    content = if (existing.content.startsWith("/data/")) existing.content else entity.content
+                                                )
+                                            } else entity
+                                            standaloneMediaDao.insertMedia(repairedEntity)
+                                        }
                                     }
                                     entity
                                 } else null

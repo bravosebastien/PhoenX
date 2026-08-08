@@ -14,6 +14,9 @@ interface StandaloneMediaDao {
     @Query("SELECT * FROM standalone_media ORDER BY createdAt DESC")
     fun getAllStandaloneMedia(): Flow<List<StandaloneMediaEntity>>
 
+    @Query("SELECT * FROM standalone_media WHERE id = :id")
+    suspend fun getMediaById(id: String): StandaloneMediaEntity?
+
     @Query("SELECT * FROM standalone_media WHERE syncStatus = 'pending'")
     suspend fun getPendingSync(): List<StandaloneMediaEntity>
 
