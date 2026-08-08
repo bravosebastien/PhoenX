@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.local.RecipientEntity
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -36,7 +37,7 @@ fun MediaViewModeSelector(
     onModeChange: (MediaViewMode) -> Unit,
     filterRecipientId: String?,
     onRecipientChange: (String?) -> Unit,
-    recipients: List<com.example.phoenx.data.local.RecipientEntity>,
+    recipients: List<RecipientEntity>,
     theme: com.example.phoenx.ui.theme.AppThemeState,
     accent: Color,
     // v9.4.27 : Filtre de contenu (Optionnel, utilisé pour Discothèque)
@@ -227,7 +228,7 @@ class RecipientMediaViewModel @Inject constructor(
     private val _videoEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
     val videoEntries: StateFlow<List<PhoenXEntry>> = _videoEntries
 
-    val recipientsFlow: StateFlow<List<com.example.phoenx.data.local.RecipientEntity>> = offlineEntryDao.getAllRecipients()
+    val recipientsFlow: StateFlow<List<RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _heritageEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
@@ -596,6 +597,7 @@ class RecipientMediaViewModel @Inject constructor(
     private fun loadAllMedia() {
         val currentUid = auth.currentUser?.uid ?: ""
         viewModelScope.launch {
+            // 1. Flux des entrées classiques (Room ou Firestore)
             val offlineEntriesFlow = _targetCreatorId.flatMapLatest { targetId ->
                 if (targetId == null || targetId == currentUid) {
                     offlineEntryDao.getAllEntries()
@@ -626,32 +628,32 @@ class RecipientMediaViewModel @Inject constructor(
                 }
             }
 
+            // 2. Flux des médias isolés (HORS-LIGNE + Firestore v9.4.27)
             val standaloneMediaFlow = _targetCreatorId.flatMapLatest { targetId ->
                 val effectiveId = targetId ?: currentUid
                 if (effectiveId.isEmpty()) return@flatMapLatest kotlinx.coroutines.flow.flowOf(emptyList())
 
-                // On utilise Firestore directement pour garantir la visibilité des 8 éléments (v9.4.27)
+                val isCreator = effectiveId == currentUid
+
                 callbackFlow {
+                    // A. Listener Firestore (Source pour Héritier, Réparation pour Créateur)
                     val listener = db.collection("users").document(effectiveId)
                         .collection("standaloneMedia")
-                        .addSnapshotListener { snapshot, _ ->
-                            val list = snapshot?.documents?.mapNotNull { doc ->
+                        .addSnapshotListener { snapshot, error ->
+                            if (error != null) return@addSnapshotListener
+                            
+                            val firestoreItems = snapshot?.documents?.mapNotNull { doc ->
                                 val recIds = (doc.get("recipientIds") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
                                 
-                                // Filtrage : Le créateur voit tout, l'héritier voit si public ou s'il est destinataire
-                                val isCreator = effectiveId == currentUid
                                 if (isCreator || recIds.isEmpty() || recIds.contains(currentUid)) {
                                     val type = doc.getString("type") ?: ""
                                     val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
-                                    
                                     val contentStr = if (needsEncryption) {
                                         val blob = doc.get("content") as? com.google.firebase.firestore.Blob
                                         blob?.toBytes()?.let { android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT) } ?: ""
-                                    } else {
-                                        doc.getString("content") ?: ""
-                                    }
+                                    } else doc.getString("content") ?: ""
 
-                                    com.example.phoenx.data.local.StandaloneMediaEntity(
+                                    val entity = com.example.phoenx.data.local.StandaloneMediaEntity(
                                         id = doc.id,
                                         creatorUid = effectiveId,
                                         type = type,
@@ -664,17 +666,35 @@ class RecipientMediaViewModel @Inject constructor(
                                         syncStatus = "synced",
                                         coverUrl = doc.getString("coverUrl"),
                                         mediaProvider = doc.getString("mediaProvider")
-                                    ).also {
-                                        // Auto-réparation : On synchronise en local si on est le créateur
-                                        if (isCreator) {
-                                            viewModelScope.launch { standaloneMediaDao.insertMedia(it) }
-                                        }
+                                    )
+                                    
+                                    if (isCreator) {
+                                        // Auto-réparation Room en arrière-plan
+                                        launch { standaloneMediaDao.insertMedia(entity) }
                                     }
+                                    entity
                                 } else null
                             } ?: emptyList()
-                            trySend(list)
+
+                            // Si Héritier, on émet directement Firestore vers l'UI
+                            if (!isCreator) {
+                                trySend(firestoreItems)
+                            }
                         }
-                    awaitClose { listener.remove() }
+
+                    // B. Si Créateur, la source de vérité pour l'UI est Room
+                    val roomJob = if (isCreator) {
+                        launch {
+                            standaloneMediaDao.getAllStandaloneMedia().collect { items ->
+                                trySend(items)
+                            }
+                        }
+                    } else null
+
+                    awaitClose {
+                        listener.remove()
+                        roomJob?.cancel()
+                    }
                 }
             }
 
@@ -703,21 +723,24 @@ class RecipientMediaViewModel @Inject constructor(
                     decodedEntries.add(domainEntry)
                 }
 
-                Triple(decodedEntries.toList(), activated, isHeirMode)
+                // 4. Indexation par type (Action 2 : Recalcul sur thread de fond)
+                val allDecoded = decodedEntries.toList()
+                mapOf(
+                    "library" to allDecoded.filter { it.parentEntryId == null && (it.type == EntryType.THOUGHT || it.type == EntryType.LEGACY || it.isYoungSelfLetter) },
+                    "video" to allDecoded.filter { it.type == EntryType.VIDEO },
+                    "audio" to allDecoded.filter { it.type == EntryType.AUDIO },
+                    "photo" to allDecoded.filter { it.type == EntryType.PHOTO },
+                    "heritage" to allDecoded.filter { it.parentEntryId == null }.sortedByDescending { it.timestamp }
+                )
             }
             .flowOn(Dispatchers.Default)
-            .collectLatest { (allDecoded, activated, _) ->
-                // 4. Indexation par type (v9.4.27 : Chaque média, parent ou complément, est listé individuellement)
-                _libraryEntries.value = allDecoded.filter { it.parentEntryId == null && (it.type == EntryType.THOUGHT || it.type == EntryType.LEGACY || it.isYoungSelfLetter) }
-
-                _videoEntries.value = allDecoded.filter { it.type == EntryType.VIDEO }
-
-                _discothequeEntries.value = allDecoded.filter { it.type == EntryType.AUDIO }
-
-                _archiveEntries.value = allDecoded.filter { it.type == EntryType.PHOTO }
-
-                // 5. Unified Heritage List (v8.5.3) - On ne garde que les parents pour le flux chronologique principal
-                _heritageEntries.value = allDecoded.filter { it.parentEntryId == null }.sortedByDescending { it.timestamp }
+            .collectLatest { result ->
+                // Mise à jour de l'UI avec les listes déjà filtrées
+                _libraryEntries.value = result["library"] ?: emptyList()
+                _videoEntries.value = result["video"] ?: emptyList()
+                _discothequeEntries.value = result["audio"] ?: emptyList()
+                _archiveEntries.value = result["photo"] ?: emptyList()
+                _heritageEntries.value = result["heritage"] ?: emptyList()
             }
         }
     }

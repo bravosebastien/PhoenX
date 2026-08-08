@@ -101,26 +101,24 @@ fun DirectMediaDialog(
                     }
                 }
 
-                // TITRE (v9.4.27 : Toujours éditable si présent ou en cours de récup)
-                val showTitleField = type != "SPOTIFY" && type != "DEEZER" || title.isNotEmpty() || isFetchingMetadata
-                if (showTitleField) {
-                    OutlinedTextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        label = { 
-                            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                                Text("Titre")
-                                if (isFetchingMetadata) {
-                                    Spacer(Modifier.width(8.dp))
-                                    CircularProgressIndicator(modifier = Modifier.size(12.dp), strokeWidth = 1.5.dp, color = accent)
-                                    Spacer(Modifier.width(4.dp))
-                                    Text("Récupération...", style = MaterialTheme.typography.labelSmall, color = accent)
-                                }
+                // TITRE (v9.4.27 : Toujours éditable pour permettre la saisie manuelle hors-ligne)
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { 
+                        Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            Text("Titre")
+                            if (isFetchingMetadata) {
+                                Spacer(Modifier.width(8.dp))
+                                CircularProgressIndicator(modifier = Modifier.size(12.dp), strokeWidth = 1.5.dp, color = accent)
+                                Spacer(Modifier.width(4.dp))
+                                Text("Récupération...", style = MaterialTheme.typography.labelSmall, color = accent)
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                        }
+                    },
+                    placeholder = { Text("Donnez un nom à ce média") },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 // COMMENTAIRE / DESCRIPTION (Masqué uniquement pour Notes Vocales - v9.4.27)
                 if (type != "AUDIO" && type != "PHOENX") {
