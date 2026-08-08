@@ -46,7 +46,8 @@ class MemoryDetailViewModel @Inject constructor(
     private val audioRecorder: com.example.phoenx.data.audio.PhoenXAudioRecorder,
     private val wavRecorder: com.example.phoenx.data.audio.WavAudioRecorder,
     private val sttManager: com.example.phoenx.data.audio.SpeechToTextManager,
-    private val mediaManager: com.example.phoenx.data.media.MediaManager, // v9.4.27
+    private val mediaManager: com.example.phoenx.data.media.MediaManager,
+    private val preferenceManager: com.example.phoenx.data.preferences.PreferenceManager, // v9.4.27
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -117,6 +118,15 @@ class MemoryDetailViewModel @Inject constructor(
 
     private val _isProtocolActivated = MutableStateFlow(true)
     val isProtocolActivated: StateFlow<Boolean> = _isProtocolActivated.asStateFlow()
+
+    val hasSeenIncludeInBookNudge: StateFlow<Boolean> = preferenceManager.hasSeenIncludeInBookNudge
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun markIncludeInBookNudgeSeen() {
+        viewModelScope.launch {
+            preferenceManager.markIncludeInBookNudgeSeen()
+        }
+    }
 
     private val _deleteSuccess = MutableStateFlow(false)
     val deleteSuccess: StateFlow<Boolean> = _deleteSuccess.asStateFlow()

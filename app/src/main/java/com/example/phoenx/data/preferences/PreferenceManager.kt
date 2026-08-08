@@ -46,6 +46,7 @@ class PreferenceManager @Inject constructor(
 
     // v9.4.27 : Assistant Proactif
     private val HAS_SEEN_ASSISTANT_WELCOME_KEY = booleanPreferencesKey("has_seen_assistant_welcome")
+    private val HAS_SEEN_INCLUDE_IN_BOOK_NUDGE_KEY = booleanPreferencesKey("has_seen_include_in_book_nudge")
 
     fun isSyncMigrationV1Done(): Flow<Boolean> = context.dataStore.data
         .map { it[SYNC_MIGRATION_V1_DONE_KEY] ?: false }
@@ -218,6 +219,14 @@ class PreferenceManager @Inject constructor(
 
     suspend fun setAssistantWelcomeSeen() {
         context.dataStore.edit { it[HAS_SEEN_ASSISTANT_WELCOME_KEY] = true }
+    }
+
+    // --- SOUVERAINETÉ (v9.4.27) ---
+    val hasSeenIncludeInBookNudge: Flow<Boolean> = context.dataStore.data
+        .map { it[HAS_SEEN_INCLUDE_IN_BOOK_NUDGE_KEY] ?: false }
+
+    suspend fun markIncludeInBookNudgeSeen() {
+        context.dataStore.edit { it[HAS_SEEN_INCLUDE_IN_BOOK_NUDGE_KEY] = true }
     }
 
     // --- SYSTÈME D'ONBOARDING PAR PAGE (v9.2.2) ---

@@ -265,25 +265,27 @@ fun MemoryDetailScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { 
-                    val titleText = when(entry?.entryType) {
-                        "PORTRAIT" -> entry?.aiSummary ?: "Portrait"
-                        "QUESTION_ANSWER" -> "Question : ${entry?.aiSummary}"
-                        else -> if (entry?.parentEntryId != null) "Réponse au Portrait" else "L'Étincelle & son Récit"
-                    }
-                    Text(titleText, style = MaterialTheme.typography.labelLarge, color = theme.contentColor) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor) }
-                },
-                actions = {
-                    if (!isReadOnly) {
-                        IconButton(onClick = { showDeleteDialog = true }) { Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = Error) }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+            if (!isStoryEditorOpen) {
+                TopAppBar(
+                    title = { 
+                        val titleText = when(entry?.entryType) {
+                            "PORTRAIT" -> entry?.aiSummary ?: "Portrait"
+                            "QUESTION_ANSWER" -> "Question : ${entry?.aiSummary}"
+                            else -> if (entry?.parentEntryId != null) "Réponse au Portrait" else "L'Étincelle & son Récit"
+                        }
+                        Text(titleText, style = MaterialTheme.typography.labelLarge, color = theme.contentColor) 
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor) }
+                    },
+                    actions = {
+                        if (!isReadOnly) {
+                            IconButton(onClick = { showDeleteDialog = true }) { Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = Error) }
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+            }
         }
     ) { padding ->
         if (entry == null) {
@@ -499,18 +501,36 @@ fun MemoryDetailScreen(
                 }
 
                 if (isStoryEditorOpen) {
-                    Surface(modifier = Modifier.fillMaxSize(), color = theme.backgroundColor) {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(), 
+                        color = theme.backgroundColor
+                    ) {
                         Column(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
-                            Row(modifier = Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
-                                    Text("TON RÉCIT", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), color = accent)
-                                }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween, 
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // GAUCHE : Libellé de contexte
+                                Text(
+                                    text = "TON RÉCIT", 
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
+                                    color = accent
+                                )
+                                
+                                // DROITE : Actions
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    IconButton(onClick = { viewModel.updateContent(""); isStoryEditorOpen = false }) { Icon(Icons.Default.Delete, null, tint = Error.copy(alpha = 0.7f)) }
-                                    Spacer(Modifier.width(16.dp))
-                                    IconButton(onClick = { viewModel.updateContent(editableText); isStoryEditorOpen = false }) { Icon(Icons.Default.Check, null, tint = accent) }
+                                    IconButton(
+                                        onClick = { viewModel.updateContent(editableText); isStoryEditorOpen = false },
+                                        modifier = Modifier.size(40.dp)
+                                    ) { 
+                                        Icon(Icons.Default.Check, "Valider", tint = accent) 
+                                    }
                                 }
                             }
+
                             TextField(
                                 value = editableText,
                                 onValueChange = { editableText = it },

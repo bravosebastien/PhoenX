@@ -166,7 +166,8 @@ export const generateBookChapters = onCall({
 
     Instructions de rédaction (v9.4.27) :
     1. Rédige un récit fluide, à la première personne du singulier ("Je"), en couvrant la période de ${ageMin} à ${ageMax} ans.
-    2. Utilise les 'userComment' (commentaires personnels) pour enrichir la description des médias et des souvenirs : ils apportent le contexte émotionnel que le résumé n'a pas forcément capté.
+    2. RÈGLE DE NON-PARAPHRASE (CRITIQUE) : Ne reproduis jamais la structure de phrase ou le choix de mots exact des 'summary' fournis. Tu es un biographe littéraire, pas un traducteur. Réécris entièrement chaque idée avec ton propre style narratif, fluide et élégant. Une simple reformulation par synonymes est interdite.
+    3. Utilise les 'userComment' (commentaires personnels) pour enrichir la description des médias et des souvenirs : ils apportent le contexte émotionnel que le résumé n'a pas forcément capté.
     3. Intègre les 'amendments' pour montrer comment la pensée de l'auteur a évolué sur un même sujet au fil des années.
     4. Utilise les données de l'Arbre Généalogique ('characters' avec parentIds et biography) pour assurer la cohérence des liens familiaux et donner de l'épaisseur aux proches cités.
     5. Pour chaque photo fournie (avec id et description), insère la balise [PHOTO:id_exact] à l'endroit le plus opportun dans ton texte.

@@ -47,6 +47,7 @@ fun MemoryMetadataSection(
     val selectedPersons by viewModel.selectedPersons.collectAsState()
     val suggestedPersons by viewModel.suggestedPersons.collectAsState()
     val selectedRecipientIds by viewModel.selectedRecipientIds.collectAsState()
+    val hasSeenIncludeInBookNudge by viewModel.hasSeenIncludeInBookNudge.collectAsState()
 
     var isPeriodMode by remember(entry) {
         mutableStateOf(entry.memoryDateStart != null || entry.memoryDateEnd != null)
@@ -54,6 +55,7 @@ fun MemoryMetadataSection(
     var isTiroirsExpanded by remember { mutableStateOf(false) }
     var isTonaliteExpanded by remember { mutableStateOf(false) }
     var showLocationMenu by remember { mutableStateOf(false) }
+    var showIncludeInBookNudge by remember { mutableStateOf(false) }
 
     // ÉNIGME / COFFRE-FORT (v9.4.27)
     var enigmaEnabled by remember(entry) { mutableStateOf(entry.enigmaQuestion != null) }
@@ -336,7 +338,13 @@ fun MemoryMetadataSection(
                             Surface(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { viewModel.updateIncludeInBook(!entry.includeInBook) }
+                                    .clickable { 
+                                        val newValue = !entry.includeInBook
+                                        if (newValue && !hasSeenIncludeInBookNudge) {
+                                            showIncludeInBookNudge = true
+                                        }
+                                        viewModel.updateIncludeInBook(newValue) 
+                                    }
                                     .border(1.dp, if (entry.includeInBook) accent.copy(alpha = 0.3f) else theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
                                 color = if (entry.includeInBook) accent.copy(alpha = 0.05f) else theme.contentColor.copy(alpha = 0.02f),
                                 shape = RoundedCornerShape(12.dp)
@@ -356,12 +364,24 @@ fun MemoryMetadataSection(
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text("Inclure dans mon Livre", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            Text("Inclure dans mon Livre", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                            Spacer(Modifier.width(8.dp))
+                                            InfoPoint(
+                                                title = "Aide au Livre de Vie",
+                                                content = "En incluant ce souvenir, il sera repris et reformulé par l'IA pour nourrir votre Livre de Vie. L'IA n'utilise que vos résumés pour rédiger un récit fluide avec ses propres mots : votre texte original reste strictement privé.\n\nAttention : Le chapitre créé sera visible par tous les destinataires de votre Livre, même si ce souvenir était initialement réservé à certains d'entre eux seulement."
+                                            )
+                                        }
                                         Text("Nourrir le récit IA par ce souvenir.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                                     }
                                     Switch(
                                         checked = entry.includeInBook,
-                                        onCheckedChange = { viewModel.updateIncludeInBook(it) },
+                                        onCheckedChange = { 
+                                            if (it && !hasSeenIncludeInBookNudge) {
+                                                showIncludeInBookNudge = true
+                                            }
+                                            viewModel.updateIncludeInBook(it) 
+                                        },
                                         colors = SwitchDefaults.colors(checkedThumbColor = accent)
                                     )
                                 }
@@ -441,5 +461,31 @@ fun MemoryMetadataSection(
                 isReadOnly = isReadOnly
             )
         }
+    }
+
+    if (showIncludeInBookNudge) {
+        AlertDialog(
+            onDismissRequest = { showIncludeInBookNudge = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("Livre de Vie", color = theme.contentColor, style = MaterialTheme.typography.titleLarge) },
+            text = {
+                Text(
+                    "En incluant ce souvenir, il sera repris et reformulé par l'IA pour nourrir votre Livre de Vie. L'IA n'utilise que vos résumés pour rédiger un récit fluide avec ses propres mots : votre texte original reste strictement privé.\n\nAttention : Le chapitre créé sera visible par tous les destinataires de votre Livre, même si ce souvenir était initialement réservé à certains d'entre eux seulement.",
+                    color = theme.contentColor.copy(alpha = 0.8f),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.markIncludeInBookNudgeSeen(); showIncludeInBookNudge = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
+                ) { Text("Ne plus afficher", color = theme.backgroundColor) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showIncludeInBookNudge = false }) {
+                    Text("Fermer", color = theme.contentColor)
+                }
+            }
+        )
     }
 }
