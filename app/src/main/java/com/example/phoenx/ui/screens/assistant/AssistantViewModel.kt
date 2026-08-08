@@ -36,6 +36,28 @@ class AssistantViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    // --- ACCUEIL PROACTIF (v9.4.27) ---
+    val hasSeenWelcome: StateFlow<Boolean> = preferenceManager.hasSeenAssistantWelcome
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun markWelcomeSeen() {
+        viewModelScope.launch {
+            preferenceManager.setAssistantWelcomeSeen()
+        }
+    }
+
+    val suggestedQuestions = listOf(
+        "Comment déposer mon premier souvenir ?",
+        "Qui pourra voir ce que j'écris ?",
+        "Comment marche la sécurisation ?"
+    )
+
+    fun injectSystemMessage(text: String) {
+        if (_chatMessages.value.none { !it.isUser && it.text == text }) {
+            _chatMessages.update { it + ChatMessage(text, isUser = false) }
+        }
+    }
+
     fun toggleChat() {
         _isChatOpen.value = !_isChatOpen.value
     }

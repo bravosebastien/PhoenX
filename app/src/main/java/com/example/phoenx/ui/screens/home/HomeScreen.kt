@@ -117,6 +117,7 @@ fun HomeScreen(
     val myRoles by mainViewModel.myRoles.collectAsState()
     val currentPerspective by mainViewModel.currentPerspective.collectAsState()
     val hasSeenStepByStepNudge by viewModel.hasSeenStepByStepNudge.collectAsState()
+    val hasSeenAssistantWelcome by assistantViewModel.hasSeenWelcome.collectAsState()
     
     // v8.9.0 : Thème Global
     val theme = LocalAppTheme.current
@@ -548,7 +549,11 @@ fun HomeScreen(
             initialX = assistantX,
             initialY = assistantY,
             onPositionChanged = { x, y -> assistantViewModel.savePosition(x, y) },
-            onClick = { assistantViewModel.toggleChat() }
+            onClick = { 
+                assistantViewModel.toggleChat() 
+                if (!hasSeenAssistantWelcome) assistantViewModel.markWelcomeSeen()
+            },
+            showWelcomeTooltip = !hasSeenAssistantWelcome && uiState.entryCount == 0
         )
 
         if (isAssistantChatOpen) {

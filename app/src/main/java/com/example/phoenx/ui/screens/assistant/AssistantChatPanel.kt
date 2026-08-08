@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.assistant
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -34,6 +35,14 @@ fun AssistantChatPanel(
     
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var question by remember { mutableStateOf("") }
+
+    // v9.4.27 : Injection d'un message de bienvenue si la conversation est vide
+    LaunchedEffect(messages) {
+        if (messages.isEmpty()) {
+            val userName = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.displayName ?: "ami"
+            viewModel.injectSystemMessage("Bienvenue $userName ! Je suis ton assistant PHOEN-X. Mon rôle est de t'accompagner pour que tu puisses transmettre ce qui compte vraiment. Que souhaites-tu savoir pour tes premiers pas ?")
+        }
+    }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -77,6 +86,29 @@ fun AssistantChatPanel(
                             modifier = Modifier.fillMaxWidth().height(2.dp),
                             color = accent
                         )
+                    }
+                }
+                
+                // v9.4.27 : Suggestions de questions si début de conversation
+                if (messages.size <= 1 && !isLoading) {
+                    item {
+                        androidx.compose.foundation.lazy.LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        ) {
+                            items(viewModel.suggestedQuestions) { suggestion ->
+                                FilterChip(
+                                    selected = false,
+                                    onClick = { viewModel.askQuestion(suggestion) },
+                                    label = { Text(suggestion, fontSize = 11.sp) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = accent.copy(alpha = 0.1f),
+                                        labelColor = accent
+                                    ),
+                                    border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+                                )
+                            }
+                        }
                     }
                 }
                 

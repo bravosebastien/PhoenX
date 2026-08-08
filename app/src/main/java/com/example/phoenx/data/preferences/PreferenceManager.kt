@@ -44,6 +44,9 @@ class PreferenceManager @Inject constructor(
     // v9.4.26 : Step-by-Step Nudge
     private val HAS_SEEN_STEP_BY_STEP_NUDGE_KEY = booleanPreferencesKey("has_seen_step_by_step_nudge")
 
+    // v9.4.27 : Assistant Proactif
+    private val HAS_SEEN_ASSISTANT_WELCOME_KEY = booleanPreferencesKey("has_seen_assistant_welcome")
+
     fun isSyncMigrationV1Done(): Flow<Boolean> = context.dataStore.data
         .map { it[SYNC_MIGRATION_V1_DONE_KEY] ?: false }
 
@@ -207,6 +210,14 @@ class PreferenceManager @Inject constructor(
 
     suspend fun setStepByStepNudgeSeen() {
         context.dataStore.edit { it[HAS_SEEN_STEP_BY_STEP_NUDGE_KEY] = true }
+    }
+
+    // --- ASSISTANT PROACTIF (v9.4.27) ---
+    val hasSeenAssistantWelcome: Flow<Boolean> = context.dataStore.data
+        .map { it[HAS_SEEN_ASSISTANT_WELCOME_KEY] ?: false }
+
+    suspend fun setAssistantWelcomeSeen() {
+        context.dataStore.edit { it[HAS_SEEN_ASSISTANT_WELCOME_KEY] = true }
     }
 
     // --- SYSTÈME D'ONBOARDING PAR PAGE (v9.2.2) ---
