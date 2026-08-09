@@ -1,6 +1,6 @@
 # Le Miroir à Deux
 
-Le **Miroir à Deux** (anciennement appelé Le Pacte) est un espace de complicité entre deux Créateurs vivants qui partagent des souvenirs communs.
+Le **Miroir à Deux** est un espace de complicité entre deux Créateurs vivants qui partagent des souvenirs communs.
 
 ## Le principe des versions croisées
 Le Miroir permet à deux personnes d'écrire chacune leur propre version d'un même événement.

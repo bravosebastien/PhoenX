@@ -60,11 +60,11 @@ fun PreviewFilScreen(
             )
         }
     ) { padding ->
-        if (state.isLoading) {
+        if (state.isLoading && state.filteredSouvenirs.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = accent)
             }
-        } else if (state.filteredEntries.isEmpty()) {
+        } else if (state.filteredSouvenirs.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Aucun souvenir partagé avec ${state.recipientName}", color = theme.contentColor.copy(alpha = 0.4f))
             }
@@ -74,7 +74,7 @@ fun PreviewFilScreen(
                 contentPadding = PaddingValues(24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(state.filteredEntries) { entry ->
+                items(state.filteredSouvenirs) { entry ->
                     PreviewEntryCard(entry, theme) {
                         onNavigateToDetail(entry.id)
                     }

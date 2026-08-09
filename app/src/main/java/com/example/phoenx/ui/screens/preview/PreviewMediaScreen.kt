@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.preview
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -66,6 +67,15 @@ fun PreviewMediaScreen(
         state.filteredMedia.filter { it.type == entryType }
     }
 
+    // GESTION PANNEAU MÉDIA (v9.4.27)
+    var selectedMediaId by remember { mutableStateOf<String?>(null) }
+    val sheetState = rememberModalBottomSheetState()
+    var showSheet by remember { mutableStateOf(false) }
+    
+    val selectedEntry = remember(selectedMediaId, state.allFilteredEntries) {
+        state.allFilteredEntries.find { it.id == selectedMediaId }
+    }
+
     Scaffold(
         containerColor = theme.backgroundColor,
         modifier = Modifier.background(backgroundBrush),
@@ -109,8 +119,39 @@ fun PreviewMediaScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(filteredList) { entry ->
-                    PreviewMediaCard(entry, theme, mediaManager)
+                    PreviewMediaCard(
+                        entry = entry, 
+                        theme = theme, 
+                        mediaManager = mediaManager,
+                        onClick = { 
+                            if (entry.mediaUrl?.startsWith("http") == true) {
+                                try {
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(entry.mediaUrl!!))
+                                    context.startActivity(intent)
+                                } catch(_: Exception) { /* ... */ }
+                            } else {
+                                selectedMediaId = entry.id
+                                showSheet = true
+                            }
+                        }
+                    )
                 }
+            }
+        }
+
+        if (showSheet && selectedEntry != null) {
+            ModalBottomSheet(
+                onDismissRequest = { showSheet = false },
+                sheetState = sheetState,
+                containerColor = theme.backgroundColor,
+                scrimColor = Color.Black.copy(alpha = 0.5f)
+            ) {
+                @androidx.media3.common.util.UnstableApi
+                PreviewMediaPanel(
+                    entry = selectedEntry,
+                    mediaManager = mediaManager,
+                    onDismiss = { showSheet = false }
+                )
             }
         }
     }
@@ -120,10 +161,11 @@ fun PreviewMediaScreen(
 fun PreviewMediaCard(
     entry: PhoenXEntry, 
     theme: com.example.phoenx.ui.theme.AppThemeState,
-    mediaManager: MediaManager
+    mediaManager: MediaManager,
+    onClick: () -> Unit // v9.4.27
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().aspectRatio(1f).phoenXMatiere(),
+        modifier = Modifier.fillMaxWidth().aspectRatio(1f).clickable { onClick() }.phoenXMatiere(),
         colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
         shape = RoundedCornerShape(12.dp)
     ) {

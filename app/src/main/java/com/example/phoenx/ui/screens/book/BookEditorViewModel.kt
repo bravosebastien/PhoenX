@@ -284,7 +284,7 @@ class BookEditorViewModel @Inject constructor(
         }
     }
 
-    fun updateRecipients(selectedDocIds: List<String>) {
+    fun updateRecipients(selectedDocIds: List<String>, visibility: String? = null) {
         val current = _bookDraft.value ?: return
         val allRecipients = recipients.value
         
@@ -293,7 +293,14 @@ class BookEditorViewModel @Inject constructor(
             allRecipients.find { it.id == docId }?.linkedUid ?: docId
         }.distinct()
 
-        val updated = current.copy(recipientIds = persistentIds)
+        // v9.4.27 : La visibilité ne change que si explicitement demandée. 
+        // Si la liste est vide, on reste en RESTRICTED par sécurité.
+        val finalVisibility = visibility ?: current.visibility ?: "RESTRICTED"
+
+        val updated = current.copy(
+            recipientIds = persistentIds,
+            visibility = finalVisibility
+        )
         _bookDraft.value = updated
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
@@ -319,7 +326,7 @@ class BookEditorViewModel @Inject constructor(
         } else {
             current + docId
         }
-        updateRecipients(newList)
+        updateRecipients(newList, _bookDraft.value?.visibility ?: "RESTRICTED")
     }
 
     fun updateSealedMessage(message: String) {

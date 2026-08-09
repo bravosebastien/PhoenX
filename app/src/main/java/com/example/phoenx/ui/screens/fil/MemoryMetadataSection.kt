@@ -440,7 +440,14 @@ fun MemoryMetadataSection(
 
                     // TIROIRS
                     Column {
-                        Text("DANS QUELS TIROIRS ?", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("DANS QUELS TIROIRS ?", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                            Spacer(Modifier.width(8.dp))
+                            InfoPoint(
+                                title = "Le rangement par Tiroirs",
+                                content = "Chaque souvenir peut être rangé dans un ou plusieurs tiroirs thématiques (Photos, Musiques, Lettres...). Cela permet à vos proches de retrouver plus facilement des moments précis de votre vie en explorant votre héritage par centres d'intérêt."
+                            )
+                        }
                         Spacer(modifier = Modifier.height(12.dp))
                         Surface(
                             modifier = Modifier

@@ -135,7 +135,7 @@ fun PreviewDashboardScreen(
 
                     PreviewPillarItem(
                         title = "Livre de Vie",
-                        count = 1, // Toujours 1 livre
+                        count = if (state.hasBookDraft) 1 else 0,
                         icon = Icons.Default.AutoStories,
                         accent = accent,
                         onClick = onNavigateToBook
@@ -205,7 +205,8 @@ fun PreviewPillarItem(
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                Text("$count éléments partagés", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.5f))
+                val label = if (count <= 1) "élément partagé" else "éléments partagés"
+                Text("$count $label", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.5f))
             }
             Icon(Icons.Default.ChevronRight, null, tint = theme.contentColor.copy(alpha = 0.2f))
         }

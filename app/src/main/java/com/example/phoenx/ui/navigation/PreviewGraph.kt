@@ -69,7 +69,9 @@ fun NavGraphBuilder.previewGraph(
         PreviewMemoryDetailScreen(
             entryId = entryId,
             recipientUid = recipientUid,
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = { navController.popBackStack() },
+
+            onNavigateToDetail = { id -> navController.navigate(Screen.Preview.MemoryDetail.createRoute(id, recipientUid)) }
         )
     }
 
@@ -94,9 +96,11 @@ fun NavGraphBuilder.previewGraph(
         arguments = listOf(navArgument("recipientUid") { type = NavType.StringType })
     ) { backStackEntry ->
         val recipientUid = backStackEntry.arguments?.getString("recipientUid") ?: ""
+        val myUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
         PreviewBookScreen(
             recipientUid = recipientUid,
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = { navController.popBackStack() },
+            onConsultBook = { navController.navigate("book_viewer_recipient?creatorId=$myUid") }
         )
     }
 

@@ -371,7 +371,14 @@ fun MemoryDetailScreen(
 
                                 // TONALITÉ (v9.4.27 : Déplacé dans L'ESSENTIEL)
                                 Column {
-                                    Text("QUELLE TONALITÉ ?", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("QUELLE TONALITÉ ?", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                                        Spacer(Modifier.width(8.dp))
+                                        com.example.phoenx.ui.components.InfoPoint(
+                                            title = "La Tonalité du souvenir",
+                                            content = "La tonalité définit l'émotion dominante de ce moment (Joie, Nostalgie, Sagesse...). L'IA Biographe s'en servira pour adapter son style d'écriture lors de la rédaction de votre Livre de Vie, afin de respecter l'intention originale de votre récit."
+                                        )
+                                    }
                                     Spacer(modifier = Modifier.height(12.dp))
                                     Surface(
                                         modifier = Modifier

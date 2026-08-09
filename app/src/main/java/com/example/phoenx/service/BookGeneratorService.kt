@@ -310,12 +310,45 @@ class BookGeneratorService @Inject constructor(
 
     /**
      * Enregistre le brouillon dans Firestore.
+     * v9.4.27 : Utilisation d'une Map pour garantir la présence des champs de sécurité.
      */
     suspend fun saveBookDraft(userId: String, draft: BookDraft) {
         try {
+            val chaptersMap = draft.chapters.map { chapter ->
+                mapOf(
+                    "id" to chapter.id,
+                    "title" to chapter.title,
+                    "content" to chapter.content,
+                    "status" to chapter.status.name,
+                    "lastModified" to chapter.lastModified,
+                    "orderIndex" to chapter.orderIndex
+                )
+            }
+
+            val data: Map<String, Any?> = hashMapOf(
+                "id" to draft.id,
+                "userId" to draft.userId,
+                "generatedAt" to draft.generatedAt,
+                "lastUpdatedAt" to com.google.firebase.firestore.FieldValue.serverTimestamp(),
+                "status" to draft.status.name,
+                "chapters" to chaptersMap,
+                "totalEntries" to draft.totalEntries,
+                "bookTitle" to draft.bookTitle,
+                "recipientIds" to draft.recipientIds,
+                "sealedMessage" to draft.sealedMessage,
+                "globalIntroduction" to draft.globalIntroduction,
+                "theme" to mapOf(
+                    "backgroundId" to draft.theme.backgroundId,
+                    "fontId" to draft.theme.fontId
+                ),
+                "coverImageUrl" to draft.coverImageUrl,
+                "coverTitleStyle" to draft.coverTitleStyle,
+                "visibility" to (draft.visibility ?: "RESTRICTED") // FORCE L'ÉCRITURE
+            )
+
             db.collection("users").document(userId)
                 .collection("book").document("current_draft")
-                .set(draft)
+                .set(data)
                 .await()
         } catch (e: Exception) {
             android.util.Log.e("PHOENX_BOOK", "Erreur lors de la sauvegarde: ${e.message}")

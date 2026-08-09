@@ -464,10 +464,10 @@ fun BookEditorScreen(
                         recipients = recipients,
                         selectedIds = selectedRecipientIds,
                         onToggleRecipient = { viewModel.toggleRecipient(it) },
-                        visibility = if (selectedRecipientIds.isEmpty() && !forceRestricted) "EVERYONE" else "RESTRICTED",
+                        visibility = bookDraft?.visibility ?: "RESTRICTED",
                         onVisibilityChange = { newVis -> 
-                            forceRestricted = (newVis == "RESTRICTED")
-                            if (newVis == "EVERYONE") viewModel.updateRecipients(emptyList())
+                            // v9.4.27 : Changement manuel explicite
+                            viewModel.updateRecipients(selectedRecipientIds, newVis)
                         },
                         accent = accent,
                         containerColor = theme.contentColor.copy(alpha = 0.05f)

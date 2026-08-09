@@ -22,70 +22,55 @@ data class PreviewDashboardState(
     val audiosCount: Int = 0,
     val recipientName: String = "",
     val isLoading: Boolean = true,
-    val filteredEntries: List<com.example.phoenx.data.local.OfflineEntry> = emptyList(),
-    val filteredMedia: List<com.example.phoenx.domain.model.PhoenXEntry> = emptyList(),
-    val filteredEnigmas: List<com.example.phoenx.data.local.OfflineEntry> = emptyList(),
+    val filteredSouvenirs: List<OfflineEntry> = emptyList(),
+    val allFilteredEntries: List<OfflineEntry> = emptyList(),
+    val filteredMedia: List<PhoenXEntry> = emptyList(),
+    val filteredEnigmas: List<OfflineEntry> = emptyList(),
     val familyCount: Int = 0,
     val bookTitle: String? = null,
-    val hasBookDraft: Boolean = false
+    val hasBookDraft: Boolean = false,
+    val isBookShared: Boolean = false // v9.4.27
 )
 
+data class BookPreviewInfo(
+    val title: String? = null,
+    val hasDraft: Boolean = false,
+    val isShared: Boolean = false // v9.4.27
+)
+
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PreviewViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val standaloneMediaDao: StandaloneMediaDao,
-    private val encryptionManager: com.example.phoenx.data.encryption.EncryptionManager, // v9.4.27
+    private val encryptionManager: com.example.phoenx.data.encryption.EncryptionManager,
     private val db: com.google.firebase.firestore.FirebaseFirestore,
     private val auth: com.google.firebase.auth.FirebaseAuth
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(PreviewDashboardState())
-    val state: StateFlow<PreviewDashboardState> = _state.asStateFlow()
+    private val _recipientUid = MutableStateFlow<String?>(null)
+    private val _bookInfo = MutableStateFlow(BookPreviewInfo())
 
-    /**
-     * Déchiffre le texte d'un souvenir pour l'aperçu (v9.4.27)
-     */
-    fun decryptContent(encryptedPayload: ByteArray): String {
-        return encryptionManager.decryptText(encryptedPayload)
-    }
-
-    fun loadPreview(recipientUid: String) {
-        val userId = auth.currentUser?.uid ?: return
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true) }
-            
-            // 1. Récupérer le nom du destinataire pour l'UI
-            val recipients = offlineEntryDao.getAllRecipients().first()
-            val recipient = recipients.find { it.linkedUid == recipientUid }
-            val name = recipient?.name ?: "Ce proche"
-
-            // 1b. Charger le titre du Livre et existence du draft (v9.4.27: Fix check)
-            var bookTitle: String? = null
-            var hasDraft = false
-            try {
-                val bookDoc = db.collection("users").document(userId)
-                    .collection("book").document("current_draft").get().await()
-                
-                if (bookDoc.exists()) {
-                    bookTitle = bookDoc.getString("bookTitle")
-                    // On considère qu'il y a un draft si le document existe
-                    hasDraft = true
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("PreviewVM", "Error loading book info", e)
-            }
-
-            // 2. Charger les contenus assignés (Réutilisation de la logique pure de filtrage)
+    // Source de vérité unique pour l'UI (v9.4.27)
+    val state: StateFlow<PreviewDashboardState> = _recipientUid
+        .filterNotNull()
+        .flatMapLatest { uid ->
             val entriesFlow = offlineEntryDao.getAllEntries()
             val standaloneFlow = standaloneMediaDao.getAllStandaloneMedia()
             val personsFlow = offlineEntryDao.getAllPersons()
+            
+            // Chargement asynchrone du nom du destinataire
+            val nameFlow = flow {
+                val recipients = offlineEntryDao.getAllRecipients().first()
+                emit(recipients.find { it.linkedUid == uid }?.name ?: "Ce proche")
+            }
 
-            combine(entriesFlow, standaloneFlow, personsFlow) { entries, standalone, persons ->
+            combine(entriesFlow, standaloneFlow, personsFlow, _bookInfo, nameFlow) { entries, standalone, persons, bookInfo, name ->
                 val filteredEntries = entries.filter { 
-                    it.visibility == "EVERYONE" || it.recipientIds.split(",").map { id -> id.trim() }.contains(recipientUid) 
+                    it.visibility == "EVERYONE" || it.recipientIds.split(",").map { id -> id.trim() }.contains(uid) 
                 }
                 val filteredStandalone = standalone.filter { 
-                    it.visibility == "EVERYONE" || it.recipientIds.split(",").map { id -> id.trim() }.contains(recipientUid) 
+                    it.visibility == "EVERYONE" || it.recipientIds.split(",").map { id -> id.trim() }.contains(uid) 
                 }
 
                 val souvenirs = filteredEntries.filter { it.parentEntryId == null && it.entryType != "PORTRAIT" }
@@ -108,15 +93,67 @@ class PreviewViewModel @Inject constructor(
                     audiosCount = allAudiosCount,
                     recipientName = name,
                     isLoading = false,
-                    filteredEntries = souvenirs.sortedByDescending { it.createdAt },
+                    filteredSouvenirs = souvenirs.sortedByDescending { it.createdAt },
+                    allFilteredEntries = filteredEntries,
                     filteredMedia = allMapped,
                     filteredEnigmas = filteredEntries.filter { it.enigmaQuestion != null },
                     familyCount = persons.size,
-                    bookTitle = bookTitle,
-                    hasBookDraft = hasDraft
+                    bookTitle = bookInfo.title,
+                    hasBookDraft = bookInfo.hasDraft,
+                    isBookShared = bookInfo.isShared
                 )
-            }.collect { newState ->
-                _state.value = newState
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PreviewDashboardState())
+
+    /**
+     * Déchiffre le texte d'un souvenir pour l'aperçu (v9.4.27)
+     */
+    fun decryptContent(encryptedPayload: ByteArray, summary: String): String {
+        android.util.Log.d("PreviewVM_Debug", "--- DIAGNOSTIC SOUVENIR ---")
+        android.util.Log.d("PreviewVM_Debug", "Titre (aiSummary): $summary")
+        android.util.Log.d("PreviewVM_Debug", "Taille brute payload: ${encryptedPayload.size} bytes")
+        
+        val decrypted = try {
+            encryptionManager.decryptText(encryptedPayload)
+        } catch (e: Exception) {
+            "Erreur déchiffrement"
+        }
+
+        android.util.Log.d("PreviewVM_Debug", "Texte déchiffré: $decrypted")
+        android.util.Log.d("PreviewVM_Debug", "Identiques ? ${decrypted.trim() == summary.trim()}")
+        
+        return decrypted
+    }
+
+    fun loadPreview(recipientUid: String) {
+        if (_recipientUid.value == recipientUid) return // Évite de recharger si déjà sur le même UID
+        
+        val userId = auth.currentUser?.uid ?: return
+        _recipientUid.value = recipientUid
+        
+        // Un seul lancement de chargement Cloud
+        viewModelScope.launch {
+            try {
+                android.util.Log.d("PreviewVM_Debug", "Fetching book info for creator: $userId")
+                val bookDoc = db.collection("users").document(userId)
+                    .collection("book").document("current_draft").get().await()
+                
+                if (bookDoc.exists()) {
+                    val bookTitle = bookDoc.getString("bookTitle")
+                    val chapters = bookDoc.get("chapters") as? List<*>
+                    val recIds = (bookDoc.get("recipientIds") as? List<*>)?.map { it.toString() } ?: emptyList()
+                    val visibility = bookDoc.getString("visibility") ?: "RESTRICTED"
+                    
+                    val hasDraft = chapters?.isNotEmpty() == true
+                    val isVisible = visibility == "EVERYONE" || recIds.contains(recipientUid)
+                    
+                    _bookInfo.value = BookPreviewInfo(bookTitle, hasDraft, isVisible)
+                    android.util.Log.d("PreviewVM_Debug", "Book Info updated: hasDraft=$hasDraft, isVisible=$isVisible")
+                } else {
+                    _bookInfo.value = BookPreviewInfo(null, false, false)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PreviewVM_Debug", "Error loading book info", e)
             }
         }
     }

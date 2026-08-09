@@ -24,6 +24,7 @@ import com.example.phoenx.ui.theme.LocalBackgroundBrush
 fun PreviewBookScreen(
     recipientUid: String,
     onNavigateBack: () -> Unit,
+    onConsultBook: () -> Unit, // v9.4.27
     viewModel: PreviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -69,7 +70,7 @@ fun PreviewBookScreen(
                 
                 Spacer(Modifier.height(16.dp))
                 
-                if (state.hasBookDraft) {
+                if (state.hasBookDraft && state.isBookShared) {
                     Text(
                         "Un manuscrit est déjà disponible pour consultation.",
                         style = MaterialTheme.typography.bodyMedium,
@@ -78,11 +79,25 @@ fun PreviewBookScreen(
                     )
                     Spacer(Modifier.height(32.dp))
                     Button(
-                        onClick = { /* TODO: Ouvrir le lecteur en lecture seule */ },
+                        onClick = onConsultBook,
                         colors = ButtonDefaults.buttonColors(containerColor = accent)
                     ) {
                         Text("Consulter le manuscrit", color = theme.backgroundColor)
                     }
+                } else if (state.hasBookDraft && !state.isBookShared) {
+                    Text(
+                        "Un Livre existe, mais il n'est pas partagé avec ${state.recipientName}.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = theme.contentColor.copy(alpha = 0.6f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Pour le partager, retournez dans l'éditeur de livre et ajoutez ce proche à la liste des destinataires.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = theme.contentColor.copy(alpha = 0.4f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
                 } else {
                     Text(
                         "Aucun Livre n'a encore été généré — le Destinataire ne verra rien de ce côté pour l'instant.",
