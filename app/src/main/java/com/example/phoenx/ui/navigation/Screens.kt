@@ -187,6 +187,28 @@ sealed class Screen(val route: String) {
         fun createRoute(role: String, creatorName: String) = "become_creator_prompt/$role/$creatorName"
     }
 
+    // GRAPHE APERÇU (v9.4.27)
+    object Preview : Screen("preview") {
+        object Root : Screen("preview/root/{recipientUid}") {
+            fun createRoute(recipientUid: String) = "preview/root/$recipientUid"
+        }
+        object Fil : Screen("preview/fil/{recipientUid}") {
+            fun createRoute(recipientUid: String) = "preview/fil/$recipientUid"
+        }
+        object Media : Screen("preview/media/{type}/{recipientUid}") {
+            fun createRoute(type: String, recipientUid: String) = "preview/media/$type/$recipientUid"
+        }
+        object Book : Screen("preview/book/{recipientUid}") {
+            fun createRoute(recipientUid: String) = "preview/book/$recipientUid"
+        }
+        object Vault : Screen("preview/vault/{recipientUid}") {
+            fun createRoute(recipientUid: String) = "preview/vault/$recipientUid"
+        }
+        object Genealogy : Screen("preview/genealogy/{recipientUid}") {
+            fun createRoute(recipientUid: String) = "preview/genealogy/$recipientUid"
+        }
+    }
+
     // GRAPHE DESTINATAIRE
     object RecipientWelcome : Screen("recipient/welcome")
     object RecipientCube : Screen("recipient/cube/{creatorId}") {

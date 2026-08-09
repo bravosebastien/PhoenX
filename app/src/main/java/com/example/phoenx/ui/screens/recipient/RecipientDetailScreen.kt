@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AutoStories
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.HistoryEdu
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -130,7 +132,47 @@ fun RecipientDetailScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(40.dp))
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // APERÇU VISION DESTINATAIRE (v9.4.27)
+                if (recipient.linkedUid != null) {
+                    Card(
+                        onClick = { navController.navigate(Screen.Preview.Root.createRoute(recipient.linkedUid)) },
+                        modifier = Modifier.fillMaxWidth().phoenXMatiere(),
+                        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.08f)),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                modifier = Modifier.size(40.dp),
+                                shape = CircleShape,
+                                color = accent.copy(alpha = 0.1f)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.Visibility, null, tint = accent, modifier = Modifier.size(20.dp))
+                                }
+                            }
+                            Spacer(Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    "Voir son espace (Aperçu)", 
+                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), 
+                                    color = theme.contentColor
+                                )
+                                Text(
+                                    "Vérifiez ce que ${recipient.name.split(" ").first()} verra réellement.", 
+                                    style = MaterialTheme.typography.labelSmall, 
+                                    color = theme.contentColor.copy(alpha = 0.6f)
+                                )
+                            }
+                            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = accent, modifier = Modifier.size(20.dp))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(40.dp))
+                }
 
                 // ÉTAT DU PORTRAIT
                 Text(
