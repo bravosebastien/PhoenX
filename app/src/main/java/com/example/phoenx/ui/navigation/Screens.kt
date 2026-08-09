@@ -199,14 +199,20 @@ sealed class Screen(val route: String) {
     object RecipientLibrary : Screen("recipient/library/{creatorId}") {
         fun createRoute(creatorId: String) = "recipient/library/$creatorId"
     }
-    object RecipientDiscotheque : Screen("recipient/discotheque/{creatorId}") {
-        fun createRoute(creatorId: String) = "recipient/discotheque/$creatorId"
+    object RecipientDiscotheque : Screen("recipient/discotheque/{creatorId}?filterRecipientId={filterRecipientId}") {
+        fun createRoute(creatorId: String, filterRecipientId: String? = null) = 
+            if (filterRecipientId != null) "recipient/discotheque/$creatorId?filterRecipientId=$filterRecipientId"
+            else "recipient/discotheque/$creatorId"
     }
-    object RecipientVideotheque : Screen("recipient/videotheque/{creatorId}") {
-        fun createRoute(creatorId: String) = "recipient/videotheque/$creatorId"
+    object RecipientVideotheque : Screen("recipient/videotheque/{creatorId}?filterRecipientId={filterRecipientId}") {
+        fun createRoute(creatorId: String, filterRecipientId: String? = null) = 
+            if (filterRecipientId != null) "recipient/videotheque/$creatorId?filterRecipientId=$filterRecipientId"
+            else "recipient/videotheque/$creatorId"
     }
-    object RecipientPhotos : Screen("recipient/photos/{creatorId}") {
-        fun createRoute(creatorId: String) = "recipient/photos/$creatorId"
+    object RecipientPhotos : Screen("recipient/photos/{creatorId}?filterRecipientId={filterRecipientId}") {
+        fun createRoute(creatorId: String, filterRecipientId: String? = null) = 
+            if (filterRecipientId != null) "recipient/photos/$creatorId?filterRecipientId=$filterRecipientId"
+            else "recipient/photos/$creatorId"
     }
     object RecipientFavorites : Screen("recipient/favorites/{creatorId}") {
         fun createRoute(creatorId: String) = "recipient/favorites/$creatorId"

@@ -132,11 +132,16 @@ fun NavGraphBuilder.recipientGraph(
     // --- MÉDIATHÈQUE ---
     composable(
         route = Screen.RecipientDiscotheque.route,
-        arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        arguments = listOf(
+            navArgument("creatorId") { type = NavType.StringType },
+            navArgument("filterRecipientId") { type = NavType.StringType; nullable = true }
+        )
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+        val filterRecipientId = backStackEntry.arguments?.getString("filterRecipientId")
         RecipientDiscothequeScreen(
             creatorId = creatorId,
+            filterRecipientId = filterRecipientId,
             onNavigateBack = { navController.popBackStack() },
             onNavigateToCapture = { navController.navigate("capture/AUDIO") },
             onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) }
@@ -145,11 +150,16 @@ fun NavGraphBuilder.recipientGraph(
 
     composable(
         route = Screen.RecipientVideotheque.route,
-        arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        arguments = listOf(
+            navArgument("creatorId") { type = NavType.StringType },
+            navArgument("filterRecipientId") { type = NavType.StringType; nullable = true }
+        )
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+        val filterRecipientId = backStackEntry.arguments?.getString("filterRecipientId")
         RecipientVideothequeScreen(
             creatorId = creatorId,
+            filterRecipientId = filterRecipientId,
             onNavigateBack = { navController.popBackStack() },
             onNavigateToCapture = { navController.navigate("capture/VIDEO") },
             onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) }
@@ -158,11 +168,16 @@ fun NavGraphBuilder.recipientGraph(
 
     composable(
         route = Screen.RecipientPhotos.route,
-        arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        arguments = listOf(
+            navArgument("creatorId") { type = NavType.StringType },
+            navArgument("filterRecipientId") { type = NavType.StringType; nullable = true }
+        )
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+        val filterRecipientId = backStackEntry.arguments?.getString("filterRecipientId")
         RecipientPhotosScreen(
             creatorId = creatorId,
+            filterRecipientId = filterRecipientId,
             onNavigateBack = { navController.popBackStack() },
             onNavigateToCapture = { navController.navigate("capture/PHOTO") },
             onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) }

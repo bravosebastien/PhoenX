@@ -43,6 +43,7 @@ import dagger.hilt.android.EntryPointAccessors
 @Composable
 fun RecipientDiscothequeScreen(
     creatorId: String? = null,
+    filterRecipientId: String? = null, // v9.4.27
     onNavigateBack: () -> Unit,
     onNavigateToCapture: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
@@ -87,8 +88,12 @@ fun RecipientDiscothequeScreen(
         }
     }
 
-    LaunchedEffect(creatorId) {
+    LaunchedEffect(creatorId, filterRecipientId) {
         viewModel.setTargetCreator(creatorId)
+        if (filterRecipientId != null) {
+            viewModel.setViewMode(MediaViewMode.BY_RECIPIENT)
+            viewModel.setFilterRecipient(filterRecipientId)
+        }
     }
 
     if (isCreatorMode) {

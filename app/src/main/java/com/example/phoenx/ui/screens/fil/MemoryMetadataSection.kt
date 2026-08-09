@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -26,6 +27,7 @@ import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.components.EnigmaForm
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.components.LienVivantBanner
+import com.example.phoenx.ui.components.LivingLinkDialog
 import com.example.phoenx.ui.components.PersonSelector
 import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.navigation.Screen
@@ -58,6 +60,7 @@ fun MemoryMetadataSection(
     var showLocationMenu by remember { mutableStateOf(false) }
     var showIncludeInBookNudge by remember { mutableStateOf(false) }
     var showMirrorSelection by remember { mutableStateOf(false) }
+    var showLivingLinkDialog by remember { mutableStateOf(false) } // v9.4.27
 
     // ÉNIGME / COFFRE-FORT (v9.4.27)
     var enigmaEnabled by remember(entry) { mutableStateOf(entry.enigmaQuestion != null) }
@@ -334,6 +337,40 @@ fun MemoryMetadataSection(
                             enabled = !isReadOnly
                         )
 
+                        // v9.4.27 : Bloc LIEN VIVANT (Transmission Active)
+                        if (!isReadOnly) {
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showLivingLinkDialog = true }
+                                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                                color = theme.contentColor.copy(alpha = 0.02f),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Surface(
+                                        modifier = Modifier.size(36.dp),
+                                        shape = CircleShape,
+                                        color = accent.copy(alpha = 0.1f)
+                                    ) {
+                                        Box(contentAlignment = Alignment.Center) {
+                                            Icon(Icons.Default.IosShare, null, tint = accent, modifier = Modifier.size(18.dp))
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text("Transmettre un Lien Vivant", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                        Text("Envoyer ce souvenir maintenant ou plus tard.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                                    }
+                                    Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.2f))
+                                }
+                            }
+                        }
+
                         // v9.4.27 : Bloc Souveraineté Premium (Livre de Vie)
                         if (!isReadOnly) {
                             Spacer(modifier = Modifier.height(24.dp))
@@ -523,28 +560,17 @@ fun MemoryMetadataSection(
     }
 
     if (showMirrorSelection) {
-        AlertDialog(
-            onDismissRequest = { showMirrorSelection = false },
-            containerColor = theme.backgroundColor,
-            title = { Text("Associer au Miroir", color = theme.contentColor) },
-            text = {
-                Column {
-                    allPacts.forEach { pact ->
-                        ListItem(
-                            headlineContent = { Text(pact.partnerName) },
-                            supportingContent = { Text(pact.partnerEmail) },
-                            modifier = Modifier.clickable { 
-                                viewModel.updatePactId(pact.id)
-                                val current = entry.compartmentIds.trim(',').split(",").filter { it.isNotBlank() }
-                                viewModel.updateCompartments(current + CompartmentIds.LE_PACTE)
-                                showMirrorSelection = false 
-                            },
-                            colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                        )
-                    }
-                }
-            },
-            confirmButton = {}
+        // ... (existant)
+    }
+
+    if (showLivingLinkDialog) {
+        LivingLinkDialog(
+            recipients = recipients,
+            onDismiss = { showLivingLinkDialog = false },
+            onConfirm = { rid, date -> 
+                viewModel.sendLivingLink(rid, date)
+                showLivingLinkDialog = false 
+            }
         )
     }
 }

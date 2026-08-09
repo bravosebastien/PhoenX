@@ -65,6 +65,18 @@ class RecipientViewModel @Inject constructor(
     fun getEntriesForRecipientUnified(recipientId: String): Flow<List<OfflineEntry>> = 
         offlineEntryDao.getEntriesForRecipientUnified(recipientId)
 
+    /**
+     * Retourne les souvenirs assignés à un destinataire par son UID (v9.4.27)
+     */
+    fun getEntriesForRecipientUid(recipientUid: String?): Flow<List<OfflineEntry>> {
+        if (recipientUid == null) return flowOf(emptyList())
+        return offlineEntryDao.getAllEntries().map { entries ->
+            entries.filter { 
+                it.parentEntryId == null && (it.visibility == "EVERYONE" || it.recipientIds.split(",").map { id -> id.trim() }.contains(recipientUid))
+            }
+        }
+    }
+
     fun getPortraitForRecipient(recipientId: String): Flow<OfflineEntry?> = 
         offlineEntryDao.getPortraitEntryForRecipient(recipientId)
 

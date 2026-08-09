@@ -484,4 +484,36 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE standalone_media RENAME COLUMN description TO userComment")
         }
     }
+
+    /**
+     * MIGRATION_43_44 — Le Miroir à Deux & Lien Vivant v9.4.27
+     */
+    val MIGRATION_43_44 = object : Migration(43, 44) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // 1. Extension table pacts (Le Miroir à Deux)
+            db.execSQL("ALTER TABLE pacts ADD COLUMN partnerId TEXT")
+            db.execSQL("ALTER TABLE pacts ADD COLUMN myStatus TEXT NOT NULL DEFAULT 'writing'")
+            db.execSQL("ALTER TABLE pacts ADD COLUMN partnerStatus TEXT NOT NULL DEFAULT 'writing'")
+            db.execSQL("ALTER TABLE pacts ADD COLUMN myConsentToBook INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE pacts ADD COLUMN partnerConsentToBook INTEGER NOT NULL DEFAULT 0")
+
+            // 2. Création de la table living_links
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `living_links` (
+                    `id` TEXT NOT NULL, 
+                    `creatorId` TEXT NOT NULL, 
+                    `recipientId` TEXT NOT NULL, 
+                    `recipientName` TEXT NOT NULL, 
+                    `type` TEXT NOT NULL, 
+                    `status` TEXT NOT NULL, 
+                    `scheduledAt` INTEGER, 
+                    `sentAt` INTEGER, 
+                    `originalEntryId` TEXT, 
+                    `syncStatus` TEXT NOT NULL, 
+                    `createdAt` INTEGER NOT NULL, 
+                    PRIMARY KEY(`id`)
+                )
+            """.trimIndent())
+        }
+    }
 }

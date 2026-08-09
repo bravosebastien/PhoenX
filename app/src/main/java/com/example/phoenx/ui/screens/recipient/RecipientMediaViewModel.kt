@@ -878,7 +878,7 @@ class RecipientMediaViewModel @Inject constructor(
             coverUrl = coverUrl,
             localCoverPath = localCoverPath,
             mediaProvider = mediaProvider ?: if (domainType == EntryType.AUDIO) "PHOENX" else null, // v9.4.27 : Fallback pour filtres
-            recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
+            recipientIds = recipientIds.split(",").map { it.trim() }.filter { it.isNotBlank() },
             visibility = visibility,
             silentAttribution = silentAttribution
         )

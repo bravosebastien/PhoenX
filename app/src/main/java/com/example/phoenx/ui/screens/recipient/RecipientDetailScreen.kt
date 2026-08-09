@@ -216,7 +216,10 @@ fun RecipientDetailScreen(
                     theme = theme,
                     items = dashboard.photos.map { it.aiSummary to it.id },
                     onClickItem = { id -> navController.navigate(Screen.MediaViewer.createRoute(id)) },
-                    onSeeAll = { navController.navigate(Screen.RecipientPhotos.createRoute(recipient.id)) }
+                    onSeeAll = { 
+                        val myUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                        navController.navigate(Screen.RecipientPhotos.createRoute(myUid, recipient.linkedUid)) 
+                    }
                 )
 
                 // 3. VIDÉOS
@@ -242,7 +245,10 @@ fun RecipientDetailScreen(
                             navController.navigate(Screen.MediaViewer.createRoute(id))
                         }
                     },
-                    onSeeAll = { navController.navigate(Screen.RecipientVideotheque.createRoute(recipient.id)) }
+                    onSeeAll = { 
+                        val myUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                        navController.navigate(Screen.RecipientVideotheque.createRoute(myUid, recipient.linkedUid)) 
+                    }
                 )
 
                 // 4. AUDIOS
@@ -265,7 +271,10 @@ fun RecipientDetailScreen(
                             navController.navigate(Screen.MediaViewer.createRoute(id))
                         }
                     },
-                    onSeeAll = { navController.navigate(Screen.RecipientDiscotheque.createRoute(recipient.id)) }
+                    onSeeAll = { 
+                        val myUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
+                        navController.navigate(Screen.RecipientDiscotheque.createRoute(myUid, recipient.linkedUid)) 
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))

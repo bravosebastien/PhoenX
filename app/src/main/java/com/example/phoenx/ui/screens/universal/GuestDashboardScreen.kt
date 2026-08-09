@@ -13,10 +13,9 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.VolunteerActivism
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +46,8 @@ fun GuestDashboardScreen(
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
+    
+    var currentTab by remember { mutableStateOf("circle") }
 
     Scaffold(
         containerColor = theme.backgroundColor,
@@ -55,7 +56,7 @@ fun GuestDashboardScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Espace Proches", 
+                        if (currentTab == "circle") "Espace Proches" else "Les Attentions", 
                         style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
                         color = theme.contentColor
                     ) 
@@ -67,83 +68,119 @@ fun GuestDashboardScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
+        },
+        bottomBar = {
+            NavigationBar(
+                containerColor = theme.backgroundColor.copy(alpha = 0.95f),
+                tonalElevation = 8.dp
+            ) {
+                NavigationBarItem(
+                    selected = currentTab == "circle",
+                    onClick = { currentTab = "circle" },
+                    icon = { Icon(Icons.Default.People, null) },
+                    label = { Text("Le Cercle", style = MaterialTheme.typography.labelSmall) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = accent,
+                        selectedTextColor = accent,
+                        unselectedIconColor = theme.contentColor.copy(alpha = 0.4f),
+                        unselectedTextColor = theme.contentColor.copy(alpha = 0.4f),
+                        indicatorColor = accent.copy(alpha = 0.1f)
+                    )
+                )
+                NavigationBarItem(
+                    selected = currentTab == "attentions",
+                    onClick = { currentTab = "attentions" },
+                    icon = { Icon(Icons.Default.VolunteerActivism, null) },
+                    label = { Text("Les Attentions", style = MaterialTheme.typography.labelSmall) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = accent,
+                        selectedTextColor = accent,
+                        unselectedIconColor = theme.contentColor.copy(alpha = 0.4f),
+                        unselectedTextColor = theme.contentColor.copy(alpha = 0.4f),
+                        indicatorColor = accent.copy(alpha = 0.1f)
+                    )
+                )
+            }
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 24.dp)
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = theme.contentColor.copy(alpha = 0.7f),
-                        lineHeight = 22.sp
-                    )
-                }
-
-                if (isCreator == false) {
+            if (currentTab == "circle") {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp),
+                    contentPadding = PaddingValues(bottom = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                     item {
-                        BecomeCreatorCard(
-                            theme = theme,
-                            accent = accent,
-                            onClick = { navController.navigate(Screen.SilenceOnboarding.route) }
-                        )
-                    }
-                }
-
-                if (pendingByEmail.isNotEmpty()) {
-                    item {
+                        Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            "INVITATIONS EN ATTENTE",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = accent,
-                            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                            "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = theme.contentColor.copy(alpha = 0.7f),
+                            lineHeight = 22.sp
                         )
                     }
-                    items(pendingByEmail) { invite ->
-                        PendingInviteCard(invite, accent, theme) {
-                            navController.navigate(Screen.UniversalJoin.createRoute(invite.id))
-                        }
-                    }
-                }
 
-                if (myRoles.isEmpty() && pendingByEmail.isEmpty()) {
-                    item {
-                        Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("Aucun rôle actif pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), fontWeight = FontWeight.Bold)
+                    if (isCreator == false) {
+                        item {
+                            BecomeCreatorCard(
+                                theme = theme,
+                                accent = accent,
+                                onClick = { navController.navigate(Screen.SilenceOnboarding.route) }
+                            )
                         }
                     }
-                } else {
-                    // Trier par nom du créateur pour la lisibilité
-                    val sortedRoles = myRoles.values.toList().sortedBy { it.creatorName }
-                    
-                    items(sortedRoles) { role ->
-                        RoleCard(
-                            role = role,
-                            accent = accent,
-                            theme = theme,
-                            onClick = {
-                                when(role.role) {
-                                    "depositary" -> navController.navigate(Screen.DepositaryDashboard.createRoute(role.creatorId))
-                                    "witness" -> {
-                                        // Accès via UID lié (v7.2)
-                                        navController.navigate(Screen.WitnessResponse.createRoute(role.creatorId, role.sourceId ?: ""))
-                                    }
-                                    "recipient" -> navController.navigate(Screen.RecipientCube.createRoute(role.creatorId))
-                                }
+
+                    if (pendingByEmail.isNotEmpty()) {
+                        item {
+                            Text(
+                                "INVITATIONS EN ATTENTE",
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                color = accent,
+                                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                            )
+                        }
+                        items(pendingByEmail) { invite ->
+                            PendingInviteCard(invite, accent, theme) {
+                                navController.navigate(Screen.UniversalJoin.createRoute(invite.id))
                             }
-                        )
+                        }
+                    }
+
+                    if (myRoles.isEmpty() && pendingByEmail.isEmpty()) {
+                        item {
+                            Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
+                                Text("Aucun rôle actif pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    } else {
+                        // Trier par nom du créateur pour la lisibilité
+                        val sortedRoles = myRoles.values.toList().sortedBy { it.creatorName }
+                        
+                        items(sortedRoles) { role ->
+                            RoleCard(
+                                role = role,
+                                accent = accent,
+                                theme = theme,
+                                onClick = {
+                                    when(role.role) {
+                                        "depositary" -> navController.navigate(Screen.DepositaryDashboard.createRoute(role.creatorId))
+                                        "witness" -> {
+                                            // Accès via UID lié (v7.2)
+                                            navController.navigate(Screen.WitnessResponse.createRoute(role.creatorId, role.sourceId ?: ""))
+                                        }
+                                        "recipient" -> navController.navigate(Screen.RecipientCube.createRoute(role.creatorId))
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
+            } else {
+                AttentionsScreen()
             }
         }
     }

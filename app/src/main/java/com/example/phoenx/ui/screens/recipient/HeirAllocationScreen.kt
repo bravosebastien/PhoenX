@@ -42,7 +42,7 @@ fun HeirAllocationScreen(
     val recipients = (uiState as? RecipientUiState.Success)?.recipients ?: emptyList()
     val recipient = recipients.find { it.id == recipientId }
     
-    val entries by viewModel.getEntriesForRecipientUnified(recipientId).collectAsState(initial = emptyList())
+    val entries by viewModel.getEntriesForRecipientUid(recipient?.linkedUid).collectAsState(initial = emptyList())
     
     val theme = LocalAppTheme.current
     val accent = theme.accentColor

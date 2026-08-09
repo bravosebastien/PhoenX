@@ -53,6 +53,10 @@ import {
 } from "./media";
 
 import {
+    getLivingLinkFileUrl
+} from "./living_links";
+
+import {
     checkCreatorSilence,
     activateProtocol,
     scheduledNotifications,
@@ -119,6 +123,7 @@ export {
 
     // Media
     getInheritedFileUrl,
+    getLivingLinkFileUrl,
 
     // Protocol
     checkCreatorSilence,

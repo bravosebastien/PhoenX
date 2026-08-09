@@ -41,6 +41,7 @@ import dagger.hilt.android.EntryPointAccessors
 @Composable
 fun RecipientPhotosScreen(
     creatorId: String? = null,
+    filterRecipientId: String? = null, // v9.4.27
     onNavigateBack: () -> Unit,
     onNavigateToCapture: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
@@ -74,8 +75,12 @@ fun RecipientPhotosScreen(
     
     val recipients by standaloneViewModel.recipients.collectAsState()
 
-    LaunchedEffect(creatorId) {
+    LaunchedEffect(creatorId, filterRecipientId) {
         viewModel.setTargetCreator(creatorId)
+        if (filterRecipientId != null) {
+            viewModel.setViewMode(MediaViewMode.BY_RECIPIENT)
+            viewModel.setFilterRecipient(filterRecipientId)
+        }
     }
 
     if (isCreatorMode) {

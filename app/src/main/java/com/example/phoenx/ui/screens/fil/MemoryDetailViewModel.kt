@@ -47,7 +47,8 @@ class MemoryDetailViewModel @Inject constructor(
     private val wavRecorder: com.example.phoenx.data.audio.WavAudioRecorder,
     private val sttManager: com.example.phoenx.data.audio.SpeechToTextManager,
     private val mediaManager: com.example.phoenx.data.media.MediaManager,
-    private val preferenceManager: com.example.phoenx.data.preferences.PreferenceManager, // v9.4.27
+    private val preferenceManager: com.example.phoenx.data.preferences.PreferenceManager,
+    private val livingLinkService: com.example.phoenx.data.living.LivingLinkService, // v9.4.27
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -576,6 +577,22 @@ class MemoryDetailViewModel @Inject constructor(
             }.distinct()
             offlineEntryDao.updateEntryRecipients(persistentIds.joinToString(","), entryId)
             triggerSync(entryId)
+        }
+    }
+
+    /**
+     * Transmet le souvenir en Lien Vivant (v9.4.27).
+     */
+    fun sendLivingLink(recipientUid: String, scheduledAt: Long? = null) {
+        val entryId = _entryId.value ?: return
+        viewModelScope.launch {
+            try {
+                livingLinkService.sendLivingLink(entryId, recipientUid, scheduledAt)
+                _error.value = "Souvenir transmis avec succès !"
+            } catch (e: Exception) {
+                android.util.Log.e("LivingLink", "Erreur transmission", e)
+                _error.value = "Échec de la transmission : ${e.message}"
+            }
         }
     }
 

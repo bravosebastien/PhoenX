@@ -186,7 +186,31 @@ service cloud.firestore {
       }
     }
 
-    // ═══ ACTIVATION PROTOCOLS ═══
+    // ═══ MIRRORS — Miroir à Deux v9.4.27 ═══
+    match /mirrors/{mirrorId} {
+      // Lecture/Écriture si l'utilisateur est l'un des deux créateurs
+      allow read, write: if request.auth != null && (
+        request.auth.uid == resource.data.creatorAId ||
+        request.auth.uid == resource.data.creatorBId
+      );
+      // Création autorisée pour tout utilisateur authentifié (le document doit contenir son UID)
+      allow create: if request.auth != null && request.resource.data.creatorAId == request.auth.uid;
+    }
+
+    // ═══ LIVING LINKS — Transmission Active v9.4.27 ═══
+    match /livingLinks/{linkId} {
+      // Lecture : Destinataire (si envoyé) OU Créateur
+      allow read: if request.auth != null && (
+        (request.auth.uid == resource.data.recipientId && resource.data.status == "sent") ||
+        request.auth.uid == resource.data.creatorId
+      );
+      // Écriture : Uniquement le Créateur
+      allow write: if request.auth != null && (
+        (resource == null && request.resource.data.creatorId == request.auth.uid) ||
+        (resource != null && resource.data.creatorId == request.auth.uid)
+      );
+    }
+
     match /activationProtocols/{protocolId} {
       allow read: if request.auth != null && (
         resource.data.creatorId == request.auth.uid ||

@@ -86,6 +86,24 @@ class MediaManager @Inject constructor(
     }
 
     /**
+     * Chiffre et uploade un fichier pour le module "Lien Vivant" (v9.4.27).
+     * RÈGLE : Dossier dédié pour isolation totale.
+     */
+    suspend fun uploadLivingLinkFile(userId: String, snapshotId: String, localFile: File): String {
+        val fileBytes = localFile.readBytes()
+        val encryptedBytes = encryptionManager.encryptBytes(fileBytes)
+
+        val storageRef = storage.reference
+            .child("users")
+            .child(userId)
+            .child("living_links")
+            .child(snapshotId + ".enc")
+
+        storageRef.putBytes(encryptedBytes).await()
+        return storageRef.path
+    }
+
+    /**
      * Télécharge et déchiffre un média.
      * Supporte URLs héritées et Chemins Storage (v9.4.17).
      */
