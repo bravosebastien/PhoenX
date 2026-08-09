@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.preview
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Public
@@ -9,9 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.ui.screens.genealogy.GenealogyTreeRenderer
+import com.example.phoenx.ui.screens.genealogy.GenealogyTreeViewModel
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.LocalBackgroundBrush
 
@@ -20,15 +24,21 @@ import com.example.phoenx.ui.theme.LocalBackgroundBrush
 fun PreviewGenealogyScreen(
     recipientUid: String,
     onNavigateBack: () -> Unit,
-    viewModel: PreviewViewModel = hiltViewModel()
+    viewModel: PreviewViewModel = hiltViewModel(),
+    treeViewModel: GenealogyTreeViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val treeLayout by treeViewModel.treeLayout.collectAsState()
+    
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
 
     LaunchedEffect(recipientUid) {
         viewModel.loadPreview(recipientUid)
+        // L'arbre est public pour tous les destinataires une fois activé.
+        // On affiche l'arbre complet du Créateur.
+        treeViewModel.loadTree(null) 
     }
 
     Scaffold(
@@ -47,26 +57,37 @@ fun PreviewGenealogyScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
-                Icon(Icons.Default.Public, null, modifier = Modifier.size(64.dp), tint = accent.copy(alpha = 0.2f))
-                Spacer(Modifier.height(24.dp))
-                Text(
-                    "Consultation de l'Arbre",
-                    style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    color = theme.contentColor
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            if (state.familyCount == 0) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Ton arbre est encore vide.", color = theme.contentColor.copy(alpha = 0.4f))
+                }
+            } else {
+                // Rendu visuel de l'arbre (Lecture seule)
+                GenealogyTreeRenderer(
+                    layout = treeLayout,
+                    onPersonClick = { /* Détails en lecture seule ? */ },
+                    onAddChild = { /* Désactivé en aperçu */ },
+                    enabled = false // Mode lecture seule strict
                 )
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    "Votre destinataire pourra consulter l'intégralité de l'arbre généalogique que vous avez construit.\n\nNombre de membres visibles : ${state.familyCount}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = theme.contentColor.copy(alpha = 0.6f),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
+                
+                // Petit indicateur flottant pour rappeler que c'est un aperçu
+                Surface(
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(24.dp),
+                    color = accent.copy(alpha = 0.9f),
+                    shape = RoundedCornerShape(20.dp)
+                ) {
+                    Text(
+                        "Mode Aperçu : Lecture Seule",
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                        color = theme.backgroundColor
+                    )
+                }
             }
         }
     }

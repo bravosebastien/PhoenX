@@ -394,7 +394,7 @@ Non seulement ce qu'on laisse de soi, mais ce qu'on laisse de ceux qu'on a aimé
 
 ---
 
-## 4.21 — LE PACTE ⭐
+## 4.21 — LE MIROIR À DEUX ⭐
 
 ### Ce que c'est
 
@@ -456,7 +456,7 @@ L'interface d'accueil des Destinataires est organisée en Cube — l'expression 
 | Mode Détective | Énigmes pour contenus verrouillés |
 | Boîte aux Lettres | Messages personnalisés programmés |
 | Portraits de Proches | Ce qu'il a vu en ceux qu'il aimait |
-| Le Pacte | Versions miroir des événements communs |
+| Le Miroir à Deux | Versions miroir des événements communs |
 
 ---
 
@@ -1543,7 +1543,7 @@ Les deux déclenchent le même flux :
 
 ---
 
-## PROMPT 11 — Portrait d'un Proche et Le Pacte
+## PROMPT 11 — Portrait d'un Proche et Le Miroir à Deux
 
 ```
 Crée PortraitScreen.kt, PactScreen.kt,

@@ -12,6 +12,7 @@ import com.example.phoenx.domain.model.PhoenXEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 data class PreviewDashboardState(
@@ -24,19 +25,32 @@ data class PreviewDashboardState(
     val filteredEntries: List<com.example.phoenx.data.local.OfflineEntry> = emptyList(),
     val filteredMedia: List<com.example.phoenx.domain.model.PhoenXEntry> = emptyList(),
     val filteredEnigmas: List<com.example.phoenx.data.local.OfflineEntry> = emptyList(),
-    val familyCount: Int = 0
+    val familyCount: Int = 0,
+    val bookTitle: String? = null,
+    val hasBookDraft: Boolean = false
 )
 
 @HiltViewModel
 class PreviewViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
-    private val standaloneMediaDao: StandaloneMediaDao
+    private val standaloneMediaDao: StandaloneMediaDao,
+    private val encryptionManager: com.example.phoenx.data.encryption.EncryptionManager, // v9.4.27
+    private val db: com.google.firebase.firestore.FirebaseFirestore,
+    private val auth: com.google.firebase.auth.FirebaseAuth
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(PreviewDashboardState())
     val state: StateFlow<PreviewDashboardState> = _state.asStateFlow()
 
+    /**
+     * Déchiffre le texte d'un souvenir pour l'aperçu (v9.4.27)
+     */
+    fun decryptContent(encryptedPayload: ByteArray): String {
+        return encryptionManager.decryptText(encryptedPayload)
+    }
+
     fun loadPreview(recipientUid: String) {
+        val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
             
@@ -44,6 +58,22 @@ class PreviewViewModel @Inject constructor(
             val recipients = offlineEntryDao.getAllRecipients().first()
             val recipient = recipients.find { it.linkedUid == recipientUid }
             val name = recipient?.name ?: "Ce proche"
+
+            // 1b. Charger le titre du Livre et existence du draft (v9.4.27: Fix check)
+            var bookTitle: String? = null
+            var hasDraft = false
+            try {
+                val bookDoc = db.collection("users").document(userId)
+                    .collection("book").document("current_draft").get().await()
+                
+                if (bookDoc.exists()) {
+                    bookTitle = bookDoc.getString("bookTitle")
+                    // On considère qu'il y a un draft si le document existe
+                    hasDraft = true
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PreviewVM", "Error loading book info", e)
+            }
 
             // 2. Charger les contenus assignés (Réutilisation de la logique pure de filtrage)
             val entriesFlow = offlineEntryDao.getAllEntries()
@@ -81,7 +111,9 @@ class PreviewViewModel @Inject constructor(
                     filteredEntries = souvenirs.sortedByDescending { it.createdAt },
                     filteredMedia = allMapped,
                     filteredEnigmas = filteredEntries.filter { it.enigmaQuestion != null },
-                    familyCount = persons.size
+                    familyCount = persons.size,
+                    bookTitle = bookTitle,
+                    hasBookDraft = hasDraft
                 )
             }.collect { newState ->
                 _state.value = newState
@@ -101,6 +133,8 @@ class PreviewViewModel @Inject constructor(
         parentEntryId = parentEntryId,
         mediaUrl = mediaUrl,
         localMediaPath = localMediaPath,
+        coverUrl = coverUrl, // Crucial pour miniatures YouTube/Spotify
+        localCoverPath = localCoverPath,
         mediaProvider = mediaProvider,
         userComment = userComment,
         ageAtCreation = AgeSnapshot(0, 0, 0),
@@ -118,6 +152,8 @@ class PreviewViewModel @Inject constructor(
         },
         mediaUrl = if (type != "TEXT_EXCERPT") content else null,
         mediaProvider = mediaProvider ?: type,
+        coverUrl = coverUrl, // Ajouté pour l'aperçu
+        localCoverPath = localCoverPath, // Ajouté pour l'aperçu
         userComment = userComment,
         ageAtCreation = AgeSnapshot(0, 0, 0),
         encryptedContent = ByteArray(0)

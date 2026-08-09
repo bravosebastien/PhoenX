@@ -98,7 +98,7 @@ fun PreviewLockedCard(entry: OfflineEntry, theme: com.example.phoenx.ui.theme.Ap
             }
             Spacer(Modifier.height(16.dp))
             Text(
-                text = entry.enigmaQuestion ?: "Question manquante",
+                text = entry.enigmaQuestion?.takeIf { it.isNotBlank() } ?: "Question manquante",
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                 color = theme.contentColor
             )

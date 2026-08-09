@@ -17,6 +17,7 @@ import com.example.phoenx.ui.screens.preview.PreviewMediaScreen
 import com.example.phoenx.ui.screens.preview.PreviewBookScreen
 import com.example.phoenx.ui.screens.preview.PreviewVaultScreen
 import com.example.phoenx.ui.screens.preview.PreviewGenealogyScreen
+import com.example.phoenx.ui.screens.preview.PreviewMemoryDetailScreen
 
 /**
  * PreviewGraph (v9.4.27)
@@ -50,6 +51,23 @@ fun NavGraphBuilder.previewGraph(
     ) { backStackEntry ->
         val recipientUid = backStackEntry.arguments?.getString("recipientUid") ?: ""
         PreviewFilScreen(
+            recipientUid = recipientUid,
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToDetail = { id -> navController.navigate(Screen.Preview.MemoryDetail.createRoute(id, recipientUid)) }
+        )
+    }
+
+    composable(
+        route = Screen.Preview.MemoryDetail.route,
+        arguments = listOf(
+            navArgument("entryId") { type = NavType.StringType },
+            navArgument("recipientUid") { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
+        val recipientUid = backStackEntry.arguments?.getString("recipientUid") ?: ""
+        PreviewMemoryDetailScreen(
+            entryId = entryId,
             recipientUid = recipientUid,
             onNavigateBack = { navController.popBackStack() }
         )

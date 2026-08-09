@@ -195,6 +195,9 @@ sealed class Screen(val route: String) {
         object Fil : Screen("preview/fil/{recipientUid}") {
             fun createRoute(recipientUid: String) = "preview/fil/$recipientUid"
         }
+        object MemoryDetail : Screen("preview/memory/{entryId}/{recipientUid}") {
+            fun createRoute(entryId: String, recipientUid: String) = "preview/memory/$entryId/$recipientUid"
+        }
         object Media : Screen("preview/media/{type}/{recipientUid}") {
             fun createRoute(type: String, recipientUid: String) = "preview/media/$type/$recipientUid"
         }

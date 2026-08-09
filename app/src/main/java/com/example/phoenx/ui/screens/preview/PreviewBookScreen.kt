@@ -58,18 +58,46 @@ fun PreviewBookScreen(
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
                 Icon(Icons.Default.AutoStories, null, modifier = Modifier.size(64.dp), tint = accent.copy(alpha = 0.2f))
                 Spacer(Modifier.height(24.dp))
+                
+                val title = state.bookTitle ?: "Livre de Ma Vie"
                 Text(
-                    "Consultation du manuscrit",
+                    text = title,
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
-                    color = theme.contentColor
-                )
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    "Le Livre de Vie est généré à partir de tous les souvenirs marqués 'Inclure dans mon Livre'.\n\nNote : Tout ce qui est inclus ici sera visible par tous vos destinataires.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = theme.contentColor.copy(alpha = 0.6f),
+                    color = theme.contentColor,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
+                
+                Spacer(Modifier.height(16.dp))
+                
+                if (state.hasBookDraft) {
+                    Text(
+                        "Un manuscrit est déjà disponible pour consultation.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = theme.contentColor.copy(alpha = 0.8f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    Spacer(Modifier.height(32.dp))
+                    Button(
+                        onClick = { /* TODO: Ouvrir le lecteur en lecture seule */ },
+                        colors = ButtonDefaults.buttonColors(containerColor = accent)
+                    ) {
+                        Text("Consulter le manuscrit", color = theme.backgroundColor)
+                    }
+                } else {
+                    Text(
+                        "Aucun Livre n'a encore été généré — le Destinataire ne verra rien de ce côté pour l'instant.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = theme.contentColor.copy(alpha = 0.6f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "Pour créer votre Livre, retournez dans votre Bibliothèque et utilisez l'IA Co-écrivain.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = theme.contentColor.copy(alpha = 0.4f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
             }
         }
     }

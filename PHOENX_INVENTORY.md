@@ -68,7 +68,7 @@
 *   **Rôles** : Permet au Créateur de créer des questions sur sa propre vie. L'IA aide à générer des distracteurs crédibles.
 *   **État** : Fonctionnel (Cloud-only : Firestore).
 
-### L. Le Pacte (Lien entre Créateurs)
+### L. Le Miroir à Deux (Lien entre Créateurs)
 *   **Fichiers** : `PactScreen.kt`, `PactDetailScreen.kt`, `PactViewModel.kt`.
 *   **Rôles** : Système de souvenirs liés entre deux utilisateurs distincts (souvenirs communs).
 *   **État** : Stable.
@@ -126,7 +126,7 @@
 | `RecipientEntity` | Identité et droits d'accès d'un héritier du Livre. |
 | `DepositaryEntity` | Gardien local (un seul actif) chargé de la transmission. |
 | `LegacyEntity` | Structure des héritages et transmissions globales. |
-| `PactEntity` | Liaison de souvenirs entre deux utilisateurs distincts (Le Pacte). |
+| `PactEntity` | Liaison de souvenirs entre deux utilisateurs distincts (Le Miroir à Deux). |
 | `WitnessEntity` | Statut et contenu des témoignages externes sollicités. |
 | `NotificationContactEntity` | Email/Nom des personnes à prévenir au déclenchement du protocole. |
 | `PersonEntity` | Fiche détaillée d'un proche cité (Portrait Cameo + bio v9.0). |

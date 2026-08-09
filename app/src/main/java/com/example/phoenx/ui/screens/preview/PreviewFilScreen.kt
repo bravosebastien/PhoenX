@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.preview
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,11 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.LocalBackgroundBrush
+import com.example.phoenx.ui.theme.phoenXMatiere
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,6 +28,7 @@ import java.util.*
 fun PreviewFilScreen(
     recipientUid: String,
     onNavigateBack: () -> Unit,
+    onNavigateToDetail: (String) -> Unit, // v9.4.27
     viewModel: PreviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -73,7 +75,9 @@ fun PreviewFilScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(state.filteredEntries) { entry ->
-                    PreviewEntryCard(entry, theme)
+                    PreviewEntryCard(entry, theme) {
+                        onNavigateToDetail(entry.id)
+                    }
                 }
             }
         }
@@ -81,12 +85,16 @@ fun PreviewFilScreen(
 }
 
 @Composable
-fun PreviewEntryCard(entry: OfflineEntry, theme: com.example.phoenx.ui.theme.AppThemeState) {
+fun PreviewEntryCard(
+    entry: OfflineEntry, 
+    theme: com.example.phoenx.ui.theme.AppThemeState,
+    onClick: () -> Unit
+) {
     val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH)
     val dateStr = sdf.format(Date(entry.createdAt))
     
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }.phoenXMatiere(),
         colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
         shape = RoundedCornerShape(12.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
