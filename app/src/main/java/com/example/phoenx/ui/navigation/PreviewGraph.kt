@@ -15,6 +15,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.phoenx.ui.MainViewModel
+import com.example.phoenx.ui.screens.book.BookReaderFlowScreen
 import com.example.phoenx.ui.screens.preview.*
 import com.example.phoenx.ui.util.NavigationAnimations
 import com.example.phoenx.ui.theme.TransmissionTheme
@@ -142,20 +143,21 @@ fun NavGraphBuilder.previewGraph(
         popExitTransition = { NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val recipientUid = backStackEntry.arguments?.getString("recipientUid") ?: ""
-        val myUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
         val viewModel: PreviewViewModel = hiltViewModel()
         val state by viewModel.state.collectAsState()
 
-        TransmissionTheme(
-            backgroundId = state.ambiance.backgroundId,
-            fontId = state.ambiance.fontId
-        ) {
-            PreviewBookScreen(
-                recipientUid = recipientUid,
-                onNavigateBack = { navController.popBackStack() },
-                onConsultBook = { navController.navigate("book_viewer_recipient?creatorId=$myUid") }
-            )
-        }
+        PreviewBookScreen(
+            recipientUid = recipientUid,
+            onNavigateBack = { navController.popBackStack() },
+            onConsultBook = { 
+                // Navigation vers le lecteur unifié avec paramètres d'aperçu
+                navController.navigate(
+                    "book_viewer_preview?recipientUid=$recipientUid" +
+                    "&bgId=${state.ambiance.backgroundId}" +
+                    "&fontId=${state.ambiance.fontId}"
+                )
+            }
+        )
     }
 
     composable(
@@ -202,5 +204,28 @@ fun NavGraphBuilder.previewGraph(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+    }
+
+    // --- LECTEUR UNIFIÉ EN MODE APERÇU (v9.4.27) ---
+    composable(
+        route = "book_viewer_preview?recipientUid={recipientUid}&bgId={bgId}&fontId={fontId}",
+        arguments = listOf(
+            navArgument("recipientUid") { type = NavType.StringType },
+            navArgument("bgId") { type = NavType.StringType },
+            navArgument("fontId") { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val recipientUid = backStackEntry.arguments?.getString("recipientUid")
+        val bgId = backStackEntry.arguments?.getString("bgId")
+        val fontId = backStackEntry.arguments?.getString("fontId")
+        
+        BookReaderFlowScreen(
+            navController = navController,
+            simulatedRecipientUid = recipientUid,
+            forcedAmbiance = com.example.phoenx.ui.screens.recipient.AmbianceState(
+                backgroundId = bgId ?: "classic_ivory",
+                fontId = fontId ?: "playfair_display"
+            )
+        )
     }
 }

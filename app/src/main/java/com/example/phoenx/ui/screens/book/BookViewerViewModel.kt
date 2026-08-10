@@ -64,9 +64,17 @@ class BookViewerViewModel @Inject constructor(
     private val _fontSizeScale = MutableStateFlow(1.0f)
     val fontSizeScale: StateFlow<Float> = _fontSizeScale.asStateFlow()
 
-    fun loadBook(targetCreatorId: String? = null) {
+    private val _forcedAmbiance = MutableStateFlow<com.example.phoenx.ui.screens.recipient.AmbianceState?>(null)
+    val forcedAmbiance: StateFlow<com.example.phoenx.ui.screens.recipient.AmbianceState?> = _forcedAmbiance.asStateFlow()
+
+    fun loadBook(
+        targetCreatorId: String? = null,
+        simulatedRecipientUid: String? = null,
+        ambiance: com.example.phoenx.ui.screens.recipient.AmbianceState? = null
+    ) {
         viewModelScope.launch {
             _isLoading.value = true
+            _forcedAmbiance.value = ambiance
             try {
                 val userId = targetCreatorId ?: auth.currentUser?.uid
                 if (userId == null) return@launch
@@ -75,7 +83,8 @@ class BookViewerViewModel @Inject constructor(
                 loadReadingProgress(userId)
 
                 // 1. Vérification de sécurité via Cloud Function (si c'est un proche)
-                if (targetCreatorId != null) {
+                // v9.4.27 : Court-circuit si mode APERÇU (simulatedRecipientUid != null)
+                if (targetCreatorId != null && simulatedRecipientUid == null) {
                     try {
                         val result = functions.getHttpsCallable("getCreatorBookStatus")
                             .call(mapOf("creatorId" to targetCreatorId))
@@ -97,8 +106,18 @@ class BookViewerViewModel @Inject constructor(
                         _isLoading.value = false
                         return@launch
                     }
+                } else if (simulatedRecipientUid != null) {
+                    // Mode APERÇU : On simule l'identité du destinataire pour le filtrage
+                    // et on force le déverrouillage pour le Créateur
+                    _isLocked.value = false
+                    try {
+                        val userDoc = db.collection("users").document(userId).get().kotlinAwait()
+                        _creatorName.value = userDoc.getString("displayName") ?: "Moi"
+                    } catch (e: Exception) {
+                        _creatorName.value = "Moi"
+                    }
                 } else {
-                    // Mode Créateur : Récupérer son propre nom (v9.2.7)
+                    // Mode Créateur classique
                     try {
                         val userDoc = db.collection("users").document(userId).get().kotlinAwait()
                         _creatorName.value = userDoc.getString("displayName") ?: "Moi"
@@ -112,7 +131,9 @@ class BookViewerViewModel @Inject constructor(
                 _bookDraft.value = draft
 
                 if (draft != null) {
-                    decryptAndResolveMedia(userId, draft)
+                    // v9.4.27 : On passe l'UID du destinataire (réel ou simulé) pour filtrer les médias
+                    val effectiveRecipientUid = simulatedRecipientUid ?: (if (targetCreatorId != null) auth.currentUser?.uid else null)
+                    decryptAndResolveMedia(userId, draft, effectiveRecipientUid)
                 }
 
             } catch (e: Exception) {
@@ -123,7 +144,7 @@ class BookViewerViewModel @Inject constructor(
         }
     }
 
-    private suspend fun decryptAndResolveMedia(userId: String, draft: BookDraft) {
+    private suspend fun decryptAndResolveMedia(userId: String, draft: BookDraft, recipientUid: String? = null) {
         val chapterContents = mutableMapOf<String, String>()
         val mediaIds = mutableSetOf<String>()
 
@@ -174,16 +195,25 @@ class BookViewerViewModel @Inject constructor(
                         entry = OfflineEntry(
                             id = mediaId,
                             encryptedPayload = byteArrayOf(),
-                            entryType = doc.getString("type") ?: "PHOTO",
+                            entryType = doc.getString("entryType") ?: "PHOTO", // Fix: entryType dans Firestore
                             ageAtCreation = "", 
                             emotionalCategory = "",
-                            visibility = "",
+                            visibility = doc.getString("visibility") ?: "RESTRICTED",
+                            recipientIds = (doc.get("recipientIds") as? List<*>)?.joinToString(",") ?: "",
                             mediaUrl = doc.getString("mediaUrl")
                         )
                     }
                 }
 
-                entry?.let { resolvedMedia[mediaId] = it }
+                // 5. FILTRAGE DE SÉCURITÉ (v9.4.27)
+                if (entry != null) {
+                    val isVisible = entry.visibility == "EVERYONE" || 
+                        (recipientUid != null && entry.recipientIds.split(",").map { it.trim() }.contains(recipientUid))
+                    
+                    if (isVisible || recipientUid == null) {
+                        resolvedMedia[mediaId] = entry
+                    }
+                }
             } catch (e: Exception) {
                 android.util.Log.w("PHOENX_BOOK", "Impossible de résoudre le média $mediaId")
             }
