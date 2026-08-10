@@ -80,6 +80,8 @@ import {
     notifyNewTestimony
 } from "./witnesses";
 
+import { onUserCreated, onUserDeleted } from "./stats";
+
 export {
     // AI
     analyzeEntry,
@@ -144,5 +146,9 @@ export {
     sendWitnessInvitation,
     verifyWitnessToken,
     submitWitnessTestimony,
-    notifyNewTestimony
+    notifyNewTestimony,
+
+    // Stats
+    onUserCreated,
+    onUserDeleted
 };

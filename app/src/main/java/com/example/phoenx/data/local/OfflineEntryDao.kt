@@ -186,6 +186,9 @@ interface OfflineEntryDao {
     @Query("UPDATE offline_entries SET emotionalCategory = :newCategory WHERE id = :entryId")
     suspend fun updateEntryCategory(newCategory: String, entryId: String): Int
 
+    @Query("UPDATE offline_entries SET tonalNuance = :newNuance WHERE id = :entryId")
+    suspend fun updateEntryTonalNuance(newNuance: String?, entryId: String): Int
+
     @Query("UPDATE offline_entries SET memoryDate = :newDate WHERE id = :entryId")
     suspend fun updateEntryMemoryDate(newDate: Long?, entryId: String): Int
 
@@ -234,6 +237,9 @@ interface OfflineEntryDao {
 
     @Query("SELECT * FROM creator_profile WHERE userId = :userId")
     suspend fun getCreatorProfileSync(userId: String): CreatorProfileEntity?
+
+    @Query("UPDATE creator_profile SET transmissionBackgroundId = :bgId, transmissionFontId = :fontId WHERE userId = :userId")
+    suspend fun updateTransmissionAmbiance(userId: String, bgId: String, fontId: String): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCreatorProfile(profile: CreatorProfileEntity)

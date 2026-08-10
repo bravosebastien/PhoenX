@@ -528,6 +528,42 @@ fun HomeScreen(
                             )
                         }
                     }
+
+                    // --- COMPTEURS DISCRETS v9.4.27 (Action Chantier D) ---
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp, vertical = 24.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "Communauté PHOEN-X",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                color = theme.contentColor.copy(alpha = 0.3f)
+                            )
+                            Text(
+                                text = "${uiState.globalUserCount} membres",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
+                                color = theme.contentColor.copy(alpha = 0.5f)
+                            )
+                        }
+                        
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text = "Cercle de Confiance",
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                                color = theme.contentColor.copy(alpha = 0.3f)
+                            )
+                            val procheLabel = if (uiState.localRecipientCount <= 1) "proche" else "proches"
+                            Text(
+                                text = "${uiState.localRecipientCount} $procheLabel",
+                                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
+                                color = theme.contentColor.copy(alpha = 0.5f)
+                            )
+                        }
+                    }
                 } else {
                     // --- VUE INVITÉ (Héritages) ---
                     com.example.phoenx.ui.screens.universal.GuestPerspectiveContent(

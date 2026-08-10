@@ -35,6 +35,9 @@ class RecipientViewModel @Inject constructor(
     private val mediaManager: MediaManager
 ) : ViewModel() {
 
+    private val _transmissionAmbiance = MutableStateFlow(AmbianceState())
+    val transmissionAmbiance: StateFlow<AmbianceState> = _transmissionAmbiance.asStateFlow()
+
     private val _uiState = MutableStateFlow<RecipientUiState>(RecipientUiState.Loading)
     val uiState: StateFlow<RecipientUiState> = _uiState
 
@@ -315,7 +318,61 @@ class RecipientViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Charge l'ambiance de transmission du créateur (v9.4.27)
+     */
+    fun loadTransmissionAmbiance(creatorId: String) {
+        viewModelScope.launch {
+            try {
+                // v9.4.27 : On cherche dans le profil du créateur
+                val doc = db.collection("users").document(creatorId)
+                    .collection("profile").document("creator").get().await()
+                
+                if (doc.exists()) {
+                    _transmissionAmbiance.value = AmbianceState(
+                        backgroundId = doc.getString("transmissionBackgroundId") ?: "classic_ivory",
+                        fontId = doc.getString("transmissionFontId") ?: "playfair_display"
+                    )
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientVM", "Erreur ambiance", e)
+            }
+        }
+    }
+
+    /**
+     * Sauvegarde l'ambiance côté créateur (v9.4.27)
+     */
+    fun saveTransmissionAmbiance(backgroundId: String, fontId: String) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                val data = mapOf(
+                    "transmissionBackgroundId" to backgroundId,
+                    "transmissionFontId" to fontId,
+                    "updatedAt" to System.currentTimeMillis()
+                )
+                db.collection("users").document(userId)
+                    .collection("profile").document("creator")
+                    .set(data, com.google.firebase.firestore.SetOptions.merge())
+                    .await()
+                
+                // MAJ Locale Room
+                offlineEntryDao.updateTransmissionAmbiance(userId, backgroundId, fontId)
+                
+                _transmissionAmbiance.value = AmbianceState(backgroundId, fontId)
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientVM", "Erreur save ambiance", e)
+            }
+        }
+    }
 }
+
+data class AmbianceState(
+    val backgroundId: String = "classic_ivory",
+    val fontId: String = "playfair_display"
+)
 
 sealed class RecipientUiState {
     object Loading : RecipientUiState()

@@ -100,7 +100,10 @@ data class OfflineEntry(
     val userComment: String? = null,
     val coverUrl: String? = null,
     val localCoverPath: String? = null,
-    val mediaProvider: String? = null // "PHOENX", "SPOTIFY", "DEEZER", "YOUTUBE"
+    val mediaProvider: String? = null, // "PHOENX", "SPOTIFY", "DEEZER", "YOUTUBE"
+
+    // NUANCE PERSONNELLE v9.4.27 (Migration v45)
+    val tonalNuance: String? = null
 ) {
     fun isChild(): Boolean = parentEntryId != null
 
@@ -142,6 +145,7 @@ data class OfflineEntry(
         if (memoryDateStart != other.memoryDateStart) return false
         if (memoryDateEnd != other.memoryDateEnd) return false
         if (silentAttribution != other.silentAttribution) return false
+        if (tonalNuance != other.tonalNuance) return false
 
         return true
     }
@@ -175,6 +179,7 @@ data class OfflineEntry(
         result = 31 * result + (coverUrl?.hashCode() ?: 0) // v9.4.27
         result = 31 * result + (localCoverPath?.hashCode() ?: 0) // v9.4.27
         result = 31 * result + (mediaProvider?.hashCode() ?: 0) // v9.4.27
+        result = 31 * result + (tonalNuance?.hashCode() ?: 0) // v9.4.27
         result = 31 * result + (memoryDate?.hashCode() ?: 0)
         result = 31 * result + (memoryDateStart?.hashCode() ?: 0)
         result = 31 * result + (memoryDateEnd?.hashCode() ?: 0)

@@ -58,6 +58,7 @@ fun HeirHeritageScreen(
     val maxQuestions by viewModel.maxQuestions.collectAsState()
     val questionsAsked by viewModel.questionsAsked.collectAsState()
     val recipientId by viewModel.recipientId.collectAsState()
+    val ambiance by viewModel.ambiance.collectAsState()
 
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -67,10 +68,14 @@ fun HeirHeritageScreen(
         viewModel.setTargetCreator(creatorId)
     }
 
-    Scaffold(
-        containerColor = theme.backgroundColor,
-        modifier = Modifier.background(backgroundBrush),
-        topBar = {
+    TransmissionTheme(
+        backgroundId = ambiance.backgroundId,
+        fontId = ambiance.fontId
+    ) {
+        val theme = LocalAppTheme.current
+        Scaffold(
+            containerColor = theme.backgroundColor,
+            topBar = {
             TopAppBar(
                 title = {
                     Text(
@@ -171,6 +176,7 @@ fun HeirHeritageScreen(
             }
         }
     }
+}
 }
 
 @Composable

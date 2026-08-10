@@ -30,10 +30,12 @@ import com.example.phoenx.ui.screens.universal.UniversalFeedScreen
 import com.example.phoenx.ui.screens.universal.UniversalJoinScreen
 import com.example.phoenx.ui.screens.universal.UniversalMessageScreen
 import com.example.phoenx.ui.screens.witness.WitnessResponseScreen
+import com.example.phoenx.ui.theme.TransmissionTheme
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import com.example.phoenx.ui.util.NavigationAnimations
 
 @UnstableApi
 fun NavGraphBuilder.recipientGraph(
@@ -44,7 +46,13 @@ fun NavGraphBuilder.recipientGraph(
         com.example.phoenx.ui.screens.mailbox.MailboxScreen(onNavigateBack = { navController.popBackStack() })
     }
 
-    composable(Screen.RecipientDetective.route) { backStackEntry ->
+    composable(
+        route = Screen.RecipientDetective.route,
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
+    ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId")
         DetectivePlayerScreen(
             creatorId = creatorId,
@@ -69,11 +77,18 @@ fun NavGraphBuilder.recipientGraph(
 
     composable(
         route = Screen.RecipientCube.route,
-        arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        arguments = listOf(navArgument("creatorId") { type = NavType.StringType }),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
         val isCreator by mainViewModel.isCreator.collectAsState()
         
+        // Randomize transitions when entering a real recipient space
+        LaunchedEffect(Unit) { com.example.phoenx.ui.util.NavigationAnimations.randomize() }
+
         RecipientCubeScreen(
             creatorId = creatorId,
             onExit = { navController.popBackStack() },
@@ -85,18 +100,32 @@ fun NavGraphBuilder.recipientGraph(
 
     composable(
         route = Screen.HeirHeritage.route,
-        arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        arguments = listOf(navArgument("creatorId") { type = NavType.StringType }),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
-        HeirHeritageScreen(
-            creatorId = creatorId,
-            navController = navController
-        )
+        val viewModel: RecipientMediaViewModel = hiltViewModel()
+        val ambiance by viewModel.ambiance.collectAsState()
+
+        TransmissionTheme(backgroundId = ambiance.backgroundId, fontId = ambiance.fontId) {
+            HeirHeritageScreen(
+                creatorId = creatorId,
+                navController = navController,
+                viewModel = viewModel
+            )
+        }
     }
 
     composable(
         route = Screen.RecipientFavorites.route,
-        arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        arguments = listOf(navArgument("creatorId") { type = NavType.StringType }),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
         RecipientArchiveScreen(
@@ -107,19 +136,33 @@ fun NavGraphBuilder.recipientGraph(
 
     composable(
         route = Screen.RecipientLibrary.route,
-        arguments = listOf(navArgument("creatorId") { type = NavType.StringType })
+        arguments = listOf(navArgument("creatorId") { type = NavType.StringType }),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
-        RecipientLibraryScreen(
-            navController = navController, 
-            isCreatorMode = false,
-            targetCreatorId = creatorId
-        )
+        val viewModel: RecipientMediaViewModel = hiltViewModel()
+        val ambiance by viewModel.ambiance.collectAsState()
+
+        TransmissionTheme(backgroundId = ambiance.backgroundId, fontId = ambiance.fontId) {
+            RecipientLibraryScreen(
+                navController = navController, 
+                isCreatorMode = false,
+                targetCreatorId = creatorId,
+                mediaViewModel = viewModel
+            )
+        }
     }
 
     composable(
         route = "literary_library?creatorId={creatorId}",
-        arguments = listOf(navArgument("creatorId") { type = NavType.StringType; nullable = true })
+        arguments = listOf(navArgument("creatorId") { type = NavType.StringType; nullable = true }),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId")
         com.example.phoenx.ui.screens.library.LiteraryLibraryScreen(
@@ -135,17 +178,27 @@ fun NavGraphBuilder.recipientGraph(
         arguments = listOf(
             navArgument("creatorId") { type = NavType.StringType },
             navArgument("filterRecipientId") { type = NavType.StringType; nullable = true }
-        )
+        ),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
         val filterRecipientId = backStackEntry.arguments?.getString("filterRecipientId")
-        RecipientDiscothequeScreen(
-            creatorId = creatorId,
-            filterRecipientId = filterRecipientId,
-            onNavigateBack = { navController.popBackStack() },
-            onNavigateToCapture = { navController.navigate("capture/AUDIO") },
-            onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) }
-        )
+        val viewModel: RecipientMediaViewModel = hiltViewModel()
+        val ambiance by viewModel.ambiance.collectAsState()
+
+        TransmissionTheme(backgroundId = ambiance.backgroundId, fontId = ambiance.fontId) {
+            RecipientDiscothequeScreen(
+                creatorId = creatorId,
+                filterRecipientId = filterRecipientId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCapture = { navController.navigate("capture/AUDIO") },
+                onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) },
+                viewModel = viewModel
+            )
+        }
     }
 
     composable(
@@ -153,17 +206,27 @@ fun NavGraphBuilder.recipientGraph(
         arguments = listOf(
             navArgument("creatorId") { type = NavType.StringType },
             navArgument("filterRecipientId") { type = NavType.StringType; nullable = true }
-        )
+        ),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
         val filterRecipientId = backStackEntry.arguments?.getString("filterRecipientId")
-        RecipientVideothequeScreen(
-            creatorId = creatorId,
-            filterRecipientId = filterRecipientId,
-            onNavigateBack = { navController.popBackStack() },
-            onNavigateToCapture = { navController.navigate("capture/VIDEO") },
-            onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) }
-        )
+        val viewModel: RecipientMediaViewModel = hiltViewModel()
+        val ambiance by viewModel.ambiance.collectAsState()
+
+        TransmissionTheme(backgroundId = ambiance.backgroundId, fontId = ambiance.fontId) {
+            RecipientVideothequeScreen(
+                creatorId = creatorId,
+                filterRecipientId = filterRecipientId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCapture = { navController.navigate("capture/VIDEO") },
+                onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) },
+                viewModel = viewModel
+            )
+        }
     }
 
     composable(
@@ -171,17 +234,27 @@ fun NavGraphBuilder.recipientGraph(
         arguments = listOf(
             navArgument("creatorId") { type = NavType.StringType },
             navArgument("filterRecipientId") { type = NavType.StringType; nullable = true }
-        )
+        ),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
         val filterRecipientId = backStackEntry.arguments?.getString("filterRecipientId")
-        RecipientPhotosScreen(
-            creatorId = creatorId,
-            filterRecipientId = filterRecipientId,
-            onNavigateBack = { navController.popBackStack() },
-            onNavigateToCapture = { navController.navigate("capture/PHOTO") },
-            onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) }
-        )
+        val viewModel: RecipientMediaViewModel = hiltViewModel()
+        val ambiance by viewModel.ambiance.collectAsState()
+
+        TransmissionTheme(backgroundId = ambiance.backgroundId, fontId = ambiance.fontId) {
+            RecipientPhotosScreen(
+                creatorId = creatorId,
+                filterRecipientId = filterRecipientId,
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCapture = { navController.navigate("capture/PHOTO") },
+                onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) },
+                viewModel = viewModel
+            )
+        }
     }
 
     composable(
@@ -470,18 +543,27 @@ fun NavGraphBuilder.recipientGraph(
             navArgument("entryId") { type = NavType.StringType },
             navArgument("creatorId") { nullable = true; type = NavType.StringType },
             navArgument("triggerAction") { nullable = true; type = NavType.StringType }
-        )
+        ),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
         val creatorId = backStackEntry.arguments?.getString("creatorId")
         val triggerAction = backStackEntry.arguments?.getString("triggerAction")
-
+        
+        val viewModel: com.example.phoenx.ui.screens.fil.MemoryDetailViewModel = hiltViewModel()
+        // Ambiance passée via MainViewModel ou rechargée si besoin
+        // Ici on garde l'ambiance standard ou on utilise une valeur par défaut car MemoryDetail est mixte
+        
         MemoryDetailScreen(
             entryId = entryId,
             onNavigateBack = { navController.popBackStack() },
             navController = navController,
             targetCreatorId = creatorId,
-            triggerAction = triggerAction
+            triggerAction = triggerAction,
+            viewModel = viewModel
         )
     }
 
@@ -490,7 +572,11 @@ fun NavGraphBuilder.recipientGraph(
         arguments = listOf(
             navArgument("entryId") { type = NavType.StringType },
             navArgument("creatorId") { nullable = true; type = NavType.StringType }
-        )
+        ),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
         val creatorId = backStackEntry.arguments?.getString("creatorId")
@@ -531,7 +617,11 @@ fun NavGraphBuilder.recipientGraph(
 
     composable(
         route = Screen.Genealogy.route,
-        arguments = listOf(navArgument("creatorId") { nullable = true; type = NavType.StringType })
+        arguments = listOf(navArgument("creatorId") { nullable = true; type = NavType.StringType }),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId")
         GenealogyTreeScreen(

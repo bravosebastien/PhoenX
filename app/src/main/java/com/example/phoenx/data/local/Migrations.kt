@@ -516,4 +516,23 @@ object RoomMigrations {
             """.trimIndent())
         }
     }
+
+    /**
+     * MIGRATION_44_45 — Tonalité libre v9.4.27
+     */
+    val MIGRATION_44_45 = object : Migration(44, 45) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN tonalNuance TEXT")
+        }
+    }
+
+    /**
+     * MIGRATION_45_46 — Ambiance de transmission v9.4.27
+     */
+    val MIGRATION_45_46 = object : Migration(45, 46) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE creator_profile ADD COLUMN transmissionBackgroundId TEXT DEFAULT 'PAPER_IVORY'")
+            db.execSQL("ALTER TABLE creator_profile ADD COLUMN transmissionFontId TEXT DEFAULT 'MODERN'")
+        }
+    }
 }

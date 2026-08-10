@@ -10,6 +10,7 @@ import com.example.phoenx.domain.model.AgeSnapshot
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
+import com.example.phoenx.ui.screens.recipient.AmbianceState
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -29,7 +30,8 @@ data class PreviewDashboardState(
     val familyCount: Int = 0,
     val bookTitle: String? = null,
     val hasBookDraft: Boolean = false,
-    val isBookShared: Boolean = false // v9.4.27
+    val isBookShared: Boolean = false,
+    val ambiance: AmbianceState = AmbianceState() // v9.4.27
 )
 
 data class BookPreviewInfo(
@@ -53,19 +55,26 @@ class PreviewViewModel @Inject constructor(
 
     // Source de vérité unique pour l'UI (v9.4.27)
     val state: StateFlow<PreviewDashboardState> = _recipientUid
-        .filterNotNull()
         .flatMapLatest { uid ->
+            val userId = auth.currentUser?.uid ?: ""
             val entriesFlow = offlineEntryDao.getAllEntries()
             val standaloneFlow = standaloneMediaDao.getAllStandaloneMedia()
             val personsFlow = offlineEntryDao.getAllPersons()
             
-            // Chargement asynchrone du nom du destinataire
-            val nameFlow = flow {
+            // Chargement asynchrone du nom du destinataire et du profil créateur
+            val extraInfoFlow = flow {
                 val recipients = offlineEntryDao.getAllRecipients().first()
-                emit(recipients.find { it.linkedUid == uid }?.name ?: "Ce proche")
+                val recipientName = recipients.find { it.linkedUid == uid }?.name ?: "Ce proche"
+                
+                val creatorProfile = offlineEntryDao.getCreatorProfileSync(userId)
+                
+                emit(Pair(recipientName, creatorProfile))
             }
 
-            combine(entriesFlow, standaloneFlow, personsFlow, _bookInfo, nameFlow) { entries, standalone, persons, bookInfo, name ->
+            combine(entriesFlow, standaloneFlow, personsFlow, _bookInfo, extraInfoFlow) { entries, standalone, persons, bookInfo, extraInfo ->
+                val recipientName = extraInfo.first
+                val creatorProfile = extraInfo.second
+
                 val filteredEntries = entries.filter { 
                     it.visibility == "EVERYONE" || it.recipientIds.split(",").map { id -> id.trim() }.contains(uid) 
                 }
@@ -91,7 +100,7 @@ class PreviewViewModel @Inject constructor(
                     photosCount = allPhotosCount,
                     videosCount = allVideosCount,
                     audiosCount = allAudiosCount,
-                    recipientName = name,
+                    recipientName = recipientName,
                     isLoading = false,
                     filteredSouvenirs = souvenirs.sortedByDescending { it.createdAt },
                     allFilteredEntries = filteredEntries,
@@ -100,7 +109,11 @@ class PreviewViewModel @Inject constructor(
                     familyCount = persons.size,
                     bookTitle = bookInfo.title,
                     hasBookDraft = bookInfo.hasDraft,
-                    isBookShared = bookInfo.isShared
+                    isBookShared = bookInfo.isShared,
+                    ambiance = AmbianceState(
+                        backgroundId = creatorProfile?.transmissionBackgroundId ?: "classic_ivory",
+                        fontId = creatorProfile?.transmissionFontId ?: "playfair_display"
+                    )
                 )
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PreviewDashboardState())

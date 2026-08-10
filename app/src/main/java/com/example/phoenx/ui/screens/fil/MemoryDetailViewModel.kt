@@ -643,6 +643,14 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
+    fun updateTonalNuance(nuance: String) {
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            offlineEntryDao.updateEntryTonalNuance(nuance.take(150), id)
+            triggerSync(id)
+        }
+    }
+
     fun updateMemoryDate(date: Long?) {
         val id = _entryId.value ?: return
         viewModelScope.launch {

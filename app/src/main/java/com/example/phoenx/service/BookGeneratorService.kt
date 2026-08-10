@@ -155,6 +155,7 @@ class BookGeneratorService @Inject constructor(
                 "summary" to parent.aiSummary,
                 "age" to age.years,
                 "category" to parent.emotionalCategory,
+                "tonalNuance" to parent.tonalNuance, // Ajouté v9.4.27
                 "soulTone" to parent.soulTone,
                 "originType" to originType, // Injection v9.3.1
                 "characters" to characters, // Transmis à l'IA Biographe

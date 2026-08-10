@@ -40,18 +40,27 @@ fun RecipientCubeScreen(
     viewModel: RecipientCubeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val theme = LocalAppTheme.current
+    val ambiance by viewModel.ambiance.collectAsState()
+    
+    // APPLICATION DE L'AMBIANCE (Action Chantier C)
+    val customFont = remember(ambiance.fontId) { com.example.phoenx.ui.screens.book.BookThemeOptions.getFont(ambiance.fontId) }
+    val customBg = remember(ambiance.backgroundId) { com.example.phoenx.ui.screens.book.BookThemeOptions.getBackground(ambiance.backgroundId) }
+    
+    val theme = LocalAppTheme.current.copy(
+        fontFamily = customFont,
+        backgroundColor = customBg.color,
+        contentColor = if (customBg.darkText) Color.Black else Color.White
+    )
     val accent = theme.accentColor
-    val backgroundBrush = LocalBackgroundBrush.current
 
     LaunchedEffect(creatorId) {
         viewModel.loadCreatorInfo(creatorId)
     }
 
-    Scaffold(
-        containerColor = theme.backgroundColor,
-        modifier = Modifier.background(backgroundBrush),
-        topBar = {
+    CompositionLocalProvider(LocalAppTheme provides theme) {
+        Scaffold(
+            containerColor = theme.backgroundColor,
+            topBar = {
             TopAppBar(
                 title = { 
                     val title = when (val state = uiState) {
@@ -208,6 +217,7 @@ fun RecipientCubeScreen(
             }
         }
     }
+}
 }
 
 @Composable

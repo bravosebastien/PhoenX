@@ -1,33 +1,19 @@
 package com.example.phoenx.ui.screens.recipient
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.AutoStories
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.HistoryEdu
-import androidx.compose.material.icons.filled.Mail
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material.icons.filled.TextFields
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.VideoLibrary
-import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -68,6 +54,14 @@ fun RecipientDetailScreen(
     
     val pendingCount by viewModel.getPendingQuestionsCount(recipientId).collectAsState(initial = 0)
     
+    val ambiance by viewModel.transmissionAmbiance.collectAsState()
+    var showAmbianceSelector by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        val myUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
+        viewModel.loadTransmissionAmbiance(myUid)
+    }
+
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -136,6 +130,40 @@ fun RecipientDetailScreen(
 
                 // APERÇU VISION DESTINATAIRE (v9.4.27)
                 if (recipient.linkedUid != null) {
+                    // AMBIANCE DE TRANSMISSION (Action Chantier C)
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showAmbianceSelector = !showAmbianceSelector }
+                            .padding(bottom = 12.dp)
+                            .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                        color = theme.contentColor.copy(alpha = 0.03f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Palette, null, tint = accent, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(16.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("Ambiance de transmission", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                Text("Personnalisez l'univers visuel de vos proches.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                            }
+                            Icon(if (showAmbianceSelector) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = theme.contentColor.copy(alpha = 0.2f))
+                        }
+                    }
+
+                    AnimatedVisibility(visible = showAmbianceSelector) {
+                        Column(modifier = Modifier.padding(bottom = 24.dp)) {
+                            com.example.phoenx.ui.components.GlobalThemeSelector(
+                                currentBackgroundId = ambiance.backgroundId,
+                                currentFontId = ambiance.fontId,
+                                onThemeChange = { bg, font -> viewModel.saveTransmissionAmbiance(bg, font) }
+                            )
+                            Spacer(Modifier.height(16.dp))
+                            HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
+                            Spacer(Modifier.height(24.dp))
+                        }
+                    }
+
                     Card(
                         onClick = { navController.navigate(Screen.Preview.Root.createRoute(recipient.linkedUid)) },
                         modifier = Modifier.fillMaxWidth().phoenXMatiere(),

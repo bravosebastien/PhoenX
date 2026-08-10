@@ -13,11 +13,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RecipientCubeViewModel @Inject constructor(
-    private val functions: FirebaseFunctions
+    private val functions: FirebaseFunctions,
+    private val db: com.google.firebase.firestore.FirebaseFirestore
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<RecipientCubeUiState>(RecipientCubeUiState.Loading)
     val uiState: StateFlow<RecipientCubeUiState> = _uiState.asStateFlow()
+
+    private val _ambiance = MutableStateFlow(AmbianceState())
+    val ambiance: StateFlow<AmbianceState> = _ambiance.asStateFlow()
 
     fun loadCreatorInfo(creatorId: String) {
         viewModelScope.launch {
@@ -34,6 +38,17 @@ class RecipientCubeViewModel @Inject constructor(
                     creatorName = name,
                     isActivated = isBookOpen
                 )
+
+                // 2. Charger l'ambiance (v9.4.27)
+                val profDoc = db.collection("users").document(creatorId)
+                    .collection("profile").document("creator").get().await()
+                
+                if (profDoc.exists()) {
+                    _ambiance.value = AmbianceState(
+                        backgroundId = profDoc.getString("transmissionBackgroundId") ?: "classic_ivory",
+                        fontId = profDoc.getString("transmissionFontId") ?: "playfair_display"
+                    )
+                }
             } catch (e: Exception) {
                 android.util.Log.e("RecipientCube", "Erreur chargement infos : ${e.message}")
                 _uiState.value = RecipientCubeUiState.Error(e.message ?: "Erreur de connexion")

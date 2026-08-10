@@ -372,6 +372,7 @@ class CaptureViewModel @Inject constructor(
         parentEntryId: String? = null,
         includeInBook: Boolean = true,
         soulTone: String? = null,
+        tonalNuance: String? = null, // v9.4.27
         onSuccess: (String) -> Unit = {} // v9.4.26
     ) {
         val user = auth.currentUser ?: return
@@ -424,6 +425,7 @@ class CaptureViewModel @Inject constructor(
                     latitude = latitude,
                     longitude = longitude,
                     soulTone = soulTone,
+                    tonalNuance = tonalNuance, // v9.4.27
                     syncStatus = "pending"
                 )
                 

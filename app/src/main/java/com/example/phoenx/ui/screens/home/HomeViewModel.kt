@@ -131,6 +131,18 @@ class HomeViewModel @Inject constructor(
         val user = auth.currentUser ?: return
         viewModelScope.launch {
             try {
+                // Nombre de membres PHOEN-X (Global) v9.4.27
+                db.collection("appConfig").document("stats")
+                    .addSnapshotListener { snapshot, _ ->
+                        val count = snapshot?.getLong("totalUsers")?.toInt() ?: 0
+                        _uiState.update { it.copy(globalUserCount = count) }
+                    }
+
+                // Nombre de proches (Local Room) v9.4.27
+                offlineEntryDao.getAllRecipients().collect { list ->
+                    _uiState.update { it.copy(localRecipientCount = list.size) }
+                }
+
                 // Nombre de questions répondues
                 db.collection("users").document(user.uid)
                     .collection("entries")
@@ -304,6 +316,8 @@ data class HomeUiState(
     val answeredQuestionsCount: Int = 0,
     val validatedChaptersCount: Int = 0,
     val bookTitle: String? = null,
+    val globalUserCount: Int = 0, // v9.4.27
+    val localRecipientCount: Int = 0, // v9.4.27
     val coverImageUrl: String? = null, // v9.2.4
     val defaultCoverUrl: String? = null, // v9.2.5
     val earthTextureUrl: String? = null, // v9.2.8

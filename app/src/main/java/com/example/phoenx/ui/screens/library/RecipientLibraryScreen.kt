@@ -79,15 +79,21 @@ fun RecipientLibraryScreen(
     
     val bookTitle by mediaViewModel.bookTitle.collectAsState()
     val totalSouvenirs = rootLibrary.size + rootVideo.size + rootDisco.size + rootArchive.size
+    val ambiance by mediaViewModel.ambiance.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(theme.backgroundColor)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .verticalScroll(rememberScrollState())
+    TransmissionTheme(
+        backgroundId = ambiance.backgroundId,
+        fontId = ambiance.fontId
     ) {
+        val theme = LocalAppTheme.current
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(theme.backgroundColor)
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
+        ) {
         // HEADER
         Row(
             modifier = Modifier
@@ -311,6 +317,7 @@ fun RecipientLibraryScreen(
         
         Spacer(modifier = Modifier.height(48.dp))
     }
+}
 }
 
 @Composable

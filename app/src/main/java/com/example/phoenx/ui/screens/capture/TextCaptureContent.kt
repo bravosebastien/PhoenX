@@ -67,6 +67,9 @@ fun TextCaptureContent(
     onTonaliteToggle: () -> Unit = {},
     isTiroirsExpanded: Boolean = false,
     onTiroirsToggle: () -> Unit = {},
+    // NUANCE PERSONNELLE (v9.4.27)
+    tonalNuance: String = "",
+    onTonalNuanceChange: (String) -> Unit = {},
     // OPTIONS AVANCÉES (Intégrées v9.0)
     enigmaQuestion: String = "",
     onEnigmaQuestionChange: (String) -> Unit = {},
@@ -254,6 +257,26 @@ fun TextCaptureContent(
                                 )
                             }
                         }
+                        Spacer(modifier = Modifier.height(24.dp))
+                        
+                        OutlinedTextField(
+                            value = tonalNuance,
+                            onValueChange = { if (it.length <= 150) onTonalNuanceChange(it) },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Précisez la nuance (facultatif)", fontSize = 11.sp) },
+                            placeholder = { Text("Ex : un peu amer mais je souris en l'écrivant...", fontSize = 11.sp) },
+                            maxLines = 3,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = accent.copy(alpha = 0.5f),
+                                unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                                focusedTextColor = theme.contentColor,
+                                unfocusedTextColor = theme.contentColor
+                            ),
+                            supportingText = {
+                                Text("${tonalNuance.length}/150", modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.End, fontSize = 10.sp)
+                            }
+                        )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }

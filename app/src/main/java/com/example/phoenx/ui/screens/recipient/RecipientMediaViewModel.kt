@@ -261,6 +261,9 @@ class RecipientMediaViewModel @Inject constructor(
     private val _creatorName = MutableStateFlow("Votre proche")
     val creatorName: StateFlow<String> = _creatorName.asStateFlow()
 
+    private val _ambiance = MutableStateFlow(AmbianceState())
+    val ambiance: StateFlow<AmbianceState> = _ambiance.asStateFlow()
+
     private val _targetCreatorId = MutableStateFlow<String?>(null)
 
     val currentUid: String get() = auth.currentUser?.uid ?: ""
@@ -287,6 +290,17 @@ class RecipientMediaViewModel @Inject constructor(
                     // Fetch Creator Name (v8.6.2)
                     val creatorDoc = db.collection("users").document(creatorId).get().await()
                     _creatorName.value = creatorDoc.getString("displayName") ?: "Votre proche"
+
+                    // Charger l'ambiance (v9.4.27)
+                    val profDoc = db.collection("users").document(creatorId)
+                        .collection("profile").document("creator").get().await()
+                    
+                    if (profDoc.exists()) {
+                        _ambiance.value = AmbianceState(
+                            backgroundId = profDoc.getString("transmissionBackgroundId") ?: "classic_ivory",
+                            fontId = profDoc.getString("transmissionFontId") ?: "playfair_display"
+                        )
+                    }
 
                     // Check protocol status via Cloud Function (v8.5.9)
                     val result = functions.getHttpsCallable("getCreatorProtocolStatus")

@@ -106,7 +106,14 @@ fun StepByStepCaptureScreen(
         ) {
             when (uiState.currentStep) {
                 1 -> StepEtincelle(uiState.title, { viewModel.updateTitle(it) }, theme, accent)
-                2 -> StepTonalite(uiState.category, { viewModel.updateCategory(it) }, theme, accent)
+                2 -> StepTonalite(
+                    uiState.category,
+                    uiState.tonalNuance,
+                    { viewModel.updateCategory(it) },
+                    { viewModel.updateTonalNuance(it) },
+                    theme,
+                    accent
+                )
                 3 -> StepDate(
                     isPeriodMode = uiState.isPeriodMode,
                     memoryDate = uiState.memoryDate,
@@ -334,7 +341,14 @@ fun StepEtincelle(title: String, onTitleChange: (String) -> Unit, theme: AppThem
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StepTonalite(selectedCategory: String, onCategoryChange: (String) -> Unit, theme: AppThemeState, accent: Color) {
+fun StepTonalite(
+    selectedCategory: String, 
+    tonalNuance: String,
+    onCategoryChange: (String) -> Unit, 
+    onNuanceChange: (String) -> Unit,
+    theme: AppThemeState, 
+    accent: Color
+) {
     Text(
         text = "LA TONALITÉ",
         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
@@ -366,6 +380,27 @@ fun StepTonalite(selectedCategory: String, onCategoryChange: (String) -> Unit, t
             )
         }
     }
+
+    Spacer(modifier = Modifier.height(32.dp))
+    
+    OutlinedTextField(
+        value = tonalNuance,
+        onValueChange = { if (it.length <= 150) onNuanceChange(it) },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text("Précisez la nuance (facultatif)", fontSize = 11.sp) },
+        placeholder = { Text("Ex : un peu amer mais je souris en l'écrivant...", fontSize = 11.sp) },
+        maxLines = 3,
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = accent.copy(alpha = 0.5f),
+            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+            focusedTextColor = theme.contentColor,
+            unfocusedTextColor = theme.contentColor
+        ),
+        supportingText = {
+            Text("${tonalNuance.length}/150", modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.End, fontSize = 10.sp)
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

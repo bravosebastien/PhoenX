@@ -29,7 +29,8 @@ data class StepByStepUiState(
     val enigmaHint: String = "",
     val autoUnlockDays: Int? = 30,
     val isUltimateSecret: Boolean = false,
-    val includeInBook: Boolean = true // v9.4.27
+    val includeInBook: Boolean = true, // v9.4.27
+    val tonalNuance: String = "" // v9.4.27
 )
 
 @HiltViewModel
@@ -117,5 +118,9 @@ class StepByStepCaptureViewModel @Inject constructor(
 
     fun updateIncludeInBook(include: Boolean) {
         _uiState.update { it.copy(includeInBook = include) }
+    }
+
+    fun updateTonalNuance(nuance: String) {
+        _uiState.update { it.copy(tonalNuance = nuance) }
     }
 }
