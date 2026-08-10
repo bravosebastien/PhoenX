@@ -124,19 +124,11 @@ class PreviewViewModel @Inject constructor(
      * Déchiffre le texte d'un souvenir pour l'aperçu (v9.4.27)
      */
     fun decryptContent(encryptedPayload: ByteArray, summary: String): String {
-        android.util.Log.d("PreviewVM_Debug", "--- DIAGNOSTIC SOUVENIR ---")
-        android.util.Log.d("PreviewVM_Debug", "Titre (aiSummary): $summary")
-        android.util.Log.d("PreviewVM_Debug", "Taille brute payload: ${encryptedPayload.size} bytes")
-        
         val decrypted = try {
             encryptionManager.decryptText(encryptedPayload)
         } catch (e: Exception) {
             "Erreur déchiffrement"
         }
-
-        android.util.Log.d("PreviewVM_Debug", "Texte déchiffré: $decrypted")
-        android.util.Log.d("PreviewVM_Debug", "Identiques ? ${decrypted.trim() == summary.trim()}")
-        
         return decrypted
     }
 
@@ -149,7 +141,6 @@ class PreviewViewModel @Inject constructor(
         // Un seul lancement de chargement Cloud
         viewModelScope.launch {
             try {
-                android.util.Log.d("PreviewVM_Debug", "Fetching book info for creator: $userId")
                 val bookDoc = db.collection("users").document(userId)
                     .collection("book").document("current_draft").get().await()
                 
@@ -163,12 +154,11 @@ class PreviewViewModel @Inject constructor(
                     val isVisible = visibility == "EVERYONE" || recIds.contains(recipientUid)
                     
                     _bookInfo.value = BookPreviewInfo(bookTitle, hasDraft, isVisible)
-                    android.util.Log.d("PreviewVM_Debug", "Book Info updated: hasDraft=$hasDraft, isVisible=$isVisible")
                 } else {
                     _bookInfo.value = BookPreviewInfo(null, false, false)
                 }
             } catch (e: Exception) {
-                android.util.Log.e("PreviewVM_Debug", "Error loading book info", e)
+                android.util.Log.e("PreviewVM", "Error loading book info", e)
             }
         }
     }
