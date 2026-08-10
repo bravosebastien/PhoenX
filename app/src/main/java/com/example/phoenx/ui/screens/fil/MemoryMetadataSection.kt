@@ -114,12 +114,17 @@ fun MemoryMetadataSection(
     Column(verticalArrangement = Arrangement.spacedBy(40.dp)) {
         // ── SECTION 2 : QUAND ET OÙ ────────────────
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("QUAND ET OÙ", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f), letterSpacing = 2.sp)
+            Text(
+                text = "QUAND ET OÙ", 
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 13.sp), 
+                color = Color.Black, 
+                letterSpacing = 2.sp
+            )
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = theme.contentColor.copy(alpha = 0.04f), // Renforcé
+                color = theme.contentColor.copy(alpha = 0.04f),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.15f)) // Renforcé
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.35f))
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                     // DATE RÉELLE
@@ -313,12 +318,17 @@ fun MemoryMetadataSection(
 
         // ── SECTION 3 : POUR QUI ──────────────────
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("POUR QUI", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f), letterSpacing = 2.sp)
+            Text(
+                text = "POUR QUI", 
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 13.sp), 
+                color = Color.Black, 
+                letterSpacing = 2.sp
+            )
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = theme.contentColor.copy(alpha = 0.04f), // Renforcé
+                color = theme.contentColor.copy(alpha = 0.04f),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.15f)) // Renforcé
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.35f))
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                     // DESTINATAIRES
@@ -427,20 +437,43 @@ fun MemoryMetadataSection(
                             }
                         }
 
-                        // Lien Vivant
-                        if (selectedRecipientIds.size == 1) {
-                            val recipientId = selectedRecipientIds.first()
-                            val recipient = recipients.find { it.id == recipientId }
-                            if (recipient != null) {
-                                Spacer(modifier = Modifier.height(24.dp))
-                                LienVivantBanner(recipientName = recipient.name, recipientPhone = recipient.phone)
+                        // v9.4.27 : Bloc PERSONNES MENTIONNÉES (Action Chantier B)
+                        if (!isReadOnly || selectedPersons.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
+                                color = theme.contentColor.copy(alpha = 0.04f), // Teinte distincte
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.Group, null, tint = accent, modifier = Modifier.size(20.dp))
+                                        Spacer(Modifier.width(12.dp))
+                                        Text("Personnes mentionnées", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                        Spacer(Modifier.width(8.dp))
+                                        InfoPoint(
+                                            title = "Qui apparaît dans ce récit ?",
+                                            content = "Identifiez les proches présents dans ce souvenir. L'IA Biographe les utilisera pour clarifier la narration dans votre Livre de Vie (ex: 'Ton cousin Thomas était là').\n\nNote : Mentionner une personne ne lui donne pas accès au souvenir, cela permet juste de mieux structurer votre histoire."
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    PersonSelector(
+                                        selectedPersons = selectedPersons, 
+                                        suggestedPersons = suggestedPersons, 
+                                        onSearch = { viewModel.searchPersons(it) }, 
+                                        onSelect = { viewModel.selectPerson(it) }, 
+                                        onSelectMe = { viewModel.selectMe() }, 
+                                        onCreate = { f, l, r, dt, dv, uri, ct -> viewModel.createAndSelectPerson(f, l, r, dt, dv, uri, ct) }, 
+                                        onRemove = { viewModel.removePerson(it) }, 
+                                        onManageCharacters = { navController.navigate(Screen.Characters.route) }, 
+                                        accent = accent, 
+                                        enabled = !isReadOnly
+                                    )
+                                }
                             }
                         }
-                    }
-
-                    // PERSONNAGES
-                    if (!isReadOnly || selectedPersons.isNotEmpty()) {
-                        PersonSelector(selectedPersons = selectedPersons, suggestedPersons = suggestedPersons, onSearch = { viewModel.searchPersons(it) }, onSelect = { viewModel.selectPerson(it) }, onSelectMe = { viewModel.selectMe() }, onCreate = { f, l, r, dt, dv, uri, ct -> viewModel.createAndSelectPerson(f, l, r, dt, dv, uri, ct) }, onRemove = { viewModel.removePerson(it) }, onManageCharacters = { navController.navigate(Screen.Characters.route) }, accent = accent, enabled = !isReadOnly)
                     }
                 }
             }
@@ -448,7 +481,12 @@ fun MemoryMetadataSection(
 
         // ── SECTION 4 : PROTECTION ──────────────────
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("PROTECTION", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f), letterSpacing = 2.sp)
+            Text(
+                text = "PROTECTION", 
+                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 13.sp), 
+                color = Color.Black, 
+                letterSpacing = 2.sp
+            )
             EnigmaForm(
                 isEnabled = enigmaEnabled,
                 onToggleEnabled = { enigmaEnabled = it },

@@ -186,9 +186,10 @@ class MemoryDetailViewModel @Inject constructor(
         // On inclut aussi "Moi" si présent dans les IDs
         val user = auth.currentUser
         val me = if (user != null && ids.contains("ME_${user.uid}")) {
+            val displayName = if (user.displayName.isNullOrBlank()) "Moi" else user.displayName!!
             listOf(SimplifiedPerson(
                 id = "ME_${user.uid}",
-                name = user.displayName ?: "Moi",
+                name = displayName,
                 photoUrl = user.photoUrl?.toString(),
                 sourceType = "auteur",
                 relationship = "Auteur",

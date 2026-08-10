@@ -320,14 +320,15 @@ class RecipientViewModel @Inject constructor(
     }
 
     /**
-     * Charge l'ambiance de transmission du créateur (v9.4.27)
+     * Charge l'ambiance de transmission pour un proche précis (v9.4.27)
      */
-    fun loadTransmissionAmbiance(creatorId: String) {
+    fun loadTransmissionAmbiance(recipientId: String) {
+        val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                // v9.4.27 : On cherche dans le profil du créateur
-                val doc = db.collection("users").document(creatorId)
-                    .collection("profile").document("creator").get().await()
+                // v9.4.27 : On cherche dans le document du destinataire
+                val doc = db.collection("users").document(userId)
+                    .collection("recipients").document(recipientId).get().await()
                 
                 if (doc.exists()) {
                     _transmissionAmbiance.value = AmbianceState(
@@ -342,24 +343,23 @@ class RecipientViewModel @Inject constructor(
     }
 
     /**
-     * Sauvegarde l'ambiance côté créateur (v9.4.27)
+     * Sauvegarde l'ambiance pour un proche précis (v9.4.27)
      */
-    fun saveTransmissionAmbiance(backgroundId: String, fontId: String) {
+    fun saveTransmissionAmbiance(recipientId: String, backgroundId: String, fontId: String) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
                 val data = mapOf(
                     "transmissionBackgroundId" to backgroundId,
-                    "transmissionFontId" to fontId,
-                    "updatedAt" to System.currentTimeMillis()
+                    "transmissionFontId" to fontId
                 )
                 db.collection("users").document(userId)
-                    .collection("profile").document("creator")
-                    .set(data, com.google.firebase.firestore.SetOptions.merge())
+                    .collection("recipients").document(recipientId)
+                    .update(data)
                     .await()
                 
                 // MAJ Locale Room
-                offlineEntryDao.updateTransmissionAmbiance(userId, backgroundId, fontId)
+                offlineEntryDao.updateRecipientAmbiance(recipientId, backgroundId, fontId)
                 
                 _transmissionAmbiance.value = AmbianceState(backgroundId, fontId)
             } catch (e: Exception) {

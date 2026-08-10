@@ -38,16 +38,16 @@ fun GlobalThemeSelector(
             items(BookThemeOptions.backgrounds) { bg ->
                 val isSelected = currentBackgroundId == bg.id
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(bg.color)
-                            .border(1.dp, if (isSelected) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-                            .clickable { onThemeChange(bg.id, currentFontId) },
-                        contentAlignment = Alignment.Center
+                    Surface(
+                        onClick = { onThemeChange(bg.id, currentFontId) },
+                        modifier = Modifier.size(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = bg.color,
+                        border = BorderStroke(1.dp, if (isSelected) accent.copy(alpha = 0.6f) else theme.contentColor.copy(alpha = 0.1f))
                     ) {
-                        if (isSelected) Icon(Icons.Default.Check, null, tint = if (bg.darkText) Color.Black else Color.White)
+                        Box(contentAlignment = Alignment.Center) {
+                            if (isSelected) Icon(Icons.Default.Check, null, tint = if (bg.darkText) Color.Black else Color.White)
+                        }
                     }
                     Spacer(Modifier.height(4.dp))
                     Text(
@@ -65,10 +65,10 @@ fun GlobalThemeSelector(
             items(BookThemeOptions.fonts) { font ->
                 val isSelected = currentFontId == font.id
                 Card(
+                    onClick = { onThemeChange(currentBackgroundId, font.id) },
                     modifier = Modifier
                         .width(100.dp)
-                        .height(50.dp)
-                        .clickable { onThemeChange(currentBackgroundId, font.id) },
+                        .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color.White

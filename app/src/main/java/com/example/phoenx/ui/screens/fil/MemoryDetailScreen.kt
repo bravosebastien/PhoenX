@@ -304,12 +304,17 @@ fun MemoryDetailScreen(
                 ) {
                     // ── SECTION 1 : L'ESSENTIEL ────────────────
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("L'ESSENTIEL", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f), letterSpacing = 2.sp)
+                        Text(
+                            text = "L'ESSENTIEL", 
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 13.sp), 
+                            color = Color.Black, 
+                            letterSpacing = 2.sp
+                        )
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
-                            color = theme.contentColor.copy(alpha = 0.04f), // Renforcé
+                            color = theme.contentColor.copy(alpha = 0.04f),
                             shape = RoundedCornerShape(16.dp),
-                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.15f)) // Renforcé
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.35f)) // Bordure renforcée v9.4.27
                         ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                                 if (entry!!.entryType != "PORTRAIT") {
@@ -421,7 +426,7 @@ fun MemoryDetailScreen(
                                             var nuanceText by remember(entry!!.tonalNuance) { mutableStateOf(entry!!.tonalNuance ?: "") }
                                             OutlinedTextField(
                                                 value = nuanceText,
-                                                onValueChange = { if (it.length <= 150) { nuanceText = it; viewModel.updateTonalNuance(it) } },
+                                                onValueChange = { if (it.length <= 100) { nuanceText = it; viewModel.updateTonalNuance(it) } },
                                                 modifier = Modifier.fillMaxWidth(),
                                                 label = { Text("Précisez la nuance (facultatif)", fontSize = 11.sp) },
                                                 placeholder = { Text("Ex : un peu amer mais je souris en l'écrivant...", fontSize = 11.sp) },
@@ -435,7 +440,7 @@ fun MemoryDetailScreen(
                                                     unfocusedTextColor = theme.contentColor
                                                 ),
                                                 supportingText = {
-                                                    Text("${nuanceText.length}/150", modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.End, fontSize = 10.sp)
+                                                    Text("${nuanceText.length}/100", modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.End, fontSize = 10.sp)
                                                 }
                                             )
                                         }
@@ -457,14 +462,19 @@ fun MemoryDetailScreen(
                         )
 
                         // ── SECTION 5 : COMPLÉMENTS MÉDIA ────────────────
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text("COMPLÉMENTS MÉDIA", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f), letterSpacing = 2.sp)
-                            Surface(
-                                modifier = Modifier.fillMaxWidth(),
-                                color = theme.contentColor.copy(alpha = 0.04f), // Renforcé
-                                shape = RoundedCornerShape(16.dp),
-                                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.15f)) // Renforcé
-                            ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(
+                            text = "COMPLÉMENTS MÉDIA", 
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 13.sp), 
+                            color = Color.Black, 
+                            letterSpacing = 2.sp
+                        )
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = theme.contentColor.copy(alpha = 0.04f),
+                            shape = RoundedCornerShape(16.dp),
+                            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.35f))
+                        ) {
                                 Box(modifier = Modifier.padding(16.dp)) {
                                     MemoryComplementsSection(
                                         entryId = entryId,

@@ -54,12 +54,11 @@ fun RecipientDetailScreen(
     
     val pendingCount by viewModel.getPendingQuestionsCount(recipientId).collectAsState(initial = 0)
     
-    val ambiance by viewModel.transmissionAmbiance.collectAsState()
+    val transmissionAmbiance by viewModel.transmissionAmbiance.collectAsState()
     var showAmbianceSelector by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        val myUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: ""
-        viewModel.loadTransmissionAmbiance(myUid)
+    LaunchedEffect(recipientId) {
+        viewModel.loadTransmissionAmbiance(recipientId)
     }
 
     val theme = LocalAppTheme.current
@@ -154,9 +153,11 @@ fun RecipientDetailScreen(
                     AnimatedVisibility(visible = showAmbianceSelector) {
                         Column(modifier = Modifier.padding(bottom = 24.dp)) {
                             com.example.phoenx.ui.components.GlobalThemeSelector(
-                                currentBackgroundId = ambiance.backgroundId,
-                                currentFontId = ambiance.fontId,
-                                onThemeChange = { bg, font -> viewModel.saveTransmissionAmbiance(bg, font) }
+                                currentBackgroundId = transmissionAmbiance.backgroundId,
+                                currentFontId = transmissionAmbiance.fontId,
+                                onThemeChange = { bg, font -> 
+                                    viewModel.saveTransmissionAmbiance(recipientId, bg, font) 
+                                }
                             )
                             Spacer(Modifier.height(16.dp))
                             HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))

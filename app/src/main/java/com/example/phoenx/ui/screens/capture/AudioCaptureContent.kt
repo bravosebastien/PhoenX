@@ -260,7 +260,7 @@ fun AudioCaptureContent(
                         Spacer(modifier = Modifier.height(16.dp))
                         OutlinedTextField(
                             value = tonalNuance,
-                            onValueChange = { if (it.length <= 150) onTonalNuanceChange(it) },
+                            onValueChange = { if (it.length <= 100) onTonalNuanceChange(it) },
                             modifier = Modifier.fillMaxWidth(),
                             label = { Text("Précisez la nuance (facultatif)", fontSize = 11.sp) },
                             placeholder = { Text("Ex : un peu amer mais je souris en l'écrivant...", fontSize = 11.sp) },
@@ -273,7 +273,7 @@ fun AudioCaptureContent(
                                 unfocusedTextColor = theme.contentColor
                             ),
                             supportingText = {
-                                Text("${tonalNuance.length}/150", modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.End, fontSize = 10.sp)
+                                Text("${tonalNuance.length}/100", modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.End, fontSize = 10.sp)
                             }
                         )
                     }

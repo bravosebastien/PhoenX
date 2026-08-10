@@ -238,8 +238,8 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM creator_profile WHERE userId = :userId")
     suspend fun getCreatorProfileSync(userId: String): CreatorProfileEntity?
 
-    @Query("UPDATE creator_profile SET transmissionBackgroundId = :bgId, transmissionFontId = :fontId WHERE userId = :userId")
-    suspend fun updateTransmissionAmbiance(userId: String, bgId: String, fontId: String): Int
+    @Query("UPDATE recipients SET transmissionBackgroundId = :bgId, transmissionFontId = :fontId WHERE id = :recipientId")
+    suspend fun updateRecipientAmbiance(recipientId: String, bgId: String, fontId: String): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCreatorProfile(profile: CreatorProfileEntity)

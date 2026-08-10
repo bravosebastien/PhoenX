@@ -18,11 +18,7 @@ data class CreatorProfileEntity(
     val eyeColor: String? = null,
     val hairColor: String? = null,
     val updatedAt: Long = System.currentTimeMillis(),
-    val syncStatus: String = "pending",
-    
-    // AMBIANCE DE TRANSMISSION v9.4.27 (Migration v46)
-    val transmissionBackgroundId: String? = "PAPER_IVORY",
-    val transmissionFontId: String? = "MODERN"
+    val syncStatus: String = "pending"
 )
 
 fun CreatorProfileEntity.toFirestoreMap(): Map<String, Any?> {
@@ -38,8 +34,6 @@ fun CreatorProfileEntity.toFirestoreMap(): Map<String, Any?> {
         "weight" to weight,
         "eyeColor" to eyeColor,
         "hairColor" to hairColor,
-        "transmissionBackgroundId" to transmissionBackgroundId,
-        "transmissionFontId" to transmissionFontId,
         "updatedAt" to updatedAt
     )
 }

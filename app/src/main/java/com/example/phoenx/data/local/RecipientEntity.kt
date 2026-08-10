@@ -20,5 +20,9 @@ data class RecipientEntity(
     val photoUrl: String? = null, // v9.2.2: Profile photo
     val createdAt: Long = System.currentTimeMillis(),
     val phone: String? = null, // v8.9.8
-    val linkedUid: String? = null // v9.2: Real Auth UID for security checks
+    val linkedUid: String? = null, // v9.2: Real Auth UID for security checks
+
+    // AMBIANCE DE TRANSMISSION v9.4.27 (Migration v47)
+    val transmissionBackgroundId: String = "classic_ivory",
+    val transmissionFontId: String = "playfair_display"
 )

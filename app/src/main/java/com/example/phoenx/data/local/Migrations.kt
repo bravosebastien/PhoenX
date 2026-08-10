@@ -535,4 +535,45 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE creator_profile ADD COLUMN transmissionFontId TEXT DEFAULT 'MODERN'")
         }
     }
+
+    /**
+     * MIGRATION_46_47 — Ambiance PAR DESTINATAIRE v9.4.27
+     * Déplacement des préférences du profil global vers chaque destinataire.
+     */
+    val MIGRATION_46_47 = object : Migration(46, 47) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // 1. Ajout des colonnes à la table recipients
+            db.execSQL("ALTER TABLE recipients ADD COLUMN transmissionBackgroundId TEXT NOT NULL DEFAULT 'classic_ivory'")
+            db.execSQL("ALTER TABLE recipients ADD COLUMN transmissionFontId TEXT NOT NULL DEFAULT 'playfair_display'")
+
+            // 2. Nettoyage de creator_profile (Recreation car SQLite ne supporte pas DROP COLUMN)
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `creator_profile_new` (
+                    `userId` TEXT NOT NULL, 
+                    `bio` TEXT, 
+                    `profession` TEXT, 
+                    `hasSiblings` INTEGER, 
+                    `siblingsDetail` TEXT, 
+                    `hasChildren` INTEGER, 
+                    `childrenDetail` TEXT, 
+                    `hobbies` TEXT, 
+                    `height` INTEGER, 
+                    `weight` INTEGER, 
+                    `eyeColor` TEXT, 
+                    `hairColor` TEXT, 
+                    `updatedAt` INTEGER NOT NULL, 
+                    `syncStatus` TEXT NOT NULL, 
+                    PRIMARY KEY(`userId`)
+                )
+            """.trimIndent())
+
+            db.execSQL("""
+                INSERT INTO `creator_profile_new` (userId, bio, profession, hasSiblings, siblingsDetail, hasChildren, childrenDetail, hobbies, height, weight, eyeColor, hairColor, updatedAt, syncStatus)
+                SELECT userId, bio, profession, hasSiblings, siblingsDetail, hasChildren, childrenDetail, hobbies, height, weight, eyeColor, hairColor, updatedAt, syncStatus FROM `creator_profile`
+            """.trimIndent())
+
+            db.execSQL("DROP TABLE `creator_profile`")
+            db.execSQL("ALTER TABLE `creator_profile_new` RENAME TO `creator_profile`")
+        }
+    }
 }

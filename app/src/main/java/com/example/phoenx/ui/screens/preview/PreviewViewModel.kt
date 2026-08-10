@@ -61,19 +61,24 @@ class PreviewViewModel @Inject constructor(
             val standaloneFlow = standaloneMediaDao.getAllStandaloneMedia()
             val personsFlow = offlineEntryDao.getAllPersons()
             
-            // Chargement asynchrone du nom du destinataire et du profil créateur
+            // Chargement asynchrone du nom du destinataire et de son ambiance (v9.4.27)
             val extraInfoFlow = flow {
                 val recipients = offlineEntryDao.getAllRecipients().first()
-                val recipientName = recipients.find { it.linkedUid == uid }?.name ?: "Ce proche"
+                val targetRecipient = recipients.find { it.linkedUid == uid }
+                val recipientName = targetRecipient?.name ?: "Ce proche"
                 
-                val creatorProfile = offlineEntryDao.getCreatorProfileSync(userId)
+                // Ambiance spécifique (Migration v47)
+                val ambiance = AmbianceState(
+                    backgroundId = targetRecipient?.transmissionBackgroundId ?: "classic_ivory",
+                    fontId = targetRecipient?.transmissionFontId ?: "playfair_display"
+                )
                 
-                emit(Pair(recipientName, creatorProfile))
+                emit(Pair(recipientName, ambiance))
             }
 
             combine(entriesFlow, standaloneFlow, personsFlow, _bookInfo, extraInfoFlow) { entries, standalone, persons, bookInfo, extraInfo ->
                 val recipientName = extraInfo.first
-                val creatorProfile = extraInfo.second
+                val ambiance = extraInfo.second
 
                 val filteredEntries = entries.filter { 
                     it.visibility == "EVERYONE" || it.recipientIds.split(",").map { id -> id.trim() }.contains(uid) 
@@ -110,10 +115,7 @@ class PreviewViewModel @Inject constructor(
                     bookTitle = bookInfo.title,
                     hasBookDraft = bookInfo.hasDraft,
                     isBookShared = bookInfo.isShared,
-                    ambiance = AmbianceState(
-                        backgroundId = creatorProfile?.transmissionBackgroundId ?: "classic_ivory",
-                        fontId = creatorProfile?.transmissionFontId ?: "playfair_display"
-                    )
+                    ambiance = ambiance
                 )
             }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), PreviewDashboardState())

@@ -225,9 +225,10 @@ class CaptureViewModel @Inject constructor(
 
     fun selectMe() {
         val user = auth.currentUser ?: return
+        val displayName = if (user.displayName.isNullOrBlank()) "Moi" else user.displayName!!
         val me = SimplifiedPerson(
             id = "ME_${user.uid}",
-            name = user.displayName ?: "Moi",
+            name = displayName,
             photoUrl = user.photoUrl?.toString(),
             sourceType = "auteur",
             relationship = "Auteur",
