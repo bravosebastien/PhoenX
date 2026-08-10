@@ -72,19 +72,29 @@ class BookViewerViewModel @Inject constructor(
         simulatedRecipientUid: String? = null,
         ambiance: com.example.phoenx.ui.screens.recipient.AmbianceState? = null
     ) {
+        android.util.Log.d("PHOENX_BOOK_TRACE", "A. ViewModel.loadBook entré")
+        android.util.Log.d("PHOENX_BOOK_TRACE", "   - targetCreatorId: $targetCreatorId")
+        android.util.Log.d("PHOENX_BOOK_TRACE", "   - simulatedRecipientUid: $simulatedRecipientUid")
+        android.util.Log.d("PHOENX_BOOK_TRACE", "   - currentAuthUid: ${auth.currentUser?.uid}")
+
         viewModelScope.launch {
             _isLoading.value = true
             _forcedAmbiance.value = ambiance
             try {
+                // v9.4.27 : Déduction de l'UID du créateur dont on lit le livre
                 val userId = targetCreatorId ?: auth.currentUser?.uid
-                if (userId == null) return@launch
+                if (userId == null) {
+                    android.util.Log.e("PHOENX_BOOK_TRACE", "B. ABANDON : userId du créateur non trouvé")
+                    return@launch
+                }
 
                 // Charger le progrès de lecture en parallèle (v8.7.0)
                 loadReadingProgress(userId)
 
-                // 1. Vérification de sécurité via Cloud Function (si c'est un proche)
+                // 1. VÉRIFICATION DE SÉCURITÉ
                 // v9.4.27 : Court-circuit si mode APERÇU (simulatedRecipientUid != null)
                 if (targetCreatorId != null && simulatedRecipientUid == null) {
+                    android.util.Log.d("PHOENX_BOOK_TRACE", "C1. Mode VRAI DESTINATAIRE (Protocole)")
                     try {
                         val result = functions.getHttpsCallable("getCreatorBookStatus")
                             .call(mapOf("creatorId" to targetCreatorId))
@@ -95,20 +105,22 @@ class BookViewerViewModel @Inject constructor(
                         val isBookOpen = data["isBookOpen"] as? Boolean ?: false
                         _sealedMessage.value = data["sealedMessage"] as? String
                         
+                        android.util.Log.d("PHOENX_BOOK_TRACE", "C2. Réponse Cloud - isBookOpen: $isBookOpen")
+
                         if (!isBookOpen) {
+                            android.util.Log.w("PHOENX_BOOK_TRACE", "C3. Livre encore SCELLÉ pour le destinataire.")
                             _isLocked.value = true
                             _isLoading.value = false
                             return@launch
                         }
                     } catch (e: Exception) {
-                        android.util.Log.e("PHOENX_BOOK", "Accès refusé ou erreur statut", e)
+                        android.util.Log.e("PHOENX_BOOK_TRACE", "C3. ERREUR Cloud ou Accès refusé", e)
                         _isLocked.value = true
                         _isLoading.value = false
                         return@launch
                     }
                 } else if (simulatedRecipientUid != null) {
-                    // Mode APERÇU : On simule l'identité du destinataire pour le filtrage
-                    // et on force le déverrouillage pour le Créateur
+                    android.util.Log.d("PHOENX_BOOK_TRACE", "C1. Mode APERÇU SIMULÉ (Créateur teste)")
                     _isLocked.value = false
                     try {
                         val userDoc = db.collection("users").document(userId).get().kotlinAwait()
@@ -117,7 +129,7 @@ class BookViewerViewModel @Inject constructor(
                         _creatorName.value = "Moi"
                     }
                 } else {
-                    // Mode Créateur classique
+                    android.util.Log.d("PHOENX_BOOK_TRACE", "C1. Mode CRÉATEUR CLASSIQUE (Direct)")
                     try {
                         val userDoc = db.collection("users").document(userId).get().kotlinAwait()
                         _creatorName.value = userDoc.getString("displayName") ?: "Moi"
@@ -127,19 +139,23 @@ class BookViewerViewModel @Inject constructor(
                 }
 
                 _isLocked.value = false
+                android.util.Log.d("PHOENX_BOOK_TRACE", "D. Appel service loadBookDraft pour $userId")
                 val draft = bookService.loadBookDraft(userId)
+                android.util.Log.d("PHOENX_BOOK_TRACE", "E. Résultat draft: ${if (draft == null) "NULL" else "PRÉSENT (" + draft.chapters.size + " chapitres)"}")
                 _bookDraft.value = draft
 
                 if (draft != null) {
                     // v9.4.27 : On passe l'UID du destinataire (réel ou simulé) pour filtrer les médias
                     val effectiveRecipientUid = simulatedRecipientUid ?: (if (targetCreatorId != null) auth.currentUser?.uid else null)
+                    android.util.Log.d("PHOENX_BOOK_TRACE", "F. Début résolution médias. RecipientUid effectif: $effectiveRecipientUid")
                     decryptAndResolveMedia(userId, draft, effectiveRecipientUid)
                 }
 
             } catch (e: Exception) {
-                android.util.Log.e("PHOENX_BOOK", "Erreur chargement livre: ${e.message}")
+                android.util.Log.e("PHOENX_BOOK_TRACE", "ERREUR CRITIQUE fatale dans loadBook", e)
             } finally {
                 _isLoading.value = false
+                android.util.Log.d("PHOENX_BOOK_TRACE", "Z. Fin chargement, isLoading=false")
             }
         }
     }

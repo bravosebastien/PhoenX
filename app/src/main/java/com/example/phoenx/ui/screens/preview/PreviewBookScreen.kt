@@ -32,9 +32,10 @@ fun PreviewBookScreen(
     val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
 
-    // TODO: Charger les chapitres du livre via un service ou ViewModel dédié
-    // Pour l'étape 5, on affiche une interface de consultation
-    
+    LaunchedEffect(recipientUid) {
+        viewModel.loadPreview(recipientUid)
+    }
+
     Scaffold(
         containerColor = theme.backgroundColor,
         modifier = Modifier.background(backgroundBrush),

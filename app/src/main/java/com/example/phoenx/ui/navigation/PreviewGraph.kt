@@ -23,7 +23,6 @@ import com.example.phoenx.ui.theme.TransmissionTheme
 /**
  * PreviewGraph (v9.4.27)
  * Graphe de navigation dédié au mode "Aperçu Vision Destinataire".
- * RÈGLE : Isolation totale des écrans de production.
  */
 fun NavGraphBuilder.previewGraph(
     navController: NavController,
@@ -38,8 +37,6 @@ fun NavGraphBuilder.previewGraph(
         popExitTransition = { NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val recipientUid = backStackEntry.arguments?.getString("recipientUid") ?: ""
-        
-        // Randomize transitions when entering the preview space
         LaunchedEffect(Unit) { NavigationAnimations.randomize() }
 
         PreviewDashboardScreen(
@@ -65,10 +62,7 @@ fun NavGraphBuilder.previewGraph(
         val viewModel: PreviewViewModel = hiltViewModel()
         val state by viewModel.state.collectAsState()
 
-        TransmissionTheme(
-            backgroundId = state.ambiance.backgroundId,
-            fontId = state.ambiance.fontId
-        ) {
+        TransmissionTheme(backgroundId = state.ambiance.backgroundId, fontId = state.ambiance.fontId) {
             PreviewFilScreen(
                 recipientUid = recipientUid,
                 onNavigateBack = { navController.popBackStack() },
@@ -93,10 +87,7 @@ fun NavGraphBuilder.previewGraph(
         val viewModel: PreviewViewModel = hiltViewModel()
         val state by viewModel.state.collectAsState()
 
-        TransmissionTheme(
-            backgroundId = state.ambiance.backgroundId,
-            fontId = state.ambiance.fontId
-        ) {
+        TransmissionTheme(backgroundId = state.ambiance.backgroundId, fontId = state.ambiance.fontId) {
             PreviewMemoryDetailScreen(
                 entryId = entryId,
                 recipientUid = recipientUid,
@@ -122,15 +113,8 @@ fun NavGraphBuilder.previewGraph(
         val viewModel: PreviewViewModel = hiltViewModel()
         val state by viewModel.state.collectAsState()
 
-        TransmissionTheme(
-            backgroundId = state.ambiance.backgroundId,
-            fontId = state.ambiance.fontId
-        ) {
-            PreviewMediaScreen(
-                type = type,
-                recipientUid = recipientUid,
-                onNavigateBack = { navController.popBackStack() }
-            )
+        TransmissionTheme(backgroundId = state.ambiance.backgroundId, fontId = state.ambiance.fontId) {
+            PreviewMediaScreen(type = type, recipientUid = recipientUid, onNavigateBack = { navController.popBackStack() })
         }
     }
 
@@ -150,13 +134,32 @@ fun NavGraphBuilder.previewGraph(
             recipientUid = recipientUid,
             onNavigateBack = { navController.popBackStack() },
             onConsultBook = { 
-                // Navigation vers le lecteur unifié avec paramètres d'aperçu
-                navController.navigate(
-                    "book_viewer_preview?recipientUid=$recipientUid" +
-                    "&bgId=${state.ambiance.backgroundId}" +
-                    "&fontId=${state.ambiance.fontId}"
-                )
+                // v9.4.27 : Utilisation d'une route plus robuste avec path parameter
+                navController.navigate("book_viewer_preview/$recipientUid?bgId=${state.ambiance.backgroundId}&fontId=${state.ambiance.fontId}")
             }
+        )
+    }
+
+    // --- LECTEUR UNIFIÉ EN MODE APERÇU (v9.4.27) ---
+    composable(
+        route = "book_viewer_preview/{recipientUid}?bgId={bgId}&fontId={fontId}",
+        arguments = listOf(
+            navArgument("recipientUid") { type = NavType.StringType },
+            navArgument("bgId") { type = NavType.StringType; defaultValue = "classic_ivory" },
+            navArgument("fontId") { type = NavType.StringType; defaultValue = "playfair_display" }
+        )
+    ) { backStackEntry ->
+        val recipientUid = backStackEntry.arguments?.getString("recipientUid")
+        val bgId = backStackEntry.arguments?.getString("bgId")
+        val fontId = backStackEntry.arguments?.getString("fontId")
+        
+        BookReaderFlowScreen(
+            navController = navController,
+            simulatedRecipientUid = recipientUid,
+            forcedAmbiance = com.example.phoenx.ui.screens.recipient.AmbianceState(
+                backgroundId = bgId ?: "classic_ivory",
+                fontId = fontId ?: "playfair_display"
+            )
         )
     }
 
@@ -172,14 +175,8 @@ fun NavGraphBuilder.previewGraph(
         val viewModel: PreviewViewModel = hiltViewModel()
         val state by viewModel.state.collectAsState()
 
-        TransmissionTheme(
-            backgroundId = state.ambiance.backgroundId,
-            fontId = state.ambiance.fontId
-        ) {
-            PreviewVaultScreen(
-                recipientUid = recipientUid,
-                onNavigateBack = { navController.popBackStack() }
-            )
+        TransmissionTheme(backgroundId = state.ambiance.backgroundId, fontId = state.ambiance.fontId) {
+            PreviewVaultScreen(recipientUid = recipientUid, onNavigateBack = { navController.popBackStack() })
         }
     }
 
@@ -195,37 +192,8 @@ fun NavGraphBuilder.previewGraph(
         val viewModel: PreviewViewModel = hiltViewModel()
         val state by viewModel.state.collectAsState()
 
-        TransmissionTheme(
-            backgroundId = state.ambiance.backgroundId,
-            fontId = state.ambiance.fontId
-        ) {
-            PreviewGenealogyScreen(
-                recipientUid = recipientUid,
-                onNavigateBack = { navController.popBackStack() }
-            )
+        TransmissionTheme(backgroundId = state.ambiance.backgroundId, fontId = state.ambiance.fontId) {
+            PreviewGenealogyScreen(recipientUid = recipientUid, onNavigateBack = { navController.popBackStack() })
         }
-    }
-
-    // --- LECTEUR UNIFIÉ EN MODE APERÇU (v9.4.27) ---
-    composable(
-        route = "book_viewer_preview?recipientUid={recipientUid}&bgId={bgId}&fontId={fontId}",
-        arguments = listOf(
-            navArgument("recipientUid") { type = NavType.StringType },
-            navArgument("bgId") { type = NavType.StringType },
-            navArgument("fontId") { type = NavType.StringType }
-        )
-    ) { backStackEntry ->
-        val recipientUid = backStackEntry.arguments?.getString("recipientUid")
-        val bgId = backStackEntry.arguments?.getString("bgId")
-        val fontId = backStackEntry.arguments?.getString("fontId")
-        
-        BookReaderFlowScreen(
-            navController = navController,
-            simulatedRecipientUid = recipientUid,
-            forcedAmbiance = com.example.phoenx.ui.screens.recipient.AmbianceState(
-                backgroundId = bgId ?: "classic_ivory",
-                fontId = fontId ?: "playfair_display"
-            )
-        )
     }
 }

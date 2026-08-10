@@ -1,6 +1,7 @@
 package com.example.phoenx.data.model
 
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.Exclude
 
 enum class ChapterStatus { DRAFT, IN_REVIEW, VALIDATED }
 enum class BookStatus { DRAFT, IN_PROGRESS, COMPLETE }

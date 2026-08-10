@@ -2,10 +2,7 @@ package com.example.phoenx.service
 
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntryDao
-import com.example.phoenx.data.model.BookChapter
-import com.example.phoenx.data.model.BookDraft
-import com.example.phoenx.data.model.BookMetadata
-import com.example.phoenx.data.model.ChapterStatus
+import com.example.phoenx.data.model.*
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
@@ -31,17 +28,74 @@ class BookGeneratorService @Inject constructor(
      * Charge le brouillon de livre actuel depuis Firestore.
      */
     suspend fun loadBookDraft(userId: String): BookDraft? {
+        android.util.Log.d("PHOENX_BOOK_TRACE", "1. Entrée loadBookDraft pour: $userId")
+        
+        val doc = db.collection("users").document(userId)
+            .collection("book").document("current_draft").get().await()
+        
+        if (!doc.exists()) {
+            android.util.Log.w("PHOENX_BOOK_TRACE", "2. Document current_draft INTROUVABLE.")
+            return null
+        }
+
+        val rawData = doc.data ?: return null
+        android.util.Log.d("PHOENX_BOOK_TRACE", "2. Document trouvé. Début mapping manuel (Zéro dépendance mapper automatique)")
+
         return try {
-            val doc = db.collection("users").document(userId)
-                .collection("book").document("current_draft").get().await()
-            
-            if (doc.exists()) {
-                doc.toObject(BookDraft::class.java)
-            } else {
-                null
+            // Helper de conversion sécurisée (Dates & Nombres)
+            fun toLong(value: Any?, default: Long = System.currentTimeMillis()): Long {
+                return when (value) {
+                    is Long -> value
+                    is com.google.firebase.Timestamp -> value.toDate().time
+                    is Number -> value.toLong()
+                    else -> default
+                }
             }
+
+            // 1. Mapping des Chapitres
+            val chaptersRaw = rawData["chapters"] as? List<*>
+            val chapters = chaptersRaw?.mapNotNull { item ->
+                val ch = item as? Map<*, *> ?: return@mapNotNull null
+                BookChapter(
+                    id = ch["id"] as? String ?: "",
+                    title = ch["title"] as? String ?: "Sans titre",
+                    content = ch["content"] as? String ?: "",
+                    status = try { ChapterStatus.valueOf(ch["status"] as? String ?: "DRAFT") } catch(e: Exception) { ChapterStatus.DRAFT },
+                    lastModified = toLong(ch["lastModified"]),
+                    orderIndex = (ch["orderIndex"] as? Number)?.toInt() ?: 0
+                )
+            } ?: emptyList()
+
+            // 2. Mapping du Thème
+            val themeMap = rawData["theme"] as? Map<*, *>
+            val theme = BookTheme(
+                backgroundId = themeMap?.get("backgroundId") as? String ?: "classic_ivory",
+                fontId = themeMap?.get("fontId") as? String ?: "eb_garamond"
+            )
+
+            // 3. Construction de l'objet final
+            val draft = BookDraft(
+                id = rawData["id"] as? String ?: "",
+                userId = rawData["userId"] as? String ?: userId,
+                generatedAt = toLong(rawData["generatedAt"]),
+                lastUpdatedAt = toLong(rawData["lastUpdatedAt"]),
+                status = try { BookStatus.valueOf(rawData["status"] as? String ?: "DRAFT") } catch(e: Exception) { BookStatus.DRAFT },
+                chapters = chapters,
+                totalEntries = (rawData["totalEntries"] as? Number)?.toInt() ?: 0,
+                bookTitle = rawData["bookTitle"] as? String,
+                recipientIds = (rawData["recipientIds"] as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList(),
+                sealedMessage = rawData["sealedMessage"] as? String ?: "",
+                globalIntroduction = rawData["globalIntroduction"] as? String ?: "",
+                theme = theme,
+                coverImageUrl = rawData["coverImageUrl"] as? String,
+                coverTitleStyle = rawData["coverTitleStyle"] as? String ?: "GOLD",
+                visibility = rawData["visibility"] as? String ?: "RESTRICTED"
+            )
+
+            android.util.Log.d("PHOENX_BOOK_TRACE", "3. Mapping manuel réussi. Chapitres: ${draft.chapters.size}")
+            draft
         } catch (e: Exception) {
-            android.util.Log.e("PHOENX_BOOK", "Erreur lors du chargement du livre: ${e.message}")
+            android.util.Log.e("PHOENX_BOOK_TRACE", "ERREUR FATALE lors du mapping manuel", e)
             null
         }
     }
@@ -330,7 +384,7 @@ class BookGeneratorService @Inject constructor(
                 "id" to draft.id,
                 "userId" to draft.userId,
                 "generatedAt" to draft.generatedAt,
-                "lastUpdatedAt" to com.google.firebase.firestore.FieldValue.serverTimestamp(),
+                "lastUpdatedAt" to System.currentTimeMillis(), // Rétabli en Long pour compatibilité v9.4.27
                 "status" to draft.status.name,
                 "chapters" to chaptersMap,
                 "totalEntries" to draft.totalEntries,

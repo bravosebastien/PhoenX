@@ -113,9 +113,11 @@ class BookEditorViewModel @Inject constructor(
     }
 
     fun loadExistingBook() {
+        android.util.Log.d("PHOENX_BOOK_TRACE", "A. Début loadExistingBook (Éditeur)")
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
             val draft = bookService.loadBookDraft(userId)
+            android.util.Log.d("PHOENX_BOOK_TRACE", "B. Résultat service: ${if (draft == null) "NULL" else "PRÉSENT"}")
             
             if (draft != null) {
                 // v9.2.1 : On affiche d'abord le livre brut pour éviter le blocage (réinstallation)
