@@ -455,7 +455,7 @@ fun MemoryMetadataSection(
                                         Spacer(Modifier.width(8.dp))
                                         InfoPoint(
                                             title = "Qui apparaît dans ce récit ?",
-                                            content = "Identifiez les proches présents dans ce souvenir. L'IA Biographe les utilisera pour clarifier la narration dans votre Livre de Vie (ex: 'Ton cousin Thomas était là').\n\nNote : Mentionner une personne ne lui donne pas accès au souvenir, cela permet juste de mieux structurer votre histoire."
+                                            content = "Identifiez les proches présents dans ce souvenir. L'IA Biographe les utilisera pour clarifier la narration dans votre Livre de Vie (ex: 'Ton cousin Thomas était là').\n\nNote : Mentionner une personne ne lui donne pas accès au souvenir, cela permet juste de mieux structurer votre histoire.\n\nVos Destinataires, Témoins et Dépositaires vous sont proposés ici pour vous éviter de les recréer — mais ce sont deux choses différentes : c'est uniquement leur statut de Destinataire, dans votre Cercle de Confiance, qui leur donnera un jour accès à vos souvenirs."
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(16.dp))
