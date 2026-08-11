@@ -318,55 +318,6 @@ class RecipientViewModel @Inject constructor(
             }
         }
     }
-
-    /**
-     * Charge l'ambiance de transmission pour un proche précis (v9.4.27)
-     */
-    fun loadTransmissionAmbiance(recipientId: String) {
-        val userId = auth.currentUser?.uid ?: return
-        viewModelScope.launch {
-            try {
-                // v9.4.27 : On cherche dans le document du destinataire
-                val doc = db.collection("users").document(userId)
-                    .collection("recipients").document(recipientId).get().await()
-                
-                if (doc.exists()) {
-                    _transmissionAmbiance.value = AmbianceState(
-                        backgroundId = doc.getString("transmissionBackgroundId") ?: "classic_ivory",
-                        fontId = doc.getString("transmissionFontId") ?: "playfair_display"
-                    )
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("RecipientVM", "Erreur ambiance", e)
-            }
-        }
-    }
-
-    /**
-     * Sauvegarde l'ambiance pour un proche précis (v9.4.27)
-     */
-    fun saveTransmissionAmbiance(recipientId: String, backgroundId: String, fontId: String) {
-        val userId = auth.currentUser?.uid ?: return
-        viewModelScope.launch {
-            try {
-                val data = mapOf(
-                    "transmissionBackgroundId" to backgroundId,
-                    "transmissionFontId" to fontId
-                )
-                db.collection("users").document(userId)
-                    .collection("recipients").document(recipientId)
-                    .update(data)
-                    .await()
-                
-                // MAJ Locale Room
-                offlineEntryDao.updateRecipientAmbiance(recipientId, backgroundId, fontId)
-                
-                _transmissionAmbiance.value = AmbianceState(backgroundId, fontId)
-            } catch (e: Exception) {
-                android.util.Log.e("RecipientVM", "Erreur save ambiance", e)
-            }
-        }
-    }
 }
 
 data class AmbianceState(

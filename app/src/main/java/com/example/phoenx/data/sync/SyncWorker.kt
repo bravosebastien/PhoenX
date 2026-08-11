@@ -67,10 +67,13 @@ class SyncWorker @AssistedInject constructor(
         val mediaToSync = allPersonMedia.filter {
             it.syncStatus == "pending" || (it.mediaPath.startsWith("/data/"))
         }
-        
-        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées, ${personsToSync.size} personnes, ${pendingStandalone.size} standalone et ${mediaToSync.size} personMedia en attente")
 
-        if (pendingEntries.isEmpty() && personsToSync.isEmpty() && pendingStandalone.isEmpty() && mediaToSync.isEmpty()) return Result.success()
+        // v9.4.27 : Profil Créateur (Ambiance Globale)
+        val pendingProfile = offlineEntryDao.getPendingProfiles().firstOrNull()
+        
+        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées, ${personsToSync.size} personnes, ${pendingStandalone.size} standalone, ${mediaToSync.size} personMedia et ${if (pendingProfile != null) 1 else 0} profil en attente")
+
+        if (pendingEntries.isEmpty() && personsToSync.isEmpty() && pendingStandalone.isEmpty() && mediaToSync.isEmpty() && pendingProfile == null) return Result.success()
 
         val db = FirebaseFirestore.getInstance()
         var hasError = false
@@ -215,7 +218,25 @@ class SyncWorker @AssistedInject constructor(
                     hasError = true
                 }
             }
-            
+
+            // 5. Synchronisation du Profil Créateur (v9.4.27 : Ambiance Globale)
+            if (pendingProfile != null) {
+                try {
+                    db.collection("users").document(userId)
+                        .update(
+                            "richProfile", pendingProfile.toFirestoreMap(),
+                            "transmissionBackgroundId", pendingProfile.transmissionBackgroundId,
+                            "transmissionFontId", pendingProfile.transmissionFontId
+                        ).await()
+                    
+                    offlineEntryDao.insertCreatorProfile(pendingProfile.copy(syncStatus = "synced"))
+                    android.util.Log.d("PersonSync", "Profil Créateur synchronisé avec succès")
+                } catch (e: Exception) {
+                    android.util.Log.e("PersonSync", "ÉCHEC synchronisation profil : ${e.message}")
+                    hasError = true
+                }
+            }
+
             if (hasError) Result.retry() else Result.success()
         } catch (e: Exception) {
             android.util.Log.e("SyncWorker", "Erreur critique lors de la synchronisation: ${e.message}")

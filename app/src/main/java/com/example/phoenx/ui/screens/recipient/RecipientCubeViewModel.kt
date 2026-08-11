@@ -40,13 +40,13 @@ class RecipientCubeViewModel @Inject constructor(
                 )
 
                 // 2. Charger l'ambiance (v9.4.27)
-                val profDoc = db.collection("users").document(creatorId)
-                    .collection("profile").document("creator").get().await()
+                // v9.4.27 : On lit désormais à la racine du document utilisateur
+                val userDoc = db.collection("users").document(creatorId).get().await()
                 
-                if (profDoc.exists()) {
+                if (userDoc.exists()) {
                     _ambiance.value = AmbianceState(
-                        backgroundId = profDoc.getString("transmissionBackgroundId") ?: "classic_ivory",
-                        fontId = profDoc.getString("transmissionFontId") ?: "playfair_display"
+                        backgroundId = userDoc.getString("transmissionBackgroundId") ?: "classic_ivory",
+                        fontId = userDoc.getString("transmissionFontId") ?: "playfair_display"
                     )
                 }
             } catch (e: Exception) {

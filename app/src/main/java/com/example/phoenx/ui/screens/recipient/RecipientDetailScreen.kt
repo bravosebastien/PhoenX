@@ -54,13 +54,6 @@ fun RecipientDetailScreen(
     
     val pendingCount by viewModel.getPendingQuestionsCount(recipientId).collectAsState(initial = 0)
     
-    val transmissionAmbiance by viewModel.transmissionAmbiance.collectAsState()
-    var showAmbianceSelector by remember { mutableStateOf(false) }
-
-    LaunchedEffect(recipientId) {
-        viewModel.loadTransmissionAmbiance(recipientId)
-    }
-
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -129,42 +122,6 @@ fun RecipientDetailScreen(
 
                 // APERÇU VISION DESTINATAIRE (v9.4.27)
                 if (recipient.linkedUid != null) {
-                    // AMBIANCE DE TRANSMISSION (Action Chantier C)
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showAmbianceSelector = !showAmbianceSelector }
-                            .padding(bottom = 12.dp)
-                            .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)),
-                        color = theme.contentColor.copy(alpha = 0.03f),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Palette, null, tint = accent, modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.width(16.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text("Ambiance de transmission", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                                Text("Personnalisez l'univers visuel de vos proches.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
-                            }
-                            Icon(if (showAmbianceSelector) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, tint = theme.contentColor.copy(alpha = 0.2f))
-                        }
-                    }
-
-                    AnimatedVisibility(visible = showAmbianceSelector) {
-                        Column(modifier = Modifier.padding(bottom = 24.dp)) {
-                            com.example.phoenx.ui.components.GlobalThemeSelector(
-                                currentBackgroundId = transmissionAmbiance.backgroundId,
-                                currentFontId = transmissionAmbiance.fontId,
-                                onThemeChange = { bg, font -> 
-                                    viewModel.saveTransmissionAmbiance(recipientId, bg, font) 
-                                }
-                            )
-                            Spacer(Modifier.height(16.dp))
-                            HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
-                            Spacer(Modifier.height(24.dp))
-                        }
-                    }
-
                     Card(
                         onClick = { navController.navigate(Screen.Preview.Root.createRoute(recipient.linkedUid)) },
                         modifier = Modifier.fillMaxWidth().phoenXMatiere(),

@@ -69,6 +69,10 @@ class BookEditorViewModel @Inject constructor(
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess: StateFlow<Boolean> = _saveSuccess
 
+    // AMBIANCE GLOBALE v9.4.27
+    private val _globalAmbiance = MutableStateFlow(com.example.phoenx.ui.screens.recipient.AmbianceState())
+    val globalAmbiance: StateFlow<com.example.phoenx.ui.screens.recipient.AmbianceState> = _globalAmbiance.asStateFlow()
+
     val recipients: StateFlow<List<com.example.phoenx.data.local.RecipientEntity>> = offlineEntryDao.getAllRecipients()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -116,8 +120,22 @@ class BookEditorViewModel @Inject constructor(
         android.util.Log.d("PHOENX_BOOK_TRACE", "A. Début loadExistingBook (Éditeur)")
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
+            
+            // 1. Charger l'ambiance globale (v9.4.27)
+            offlineEntryDao.getCreatorProfile(userId).collect { profile ->
+                if (profile != null) {
+                    _globalAmbiance.value = com.example.phoenx.ui.screens.recipient.AmbianceState(
+                        backgroundId = profile.transmissionBackgroundId,
+                        fontId = profile.transmissionFontId
+                    )
+                }
+            }
+        }
+        
+        viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
             val draft = bookService.loadBookDraft(userId)
-            android.util.Log.d("PHOENX_BOOK_TRACE", "B. Résultat service: ${if (draft == null) "NULL" else "PRÉSENT"}")
+            android.util.Log.d("PHOENX_BOOK_TRACE", "B. Résultat service: ${if (draft == null) "NULL" else "PRÉSENT (" + draft.chapters.size + " chapitres)"}")
             
             if (draft != null) {
                 // v9.2.1 : On affiche d'abord le livre brut pour éviter le blocage (réinstallation)
@@ -409,23 +427,70 @@ class BookEditorViewModel @Inject constructor(
         }
     }
 
-    fun updateTheme(backgroundId: String, fontId: String) {
-        val current = _bookDraft.value ?: return
+    /**
+     * Met à jour l'ambiance de transmission au niveau GLOBAL (v9.4.27)
+     * Applique le principe de Fresh Read pour protéger les autres champs du profil.
+     */
+    fun updateGlobalAmbiance(backgroundId: String, fontId: String) {
         val userId = auth.currentUser?.uid ?: return
-        val updatedTheme = BookTheme(backgroundId, fontId)
-        val updatedDraft = current.copy(theme = updatedTheme)
-        _bookDraft.value = updatedDraft
         viewModelScope.launch {
             _isSaving.value = true
             try {
-                bookService.saveBookDraft(userId, updatedDraft)
+                // 1. FRESH READ de la base locale (Garantie de sécurité Lot 3)
+                val currentLocal = offlineEntryDao.getCreatorProfileSync(userId) 
+                    ?: com.example.phoenx.data.local.CreatorProfileEntity(userId = userId)
+                
+                // 2. Préparation de la fusion : On ne change QUE l'ambiance
+                val finalToSave = currentLocal.copy(
+                    transmissionBackgroundId = backgroundId,
+                    transmissionFontId = fontId,
+                    updatedAt = System.currentTimeMillis(),
+                    syncStatus = "pending"
+                )
+
+                // 3. Sauvegarde locale (Room)
+                offlineEntryDao.insertCreatorProfile(finalToSave)
+
+                // 4. Sauvegarde Firestore PARTIELLE (Point 2 Lot 2)
+                com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("users").document(userId)
+                    .update(
+                        "transmissionBackgroundId", backgroundId,
+                        "transmissionFontId", fontId
+                    ).kotlinAwait()
+                
+                // 5. Marquage synchro
+                offlineEntryDao.insertCreatorProfile(finalToSave.copy(syncStatus = "synced"))
+                
+                // 6. Synchronisation du thème du draft actuel (v9.4.27 : MISE À JOUR PARTIELLE CIBLÉE)
+                _bookDraft.value?.let { currentDraft ->
+                    val updatedThemeMap = mapOf(
+                        "backgroundId" to backgroundId,
+                        "fontId" to fontId
+                    )
+                    
+                    com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        .collection("users").document(userId)
+                        .collection("book").document("current_draft")
+                        .update("theme", updatedThemeMap).kotlinAwait()
+                    
+                    // Mise à jour de l'état local pour l'UI
+                    _bookDraft.value = currentDraft.copy(theme = BookTheme(backgroundId, fontId))
+                }
+
                 triggerSuccess()
             } catch (e: Exception) {
-                _error.value = "Erreur sauvegarde thème"
+                android.util.Log.e("BookEditorVM", "Erreur sauvegarde ambiance globale", e)
+                _error.value = "Erreur sauvegarde ambiance"
             } finally {
                 _isSaving.value = false
             }
         }
+    }
+
+    fun updateTheme(backgroundId: String, fontId: String) {
+        // Redirection vers la nouvelle logique globale (v9.4.27)
+        updateGlobalAmbiance(backgroundId, fontId)
     }
 
     fun updateCoverImage(uri: Uri) {

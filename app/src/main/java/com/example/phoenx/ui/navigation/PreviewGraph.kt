@@ -134,32 +134,24 @@ fun NavGraphBuilder.previewGraph(
             recipientUid = recipientUid,
             onNavigateBack = { navController.popBackStack() },
             onConsultBook = { 
-                // v9.4.27 : Utilisation d'une route plus robuste avec path parameter
-                navController.navigate("book_viewer_preview/$recipientUid?bgId=${state.ambiance.backgroundId}&fontId=${state.ambiance.fontId}")
+                // v9.4.27 : Simplification de la route (Ambiance GLOBALE)
+                navController.navigate("book_viewer_preview/$recipientUid")
             }
         )
     }
 
     // --- LECTEUR UNIFIÉ EN MODE APERÇU (v9.4.27) ---
     composable(
-        route = "book_viewer_preview/{recipientUid}?bgId={bgId}&fontId={fontId}",
+        route = "book_viewer_preview/{recipientUid}",
         arguments = listOf(
-            navArgument("recipientUid") { type = NavType.StringType },
-            navArgument("bgId") { type = NavType.StringType; defaultValue = "classic_ivory" },
-            navArgument("fontId") { type = NavType.StringType; defaultValue = "playfair_display" }
+            navArgument("recipientUid") { type = NavType.StringType }
         )
     ) { backStackEntry ->
         val recipientUid = backStackEntry.arguments?.getString("recipientUid")
-        val bgId = backStackEntry.arguments?.getString("bgId")
-        val fontId = backStackEntry.arguments?.getString("fontId")
         
         BookReaderFlowScreen(
             navController = navController,
-            simulatedRecipientUid = recipientUid,
-            forcedAmbiance = com.example.phoenx.ui.screens.recipient.AmbianceState(
-                backgroundId = bgId ?: "classic_ivory",
-                fontId = fontId ?: "playfair_display"
-            )
+            simulatedRecipientUid = recipientUid
         )
     }
 

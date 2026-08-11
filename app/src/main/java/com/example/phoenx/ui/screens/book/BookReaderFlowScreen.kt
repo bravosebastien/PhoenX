@@ -42,7 +42,6 @@ fun BookReaderFlowScreen(
     navController: NavController,
     targetCreatorId: String? = null,
     simulatedRecipientUid: String? = null, // v9.4.27 : Aperçu
-    forcedAmbiance: com.example.phoenx.ui.screens.recipient.AmbianceState? = null, // v9.4.27 : Aperçu
     viewModel: BookViewerViewModel = hiltViewModel()
 ) {
     val bookDraft by viewModel.bookDraft.collectAsState()
@@ -52,14 +51,10 @@ fun BookReaderFlowScreen(
     val isLoading by viewModel.isLoading.collectAsState()
     val readingProgress by viewModel.readingProgress.collectAsState()
     val fontSizeScale by viewModel.fontSizeScale.collectAsState()
+    val ambiance by viewModel.ambiance.collectAsState()
 
-    // v9.4.27 : Gestion de l'ambiance forcée (Aperçu)
-    val ambianceToUse = forcedAmbiance ?: (bookDraft?.theme?.let { 
-        com.example.phoenx.ui.screens.recipient.AmbianceState(it.backgroundId, it.fontId) 
-    }) ?: com.example.phoenx.ui.screens.recipient.AmbianceState()
-
-    val fontFamily = BookThemeOptions.getFont(ambianceToUse.fontId)
-    val background = BookThemeOptions.getBackground(ambianceToUse.backgroundId)
+    val fontFamily = BookThemeOptions.getFont(ambiance.fontId)
+    val background = BookThemeOptions.getBackground(ambiance.backgroundId)
     val textColor = if (background.darkText) Color(0xFF1A1A1A) else Color(0xFFF2EDE8)
     val accent = LocalAccentColor.current
 
@@ -91,7 +86,7 @@ fun BookReaderFlowScreen(
     }
 
     LaunchedEffect(targetCreatorId, simulatedRecipientUid) {
-        viewModel.loadBook(targetCreatorId, simulatedRecipientUid, forcedAmbiance)
+        viewModel.loadBook(targetCreatorId, simulatedRecipientUid)
     }
 
     Scaffold(

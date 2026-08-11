@@ -18,22 +18,9 @@ data class CreatorProfileEntity(
     val eyeColor: String? = null,
     val hairColor: String? = null,
     val updatedAt: Long = System.currentTimeMillis(),
-    val syncStatus: String = "pending"
-)
+    val syncStatus: String = "pending",
 
-fun CreatorProfileEntity.toFirestoreMap(): Map<String, Any?> {
-    return mapOf(
-        "bio" to bio,
-        "profession" to profession,
-        "hasSiblings" to hasSiblings,
-        "siblingsDetail" to siblingsDetail,
-        "hasChildren" to hasChildren,
-        "childrenDetail" to childrenDetail,
-        "hobbies" to hobbies,
-        "height" to height,
-        "weight" to weight,
-        "eyeColor" to eyeColor,
-        "hairColor" to hairColor,
-        "updatedAt" to updatedAt
-    )
-}
+    // RÉINTRODUCTION AMBIANCE GLOBALE v9.4.27 (Migration v48)
+    val transmissionBackgroundId: String = "classic_ivory",
+    val transmissionFontId: String = "playfair_display"
+)

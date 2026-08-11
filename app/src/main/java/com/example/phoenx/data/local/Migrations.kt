@@ -576,4 +576,15 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE `creator_profile_new` RENAME TO `creator_profile`")
         }
     }
+
+    /**
+     * MIGRATION_47_48 — Retour à l'Ambiance GLOBALE v9.4.27
+     * Réintroduction des colonnes dans creator_profile.
+     */
+    val MIGRATION_47_48 = object : Migration(47, 48) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE creator_profile ADD COLUMN transmissionBackgroundId TEXT NOT NULL DEFAULT 'classic_ivory'")
+            db.execSQL("ALTER TABLE creator_profile ADD COLUMN transmissionFontId TEXT NOT NULL DEFAULT 'playfair_display'")
+        }
+    }
 }

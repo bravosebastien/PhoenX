@@ -115,6 +115,13 @@ class MainViewModel @Inject constructor(
     private val _photoUrl = MutableStateFlow<String?>(null)
     val photoUrl: StateFlow<String?> = _photoUrl.asStateFlow()
 
+    // AMBIANCE DE TRANSMISSION GLOBALE v9.4.27
+    private val _transmissionBackgroundId = MutableStateFlow("classic_ivory")
+    val transmissionBackgroundId: StateFlow<String> = _transmissionBackgroundId.asStateFlow()
+
+    private val _transmissionFontId = MutableStateFlow("playfair_display")
+    val transmissionFontId: StateFlow<String> = _transmissionFontId.asStateFlow()
+
     val accentColor: StateFlow<Int> = preferenceManager.accentColor
         .map { it ?: AccentPrimary.toArgb() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AccentPrimary.toArgb())
@@ -239,6 +246,24 @@ class MainViewModel @Inject constructor(
             _userName.value = name
             _userEmail.value = doc.getString("email") ?: ""
             _photoUrl.value = doc.getString("photoUrl")
+
+            // Ambiance de transmission globale (v9.4.27)
+            val bgId = doc.getString("transmissionBackgroundId") ?: "classic_ivory"
+            val fontId = doc.getString("transmissionFontId") ?: "playfair_display"
+            _transmissionBackgroundId.value = bgId
+            _transmissionFontId.value = fontId
+
+            // Mise à jour de la base locale si nécessaire (v9.4.27)
+            viewModelScope.launch(Dispatchers.IO) {
+                val currentProfile = database.offlineEntryDao().getCreatorProfileSync(userId)
+                if (currentProfile != null && (currentProfile.transmissionBackgroundId != bgId || currentProfile.transmissionFontId != fontId)) {
+                    database.offlineEntryDao().insertCreatorProfile(currentProfile.copy(
+                        transmissionBackgroundId = bgId,
+                        transmissionFontId = fontId,
+                        syncStatus = "synced" // Déjà sur le cloud
+                    ))
+                }
+            }
 
             // --- 1. GESTION DES RÔLES ET MIGRATION (Restauration v7.2) ---
             val rolesData = doc.get("myRoles") as? Map<String, Any>

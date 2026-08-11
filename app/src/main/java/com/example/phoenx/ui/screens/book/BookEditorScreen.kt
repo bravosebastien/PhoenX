@@ -74,13 +74,14 @@ fun BookEditorScreen(
     val isUserCreator by viewModel.isUserCreator.collectAsState()
     val userName by viewModel.userName.collectAsState()
     val entryCount by viewModel.entryCount.collectAsState() // v9.3.1
+    val globalAmbiance by viewModel.globalAmbiance.collectAsState() // v9.4.27
     var showChapterEditor by remember { mutableStateOf(false) }
     var forceRestricted by remember { mutableStateOf(false) } 
     var showRegenerateConfirm by remember { mutableStateOf(false) }
     var showOnboarding by remember { mutableStateOf(false) }
     var showAiExplanation by remember { mutableStateOf(false) }
     var showIntroEditor by remember { mutableStateOf(false) }
-    var isStyleExpanded by remember { mutableStateOf(false) }
+    var isAmbianceExpanded by remember { mutableStateOf(false) } // Renommé v9.4.27
     var isTransmissionExpanded by remember { mutableStateOf(false) }
     var isIntroExpanded by remember { mutableStateOf(false) }
     var isCoverStyleExpanded by remember { mutableStateOf(false) } // v9.2.6
@@ -314,15 +315,15 @@ fun BookEditorScreen(
                             }
                         }
                         
-                        // STYLE
+                        // AMBIANCE (v9.4.27)
                         Surface(
                             modifier = Modifier
                                 .weight(1f)
                                 .height(64.dp) 
-                                .clickable { isStyleExpanded = !isStyleExpanded },
+                                .clickable { isAmbianceExpanded = !isAmbianceExpanded },
                             color = theme.contentColor.copy(alpha = 0.05f),
                             shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, if (isStyleExpanded) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
+                            border = BorderStroke(1.dp, if (isAmbianceExpanded) accent.copy(alpha = 0.5f) else theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Column(
                                 modifier = Modifier.fillMaxSize(),
@@ -331,7 +332,7 @@ fun BookEditorScreen(
                             ) {
                                 Icon(Icons.Default.Palette, null, tint = accent, modifier = Modifier.size(18.dp))
                                 Text(
-                                    "STYLE", 
+                                    "AMBIANCE",
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp), 
                                     color = theme.contentColor.copy(alpha = 0.6f)
                                 )
@@ -428,12 +429,12 @@ fun BookEditorScreen(
                     }
                 }
                 
-                // Overlay Style si ouvert (Pleine largeur)
+                // Overlay Ambiance si ouvert (v9.4.27)
                 item {
-                    AnimatedVisibility(visible = isStyleExpanded) {
+                    AnimatedVisibility(visible = isAmbianceExpanded) {
                         Column(modifier = Modifier.padding(bottom = 24.dp)) {
                             Text(
-                                "Note : Le choix du Papier et de la Plume définit l'univers visuel que vos proches découvriront lors de la lecture de votre héritage.",
+                                "Note : Le choix du Papier et de la Plume définit l'univers visuel GLOBAL que TOUS vos proches découvriront lors de la lecture de votre Livre de Vie.",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = theme.fontFamily
@@ -442,9 +443,9 @@ fun BookEditorScreen(
                             )
                             Spacer(Modifier.height(16.dp))
                             com.example.phoenx.ui.components.GlobalThemeSelector(
-                                currentBackgroundId = bookDraft!!.theme.backgroundId,
-                                currentFontId = bookDraft!!.theme.fontId,
-                                onThemeChange = { bg, font -> viewModel.updateTheme(bg, font) }
+                                currentBackgroundId = globalAmbiance.backgroundId,
+                                currentFontId = globalAmbiance.fontId,
+                                onThemeChange = { bg, font -> viewModel.updateGlobalAmbiance(bg, font) }
                             )
                             HorizontalDivider(modifier = Modifier.padding(top = 24.dp), color = theme.contentColor.copy(alpha = 0.1f))
                         }

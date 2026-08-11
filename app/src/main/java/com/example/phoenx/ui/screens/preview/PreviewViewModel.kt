@@ -61,16 +61,17 @@ class PreviewViewModel @Inject constructor(
             val standaloneFlow = standaloneMediaDao.getAllStandaloneMedia()
             val personsFlow = offlineEntryDao.getAllPersons()
             
-            // Chargement asynchrone du nom du destinataire et de son ambiance (v9.4.27)
+            // Chargement asynchrone du nom du destinataire et de l'ambiance GLOBALE (v9.4.27)
             val extraInfoFlow = flow {
                 val recipients = offlineEntryDao.getAllRecipients().first()
                 val targetRecipient = recipients.find { it.linkedUid == uid }
                 val recipientName = targetRecipient?.name ?: "Ce proche"
                 
-                // Ambiance spécifique (Migration v47)
+                // Ambiance GLOBALE (Migration v48)
+                val profile = offlineEntryDao.getCreatorProfileSync(userId)
                 val ambiance = AmbianceState(
-                    backgroundId = targetRecipient?.transmissionBackgroundId ?: "classic_ivory",
-                    fontId = targetRecipient?.transmissionFontId ?: "playfair_display"
+                    backgroundId = profile?.transmissionBackgroundId ?: "classic_ivory",
+                    fontId = profile?.transmissionFontId ?: "playfair_display"
                 )
                 
                 emit(Pair(recipientName, ambiance))

@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.ai.AIManager
 import com.example.phoenx.data.local.OfflineEntryDao
-import com.example.phoenx.data.local.toFirestoreMap
+import com.example.phoenx.data.sync.toFirestoreMap
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

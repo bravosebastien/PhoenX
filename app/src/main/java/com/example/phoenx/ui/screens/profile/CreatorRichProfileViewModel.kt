@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.local.CreatorProfileEntity
 import com.example.phoenx.data.local.OfflineEntryDao
-import com.example.phoenx.data.local.toFirestoreMap
+import com.example.phoenx.data.sync.toFirestoreMap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,22 +47,34 @@ class CreatorRichProfileViewModel @Inject constructor(
     }
 
     fun updateProfile(updatedProfile: CreatorProfileEntity) {
+        val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             _isSaving.value = true
             try {
-                // 1. Sauvegarde locale
-                offlineEntryDao.insertCreatorProfile(updatedProfile.copy(
+                // v9.4.27 : Fresh Read de la base locale pour fusionner proprement (Garantie Intégrité)
+                val currentLocal = offlineEntryDao.getCreatorProfileSync(userId) ?: updatedProfile
+                
+                // On prépare l'objet final : Profil de l'UI + Ambiance de la DB locale
+                val finalToSave = updatedProfile.copy(
+                    transmissionBackgroundId = currentLocal.transmissionBackgroundId,
+                    transmissionFontId = currentLocal.transmissionFontId,
                     updatedAt = System.currentTimeMillis(),
                     syncStatus = "pending"
-                ))
+                )
+
+                // 1. Sauvegarde locale
+                offlineEntryDao.insertCreatorProfile(finalToSave)
 
                 // 2. Sauvegarde Firestore immédiate (v9.1)
-                val userId = auth.currentUser?.uid ?: return@launch
+                // v9.4.27 : Mise à jour PARTIELLE du document racine
                 db.collection("users").document(userId)
-                    .update("richProfile", updatedProfile.toFirestoreMap())
-                    .await()
+                    .update(
+                        "richProfile", finalToSave.toFirestoreMap(),
+                        "transmissionBackgroundId", finalToSave.transmissionBackgroundId,
+                        "transmissionFontId", finalToSave.transmissionFontId
+                    ).await()
                 
-                offlineEntryDao.insertCreatorProfile(updatedProfile.copy(syncStatus = "synced"))
+                offlineEntryDao.insertCreatorProfile(finalToSave.copy(syncStatus = "synced"))
             } catch (e: Exception) {
                 android.util.Log.e("CreatorProfile", "Erreur sauvegarde : ${e.message}")
             } finally {

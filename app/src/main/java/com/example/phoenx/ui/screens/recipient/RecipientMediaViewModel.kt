@@ -292,13 +292,11 @@ class RecipientMediaViewModel @Inject constructor(
                     _creatorName.value = creatorDoc.getString("displayName") ?: "Votre proche"
 
                     // Charger l'ambiance (v9.4.27)
-                    val profDoc = db.collection("users").document(creatorId)
-                        .collection("profile").document("creator").get().await()
-                    
-                    if (profDoc.exists()) {
+                    // v9.4.27 : On lit désormais à la racine du document utilisateur
+                    if (creatorDoc.exists()) {
                         _ambiance.value = AmbianceState(
-                            backgroundId = profDoc.getString("transmissionBackgroundId") ?: "classic_ivory",
-                            fontId = profDoc.getString("transmissionFontId") ?: "playfair_display"
+                            backgroundId = creatorDoc.getString("transmissionBackgroundId") ?: "classic_ivory",
+                            fontId = creatorDoc.getString("transmissionFontId") ?: "playfair_display"
                         )
                     }
 
