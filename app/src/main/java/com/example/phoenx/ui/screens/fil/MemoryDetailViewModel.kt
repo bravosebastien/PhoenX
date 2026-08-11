@@ -121,8 +121,9 @@ class MemoryDetailViewModel @Inject constructor(
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
 
-    private val _isProtocolActivated = MutableStateFlow(true)
-    val isProtocolActivated: StateFlow<Boolean> = _isProtocolActivated.asStateFlow()
+    enum class ProtocolStatus { VERIFYING, ACTIVATED, LOCKED }
+    private val _protocolStatus = MutableStateFlow(ProtocolStatus.VERIFYING)
+    val protocolStatus: StateFlow<ProtocolStatus> = _protocolStatus.asStateFlow()
 
     val hasSeenIncludeInBookNudge: StateFlow<Boolean> = preferenceManager.hasSeenIncludeInBookNudge
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
@@ -230,18 +231,22 @@ class MemoryDetailViewModel @Inject constructor(
     /**
      * Retourne la liste des compléments texte DÉCHIFFRÉS (v8.4)
      */
-    val decryptedTextComplements: StateFlow<List<Pair<String, String>>> = combine(complements, _heirKey, _isProtocolActivated) { list, key, activated ->
-        if (!activated && key != null) {
-            return@combine list.filter { it.entryType == "TEXT" || it.entryType == "THOUGHT" }
+    val decryptedTextComplements: StateFlow<List<Pair<String, String>>> = combine(complements, _heirKey, _protocolStatus) { list, key, status ->
+        when (status) {
+            ProtocolStatus.VERIFYING -> emptyList()
+            ProtocolStatus.LOCKED -> list.filter { it.entryType == "TEXT" || it.entryType == "THOUGHT" }
                 .map { it.id to "Souvenir scellé" }
+            ProtocolStatus.ACTIVATED -> list.filter { (it.entryType == "TEXT") || (it.entryType == "THOUGHT") }
+                .map { it.id to encryptionManager.decryptText(it.encryptedPayload, key) }
         }
-        list.filter { (it.entryType == "TEXT") || (it.entryType == "THOUGHT") }
-            .map { it.id to encryptionManager.decryptText(it.encryptedPayload, key) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val decryptedContent: StateFlow<String> = combine(entry, _heirKey, _isProtocolActivated) { ent, key, activated ->
-        if (!activated && key != null) return@combine "Souvenir scellé"
-        ent?.let { encryptionManager.decryptText(it.encryptedPayload, key) } ?: ""
+    val decryptedContent: StateFlow<String> = combine(entry, _heirKey, _protocolStatus) { ent, key, status ->
+        when (status) {
+            ProtocolStatus.VERIFYING -> "Vérification de l'accès..."
+            ProtocolStatus.LOCKED -> "Souvenir scellé"
+            ProtocolStatus.ACTIVATED -> ent?.let { encryptionManager.decryptText(it.encryptedPayload, key) } ?: ""
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     /**
@@ -252,10 +257,11 @@ class MemoryDetailViewModel @Inject constructor(
     /**
      * Fusionne le contenu legacy et les nouveaux compléments atomiques (v8.5.7)
      */
-    val structuredPortrait: StateFlow<List<PortraitItem>> = combine(decryptedContent, complements, _heirKey, _isProtocolActivated) { content, compList, key, activated ->
+    val structuredPortrait: StateFlow<List<PortraitItem>> = combine(decryptedContent, complements, _heirKey, _protocolStatus) { content, compList, key, status ->
         val list = mutableListOf<PortraitItem>()
         
-        if (!activated && key != null) {
+        if (status == ProtocolStatus.VERIFYING) return@combine list
+        if (status == ProtocolStatus.LOCKED && key != null) {
             // Uniquement les compléments atomiques pour les titres, mais contenu scellé
             compList.filter { it.parentEntryId == _entryId.value && it.entryType == "TEXT" }.forEach { comp ->
                 list.add(PortraitItem(comp.id, comp.aiSummary, "Souvenir scellé"))
@@ -307,15 +313,17 @@ class MemoryDetailViewModel @Inject constructor(
         
         if (creatorId != null && creatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
+                _protocolStatus.value = ProtocolStatus.VERIFYING
                 try {
                     // 1. Check protocol status
                     val result = functions.getHttpsCallable("getCreatorProtocolStatus")
                         .call(mapOf("creatorId" to creatorId)).await()
                     
                     val data = result.data as? Map<*, *>
-                    _isProtocolActivated.value = data?.get("isActivated") as? Boolean ?: false
+                    val isActivated = data?.get("isActivated") as? Boolean ?: false
+                    _protocolStatus.value = if (isActivated) ProtocolStatus.ACTIVATED else ProtocolStatus.LOCKED
 
-                    if (_isProtocolActivated.value) {
+                    if (isActivated) {
                         val keyDoc = db.collection("users").document(creatorId)
                             .collection("entry_keys").document("main").get().await()
                         val keyBase64 = keyDoc.getString("key")
@@ -342,11 +350,11 @@ class MemoryDetailViewModel @Inject constructor(
 
                 } catch (e: Exception) {
                     android.util.Log.e("MemoryDetailVM", "Erreur chargement distant", e)
-                    _isProtocolActivated.value = false
+                    _protocolStatus.value = ProtocolStatus.LOCKED
                 }
             }
         } else {
-            _isProtocolActivated.value = true
+            _protocolStatus.value = ProtocolStatus.ACTIVATED
             _heirKey.value = null
         }
     }

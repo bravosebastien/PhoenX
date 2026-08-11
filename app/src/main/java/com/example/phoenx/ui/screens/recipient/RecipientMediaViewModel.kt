@@ -633,7 +633,7 @@ class RecipientMediaViewModel @Inject constructor(
                 }
             }
 
-            // 2. Conversion RÉACTIVE Snapshots -> OfflineEntries (Vraie vérification de type Blob/String)
+            // 2. Conversion RÉACTIVE Snapshots -> OfflineEntries (Intégration Clé & Type Check)
             val entriesFlow = combine(snapshotsFlow, _heirKey, offlineEntryDao.getAllEntries()) { snaps, key, localEntries ->
                 val targetId = _targetCreatorId.value
                 if (targetId == null || targetId == currentUid) {
@@ -703,8 +703,12 @@ class RecipientMediaViewModel @Inject constructor(
                 }
             }
 
-            // 4. COMBINAISON FINALE RÉACTIVE
-            combine(entriesFlow, standaloneMediaFlow, _isProtocolActivated, _heirKey) { entries, allStandalone, activated, key ->
+            // 4. COMBINAISON FINALE RÉACTIVE (v9.4.27 : Clé stable et non-régression)
+            val stableHeirKey = _heirKey.asStateFlow()
+                .scan(null as ByteArray?) { last, new -> new ?: last }
+                .distinctUntilChanged()
+
+            combine(entriesFlow, standaloneMediaFlow, _isProtocolActivated, stableHeirKey) { entries, allStandalone, activated, key ->
                 val targetId = _targetCreatorId.value
                 val isHeirMode = targetId != null && targetId != currentUid
 
@@ -771,9 +775,12 @@ class RecipientMediaViewModel @Inject constructor(
     }
 
     private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager, explicitKey: ByteArray? = null): PhoenXEntry {
-        val decryptedText = try { 
-            encryptionManager.decryptText(encryptedPayload, explicitKey)
-        } catch(_: Exception) { "Contenu chiffré" }
+        // v9.4.27 : Logique de progression - Si c'est déjà en clair, on ne déchiffre pas (Évite régression sur course de flux)
+        val decryptedText = if (encryptedPayload.isEmpty()) "" else {
+            try { 
+                encryptionManager.decryptText(encryptedPayload, explicitKey)
+            } catch(_: Exception) { "Contenu chiffré" }
+        }
         
         val ageJson = JSONObject(ageAtCreation)
         val age = AgeSnapshot(
@@ -851,7 +858,7 @@ class RecipientMediaViewModel @Inject constructor(
         } else if (needsEncryption) {
             try {
                 val bytes = android.util.Base64.decode(content, android.util.Base64.DEFAULT)
-                encryptionManager.decryptText(bytes, if (isHeirMode) _heirKey.value else null)
+                encryptionManager.decryptText(bytes, if (isHeirMode) explicitKey else null)
             } catch (e: Exception) {
                 "Contenu chiffré"
             }
