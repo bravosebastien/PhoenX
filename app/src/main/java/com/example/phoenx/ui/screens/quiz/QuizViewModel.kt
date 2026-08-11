@@ -97,7 +97,8 @@ class QuizViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // 1. Charger la clé de déchiffrement si on est un héritier (v8.3 Support Héritage)
+                // 1. Charger la clé héritage (v8.3 Support Héritage)
+                // RÈGLE : Le Quiz utilise la clé miroir générale (entry_keys/main)
                 var explicitKey: ByteArray? = null
                 if (currentUserId != creatorId) {
                     try {
@@ -110,18 +111,44 @@ class QuizViewModel @Inject constructor(
                             _heirKey.value = explicitKey
                         }
                     } catch (e: Exception) {
-                        android.util.Log.w("QuizVM", "Impossible de récupérer la clé héritage (protocole non activé ?)")
+                        android.util.Log.w("QuizVM", "Impossible de récupérer la clé héritage")
                     }
                 }
 
-                // 2. Charger le Quiz
+                // 2. Charger le Quiz (MAPPING MANUEL v9.4.27 : Zéro dépendance toObject)
                 val doc = db.collection("users").document(creatorId)
                     .collection("quizzes").document(quizId)
                     .get().await()
-                val quiz = doc.toObject(Quiz::class.java)
+                
+                val raw = doc.data ?: throw Exception("Quiz introuvable")
+                
+                // Reconstruction robuste des questions
+                val rawQuestions = raw["questions"] as? List<*>
+                val questions = rawQuestions?.mapNotNull { item ->
+                    val q = item as? Map<*, *> ?: return@mapNotNull null
+                    QuizQuestion(
+                        id = q["id"] as? String ?: java.util.UUID.randomUUID().toString(),
+                        text = q["text"] as? String ?: "",
+                        mediaUrl = q["mediaUrl"] as? String,
+                        mediaType = q["mediaType"] as? String,
+                        correctAnswer = q["correctAnswer"] as? String ?: "",
+                        correctHash = q["correctHash"] as? String ?: "",
+                        distractors = (q["distractors"] as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList(),
+                        teasingMessages = (q["teasingMessages"] as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList(),
+                        difficultyAllowed = q["difficultyAllowed"] as? Boolean ?: true
+                    )
+                } ?: emptyList()
+
+                val quiz = Quiz(
+                    id = doc.id,
+                    title = raw["title"] as? String ?: "Quiz",
+                    isActive = raw["isActive"] as? Boolean ?: true,
+                    questions = questions,
+                    finalMessage = raw["finalMessage"] as? String ?: ""
+                )
                 
                 // 3. Déchiffrement des données sensibles (v8.3)
-                val decryptedQuestions = quiz?.questions?.map { q ->
+                val decryptedQuestions = quiz.questions.map { q ->
                     val decryptedAnswer = if (q.correctAnswer.isNotEmpty()) {
                         try {
                             encryptionManager.decryptText(
@@ -131,38 +158,42 @@ class QuizViewModel @Inject constructor(
                         } catch (e: Exception) { q.correctAnswer }
                     } else ""
                     q.copy(correctAnswer = decryptedAnswer)
-                } ?: emptyList()
-
-                val finalMessage = quiz?.finalMessage?.let {
-                    if (it.isNotEmpty()) {
-                        try {
-                            encryptionManager.decryptText(
-                                android.util.Base64.decode(it, android.util.Base64.DEFAULT),
-                                explicitKey
-                            )
-                        } catch (e: Exception) { it }
-                    } else it
                 }
+
+                val decFinalMsg = try {
+                    if (quiz.finalMessage.isNotEmpty()) {
+                        encryptionManager.decryptText(
+                            android.util.Base64.decode(quiz.finalMessage, android.util.Base64.DEFAULT),
+                            explicitKey
+                        )
+                    } else ""
+                } catch (e: Exception) { quiz.finalMessage }
                 
-                _currentQuiz.value = quiz?.copy(
+                _currentQuiz.value = quiz.copy(
                     questions = decryptedQuestions,
-                    finalMessage = finalMessage ?: ""
+                    finalMessage = decFinalMsg
                 )
 
-                // Vérifier si l'utilisateur a déjà joué
-                val recipientId = auth.currentUser?.uid ?: ""
-                val resultSnap = db.collection("users").document(creatorId)
-                    .collection("quizResults")
-                    .whereEqualTo("recipientId", recipientId)
-                    // .whereEqualTo("quizId", quizId) // On suppose un seul quiz par créateur pour l'instant ou on ajoute quizId au modèle
-                    .get().await()
-                
-                // Comme on n'a pas quizId dans QuizResult (selon le prompt), on vérifie par ID ou on suppose un quiz unique
-                val existingResult = resultSnap.toObjects(QuizResult::class.java).firstOrNull()
-                _userResult.value = existingResult
+                // 4. ISOLATION RÉQUETE RÉSULTATS ( try-catch indépendant v9.4.27)
+                try {
+                    val resultSnap = db.collection("users").document(creatorId)
+                        .collection("quizResults")
+                        .whereEqualTo("recipientId", currentUserId)
+                        .get().await()
+                    
+                    if (!resultSnap.isEmpty) {
+                        val r = resultSnap.documents.first()
+                        _userResult.value = QuizResult(
+                            score = (r.get("score") as? Number)?.toInt() ?: 0,
+                            totalQuestions = (r.get("totalQuestions") as? Number)?.toInt() ?: 0
+                        )
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.w("QuizVM", "Échec chargement score précédent")
+                }
 
             } catch (e: Exception) {
-                android.util.Log.e("QuizVM", "Error loading quiz", e)
+                android.util.Log.e("QuizVM", "Erreur critique chargement quiz", e)
             } finally {
                 _isLoading.value = false
             }

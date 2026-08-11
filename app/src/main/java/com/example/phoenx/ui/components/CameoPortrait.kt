@@ -35,31 +35,15 @@ fun CameoPortrait(
     imagePath: String?,
     firstName: String,
     modifier: Modifier = Modifier,
-    size: Dp = 40.dp
+    size: Dp = 40.dp,
+    resolvedUrl: String? = null // v9.4.27 : URL déjà résolue (Source unique)
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
-    val context = LocalContext.current
 
-    // Récupération du MediaManager via EntryPoint (v9.4.17)
-    val mediaManager = remember(context) {
-        EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            MediaManager.MediaManagerEntryPoint::class.java
-        ).mediaManager()
-    }
-
-    var displayUrl by remember(imagePath) { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(imagePath) {
-        if (!imagePath.isNullOrBlank()) {
-            if (java.io.File(imagePath).exists()) {
-                displayUrl = imagePath // Chemin local
-            } else {
-                displayUrl = mediaManager.getSafeUrl(imagePath) // Chemin Storage ou URL
-            }
-        }
-    }
+    // v9.4.27 : On privilégie l'URL résolue transmise par le ViewModel
+    // pour éviter les accès Storage directs interdits aux Destinataires.
+    val displayUrl = resolvedUrl ?: imagePath
 
     // Forme Ovale Cameo (plus haut que large, ratio ~1.2)
     val cameoShape = GenericShape { size, _ ->

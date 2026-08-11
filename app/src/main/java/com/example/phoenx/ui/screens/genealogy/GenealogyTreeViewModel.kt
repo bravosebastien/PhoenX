@@ -389,8 +389,37 @@ class GenealogyTreeViewModel @Inject constructor(
 
     // --- GESTION MÉDIAS ---
 
+    /**
+     * Récupère les médias d'une personne (Lecture Hybride Room/Firestore v9.4.27)
+     */
     fun getMediaForPerson(personId: String): Flow<List<PersonMediaEntity>> {
-        return personMediaDao.getMediaForPerson(personId)
+        val targetId = _targetCreatorId.value
+        val currentUid = auth.currentUser?.uid ?: ""
+        
+        return if (targetId == null || targetId == currentUid) {
+            // Mode Créateur : Room locale
+            personMediaDao.getMediaForPerson(personId)
+        } else {
+            // Mode Héritier : Firestore directe (v9.4.27)
+            callbackFlow {
+                val listener = db.collection("users").document(targetId)
+                    .collection("persons").document(personId)
+                    .collection("media")
+                    .addSnapshotListener { snapshot, _ ->
+                        val list = snapshot?.documents?.map { doc ->
+                            PersonMediaEntity(
+                                id = doc.id,
+                                personId = personId,
+                                mediaPath = doc.getString("mediaPath") ?: "",
+                                mediaType = doc.getString("mediaType") ?: "PHOTO",
+                                syncStatus = "synced"
+                            )
+                        } ?: emptyList()
+                        trySend(list)
+                    }
+                awaitClose { listener.remove() }
+            }
+        }
     }
 
     fun addMedia(personId: String, path: String, type: String) {

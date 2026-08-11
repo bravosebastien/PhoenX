@@ -451,7 +451,8 @@ fun GroupTreeNode(
                             CameoPortrait(
                                 imagePath = resolved.photoUrl,
                                 firstName = resolved.firstName,
-                                size = 40.dp
+                                size = 40.dp,
+                                resolvedUrl = resolved.photoUrl // v9.4.27 : Source unique déjà résolue
                             )
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
@@ -574,7 +575,8 @@ fun PersonDetailsDialog(
                             CameoPortrait(
                                 imagePath = profilePhotoPath, 
                                 firstName = person.firstName, 
-                                size = 80.dp
+                                size = 80.dp,
+                                resolvedUrl = resolvedUrls[person.id] // v9.4.27 : Source unique
                             )
                             if (!isReadOnly) {
                                 IconButton(
