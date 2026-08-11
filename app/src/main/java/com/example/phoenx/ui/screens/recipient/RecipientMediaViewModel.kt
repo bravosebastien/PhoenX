@@ -6,6 +6,7 @@ import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.RecipientEntity
+import com.example.phoenx.data.sync.toOfflineEntry
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
@@ -609,54 +610,53 @@ class RecipientMediaViewModel @Inject constructor(
     private fun loadAllMedia() {
         val currentUid = auth.currentUser?.uid ?: ""
         viewModelScope.launch {
-            // 1. Flux des entrées classiques (Room ou Firestore)
-            val offlineEntriesFlow = _targetCreatorId.flatMapLatest { targetId ->
+            // 1. Flux des entrées (Snapshots Firestore pour Héritier)
+            val snapshotsFlow = _targetCreatorId.flatMapLatest { targetId ->
                 if (targetId == null || targetId == currentUid) {
-                    offlineEntryDao.getAllEntries()
+                    flowOf(null)
                 } else {
                     val publicFlow = callbackFlow {
                         val listener = db.collection("users").document(targetId)
                             .collection("entries")
                             .whereEqualTo("visibility", "EVERYONE")
-                            .addSnapshotListener { snapshot, _ ->
-                                trySend(snapshot?.documents?.mapNotNull { it.toOfflineEntry() } ?: emptyList())
-                            }
+                            .addSnapshotListener { snapshot, _ -> trySend(snapshot?.documents ?: emptyList()) }
                         awaitClose { listener.remove() }
                     }
-
                     val privateFlow = callbackFlow {
                         val listener = db.collection("users").document(targetId)
                             .collection("entries")
                             .whereArrayContains("recipientIds", currentUid)
-                            .addSnapshotListener { snapshot, _ ->
-                                trySend(snapshot?.documents?.mapNotNull { it.toOfflineEntry() } ?: emptyList())
-                            }
+                            .addSnapshotListener { snapshot, _ -> trySend(snapshot?.documents ?: emptyList()) }
                         awaitClose { listener.remove() }
                     }
-
-                    combine(publicFlow, privateFlow) { pub, priv ->
-                        (pub + priv).distinctBy { it.id }
-                    }
+                    combine(publicFlow, privateFlow) { pub, priv -> (pub + priv).distinctBy { it.id } }
                 }
             }
 
-            // 2. Flux des médias isolés (HORS-LIGNE + Firestore v9.4.27)
+            // 2. Conversion RÉACTIVE Snapshots -> OfflineEntries (Vraie vérification de type Blob/String)
+            val entriesFlow = combine(snapshotsFlow, _heirKey, offlineEntryDao.getAllEntries()) { snaps, key, localEntries ->
+                val targetId = _targetCreatorId.value
+                if (targetId == null || targetId == currentUid) {
+                    localEntries
+                } else {
+                    // Utilise le mapper centralisé qui gère la distinction Blob/String nativement
+                    snaps?.mapNotNull { it.toOfflineEntry(encryptionManager, key) } ?: emptyList()
+                }
+            }
+
+            // 3. Flux des médias isolés
             val standaloneMediaFlow = _targetCreatorId.flatMapLatest { targetId ->
                 val effectiveId = targetId ?: currentUid
                 if (effectiveId.isEmpty()) return@flatMapLatest kotlinx.coroutines.flow.flowOf(emptyList())
-
                 val isCreator = effectiveId == currentUid
 
                 callbackFlow {
-                    // A. Listener Firestore (Source pour Héritier, Réparation pour Créateur)
                     val listener = db.collection("users").document(effectiveId)
                         .collection("standaloneMedia")
                         .addSnapshotListener { snapshot, error ->
                             if (error != null) return@addSnapshotListener
-                            
                             val firestoreItems = snapshot?.documents?.mapNotNull { doc ->
                                 val recIds = (doc.get("recipientIds") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
-                                
                                 if (isCreator || recIds.isEmpty() || recIds.contains(currentUid)) {
                                     val type = doc.getString("type") ?: ""
                                     val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
@@ -679,15 +679,12 @@ class RecipientMediaViewModel @Inject constructor(
                                         coverUrl = doc.getString("coverUrl"),
                                         mediaProvider = doc.getString("mediaProvider")
                                     )
-                                    
                                     if (isCreator) {
-                                        // Auto-réparation Room sécurisée (v9.4.27) : Préserve les chemins locaux
                                         launch {
                                             val existing = standaloneMediaDao.getMediaById(entity.id)
                                             val repairedEntity = if (existing != null) {
                                                 entity.copy(
                                                     localCoverPath = existing.localCoverPath,
-                                                    // content peut être un chemin local pour PHOTO standalone
                                                     content = if (existing.content.startsWith("/data/")) existing.content else entity.content
                                                 )
                                             } else entity
@@ -697,55 +694,29 @@ class RecipientMediaViewModel @Inject constructor(
                                     entity
                                 } else null
                             } ?: emptyList()
-
-                            // Si Héritier, on émet directement Firestore vers l'UI
-                            if (!isCreator) {
-                                trySend(firestoreItems)
-                            }
+                            if (!isCreator) trySend(firestoreItems)
                         }
-
-                    // B. Si Créateur, la source de vérité pour l'UI est Room
                     val roomJob = if (isCreator) {
-                        launch {
-                            standaloneMediaDao.getAllStandaloneMedia().collect { items ->
-                                trySend(items)
-                            }
-                        }
+                        launch { standaloneMediaDao.getAllStandaloneMedia().collect { items -> trySend(items) } }
                     } else null
-
-                    awaitClose {
-                        listener.remove()
-                        roomJob?.cancel()
-                    }
+                    awaitClose { listener.remove(); roomJob?.cancel() }
                 }
             }
 
-            combine(offlineEntriesFlow, standaloneMediaFlow, _isProtocolActivated) { allOfflineEntries, allStandalone, activated ->
+            // 4. COMBINAISON FINALE RÉACTIVE
+            combine(entriesFlow, standaloneMediaFlow, _isProtocolActivated, _heirKey) { entries, allStandalone, activated, key ->
                 val targetId = _targetCreatorId.value
                 val isHeirMode = targetId != null && targetId != currentUid
 
-                // 1. Filtrage par ACCÈS STRICT (Entries classiques)
-                val accessibleEntries = if (!isHeirMode) {
-                    allOfflineEntries 
-                } else {
-                    allOfflineEntries.filter { entry ->
-                        entry.visibility == "EVERYONE" || entry.recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.contains(currentUid)
-                    }
-                }
-
-                // 2. Conversion en domaine (Déchiffrement Tink pour les entries)
-                val decodedEntries = accessibleEntries.map { 
+                val decodedEntries = entries.map { 
                     if (isHeirMode && !activated) it.toSealedDomain()
-                    else it.toDomain(encryptionManager) 
+                    else it.toDomain(encryptionManager, key) 
                 }.toMutableList()
 
-                // 3. Conversion et Injection des Standalone Media (v9.3.2)
                 allStandalone.forEach { standalone ->
-                    val domainEntry = standalone.toStandaloneDomain(isHeirMode, activated)
-                    decodedEntries.add(domainEntry)
+                    decodedEntries.add(standalone.toStandaloneDomain(isHeirMode, activated, key))
                 }
 
-                // 4. Indexation par type (Action 2 : Recalcul sur thread de fond)
                 val allDecoded = decodedEntries.toList()
                 mapOf(
                     "library" to allDecoded.filter { it.parentEntryId == null && (it.type == EntryType.THOUGHT || it.type == EntryType.LEGACY || it.isYoungSelfLetter) },
@@ -757,7 +728,6 @@ class RecipientMediaViewModel @Inject constructor(
             }
             .flowOn(Dispatchers.Default)
             .collectLatest { result ->
-                // Mise à jour de l'UI avec les listes déjà filtrées
                 _libraryEntries.value = result["library"] ?: emptyList()
                 _videoEntries.value = result["video"] ?: emptyList()
                 _discothequeEntries.value = result["audio"] ?: emptyList()
@@ -765,59 +735,6 @@ class RecipientMediaViewModel @Inject constructor(
                 _heritageEntries.value = result["heritage"] ?: emptyList()
             }
         }
-    }
-
-    /**
-     * Helper pour convertir un document Firestore en OfflineEntry (v8.5.5)
-     */
-    private fun DocumentSnapshot.toOfflineEntry(): OfflineEntry? {
-        if (!exists()) return null
-        val ageMap = get("ageAtCreation") as? Map<*, *>
-        val ageJson = ageMap?.let { JSONObject(it).toString() } ?: "{}"
-
-        val recIds = (get("recipientIds") as? List<*>)?.joinToString(",") ?: ""
-        val compIds = (get("compartmentIds") as? List<*>)?.joinToString(",") ?: ""
-
-        // DÉTECTION & DÉCHIFFREMENT AVEC CLÉ HÉRITIER (v9.4.12)
-        val heirKey = _heirKey.value
-
-        val summaryObj = get("aiSummary")
-        val finalSummary = when (summaryObj) {
-            is Blob -> encryptionManager.decryptText(summaryObj.toBytes(), heirKey)
-            is String -> summaryObj
-            else -> ""
-        }
-
-        val tagsObj = get("aiTags")
-        val finalTags = when (tagsObj) {
-            is Blob -> encryptionManager.decryptText(tagsObj.toBytes(), heirKey)
-            is List<*> -> tagsObj.joinToString(",")
-            is String -> tagsObj
-            else -> ""
-        }
-
-        return OfflineEntry(
-            id = id,
-            creatorUid = getString("uid") ?: "",
-            encryptedPayload = (get("encryptedContent") as? Blob)?.toBytes() ?: ByteArray(0),
-            entryType = getString("type") ?: "TEXT",
-            ageAtCreation = ageJson,
-            emotionalCategory = getString("emotionalCategory") ?: "",
-            visibility = getString("visibility") ?: "private",
-            recipientIds = recIds,
-            compartmentIds = compIds,
-            isYoungSelfLetter = getBoolean("isYoungSelfLetter") ?: false,
-            targetAge = getLong("targetAge")?.toInt(),
-            createdAt = getLong("createdAt") ?: 0L,
-            aiSummary = finalSummary,
-            aiTags = finalTags,
-            mediaUrl = getString("mediaUrl"),
-            localMediaPath = null, // Pas de chemin local pour les entrées héritées
-            memoryDate = getLong("memoryDate"),
-            memoryDateStart = getLong("memoryDateStart"),
-            memoryDateEnd = getLong("memoryDateEnd"),
-            parentEntryId = getString("parentEntryId")
-        )
     }
 
     private fun OfflineEntry.toSealedDomain(): PhoenXEntry {
@@ -853,9 +770,9 @@ class RecipientMediaViewModel @Inject constructor(
         )
     }
 
-    private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager): PhoenXEntry {
+    private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager, explicitKey: ByteArray? = null): PhoenXEntry {
         val decryptedText = try { 
-            encryptionManager.decryptText(encryptedPayload)
+            encryptionManager.decryptText(encryptedPayload, explicitKey)
         } catch(_: Exception) { "Contenu chiffré" }
         
         val ageJson = JSONObject(ageAtCreation)
@@ -882,7 +799,7 @@ class RecipientMediaViewModel @Inject constructor(
             isYoungSelfLetter = isYoungSelfLetter,
             targetAge = targetAge,
             timestamp = Instant.ofEpochMilli(createdAt),
-            aiSummary = aiSummary,
+            aiSummary = aiSummary, // v9.4.27 : Déjà déchiffré par le Mapper (Type Check Blob/String)
             userComment = userComment,
             parentEntryId = parentEntryId,
             mediaUrl = mediaUrl,
@@ -898,7 +815,8 @@ class RecipientMediaViewModel @Inject constructor(
 
     private fun com.example.phoenx.data.local.StandaloneMediaEntity.toStandaloneDomain(
         isHeirMode: Boolean,
-        activated: Boolean
+        activated: Boolean,
+        explicitKey: ByteArray? = null
     ): PhoenXEntry {
         val age = AgeSnapshot(0, 0, 0)
         val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"

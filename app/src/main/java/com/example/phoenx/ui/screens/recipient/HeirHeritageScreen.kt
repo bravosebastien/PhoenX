@@ -150,6 +150,12 @@ fun HeirHeritageScreen(
                         theme = theme
                     ) { navController.navigate(Screen.RecipientDetective.createRoute(creatorId)) }
                     SpecialAccessCard(
+                        title = "Arbre", // v9.4.27 : Accès à l'Arbre Généalogique
+                        icon = Icons.Default.AccountTree,
+                        modifier = Modifier.weight(1f),
+                        theme = theme
+                    ) { navController.navigate(Screen.Genealogy.createRoute(creatorId)) }
+                    SpecialAccessCard(
                         title = "Quiz",
                         icon = Icons.Outlined.EmojiEvents,
                         modifier = Modifier.weight(1f),

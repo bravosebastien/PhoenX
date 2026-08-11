@@ -9,6 +9,7 @@ import com.example.phoenx.data.ai.OnDeviceAIManager
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.*
 import com.example.phoenx.data.sync.SyncWorker
+import com.example.phoenx.data.sync.toOfflineEntry
 import com.example.phoenx.domain.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -114,6 +115,9 @@ class MemoryDetailViewModel @Inject constructor(
     }
 
     private val _entryId = MutableStateFlow<String?>(null)
+    private val _targetCreatorId = MutableStateFlow<String?>(null) // v9.4.27
+    private val _firestoreEntry = MutableStateFlow<OfflineEntry?>(null) // v9.4.27
+
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
 
@@ -144,10 +148,21 @@ class MemoryDetailViewModel @Inject constructor(
     val allPacts: StateFlow<List<PactEntity>> = offlineEntryDao.getAllPacts()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val entry: StateFlow<OfflineEntry?> = _entryId
-        .filterNotNull()
-        .flatMapLatest { id -> offlineEntryDao.getEntryById(id) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    /**
+     * Source de vérité hybride (v9.4.27 : Room ou Firestore)
+     */
+    val entry: StateFlow<OfflineEntry?> = combine(_entryId, _targetCreatorId, _firestoreEntry) { id, targetId, fsEntry ->
+        if (id == null) return@combine null
+        
+        val isHeirMode = targetId != null && targetId != auth.currentUser?.uid
+        if (isHeirMode) {
+            // Mode Héritier : Source Firestore
+            fsEntry
+        } else {
+            // Mode Créateur : Source Room locale
+            offlineEntryDao.getEntryById(id).firstOrNull()
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     /**
      * Source de vérité unique pour les destinataires sélectionnés (remappés en DocIDs pour l'UI)
@@ -200,10 +215,17 @@ class MemoryDetailViewModel @Inject constructor(
         (allSimplified + me).filter { ids.contains(it.id) }.distinctBy { it.id }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val complements: StateFlow<List<OfflineEntry>> = _entryId
-        .filterNotNull()
-        .flatMapLatest { id -> offlineEntryDao.getComplements(id) }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _firestoreComplements = MutableStateFlow<List<OfflineEntry>>(emptyList()) // v9.4.27
+
+    val complements: StateFlow<List<OfflineEntry>> = combine(_entryId, _targetCreatorId, _firestoreComplements) { id, targetId, fsComps ->
+        if (id == null) return@combine emptyList()
+        val isHeirMode = targetId != null && targetId != auth.currentUser?.uid
+        if (isHeirMode) {
+            fsComps
+        } else {
+            offlineEntryDao.getComplements(id).first()
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
      * Retourne la liste des compléments texte DÉCHIFFRÉS (v8.4)
@@ -242,8 +264,6 @@ class MemoryDetailViewModel @Inject constructor(
         }
 
         // 1. Parsing Legacy (v8.5.9 - Titres intelligents)
-        // NOTE : Il s'agit d'un COMPROMIS pour données manquantes (anciens portraits). 
-        // On ne peut pas reconstruire la question réelle, donc on utilise le début du texte comme titre de bandeau.
         if (content.isNotBlank()) {
             if (content.startsWith("[")) {
                 try {
@@ -252,7 +272,6 @@ class MemoryDetailViewModel @Inject constructor(
                         val obj = arr.getJSONObject(i)
                         val q = obj.getString("q")
                         val a = obj.getString("a")
-                        // Si pas de question, on prend le début de la réponse pour le titre
                         val displayQ = q.ifBlank { if (a.length > 30) a.take(30) + "..." else a }
                         list.add(PortraitItem(null, displayQ, a))
                     }
@@ -284,10 +303,12 @@ class MemoryDetailViewModel @Inject constructor(
 
     fun loadEntry(id: String, creatorId: String? = null) {
         _entryId.value = id
+        _targetCreatorId.value = creatorId
+        
         if (creatorId != null && creatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
                 try {
-                    // Check protocol status via Cloud Function (v8.5.9)
+                    // 1. Check protocol status
                     val result = functions.getHttpsCallable("getCreatorProtocolStatus")
                         .call(mapOf("creatorId" to creatorId)).await()
                     
@@ -302,8 +323,25 @@ class MemoryDetailViewModel @Inject constructor(
                             _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
                         }
                     }
+                    
+                    // 2. CHARGEMENT FIRESTORE (v9.4.27 : Lecture Hybride Héritier)
+                    val entryDoc = db.collection("users").document(creatorId)
+                        .collection("entries").document(id).get().await()
+                    
+                    if (entryDoc.exists()) {
+                        _firestoreEntry.value = entryDoc.toOfflineEntry(encryptionManager, _heirKey.value)
+                        
+                        // Charger aussi les compléments
+                        val compSnap = db.collection("users").document(creatorId)
+                            .collection("entries")
+                            .whereEqualTo("parentEntryId", id)
+                            .get().await()
+                        
+                        _firestoreComplements.value = compSnap.documents.mapNotNull { it.toOfflineEntry(encryptionManager, _heirKey.value) }
+                    }
+
                 } catch (e: Exception) {
-                    android.util.Log.e("MemoryDetailVM", "Erreur chargement clé héritage", e)
+                    android.util.Log.e("MemoryDetailVM", "Erreur chargement distant", e)
                     _isProtocolActivated.value = false
                 }
             }
@@ -323,10 +361,6 @@ class MemoryDetailViewModel @Inject constructor(
             try {
                 val encrypted = encryptionManager.encryptText(newText)
                 offlineEntryDao.updateEntryContent(encrypted, id)
-                
-                // v9.4.27 : Suppression de la génération automatique du résumé (aiSummary)
-                // pour préserver le titre ("L'Étincelle") choisi par l'utilisateur.
-
                 triggerSync(id)
             } catch (e: Exception) {
                 android.util.Log.e("MemoryDetailVM", "Error updating content", e)
@@ -346,9 +380,6 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Met à jour le titre d'un complément (v9.4.27)
-     */
     fun updateComplementTitle(complementId: String, newTitle: String) {
         viewModelScope.launch {
             offlineEntryDao.updateEntryMediaTitle(newTitle, complementId)
@@ -356,9 +387,6 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Met à jour le commentaire d'un complément (v9.4.27)
-     */
     fun updateComplementComment(complementId: String, newComment: String?) {
         viewModelScope.launch {
             offlineEntryDao.updateEntryComment(newComment, complementId)
@@ -366,15 +394,11 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Chiffre et uploade une photo de couverture pour un complément (v9.4.27)
-     */
     fun updateComplementCover(complementId: String, imageUri: Uri) {
         val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             val file = uriToFile(imageUri) ?: return@launch
             try {
-                // Chiffrement et upload de la couverture (Souveraineté maintenue)
                 val storagePath = mediaManager.encryptAndUpload(uid, complementId, file)
                 offlineEntryDao.updateEntryCover(storagePath, file.absolutePath, complementId)
                 triggerSync(complementId)
@@ -387,18 +411,14 @@ class MemoryDetailViewModel @Inject constructor(
     fun updateRecipients(newRecipientDocIds: List<String>) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            // v9.2 : On stocke les VRAIS UIDs pour la sécurité Firestore
             val persistentIds = newRecipientDocIds.map { docId ->
                 recipients.value.find { it.id == docId }?.linkedUid ?: docId
-            }.distinct() // v9.4.19
+            }.distinct()
             offlineEntryDao.updateEntryRecipients(persistentIds.joinToString(","), id)
             triggerSync(id)
         }
     }
 
-    /**
-     * Alterne la sélection d'un destinataire (v9.4.19)
-     */
     fun toggleRecipient(docId: String) {
         val current = selectedRecipientIds.value
         val newList = if (current.contains(docId)) {
@@ -408,8 +428,6 @@ class MemoryDetailViewModel @Inject constructor(
         }
         updateRecipients(newList)
     }
-
-    // --- GESTION DES PERSONNES (v9.4.26 : Unifiée & Stabilisée) ---
 
     private var searchJob: Job? = null
 
@@ -508,7 +526,6 @@ class MemoryDetailViewModel @Inject constructor(
                 )
                 offlineEntryDao.insertPerson(newPerson)
                 
-                // Point 1 : Conversion pour le sélecteur unifié
                 val simplified = SimplifiedPerson(
                     id = newPerson.id,
                     name = newPerson.firstName + (newPerson.lastName?.let { l -> " $l" } ?: ""),
@@ -529,9 +546,6 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Met à jour les paramètres de l'énigme / Coffre-Fort (v9.4.27)
-     */
     fun updateEnigma(
         question: String?,
         answer: String?,
@@ -542,12 +556,10 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             val currentEntry = offlineEntryDao.getEntryById(id).first() ?: return@launch
-            
-            // Hachage uniquement si une NOUVELLE réponse est saisie
             val newHash = if (!answer.isNullOrBlank()) {
                 com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(answer)
             } else {
-                currentEntry.enigmaAnswer // On conserve l'existant
+                currentEntry.enigmaAnswer
             }
 
             offlineEntryDao.updateEntryEnigma(
@@ -568,9 +580,6 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Met à jour les destinataires d'une entrée spécifique (v9.4.27)
-     */
     fun updateEntryRecipients(entryId: String, recipientDocIds: List<String>) {
         viewModelScope.launch {
             val persistentIds = recipientDocIds.map { docId ->
@@ -581,9 +590,6 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Transmet le souvenir en Lien Vivant (v9.4.27).
-     */
     fun sendLivingLink(recipientUid: String, scheduledAt: Long? = null) {
         val entryId = _entryId.value ?: return
         viewModelScope.launch {
@@ -628,7 +634,6 @@ class MemoryDetailViewModel @Inject constructor(
 
     fun updateCompartments(selectedIds: List<String>) {
         val id = _entryId.value ?: return
-        // Format CSV : ,ID1,ID2,
         val csv = if (selectedIds.isEmpty()) "" else ",${selectedIds.joinToString(",")},"
         viewModelScope.launch {
             offlineEntryDao.updateEntryCompartments(csv, id)
@@ -676,9 +681,6 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Récupère les détails d'un lieu Firestore et les assigne au souvenir local.
-     */
     fun assignLocationFromId(locationId: String) {
         val uid = auth.currentUser?.uid ?: return
         val id = _entryId.value ?: return
@@ -716,11 +718,9 @@ class MemoryDetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 if (isParent) {
-                    // SUPPRESSION EN CASCADE (v9.4.27)
                     val parent = offlineEntryDao.getEntryById(id).first()
                     val children = offlineEntryDao.getComplements(id).first()
                     
-                    // 1. Suppression Storage (Parent + Enfants + Couvertures)
                     parent?.let {
                         mediaManager.deleteFile(it.mediaUrl)
                         mediaManager.deleteFile(it.coverUrl)
@@ -730,7 +730,6 @@ class MemoryDetailViewModel @Inject constructor(
                         mediaManager.deleteFile(child.coverUrl)
                     }
 
-                    // 2. Suppression Firestore du parent et de chaque enfant
                     val batch = db.batch()
                     val userRef = db.collection("users").document(uid)
                     
@@ -740,15 +739,13 @@ class MemoryDetailViewModel @Inject constructor(
                     }
                     batch.commit().await()
                     
-                    // 3. Suppression Room locale (Parent + Enfants via le DAO)
-                    offlineEntryDao.deleteEntry(id) // Le parent
+                    offlineEntryDao.deleteEntry(id)
                     children.forEach { child ->
-                        offlineEntryDao.deleteEntry(child.id) // Les enfants
+                        offlineEntryDao.deleteEntry(child.id)
                     }
                     
                     _deleteSuccess.value = true
                 } else {
-                    // Suppression simple d'un complément
                     val complement = offlineEntryDao.getEntryById(id).first()
                     complement?.let {
                         mediaManager.deleteFile(it.mediaUrl)
@@ -769,10 +766,7 @@ class MemoryDetailViewModel @Inject constructor(
     }
 
     private suspend fun triggerSync(entryId: String) {
-        // Passage en pending pour forcer le Worker à le voir
         offlineEntryDao.updateSyncStatus(entryId, "pending")
-        android.util.Log.d("MemoryDetailDebug", "syncStatus repassé à pending pour id=$entryId")
-
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
@@ -780,18 +774,12 @@ class MemoryDetailViewModel @Inject constructor(
             .setConstraints(constraints)
             .build()
         WorkManager.getInstance(context).enqueue(syncRequest)
-        android.util.Log.d("MemoryDetailDebug", "OneTimeWorkRequest enqueue pour id=$entryId")
     }
 
-    /**
-     * Ajoute un complément média directement (v9.4.26)
-     * v9.4.27 : Extraction automatique de miniature pour VIDEO.
-     */
     fun addMediaComplement(parentId: String, file: File, type: String, transcription: String? = null) {
         val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                // 1. Copie locale de la vidéo
                 val mediaDir = File(context.filesDir, "media")
                 if (!mediaDir.exists()) mediaDir.mkdirs()
                 val destFile = File(mediaDir, "PHX_COMP_${UUID.randomUUID()}_${file.name}")
@@ -800,7 +788,6 @@ class MemoryDetailViewModel @Inject constructor(
                 var coverUrl: String? = null
                 var localCoverPath: String? = null
 
-                // 2. Extraction de la miniature si c'est une VIDEO (v9.4.27)
                 if (type == "VIDEO") {
                     try {
                         val retriever = MediaMetadataRetriever()
@@ -813,19 +800,15 @@ class MemoryDetailViewModel @Inject constructor(
                             FileOutputStream(thumbFile).use { out ->
                                 bitmap.compress(Bitmap.CompressFormat.JPEG, 70, out)
                             }
-                            // Chiffrement et upload de la miniature
                             coverUrl = mediaManager.encryptAndUpload(uid, UUID.randomUUID().toString(), thumbFile)
                             localCoverPath = thumbFile.absolutePath
-                            android.util.Log.d("MemoryDetailVM", "Miniature vidéo extraite et uploadée : $coverUrl")
                         }
                     } catch (e: Exception) {
                         android.util.Log.e("MemoryDetailVM", "Échec extraction miniature vidéo", e)
                     }
                 }
 
-                // 3. Récupération du parent pour héritage
                 val parent = offlineEntryDao.getEntryById(parentId).first() ?: return@launch
-                
                 val finalTranscription = if (transcription.isNullOrBlank()) "Média complémentaire" else transcription
 
                 val entry = OfflineEntry(
@@ -857,14 +840,11 @@ class MemoryDetailViewModel @Inject constructor(
         return try {
             val contentResolver = context.contentResolver
             val mimeType = contentResolver.getType(uri)
-            
-            // v9.4.27 : Détection robuste de l'extension (inclut support caméra)
             val extension = when {
                 mimeType?.contains("video") == true -> "mp4"
                 uri.toString().contains(".mp4") -> "mp4"
                 else -> "jpg"
             }
-            
             val inputStream = contentResolver.openInputStream(uri)
             val tempFile = File(context.cacheDir, "temp_media_${UUID.randomUUID()}.$extension")
             inputStream?.use { input ->
