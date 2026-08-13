@@ -242,10 +242,20 @@ class MemoryDetailViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val decryptedContent: StateFlow<String> = combine(entry, _heirKey, _protocolStatus) { ent, key, status ->
+        android.util.Log.d("PHOENX_DETAIL_TRACE", "--- RECALCUL CONTENT --- Status: $status, Key: ${key != null}")
         when (status) {
             ProtocolStatus.VERIFYING -> "Vérification de l'accès..."
             ProtocolStatus.LOCKED -> "Souvenir scellé"
-            ProtocolStatus.ACTIVATED -> ent?.let { encryptionManager.decryptText(it.encryptedPayload, key) } ?: ""
+            ProtocolStatus.ACTIVATED -> ent?.let { 
+                try {
+                    val res = encryptionManager.decryptText(it.encryptedPayload, key)
+                    android.util.Log.d("PHOENX_DETAIL_TRACE", "SUCCÈS DECHIFFREMENT id=${it.id}")
+                    res
+                } catch(e: Exception) {
+                    android.util.Log.e("PHOENX_DETAIL_TRACE", "ÉCHEC DECHIFFREMENT id=${it.id}: ${e.message}", e)
+                    "Contenu chiffré"
+                }
+            } ?: ""
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
@@ -322,6 +332,7 @@ class MemoryDetailViewModel @Inject constructor(
                     val data = result.data as? Map<*, *>
                     val isActivated = data?.get("isActivated") as? Boolean ?: false
                     _protocolStatus.value = if (isActivated) ProtocolStatus.ACTIVATED else ProtocolStatus.LOCKED
+                    android.util.Log.d("PHOENX_DETAIL_TRACE", "Protocole check: isActivated=$isActivated -> status=${_protocolStatus.value}")
 
                     if (isActivated) {
                         val keyDoc = db.collection("users").document(creatorId)

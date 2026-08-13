@@ -40,10 +40,33 @@ fun CameoPortrait(
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val context = androidx.compose.ui.platform.LocalContext.current
 
-    // v9.4.27 : On privilégie l'URL résolue transmise par le ViewModel
-    // pour éviter les accès Storage directs interdits aux Destinataires.
-    val displayUrl = resolvedUrl ?: imagePath
+    // v9.4.27 : État de résolution interne uniquement si resolvedUrl est absent
+    var internalUrl by remember(imagePath) { mutableStateOf<String?>(null) }
+    
+    // SOURCE DE VÉRITÉ : resolvedUrl prioritaire > résolution interne > path brut
+    val displayUrl = resolvedUrl ?: internalUrl ?: imagePath
+
+    LaunchedEffect(imagePath, resolvedUrl) {
+        // SÉCURITÉ : Si une URL résolue est fournie (ViewModel), on ne déclenche AUCUNE résolution locale.
+        // Cela garantit qu'un Destinataire n'appellera jamais mediaManager.getSafeUrl() (interdit).
+        if (resolvedUrl == null && !imagePath.isNullOrBlank()) {
+            android.util.Log.d("PHOENX_TREE_TRACE", "Résolution interne pour $firstName ($imagePath)")
+            val mediaManager = dagger.hilt.android.EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                MediaManager.MediaManagerEntryPoint::class.java
+            ).mediaManager()
+
+            if (java.io.File(imagePath).exists()) {
+                internalUrl = imagePath // Cas local
+            } else {
+                internalUrl = mediaManager.getSafeUrl(imagePath) // Cas Storage direct
+            }
+        } else if (resolvedUrl != null) {
+            android.util.Log.d("PHOENX_TREE_TRACE", "Usage de resolvedUrl pour $firstName: $resolvedUrl")
+        }
+    }
 
     // Forme Ovale Cameo (plus haut que large, ratio ~1.2)
     val cameoShape = GenericShape { size, _ ->

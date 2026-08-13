@@ -53,7 +53,7 @@ fun HeirHeritageScreen(
     val bookMessage by viewModel.bookSealedMessage.collectAsState()
     val bookTitle by viewModel.bookTitle.collectAsState()
     val creatorName by viewModel.creatorName.collectAsState()
-    val isActivated by viewModel.isProtocolActivated.collectAsState()
+    val protocolStatus by viewModel.protocolStatus.collectAsState()
     val canAsk by viewModel.canAskQuestions.collectAsState()
     val maxQuestions by viewModel.maxQuestions.collectAsState()
     val questionsAsked by viewModel.questionsAsked.collectAsState()
@@ -78,11 +78,18 @@ fun HeirHeritageScreen(
             topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        "Mon Héritage",
-                        style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
-                        color = theme.contentColor
-                    )
+                    Column {
+                        Text(
+                            "Mon Héritage",
+                            style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
+                            color = theme.contentColor
+                        )
+                        Text(
+                            "BUILD-DEBUG-v9427-fix3",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, color = accent),
+                            modifier = Modifier.padding(start = 2.dp)
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
@@ -138,7 +145,7 @@ fun HeirHeritageScreen(
                 ) {
                     SpecialAccessCard(
                         title = bookTitle ?: "Livre",
-                        subtitle = if (!isActivated) bookMessage ?: "$creatorName a décidé de vous partager le livre de sa vie. Visible le moment venu." else "Récit de vie",
+                        subtitle = if (protocolStatus != RecipientMediaViewModel.ProtocolStatus.ACTIVATED) bookMessage ?: "$creatorName a décidé de vous partager le livre de sa vie. Visible le moment venu." else "Récit de vie",
                         icon = Icons.Outlined.MenuBook,
                         modifier = Modifier.weight(1.3f),
                         theme = theme

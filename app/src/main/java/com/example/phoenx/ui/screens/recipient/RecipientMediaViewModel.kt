@@ -238,8 +238,9 @@ class RecipientMediaViewModel @Inject constructor(
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
 
-    private val _isProtocolActivated = MutableStateFlow(true)
-    val isProtocolActivated: StateFlow<Boolean> = _isProtocolActivated.asStateFlow()
+    enum class ProtocolStatus { VERIFYING, ACTIVATED, LOCKED }
+    private val _protocolStatus = MutableStateFlow(ProtocolStatus.VERIFYING)
+    val protocolStatus: StateFlow<ProtocolStatus> = _protocolStatus.asStateFlow()
 
     private val _canAskQuestions = MutableStateFlow(false)
     val canAskQuestions: StateFlow<Boolean> = _canAskQuestions.asStateFlow()
@@ -287,34 +288,45 @@ class RecipientMediaViewModel @Inject constructor(
         _targetCreatorId.value = creatorId
         if (creatorId != null && creatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
+                _protocolStatus.value = ProtocolStatus.VERIFYING
+                
+                // 1. Fetch Creator Name (v8.6.2)
                 try {
-                    // Fetch Creator Name (v8.6.2)
                     val creatorDoc = db.collection("users").document(creatorId).get().await()
                     _creatorName.value = creatorDoc.getString("displayName") ?: "Votre proche"
 
                     // Charger l'ambiance (v9.4.27)
-                    // v9.4.27 : On lit désormais à la racine du document utilisateur
                     if (creatorDoc.exists()) {
                         _ambiance.value = AmbianceState(
                             backgroundId = creatorDoc.getString("transmissionBackgroundId") ?: "classic_ivory",
                             fontId = creatorDoc.getString("transmissionFontId") ?: "playfair_display"
                         )
                     }
+                } catch (e: Exception) { android.util.Log.e("RecipientMediaVM", "Erreur nom/ambiance") }
 
-                    // Check protocol status via Cloud Function (v8.5.9)
+                // 2. Check protocol status via Cloud Function (v8.5.9)
+                var isActivated = false
+                try {
                     val result = functions.getHttpsCallable("getCreatorProtocolStatus")
                         .call(mapOf("creatorId" to creatorId)).await()
-                    
                     val data = result.data as? Map<*, *>
-                    _isProtocolActivated.value = data?.get("isActivated") as? Boolean ?: false
+                    isActivated = data?.get("isActivated") as? Boolean ?: false
                     _bookSealedMessage.value = data?.get("sealedMessage") as? String
+                    _protocolStatus.value = if (isActivated) ProtocolStatus.ACTIVATED else ProtocolStatus.LOCKED
+                } catch (e: Exception) { 
+                    android.util.Log.e("RecipientMediaVM", "Erreur statut protocole")
+                    _protocolStatus.value = ProtocolStatus.LOCKED 
+                }
 
-                    // Fetch Book Title (v9.2)
+                // 3. Fetch Book Title (v9.2)
+                try {
                     val bookDoc = db.collection("users").document(creatorId)
                         .collection("book").document("current_draft").get().await()
                     _bookTitle.value = bookDoc.getString("bookTitle")
+                } catch (e: Exception) { android.util.Log.e("RecipientMediaVM", "Erreur titre livre") }
 
-                    // v9.2.6 : Fetch My Permissions (canAskQuestions)
+                // 4. Fetch My Permissions (v9.2.6)
+                try {
                     val recipientsSnapshot = db.collection("users").document(creatorId)
                         .collection("recipients")
                         .whereEqualTo("linkedUid", currentUid)
@@ -327,22 +339,24 @@ class RecipientMediaViewModel @Inject constructor(
                         _questionsAsked.value = recipientDoc.getLong("questionsAskedCount")?.toInt() ?: 0
                         _recipientId.value = recipientDoc.id
                     }
+                } catch (e: Exception) { android.util.Log.e("RecipientMediaVM", "Erreur permissions") }
 
-                    if (_isProtocolActivated.value) {
+                // 5. CHARGEMENT CLÉ MIROIR (Point 1 : Isolation critique)
+                if (isActivated) {
+                    try {
                         val keyDoc = db.collection("users").document(creatorId)
                             .collection("entry_keys").document("main").get().await()
                         val keyBase64 = keyDoc.getString("key")
                         if (keyBase64 != null) {
                             _heirKey.value = android.util.Base64.decode(keyBase64 as String, android.util.Base64.NO_WRAP)
                         }
+                    } catch (e: Exception) {
+                        android.util.Log.e("RecipientMediaVM", "Échec critique chargement clé miroir")
                     }
-                } catch (e: Exception) {
-                    android.util.Log.e("RecipientMediaVM", "Erreur chargement clé héritage: ${e.message}")
-                    _isProtocolActivated.value = false
                 }
             }
         } else {
-            _isProtocolActivated.value = true
+            _protocolStatus.value = ProtocolStatus.ACTIVATED
             _heirKey.value = null
             // Mode Créateur : Charger son propre titre de livre (v9.2)
             viewModelScope.launch {
@@ -350,9 +364,7 @@ class RecipientMediaViewModel @Inject constructor(
                     val bookDoc = db.collection("users").document(currentUid)
                         .collection("book").document("current_draft").get().await()
                     _bookTitle.value = bookDoc.getString("bookTitle")
-                } catch (e: Exception) {
-                    _bookTitle.value = null
-                }
+                } catch (e: Exception) { _bookTitle.value = null }
             }
         }
     }
@@ -708,17 +720,32 @@ class RecipientMediaViewModel @Inject constructor(
                 .scan(null as ByteArray?) { last, new -> new ?: last }
                 .distinctUntilChanged()
 
-            combine(entriesFlow, standaloneMediaFlow, _isProtocolActivated, stableHeirKey) { entries, allStandalone, activated, key ->
+            combine(entriesFlow, standaloneMediaFlow, _protocolStatus, stableHeirKey) { entries, allStandalone, status, key ->
                 val targetId = _targetCreatorId.value
                 val isHeirMode = targetId != null && targetId != currentUid
+                val isActivated = status == ProtocolStatus.ACTIVATED
+                val timestamp = System.currentTimeMillis()
+                
+                android.util.Log.d("PHOENX_HEIR_TRACE", "--- RECALCUL LISTE ($timestamp) ---")
+                android.util.Log.d("PHOENX_HEIR_TRACE", "Status: $status, Key present: ${key != null}, Key size: ${key?.size ?: 0}")
+                android.util.Log.d("PHOENX_HEIR_TRACE", "Entries count: ${entries.size}, Standalone count: ${allStandalone.size}")
 
                 val decodedEntries = entries.map { 
-                    if (isHeirMode && !activated) it.toSealedDomain()
-                    else it.toDomain(encryptionManager, key) 
+                    if (isHeirMode && !isActivated) it.toSealedDomain()
+                    else {
+                        val result = it.toDomain(encryptionManager, key)
+                        val contentStr = String(result.encryptedContent)
+                        if (contentStr == "Contenu chiffré") {
+                           android.util.Log.e("PHOENX_HEIR_TRACE", "ERREUR DECHIFFREMENT id=${it.id}")
+                        } else {
+                           android.util.Log.d("PHOENX_HEIR_TRACE", "SUCCÈS id=${it.id}, title=${result.aiSummary}")
+                        }
+                        result
+                    }
                 }.toMutableList()
 
                 allStandalone.forEach { standalone ->
-                    decodedEntries.add(standalone.toStandaloneDomain(isHeirMode, activated, key))
+                    decodedEntries.add(standalone.toStandaloneDomain(isHeirMode, isActivated, key))
                 }
 
                 val allDecoded = decodedEntries.toList()
@@ -779,7 +806,10 @@ class RecipientMediaViewModel @Inject constructor(
         val decryptedText = if (encryptedPayload.isEmpty()) "" else {
             try { 
                 encryptionManager.decryptText(encryptedPayload, explicitKey)
-            } catch(_: Exception) { "Contenu chiffré" }
+            } catch(e: Exception) { 
+                android.util.Log.e("PHOENX_HEIR_TRACE", "Exception decrypt id=$id: ${e.message}", e)
+                "Contenu chiffré" 
+            }
         }
         
         val ageJson = JSONObject(ageAtCreation)

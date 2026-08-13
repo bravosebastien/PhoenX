@@ -66,11 +66,14 @@ export const getInheritedFileUrl = onCall(async (request) => {
 
     if (!storageUrl) throw new HttpsError("not-found", "Aucun fichier.");
 
+    // v9.4.27 : Tolérance au slash initial (Android vs Web/Functions SDKs)
+    const normalizedUrl = storageUrl.startsWith("/") ? storageUrl.substring(1) : storageUrl;
+
     let storagePath: string;
-    if (storageUrl.startsWith("users/")) {
-        storagePath = storageUrl;
+    if (normalizedUrl.startsWith("users/")) {
+        storagePath = normalizedUrl;
     } else {
-        const pathMatch = storageUrl.match(/\/o\/(.*?)\?alt=media/);
+        const pathMatch = normalizedUrl.match(/\/o\/(.*?)\?alt=media/);
         if (!pathMatch) throw new HttpsError("internal", "Format d'URL Storage invalide.");
         storagePath = decodeURIComponent(pathMatch[1]);
     }

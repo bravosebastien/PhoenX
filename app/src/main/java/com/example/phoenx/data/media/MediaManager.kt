@@ -65,7 +65,7 @@ class MediaManager @Inject constructor(
             .child(localFile.name + ".enc")
 
         storageRef.putBytes(encryptedBytes).await()
-        return storageRef.path
+        return storageRef.path.removePrefix("/")
     }
 
     /**
@@ -82,7 +82,7 @@ class MediaManager @Inject constructor(
             .child("$mediaId.jpg.enc")
 
         storageRef.putBytes(encryptedBytes).await()
-        return storageRef.path
+        return storageRef.path.removePrefix("/")
     }
 
     /**
@@ -100,7 +100,7 @@ class MediaManager @Inject constructor(
             .child(snapshotId + ".enc")
 
         storageRef.putBytes(encryptedBytes).await()
-        return storageRef.path
+        return storageRef.path.removePrefix("/")
     }
 
     /**
@@ -129,7 +129,7 @@ class MediaManager @Inject constructor(
             .child("$personId.jpg")
 
         storageRef.putFile(android.net.Uri.fromFile(localFile)).await()
-        return storageRef.path
+        return storageRef.path.removePrefix("/")
     }
 
     /**

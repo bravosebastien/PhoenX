@@ -118,10 +118,15 @@ class GenealogyTreeViewModel @Inject constructor(
                     val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
                     val data = result.data as? Map<*, *>
                     val url = data?.get("url") as? String
-                    if (url != null) _resolvedUrls.update { it + (docId to url) }
+                    if (url != null) {
+                        android.util.Log.d("PHOENX_TREE_TRACE", "SUCCÈS résolution $docId: $url")
+                        _resolvedUrls.update { it + (docId to url) }
+                    } else {
+                        android.util.Log.w("PHOENX_TREE_TRACE", "URL Nulle retournée pour $docId")
+                    }
                 }
             } catch (e: Exception) {
-                android.util.Log.e("GenealogyVM", "Erreur résolution URL $docId", e)
+                android.util.Log.e("PHOENX_TREE_TRACE", "ERREUR résolution URL $docId: ${e.message}", e)
             }
         }
     }
