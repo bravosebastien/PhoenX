@@ -749,13 +749,19 @@ class RecipientMediaViewModel @Inject constructor(
                 }
 
                 val allDecoded = decodedEntries.toList()
-                mapOf(
+                
+                android.util.Log.d("PHOENX_ENTRY_DISAPPEAR_TRACE", "Avant filtrage: ${allDecoded.map { it.id }}")
+
+                val result = mapOf(
                     "library" to allDecoded.filter { it.parentEntryId == null && (it.type == EntryType.THOUGHT || it.type == EntryType.LEGACY || it.isYoungSelfLetter) },
                     "video" to allDecoded.filter { it.type == EntryType.VIDEO },
                     "audio" to allDecoded.filter { it.type == EntryType.AUDIO },
                     "photo" to allDecoded.filter { it.type == EntryType.PHOTO },
                     "heritage" to allDecoded.filter { it.parentEntryId == null }.sortedByDescending { it.timestamp }
                 )
+
+                android.util.Log.d("PHOENX_ENTRY_DISAPPEAR_TRACE", "Après filtrage (heritage): ${result["heritage"]?.map { (it as PhoenXEntry).id }}")
+                result
             }
             .flowOn(Dispatchers.Default)
             .collectLatest { result ->

@@ -221,11 +221,13 @@ class MemoryDetailViewModel @Inject constructor(
     val complements: StateFlow<List<OfflineEntry>> = combine(_entryId, _targetCreatorId, _firestoreComplements) { id, targetId, fsComps ->
         if (id == null) return@combine emptyList()
         val isHeirMode = targetId != null && targetId != auth.currentUser?.uid
-        if (isHeirMode) {
+        val result = if (isHeirMode) {
             fsComps
         } else {
             offlineEntryDao.getComplements(id).first()
         }
+        android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Complements: Mode=${if(isHeirMode) "Heir" else "Creator"}, count=${result.size}, entryId=$id")
+        result
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
@@ -242,20 +244,26 @@ class MemoryDetailViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val decryptedContent: StateFlow<String> = combine(entry, _heirKey, _protocolStatus) { ent, key, status ->
-        android.util.Log.d("PHOENX_DETAIL_TRACE", "--- RECALCUL CONTENT --- Status: $status, Key: ${key != null}")
+        val eid = _entryId.value
+        android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "--- RECALCUL CONTENT --- id=$eid, Status: $status, Key: ${key != null}")
+        
         when (status) {
             ProtocolStatus.VERIFYING -> "Vérification de l'accès..."
             ProtocolStatus.LOCKED -> "Souvenir scellé"
-            ProtocolStatus.ACTIVATED -> ent?.let { 
+            ProtocolStatus.ACTIVATED -> {
+                if (ent == null) {
+                    android.util.Log.w("PHOENX_MEMORY_OPEN_TRACE", "Entry is NULL for id=$eid")
+                    return@combine ""
+                }
                 try {
-                    val res = encryptionManager.decryptText(it.encryptedPayload, key)
-                    android.util.Log.d("PHOENX_DETAIL_TRACE", "SUCCÈS DECHIFFREMENT id=${it.id}")
+                    val res = encryptionManager.decryptText(ent.encryptedPayload, key)
+                    android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "SUCCÈS DECHIFFREMENT id=${ent.id}, length=${res.length}")
                     res
                 } catch(e: Exception) {
-                    android.util.Log.e("PHOENX_DETAIL_TRACE", "ÉCHEC DECHIFFREMENT id=${it.id}: ${e.message}", e)
+                    android.util.Log.e("PHOENX_MEMORY_OPEN_TRACE", "ÉCHEC DECHIFFREMENT id=${ent.id}: ${e.message}", e)
                     "Contenu chiffré"
                 }
-            } ?: ""
+            }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 

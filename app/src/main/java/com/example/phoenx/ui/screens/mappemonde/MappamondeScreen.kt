@@ -71,6 +71,8 @@ fun MappamondeScreen(
     navController: NavController,
     mode: MapMode = MapMode.CREATOR,
     returnToEntryId: String? = null,
+    focusEntryId: String? = null, // v9.4.27
+    targetCreatorId: String? = null, // v9.4.27
     viewModel: MappamondeViewModel = hiltViewModel()
 ) {
     val visibleLocations by viewModel.visibleLocations.collectAsState()
@@ -81,11 +83,38 @@ fun MappamondeScreen(
     val timelineAge by viewModel.timelineAge.collectAsState()
     val currentAge by viewModel.currentAge.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+    val focusLocation by viewModel.focusLocation.collectAsState()
+
     val accent = LocalAccentColor.current
     val theme = LocalAppTheme.current
     val backgroundBrush = LocalBackgroundBrush.current
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
+    val mapStyleOptions = remember {
+        com.google.android.gms.maps.model.MapStyleOptions.loadRawResourceStyle(context, com.example.phoenx.R.raw.map_style_phoenx)
+    }
+
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.builder()
+            .target(LatLng(20.0, 0.0))
+            .zoom(if (isGlobeView) 2.0f else 3.0f)
+            .build()
+    }
+
+    LaunchedEffect(targetCreatorId, returnToEntryId, focusEntryId) {
+        viewModel.initialize(targetCreatorId, returnToEntryId ?: focusEntryId)
+        viewModel.setMode(mode)
+    }
+
+    LaunchedEffect(focusLocation) {
+        focusLocation?.let { loc ->
+            cameraPositionState.animate(
+                com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom(LatLng(loc.latitude, loc.longitude), 12f),
+                1000
+            )
+        }
+    }
     
     val datePickerColors = DatePickerDefaults.colors(
         containerColor = theme.backgroundColor,
@@ -111,21 +140,6 @@ fun MappamondeScreen(
     var selectedLocationWithEntries by remember { mutableStateOf<LocationWithEntries?>(null) }
     var showAddLocationDialog by remember { mutableStateOf(false) }
     var pendingLatLng by remember { mutableStateOf<LatLng?>(null) }
-
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.builder()
-            .target(LatLng(20.0, 0.0))
-            .zoom(if (isGlobeView) 2.0f else 3.0f)
-            .build()
-    }
-
-    val mapStyleOptions = remember {
-        MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style_phoenx)
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.setMode(mode)
-    }
 
     Box(modifier = Modifier.fillMaxSize().background(theme.backgroundColor)) {
         // ── La Carte Google Maps ──────────────────

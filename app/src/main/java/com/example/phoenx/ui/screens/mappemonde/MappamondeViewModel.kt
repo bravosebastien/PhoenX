@@ -63,13 +63,16 @@ class MappamondeViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    init {
-        loadCurrentAge()
-        loadLocations()
+    private val _focusLocation = MutableStateFlow<LocationMemory?>(null)
+    val focusLocation: StateFlow<LocationMemory?> = _focusLocation.asStateFlow()
+
+    fun initialize(targetCreatorId: String? = null, focusEntryId: String? = null) {
+        loadCurrentAge(targetCreatorId)
+        loadLocations(targetCreatorId, focusEntryId)
     }
 
-    private fun loadCurrentAge() {
-        val userId = auth.currentUser?.uid ?: return
+    private fun loadCurrentAge(targetCreatorId: String? = null) {
+        val userId = targetCreatorId ?: auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
                 val doc = db.collection("users").document(userId).get().await()
@@ -93,12 +96,16 @@ class MappamondeViewModel @Inject constructor(
         _isGlobeView.value = !_isGlobeView.value
     }
 
-    fun loadLocations() {
-        val userId = auth.currentUser?.uid ?: return
+    private fun loadLocations(targetCreatorId: String? = null, focusEntryId: String? = null) {
+        val userId = targetCreatorId ?: auth.currentUser?.uid ?: return
+        android.util.Log.d("PHOENX_MAP_TRACE", "loadLocations: target=$targetCreatorId, current=${auth.currentUser?.uid}, finalUid=$userId")
+
         viewModelScope.launch {
             _isLoading.value = true
             try {
                 val snapshot = db.collection("users").document(userId).collection("locations").get().await()
+                android.util.Log.d("PHOENX_MAP_TRACE", "Firestore: ${snapshot.size()} locations chargées.")
+
                 val locations = snapshot.documents.mapNotNull { it.toObject(LocationMemory::class.java)?.copy(id = it.id) }
                 
                 // Charger les entrées pour chaque lieu pour la timeline
@@ -106,7 +113,15 @@ class MappamondeViewModel @Inject constructor(
                     locations.map { loc ->
                         async {
                             val entries = if (loc.entryIds.isNotEmpty()) {
-                                offlineEntryDao.getEntriesByIds(loc.entryIds).first()
+                                // v9.4.27 : Lecture hybride pour les entrées rattachées au lieu
+                                if (targetCreatorId != null && targetCreatorId != auth.currentUser?.uid) {
+                                    // Mode Héritier : On ne peut pas facilement lire les entries via OfflineEntryDao 
+                                    // car il manque les IDs. Pour l'instant on garde une liste vide ou on implémentera 
+                                    // un fetch Firestore si nécessaire.
+                                    emptyList<OfflineEntry>()
+                                } else {
+                                    offlineEntryDao.getEntriesByIds(loc.entryIds).first()
+                                }
                             } else emptyList<OfflineEntry>()
                             LocationWithEntries(loc, entries)
                         }
@@ -115,6 +130,14 @@ class MappamondeViewModel @Inject constructor(
                 
                 _allLocations.value = locationsWithEntries
                 updateVisibleAndTrail(locationsWithEntries)
+
+                // Gestion du FOCUS (v9.4.27)
+                if (focusEntryId != null) {
+                    val target = locationsWithEntries.find { it.location.entryIds.contains(focusEntryId) }
+                    if (target != null) {
+                        _focusLocation.value = target.location
+                    }
+                }
             } catch (e: Exception) {
                 android.util.Log.e("MappamondeVM", "Error loading locations", e)
             } finally {

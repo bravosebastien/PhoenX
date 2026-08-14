@@ -616,17 +616,40 @@ fun NavGraphBuilder.recipientGraph(
     }
 
     composable(
-        route = Screen.Genealogy.route,
-        arguments = listOf(navArgument("creatorId") { nullable = true; type = NavType.StringType }),
-        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
-        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
-        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
-        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
+        route = Screen.Map.route,
+        arguments = listOf(
+            navArgument("returnToEntryId") { type = NavType.StringType; nullable = true },
+            navArgument("focusEntryId") { type = NavType.StringType; nullable = true },
+            navArgument("targetCreatorId") { type = NavType.StringType; nullable = true }
+        )
     ) { backStackEntry ->
-        val creatorId = backStackEntry.arguments?.getString("creatorId")
-        GenealogyTreeScreen(
+        val returnToEntryId = backStackEntry.arguments?.getString("returnToEntryId")
+        val focusEntryId = backStackEntry.arguments?.getString("focusEntryId")
+        val targetCreatorId = backStackEntry.arguments?.getString("targetCreatorId")
+        
+        MappamondeScreen(
             navController = navController,
-            targetCreatorId = creatorId
+            mode = if (targetCreatorId != null) MapMode.RECIPIENT else MapMode.CREATOR,
+            returnToEntryId = returnToEntryId,
+            focusEntryId = focusEntryId,
+            targetCreatorId = targetCreatorId
+        )
+    }
+
+    composable(
+        route = "recipient_memory_detail/{entryId}/{creatorId}",
+        arguments = listOf(
+            navArgument("entryId") { type = NavType.StringType },
+            navArgument("creatorId") { type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
+        val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+        RecipientMemoryDetailScreen(
+            entryId = entryId,
+            creatorId = creatorId,
+            onNavigateBack = { navController.popBackStack() },
+            navController = navController
         )
     }
 }

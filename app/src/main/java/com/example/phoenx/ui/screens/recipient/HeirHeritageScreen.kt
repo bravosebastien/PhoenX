@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -63,6 +64,7 @@ fun HeirHeritageScreen(
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val backgroundBrush = LocalBackgroundBrush.current
+    val context = LocalContext.current
 
     LaunchedEffect(creatorId) {
         viewModel.setTargetCreator(creatorId)
@@ -163,6 +165,12 @@ fun HeirHeritageScreen(
                         theme = theme
                     ) { navController.navigate(Screen.Genealogy.createRoute(creatorId)) }
                     SpecialAccessCard(
+                        title = "Mappemonde", // v9.4.27 : Accès à la Mappemonde
+                        icon = Icons.Default.Public,
+                        modifier = Modifier.weight(1f),
+                        theme = theme
+                    ) { navController.navigate(Screen.Map.createRoute(targetCreatorId = creatorId)) }
+                    SpecialAccessCard(
                         title = "Quiz",
                         icon = Icons.Outlined.EmojiEvents,
                         modifier = Modifier.weight(1f),
@@ -184,7 +192,23 @@ fun HeirHeritageScreen(
                     heirKey = heirKey,
                     mediaManager = viewModel.mediaManager,
                     theme = theme,
-                    onClick = { navController.navigate(Screen.MemoryDetail.createRoute(entry.id, creatorId)) }
+                    onClick = { 
+                        // v9.4.27 : Gestion intelligente du clic (Direct ou Détail)
+                        val url = entry.mediaUrl
+                        val isExternal = url?.startsWith("http") == true && 
+                                       (entry.mediaProvider != null || url.contains("spotify") || url.contains("youtube") || url.contains("deezer"))
+                        
+                        if (isExternal) {
+                            try {
+                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url!!))
+                                context.startActivity(intent)
+                            } catch(_: Exception) { 
+                                navController.navigate("recipient_memory_detail/${entry.id}/$creatorId")
+                            }
+                        } else {
+                            navController.navigate("recipient_memory_detail/${entry.id}/$creatorId")
+                        }
+                    }
                 )
             }
         }

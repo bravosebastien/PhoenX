@@ -75,9 +75,18 @@ sealed class Screen(val route: String) {
     
     object Worlds : Screen("worlds")
     object Library : Screen("library/preview")
-    object Map : Screen("mappemonde?returnToEntryId={returnToEntryId}") {
-        fun createRoute(returnToEntryId: String? = null): String =
-            if (returnToEntryId != null) "mappemonde?returnToEntryId=$returnToEntryId" else "mappemonde"
+    object Map : Screen("mappemonde?returnToEntryId={returnToEntryId}&focusEntryId={focusEntryId}&targetCreatorId={targetCreatorId}") {
+        fun createRoute(
+            returnToEntryId: String? = null, 
+            focusEntryId: String? = null, 
+            targetCreatorId: String? = null
+        ): String {
+            val params = mutableListOf<String>()
+            if (returnToEntryId != null) params.add("returnToEntryId=$returnToEntryId")
+            if (focusEntryId != null) params.add("focusEntryId=$focusEntryId")
+            if (targetCreatorId != null) params.add("targetCreatorId=$targetCreatorId")
+            return if (params.isNotEmpty()) "mappemonde?" + params.joinToString("&") else "mappemonde"
+        }
     }
     object MapRecipient : Screen("mappemonde_recipient")
     object LocationDetail : Screen("location_detail/{locationId}") {
