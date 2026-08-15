@@ -194,13 +194,16 @@ fun HeirHeritageScreen(
                     theme = theme,
                     onClick = { 
                         // v9.4.27 : Gestion intelligente du clic (Direct ou Détail)
-                        val url = entry.mediaUrl
-                        val isExternal = url?.startsWith("http") == true && 
+                        // On vérifie à la fois mediaUrl et le contenu déchiffré
+                        val contentStr = String(entry.encryptedContent)
+                        val url = if (entry.mediaUrl?.startsWith("http") == true) entry.mediaUrl else contentStr
+                        
+                        val isExternal = url.startsWith("http") && 
                                        (entry.mediaProvider != null || url.contains("spotify") || url.contains("youtube") || url.contains("deezer"))
                         
                         if (isExternal) {
                             try {
-                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url!!))
+                                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
                                 context.startActivity(intent)
                             } catch(_: Exception) { 
                                 navController.navigate("recipient_memory_detail/${entry.id}/$creatorId")

@@ -231,6 +231,23 @@ class MemoryDetailViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
+     * Compléments avec payload DÉCHIFFRÉ (v9.4.27 : Pour liens externes)
+     */
+    val decryptedComplements: StateFlow<List<OfflineEntry>> = combine(complements, _heirKey, _protocolStatus) { list, key, status ->
+        if (status != ProtocolStatus.ACTIVATED) return@combine list
+        list.map { comp ->
+            if (comp.encryptedPayload.isNotEmpty()) {
+                try {
+                    val decrypted = encryptionManager.decryptText(comp.encryptedPayload, key)
+                    // On injecte le texte déchiffré dans mediaUrl si c'est une URL
+                    val updatedMediaUrl = if (decrypted.startsWith("http")) decrypted else comp.mediaUrl
+                    comp.copy(mediaUrl = updatedMediaUrl)
+                } catch (e: Exception) { comp }
+            } else comp
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
      * Retourne la liste des compléments texte DÉCHIFFRÉS (v8.4)
      */
     val decryptedTextComplements: StateFlow<List<Pair<String, String>>> = combine(complements, _heirKey, _protocolStatus) { list, key, status ->
@@ -339,8 +356,13 @@ class MemoryDetailViewModel @Inject constructor(
                     
                     val data = result.data as? Map<*, *>
                     val isActivated = data?.get("isActivated") as? Boolean ?: false
-                    _protocolStatus.value = if (isActivated) ProtocolStatus.ACTIVATED else ProtocolStatus.LOCKED
-                    android.util.Log.d("PHOENX_DETAIL_TRACE", "Protocole check: isActivated=$isActivated -> status=${_protocolStatus.value}")
+                    
+                    // v9.4.27 Fix B : On ne verrouille que si on n'est pas déjà ACTIVATED 
+                    // (Empêche l'oscillation fatale identifiée dans les logs)
+                    if (_protocolStatus.value != ProtocolStatus.ACTIVATED) {
+                        _protocolStatus.value = if (isActivated) ProtocolStatus.ACTIVATED else ProtocolStatus.LOCKED
+                    }
+                    android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Protocole check: isActivated=$isActivated -> Final status=${_protocolStatus.value}")
 
                     if (isActivated) {
                         val keyDoc = db.collection("users").document(creatorId)
@@ -358,13 +380,17 @@ class MemoryDetailViewModel @Inject constructor(
                     if (entryDoc.exists()) {
                         _firestoreEntry.value = entryDoc.toOfflineEntry(encryptionManager, _heirKey.value)
                         
-                        // Charger aussi les compléments
-                        val compSnap = db.collection("users").document(creatorId)
-                            .collection("entries")
-                            .whereEqualTo("parentEntryId", id)
-                            .get().await()
-                        
-                        _firestoreComplements.value = compSnap.documents.mapNotNull { it.toOfflineEntry(encryptionManager, _heirKey.value) }
+                        // v9.4.27 Fix : Isolation du chargement des compléments (Point 1)
+                        try {
+                            val compSnap = db.collection("users").document(creatorId)
+                                .collection("entries")
+                                .whereEqualTo("parentEntryId", id)
+                                .get().await()
+                            
+                            _firestoreComplements.value = compSnap.documents.mapNotNull { it.toOfflineEntry(encryptionManager, _heirKey.value) }
+                        } catch (e: Exception) {
+                            android.util.Log.e("PHOENX_MEMORY_OPEN_TRACE", "ERREUR chargement compléments id=$id: ${e.message}", e)
+                        }
                     }
 
                 } catch (e: Exception) {
@@ -441,7 +467,10 @@ class MemoryDetailViewModel @Inject constructor(
             val persistentIds = newRecipientDocIds.map { docId ->
                 recipients.value.find { it.id == docId }?.linkedUid ?: docId
             }.distinct()
-            offlineEntryDao.updateEntryRecipients(persistentIds.joinToString(","), id)
+            val idsCsv = persistentIds.joinToString(",")
+            offlineEntryDao.updateEntryRecipients(idsCsv, id)
+            // v9.4.27 Fix C : Cascade aux compléments
+            offlineEntryDao.updateComplementsRecipients(idsCsv, id)
             triggerSync(id)
         }
     }
@@ -603,6 +632,8 @@ class MemoryDetailViewModel @Inject constructor(
     fun updateEntryVisibility(entryId: String, visibility: String) {
         viewModelScope.launch {
             offlineEntryDao.updateEntryVisibility(visibility, entryId)
+            // v9.4.27 Fix C : Cascade aux compléments
+            offlineEntryDao.updateComplementsVisibility(visibility, entryId)
             triggerSync(entryId)
         }
     }

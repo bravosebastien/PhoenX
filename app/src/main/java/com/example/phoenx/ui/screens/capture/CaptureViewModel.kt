@@ -402,6 +402,13 @@ class CaptureViewModel @Inject constructor(
                 // 4. SAUVEGARDE HORS-LIGNE IMMÉDIATE
                 val entryId = UUID.randomUUID().toString()
                 
+                // v9.4.27 : Héritage des destinataires si c'est un complément
+                var finalRecipientIds = recipientIds.joinToString(",")
+                if (parentEntryId != null && finalRecipientIds.isEmpty()) {
+                    val parent = offlineEntryDao.getEntryById(parentEntryId).first()
+                    if (parent != null) finalRecipientIds = parent.recipientIds
+                }
+
                 val entry = OfflineEntry(
                     id = entryId,
                     creatorUid = user.uid,
@@ -410,13 +417,14 @@ class CaptureViewModel @Inject constructor(
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",
                     emotionalCategory = category,
                     visibility = visibility,
-                    recipientIds = recipientIds.joinToString(","),
+                    recipientIds = finalRecipientIds,
                     createdAt = System.currentTimeMillis(),
                     aiSummary = analysis.summary,
                     locationName = locationName ?: _preselectedLocationName.value,
                     locationId = locationId,
                     includeInBook = includeInBook,
-                    questionId = pendingQuestionId, // v9.4.27 : Lien avec la question
+                    questionId = pendingQuestionId,
+                    parentEntryId = parentEntryId, // v9.4.27 : RÉTABLI
                     enigmaQuestion = enigmaQuestion,
                     enigmaAnswer = enigmaAnswer?.let { EnigmaUtils.hashAnswer(it) },
                     enigmaHint = enigmaHint,

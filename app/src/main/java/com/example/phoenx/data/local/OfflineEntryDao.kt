@@ -174,11 +174,17 @@ interface OfflineEntryDao {
     @Query("UPDATE offline_entries SET mediaProvider = :provider WHERE id = :entryId")
     suspend fun updateEntryProvider(provider: String?, entryId: String): Int
 
-    @Query("UPDATE offline_entries SET visibility = :visibility WHERE id = :entryId")
+    @Query("UPDATE offline_entries SET visibility = :visibility, syncStatus = 'pending' WHERE id = :entryId")
     suspend fun updateEntryVisibility(visibility: String, entryId: String): Int
 
-    @Query("UPDATE offline_entries SET recipientIds = :newIds WHERE id = :entryId")
+    @Query("UPDATE offline_entries SET visibility = :visibility, syncStatus = 'pending' WHERE parentEntryId = :parentId")
+    suspend fun updateComplementsVisibility(visibility: String, parentId: String): Int
+
+    @Query("UPDATE offline_entries SET recipientIds = :newIds, syncStatus = 'pending' WHERE id = :entryId")
     suspend fun updateEntryRecipients(newIds: String, entryId: String): Int
+
+    @Query("UPDATE offline_entries SET recipientIds = :newIds, syncStatus = 'pending' WHERE parentEntryId = :parentId")
+    suspend fun updateComplementsRecipients(newIds: String, parentId: String): Int
 
     @Query("UPDATE offline_entries SET compartmentIds = :newCompartmentIds WHERE id = :entryId")
     suspend fun updateEntryCompartments(newCompartmentIds: String, entryId: String): Int

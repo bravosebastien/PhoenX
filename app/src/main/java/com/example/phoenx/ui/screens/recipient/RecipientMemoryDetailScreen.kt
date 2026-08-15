@@ -48,7 +48,7 @@ fun RecipientMemoryDetailScreen(
     viewModel: MemoryDetailViewModel = hiltViewModel()
 ) {
     val entry by viewModel.entry.collectAsState()
-    val complements by viewModel.complements.collectAsState()
+    val complements by viewModel.decryptedComplements.collectAsState() // v9.4.27 : Payload déchiffré
     val content by viewModel.decryptedContent.collectAsState()
     val heirKey by viewModel.heirKey.collectAsState()
     val protocolStatus by viewModel.protocolStatus.collectAsState()
