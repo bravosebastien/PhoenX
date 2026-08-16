@@ -541,8 +541,8 @@ fun NavGraphBuilder.recipientGraph(
         route = Screen.MemoryDetail.route,
         arguments = listOf(
             navArgument("entryId") { type = NavType.StringType },
-            navArgument("creatorId") { nullable = true; type = NavType.StringType },
-            navArgument("triggerAction") { nullable = true; type = NavType.StringType }
+            navArgument("creatorId") { nullable = true; type = NavType.StringType; defaultValue = null },
+            navArgument("triggerAction") { nullable = true; type = NavType.StringType; defaultValue = null }
         ),
         enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
         exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },

@@ -276,13 +276,18 @@ fun NavGraphBuilder.creatorGraph(
 
     composable(
         route = Screen.LocationDetail.route,
-        arguments = listOf(navArgument("locationId") { type = NavType.StringType })
+        arguments = listOf(
+            navArgument("locationId") { type = NavType.StringType },
+            navArgument("targetCreatorId") { type = NavType.StringType; nullable = true }
+        )
     ) { backStackEntry ->
         val locationId = backStackEntry.arguments?.getString("locationId") ?: ""
+        val targetCreatorId = backStackEntry.arguments?.getString("targetCreatorId")
         LocationDetailScreen(
             locationId = locationId,
             navController = navController,
-            mode = MapMode.CREATOR
+            mode = if (targetCreatorId != null) MapMode.RECIPIENT else MapMode.CREATOR,
+            targetCreatorId = targetCreatorId
         )
     }
 

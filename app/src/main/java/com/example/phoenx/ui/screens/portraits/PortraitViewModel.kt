@@ -141,7 +141,7 @@ class PortraitViewModel @Inject constructor(
                                 ageAtCreation = ageJson,
                                 emotionalCategory = "Amour",
                                 visibility = "specific",
-                                recipientIds = persistentRecipientId,
+                                recipientIds = existingParent?.recipientIds ?: persistentRecipientId, // v9.4.27 : Héritage explicite
                                 aiSummary = question,
                                 syncStatus = "pending"
                             )
@@ -165,7 +165,7 @@ class PortraitViewModel @Inject constructor(
                         ageAtCreation = ageJson,
                         emotionalCategory = "Amour",
                         visibility = "specific",
-                        recipientIds = persistentRecipientId,
+                        recipientIds = existingParent?.recipientIds ?: persistentRecipientId, // v9.4.27 : Héritage explicite
                         aiSummary = "Pensée libre",
                         syncStatus = "pending"
                     )

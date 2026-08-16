@@ -51,6 +51,7 @@ fun LocationDetailScreen(
     locationId: String,
     navController: NavController,
     mode: MapMode = MapMode.CREATOR,
+    targetCreatorId: String? = null, // v9.4.27
     viewModel: LocationDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -78,8 +79,8 @@ fun LocationDetailScreen(
 
     var showEditDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(locationId) {
-        viewModel.loadLocationData(locationId)
+    LaunchedEffect(locationId, targetCreatorId) {
+        viewModel.loadLocationData(locationId, targetCreatorId)
     }
 
     Scaffold(

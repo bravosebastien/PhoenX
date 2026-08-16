@@ -194,8 +194,8 @@ fun MappamondeScreen(
                         navController.previousBackStackEntry?.savedStateHandle?.set("pickedLocationId", item.location.id)
                         navController.popBackStack()
                     } else {
-                        // Navigation directe vers le QG du lieu
-                        navController.navigate("location_detail/${item.location.id}")
+                        // Navigation directe vers le QG du lieu (v9.4.27 : Support Héritier)
+                        navController.navigate(Screen.LocationDetail.createRoute(item.location.id, targetCreatorId))
                     }
                     true
                 },

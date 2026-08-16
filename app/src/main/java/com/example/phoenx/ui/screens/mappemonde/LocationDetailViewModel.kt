@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.sync.toOfflineEntry
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,6 +28,7 @@ class LocationDetailViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val offlineEntryDao: OfflineEntryDao,
+    private val encryptionManager: com.example.phoenx.data.encryption.EncryptionManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -48,31 +50,83 @@ class LocationDetailViewModel @Inject constructor(
         }
     }
 
-    fun loadLocationData(locationId: String) {
-        val userId = auth.currentUser?.uid ?: return
+    fun loadLocationData(locationId: String, targetCreatorId: String? = null) {
+        val currentUid = auth.currentUser?.uid ?: return
+        val userId = targetCreatorId ?: currentUid
+        android.util.Log.d("PHOENX_MAP_TRACE", "loadLocationData [START]: locationId=$locationId, targetCreatorId=$targetCreatorId, finalUserId=$userId")
+        
         viewModelScope.launch {
             try {
                 // Charger le lieu depuis Firestore
+                android.util.Log.d("PHOENX_MAP_TRACE", "Firestore query: users/$userId/locations/$locationId")
                 val doc = db.collection("users").document(userId)
                     .collection("locations").document(locationId).get().await()
+                
+                if (!doc.exists()) {
+                    android.util.Log.e("PHOENX_MAP_TRACE", "Firestore result: Document NOT FOUND for $locationId at path users/$userId/locations/")
+                    _uiState.value = LocationDetailUiState.Error
+                    return@launch
+                }
+
                 val location = doc.toObject(LocationMemory::class.java)?.copy(id = doc.id)
                 
                 if (location != null) {
-                    // Collecter les souvenirs liés (Flux temps réel local)
-                    offlineEntryDao.getEntriesForLocation(locationId).collectLatest { relatedEntries ->
-                        // Fallback : si aucun via locationId, on cherche par nom ou pactId (legacy)
-                        val finalEntries = relatedEntries.ifEmpty {
-                            val all = withContext(Dispatchers.IO) {
-                                offlineEntryDao.getAllEntriesSync()
-                            }
-                            all.filter { (it.locationName == location.placeName) || (it.pactId == location.id) }
+                    android.util.Log.d("PHOENX_MAP_TRACE", "Firestore success: ${location.placeName}, linked entryIds=${location.entryIds}")
+                    
+                    // Si on est héritier, il faut lire les entries sur Firestore (v9.4.27)
+                    if (targetCreatorId != null && targetCreatorId != currentUid) {
+                        android.util.Log.d("PHOENX_MAP_TRACE", "Mode Héritier: Recherche des souvenirs liés à locationId=$locationId sur Firestore")
+                        
+                        // v9.4.27 Fix Point 2 & 3: Requête sur les entries filtrée par locationId ET recipientIds
+                        // On doit fusionner Public (EVERYONE) et Privé (recipientIds array-contains)
+                        val publicEntries = db.collection("users").document(targetCreatorId)
+                            .collection("entries")
+                            .whereEqualTo("locationId", locationId)
+                            .whereEqualTo("visibility", "EVERYONE")
+                            .get().await()
+
+                        val privateEntries = db.collection("users").document(targetCreatorId)
+                            .collection("entries")
+                            .whereEqualTo("locationId", locationId)
+                            .whereArrayContains("recipientIds", currentUid)
+                            .get().await()
+
+                        val snaps = (publicEntries.documents + privateEntries.documents).distinctBy { it.id }
+                        android.util.Log.d("PHOENX_MAP_TRACE", "Mode Héritier: ${snaps.size} souvenirs filtrés trouvés.")
+
+                        // Récupération de la clé miroir pour déchiffrer les titres
+                        val keyDoc = db.collection("users").document(targetCreatorId)
+                            .collection("entry_keys").document("main").get().await()
+                        val keyBase64 = keyDoc.getString("key")
+                        val key = keyBase64?.let { android.util.Base64.decode(it, android.util.Base64.NO_WRAP) }
+
+                        val memories = snaps.mapNotNull { it.toOfflineEntry(encryptionManager, key) }
+                        memories.forEach { m ->
+                           android.util.Log.d("PHOENX_MAP_TRACE", " - Souvenir récupéré: ID=${m.id}, Title=${m.aiSummary}")
                         }
 
-                        _uiState.value = LocationDetailUiState.Success(location, finalEntries)
+                        _uiState.value = LocationDetailUiState.Success(location, memories)
+                    } else {
+                        // Mode Créateur : Flux temps réel local
+                        android.util.Log.d("PHOENX_MAP_TRACE", "Mode Créateur: Lancement collection local Flow pour $locationId")
+                        offlineEntryDao.getEntriesForLocation(locationId).collectLatest { relatedEntries ->
+                            android.util.Log.d("PHOENX_MAP_TRACE", "Local Flow update: ${relatedEntries.size} entries found.")
+                            // Fallback : si aucun via locationId, on cherche par nom ou pactId (legacy)
+                            val finalEntries = relatedEntries.ifEmpty {
+                                android.util.Log.d("PHOENX_MAP_TRACE", "No entries via locationId, trying legacy fallback...")
+                                val all = withContext(Dispatchers.IO) {
+                                    offlineEntryDao.getAllEntriesSync()
+                                }
+                                all.filter { (it.locationName == location.placeName) || (it.pactId == location.id) }
+                            }
+                            _uiState.value = LocationDetailUiState.Success(location, finalEntries)
+                        }
                     }
+                } else {
+                    android.util.Log.e("PHOENX_MAP_TRACE", "Firestore error: doc.toObject returned NULL for $locationId")
                 }
             } catch (e: Exception) {
-                android.util.Log.e("LocationDetailVM", "Error loading location data", e)
+                android.util.Log.e("PHOENX_MAP_TRACE", "EXCEPTION critique in loadLocationData($locationId): ${e.message}", e)
                 _uiState.value = LocationDetailUiState.Error
             }
         }
