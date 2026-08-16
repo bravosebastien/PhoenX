@@ -142,7 +142,10 @@ fun MemoryDetailScreen(
         }
     }
 
-    val isReadOnly = targetCreatorId != null && targetCreatorId != com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+    val cleanCreatorId = targetCreatorId?.takeIf { it.isNotBlank() && !it.startsWith("{") && it != "null" }
+    android.util.Log.d("PHOENX_ATELIER_TRACE", "MemoryDetailScreen: brut=[$targetCreatorId] nettoye=[$cleanCreatorId]")
+    
+    val isReadOnly = cleanCreatorId != null && cleanCreatorId != com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
 
     // Sélecteur MULTIPLE (v9.4.26)
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -191,8 +194,8 @@ fun MemoryDetailScreen(
     var isStoryEditorOpen by remember { mutableStateOf(false) }
     var isTonaliteExpanded by remember { mutableStateOf(false) } // v9.4.27 : Déplacé ici
 
-    LaunchedEffect(entryId, targetCreatorId) {
-        viewModel.loadEntry(entryId, targetCreatorId)
+    LaunchedEffect(entryId, cleanCreatorId) {
+        viewModel.loadEntry(entryId, cleanCreatorId)
     }
 
     LaunchedEffect(entry, content) {
@@ -407,7 +410,10 @@ fun MemoryDetailScreen(
                                                     val isSelected = entry!!.emotionalCategory == cat
                                                     FilterChip(
                                                         selected = isSelected,
-                                                        onClick = { if (!isReadOnly) viewModel.updateCategory(cat) },
+                                                        onClick = { 
+                                                            android.util.Log.d("PHOENX_CLICK_TRACE", "Clic tonalite recu, cat=$cat, isReadOnly=$isReadOnly, entryNull=${entry == null}")
+                                                            if (!isReadOnly) viewModel.updateCategory(cat) 
+                                                        },
                                                         label = { Text(cat) },
                                                         enabled = !isReadOnly || isSelected,
                                                         colors = FilterChipDefaults.filterChipColors(
@@ -479,7 +485,7 @@ fun MemoryDetailScreen(
                                     MemoryComplementsSection(
                                         entryId = entryId,
                                         complements = complements,
-                                        targetCreatorId = targetCreatorId,
+                                        targetCreatorId = cleanCreatorId,
                                         viewModel = viewModel,
                                         theme = theme,
                                         accent = accent,

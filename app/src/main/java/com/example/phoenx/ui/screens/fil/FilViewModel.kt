@@ -49,13 +49,15 @@ class FilViewModel @Inject constructor(
     val isProtocolActivated: StateFlow<Boolean> = _isProtocolActivated.asStateFlow()
 
     fun setTargetCreator(creatorId: String?) {
-        _targetCreatorId.value = creatorId
-        if (creatorId != null && (creatorId != auth.currentUser?.uid)) {
+        val cleanCreatorId = creatorId?.takeIf { it.isNotBlank() && !it.startsWith("{") && it != "null" }
+        _targetCreatorId.value = cleanCreatorId
+        
+        if (cleanCreatorId != null && (cleanCreatorId != auth.currentUser?.uid)) {
             viewModelScope.launch {
                 try {
                     // Check protocol status via Cloud Function (v8.5.9)
                     val result = functions.getHttpsCallable("getCreatorProtocolStatus")
-                        .call(mapOf("creatorId" to creatorId)).await()
+                        .call(mapOf("creatorId" to cleanCreatorId)).await()
                     
                     val data = result.data as? Map<*, *>
                     _isProtocolActivated.value = data?.get("isActivated") as? Boolean ?: false

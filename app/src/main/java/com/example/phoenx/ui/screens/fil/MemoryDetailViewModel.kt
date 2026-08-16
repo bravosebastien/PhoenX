@@ -152,16 +152,17 @@ class MemoryDetailViewModel @Inject constructor(
     /**
      * Source de vérité hybride (v9.4.27 : Room ou Firestore)
      */
-    val entry: StateFlow<OfflineEntry?> = combine(_entryId, _targetCreatorId, _firestoreEntry) { id, targetId, fsEntry ->
-        if (id == null) return@combine null
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val entry: StateFlow<OfflineEntry?> = combine(_entryId, _targetCreatorId) { id, targetId ->
+        id to targetId
+    }.flatMapLatest { (id, targetId) ->
+        if (id == null) return@flatMapLatest flowOf(null)
         
         val isHeirMode = targetId != null && targetId != auth.currentUser?.uid
         if (isHeirMode) {
-            // Mode Héritier : Source Firestore
-            fsEntry
+            _firestoreEntry
         } else {
-            // Mode Créateur : Source Room locale
-            offlineEntryDao.getEntryById(id).firstOrNull()
+            offlineEntryDao.getEntryById(id)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
@@ -343,16 +344,19 @@ class MemoryDetailViewModel @Inject constructor(
 
 
     fun loadEntry(id: String, creatorId: String? = null) {
-        _entryId.value = id
-        _targetCreatorId.value = creatorId
+        val cleanCreatorId = creatorId?.takeIf { it.isNotBlank() && !it.startsWith("{") && it != "null" }
+        android.util.Log.d("PHOENX_ATELIER_TRACE", "MemoryDetailViewModel: brut=[$creatorId] nettoye=[$cleanCreatorId]")
         
-        if (creatorId != null && creatorId != auth.currentUser?.uid) {
+        _entryId.value = id
+        _targetCreatorId.value = cleanCreatorId
+        
+        if (cleanCreatorId != null && cleanCreatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
                 _protocolStatus.value = ProtocolStatus.VERIFYING
                 try {
                     // 1. Check protocol status
                     val result = functions.getHttpsCallable("getCreatorProtocolStatus")
-                        .call(mapOf("creatorId" to creatorId)).await()
+                        .call(mapOf("creatorId" to cleanCreatorId)).await()
                     
                     val data = result.data as? Map<*, *>
                     val isActivated = data?.get("isActivated") as? Boolean ?: false
@@ -365,7 +369,7 @@ class MemoryDetailViewModel @Inject constructor(
                     android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Protocole check: isActivated=$isActivated -> Final status=${_protocolStatus.value}")
 
                     if (isActivated) {
-                        val keyDoc = db.collection("users").document(creatorId)
+                        val keyDoc = db.collection("users").document(cleanCreatorId)
                             .collection("entry_keys").document("main").get().await()
                         val keyBase64 = keyDoc.getString("key")
                         if (keyBase64 != null) {
@@ -374,7 +378,7 @@ class MemoryDetailViewModel @Inject constructor(
                     }
                     
                     // 2. CHARGEMENT FIRESTORE (v9.4.27 : Lecture Hybride Héritier)
-                    val entryDoc = db.collection("users").document(creatorId)
+                    val entryDoc = db.collection("users").document(cleanCreatorId)
                         .collection("entries").document(id).get().await()
                     
                     if (entryDoc.exists()) {
@@ -382,7 +386,7 @@ class MemoryDetailViewModel @Inject constructor(
                         
                         // v9.4.27 Fix : Isolation du chargement des compléments (Point 1)
                         try {
-                            val compSnap = db.collection("users").document(creatorId)
+                            val compSnap = db.collection("users").document(cleanCreatorId)
                                 .collection("entries")
                                 .whereEqualTo("parentEntryId", id)
                                 .get().await()
@@ -476,6 +480,7 @@ class MemoryDetailViewModel @Inject constructor(
     }
 
     fun toggleRecipient(docId: String) {
+        android.util.Log.d("PHOENX_CLICK_TRACE", "toggleRecipient appelee, id=${_entryId.value}")
         val current = selectedRecipientIds.value
         val newList = if (current.contains(docId)) {
             current.filter { it != docId }
@@ -700,6 +705,7 @@ class MemoryDetailViewModel @Inject constructor(
     }
 
     fun updateCategory(category: String) {
+        android.util.Log.d("PHOENX_CLICK_TRACE", "updateCategory appelee, id=${_entryId.value}")
         val id = _entryId.value ?: return
         viewModelScope.launch {
             offlineEntryDao.updateEntryCategory(category, id)

@@ -338,7 +338,10 @@ fun MemoryMetadataSection(
                         RecipientSelector(
                             recipients = recipients,
                             selectedIds = selectedRecipientIds,
-                            onToggleRecipient = { if (!isReadOnly) viewModel.toggleRecipient(it) },
+                            onToggleRecipient = { 
+                                android.util.Log.d("PHOENX_CLICK_TRACE", "Clic destinataire recu, isReadOnly=$isReadOnly, entryNull=${entry == null}")
+                                if (!isReadOnly) viewModel.toggleRecipient(it) 
+                            },
                             visibility = entry.visibility,
                             onVisibilityChange = { if (!isReadOnly) viewModel.updateVisibility(it) },
                             accent = accent,

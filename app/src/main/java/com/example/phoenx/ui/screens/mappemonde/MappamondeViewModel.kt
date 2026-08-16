@@ -67,8 +67,9 @@ class MappamondeViewModel @Inject constructor(
     val focusLocation: StateFlow<LocationMemory?> = _focusLocation.asStateFlow()
 
     fun initialize(targetCreatorId: String? = null, focusEntryId: String? = null) {
-        loadCurrentAge(targetCreatorId)
-        loadLocations(targetCreatorId, focusEntryId)
+        val cleanTargetId = targetCreatorId?.takeIf { it.isNotBlank() && !it.startsWith("{") && it != "null" }
+        loadCurrentAge(cleanTargetId)
+        loadLocations(cleanTargetId, focusEntryId)
     }
 
     private fun loadCurrentAge(targetCreatorId: String? = null) {

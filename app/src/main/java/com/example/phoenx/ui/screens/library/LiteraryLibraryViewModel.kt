@@ -98,13 +98,15 @@ class LiteraryLibraryViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun setTargetCreator(creatorId: String?) {
-        _targetCreatorId.value = creatorId
-        if (creatorId != null && creatorId != currentUid) {
+        val cleanCreatorId = creatorId?.takeIf { it.isNotBlank() && !it.startsWith("{") && it != "null" }
+        _targetCreatorId.value = cleanCreatorId
+        
+        if (cleanCreatorId != null && cleanCreatorId != currentUid) {
             viewModelScope.launch {
                 try {
                     // Check protocol status
                     val result = functions.getHttpsCallable("getCreatorProtocolStatus")
-                        .call(mapOf("creatorId" to creatorId)).await()
+                        .call(mapOf("creatorId" to cleanCreatorId)).await()
                     val data = result.data as? Map<*, *>
                     _isProtocolActivated.value = data?.get("isActivated") as? Boolean ?: false
 

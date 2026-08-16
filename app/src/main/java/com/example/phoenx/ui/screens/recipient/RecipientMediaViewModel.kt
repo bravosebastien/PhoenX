@@ -285,14 +285,15 @@ class RecipientMediaViewModel @Inject constructor(
     }
 
     fun setTargetCreator(creatorId: String?) {
-        _targetCreatorId.value = creatorId
-        if (creatorId != null && creatorId != auth.currentUser?.uid) {
+        val cleanCreatorId = creatorId?.takeIf { it.isNotBlank() && !it.startsWith("{") && it != "null" }
+        _targetCreatorId.value = cleanCreatorId
+        if (cleanCreatorId != null && cleanCreatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
                 _protocolStatus.value = ProtocolStatus.VERIFYING
                 
                 // 1. Fetch Creator Name (v8.6.2)
                 try {
-                    val creatorDoc = db.collection("users").document(creatorId).get().await()
+                    val creatorDoc = db.collection("users").document(cleanCreatorId).get().await()
                     _creatorName.value = creatorDoc.getString("displayName") ?: "Votre proche"
 
                     // Charger l'ambiance (v9.4.27)
@@ -308,7 +309,7 @@ class RecipientMediaViewModel @Inject constructor(
                 var isActivated = false
                 try {
                     val result = functions.getHttpsCallable("getCreatorProtocolStatus")
-                        .call(mapOf("creatorId" to creatorId)).await()
+                        .call(mapOf("creatorId" to cleanCreatorId)).await()
                     val data = result.data as? Map<*, *>
                     isActivated = data?.get("isActivated") as? Boolean ?: false
                     _bookSealedMessage.value = data?.get("sealedMessage") as? String
@@ -320,14 +321,14 @@ class RecipientMediaViewModel @Inject constructor(
 
                 // 3. Fetch Book Title (v9.2)
                 try {
-                    val bookDoc = db.collection("users").document(creatorId)
+                    val bookDoc = db.collection("users").document(cleanCreatorId)
                         .collection("book").document("current_draft").get().await()
                     _bookTitle.value = bookDoc.getString("bookTitle")
                 } catch (e: Exception) { android.util.Log.e("RecipientMediaVM", "Erreur titre livre") }
 
                 // 4. Fetch My Permissions (v9.2.6)
                 try {
-                    val recipientsSnapshot = db.collection("users").document(creatorId)
+                    val recipientsSnapshot = db.collection("users").document(cleanCreatorId)
                         .collection("recipients")
                         .whereEqualTo("linkedUid", currentUid)
                         .get().await()
