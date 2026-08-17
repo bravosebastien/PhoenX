@@ -384,16 +384,18 @@ class MemoryDetailViewModel @Inject constructor(
                     if (entryDoc.exists()) {
                         _firestoreEntry.value = entryDoc.toOfflineEntry(encryptionManager, _heirKey.value)
                         
-                        // v9.4.27 Fix : Isolation du chargement des compléments (Point 1)
+                        // v9.4.27 Fix : Récupération sécurisée des compléments via Cloud Function (Périmètre Héritier)
                         try {
-                            val compSnap = db.collection("users").document(cleanCreatorId)
-                                .collection("entries")
-                                .whereEqualTo("parentEntryId", id)
-                                .get().await()
+                            val result = functions.getHttpsCallable("getEntryComplements")
+                                .call(mapOf("creatorId" to cleanCreatorId, "entryId" to id)).await()
                             
-                            _firestoreComplements.value = compSnap.documents.mapNotNull { it.toOfflineEntry(encryptionManager, _heirKey.value) }
+                            val data = result.data as? Map<*, *>
+                            val compsList = data?.get("complements") as? List<Map<String, Any?>>
+                            
+                            _firestoreComplements.value = compsList?.mapNotNull { it.toOfflineEntry(encryptionManager, _heirKey.value) } ?: emptyList()
+                            android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Complements reçus via Cloud Function: count=${_firestoreComplements.value.size}")
                         } catch (e: Exception) {
-                            android.util.Log.e("PHOENX_MEMORY_OPEN_TRACE", "ERREUR chargement compléments id=$id: ${e.message}", e)
+                            android.util.Log.e("PHOENX_MEMORY_OPEN_TRACE", "ERREUR Cloud Function getEntryComplements id=$id: ${e.message}", e)
                         }
                     }
 

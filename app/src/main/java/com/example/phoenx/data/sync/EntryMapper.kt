@@ -7,6 +7,29 @@ import com.google.firebase.firestore.DocumentSnapshot
 import org.json.JSONObject
 
 /**
+ * PHOEN-X v9.4.27 - Support de la lecture via Cloud Functions (Map) en plus du SDK Firestore (DocumentSnapshot)
+ */
+private fun Any?.extractBytes(): ByteArray {
+    return when (this) {
+        is Blob -> this.toBytes()
+        is Map<*, *> -> {
+            val b64 = this["_base64"] as? String
+            if (b64 != null) android.util.Base64.decode(b64, android.util.Base64.DEFAULT) else ByteArray(0)
+        }
+        else -> ByteArray(0)
+    }
+}
+
+private fun Any?.asLong(): Long? {
+    return when (this) {
+        is Long -> this
+        is Number -> this.toLong()
+        is String -> this.toLongOrNull()
+        else -> null
+    }
+}
+
+/**
  * Extension pour convertir une OfflineEntry (Room) en Map pour Firestore.
  */
 fun OfflineEntry.toFirestoreMap(encryptionManager: EncryptionManager): Map<String, Any?> {
@@ -115,64 +138,72 @@ fun DocumentSnapshot.toPersonEntity(): com.example.phoenx.data.local.PersonEntit
  */
 fun DocumentSnapshot.toOfflineEntry(encryptionManager: EncryptionManager, explicitKey: ByteArray? = null): OfflineEntry? {
     if (!exists()) return null
-    val ageMap = get("ageAtCreation") as? Map<*, *>
+    return (data ?: emptyMap<String, Any?>()).plus("id" to id).toOfflineEntry(encryptionManager, explicitKey)
+}
+
+/**
+ * PHOEN-X v9.4.27 - Version générique pour mapper un souvenir depuis un Map (Cloud Functions)
+ */
+fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, explicitKey: ByteArray? = null): OfflineEntry? {
+    val id = this["id"] as? String ?: return null
+    val ageMap = this["ageAtCreation"] as? Map<*, *>
     val ageJson = ageMap?.let { JSONObject(it).toString() } ?: "{}"
 
-    val recIds = (get("recipientIds") as? List<*>)?.joinToString(",") ?: ""
-    val compIds = (get("compartmentIds") as? List<*>)?.let { "," + it.joinToString(",") + "," } ?: ""
+    val recIds = (this["recipientIds"] as? List<*>)?.joinToString(",") ?: ""
+    val compIds = (this["compartmentIds"] as? List<*>)?.let { "," + it.joinToString(",") + "," } ?: ""
 
     // DÉTECTION & DÉCHIFFREMENT HYBRIDE (v9.4.12)
-    val summaryObj = get("aiSummary")
-    val finalSummary = when (summaryObj) {
-        is Blob -> encryptionManager.decryptText(summaryObj.toBytes(), explicitKey)
-        is String -> summaryObj
+    val summaryObj = this["aiSummary"]
+    val finalSummary = when {
+        summaryObj is String -> summaryObj
+        summaryObj != null -> encryptionManager.decryptText(summaryObj.extractBytes(), explicitKey)
         else -> ""
     }
 
-    val tagsObj = get("aiTags")
-    val finalTags = when (tagsObj) {
-        is Blob -> encryptionManager.decryptText(tagsObj.toBytes(), explicitKey)
-        is List<*> -> tagsObj.joinToString(",")
-        is String -> tagsObj
+    val tagsObj = this["aiTags"]
+    val finalTags = when {
+        tagsObj is String -> tagsObj
+        tagsObj is List<*> -> tagsObj.joinToString(",")
+        tagsObj != null -> encryptionManager.decryptText(tagsObj.extractBytes(), explicitKey)
         else -> ""
     }
 
     return OfflineEntry(
         id = id,
-        creatorUid = getString("uid") ?: "",
-        encryptedPayload = (get("encryptedContent") as? Blob)?.toBytes() ?: ByteArray(0),
-        entryType = getString("type") ?: "TEXT",
+        creatorUid = this["uid"] as? String ?: "",
+        encryptedPayload = this["encryptedContent"].extractBytes(),
+        entryType = this["type"] as? String ?: "TEXT",
         ageAtCreation = ageJson,
-        emotionalCategory = getString("emotionalCategory") ?: "",
-        visibility = getString("visibility") ?: "RESTRICTED",
+        emotionalCategory = this["emotionalCategory"] as? String ?: "",
+        visibility = this["visibility"] as? String ?: "RESTRICTED",
         recipientIds = recIds,
         compartmentIds = compIds,
-        isYoungSelfLetter = getBoolean("isYoungSelfLetter") ?: false,
-        targetAge = getLong("targetAge")?.toInt(),
-        createdAt = getLong("createdAt") ?: 0L,
+        isYoungSelfLetter = this["isYoungSelfLetter"] as? Boolean ?: false,
+        targetAge = this["targetAge"].asLong()?.toInt(),
+        createdAt = this["createdAt"].asLong() ?: 0L,
         aiSummary = finalSummary,
         aiTags = finalTags,
-        enigmaQuestion = getString("enigmaQuestion"),
-        enigmaAnswer = getString("enigmaAnswer"),
-        fallbackAnswer = getString("fallbackAnswer"),
-        mediaUrl = getString("mediaUrl"),
+        enigmaQuestion = this["enigmaQuestion"] as? String,
+        enigmaAnswer = this["enigmaAnswer"] as? String,
+        fallbackAnswer = this["fallbackAnswer"] as? String,
+        mediaUrl = this["mediaUrl"] as? String,
         localMediaPath = null,
-        memoryDate = getLong("memoryDate"),
-        memoryDateStart = getLong("memoryDateStart"),
-        memoryDateEnd = getLong("memoryDateEnd"),
-        parentEntryId = getString("parentEntryId"),
-        enigmaHint = getString("enigmaHint"),
-        enigmaAutoUnlockDays = getLong("enigmaAutoUnlockDays")?.toInt(),
-        questionId = getString("questionId"),
-        personIds = (get("personIds") as? List<*>)?.joinToString(",") ?: "",
-        isUltimateSecret = getBoolean("isUltimateSecret") ?: false,
-        silentAttribution = getBoolean("silentAttribution") ?: false,
-        includeInBook = getBoolean("includeInBook") ?: true,
-        soulTone = getString("soulTone"),
+        memoryDate = this["memoryDate"].asLong(),
+        memoryDateStart = this["memoryDateStart"].asLong(),
+        memoryDateEnd = this["memoryDateEnd"].asLong(),
+        parentEntryId = this["parentEntryId"] as? String,
+        enigmaHint = this["enigmaHint"] as? String,
+        enigmaAutoUnlockDays = this["enigmaAutoUnlockDays"].asLong()?.toInt(),
+        questionId = this["questionId"] as? String,
+        personIds = (this["personIds"] as? List<*>)?.joinToString(",") ?: "",
+        isUltimateSecret = this["isUltimateSecret"] as? Boolean ?: false,
+        silentAttribution = this["silentAttribution"] as? Boolean ?: false,
+        includeInBook = this["includeInBook"] as? Boolean ?: true,
+        soulTone = this["soulTone"] as? String,
         // v9.4.27
-        userComment = getString("userComment"),
-        coverUrl = getString("coverUrl"),
-        mediaProvider = getString("mediaProvider")
+        userComment = this["userComment"] as? String,
+        coverUrl = this["coverUrl"] as? String,
+        mediaProvider = this["mediaProvider"] as? String
     )
 }
 

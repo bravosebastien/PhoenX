@@ -53,6 +53,10 @@ import {
 } from "./media";
 
 import {
+    getEntryComplements
+} from "./entries";
+
+import {
     getLivingLinkFileUrl
 } from "./living_links";
 
@@ -125,6 +129,7 @@ export {
 
     // Media
     getInheritedFileUrl,
+    getEntryComplements,
     getLivingLinkFileUrl,
 
     // Protocol
