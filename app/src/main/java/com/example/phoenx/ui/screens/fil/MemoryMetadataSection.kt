@@ -258,6 +258,7 @@ fun MemoryMetadataSection(
                     Column {
                         Text("LE LIEU", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
                         Spacer(modifier = Modifier.height(12.dp))
+                        android.util.Log.d("PHOENX_LOCATION_TRACE", "Lecture lieu pour affichage: entryId=${entry.id}, locationId=${entry.locationId}, name=${entry.locationName}")
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()

@@ -739,6 +739,7 @@ class MemoryDetailViewModel @Inject constructor(
 
     fun updateLocation(lat: Double?, lng: Double?, name: String?, locId: String?) {
         val id = _entryId.value ?: return
+        android.util.Log.d("PHOENX_LOCATION_TRACE", "Ecriture lieu: entryId=$id, locationId=$locId, name=$name")
         viewModelScope.launch {
             offlineEntryDao.updateEntryLocation(lat, lng, name, locId, id)
             triggerSync(id)
@@ -746,6 +747,7 @@ class MemoryDetailViewModel @Inject constructor(
     }
 
     fun assignLocationFromId(locationId: String) {
+        android.util.Log.d("PHOENX_LOCATION_TRACE", "assignLocationFromId appelee avec id=$locationId")
         val uid = auth.currentUser?.uid ?: return
         val id = _entryId.value ?: return
         viewModelScope.launch {

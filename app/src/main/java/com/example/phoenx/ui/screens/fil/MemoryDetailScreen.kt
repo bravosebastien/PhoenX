@@ -182,6 +182,7 @@ fun MemoryDetailScreen(
 
     LaunchedEffect(pickedLocationId) {
         pickedLocationId?.let { id ->
+            android.util.Log.d("PHOENX_LOCATION_TRACE", "SavedStateHandle recu: id=$id")
             viewModel.assignLocationFromId(id)
             navController.currentBackStackEntry?.savedStateHandle?.remove<String>("pickedLocationId")
         }

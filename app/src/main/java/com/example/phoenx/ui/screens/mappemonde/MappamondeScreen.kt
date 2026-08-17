@@ -189,6 +189,7 @@ fun MappamondeScreen(
                     true
                 },
                 onClusterItemClick = { item ->
+                    android.util.Log.d("PHOENX_LOCATION_TRACE", "Mappamonde: clic lieu=${item.location.id}, mode=$mode, returnToId=$returnToEntryId")
                     if (mode == MapMode.PICKER && returnToEntryId != null) {
                         // Retour avec l'ID du lieu sélectionné
                         navController.previousBackStackEntry?.savedStateHandle?.set("pickedLocationId", item.location.id)
@@ -374,6 +375,7 @@ fun MappamondeScreen(
                 onConfirm = { placeName, emoji, visitedAt ->
                     coroutineScope.launch {
                         val newId = viewModel.pinLocation(pendingLatLng!!, placeName, "", emoji, visitedAt)
+                        android.util.Log.d("PHOENX_LOCATION_TRACE", "Mappamonde: nouveau lieu cree id=$newId, mode=$mode")
                         if (mode == MapMode.PICKER && returnToEntryId != null && newId != null) {
                             navController.previousBackStackEntry?.savedStateHandle?.set("pickedLocationId", newId)
                             navController.popBackStack()

@@ -627,9 +627,15 @@ fun NavGraphBuilder.recipientGraph(
         val focusEntryId = backStackEntry.arguments?.getString("focusEntryId")
         val targetCreatorId = backStackEntry.arguments?.getString("targetCreatorId")
         
+        val mode = when {
+            returnToEntryId != null -> MapMode.PICKER
+            targetCreatorId != null -> MapMode.RECIPIENT
+            else -> MapMode.CREATOR
+        }
+
         MappamondeScreen(
             navController = navController,
-            mode = if (targetCreatorId != null) MapMode.RECIPIENT else MapMode.CREATOR,
+            mode = mode,
             returnToEntryId = returnToEntryId,
             focusEntryId = focusEntryId,
             targetCreatorId = targetCreatorId
