@@ -116,9 +116,14 @@ class EncryptionManager @Inject constructor() {
      */
     fun decryptText(ciphertext: ByteArray, key: ByteArray? = null): String {
         return try {
+            if (ciphertext.size < 12) {
+                android.util.Log.e("PHOENX_MEMORY_OPEN_TRACE", "DecryptText Error: Ciphertext too short (${ciphertext.size} bytes)")
+                return "Contenu chiffré"
+            }
             val decrypted = decryptBytes(ciphertext, key)
             String(decrypted, Charsets.UTF_8)
         } catch (e: Exception) {
+            android.util.Log.e("PHOENX_MEMORY_OPEN_TRACE", "DecryptText Exception: ${e.message}")
             "Contenu chiffré"
         }
     }

@@ -28,12 +28,15 @@ fun SecureAsyncImage(
     mediaManager: MediaManager,
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
-    contentScale: ContentScale = ContentScale.Crop
+    contentScale: ContentScale = ContentScale.Crop,
+    creatorId: String? = null, // v9.4.27
+    docType: String? = null,   // v9.4.27
+    docId: String? = null      // v9.4.27
 ) {
     var imageBytes by remember(mediaUrl, localPath) { mutableStateOf<ByteArray?>(null) }
     var isLoading by remember(mediaUrl, localPath) { mutableStateOf(false) }
 
-    LaunchedEffect(mediaUrl, localPath) {
+    LaunchedEffect(mediaUrl, localPath, explicitKey, creatorId, docType, docId) {
         if (localPath != null && java.io.File(localPath).exists()) {
             // Pas besoin de bytes si on a le chemin local
             return@LaunchedEffect
@@ -43,7 +46,13 @@ fun SecureAsyncImage(
             isLoading = true
             try {
                 val bytes = withContext(Dispatchers.IO) {
-                    mediaManager.downloadAndDecrypt(mediaUrl, explicitKey)
+                    mediaManager.downloadAndDecrypt(
+                        mediaUrl, 
+                        explicitKey,
+                        creatorId,
+                        docType,
+                        docId
+                    )
                 }
                 imageBytes = bytes
             } catch (e: Exception) {

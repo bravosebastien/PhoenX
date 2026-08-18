@@ -224,6 +224,7 @@ fun RecipientMemoryDetailScreen(
                                 theme = theme,
                                 mediaManager = mediaManager,
                                 heirKey = heirKey,
+                                creatorId = creatorId, // v9.4.27
                                 onClick = { 
                                     // Gestion des liens externes (v9.4.27)
                                     val url = complement.mediaUrl
@@ -304,9 +305,21 @@ fun RecipientComplementItem(
     theme: com.example.phoenx.ui.theme.AppThemeState,
     mediaManager: MediaManager,
     heirKey: ByteArray?,
+    creatorId: String, // v9.4.27
     onClick: () -> Unit
 ) {
     val accent = theme.accentColor
+
+    // Diagnostic v9.4.27 (PHOENX_MEMORY_OPEN_TRACE)
+    LaunchedEffect(complement) {
+        val targetUrl = complement.coverUrl ?: complement.mediaUrl
+        android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", 
+            "Complement ID: ${complement.id} | Type: ${complement.entryType} | " +
+            "Raw mediaUrl: ${complement.mediaUrl} | coverUrl: ${complement.coverUrl} | " +
+            "Final targetUrl: $targetUrl | Summary: ${complement.aiSummary}"
+        )
+    }
+
     Card(
         modifier = Modifier
             .width(100.dp)
@@ -325,7 +338,10 @@ fun RecipientComplementItem(
                     explicitKey = heirKey,
                     mediaManager = mediaManager,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    creatorId = creatorId,   // v9.4.27
+                    docType = "entries",     // v9.4.27
+                    docId = complement.id    // v9.4.27
                 )
             } else {
                 val icon = when(complement.entryType) {

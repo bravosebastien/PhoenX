@@ -391,9 +391,15 @@ class MemoryDetailViewModel @Inject constructor(
                             
                             val data = result.data as? Map<*, *>
                             val compsList = data?.get("complements") as? List<Map<String, Any?>>
+                            val currentHeirKey = _heirKey.value
                             
-                            _firestoreComplements.value = compsList?.mapNotNull { it.toOfflineEntry(encryptionManager, _heirKey.value) } ?: emptyList()
-                            android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Complements reçus via Cloud Function: count=${_firestoreComplements.value.size}")
+                            android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Cloud Function Result: count=${compsList?.size}, heirKeyPresent=${currentHeirKey != null}")
+                            
+                            _firestoreComplements.value = compsList?.mapNotNull { map ->
+                                val entry = map.toOfflineEntry(encryptionManager, currentHeirKey)
+                                android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Mapped Complement: id=${entry?.id}, aiSummary=${entry?.aiSummary}, mediaUrl=${entry?.mediaUrl}")
+                                entry
+                            } ?: emptyList()
                         } catch (e: Exception) {
                             android.util.Log.e("PHOENX_MEMORY_OPEN_TRACE", "ERREUR Cloud Function getEntryComplements id=$id: ${e.message}", e)
                         }

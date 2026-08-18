@@ -2,9 +2,12 @@ package com.example.phoenx.data.media
 
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.functions.FirebaseFunctions
 import androidx.media3.datasource.DataSource
 import androidx.media3.common.util.UnstableApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -12,6 +15,7 @@ import javax.inject.Singleton
 @Singleton
 class MediaManager @Inject constructor(
     private val storage: FirebaseStorage,
+    private val functions: FirebaseFunctions,
     private val encryptionManager: EncryptionManager
 ) {
     /**
@@ -105,15 +109,56 @@ class MediaManager @Inject constructor(
 
     /**
      * Télécharge et déchiffre un média.
-     * Supporte URLs héritées et Chemins Storage (v9.4.17).
+     * Supporte URLs héritées, Chemins Storage et Résolution via Cloud Function (v9.4.27).
+     * Gère le téléchargement direct HTTP pour les URLs signées Google Cloud (v9.4.27).
      */
-    suspend fun downloadAndDecrypt(pathOrUrl: String, explicitKey: ByteArray? = null): ByteArray {
-        val storageRef = if (pathOrUrl.startsWith("http")) {
-            storage.getReferenceFromUrl(pathOrUrl)
+    suspend fun downloadAndDecrypt(
+        pathOrUrl: String, 
+        explicitKey: ByteArray? = null,
+        creatorId: String? = null,
+        docType: String? = null,
+        docId: String? = null
+    ): ByteArray {
+        var isSignedUrl = false
+        val finalUrl = if (explicitKey != null && creatorId != null && docType != null && docId != null) {
+            // MODE DESTINATAIRE : Résolution sécurisée via Cloud Function (Signature v9.4.27)
+            try {
+                val params = mapOf(
+                    "creatorId" to creatorId,
+                    "docType" to docType,
+                    "docId" to docId
+                )
+                val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
+                val data = result.data as? Map<*, *>
+                val url = data?.get("url") as? String
+                if (url != null) {
+                    isSignedUrl = true
+                    url
+                } else pathOrUrl
+            } catch (e: Exception) {
+                android.util.Log.e("MediaManager", "Échec getInheritedFileUrl pour $docId", e)
+                pathOrUrl
+            }
         } else {
-            storage.getReference(pathOrUrl)
+            // MODE CRÉATEUR ou Cas non spécifié : Accès direct Storage (Performance maximale)
+            pathOrUrl
         }
-        val encryptedBytes = storageRef.getBytes(Long.MAX_VALUE).await()
+
+        val encryptedBytes = if (isSignedUrl) {
+            // Téléchargement HTTP direct pour les URLs signées (Contourne l'erreur SDK Storage v9.4.27)
+            withContext(Dispatchers.IO) {
+                java.net.URL(finalUrl).readBytes()
+            }
+        } else {
+            // Accès via SDK Firebase Storage (Chemins internes ou URLs Firebase avec Token)
+            val storageRef = if (finalUrl.startsWith("http")) {
+                storage.getReferenceFromUrl(finalUrl)
+            } else {
+                storage.getReference(finalUrl)
+            }
+            storageRef.getBytes(Long.MAX_VALUE).await()
+        }
+
         return encryptionManager.decryptBytes(encryptedBytes, explicitKey)
     }
 

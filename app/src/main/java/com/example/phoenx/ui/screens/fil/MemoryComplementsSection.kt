@@ -196,7 +196,10 @@ fun MemoryComplementsSection(
                                         explicitKey = heirKey,
                                         mediaManager = mediaManager,
                                         modifier = Modifier.fillMaxSize(),
-                                        contentScale = ContentScale.Crop
+                                        contentScale = ContentScale.Crop,
+                                        creatorId = targetCreatorId, // v9.4.27
+                                        docType = "entries",        // v9.4.27
+                                        docId = complement.id       // v9.4.27
                                     )
                                 }
                             } else {

@@ -10,14 +10,28 @@ import org.json.JSONObject
  * PHOEN-X v9.4.27 - Support de la lecture via Cloud Functions (Map) en plus du SDK Firestore (DocumentSnapshot)
  */
 private fun Any?.extractBytes(): ByteArray {
-    return when (this) {
+    val res = when (this) {
         is Blob -> this.toBytes()
         is Map<*, *> -> {
             val b64 = this["_base64"] as? String
-            if (b64 != null) android.util.Base64.decode(b64, android.util.Base64.DEFAULT) else ByteArray(0)
+            if (b64 != null) {
+                try {
+                    android.util.Base64.decode(b64, android.util.Base64.DEFAULT)
+                } catch (e: Exception) {
+                    android.util.Log.e("PHOENX_MEMORY_OPEN_TRACE", "Base64 Decode Error: ${e.message}")
+                    ByteArray(0)
+                }
+            } else {
+                android.util.Log.w("PHOENX_MEMORY_OPEN_TRACE", "Map keys found: ${this.keys}")
+                ByteArray(0)
+            }
         }
-        else -> ByteArray(0)
+        else -> {
+            if (this != null) android.util.Log.w("PHOENX_MEMORY_OPEN_TRACE", "extractBytes unknown type: ${this.javaClass.simpleName}")
+            ByteArray(0)
+        }
     }
+    return res
 }
 
 private fun Any?.asLong(): Long? {
