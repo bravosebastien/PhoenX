@@ -339,9 +339,10 @@ fun RecipientComplementItem(
                     mediaManager = mediaManager,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
-                    creatorId = creatorId,   // v9.4.27
-                    docType = "entries",     // v9.4.27
-                    docId = complement.id    // v9.4.27
+                    creatorId = creatorId,
+                    docType = "entries",
+                    docId = complement.id,
+                    field = if (complement.coverUrl != null) "coverUrl" else null // v9.4.27
                 )
             } else {
                 val icon = when(complement.entryType) {

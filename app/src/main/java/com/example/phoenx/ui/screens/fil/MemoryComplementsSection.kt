@@ -199,7 +199,8 @@ fun MemoryComplementsSection(
                                         contentScale = ContentScale.Crop,
                                         creatorId = targetCreatorId, // v9.4.27
                                         docType = "entries",        // v9.4.27
-                                        docId = complement.id       // v9.4.27
+                                        docId = complement.id,       // v9.4.27
+                                        field = if (complement.coverUrl != null) "coverUrl" else null // v9.4.27
                                     )
                                 }
                             } else {

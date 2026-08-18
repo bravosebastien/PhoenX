@@ -117,17 +117,20 @@ class MediaManager @Inject constructor(
         explicitKey: ByteArray? = null,
         creatorId: String? = null,
         docType: String? = null,
-        docId: String? = null
+        docId: String? = null,
+        field: String? = null // v9.4.27
     ): ByteArray {
         var isSignedUrl = false
         val finalUrl = if (explicitKey != null && creatorId != null && docType != null && docId != null) {
             // MODE DESTINATAIRE : Résolution sécurisée via Cloud Function (Signature v9.4.27)
             try {
-                val params = mapOf(
+                val params = mutableMapOf(
                     "creatorId" to creatorId,
                     "docType" to docType,
                     "docId" to docId
                 )
+                if (field != null) params["field"] = field
+
                 val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
                 val data = result.data as? Map<*, *>
                 val url = data?.get("url") as? String

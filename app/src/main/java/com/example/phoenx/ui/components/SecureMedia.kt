@@ -31,14 +31,16 @@ fun SecureAsyncImage(
     contentScale: ContentScale = ContentScale.Crop,
     creatorId: String? = null, // v9.4.27
     docType: String? = null,   // v9.4.27
-    docId: String? = null      // v9.4.27
+    docId: String? = null,     // v9.4.27
+    field: String? = null      // v9.4.27
 ) {
     var imageBytes by remember(mediaUrl, localPath) { mutableStateOf<ByteArray?>(null) }
     var isLoading by remember(mediaUrl, localPath) { mutableStateOf(false) }
 
-    LaunchedEffect(mediaUrl, localPath, explicitKey, creatorId, docType, docId) {
+    LaunchedEffect(mediaUrl, localPath, explicitKey, creatorId, docType, docId, field) {
+        if (imageBytes != null) return@LaunchedEffect // v9.4.27 : Évite les relancements si déjà chargé
+
         if (localPath != null && java.io.File(localPath).exists()) {
-            // Pas besoin de bytes si on a le chemin local
             return@LaunchedEffect
         }
         
@@ -51,7 +53,8 @@ fun SecureAsyncImage(
                         explicitKey,
                         creatorId,
                         docType,
-                        docId
+                        docId,
+                        field
                     )
                 }
                 imageBytes = bytes
