@@ -874,7 +874,8 @@ class MemoryDetailViewModel @Inject constructor(
                             FileOutputStream(thumbFile).use { out ->
                                 bitmap.compress(Bitmap.CompressFormat.JPEG, 70, out)
                             }
-                            coverUrl = mediaManager.encryptAndUpload(uid, UUID.randomUUID().toString(), thumbFile)
+                            // CORRECTIF v9.4.27 : On n'uploade PAS la miniature immédiatement (bloquant hors-ligne)
+                            // On stocke uniquement son chemin local, le SyncWorker s'en chargera.
                             localCoverPath = thumbFile.absolutePath
                         }
                     } catch (e: Exception) {

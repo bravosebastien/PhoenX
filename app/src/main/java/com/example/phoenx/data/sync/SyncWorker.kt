@@ -130,10 +130,24 @@ class SyncWorker @AssistedInject constructor(
                         }
                     }
 
+                    // 1bis. GESTION DE L'UPLOAD MINIATURE (v9.4.27 : Fix Vidéo Offline)
+                    var currentCoverUrl = entry.coverUrl
+                    if (currentCoverUrl == null && !entry.localCoverPath.isNullOrEmpty()) {
+                        val coverFile = File(entry.localCoverPath!!)
+                        if (coverFile.exists()) {
+                            android.util.Log.d("SyncWorker", "Début upload miniature pour ${entry.id}")
+                            currentCoverUrl = mediaManager.encryptAndUpload(userId, "thumb_" + entry.id, coverFile)
+                            
+                            // Mémoriser en local
+                            offlineEntryDao.updateEntryCover(currentCoverUrl, entry.localCoverPath, entry.id)
+                            android.util.Log.d("SyncWorker", "Miniature uploadée avec succès : $currentCoverUrl")
+                        }
+                    }
+
                     // 2. PRÉPARATION DU MAP FIRESTORE (Incluant potentiellement la nouvelle URL)
                     // On recharge l'entrée depuis la DB si on a mis à jour l'URL
-                    val entryToSync = if (currentMediaUrl != entry.mediaUrl) {
-                        entry.copy(mediaUrl = currentMediaUrl)
+                    val entryToSync = if (currentMediaUrl != entry.mediaUrl || currentCoverUrl != entry.coverUrl) {
+                        entry.copy(mediaUrl = currentMediaUrl, coverUrl = currentCoverUrl)
                     } else entry
 
                     val firestoreMap = entryToSync.toFirestoreMap(encryptionManager)
