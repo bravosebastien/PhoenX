@@ -33,12 +33,17 @@ import androidx.media3.ui.PlayerView
 import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.example.phoenx.ui.theme.BackgroundPrimary
+import java.io.File
 
 @UnstableApi
 @Composable
 fun MediaViewerScreen(
     entryId: String,
     creatorId: String?,
+    mediaUrl: String? = null,
+    entryType: String? = null,
+    aiSummary: String? = null,
+    sourceDocType: String? = null,
     onExit: () -> Unit,
     viewModel: MediaViewerViewModel = hiltViewModel()
 ) {
@@ -46,7 +51,14 @@ fun MediaViewerScreen(
     val heirKey by viewModel.heirKey.collectAsState()
 
     LaunchedEffect(entryId, creatorId) {
-        viewModel.loadMedia(entryId, creatorId)
+        viewModel.loadMedia(
+            entryId = entryId, 
+            creatorId = creatorId,
+            mediaUrl = mediaUrl,
+            entryType = entryType,
+            aiSummary = aiSummary,
+            sourceDocType = sourceDocType
+        )
     }
 
     Box(
@@ -66,7 +78,10 @@ fun MediaViewerScreen(
                         mediaUrl = entry!!.mediaUrl,
                         localPath = entry!!.localMediaPath,
                         explicitKey = heirKey,
-                        mediaManager = viewModel.mediaManager
+                        mediaManager = viewModel.mediaManager,
+                        creatorId = creatorId,             // v9.4.27
+                        docType = entry!!.sourceDocType,   // v9.4.27
+                        docId = entry!!.id                 // v9.4.27
                     )
                 }
                 com.example.phoenx.domain.model.EntryType.VIDEO -> {
@@ -75,7 +90,10 @@ fun MediaViewerScreen(
                         mediaUrl = entry!!.mediaUrl,
                         localPath = entry!!.localMediaPath,
                         explicitKey = heirKey,
-                        mediaManager = viewModel.mediaManager
+                        mediaManager = viewModel.mediaManager,
+                        creatorId = creatorId,
+                        docType = entry!!.sourceDocType,
+                        docId = entry!!.id
                     )
                 }
                 com.example.phoenx.domain.model.EntryType.AUDIO,
@@ -86,7 +104,10 @@ fun MediaViewerScreen(
                         localPath = entry!!.localMediaPath,
                         explicitKey = heirKey,
                         mediaManager = viewModel.mediaManager,
-                        title = entry!!.aiSummary
+                        title = entry!!.aiSummary,
+                        creatorId = creatorId,
+                        docType = entry!!.sourceDocType,
+                        docId = entry!!.id
                     )
                 }
                 else -> {
@@ -119,7 +140,10 @@ fun ZoomableImage(
     mediaUrl: String?,
     localPath: String?,
     explicitKey: ByteArray?,
-    mediaManager: com.example.phoenx.data.media.MediaManager
+    mediaManager: com.example.phoenx.data.media.MediaManager,
+    creatorId: String? = null, // v9.4.27
+    docType: String? = null,   // v9.4.27
+    docId: String? = null      // v9.4.27
 ) {
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -146,7 +170,10 @@ fun ZoomableImage(
             explicitKey = explicitKey,
             mediaManager = mediaManager,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.Fit,
+            creatorId = creatorId, // v9.4.27
+            docType = docType,     // v9.4.27
+            docId = docId          // v9.4.27
         )
     }
 }
@@ -157,16 +184,53 @@ fun VideoPlayer(
     mediaUrl: String?,
     localPath: String?,
     explicitKey: ByteArray?,
-    mediaManager: com.example.phoenx.data.media.MediaManager
+    mediaManager: com.example.phoenx.data.media.MediaManager,
+    creatorId: String? = null,
+    docType: String? = null,
+    docId: String? = null
 ) {
     val context = LocalContext.current
-    var resolvedUrl by remember(mediaUrl, localPath) { mutableStateOf<String?>(null) }
+    var resolvedUrl by remember(mediaUrl, localPath, explicitKey) { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
 
-    LaunchedEffect(mediaUrl, localPath) {
-        resolvedUrl = localPath ?: mediaManager.getSafeUrl(mediaUrl)
+    LaunchedEffect(mediaUrl, localPath, explicitKey) {
+        android.util.Log.d("MediaViewerDiag", "VideoPlayer LaunchedEffect - mediaUrl: $mediaUrl, localPath: $localPath")
+        
+        // 1. Priorité au chemin local (Créateur ou Cache existant)
+        if (localPath != null && File(localPath).exists()) {
+            android.util.Log.d("MediaViewerDiag", "VideoPlayer: Utilisation du chemin local existant")
+            resolvedUrl = localPath
+            return@LaunchedEffect
+        }
+        
+        if (mediaUrl == null) return@LaunchedEffect
+        
+        // 2. Téléchargement et déchiffrement COMPLET pour les vidéos distantes (v9.4.27)
+        // Indispensable car ExoPlayer effectue des lectures non-séquentielles (MP4 metadata),
+        // ce qui est incompatible avec un déchiffrement AES-GCM en flux continu.
+        isLoading = true
+        try {
+            android.util.Log.d("MediaViewerDiag", "VideoPlayer: Début téléchargement/déchiffrement complet...")
+            val videoBytes = mediaManager.downloadAndDecrypt(
+                pathOrUrl = mediaUrl,
+                explicitKey = explicitKey,
+                creatorId = creatorId,
+                docType = docType,
+                docId = docId
+            )
+            
+            val tempFile = File(context.cacheDir, "decrypted_video_${System.identityHashCode(mediaUrl)}.mp4")
+            tempFile.writeBytes(videoBytes)
+            android.util.Log.d("MediaViewerDiag", "VideoPlayer: Fichier temporaire prêt: ${tempFile.absolutePath}")
+            resolvedUrl = tempFile.absolutePath
+        } catch (e: Exception) {
+            android.util.Log.e("MediaViewerDiag", "ÉCHEC téléchargement/déchiffrement vidéo: ${e.message}", e)
+        } finally {
+            isLoading = false
+        }
     }
 
-    if (resolvedUrl == null) {
+    if (isLoading || resolvedUrl == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = AccentPrimary)
         }
@@ -175,20 +239,12 @@ fun VideoPlayer(
 
     val exoPlayer = remember(resolvedUrl) {
         ExoPlayer.Builder(context).build().apply {
-            val isLocal = localPath != null
-            android.util.Log.d("MediaViewerDiag", "Configuration Player - Local: $isLocal, Path: $localPath, Url: $mediaUrl")
+            // Utilisation de DefaultDataSource sur le fichier déchiffré
+            val factory = androidx.media3.datasource.DefaultDataSource.Factory(context)
             
-            val factory = if (isLocal) {
-                android.util.Log.d("MediaViewerDiag", "Utilisation DefaultDataSource (Fichier local)")
-                androidx.media3.datasource.DefaultDataSource.Factory(context)
-            } else {
-                android.util.Log.d("MediaViewerDiag", "Utilisation EncryptedMediaDataSource (Distant/Chiffré)")
-                mediaManager.getEncryptedDataSourceFactory(explicitKey)
-            }
-            
-            val uri = resolvedUrl!!.toUri()
+            val mediaItem = MediaItem.fromUri(File(resolvedUrl!!).toUri())
             val mediaSource = ProgressiveMediaSource.Factory(factory)
-                .createMediaSource(MediaItem.fromUri(uri))
+                .createMediaSource(mediaItem)
             
             addListener(object : Player.Listener {
                 override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
@@ -215,7 +271,19 @@ fun VideoPlayer(
     }
 
     DisposableEffect(exoPlayer) {
-        onDispose { exoPlayer.release() }
+        onDispose { 
+            exoPlayer.release() 
+            // Nettoyage du fichier temporaire si c'était un fichier déchiffré à la volée
+            if (resolvedUrl != null && resolvedUrl!!.contains("decrypted_video_")) {
+                try { 
+                    val f = File(resolvedUrl!!)
+                    if (f.exists()) {
+                        f.delete()
+                        android.util.Log.d("MediaViewerDiag", "Fichier temporaire nettoyé")
+                    }
+                } catch(_: Exception) {}
+            }
+        }
     }
 
     AndroidView(
@@ -236,14 +304,23 @@ fun AudioPlayer(
     localPath: String?,
     explicitKey: ByteArray?,
     mediaManager: com.example.phoenx.data.media.MediaManager,
-    title: String
+    title: String,
+    creatorId: String? = null,
+    docType: String? = null,
+    docId: String? = null
 ) {
     val context = LocalContext.current
-    var resolvedUrl by remember(mediaUrl, localPath) { mutableStateOf<String?>(null) }
+    var resolvedUrl by remember(mediaUrl, localPath, explicitKey) { mutableStateOf<String?>(null) }
 
-    LaunchedEffect(mediaUrl, localPath) {
+    LaunchedEffect(mediaUrl, localPath, explicitKey) {
         android.util.Log.d("MediaViewerDiag", "AudioPlayer - Début résolution URL pour MediaUrl: $mediaUrl, LocalPath: $localPath")
-        resolvedUrl = localPath ?: mediaManager.getSafeUrl(mediaUrl)
+        resolvedUrl = localPath ?: mediaManager.getSafeUrl(
+            mediaUrl,
+            explicitKey,
+            creatorId,
+            docType,
+            docId
+        )
         android.util.Log.d("MediaViewerDiag", "AudioPlayer - URL résolue: $resolvedUrl")
     }
 

@@ -206,7 +206,7 @@ fun BookViewerScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 val decryptedText = decryptedChapters[chapter.id] ?: ""
-                IllustrableText(decryptedText, mediaMap, viewModel.mediaManager)
+                IllustrableText(decryptedText, mediaMap, viewModel.mediaManager, targetCreatorId)
 
                 Spacer(modifier = Modifier.height(80.dp))
             }
@@ -307,7 +307,8 @@ fun BookViewerScreen(
 fun IllustrableText(
     text: String,
     mediaMap: Map<String, OfflineEntry>,
-    mediaManager: MediaManager
+    mediaManager: MediaManager,
+    creatorId: String? = null // v9.4.27
 ) {
     val accent = LocalAccentColor.current
     // Regex pour détecter [PHOTO:uuid] ou [AUDIO:uuid]
@@ -345,7 +346,10 @@ fun IllustrableText(
                             .heightIn(max = 400.dp)
                             .clip(RoundedCornerShape(12.dp))
                             .padding(vertical = 16.dp),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        creatorId = creatorId, // v9.4.27
+                        docType = "entries",   // v9.4.27
+                        docId = entry.id       // v9.4.27
                     )
                 } else if (type == "AUDIO" && entry != null) {
                     Card(

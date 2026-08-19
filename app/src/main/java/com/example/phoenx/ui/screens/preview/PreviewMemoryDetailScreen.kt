@@ -179,6 +179,7 @@ fun PreviewMemoryDetailScreen(
                                 complement = complement,
                                 theme = theme,
                                 mediaManager = mediaManager,
+                                recipientUid = recipientUid, // v9.4.27
                                 onClick = { 
                                     if (complement.mediaUrl?.startsWith("http") == true) {
                                         try {
@@ -249,6 +250,7 @@ fun PreviewComplementItem(
     complement: OfflineEntry, 
     theme: com.example.phoenx.ui.theme.AppThemeState,
     mediaManager: MediaManager,
+    recipientUid: String, // v9.4.27
     onClick: () -> Unit
 ) {
     val accent = theme.accentColor
@@ -269,7 +271,11 @@ fun PreviewComplementItem(
                     localPath = complement.localCoverPath ?: complement.localMediaPath,
                     mediaManager = mediaManager,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    creatorId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid,
+                    docType = "entries",
+                    docId = complement.id,
+                    field = if (complement.coverUrl != null) "coverUrl" else null
                 )
             } else {
                 val icon = when(complement.entryType) {

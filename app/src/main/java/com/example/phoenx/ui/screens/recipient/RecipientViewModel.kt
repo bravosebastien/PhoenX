@@ -146,7 +146,8 @@ class RecipientViewModel @Inject constructor(
         mediaProvider = mediaProvider ?: type,
         userComment = userComment,
         ageAtCreation = com.example.phoenx.domain.model.AgeSnapshot(0, 0, 0),
-        encryptedContent = ByteArray(0)
+        encryptedContent = ByteArray(0),
+        sourceDocType = "standaloneMedia" // v9.4.27
     )
 
     private fun loadRecipients() {

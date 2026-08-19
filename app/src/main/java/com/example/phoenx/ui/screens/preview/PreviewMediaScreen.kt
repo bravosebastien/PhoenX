@@ -179,7 +179,11 @@ fun PreviewMediaCard(
                     localPath = displayPath,
                     mediaManager = mediaManager,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    creatorId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid,
+                    docType = entry.sourceDocType,
+                    docId = entry.id,
+                    field = if (entry.coverUrl != null) "coverUrl" else null
                 )
             } else {
                 val icon = when(entry.type) {

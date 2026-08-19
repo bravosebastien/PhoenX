@@ -42,7 +42,10 @@ data class PhoenXEntry(
     // GESTION RÉSEAU (v8.9.2)
     val recipientIds: List<String> = emptyList(),
     val visibility: String = "RESTRICTED",
-    val silentAttribution: Boolean = false
+    val silentAttribution: Boolean = false,
+    
+    // MÉTA-DONNÉES DE SOURCE v9.4.27
+    val sourceDocType: String = "entries"
 )
 
 data class PhoenXAmendment(

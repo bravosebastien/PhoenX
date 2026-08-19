@@ -917,7 +917,8 @@ class RecipientMediaViewModel @Inject constructor(
             localCoverPath = localCoverPath,
             mediaProvider = mediaProvider ?: type, // v9.4.27 : Fallback sur type si provider null
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct(),
-            visibility = visibility
+            visibility = visibility,
+            sourceDocType = "standaloneMedia" // v9.4.27
         )
     }
 }

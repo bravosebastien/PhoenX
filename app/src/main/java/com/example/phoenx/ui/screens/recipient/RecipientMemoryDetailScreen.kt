@@ -236,10 +236,24 @@ fun RecipientMemoryDetailScreen(
                                             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url!!))
                                             context.startActivity(intent)
                                         } catch(_: Exception) { 
-                                            navController.navigate(Screen.MediaViewer.createRoute(complement.id, creatorId))
+                                            navController.navigate(Screen.MediaViewer.createRoute(
+                                                entryId = complement.id, 
+                                                creatorId = creatorId,
+                                                mediaUrl = complement.mediaUrl,
+                                                entryType = complement.entryType,
+                                                aiSummary = complement.aiSummary,
+                                                sourceDocType = "entries"
+                                            ))
                                         }
                                     } else {
-                                        navController.navigate(Screen.MediaViewer.createRoute(complement.id, creatorId))
+                                        navController.navigate(Screen.MediaViewer.createRoute(
+                                            entryId = complement.id, 
+                                            creatorId = creatorId,
+                                            mediaUrl = complement.mediaUrl,
+                                            entryType = complement.entryType,
+                                            aiSummary = complement.aiSummary,
+                                            sourceDocType = "entries"
+                                        ))
                                     }
                                 }
                             )

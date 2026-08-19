@@ -29,9 +29,16 @@ class MediaManager @Inject constructor(
 
     /**
      * Résout un chemin Storage ou une ancienne URL en URL de téléchargement (v9.4.17).
-     * Utilisé uniquement pour l'affichage en mémoire (Coil/ExoPlayer).
+     * Supporte la résolution via Cloud Function pour les héritiers (v9.4.27).
+     * Utilisé pour l'affichage en mémoire (Coil/ExoPlayer).
      */
-    suspend fun getSafeUrl(pathOrUrl: String?): String? {
+    suspend fun getSafeUrl(
+        pathOrUrl: String?,
+        explicitKey: ByteArray? = null,
+        creatorId: String? = null,
+        docType: String? = null,
+        docId: String? = null
+    ): String? {
         if (pathOrUrl.isNullOrBlank()) return null
         if (pathOrUrl.startsWith("http")) return pathOrUrl
         
@@ -39,6 +46,23 @@ class MediaManager @Inject constructor(
         if (pathOrUrl.startsWith("/") || pathOrUrl.contains("/app.phoenx.mobile/files/")) {
             val file = File(pathOrUrl)
             if (file.exists()) return "file://$pathOrUrl"
+        }
+
+        // MODE DESTINATAIRE : Résolution sécurisée via Cloud Function (v9.4.27)
+        if (explicitKey != null && creatorId != null && docType != null && docId != null) {
+            return try {
+                val params = mapOf(
+                    "creatorId" to creatorId,
+                    "docType" to docType,
+                    "docId" to docId
+                )
+                val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
+                val data = result.data as? Map<*, *>
+                data?.get("url") as? String
+            } catch (e: Exception) {
+                android.util.Log.e("MediaManager", "Échec getSafeUrl (CF) pour $docId", e)
+                null
+            }
         }
 
         return try {

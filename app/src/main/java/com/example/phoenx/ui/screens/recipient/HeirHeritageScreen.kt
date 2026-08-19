@@ -192,6 +192,7 @@ fun HeirHeritageScreen(
                     heirKey = heirKey,
                     mediaManager = viewModel.mediaManager,
                     theme = theme,
+                    creatorId = creatorId, // v9.4.27
                     onClick = { 
                         // v9.4.27 : Gestion intelligente du clic (Direct ou Détail)
                         // On vérifie à la fois mediaUrl et le contenu déchiffré
@@ -265,6 +266,7 @@ fun HeritageEntryRow(
     heirKey: ByteArray?,
     mediaManager: MediaManager,
     theme: AppThemeState,
+    creatorId: String, // v9.4.27
     onClick: () -> Unit
 ) {
     val accent = theme.accentColor
@@ -292,7 +294,10 @@ fun HeritageEntryRow(
                         localPath = entry.localMediaPath,
                         explicitKey = heirKey,
                         mediaManager = mediaManager,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier.fillMaxSize(),
+                        creatorId = creatorId,           // v9.4.27
+                        docType = entry.sourceDocType,   // v9.4.27
+                        docId = entry.id                 // v9.4.27
                     )
                 } else {
                     val icon = when(entry.type) {

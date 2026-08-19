@@ -45,7 +45,7 @@ fun RecipientVideothequeScreen(
     filterRecipientId: String? = null, // v9.4.27
     onNavigateBack: () -> Unit,
     onNavigateToCapture: () -> Unit,
-    onNavigateToDetail: (String) -> Unit,
+    onNavigateToDetail: (com.example.phoenx.domain.model.PhoenXEntry) -> Unit,
     viewModel: RecipientMediaViewModel = hiltViewModel(),
     standaloneViewModel: com.example.phoenx.ui.screens.library.LiteraryLibraryViewModel = hiltViewModel(),
     themeViewModel: com.example.phoenx.ui.theme.ThemeViewModel = hiltViewModel()
@@ -197,6 +197,7 @@ fun RecipientVideothequeScreen(
                                     isExpanded = isExpanded,
                                     heirKey = heirKey,
                                     mediaManager = mediaManager,
+                                    creatorId = creatorId, // v9.4.27
                                     onDelete = { mediaToDelete = entry },
                                     onEdit = { if (isCreatorMode) editingMedia = entry },
                                     onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
@@ -206,8 +207,8 @@ fun RecipientVideothequeScreen(
                                             try {
                                                 val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(entry.mediaUrl!!))
                                                 context.startActivity(intent)
-                                            } catch(_: Exception) { onNavigateToDetail(entry.id) }
-                                        } else { onNavigateToDetail(entry.id) }
+                                            } catch(_: Exception) { onNavigateToDetail(entry) }
+                                        } else { onNavigateToDetail(entry) }
                                     }
                                 )
                             }
@@ -222,6 +223,7 @@ fun RecipientVideothequeScreen(
                                 isExpanded = isExpanded,
                                 heirKey = heirKey,
                                 mediaManager = mediaManager,
+                                creatorId = creatorId, // v9.4.27
                                 onDelete = { mediaToDelete = entry },
                                 onEdit = { if (isCreatorMode) editingMedia = entry },
                                 onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
@@ -231,8 +233,8 @@ fun RecipientVideothequeScreen(
                                         try {
                                             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(entry.mediaUrl!!))
                                             context.startActivity(intent)
-                                        } catch(_: Exception) { onNavigateToDetail(entry.id) }
-                                    } else { onNavigateToDetail(entry.id) }
+                                        } catch(_: Exception) { onNavigateToDetail(entry) }
+                                    } else { onNavigateToDetail(entry) }
                                 }
                             )
                         }
@@ -330,6 +332,7 @@ fun VHSCard(
     isExpanded: Boolean,
     heirKey: ByteArray?,
     mediaManager: MediaManager,
+    creatorId: String?, // v9.4.27
     onDelete: () -> Unit,
     onEdit: () -> Unit,
     onToggleInfo: () -> Unit,
@@ -357,7 +360,11 @@ fun VHSCard(
                     explicitKey = heirKey,
                     mediaManager = mediaManager,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    creatorId = creatorId,
+                    docType = entry.sourceDocType,
+                    docId = entry.id,
+                    field = if (entry.coverUrl != null) "coverUrl" else null
                 )
             } else {
                 // PLACEHOLDER VHS DYNAMIQUE

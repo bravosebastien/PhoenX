@@ -34,76 +34,136 @@ class MediaViewerViewModel @Inject constructor(
 
     private val _entryId = MutableStateFlow<String?>(null)
     private val _creatorId = MutableStateFlow<String?>(null)
+    private val _heirKey = MutableStateFlow<ByteArray?>(null)
+    
+    // Paramètres transmis directement (v9.4.27)
+    private val _manualMediaUrl = MutableStateFlow<String?>(null)
+    private val _manualEntryType = MutableStateFlow<String?>(null)
+    private val _manualAiSummary = MutableStateFlow<String?>(null)
+    private val _manualSourceDocType = MutableStateFlow<String?>(null)
+
+    val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
 
     /**
-     * Source de vérité hybride (v9.4.27)
+     * Source de vérité hybride et stable (v9.4.27)
+     * Supporte la transmission directe des données pour éviter les échecs de résolution d'ID.
      */
-    /**
-     * Source de vérité hybride (v9.4.27)
-     * Gère les souvenirs (parents ou compléments) et les standalone.
-     */
-    val entry: StateFlow<PhoenXEntry?> = _entryId
-        .filterNotNull()
-        .flatMapLatest { id ->
-            android.util.Log.d("MediaSupportDiag", "Recherche média ID: $id")
-            combine(
-                offlineEntryDao.getEntryById(id),
-                offlineEntryDao.getComplements(id), // On charge aussi les compléments si c'est un parent
-                standaloneMediaDao.getAllStandaloneMedia()
-            ) { offline, complements, standalones ->
-                if (offline != null) {
-                    val domain = offline.toDomain(encryptionManager)
-                    
-                    // Si c'est un parent THOUGHT mais avec des compléments média, 
-                    // on "l'enrichit" avec le premier média pour le viewer (v9.4.27)
-                    if (domain.type == EntryType.THOUGHT && complements.isNotEmpty()) {
-                        val firstMedia = complements.firstOrNull { it.entryType != "TEXT" }
-                        if (firstMedia != null) {
-                            android.util.Log.d("MediaSupportDiag", "Parent THOUGHT enrichi par complément: ${firstMedia.entryType}")
-                            return@combine domain.copy(
-                                type = when(firstMedia.entryType) {
-                                    "PHOTO", "GALLERY" -> EntryType.PHOTO
-                                    "AUDIO" -> EntryType.AUDIO
-                                    "VIDEO" -> EntryType.VIDEO
-                                    else -> EntryType.THOUGHT
-                                },
-                                mediaUrl = firstMedia.mediaUrl,
-                                localMediaPath = firstMedia.localMediaPath
-                            )
-                        }
-                    }
-                    
-                    android.util.Log.d("MediaSupportDiag", "Trouvé dans OfflineEntry (Type final: ${domain.type})")
-                    domain
-                } else {
-                    val found = standalones.find { it.id == id }
-                    if (found != null) {
-                        android.util.Log.d("MediaSupportDiag", "Trouvé dans StandaloneMedia (Type: ${found.type})")
-                        found.toStandaloneDomain()
+    val entry: StateFlow<PhoenXEntry?> = combine(
+        _entryId, _creatorId, _heirKey, 
+        _manualMediaUrl, _manualEntryType, _manualAiSummary, _manualSourceDocType
+    ) { args: Array<Any?> ->
+        val id = args[0] as? String
+        val cId = args[1] as? String
+        val key = args[2] as? ByteArray
+        val mUrl = args[3] as? String
+        val mType = args[4] as? String
+        val mSum = args[5] as? String
+        val mDocType = args[6] as? String
+
+        android.util.Log.d("MediaViewerVM", "COMBINE TICK: id=$id cId=$cId keyPresent=${key != null} manualUrl=${mUrl != null}")
+
+        val isRecipient = cId != null && cId != auth.currentUser?.uid
+        
+        // GATING : On attend la clé si on est destinataire
+        if (isRecipient && key == null) return@combine null
+
+        // OPTION 2 : Transmission directe (Prioritaire)
+        if (id != null && mUrl != null && mType != null) {
+            val domainType = when(mType) {
+                "PHOTO", "GALLERY" -> EntryType.PHOTO
+                "AUDIO" -> EntryType.AUDIO
+                "VIDEO" -> EntryType.VIDEO
+                else -> EntryType.THOUGHT
+            }
+            return@combine PhoenXEntry(
+                id = id,
+                creatorUid = cId ?: "",
+                ageAtCreation = AgeSnapshot(0,0,0),
+                encryptedContent = ByteArray(0),
+                type = domainType,
+                timestamp = Instant.now(),
+                aiSummary = mSum ?: "",
+                mediaUrl = mUrl,
+                sourceDocType = mDocType ?: "entries"
+            )
+        }
+        
+        // Sinon, on laisse le flatMapLatest gérer la résolution via Room (Ancien mécanisme)
+        id
+    }
+    .flatMapLatest { resultOrId ->
+        when (resultOrId) {
+            null -> flowOf(null)
+            is PhoenXEntry -> flowOf(resultOrId)
+            is String -> {
+                val id = resultOrId
+                combine(
+                    offlineEntryDao.getEntryById(id),
+                    offlineEntryDao.getComplements(id),
+                    standaloneMediaDao.getAllStandaloneMedia()
+                ) { offline, complements, standalones ->
+                    if (offline != null) {
+                        val domain = offline.toDomain(encryptionManager)
+                        if (domain.type == EntryType.THOUGHT && complements.isNotEmpty()) {
+                            val firstMedia = complements.firstOrNull { it.entryType != "TEXT" }
+                            if (firstMedia != null) {
+                                domain.copy(
+                                    type = when(firstMedia.entryType) {
+                                        "PHOTO", "GALLERY" -> EntryType.PHOTO
+                                        "AUDIO" -> EntryType.AUDIO
+                                        "VIDEO" -> EntryType.VIDEO
+                                        else -> EntryType.THOUGHT
+                                    },
+                                    mediaUrl = firstMedia.mediaUrl,
+                                    localMediaPath = firstMedia.localMediaPath
+                                )
+                            } else domain
+                        } else domain
                     } else {
-                        android.util.Log.d("MediaSupportDiag", "Média NON TROUVÉ")
-                        null
+                        standalones.find { it.id == id }?.toStandaloneDomain()
                     }
                 }
             }
+            else -> flowOf(null)
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+    }
+    .distinctUntilChanged { old, new ->
+        old?.id == new?.id && old?.mediaUrl == new?.mediaUrl && old?.localMediaPath == new?.localMediaPath
+    }
+    .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    private val _heirKey = MutableStateFlow<ByteArray?>(null)
-    val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
-
-    fun loadMedia(entryId: String, creatorId: String?) {
+    fun loadMedia(
+        entryId: String, 
+        creatorId: String?,
+        mediaUrl: String? = null,
+        entryType: String? = null,
+        aiSummary: String? = null,
+        sourceDocType: String? = null
+    ) {
+        android.util.Log.d("MediaViewerVM", "Instance loadMedia = ${System.identityHashCode(this)}")
+        android.util.Log.d("MediaSupportDiag", "loadMedia: entryId=$entryId, manualUrl=${mediaUrl != null}")
+        
+        val cleanCreatorId = creatorId?.takeIf { it.isNotBlank() && !it.startsWith("{") && it != "null" }
+        
         _entryId.value = entryId
-        _creatorId.value = creatorId
+        _creatorId.value = cleanCreatorId
+        _manualMediaUrl.value = mediaUrl
+        _manualEntryType.value = entryType
+        _manualAiSummary.value = aiSummary
+        _manualSourceDocType.value = sourceDocType
 
-        if (creatorId != null && creatorId != auth.currentUser?.uid) {
+        if (cleanCreatorId != null && cleanCreatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
                 try {
-                    val keyDoc = db.collection("users").document(creatorId)
+                    android.util.Log.d("MediaViewerVM", "Lancement requête entry_keys pour creatorId=$creatorId")
+                    val keyDoc = db.collection("users").document(creatorId!!)
                         .collection("entry_keys").document("main").get().await()
+                    
+                    android.util.Log.d("MediaViewerVM", "Requête terminée, exists=${keyDoc.exists()}")
+                    android.util.Log.d("MediaViewerVM", "Contenu brut du document: ${keyDoc.data}")
                     val keyBase64 = keyDoc.getString("key")
                     if (keyBase64 != null) {
-                        _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
+                        _heirKey.value = android.util.Base64.decode(keyBase64 as String, android.util.Base64.NO_WRAP)
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("MediaViewerVM", "Erreur chargement clé héritage: ${e.message}")
@@ -177,7 +237,8 @@ class MediaViewerViewModel @Inject constructor(
             localCoverPath = localCoverPath,
             mediaProvider = mediaProvider,
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct(),
-            visibility = visibility
+            visibility = visibility,
+            sourceDocType = "standaloneMedia" // v9.4.27
         )
     }
 }

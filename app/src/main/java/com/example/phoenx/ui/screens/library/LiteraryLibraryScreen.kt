@@ -179,6 +179,7 @@ fun LiteraryLibraryScreen(
                                 isExpanded = isExpanded,
                                 heirKey = heirKey,
                                 mediaManager = mediaManager,
+                                creatorId = targetCreatorId, // v9.4.27
                                 onDelete = { excerptToDelete = excerpt },
                                 onEdit = { editingExcerpt = excerpt },
                                 onToggleInfo = { expandedMediaId = if (isExpanded) null else excerpt.id },
@@ -195,6 +196,7 @@ fun LiteraryLibraryScreen(
                                 isExpanded = isExpanded,
                                 heirKey = heirKey,
                                 mediaManager = mediaManager,
+                                creatorId = targetCreatorId, // v9.4.27
                                 onDelete = { excerptToDelete = excerpt },
                                 onEdit = { editingExcerpt = excerpt },
                                 onToggleInfo = { expandedMediaId = if (isExpanded) null else excerpt.id },
@@ -329,6 +331,7 @@ fun ManuscriptItem(
     isExpanded: Boolean,
     heirKey: ByteArray?,
     mediaManager: MediaManager,
+    creatorId: String?, // v9.4.27
     onDelete: () -> Unit,
     onEdit: () -> Unit,
     onToggleInfo: () -> Unit,
@@ -354,7 +357,11 @@ fun ManuscriptItem(
                     explicitKey = heirKey,
                     mediaManager = mediaManager,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    creatorId = creatorId,
+                    docType = "standaloneMedia",
+                    docId = excerpt.id,
+                    field = "coverUrl"
                 )
                 // Overlay sombre pour lisibilité du titre au centre
                 Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.3f)))

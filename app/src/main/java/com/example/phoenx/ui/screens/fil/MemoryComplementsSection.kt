@@ -175,7 +175,14 @@ fun MemoryComplementsSection(
                             .fillMaxWidth()
                             .clickable {
                                 navController.navigate(
-                                    Screen.MediaViewer.createRoute(complement.id, targetCreatorId)
+                                    Screen.MediaViewer.createRoute(
+                                        entryId = complement.id, 
+                                        creatorId = targetCreatorId,
+                                        mediaUrl = complement.mediaUrl,
+                                        entryType = complement.entryType,
+                                        aiSummary = complement.aiSummary,
+                                        sourceDocType = "entries"
+                                    )
                                 )
                             },
                         colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),

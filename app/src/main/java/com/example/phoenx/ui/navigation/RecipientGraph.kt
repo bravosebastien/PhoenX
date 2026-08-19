@@ -31,6 +31,7 @@ import com.example.phoenx.ui.screens.universal.UniversalJoinScreen
 import com.example.phoenx.ui.screens.universal.UniversalMessageScreen
 import com.example.phoenx.ui.screens.witness.WitnessResponseScreen
 import com.example.phoenx.ui.theme.TransmissionTheme
+import com.example.phoenx.domain.model.EntryType
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
 import com.google.firebase.auth.FirebaseAuth
@@ -195,7 +196,21 @@ fun NavGraphBuilder.recipientGraph(
                 filterRecipientId = filterRecipientId,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToCapture = { navController.navigate("capture/AUDIO") },
-                onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) },
+                onNavigateToDetail = { entry -> 
+                    navController.navigate(Screen.MediaViewer.createRoute(
+                        entryId = entry.id, 
+                        creatorId = creatorId,
+                        mediaUrl = entry.mediaUrl,
+                        entryType = when(entry.type) {
+                            EntryType.PHOTO -> "PHOTO"
+                            EntryType.AUDIO -> "AUDIO"
+                            EntryType.VIDEO -> "VIDEO"
+                            else -> "THOUGHT"
+                        },
+                        aiSummary = entry.aiSummary,
+                        sourceDocType = entry.sourceDocType
+                    )) 
+                },
                 viewModel = viewModel
             )
         }
@@ -223,7 +238,21 @@ fun NavGraphBuilder.recipientGraph(
                 filterRecipientId = filterRecipientId,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToCapture = { navController.navigate("capture/VIDEO") },
-                onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) },
+                onNavigateToDetail = { entry -> 
+                    navController.navigate(Screen.MediaViewer.createRoute(
+                        entryId = entry.id, 
+                        creatorId = creatorId,
+                        mediaUrl = entry.mediaUrl,
+                        entryType = when(entry.type) {
+                            EntryType.PHOTO -> "PHOTO"
+                            EntryType.AUDIO -> "AUDIO"
+                            EntryType.VIDEO -> "VIDEO"
+                            else -> "THOUGHT"
+                        },
+                        aiSummary = entry.aiSummary,
+                        sourceDocType = entry.sourceDocType
+                    )) 
+                },
                 viewModel = viewModel
             )
         }
@@ -251,7 +280,21 @@ fun NavGraphBuilder.recipientGraph(
                 filterRecipientId = filterRecipientId,
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToCapture = { navController.navigate("capture/PHOTO") },
-                onNavigateToDetail = { id -> navController.navigate(Screen.MediaViewer.createRoute(id, creatorId)) },
+                onNavigateToDetail = { entry -> 
+                    navController.navigate(Screen.MediaViewer.createRoute(
+                        entryId = entry.id, 
+                        creatorId = creatorId,
+                        mediaUrl = entry.mediaUrl,
+                        entryType = when(entry.type) {
+                            EntryType.PHOTO -> "PHOTO"
+                            EntryType.AUDIO -> "AUDIO"
+                            EntryType.VIDEO -> "VIDEO"
+                            else -> "THOUGHT"
+                        },
+                        aiSummary = entry.aiSummary,
+                        sourceDocType = entry.sourceDocType
+                    )) 
+                },
                 viewModel = viewModel
             )
         }
@@ -571,7 +614,11 @@ fun NavGraphBuilder.recipientGraph(
         route = Screen.MediaViewer.route,
         arguments = listOf(
             navArgument("entryId") { type = NavType.StringType },
-            navArgument("creatorId") { nullable = true; type = NavType.StringType }
+            navArgument("creatorId") { nullable = true; type = NavType.StringType },
+            navArgument("mediaUrl") { nullable = true; type = NavType.StringType },
+            navArgument("entryType") { nullable = true; type = NavType.StringType },
+            navArgument("aiSummary") { nullable = true; type = NavType.StringType },
+            navArgument("sourceDocType") { nullable = true; type = NavType.StringType }
         ),
         enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
         exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
@@ -580,9 +627,18 @@ fun NavGraphBuilder.recipientGraph(
     ) { backStackEntry ->
         val entryId = backStackEntry.arguments?.getString("entryId") ?: ""
         val creatorId = backStackEntry.arguments?.getString("creatorId")
+        val mediaUrl = backStackEntry.arguments?.getString("mediaUrl")
+        val entryType = backStackEntry.arguments?.getString("entryType")
+        val aiSummary = backStackEntry.arguments?.getString("aiSummary")
+        val sourceDocType = backStackEntry.arguments?.getString("sourceDocType")
+
         MediaViewerScreen(
             entryId = entryId,
             creatorId = creatorId,
+            mediaUrl = mediaUrl,
+            entryType = entryType,
+            aiSummary = aiSummary,
+            sourceDocType = sourceDocType,
             onExit = { navController.popBackStack() }
         )
     }

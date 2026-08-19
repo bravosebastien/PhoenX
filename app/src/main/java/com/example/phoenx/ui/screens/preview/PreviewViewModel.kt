@@ -199,6 +199,7 @@ class PreviewViewModel @Inject constructor(
         localCoverPath = localCoverPath, // Ajouté pour l'aperçu
         userComment = userComment,
         ageAtCreation = AgeSnapshot(0, 0, 0),
-        encryptedContent = ByteArray(0)
+        encryptedContent = ByteArray(0),
+        sourceDocType = "standaloneMedia" // v9.4.27
     )
 }

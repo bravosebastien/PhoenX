@@ -44,7 +44,7 @@ fun RecipientPhotosScreen(
     filterRecipientId: String? = null, // v9.4.27
     onNavigateBack: () -> Unit,
     onNavigateToCapture: () -> Unit,
-    onNavigateToDetail: (String) -> Unit,
+    onNavigateToDetail: (com.example.phoenx.domain.model.PhoenXEntry) -> Unit,
     viewModel: RecipientMediaViewModel = hiltViewModel(),
     standaloneViewModel: com.example.phoenx.ui.screens.library.LiteraryLibraryViewModel = hiltViewModel(),
     themeViewModel: com.example.phoenx.ui.theme.ThemeViewModel = hiltViewModel()
@@ -186,10 +186,11 @@ fun RecipientPhotosScreen(
                                     isExpanded = isExpanded,
                                     heirKey = heirKey,
                                     mediaManager = mediaManager,
+                                    creatorId = creatorId, // v9.4.27
                                     onDelete = { mediaToDelete = entry },
                                     onEdit = { if (isCreatorMode) editingMedia = entry },
                                     onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
-                                    onClick = { onNavigateToDetail(entry.id) }
+                                    onClick = { onNavigateToDetail(entry) }
                                 )
                             }
                         }
@@ -203,10 +204,11 @@ fun RecipientPhotosScreen(
                                 isExpanded = isExpanded,
                                 heirKey = heirKey,
                                 mediaManager = mediaManager,
+                                creatorId = creatorId, // v9.4.27
                                 onDelete = { mediaToDelete = entry },
                                 onEdit = { if (isCreatorMode) editingMedia = entry },
                                 onToggleInfo = { expandedMediaId = if (isExpanded) null else entry.id },
-                                onClick = { onNavigateToDetail(entry.id) }
+                                onClick = { onNavigateToDetail(entry) }
                             )
                         }
                     }
@@ -271,6 +273,7 @@ fun PhotoItem(
     isExpanded: Boolean,
     heirKey: ByteArray?,
     mediaManager: MediaManager,
+    creatorId: String?, // v9.4.27
     onDelete: () -> Unit,
     onEdit: () -> Unit,
     onToggleInfo: () -> Unit,
@@ -295,7 +298,10 @@ fun PhotoItem(
                 explicitKey = heirKey,
                 mediaManager = mediaManager,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                creatorId = creatorId,
+                docType = entry.sourceDocType,
+                docId = entry.id
             )
 
             // OVERLAY UNIFIÉ (Icônes aux 4 coins)
