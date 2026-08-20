@@ -192,7 +192,10 @@ fun LocationDetailScreen(
                                         onUpdateRecipients = { viewModel.updateEntryRecipients(entry.id, it) },
                                         onUpdateVisibility = { viewModel.updateEntryVisibility(entry.id, it) },
                                         onDelete = { viewModel.deleteEntry(entry.id) },
-                                        onDetach = { viewModel.detachEntry(entry.id) }
+                                        onDetach = { viewModel.detachEntry(entry.id) },
+                                        onClick = {
+                                            navController.navigate(Screen.MemoryDetail.createRoute(entry.id, targetCreatorId))
+                                        }
                                     )
                                 }
                             }
@@ -276,7 +279,8 @@ fun EditableMemoryCard(
     onUpdateRecipients: (List<String>) -> Unit,
     onUpdateVisibility: (String) -> Unit,
     onDelete: () -> Unit,
-    onDetach: () -> Unit
+    onDetach: () -> Unit,
+    onClick: () -> Unit
 ) {
     val accent = theme.accentColor
     var isEditing by remember { mutableStateOf(false) }
@@ -285,7 +289,9 @@ fun EditableMemoryCard(
     var showRecipientDialog by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
         shape = RoundedCornerShape(16.dp),
         border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
@@ -325,7 +331,10 @@ fun EditableMemoryCard(
                     DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }, containerColor = theme.backgroundColor) {
                         DropdownMenuItem(
                             text = { Text("Modifier", color = theme.contentColor) },
-                            onClick = { isEditing = true; showMenu = false },
+                            onClick = { 
+                                isEditing = true; 
+                                showMenu = false 
+                            },
                             leadingIcon = { Icon(Icons.Default.Edit, null, tint = accent) }
                         )
                         DropdownMenuItem(

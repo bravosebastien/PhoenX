@@ -354,6 +354,7 @@ fun MappamondeScreen(
                 mode = mode,
                 viewModel = viewModel,
                 navController = navController,
+                targetCreatorId = targetCreatorId,
                 onClose = { selectedLocationWithEntries = null }
             )
         }
@@ -481,6 +482,7 @@ fun LocationBottomSheet(
     mode: MapMode,
     viewModel: MappamondeViewModel,
     navController: NavController,
+    targetCreatorId: String?, // v9.4.27
     onClose: () -> Unit
 ) {
     val location = data.location
@@ -570,7 +572,13 @@ fun LocationBottomSheet(
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(14.dp), contentPadding = PaddingValues(vertical = 4.dp)) {
                     items(entries) { entry ->
                         Card(
-                            modifier = Modifier.width(280.dp).height(140.dp),
+                            modifier = Modifier
+                                .width(280.dp)
+                                .height(140.dp)
+                                .clickable {
+                                    navController.navigate(Screen.MemoryDetail.createRoute(entry.id, targetCreatorId))
+                                    onClose()
+                                },
                             colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
                             shape = RoundedCornerShape(12.dp),
                             border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
