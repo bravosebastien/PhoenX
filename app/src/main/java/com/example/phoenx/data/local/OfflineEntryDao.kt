@@ -210,6 +210,9 @@ interface OfflineEntryDao {
     @Query("UPDATE offline_entries SET latitude = NULL, longitude = NULL, locationName = NULL, locationId = NULL WHERE id = :entryId")
     suspend fun detachEntryFromLocation(entryId: String): Int
 
+    @Query("UPDATE offline_entries SET latitude = NULL, longitude = NULL, locationName = NULL, locationId = NULL WHERE locationId = :locationId")
+    suspend fun detachAllEntriesFromLocation(locationId: String): Int
+
     @Query("UPDATE offline_entries SET mediaUrl = :url WHERE id = :entryId")
     suspend fun updateEntryMediaUrl(url: String, entryId: String): Int
 

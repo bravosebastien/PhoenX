@@ -78,6 +78,7 @@ fun LocationDetailScreen(
     )
 
     var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) } // v9.4.27
 
     LaunchedEffect(locationId, targetCreatorId) {
         viewModel.loadLocationData(locationId, targetCreatorId)
@@ -101,7 +102,10 @@ fun LocationDetailScreen(
                 actions = {
                     if (mode == MapMode.CREATOR && uiState is LocationDetailUiState.Success) {
                         IconButton(onClick = { showEditDialog = true }) {
-                            Icon(Icons.Default.Edit, "Modifier le lieu", tint = accent)
+                            Icon(Icons.Default.Edit, "Modifier le lieu", tint = theme.contentColor.copy(alpha = 0.6f))
+                        }
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(Icons.Default.Delete, "Supprimer le lieu", tint = Error)
                         }
                     }
                 },
@@ -242,6 +246,34 @@ fun LocationDetailScreen(
                             onConfirm = { name, emoji, start, end ->
                                 viewModel.updateLocation(location.id, name, emoji, start, end)
                                 showEditDialog = false
+                            }
+                        )
+                    }
+
+                    if (showDeleteDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showDeleteDialog = false },
+                            containerColor = theme.backgroundColor,
+                            title = { Text("Supprimer ce lieu ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                            text = {
+                                Text(
+                                    "Le lieu sera retiré de votre Mappemonde. Vos souvenirs associés seront CONSERVÉS intégralement, mais ne seront plus épinglés géographiquement.",
+                                    color = theme.contentColor.copy(alpha = 0.7f)
+                                )
+                            },
+                            confirmButton = {
+                                Button(
+                                    onClick = { 
+                                        viewModel.deleteLocation(location.id) {
+                                            showDeleteDialog = false
+                                            navController.popBackStack()
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = Error)
+                                ) { Text("Supprimer", color = Color.White, fontWeight = FontWeight.Bold) }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showDeleteDialog = false }) { Text("Annuler", color = theme.contentColor) }
                             }
                         )
                     }

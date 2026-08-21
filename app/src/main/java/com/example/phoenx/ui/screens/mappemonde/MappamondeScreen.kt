@@ -512,6 +512,7 @@ fun LocationBottomSheet(
     var isEditingName by remember { mutableStateOf(false) }
     var editedName by remember { mutableStateOf(location.placeName) }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) } // v9.4.27
 
     val dateState = rememberDatePickerState(
         initialSelectedDateMillis = if (location.visitedAt > 0) location.visitedAt else System.currentTimeMillis()
@@ -644,10 +645,41 @@ fun LocationBottomSheet(
                     }
                 }
                 Spacer(modifier = Modifier.height(20.dp))
-                TextButton(onClick = { viewModel.removeLocation(location.id); onClose() }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+                TextButton(onClick = { showDeleteConfirm = true }, modifier = Modifier.align(Alignment.CenterHorizontally)) {
                     Text("Supprimer ce lieu", color = Error, style = MaterialTheme.typography.labelSmall)
                 }
             }
+        }
+
+        if (showDeleteConfirm) {
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirm = false },
+                title = { Text("Supprimer ce lieu ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                text = {
+                    Text(
+                        "Le lieu sera retiré de votre Mappemonde. Vos souvenirs associés seront CONSERVÉS intégralement, mais ne seront plus épinglés géographiquement.",
+                        color = theme.contentColor.copy(alpha = 0.7f)
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.removeLocation(location.id)
+                            showDeleteConfirm = false
+                            onClose()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Error)
+                    ) {
+                        Text("Supprimer", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteConfirm = false }) {
+                        Text("Annuler", color = theme.contentColor)
+                    }
+                },
+                containerColor = theme.backgroundColor
+            )
         }
 
         if (showDatePicker) {

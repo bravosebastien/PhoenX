@@ -215,4 +215,21 @@ class LocationDetailViewModel @Inject constructor(
             }
         }
     }
+
+    fun deleteLocation(locationId: String, onSuccess: () -> Unit) {
+        val uid = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                // 1. Détacher tous les souvenirs associés en local
+                offlineEntryDao.detachAllEntriesFromLocation(locationId)
+
+                // 2. Supprimer de Firestore
+                db.collection("users").document(uid).collection("locations").document(locationId).delete().await()
+
+                onSuccess()
+            } catch (e: Exception) {
+                android.util.Log.e("LocationDetailVM", "Error deleting location", e)
+            }
+        }
+    }
 }

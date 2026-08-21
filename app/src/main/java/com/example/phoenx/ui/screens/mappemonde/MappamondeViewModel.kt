@@ -271,7 +271,12 @@ class MappamondeViewModel @Inject constructor(
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
+                // 1. Détacher tous les souvenirs de ce lieu en local
+                offlineEntryDao.detachAllEntriesFromLocation(locationId)
+                
+                // 2. Supprimer le lieu de Firestore
                 db.collection("users").document(userId).collection("locations").document(locationId).delete().await()
+
                 loadLocations()
                 _selectedLocation.value = null
             } catch (e: Exception) {
