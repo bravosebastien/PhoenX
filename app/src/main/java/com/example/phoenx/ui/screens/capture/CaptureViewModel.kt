@@ -409,6 +409,16 @@ class CaptureViewModel @Inject constructor(
                     if (parent != null) finalRecipientIds = parent.recipientIds
                 }
 
+                // AUTOMATISME TIROIRS (v9.4.27) : Coche le tiroir selon le type de média initial
+                val initialCompartments = mutableListOf<String>()
+                initialCompartments.add("FIL_PENSEE") // Toujours présent
+                when(type) {
+                    "PHOTO", "CAMERA_PHOTO" -> initialCompartments.add(com.example.phoenx.domain.model.CompartmentIds.PHOTOS)
+                    "VIDEO", "CAMERA_VIDEO" -> initialCompartments.add(com.example.phoenx.domain.model.CompartmentIds.LIBRARY_VIDEO)
+                    "AUDIO" -> initialCompartments.add(com.example.phoenx.domain.model.CompartmentIds.LIBRARY_MUSIC)
+                }
+                val finalCompartmentIds = ",${initialCompartments.distinct().joinToString(",")},"
+
                 val entry = OfflineEntry(
                     id = entryId,
                     creatorUid = user.uid,
@@ -418,6 +428,7 @@ class CaptureViewModel @Inject constructor(
                     emotionalCategory = category,
                     visibility = visibility,
                     recipientIds = finalRecipientIds,
+                    compartmentIds = finalCompartmentIds, // v9.4.27 : Rempli automatiquement
                     createdAt = System.currentTimeMillis(),
                     aiSummary = analysis.summary,
                     locationName = locationName ?: _preselectedLocationName.value,

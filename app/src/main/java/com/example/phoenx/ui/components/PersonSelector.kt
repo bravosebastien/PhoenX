@@ -7,6 +7,7 @@ import android.graphics.RectF
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -63,46 +64,48 @@ fun PersonSelector(
     var duplicateNameDialog by remember { mutableStateOf<String?>(null) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                "Personnes mentionnées",
-                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                color = theme.contentColor.copy(alpha = 0.4f)
-            )
-            
-            if (enabled && !simpleMode) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    TextButton(
-                        onClick = onManageCharacters,
-                        contentPadding = PaddingValues(horizontal = 8.dp),
-                        modifier = Modifier.height(24.dp)
-                    ) {
-                        Icon(Icons.Default.Group, null, modifier = Modifier.size(14.dp), tint = accent)
-                        Spacer(Modifier.width(4.dp))
-                        Text("Gérer / Ajouter", style = MaterialTheme.typography.labelSmall, color = accent)
-                    }
+        Text(
+            "Personnes mentionnées",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = theme.contentColor.copy(alpha = 0.4f),
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
 
+        if (enabled && !simpleMode) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // RACCOURCI MOI (v9.4.27 : Visibilité renforcée)
+                Button(
+                    onClick = onSelectMe,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    modifier = Modifier.height(32.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = accent.copy(alpha = 0.1f), contentColor = accent),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                ) {
+                    Icon(Icons.Default.Person, null, modifier = Modifier.size(16.dp))
                     Spacer(Modifier.width(8.dp))
+                    Text("C'est moi", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold))
+                }
 
-                    TextButton(
-                        onClick = onSelectMe,
-                        contentPadding = PaddingValues(0.dp),
-                        modifier = Modifier.height(24.dp)
-                    ) {
-                        Icon(Icons.Default.Person, null, modifier = Modifier.size(14.dp), tint = accent)
-                        Spacer(Modifier.width(4.dp))
-                        Text("Moi", style = MaterialTheme.typography.labelSmall, color = accent)
-                    }
+                OutlinedButton(
+                    onClick = onManageCharacters,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    modifier = Modifier.height(32.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor.copy(alpha = 0.6f))
+                ) {
+                    Icon(Icons.Default.Group, null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Gérer mes personnages", style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
         
-        Spacer(Modifier.height(8.dp))
-
         // Tags des personnes sélectionnées
         FlowRow(
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),

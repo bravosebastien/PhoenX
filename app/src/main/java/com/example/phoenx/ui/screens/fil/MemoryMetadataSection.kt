@@ -24,6 +24,7 @@ import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.domain.model.CompartmentIds
 import com.example.phoenx.domain.model.SimplifiedPerson
+import com.example.phoenx.ui.components.CompartmentSelector
 import com.example.phoenx.ui.components.EnigmaForm
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.components.LienVivantBanner
@@ -55,7 +56,6 @@ fun MemoryMetadataSection(
     var isPeriodMode by remember(entry) {
         mutableStateOf(entry.memoryDateStart != null || entry.memoryDateEnd != null)
     }
-    var isTiroirsExpanded by remember { mutableStateOf(false) }
     var isTonaliteExpanded by remember { mutableStateOf(false) }
     var showLocationMenu by remember { mutableStateOf(false) }
     var showIncludeInBookNudge by remember { mutableStateOf(false) }
@@ -483,7 +483,16 @@ fun MemoryMetadataSection(
             }
         }
 
-        // ── SECTION 4 : PROTECTION ──────────────────
+        // ── SECTION 4 : RANGEMENT (v9.4.27) ──────────
+        StorageSection(
+            entry = entry,
+            onUpdateCompartments = { viewModel.updateCompartments(it) },
+            theme = theme,
+            accent = accent,
+            isReadOnly = isReadOnly
+        )
+
+        // ── SECTION 5 : PROTECTION ──────────────────
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
                 text = "PROTECTION", 

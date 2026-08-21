@@ -884,6 +884,25 @@ class MemoryDetailViewModel @Inject constructor(
                 }
 
                 val parent = offlineEntryDao.getEntryById(parentId).first() ?: return@launch
+
+                // AUTOMATISME TIROIRS (v9.4.27) : Coche le tiroir correspondant au média ajouté
+                val targetCompartment = when(type) {
+                    "PHOTO" -> CompartmentIds.PHOTOS
+                    "VIDEO" -> CompartmentIds.LIBRARY_VIDEO
+                    "AUDIO" -> CompartmentIds.LIBRARY_MUSIC
+                    else -> null
+                }
+
+                if (targetCompartment != null) {
+                    val currentIds = parent.compartmentIds.split(",").filter { it.isNotBlank() }.toMutableList()
+                    if (!currentIds.contains(targetCompartment)) {
+                        currentIds.add(targetCompartment)
+                        val csv = ",${currentIds.joinToString(",")},"
+                        offlineEntryDao.updateEntryCompartments(csv, parentId)
+                        android.util.Log.d("MemoryDetailVM", "Automatisme : Tiroir $targetCompartment ajouté au parent $parentId")
+                    }
+                }
+
                 val finalTranscription = if (transcription.isNullOrBlank()) "Média complémentaire" else transcription
 
                 val entry = OfflineEntry(

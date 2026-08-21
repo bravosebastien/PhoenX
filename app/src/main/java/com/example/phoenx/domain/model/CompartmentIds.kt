@@ -24,7 +24,7 @@ object CompartmentIds {
         LIBRARY_BOOKS -> "Livres de vie"
         LIBRARY_MUSIC -> "Discothèque"
         LIBRARY_VIDEO -> "Vidéothèque"
-        FIL_PENSEE -> "Fil d'Or"
+        FIL_PENSEE -> "Fil de Pensée"
         LETTRES -> "Lettres"
         PHOTOS -> "Photos"
         MAPPEMONDE -> "Mappemonde"
