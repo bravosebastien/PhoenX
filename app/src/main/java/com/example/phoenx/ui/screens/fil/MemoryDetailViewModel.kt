@@ -55,6 +55,7 @@ class MemoryDetailViewModel @Inject constructor(
     private val audioRecorderController: com.example.phoenx.data.audio.MemoryAudioRecorderController,
     private val memoryDeletionManager: com.example.phoenx.data.memory.MemoryDeletionManager,
     private val personSelectionManager: com.example.phoenx.data.memory.MemoryPersonSelectionManager,
+    private val memoryMetadataUpdater: com.example.phoenx.data.memory.MemoryMetadataUpdater,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -80,6 +81,9 @@ class MemoryDetailViewModel @Inject constructor(
         val file = audioRecorderController.stopAudioRecording()
         file?.let {
             addMediaComplement(parentId, it, "AUDIO", "Note vocale")
+        }
+        fun uriToFile(uri: Uri): File? {
+            return memoryMetadataUpdater.uriToFile(uri)
         }
     }
 
@@ -352,81 +356,48 @@ class MemoryDetailViewModel @Inject constructor(
     fun updateContent(newText: String) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            try {
-                val encrypted = encryptionManager.encryptText(newText)
-                offlineEntryDao.updateEntryContent(encrypted, id)
-                syncTrigger.triggerSync(id)
-            } catch (e: Exception) {
-                android.util.Log.e("MemoryDetailVM", "Error updating content", e)
-            }
+            memoryMetadataUpdater.updateContent(id, newText)
         }
     }
 
     fun updateTitle(newTitle: String) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            try {
-                offlineEntryDao.updateEntrySummary(newTitle, id)
-                syncTrigger.triggerSync(id)
-            } catch (e: Exception) {
-                android.util.Log.e("MemoryDetailVM", "Error updating title", e)
-            }
+            memoryMetadataUpdater.updateTitle(id, newTitle)
         }
     }
 
     fun updateComplementTitle(complementId: String, newTitle: String) {
         viewModelScope.launch {
-            offlineEntryDao.updateEntryMediaTitle(newTitle, complementId)
-            syncTrigger.triggerSync(complementId)
+            memoryMetadataUpdater.updateComplementTitle(complementId, newTitle)
         }
     }
 
     fun updateComplementComment(complementId: String, newComment: String?) {
         viewModelScope.launch {
-            offlineEntryDao.updateEntryComment(newComment, complementId)
-            syncTrigger.triggerSync(complementId)
+            memoryMetadataUpdater.updateComplementComment(complementId, newComment)
         }
     }
 
     fun updateComplementCover(complementId: String, imageUri: Uri) {
-        val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            val file = uriToFile(imageUri) ?: return@launch
-            try {
-                val storagePath = mediaManager.encryptAndUpload(uid, complementId, file)
-                offlineEntryDao.updateEntryCover(storagePath, file.absolutePath, complementId)
-                syncTrigger.triggerSync(complementId)
-            } catch (e: Exception) {
-                android.util.Log.e("MemoryDetailVM", "Erreur upload couverture", e)
-            }
+            memoryMetadataUpdater.updateComplementCover(complementId, imageUri)
         }
     }
 
     fun updateRecipients(newRecipientDocIds: List<String>) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            val persistentIds = newRecipientDocIds.map { docId ->
-                recipients.value.find { it.id == docId }?.linkedUid ?: docId
-            }.distinct()
-            val idsCsv = persistentIds.joinToString(",")
-            offlineEntryDao.updateEntryRecipients(idsCsv, id)
-            // v9.4.27 Fix C : Cascade aux compléments
-            offlineEntryDao.updateComplementsRecipients(idsCsv, id)
-            syncTrigger.triggerSync(id)
+            memoryMetadataUpdater.updateRecipients(id, newRecipientDocIds, recipients.value)
         }
     }
 
     fun toggleRecipient(docId: String) {
-        android.util.Log.d("PHOENX_CLICK_TRACE", "toggleRecipient appelee, id=${_entryId.value}")
-        val current = selectedRecipientIds.value
-        val newList = if (current.contains(docId)) {
-            current.filter { it != docId }
-        } else {
-            current + docId
+        val id = _entryId.value ?: return
+        viewModelScope.launch {
+            memoryMetadataUpdater.toggleRecipient(id, selectedRecipientIds.value, docId, recipients.value)
         }
-        updateRecipients(newList)
     }
-
     private var searchJob: Job? = null
 
     fun searchPersons(query: String) {
@@ -527,40 +498,19 @@ class MemoryDetailViewModel @Inject constructor(
     ) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            val currentEntry = offlineEntryDao.getEntryById(id).first() ?: return@launch
-            val newHash = if (!answer.isNullOrBlank()) {
-                com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(answer)
-            } else {
-                currentEntry.enigmaAnswer
-            }
-
-            offlineEntryDao.updateEntryEnigma(
-                question = question,
-                answerHash = newHash,
-                hint = hint,
-                unlockDays = autoUnlockDays,
-                isUltimate = isUltimate,
-                entryId = id
-            )
-            syncTrigger.triggerSync(id)
+            memoryMetadataUpdater.updateEnigma(id, question, answer, hint, autoUnlockDays, isUltimate)
         }
     }
+
     fun updateEntryVisibility(entryId: String, visibility: String) {
         viewModelScope.launch {
-            offlineEntryDao.updateEntryVisibility(visibility, entryId)
-            // v9.4.27 Fix C : Cascade aux compléments
-            offlineEntryDao.updateComplementsVisibility(visibility, entryId)
-            syncTrigger.triggerSync(entryId)
+            memoryMetadataUpdater.updateEntryVisibility(entryId, visibility)
         }
     }
 
     fun updateEntryRecipients(entryId: String, recipientDocIds: List<String>) {
         viewModelScope.launch {
-            val persistentIds = recipientDocIds.map { docId ->
-                recipients.value.find { it.id == docId }?.linkedUid ?: docId
-            }.distinct()
-            offlineEntryDao.updateEntryRecipients(persistentIds.joinToString(","), entryId)
-            syncTrigger.triggerSync(entryId)
+            memoryMetadataUpdater.updateEntryRecipients(entryId, recipientDocIds, recipients.value)
         }
     }
 
@@ -585,98 +535,72 @@ class MemoryDetailViewModel @Inject constructor(
     fun updateSilentAttribution(silent: Boolean) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            offlineEntryDao.updateEntrySilentAttribution(silent, id)
-            syncTrigger.triggerSync(id)
+            memoryMetadataUpdater.updateSilentAttribution(id, silent)
         }
     }
 
     fun updateIncludeInBook(include: Boolean) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            offlineEntryDao.updateEntryIncludeInBook(include, id)
-            syncTrigger.triggerSync(id)
+            memoryMetadataUpdater.updateIncludeInBook(id, include)
         }
     }
 
     fun updatePactId(pactId: String?) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            offlineEntryDao.updateEntryPactId(pactId, id)
-            syncTrigger.triggerSync(id)
+            memoryMetadataUpdater.updatePactId(id, pactId)
         }
     }
 
     fun updateCompartments(selectedIds: List<String>) {
         val id = _entryId.value ?: return
-        val csv = if (selectedIds.isEmpty()) "" else ",${selectedIds.joinToString(",")},"
         viewModelScope.launch {
-            offlineEntryDao.updateEntryCompartments(csv, id)
-            syncTrigger.triggerSync(id)
+            memoryMetadataUpdater.updateCompartments(id, selectedIds)
         }
     }
 
     fun updateCategory(category: String) {
-        android.util.Log.d("PHOENX_CLICK_TRACE", "updateCategory appelee, id=${_entryId.value}")
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            offlineEntryDao.updateEntryCategory(category, id)
-            syncTrigger.triggerSync(id)
+            memoryMetadataUpdater.updateCategory(id, category)
         }
     }
 
     fun updateTonalNuance(nuance: String) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            offlineEntryDao.updateEntryTonalNuance(nuance.take(150), id)
-            syncTrigger.triggerSync(id)
+            memoryMetadataUpdater.updateTonalNuance(id, nuance)
         }
     }
 
     fun updateMemoryDate(date: Long?) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            offlineEntryDao.updateEntryMemoryDate(date, id)
-            syncTrigger.triggerSync(id)
+            memoryMetadataUpdater.updateMemoryDate(id, date)
         }
     }
 
     fun updateMemoryPeriod(start: Long?, end: Long?) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            offlineEntryDao.updateEntryMemoryPeriod(start, end, id)
-            syncTrigger.triggerSync(id)
+            memoryMetadataUpdater.updateMemoryPeriod(id, start, end)
         }
     }
 
     fun updateLocation(lat: Double?, lng: Double?, name: String?, locId: String?) {
         val id = _entryId.value ?: return
-        android.util.Log.d("PHOENX_LOCATION_TRACE", "Ecriture lieu: entryId=$id, locationId=$locId, name=$name")
         viewModelScope.launch {
-            offlineEntryDao.updateEntryLocation(lat, lng, name, locId, id)
-            syncTrigger.triggerSync(id)
+            memoryMetadataUpdater.updateLocation(id, lat, lng, name, locId)
         }
     }
 
     fun assignLocationFromId(locationId: String) {
-        android.util.Log.d("PHOENX_LOCATION_TRACE", "assignLocationFromId appelee avec id=$locationId")
-        val uid = auth.currentUser?.uid ?: return
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            try {
-                val doc = db.collection("users").document(uid)
-                    .collection("locations").document(locationId).get().await()
-                
-                val lat = doc.getDouble("latitude")
-                val lng = doc.getDouble("longitude")
-                val name = doc.getString("placeName")
-                
-                updateLocation(lat, lng, name, locationId)
-            } catch (e: Exception) {
-                android.util.Log.e("MemoryDetailVM", "Erreur résolution lieu Firestore", e)
-            }
+            memoryMetadataUpdater.assignLocationFromId(id, locationId)
         }
     }
-
     fun deleteMemory() {
         val id = _entryId.value ?: return
         viewModelScope.launch {
@@ -779,23 +703,7 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
-    fun uriToFile(uri: android.net.Uri): File? {
-        return try {
-            val contentResolver = context.contentResolver
-            val mimeType = contentResolver.getType(uri)
-            val extension = when {
-                mimeType?.contains("video") == true -> "mp4"
-                uri.toString().contains(".mp4") -> "mp4"
-                else -> "jpg"
-            }
-            val inputStream = contentResolver.openInputStream(uri)
-            val tempFile = File(context.cacheDir, "temp_media_${UUID.randomUUID()}.$extension")
-            inputStream?.use { input ->
-                tempFile.outputStream().use { output -> input.copyTo(output) }
-            }
-            tempFile
-        } catch (e: Exception) {
-            null
-        }
+    fun uriToFile(uri: Uri): File? {
+        return memoryMetadataUpdater.uriToFile(uri)
     }
 }
