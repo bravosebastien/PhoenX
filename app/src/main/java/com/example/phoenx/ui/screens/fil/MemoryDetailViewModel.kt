@@ -54,6 +54,7 @@ class MemoryDetailViewModel @Inject constructor(
     private val heirEntryLoader: com.example.phoenx.data.heir.HeirEntryLoader,
     private val audioRecorderController: com.example.phoenx.data.audio.MemoryAudioRecorderController,
     private val memoryDeletionManager: com.example.phoenx.data.memory.MemoryDeletionManager,
+    private val personSelectionManager: com.example.phoenx.data.memory.MemoryPersonSelectionManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -437,23 +438,12 @@ class MemoryDetailViewModel @Inject constructor(
         searchJob = viewModelScope.launch {
             delay(300)
             try {
-                val persons = offlineEntryDao.getAllPersons().first().toSimplified()
-                val recipientsList = offlineEntryDao.getAllRecipients().first().toSimplifiedRecipient()
-                val witnesses = offlineEntryDao.getAllWitnesses().first().toSimplifiedWitness()
-                val depositaries = offlineEntryDao.getAllDepositaries().first().toSimplifiedDepositary()
-
-                val allSimplified = persons + recipientsList + witnesses + depositaries
-                val filtered = allSimplified
-                    .filter { it.name.contains(query, ignoreCase = true) }
-                    .distinctBy { it.name.lowercase().trim() }
-                
-                _suggestedPersons.value = filtered
+                _suggestedPersons.value = personSelectionManager.searchAllPersons(query)
             } catch (e: Exception) {
                 android.util.Log.e("MemoryDetailVM", "Erreur recherche personnes", e)
             }
         }
     }
-
     fun selectPerson(person: SimplifiedPerson) {
         val currentIds = entry.value?.personIds?.split(",")
             ?.filter { it.isNotBlank() }?.map { it.trim() } ?: emptyList()
@@ -512,23 +502,8 @@ class MemoryDetailViewModel @Inject constructor(
             }
 
             try {
-                val newPerson = PersonEntity(
-                    firstName = firstName,
-                    lastName = lastName,
-                    relationship = relationship,
-                    distinctionType = distinctionType,
-                    distinctionValue = distinctionValue,
-                    imagePath = finalImagePath,
-                    characterType = characterType
-                )
-                offlineEntryDao.insertPerson(newPerson)
-                
-                val simplified = SimplifiedPerson(
-                    id = newPerson.id,
-                    name = newPerson.firstName + (newPerson.lastName?.let { l -> " $l" } ?: ""),
-                    photoUrl = newPerson.imagePath,
-                    sourceType = "arbre_livre",
-                    relationship = newPerson.relationship
+                val simplified = personSelectionManager.createPerson(
+                    firstName, lastName, relationship, distinctionType, distinctionValue, finalImagePath, characterType
                 )
                 selectPerson(simplified)
             } catch (_: Exception) { }
