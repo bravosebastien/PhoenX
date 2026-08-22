@@ -53,6 +53,7 @@ class MemoryDetailViewModel @Inject constructor(
     private val syncTrigger: com.example.phoenx.data.sync.SyncTrigger,
     private val heirEntryLoader: com.example.phoenx.data.heir.HeirEntryLoader,
     private val audioRecorderController: com.example.phoenx.data.audio.MemoryAudioRecorderController,
+    private val memoryDeletionManager: com.example.phoenx.data.memory.MemoryDeletionManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -703,68 +704,23 @@ class MemoryDetailViewModel @Inject constructor(
 
     fun deleteMemory() {
         val id = _entryId.value ?: return
-        deleteEntryById(id, isParent = true)
-    }
-
-    fun deleteComplement(complementId: String) {
-        deleteEntryById(complementId, isParent = false)
-    }
-
-    private fun deleteEntryById(id: String, isParent: Boolean) {
-        val uid = auth.currentUser?.uid ?: run {
-            _error.value = "Utilisateur non connecté"
-            return
-        }
-
         viewModelScope.launch {
-            try {
-                if (isParent) {
-                    val parent = offlineEntryDao.getEntryById(id).first()
-                    val children = offlineEntryDao.getComplements(id).first()
-                    
-                    parent?.let {
-                        mediaManager.deleteFile(it.mediaUrl)
-                        mediaManager.deleteFile(it.coverUrl)
-                    }
-                    children.forEach { child ->
-                        mediaManager.deleteFile(child.mediaUrl)
-                        mediaManager.deleteFile(child.coverUrl)
-                    }
-
-                    val batch = db.batch()
-                    val userRef = db.collection("users").document(uid)
-                    
-                    batch.delete(userRef.collection("entries").document(id))
-                    children.forEach { child ->
-                        batch.delete(userRef.collection("entries").document(child.id))
-                    }
-                    batch.commit().await()
-                    
-                    offlineEntryDao.deleteEntry(id)
-                    children.forEach { child ->
-                        offlineEntryDao.deleteEntry(child.id)
-                    }
-                    
-                    _deleteSuccess.value = true
-                } else {
-                    val complement = offlineEntryDao.getEntryById(id).first()
-                    complement?.let {
-                        mediaManager.deleteFile(it.mediaUrl)
-                        mediaManager.deleteFile(it.coverUrl)
-                    }
-
-                    db.collection("users").document(uid)
-                        .collection("entries").document(id)
-                        .delete()
-                        .await()
-                    offlineEntryDao.deleteEntry(id)
-                }
-            } catch (e: Exception) {
-                android.util.Log.e("MemoryDetailVM", "Erreur lors de la suppression de $id", e)
-                _error.value = "Échec de la suppression : ${e.message}"
+            when (val outcome = memoryDeletionManager.deleteEntryById(id, isParent = true)) {
+                is com.example.phoenx.data.memory.DeleteOutcome.Success -> _deleteSuccess.value = true
+                is com.example.phoenx.data.memory.DeleteOutcome.Failure -> _error.value = outcome.message
             }
         }
     }
+    fun deleteComplement(complementId: String) {
+        viewModelScope.launch {
+            when (val outcome = memoryDeletionManager.deleteEntryById(complementId, isParent = false)) {
+                is com.example.phoenx.data.memory.DeleteOutcome.Success -> { }
+                is com.example.phoenx.data.memory.DeleteOutcome.Failure -> _error.value = outcome.message
+            }
+        }
+    }
+
+
 
 
 
