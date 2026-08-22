@@ -50,6 +50,7 @@ class MemoryDetailViewModel @Inject constructor(
     private val mediaManager: com.example.phoenx.data.media.MediaManager,
     private val preferenceManager: com.example.phoenx.data.preferences.PreferenceManager,
     private val livingLinkService: com.example.phoenx.data.living.LivingLinkService, // v9.4.27
+    private val syncTrigger: com.example.phoenx.data.sync.SyncTrigger,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -426,7 +427,7 @@ class MemoryDetailViewModel @Inject constructor(
             try {
                 val encrypted = encryptionManager.encryptText(newText)
                 offlineEntryDao.updateEntryContent(encrypted, id)
-                triggerSync(id)
+                syncTrigger.triggerSync(id)
             } catch (e: Exception) {
                 android.util.Log.e("MemoryDetailVM", "Error updating content", e)
             }
@@ -438,7 +439,7 @@ class MemoryDetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 offlineEntryDao.updateEntrySummary(newTitle, id)
-                triggerSync(id)
+                syncTrigger.triggerSync(id)
             } catch (e: Exception) {
                 android.util.Log.e("MemoryDetailVM", "Error updating title", e)
             }
@@ -448,14 +449,14 @@ class MemoryDetailViewModel @Inject constructor(
     fun updateComplementTitle(complementId: String, newTitle: String) {
         viewModelScope.launch {
             offlineEntryDao.updateEntryMediaTitle(newTitle, complementId)
-            triggerSync(complementId)
+            syncTrigger.triggerSync(complementId)
         }
     }
 
     fun updateComplementComment(complementId: String, newComment: String?) {
         viewModelScope.launch {
             offlineEntryDao.updateEntryComment(newComment, complementId)
-            triggerSync(complementId)
+            syncTrigger.triggerSync(complementId)
         }
     }
 
@@ -466,7 +467,7 @@ class MemoryDetailViewModel @Inject constructor(
             try {
                 val storagePath = mediaManager.encryptAndUpload(uid, complementId, file)
                 offlineEntryDao.updateEntryCover(storagePath, file.absolutePath, complementId)
-                triggerSync(complementId)
+                syncTrigger.triggerSync(complementId)
             } catch (e: Exception) {
                 android.util.Log.e("MemoryDetailVM", "Erreur upload couverture", e)
             }
@@ -483,7 +484,7 @@ class MemoryDetailViewModel @Inject constructor(
             offlineEntryDao.updateEntryRecipients(idsCsv, id)
             // v9.4.27 Fix C : Cascade aux compléments
             offlineEntryDao.updateComplementsRecipients(idsCsv, id)
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
 
@@ -611,7 +612,7 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             offlineEntryDao.updateEntryPersons(ids.distinct().joinToString(","), id)
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
 
@@ -639,7 +640,7 @@ class MemoryDetailViewModel @Inject constructor(
                 isUltimate = isUltimate,
                 entryId = id
             )
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
     fun updateEntryVisibility(entryId: String, visibility: String) {
@@ -647,7 +648,7 @@ class MemoryDetailViewModel @Inject constructor(
             offlineEntryDao.updateEntryVisibility(visibility, entryId)
             // v9.4.27 Fix C : Cascade aux compléments
             offlineEntryDao.updateComplementsVisibility(visibility, entryId)
-            triggerSync(entryId)
+            syncTrigger.triggerSync(entryId)
         }
     }
 
@@ -657,7 +658,7 @@ class MemoryDetailViewModel @Inject constructor(
                 recipients.value.find { it.id == docId }?.linkedUid ?: docId
             }.distinct()
             offlineEntryDao.updateEntryRecipients(persistentIds.joinToString(","), entryId)
-            triggerSync(entryId)
+            syncTrigger.triggerSync(entryId)
         }
     }
 
@@ -683,7 +684,7 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             offlineEntryDao.updateEntrySilentAttribution(silent, id)
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
 
@@ -691,7 +692,7 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             offlineEntryDao.updateEntryIncludeInBook(include, id)
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
 
@@ -699,7 +700,7 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             offlineEntryDao.updateEntryPactId(pactId, id)
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
 
@@ -708,7 +709,7 @@ class MemoryDetailViewModel @Inject constructor(
         val csv = if (selectedIds.isEmpty()) "" else ",${selectedIds.joinToString(",")},"
         viewModelScope.launch {
             offlineEntryDao.updateEntryCompartments(csv, id)
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
 
@@ -717,7 +718,7 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             offlineEntryDao.updateEntryCategory(category, id)
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
 
@@ -725,7 +726,7 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             offlineEntryDao.updateEntryTonalNuance(nuance.take(150), id)
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
 
@@ -733,7 +734,7 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             offlineEntryDao.updateEntryMemoryDate(date, id)
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
 
@@ -741,7 +742,7 @@ class MemoryDetailViewModel @Inject constructor(
         val id = _entryId.value ?: return
         viewModelScope.launch {
             offlineEntryDao.updateEntryMemoryPeriod(start, end, id)
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
 
@@ -750,7 +751,7 @@ class MemoryDetailViewModel @Inject constructor(
         android.util.Log.d("PHOENX_LOCATION_TRACE", "Ecriture lieu: entryId=$id, locationId=$locId, name=$name")
         viewModelScope.launch {
             offlineEntryDao.updateEntryLocation(lat, lng, name, locId, id)
-            triggerSync(id)
+            syncTrigger.triggerSync(id)
         }
     }
 
@@ -839,16 +840,7 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun triggerSync(entryId: String) {
-        offlineEntryDao.updateSyncStatus(entryId, "pending")
-        val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.CONNECTED)
-            .build()
-        val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
-            .setConstraints(constraints)
-            .build()
-        WorkManager.getInstance(context).enqueue(syncRequest)
-    }
+
 
     fun addMediaComplement(parentId: String, file: File, type: String, transcription: String? = null) {
         val uid = auth.currentUser?.uid ?: return
@@ -922,7 +914,7 @@ class MemoryDetailViewModel @Inject constructor(
                     syncStatus = "pending"
                 )
                 offlineEntryDao.insertEntry(entry)
-                triggerSync(entry.id)
+                syncTrigger.triggerSync(entry.id)
             } catch (e: Exception) {
                 android.util.Log.e("MemoryDetailVM", "Erreur ajout média", e)
                 _error.value = "Erreur lors de l'ajout du média"
