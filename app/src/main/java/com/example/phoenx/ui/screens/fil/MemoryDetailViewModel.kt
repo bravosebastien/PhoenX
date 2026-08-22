@@ -51,6 +51,7 @@ class MemoryDetailViewModel @Inject constructor(
     private val preferenceManager: com.example.phoenx.data.preferences.PreferenceManager,
     private val livingLinkService: com.example.phoenx.data.living.LivingLinkService, // v9.4.27
     private val syncTrigger: com.example.phoenx.data.sync.SyncTrigger,
+    private val heirEntryLoader: com.example.phoenx.data.heir.HeirEntryLoader,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -347,64 +348,26 @@ class MemoryDetailViewModel @Inject constructor(
     fun loadEntry(id: String, creatorId: String? = null) {
         val cleanCreatorId = creatorId?.takeIf { it.isNotBlank() && !it.startsWith("{") && it != "null" }
         android.util.Log.d("PHOENX_ATELIER_TRACE", "MemoryDetailViewModel: brut=[$creatorId] nettoye=[$cleanCreatorId]")
-        
+
         _entryId.value = id
         _targetCreatorId.value = cleanCreatorId
-        
+
         if (cleanCreatorId != null && cleanCreatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
                 _protocolStatus.value = ProtocolStatus.VERIFYING
                 try {
-                    // 1. Check protocol status
-                    val result = functions.getHttpsCallable("getCreatorProtocolStatus")
-                        .call(mapOf("creatorId" to cleanCreatorId)).await()
-                    
-                    val data = result.data as? Map<*, *>
-                    val isActivated = data?.get("isActivated") as? Boolean ?: false
-                    
-                    // v9.4.27 Fix B : On ne verrouille que si on n'est pas déjà ACTIVATED 
+                    val loadResult = heirEntryLoader.load(cleanCreatorId, id)
+
+                    // v9.4.27 Fix B : On ne verrouille que si on n'est pas déjà ACTIVATED
                     // (Empêche l'oscillation fatale identifiée dans les logs)
                     if (_protocolStatus.value != ProtocolStatus.ACTIVATED) {
-                        _protocolStatus.value = if (isActivated) ProtocolStatus.ACTIVATED else ProtocolStatus.LOCKED
+                        _protocolStatus.value = if (loadResult.isActivated) ProtocolStatus.ACTIVATED else ProtocolStatus.LOCKED
                     }
-                    android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Protocole check: isActivated=$isActivated -> Final status=${_protocolStatus.value}")
+                    android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Protocole check: isActivated=${loadResult.isActivated} -> Final status=${_protocolStatus.value}")
 
-                    if (isActivated) {
-                        val keyDoc = db.collection("users").document(cleanCreatorId)
-                            .collection("entry_keys").document("main").get().await()
-                        val keyBase64 = keyDoc.getString("key")
-                        if (keyBase64 != null) {
-                            _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
-                        }
-                    }
-                    
-                    // 2. CHARGEMENT FIRESTORE (v9.4.27 : Lecture Hybride Héritier)
-                    val entryDoc = db.collection("users").document(cleanCreatorId)
-                        .collection("entries").document(id).get().await()
-                    
-                    if (entryDoc.exists()) {
-                        _firestoreEntry.value = entryDoc.toOfflineEntry(encryptionManager, _heirKey.value)
-                        
-                        // v9.4.27 Fix : Récupération sécurisée des compléments via Cloud Function (Périmètre Héritier)
-                        try {
-                            val result = functions.getHttpsCallable("getEntryComplements")
-                                .call(mapOf("creatorId" to cleanCreatorId, "entryId" to id)).await()
-                            
-                            val data = result.data as? Map<*, *>
-                            val compsList = data?.get("complements") as? List<Map<String, Any?>>
-                            val currentHeirKey = _heirKey.value
-                            
-                            android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Cloud Function Result: count=${compsList?.size}, heirKeyPresent=${currentHeirKey != null}")
-                            
-                            _firestoreComplements.value = compsList?.mapNotNull { map ->
-                                val entry = map.toOfflineEntry(encryptionManager, currentHeirKey)
-                                android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Mapped Complement: id=${entry?.id}, aiSummary=${entry?.aiSummary}, mediaUrl=${entry?.mediaUrl}")
-                                entry
-                            } ?: emptyList()
-                        } catch (e: Exception) {
-                            android.util.Log.e("PHOENX_MEMORY_OPEN_TRACE", "ERREUR Cloud Function getEntryComplements id=$id: ${e.message}", e)
-                        }
-                    }
+                    _heirKey.value = loadResult.heirKey
+                    _firestoreEntry.value = loadResult.firestoreEntry
+                    _firestoreComplements.value = loadResult.firestoreComplements
 
                 } catch (e: Exception) {
                     android.util.Log.e("MemoryDetailVM", "Erreur chargement distant", e)
@@ -416,11 +379,9 @@ class MemoryDetailViewModel @Inject constructor(
             _heirKey.value = null
         }
     }
-
     fun clearError() {
         _error.value = null
     }
-
     fun updateContent(newText: String) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
