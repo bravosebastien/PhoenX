@@ -128,7 +128,7 @@ class MemoryDetailViewModel @Inject constructor(
         id to targetId
     }.flatMapLatest { (id, targetId) ->
         if (id == null) return@flatMapLatest flowOf(null)
-        
+
         val isHeirMode = targetId != null && targetId != auth.currentUser?.uid
         if (isHeirMode) {
             _firestoreEntry
@@ -166,11 +166,11 @@ class MemoryDetailViewModel @Inject constructor(
         val ids = idsCsv.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct()
         if (ids.isEmpty()) return@combine emptyList()
 
-        val allSimplified = persons.toSimplified() + 
-                        recipients.toSimplifiedRecipient() + 
-                        witnesses.toSimplifiedWitness() + 
-                        depositaries.toSimplifiedDepositary()
-        
+        val allSimplified = persons.toSimplified() +
+                recipients.toSimplifiedRecipient() +
+                witnesses.toSimplifiedWitness() +
+                depositaries.toSimplifiedDepositary()
+
         // On inclut aussi "Moi" si présent dans les IDs
         val user = auth.currentUser
         val me = if (user != null && ids.contains("ME_${user.uid}")) {
@@ -190,16 +190,28 @@ class MemoryDetailViewModel @Inject constructor(
 
     private val _firestoreComplements = MutableStateFlow<List<OfflineEntry>>(emptyList()) // v9.4.27
 
-    val complements: StateFlow<List<OfflineEntry>> = combine(_entryId, _targetCreatorId, _firestoreComplements) { id, targetId, fsComps ->
-        if (id == null) return@combine emptyList()
+    /**
+     * CORRECTIF (reactivite) : flatMapLatest reste a l'ecoute en continu de la base de donnees
+     * locale (Room), au lieu de faire une simple photo instantanee avec .first().
+     * Resout le bug ou un media ajoute/supprime n'apparaissait/disparaissait qu'apres
+     * etre sorti puis revenu sur le souvenir.
+     */
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val complements: StateFlow<List<OfflineEntry>> = combine(_entryId, _targetCreatorId) { id, targetId ->
+        id to targetId
+    }.flatMapLatest { (id, targetId) ->
+        if (id == null) return@flatMapLatest flowOf(emptyList())
+
         val isHeirMode = targetId != null && targetId != auth.currentUser?.uid
-        val result = if (isHeirMode) {
-            fsComps
+        val sourceFlow = if (isHeirMode) {
+            _firestoreComplements
         } else {
-            offlineEntryDao.getComplements(id).first()
+            offlineEntryDao.getComplements(id)
         }
-        android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Complements: Mode=${if(isHeirMode) "Heir" else "Creator"}, count=${result.size}, entryId=$id")
-        result
+
+        sourceFlow.onEach { result ->
+            android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "Complements: Mode=${if(isHeirMode) "Heir" else "Creator"}, count=${result.size}, entryId=$id")
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
@@ -235,7 +247,7 @@ class MemoryDetailViewModel @Inject constructor(
     val decryptedContent: StateFlow<String> = combine(entry, _heirKey, _protocolStatus) { ent, key, status ->
         val eid = _entryId.value
         android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "--- RECALCUL CONTENT --- id=$eid, Status: $status, Key: ${key != null}")
-        
+
         when (status) {
             ProtocolStatus.VERIFYING -> "Vérification de l'accès..."
             ProtocolStatus.LOCKED -> "Souvenir scellé"
@@ -266,7 +278,7 @@ class MemoryDetailViewModel @Inject constructor(
      */
     val structuredPortrait: StateFlow<List<PortraitItem>> = combine(decryptedContent, complements, _heirKey, _protocolStatus) { content, compList, key, status ->
         val list = mutableListOf<PortraitItem>()
-        
+
         if (status == ProtocolStatus.VERIFYING) return@combine list
         if (status == ProtocolStatus.LOCKED && key != null) {
             // Uniquement les compléments atomiques pour les titres, mais contenu scellé
@@ -289,19 +301,19 @@ class MemoryDetailViewModel @Inject constructor(
                         list.add(PortraitItem(null, displayQ, a))
                     }
                 } catch (e: Exception) {
-                    content.split("\n\n").forEach { 
+                    content.split("\n\n").forEach {
                         val title = if (it.length > 30) it.take(30) + "..." else it
-                        list.add(PortraitItem(null, title, it)) 
+                        list.add(PortraitItem(null, title, it))
                     }
                 }
             } else {
-                content.split("\n\n").forEach { 
+                content.split("\n\n").forEach {
                     val title = if (it.length > 30) it.take(30) + "..." else it
-                    list.add(PortraitItem(null, title, it)) 
+                    list.add(PortraitItem(null, title, it))
                 }
             }
         }
-        
+
         // 2. Standard Atomique (Compléments liés)
         compList.filter { it.parentEntryId == _entryId.value && it.entryType == "TEXT" }.forEach { comp ->
             val decrypted = encryptionManager.decryptText(comp.encryptedPayload, key)
@@ -309,7 +321,7 @@ class MemoryDetailViewModel @Inject constructor(
                 list.add(PortraitItem(comp.id, comp.aiSummary, decrypted))
             }
         }
-        
+
         list
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -416,7 +428,7 @@ class MemoryDetailViewModel @Inject constructor(
     fun selectPerson(person: SimplifiedPerson) {
         val currentIds = entry.value?.personIds?.split(",")
             ?.filter { it.isNotBlank() }?.map { it.trim() } ?: emptyList()
-        
+
         if (!currentIds.contains(person.id)) {
             val newList = currentIds + person.id
             updatePersonsInDb(newList)
@@ -439,7 +451,7 @@ class MemoryDetailViewModel @Inject constructor(
     fun removePerson(personId: String) {
         val currentIds = entry.value?.personIds?.split(",")
             ?.filter { it.isNotBlank() }?.map { it.trim() } ?: emptyList()
-        
+
         val newList = currentIds.filter { it != personId }
         updatePersonsInDb(newList)
     }
@@ -616,10 +628,6 @@ class MemoryDetailViewModel @Inject constructor(
             }
         }
     }
-
-
-
-
 
     fun addMediaComplement(parentId: String, file: File, type: String, transcription: String? = null) {
         viewModelScope.launch {
