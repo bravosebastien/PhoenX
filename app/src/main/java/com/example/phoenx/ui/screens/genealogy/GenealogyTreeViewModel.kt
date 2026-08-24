@@ -99,7 +99,15 @@ class GenealogyTreeViewModel @Inject constructor(
         // pour permettre la mise à jour chemin local -> URL Storage
         val current = _resolvedUrls.value[docId]
         if (current != null && current.startsWith("http")) return
-        
+
+        // Fix : si la photo est un fichier qui existe déjà directement sur le téléphone
+        // (une photo tout juste choisie, pas encore envoyée sur nos serveurs), on l'utilise
+        // telle quelle, sans essayer de la traiter comme une adresse en ligne.
+        if (java.io.File(path).exists()) {
+            _resolvedUrls.update { it + (docId to "file://$path") }
+            return
+        }
+
         viewModelScope.launch {
             try {
                 if (creatorId == auth.currentUser?.uid) {
@@ -114,7 +122,7 @@ class GenealogyTreeViewModel @Inject constructor(
                         "docId" to docId
                     )
                     if (personId != null) params["personId"] = personId
-                    
+
                     val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
                     val data = result.data as? Map<*, *>
                     val url = data?.get("url") as? String
@@ -271,6 +279,9 @@ class GenealogyTreeViewModel @Inject constructor(
     /**
      * Enregistre l'intégralité des détails modifiables d'une personne (v9.4.24)
      */
+    /**
+     * Enregistre l'intégralité des détails modifiables d'une personne (v9.4.24)
+     */
     fun savePersonDetails(
         personId: String,
         biography: String,
@@ -288,7 +299,12 @@ class GenealogyTreeViewModel @Inject constructor(
                 syncStatus = "pending"
             )
             offlineEntryDao.insertPerson(updated)
-            
+
+            // Fix : on efface l'ancienne photo mémorisée pour cette personne,
+            // sinon l'application continue d'afficher l'ancienne photo indéfiniment
+            // au lieu de la nouvelle qui vient d'être choisie.
+            _resolvedUrls.update { it - personId }
+
             // Sync immédiate Firestore (v9.4.24: SANS imagePath local)
             val updates = mutableMapOf<String, Any?>(
                 "biography" to biography,
@@ -298,7 +314,7 @@ class GenealogyTreeViewModel @Inject constructor(
             db.collection("users").document(auth.currentUser?.uid ?: "")
                 .collection("persons").document(personId)
                 .update(updates)
-            
+
             SyncWorker.trigger(context) // v9.4.24
         }
     }

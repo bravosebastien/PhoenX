@@ -45,8 +45,13 @@ fun CameoPortrait(
     // v9.4.27 : État de résolution interne uniquement si resolvedUrl est absent
     var internalUrl by remember(imagePath) { mutableStateOf<String?>(null) }
     
-    // SOURCE DE VÉRITÉ : resolvedUrl prioritaire > résolution interne > path brut
-    val displayUrl = resolvedUrl ?: internalUrl ?: imagePath
+    // SOURCE DE VÉRITÉ : resolvedUrl prioritaire > résolution interne > path brut (v9.4.28: Fix file://)
+    val fallbackUrl = remember(imagePath) {
+        if (!imagePath.isNullOrBlank() && !imagePath.startsWith("http") && !imagePath.startsWith("file://") && java.io.File(imagePath).exists()) {
+            "file://$imagePath"
+        } else imagePath
+    }
+    val displayUrl = resolvedUrl ?: internalUrl ?: fallbackUrl
 
     LaunchedEffect(imagePath, resolvedUrl) {
         // SÉCURITÉ : Si une URL résolue est fournie (ViewModel), on ne déclenche AUCUNE résolution locale.
@@ -59,7 +64,7 @@ fun CameoPortrait(
             ).mediaManager()
 
             if (java.io.File(imagePath).exists()) {
-                internalUrl = imagePath // Cas local
+                internalUrl = if (imagePath.startsWith("file://")) imagePath else "file://$imagePath"
             } else {
                 internalUrl = mediaManager.getSafeUrl(imagePath) // Cas Storage direct
             }
