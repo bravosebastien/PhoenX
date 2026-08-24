@@ -18,12 +18,13 @@ data class ResolvedPerson(
 
 /**
  * Un nœud de l'arbre positionné dans l'espace.
+ * v9.4.28 : x et y sont désormais en unités fixes (DP) pour un terrain infini.
  */
 data class VisualTreeNode(
     val person: ResolvedPerson,
     val generation: Int,
-    val x: Float, // Position horizontale relative (0..1)
-    val y: Float, // Position verticale relative (dérivée de la génération)
+    val x: Float, // Position horizontale (en DP)
+    val y: Float, // Position verticale (en DP)
     val groupId: String // v9.4.26 : ID du groupe de co-parenté
 )
 
@@ -39,5 +40,6 @@ data class VisualGroup(
 
 data class TreeLayout(
     val nodes: List<VisualTreeNode>,
-    val connections: List<Pair<String, String>> // Liste de (ParentId, ChildId)
+    val connections: List<Pair<List<String>, String>>, // v9.4.28 : (Liste des ParentIds réels, ChildId)
+    val coupleConnections: List<Pair<String, String>> = emptyList() // v9.4.28 : Liens directs entre co-parents
 )

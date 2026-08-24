@@ -72,6 +72,7 @@ fun PreviewGenealogyScreen(
                     layout = treeLayout,
                     onPersonClick = { /* Détails en lecture seule ? */ },
                     onAddChild = { /* Désactivé en aperçu */ },
+                    creatorId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid,
                     enabled = false // Mode lecture seule strict
                 )
                 

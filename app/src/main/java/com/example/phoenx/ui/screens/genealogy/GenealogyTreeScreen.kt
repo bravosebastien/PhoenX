@@ -147,6 +147,7 @@ fun GenealogyTreeScreen(
                         selectedPersonForAddingRelation = allPersons.find { it.id == resolved.id }
                         showRelationTypeChoice = true
                     },
+                    creatorId = targetCreatorId ?: myUid, // v9.4.29
                     enabled = !isReadOnly
                 )
             } else {

@@ -5,28 +5,31 @@ import com.example.phoenx.domain.model.TreeLayout
 import com.example.phoenx.domain.model.VisualTreeNode
 
 /**
- * Algorithme de positionnement de l'Arbre Généalogique (v9.4.26)
- * Utilise Union-Find pour aligner les co-parents sur le même niveau.
+ * Algorithme de positionnement de l'Arbre Généalogique (v9.4.29)
+ * Gère le positionnement horizontal intelligent (fratries, demi-frères, conjoints)
+ * et les liens de couple réels.
  */
 object TreeAlgorithm {
+
+    private const val NODE_WIDTH_SPACING = 200f // Largeur occupée par un nœud + espacement
+    private const val GEN_HEIGHT_SPACING = 280f // Hauteur entre deux générations
 
     fun calculateLayout(persons: List<ResolvedPerson>): TreeLayout {
         if (persons.isEmpty()) return TreeLayout(emptyList(), emptyList())
 
-        // --- PHASE 1 : Union-Find pour regrouper les co-parents ---
-        val parent = mutableMapOf<String, String>()
+        // --- PHASE 1 : Calcul des générations (Niveaux) ---
+        val parentMap = mutableMapOf<String, String>()
         fun find(id: String): String {
-            if (parent[id] == null || parent[id] == id) return id.also { parent[it] = it }
-            parent[id] = find(parent[id]!!)
-            return parent[id]!!
+            if (parentMap[id] == null || parentMap[id] == id) return id.also { parentMap[it] = it }
+            parentMap[id] = find(parentMap[id]!!)
+            return parentMap[id]!!
         }
         fun union(id1: String, id2: String) {
             val root1 = find(id1)
             val root2 = find(id2)
-            if (root1 != root2) parent[root1] = root2
+            if (root1 != root2) parentMap[root1] = root2
         }
 
-        // Pour chaque enfant, on unit ses deux parents dans le même groupe
         persons.forEach { person ->
             val knownParents = person.parentIds.filter { pid -> persons.any { it.id == pid } }
             if (knownParents.size >= 2) {
@@ -34,10 +37,7 @@ object TreeAlgorithm {
             }
         }
 
-        // --- PHASE 2 : Calcul des niveaux par GROUPE ---
-        val groupLevels = mutableMapOf<String, Int>() // groupId -> level
-        
-        // Stabilisation topologique (chemin le plus long pour satisfaire toutes les contraintes)
+        val groupLevels = mutableMapOf<String, Int>()
         var changed = true
         var safety = 0
         while (changed && safety < 100) {
@@ -46,15 +46,10 @@ object TreeAlgorithm {
             persons.forEach { person ->
                 val myGroupId = find(person.id)
                 val knownParents = person.parentIds.filter { pid -> persons.any { it.id == pid } }
-                
-                // Correction sentinelle (-1 au lieu de 0) pour permettre l'écriture du niveau racine 0
                 val currentGroupLevel = groupLevels[myGroupId] ?: -1
-                
-                // Le niveau du groupe doit être supérieur au niveau max de tous les parents de tous les membres du groupe
                 val parentMaxLevel = knownParents.map { find(it) }
                     .mapNotNull { groupLevels[it] }
                     .maxOrNull() ?: -1
-                
                 val targetLevel = parentMaxLevel + 1
                 if (targetLevel > currentGroupLevel) {
                     groupLevels[myGroupId] = targetLevel
@@ -63,41 +58,106 @@ object TreeAlgorithm {
             }
         }
 
-        // --- PHASE 3 : Attribution des coordonnées X et Y ---
         val nodeGenerations = persons.associate { it.id to (groupLevels[find(it.id)] ?: 0) }
-        val maxGen = (nodeGenerations.values.maxOrNull() ?: 0).coerceAtLeast(1)
-        
-        val visualNodes = mutableListOf<VisualTreeNode>()
-        val connections = mutableListOf<Pair<String, String>>()
         val levels = nodeGenerations.values.distinct().sorted()
+
+        // --- PHASE 2 : Construction des liens de couple RÉELS ---
+        val coupleConnections = mutableListOf<Pair<String, String>>()
+        persons.forEach { child ->
+            val parentsInTree = child.parentIds.filter { pid -> persons.any { it.id == pid } }
+            if (parentsInTree.size == 2) {
+                val p1 = parentsInTree[0]
+                val p2 = parentsInTree[1]
+                if (!coupleConnections.any { (it.first == p1 && it.second == p2) || (it.first == p2 && it.second == p1) }) {
+                    coupleConnections.add(p1 to p2)
+                }
+            }
+        }
+
+        // --- PHASE 3 : Positionnement Horizontal Intelligent (Calcul des X) ---
+        val visualNodes = mutableListOf<VisualTreeNode>()
+        val connections = mutableListOf<Pair<List<String>, String>>()
+        val orderedPersonsPerLevel = mutableMapOf<Int, List<ResolvedPerson>>()
 
         levels.forEach { level ->
             val personsAtLevel = persons.filter { nodeGenerations[it.id] == level }
-                .sortedBy { it.firstName } // Tri alpha pour stabilité
             
-            personsAtLevel.forEachIndexed { index, person ->
-                // X : Distribution horizontale équilibrée (0..1)
-                val x = (index + 1).toFloat() / (personsAtLevel.size + 1)
-                // Y : Position verticale (0..1) basée sur la génération
-                val y = (level + 0.5f) / (maxGen + 1)
+            val orderedList = if (level == 0) {
+                // Pour la racine, on garde l'ordre groupé par couple puis alpha
+                personsAtLevel.sortedWith(compareBy({ find(it.id) }, { it.firstName }))
+            } else {
+                val previousLevelOrder = orderedPersonsPerLevel[level - 1] ?: emptyList()
+                val processedIds = mutableSetOf<String>()
+                val levelOrdered = mutableListOf<ResolvedPerson>()
+
+                // 1. On suit l'ordre des parents de la génération précédente
+                previousLevelOrder.forEach { parent ->
+                    val childrenOfParent = personsAtLevel.filter { it.parentIds.contains(parent.id) && !processedIds.contains(it.id) }
+                    
+                    // Groupement par "fratrie" (ceux qui partagent exactement les mêmes parents présents)
+                    val siblingsGrouped = childrenOfParent.groupBy { child ->
+                        child.parentIds.filter { pid -> persons.any { it.id == pid } }.sorted().joinToString(",")
+                    }
+
+                    siblingsGrouped.forEach { (_, siblingGroup) ->
+                        val group = siblingGroup.sortedBy { it.firstName }
+                        
+                        // On ajoute d'abord toute la fratrie "de sang"
+                        group.forEach { child ->
+                            if (processedIds.add(child.id)) {
+                                levelOrdered.add(child)
+                            }
+                        }
+
+                        // Puis on ajoute les conjoints de cette fratrie sur le côté EXTÉRIEUR (après le bloc)
+                        group.forEach { child ->
+                            val spouse = personsAtLevel.find { p ->
+                                !processedIds.contains(p.id) && 
+                                p.parentIds.none { pid -> persons.any { it.id == pid } } &&
+                                coupleConnections.any { (it.first == child.id && it.second == p.id) || (it.first == p.id && it.second == child.id) }
+                            }
+                            spouse?.let { 
+                                if (processedIds.add(it.id)) levelOrdered.add(it)
+                            }
+                        }
+                    }
+                }
+                
+                // 3. On ajoute ceux qui resteraient (cas isolés ou racines secondaires à ce niveau)
+                personsAtLevel.filter { !processedIds.contains(it.id) }
+                    .sortedBy { it.firstName }
+                    .forEach { levelOrdered.add(it) }
+
+                levelOrdered
+            }
+            
+            orderedPersonsPerLevel[level] = orderedList
+
+            val totalWidth = (orderedList.size - 1) * NODE_WIDTH_SPACING
+            val startX = -totalWidth / 2f
+
+            orderedList.forEachIndexed { index, person ->
+                val x = startX + (index * NODE_WIDTH_SPACING)
+                val y = level * GEN_HEIGHT_SPACING
                 
                 visualNodes.add(VisualTreeNode(
                     person = person, 
                     generation = level, 
                     x = x, 
                     y = y, 
-                    groupId = find(person.id) // v9.4.26
+                    groupId = find(person.id)
                 ))
-                
-                // Enregistrement des liens pour le Canvas
-                person.parentIds.forEach { parentId ->
-                    if (persons.any { it.id == parentId }) {
-                        connections.add(parentId to person.id)
-                    }
-                }
             }
         }
 
-        return TreeLayout(visualNodes, connections)
+        // Connexions basées sur les parents RÉELS pour le midpoint
+        persons.forEach { child ->
+            val realParents = child.parentIds.filter { pid -> persons.any { it.id == pid } }
+            if (realParents.isNotEmpty()) {
+                connections.add(realParents to child.id)
+            }
+        }
+
+        return TreeLayout(visualNodes, connections, coupleConnections)
     }
 }
