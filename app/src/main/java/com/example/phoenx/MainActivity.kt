@@ -16,16 +16,21 @@ import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.accessibility.VoiceAccessibilityManager
 import com.example.phoenx.data.biometric.PhoenXBiometricManager
 import com.example.phoenx.ui.MainViewModel
+import com.example.phoenx.ui.screens.assistant.AssistantViewModel
+import com.example.phoenx.ui.components.FloatingAssistantBubble
+import com.example.phoenx.ui.screens.assistant.AssistantChatPanel
 import com.example.phoenx.ui.navigation.PhoenXNavGraph
 import com.example.phoenx.ui.screens.guide.WelcomeGuideScreen
 import com.example.phoenx.ui.theme.PhoenXTheme
 import com.example.phoenx.ui.theme.ThemeViewModel
 import com.example.phoenx.ui.theme.LocalBackgroundBrush
 import com.example.phoenx.ui.theme.AccentPrimary
+import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.components.rippleTrailDetection
 import com.example.phoenx.ui.components.RippleTrailOverlay
 import com.example.phoenx.ui.components.RippleTrailState
@@ -138,7 +143,7 @@ class MainActivity : FragmentActivity() {
                     }
                 } else if (isUnlocked) {
                     android.util.Log.d("PHOENX_DEBUG", "Chargement MainContent")
-                    MainContent(accentColor)
+                    MainContent(accentColor, showGuide)
                 } else {
                     Box(
                         modifier = Modifier
@@ -151,29 +156,33 @@ class MainActivity : FragmentActivity() {
     }
 
     @Composable
-    fun MainContent(accentColor: androidx.compose.ui.graphics.Color) {
+    fun MainContent(accentColor: androidx.compose.ui.graphics.Color, isWelcomeGuideVisible: Boolean) {
         LaunchedEffect(Unit) {
             mainViewModel.confirmPresence()
         }
 
         val isVoiceActive by mainViewModel.isVoiceModeActive.collectAsState()
-        // val showRecoveryReminder by mainViewModel.showRecoveryReminder.collectAsState() // Mis en veille
         val navController = rememberNavController()
         this.navController = navController
 
         val rippleState = remember { RippleTrailState() }
+        
+        // v9.4.29 : Centralisation de l'Assistant IA
+        val assistantViewModel: AssistantViewModel = hiltViewModel()
+        val currentBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = currentBackStackEntry?.destination?.route
+        
+        val assistantX by assistantViewModel.bubbleX.collectAsState()
+        val assistantY by assistantViewModel.bubbleY.collectAsState()
+        val isAssistantChatOpen by assistantViewModel.isChatOpen.collectAsState()
 
-        /*
-        if (showRecoveryReminder) {
-            RecoveryReminderDialog(
-                onDismiss = { mainViewModel.dismissRecoveryReminder(false) },
-                onConfirm = { 
-                    mainViewModel.dismissRecoveryReminder(true)
-                    navController.navigate(Screen.Settings.route + "?showRecovery=true")
-                }
-            )
-        }
-        */
+        val shouldShowAssistant = !isWelcomeGuideVisible && 
+                                  currentRoute != null && 
+                                  !currentRoute.startsWith("splash") &&
+                                  !currentRoute.startsWith("onboarding") &&
+                                  !currentRoute.startsWith("auth") &&
+                                  !currentRoute.contains("CAMERA_PHOTO") &&
+                                  !currentRoute.contains("CAMERA_VIDEO")
 
         LaunchedEffect(isVoiceActive) {
             if (isVoiceActive) {
@@ -214,8 +223,24 @@ class MainActivity : FragmentActivity() {
             )
 
             // Overlay GLOBAL de traînée tactile (v9.2.7)
-            // Placé APRES le NavGraph pour être au-dessus
             RippleTrailOverlay(state = rippleState)
+            
+            // v9.4.29 : Assistant IA Global
+            if (shouldShowAssistant) {
+                FloatingAssistantBubble(
+                    initialX = assistantX,
+                    initialY = assistantY,
+                    onPositionChanged = { x, y -> assistantViewModel.savePosition(x, y) },
+                    onClick = { assistantViewModel.toggleChat() }
+                )
+
+                if (isAssistantChatOpen) {
+                    AssistantChatPanel(
+                        viewModel = assistantViewModel,
+                        onDismiss = { assistantViewModel.toggleChat() }
+                    )
+                }
+            }
         }
     }
 }

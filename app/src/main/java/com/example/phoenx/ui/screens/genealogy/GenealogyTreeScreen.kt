@@ -51,14 +51,10 @@ import java.util.*
 fun GenealogyTreeScreen(
     navController: NavController,
     targetCreatorId: String? = null,
-    viewModel: GenealogyTreeViewModel = hiltViewModel(),
-    assistantViewModel: com.example.phoenx.ui.screens.assistant.AssistantViewModel = hiltViewModel()
+    viewModel: GenealogyTreeViewModel = hiltViewModel()
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
-    val assistantX by assistantViewModel.bubbleX.collectAsState()
-    val assistantY by assistantViewModel.bubbleY.collectAsState()
-    val isAssistantChatOpen by assistantViewModel.isChatOpen.collectAsState()
 
     val treeGroups by viewModel.treeGroups.collectAsState() // v9.4.26
     val allPersons by viewModel.allPersons.collectAsState()
@@ -361,21 +357,6 @@ fun GenealogyTreeScreen(
                 isAddingAscendant = false
             },
             accent = accent
-        )
-    }
-
-    // v9.4.25 : Bulle Assistant IA
-    com.example.phoenx.ui.components.FloatingAssistantBubble(
-        initialX = assistantX,
-        initialY = assistantY,
-        onPositionChanged = { x, y -> assistantViewModel.savePosition(x, y) },
-        onClick = { assistantViewModel.toggleChat() }
-    )
-
-    if (isAssistantChatOpen) {
-        com.example.phoenx.ui.screens.assistant.AssistantChatPanel(
-            viewModel = assistantViewModel,
-            onDismiss = { assistantViewModel.toggleChat() }
         )
     }
 }

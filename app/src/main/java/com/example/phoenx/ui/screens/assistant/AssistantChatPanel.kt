@@ -147,6 +147,9 @@ fun AssistantChatPanel(
                 ),
                 maxLines = 3
             )
+            
+            // v9.4.29 : Spacer de sécurité pour le clavier
+            Spacer(Modifier.imePadding())
         }
     }
 }

@@ -105,7 +105,7 @@ Tous les concurrents prennent des instantanés. PHOEN-X capture le **mouvement**
 - Vue "Mon Fil" : frise verticale groupée par année d'âge
 - Filtres : par année d'âge, par catégorie émotionnelle, par mot-clé
 - L'IA détecte les évolutions : "Tu as commencé à parler de transmission à 41 ans — c'est devenu ton thème dominant à 44 ans"
-- **Les Amendements** : note datée apposable sur n'importe quelle entrée ancienne — "J'avais tort" ou "Je pense autrement aujourd'hui". L'entrée originale reste intacte à jamais.
+- **Les Amendements** : note datée apposable on n'importe quelle entrée ancienne — "J'avais tort" ou "Je pense autrement aujourd'hui". L'entrée originale reste intacte à jamais.
 - **Le Dialogue Temporel** : l'interface scénarise la confrontation entre une pensée et son amendement en vue côte à côte. L'IA souligne l'évolution stylistique : "Tu utilisais des mots plus durs à 30 ans. Voici ce qui a changé à 50 ans."
 
 ### Côté Destinataire
@@ -324,27 +324,9 @@ Les lettres à son jeune soi sont universellement compréhensibles et émotionne
 
 ---
 
-## 4.18 — LE MODE 3H DU MATIN ⭐
+## 4.18 — LE MODE 3H DU MATIN (ABANDONNÉ)
 
-### Le problème résolu
-
-Les pensées les plus importantes arrivent la nuit, à 3h, quand on n'arrive pas à dormir. PHOEN-X doit pouvoir les capturer sans aucune friction — idéalement sans même regarder l'écran.
-
-### Fonctionnement
-
-**Friction Zéro : l'utilisateur peut enregistrer les yeux fermés, dans le noir total.**
-
-- Accessible depuis l'écran de verrouillage via un **widget Android** (pression longue)
-- Accessible depuis le volet de notification via une **Quick Settings Tile** dédiée — la solution la plus fiable sur Android 12 et supérieur
-- Fond noir complet à l'activation — aucun menu visible, aucune navigation
-- Le micro s'active immédiatement, sans confirmation, sans délai
-- Seul élément visible pendant l'enregistrement : forme d'onde blanche sur fond noir + chronomètre discret
-- Pression courte = stop et sauvegarde automatique
-- La capture est chiffrée et stockée localement (OfflineManager) sans connexion réseau requise
-- Le lendemain à 8h : notification douce — "Tu as déposé quelque chose cette nuit. Veux-tu le classer ?" — qui ouvre directement cette entrée dans le Fil de Pensée
-- Classement IA automatique en arrière-plan pendant la nuit
-
-*Note technique* : ne pas utiliser le double-clic sur le bouton d'alimentation. Depuis Android 12, ce geste est réservé par Google à ses propres services (Gemini, Assistant) et ne peut plus être intercepté de façon fiable par des applications tierces. S'en tenir aux Quick Settings Tiles et au widget écran de verrouillage.
+> **Mention IMPORTANTE** : Mode 3h du Matin (capture nocturne sur écran noir) — fonctionnalité **ABANDONNÉE** et retirée du code. Ne pas réintroduire.
 
 ---
 
@@ -362,7 +344,7 @@ Un hôpital. Un avion. Un tunnel. Une zone blanche. Les moments où on veut capt
 - L'utilisateur ne voit jamais la différence entre une capture en ligne et hors-ligne
 - Indicateur discret dans les Réglages uniquement : "X éléments en attente de synchronisation"
 
-**Fonctions disponibles hors-ligne** : capture texte, audio, photo — lecture des entrées déjà téléchargées — Mode 3h du Matin — Lettre à Mon Jeune Moi.
+**Fonctions disponibles hors-ligne** : capture texte, audio, photo — lecture des entrées déjà téléchargées — Lettre à Mon Jeune Moi.
 
 **Fonctions indisponibles hors-ligne** : analyse IA, envoi de legs, Preuve de Vie (mise en file pour envoi dès reconnexion).
 
@@ -421,7 +403,7 @@ Une séparation racontée par les deux ex-partenaires. Une enfance racontée par
 
 ### Le problème résolu
 
-Les personnes âgées, les personnes avec des troubles moteurs, les personnes en situation de maladie grave ne peuvent pas toujours utiliser facilement un clavier. C'est une partie significative de la cible naturelle de PHOEN-X. L'app doit fonctionner entièrement à la voix pour ceux qui en ont besoin.
+Les personnes âgées, les personnes avec des troubles moteurs, les personnes en situation de maladie grave ne peuvent pas toujours utiliser facilement un clavier. C'est une partie significative de la cible naturelle de PHOEN-X. L'app doit fonctionner entièrement à la voix pour ceux en ont besoin.
 
 ### Fonctionnement
 
@@ -431,7 +413,7 @@ Les personnes âgées, les personnes avec des troubles moteurs, les personnes en
 - Compatible TalkBack (service d'accessibilité natif Android)
 - Vitesse de lecture et volume réglables dans les Réglages
 
-Commandes vocales reconnues : "Dépose une pensée" / "Ouvre mon fil" / "Mode nuit" / "Réponds à la question" / "Mes transmissions" / "Retour"
+Commandes vocales reconnues : "Dépose une pensée" / "Ouvre mon fil" / "Réponds à la question" / "Mes transmissions" / "Retour"
 
 ### Impact stratégique
 
@@ -730,12 +712,11 @@ SlideUp      400ms  EaseOut  32dp→0   — entrées d'éléments dans les liste
 Breathe      4s     infini   1.0↔1.03 — mode audio actif
 PressDown    100ms           0.97     — feedback au tap sur boutons
 SealReveal   800ms           scale+fade — révélation d'un contenu déverrouillé
-NightPulse   2s     infini   fade blanc subtil — mode 3h du Matin actif
 ```
 
 ## Règles absolues — ce qui est interdit
 
-- Jamais de noir pur (#000000) comme fond — sauf Mode 3h du Matin (volontaire)
+- Jamais de noir pur (#000000) comme fond.
 - Jamais deux accents sur le même écran simultanément
 - Jamais d'esthétique funéraire (croix, bougies, gris-deuil)
 - Jamais d'animations ludiques ou gamifiées (confettis, rebonds)
@@ -761,7 +742,6 @@ Objectif unique et non négociable : prouver que la boucle de base fonctionne.
 - Le Fil de Pensée complet (filtres, vue par âge, Amendements, Dialogue Temporel)
 - Catégories émotionnelles avec distinction Assouvi / Non assouvi
 - La Lettre à Mon Jeune Moi
-- Le Mode 3h du Matin (widget + Quick Settings Tile)
 - Mes Meilleurs (livres, films, musique)
 - Les 100 Questions
 - Dates d'ouverture programmées (Boîte aux Lettres)
@@ -799,7 +779,7 @@ Objectif unique et non négociable : prouver que la boucle de base fonctionne.
 
 | Offre | Contenu inclus | Modèle |
 |---|---|---|
-| **Memo** | Capture limitée, Fil de Pensée basique, 1-2 destinataires, Mode Hors-ligne, Mode 3h du Matin | Gratuit |
+| **Memo** | Capture limitée, Fil de Pensée basique, 1-2 destinataires, Mode Hors-ligne | Gratuit |
 | **Legacy** | Tout illimité, audio, IA complète, dépositaires, Lettre à Mon Jeune Moi, Pacte, Portrait d'un Proche, Protocole de Réconciliation | Abonnement annuel |
 | **Immersion** | Livre audio, Film de vie, Interface Cube complète, Accessibilité vocale totale, expériences premium | Add-on ou palier prestige |
 
@@ -850,9 +830,6 @@ Unique sur le marché mondial.
 FONCTIONNALITÉS V1 SUPPLÉMENTAIRES :
 - Lettre à Mon Jeune Moi : lettre adressée à soi à un âge
   passé, connectée visuellement au Fil de Pensée
-- Mode 3h du Matin : capture vocale depuis l'écran de
-  verrouillage via widget et Quick Settings Tile, fond
-  noir total, friction zéro
 - Mode Hors-Ligne : Room Database locale + WorkManager,
   sync automatique à la reconnexion, transparent pour
   l'utilisateur
@@ -880,8 +857,7 @@ STACK TECHNIQUE COMPLET :
 - Navigation Compose, Hilt, Coroutines, ViewModel
 
 DESIGN :
-- Fond : #1A1A1F (anthracite profond — jamais #000000 sauf
-  Mode 3h du Matin)
+- Fond : #1A1A1F (anthracite profond — jamais #000000)
 - Accent UNIQUE : #C97B3A (braise/doré — jamais deux accents
   simultanés sur un même écran)
 - Texte : #F2EDE8 (blanc chaud — jamais #FFFFFF)
@@ -930,7 +906,6 @@ com.phoenx.app/
 │   │   ├── capture/
 │   │   ├── fil/            ← Fil de Pensée (signature)
 │   │   ├── youngselfletters/ ← Lettre à Mon Jeune Moi
-│   │   ├── nightmode/      ← Mode 3h du Matin
 │   │   ├── worlds/
 │   │   ├── favorites/      ← Mes Meilleurs
 │   │   ├── questions/      ← 100 Questions
@@ -992,7 +967,6 @@ TextTertiary = 0xFF5C5855
 Success = 0xFF4CAF50
 Error = 0xFFE57373
 Warning = 0xFFFFB74D
-NightBackground = 0xFF000000  ← UNIQUEMENT pour Mode 3h
 
 Type.kt — typographie :
 - Importer Playfair Display et Inter depuis Google Fonts
@@ -1019,7 +993,6 @@ Animations.kt — specs complètes :
 - Breathe : 4s infini, scale 1.0↔1.03
 - PressDown : 100ms, scale 0.97
 - SealReveal : 800ms, scale+fade pour révélations
-- NightPulse : 2s infini, fade blanc très subtil
 
 Theme.kt :
 - Dark mode uniquement V1
@@ -1163,7 +1136,6 @@ auth/signup
 auth/login
 home
 capture/{type}                TEXT | AUDIO | PHOTO
-capture/night                 ← Mode 3h du Matin
 fil                           ← Fil de Pensée
 fil/{ageYear}                 ← Fil filtré sur une année
 youngselfletters
@@ -1333,7 +1305,6 @@ SECTION 2 — Bouton d'Impulsion (cœur de l'app) :
   📝 Texte → capture/TEXT
   🎤 Voix → capture/AUDIO
   📷 Photo → capture/PHOTO
-  🌙 Mode nuit → capture/night
 
 SECTION 3 — Fil de Pensée (SIGNATURE VISIBLE) :
 Carte SurfaceCard, coins 16dp.
@@ -1460,11 +1431,10 @@ Inclure AgeUtils.kt avec calculateAge() réutilisable.
 
 ---
 
-## PROMPT 10 — Capture, Mode 3h du Matin, Hors-ligne
+## PROMPT 10 — Capture, Mode 3h du Matin (ABANDONNÉ), Hors-ligne
 
 ```
-Crée CaptureScreen.kt, NightCaptureWidget.kt,
-NightCaptureTile.kt et CaptureViewModel.kt.
+Crée CaptureScreen.kt et CaptureViewModel.kt.
 
 CAPTURE NORMALE — CaptureScreen.kt :
 
@@ -1518,27 +1488,9 @@ APRÈS TAP SUR "DÉPOSER" :
    Il t'appartient."
 9. Retour home après 1.5s
 
-MODE 3H DU MATIN — NightCaptureWidget.kt + NightCaptureTile.kt :
-
-Widget écran de verrouillage (AppWidgetProvider) :
-- Pression longue → activation
-- Fond #000000 (exception unique dans tout le design)
-- Aucun menu visible — friction absolument nulle
-- Micro s'active IMMÉDIATEMENT (pas de confirmation)
-- Seuls éléments visibles : forme d'onde blanche + chrono
-- Animation NightPulse pendant enregistrement
-- Pression courte → stop + sauvegarde auto OfflineManager
-
-Quick Settings Tile (TileService) :
-- Même comportement, accessible depuis volet notification
-- Priorité sur le widget car plus accessible sur Android 12+
-
-Les deux déclenchent le même flux :
-- Sauvegarde locale chiffrée immédiate
-- Notification lendemain 8h :
-  "Tu as déposé quelque chose cette nuit.
-   Veux-tu le classer ?"
-  → deeplink vers FilScreen à cette entrée
+---
+> **Mention IMPORTANTE** : Mode 3h du Matin (capture nocturne sur écran noir) — fonctionnalité **ABANDONNÉE** et retirée du code. Ne pas réintroduire.
+---
 ```
 
 ---
@@ -1720,7 +1672,7 @@ ProtocolSettingsScreen.kt, LivenessManager.kt,
 VoiceAccessibilityManager.kt, AccessibilitySettingsScreen.kt.
 
 PREUVE DE VIE PASSIVE — LivenessManager.kt :
-Stratégie Zéro Anxiété — 3 niveaux de détection :
+Stratégie Zéro Anxiété — 3 niveaux de de détection :
 
 Niveau 1 (automatique, silencieux) :
 - Toute ouverture de l'app met à jour lastAliveConfirmedAt
@@ -1787,7 +1739,6 @@ Activable depuis Réglages > Accessibilité.
 
 Commandes vocales (SpeechRecognizer) :
 "Dépose une pensée" → capture/TEXT
-"Mode nuit" → capture/night
 "Ouvre mon fil" → fil
 "Réponds à la question" → capture avec question active
 "Mes transmissions" → legacy
@@ -1822,7 +1773,7 @@ Capture vocale complète :
 | 7 | Authentification | Inscription + phrase récupération + login | Semaine 2 |
 | 8 | Cockpit | Accueil + Fil aperçu + Preuve de Vie | Semaine 2 |
 | 9 | Fil de Pensée + Lettre | Fonctionnalités signature V1 | Semaines 2-3 |
-| 10 | Capture + Mode 3h | Dépôt toutes formes + widget nuit | Semaine 3 |
+| 10 | Capture + Abandon de fonction | Dépôt toutes formes | Semaine 3 |
 | 11 | Portrait + Pacte | Mémoire relationnelle | Semaine 4 |
 | 12 | Intelligence IA | Gemini Nano + 7 Cloud Functions | Semaine 4 |
 | 13 | Protocole + Accessibilité | Dépositaire + Preuve de Vie + Voix | Semaine 4 |
@@ -1845,7 +1796,7 @@ Les violations de ces règles nécessitent de refaire depuis zéro — pas de co
 4. Vertex AI reçoit UNIQUEMENT aiSummary et aiTags générés localement — jamais le contenu original
 5. Ne jamais activer le protocole de transmission sans délai de contestation de minimum 24h
 6. Jamais plus d'une action primaire visible par écran — règle UX absolue
-7. Jamais de noir pur (#000000) comme fond — sauf Mode 3h du Matin (exception intentionnelle)
+7. Jamais de noir pur (#000000) comme fond.
 8. Jamais l'IA ne parle au nom du défunt à la première personne du présent
 9. La voix synthétique ne remplace jamais une voix réelle — elle complète uniquement les lacunes
 10. Ne jamais lancer une fonctionnalité V2 avant que le MVP soit testé par de vrais utilisateurs pendant au moins 2 semaines
@@ -1872,9 +1823,6 @@ Ces textes doivent apparaître exactement tels quels, aux emplacements indiqués
 
 **Notification Preuve de Vie** (si tap manuel nécessaire) :
 > "Tu es là. Un tap suffit à le confirmer."
-
-**Texte introductif du Mode 3h du Matin** (première utilisation uniquement) :
-> "Les pensées qui arrivent la nuit méritent d'être gardées. Parle. On s'occupe du reste."
 
 **Texte introductif de la Lettre à Mon Jeune Moi** :
 > "Qu'aurais-tu voulu entendre, à l'âge où tout semblait encore incertain ?"

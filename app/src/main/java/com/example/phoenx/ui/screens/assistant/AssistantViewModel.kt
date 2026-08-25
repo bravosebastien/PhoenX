@@ -36,16 +36,6 @@ class AssistantViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // --- ACCUEIL PROACTIF (v9.4.27) ---
-    val hasSeenWelcome: StateFlow<Boolean> = preferenceManager.hasSeenAssistantWelcome
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
-
-    fun markWelcomeSeen() {
-        viewModelScope.launch {
-            preferenceManager.setAssistantWelcomeSeen()
-        }
-    }
-
     val suggestedQuestions = listOf(
         "Comment déposer mon premier souvenir ?",
         "Qui pourra voir ce que j'écris ?",

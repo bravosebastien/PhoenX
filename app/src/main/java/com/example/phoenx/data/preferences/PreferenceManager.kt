@@ -45,7 +45,6 @@ class PreferenceManager @Inject constructor(
     private val HAS_SEEN_STEP_BY_STEP_NUDGE_KEY = booleanPreferencesKey("has_seen_step_by_step_nudge")
 
     // v9.4.27 : Assistant Proactif
-    private val HAS_SEEN_ASSISTANT_WELCOME_KEY = booleanPreferencesKey("has_seen_assistant_welcome")
     private val HAS_SEEN_INCLUDE_IN_BOOK_NUDGE_KEY = booleanPreferencesKey("has_seen_include_in_book_nudge")
 
     fun isSyncMigrationV1Done(): Flow<Boolean> = context.dataStore.data
@@ -211,14 +210,6 @@ class PreferenceManager @Inject constructor(
 
     suspend fun setStepByStepNudgeSeen() {
         context.dataStore.edit { it[HAS_SEEN_STEP_BY_STEP_NUDGE_KEY] = true }
-    }
-
-    // --- ASSISTANT PROACTIF (v9.4.27) ---
-    val hasSeenAssistantWelcome: Flow<Boolean> = context.dataStore.data
-        .map { it[HAS_SEEN_ASSISTANT_WELCOME_KEY] ?: false }
-
-    suspend fun setAssistantWelcomeSeen() {
-        context.dataStore.edit { it[HAS_SEEN_ASSISTANT_WELCOME_KEY] = true }
     }
 
     // --- SOUVERAINETÉ (v9.4.27) ---
