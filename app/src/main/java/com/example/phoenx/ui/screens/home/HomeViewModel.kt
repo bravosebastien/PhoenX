@@ -55,11 +55,15 @@ class HomeViewModel @Inject constructor(
     private val _daysSincePresence = MutableStateFlow(0)
     val daysSincePresence: StateFlow<Int> = _daysSincePresence.asStateFlow()
 
+    private var authListener: FirebaseAuth.AuthStateListener? = null
+    private var lastLoadedUserId: String? = null
+
     init {
-        // v9.4.29 : Rendre le chargement réactif à l'authentification
-        auth.addAuthStateListener { firebaseAuth ->
+        // v9.4.29 : Rendre le chargement réactif à l'authentification avec protection doublons
+        authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
             val user = firebaseAuth.currentUser
-            if (user != null) {
+            if (user != null && user.uid != lastLoadedUserId) {
+                lastLoadedUserId = user.uid
                 loadUserData()
                 loadBiographerQuestion()
                 observeLatestEntries()
@@ -69,7 +73,13 @@ class HomeViewModel @Inject constructor(
                 loadHomeCardsConfig()
             }
         }
+        auth.addAuthStateListener(authListener!!)
         fetchRemoteConfig()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        authListener?.let { auth.removeAuthStateListener(it) }
     }
 
     private fun loadHomeCardsConfig() {
@@ -126,20 +136,16 @@ class HomeViewModel @Inject constructor(
 
     private fun loadExtraStats() {
         val user = auth.currentUser
-        Log.e("PHOENX_COVER_R", "loadExtraStats appelée, user=${user?.uid}")
         if (user == null) return
 
         // 1. ÉCOUTEUR COUVERTURE (Indépendant et Prioritaire)
-        Log.e("PHOENX_COVER_R", "Installation du listener couverture...")
         db.collection("users").document(user.uid)
             .collection("book").document("current_draft")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Log.e("PHOENX_COVER_R", "ERREUR Firestore Snapshot Couverture: ${error.message}", error)
                     return@addSnapshotListener
                 }
                 if (snapshot == null || !snapshot.exists()) {
-                    Log.w("PHOENX_COVER_R", "Snapshot reçu mais document INEXISTANT")
                     return@addSnapshotListener
                 }
 
@@ -150,8 +156,6 @@ class HomeViewModel @Inject constructor(
                 val offsetX = snapshot.getDouble("coverOffsetX")?.toFloat() ?: 0f
                 val offsetY = snapshot.getDouble("coverOffsetY")?.toFloat() ?: 0f
                 
-                Log.e("PHOENX_COVER_R", "Lecture Firestore RÉUSSIE: title=$title, style=$style, url=$coverUrl")
-
                 val chaptersList = snapshot.get("chapters")
                 @Suppress("UNCHECKED_CAST")
                 val chapters = chaptersList as? List<Map<String, Any>> ?: emptyList()

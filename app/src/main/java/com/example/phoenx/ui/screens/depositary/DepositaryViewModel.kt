@@ -39,6 +39,27 @@ class DepositaryViewModel @Inject constructor(
     private val _redeemState = MutableStateFlow<RedeemState>(RedeemState.Loading)
     val redeemState: StateFlow<RedeemState> = _redeemState.asStateFlow()
 
+    private var authListener: FirebaseAuth.AuthStateListener? = null
+    private var lastLoadedUserId: String? = null
+    private var pendingCreatorId: String? = null
+
+    init {
+        // v9.4.29 : Rendre le chargement réactif à l'authentification avec protection doublons
+        authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+            val user = firebaseAuth.currentUser
+            if (user != null && user.uid != lastLoadedUserId) {
+                lastLoadedUserId = user.uid
+                pendingCreatorId?.let { loadCreatorStatus(it) }
+            }
+        }
+        auth.addAuthStateListener(authListener!!)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        authListener?.let { auth.removeAuthStateListener(it) }
+    }
+
     // Persistance des données de liaison via SavedStateHandle (survit à la navigation)
     private var pendingJoinData: Triple<String, String, String>?
         get() = savedStateHandle.get<List<String>>("pending_join_data")?.let { 
@@ -148,7 +169,13 @@ class DepositaryViewModel @Inject constructor(
     }
 
     fun loadCreatorStatus(creatorId: String) {
-        val myUid = auth.currentUser?.uid ?: return
+        val user = auth.currentUser
+        if (user == null) {
+            pendingCreatorId = creatorId
+            return
+        }
+        val myUid = user.uid
+
         android.util.Log.d("PHOENX_DEBUG", "Entrée dans loadCreatorStatus avec ID=$creatorId")
         
         viewModelScope.launch {
