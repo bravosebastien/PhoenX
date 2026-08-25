@@ -1,5 +1,6 @@
 package com.example.phoenx.service
 
+import android.util.Log
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.model.*
@@ -89,7 +90,11 @@ class BookGeneratorService @Inject constructor(
                 theme = theme,
                 coverImageUrl = rawData["coverImageUrl"] as? String,
                 coverTitleStyle = rawData["coverTitleStyle"] as? String ?: "GOLD",
-                visibility = rawData["visibility"] as? String ?: "RESTRICTED"
+                visibility = rawData["visibility"] as? String ?: "RESTRICTED",
+                coverScale = (rawData["coverScale"] as? Number)?.toFloat() ?: 1f,
+                coverOffsetX = (rawData["coverOffsetX"] as? Number)?.toFloat() ?: 0f,
+                coverOffsetY = (rawData["coverOffsetY"] as? Number)?.toFloat() ?: 0f,
+                coverUploadedAt = toLong(rawData["coverUploadedAt"], 0L).let { if (it == 0L) null else it }
             )
 
             android.util.Log.d("PHOENX_BOOK_TRACE", "3. Mapping manuel réussi. Chapitres: ${draft.chapters.size}")
@@ -146,15 +151,29 @@ class BookGeneratorService @Inject constructor(
 
         // v9.4.27 : Filtrage strict
         val parents = allEntries.filter { entry ->
-            val isIncluded = entry.parentEntryId == null && entry.includeInBook && entry.enigmaQuestion == null 
+            val isParent = entry.parentEntryId == null
+            val isIncluded = entry.includeInBook
+            val noEnigma = entry.enigmaQuestion == null
             
-            if (isIncluded && entry.pactId != null) {
-                // Si c'est un Miroir à Deux, on vérifie le DOUBLE CONSENTEMENT (v9.4.27)
+            val doubleConsentOk = if (entry.pactId != null) {
                 val pact = pacts[entry.pactId]
                 pact != null && pact.myConsentToBook && pact.partnerConsentToBook
-            } else {
-                isIncluded
+            } else true
+
+            val accepted = isParent && isIncluded && noEnigma && doubleConsentOk
+            
+            if (!accepted) {
+                val reason = when {
+                    !isParent -> "Complément (parent=${entry.parentEntryId})"
+                    !isIncluded -> "Exclu par l'utilisateur (includeInBook=false)"
+                    !noEnigma -> "Protégé par énigme"
+                    !doubleConsentOk -> "Attente double consentement (Pacte)"
+                    else -> "Inconnu"
+                }
+                android.util.Log.d("PHOENX_BOOK_DEBUG", "REJETÉ: ID=${entry.id}, Title=${entry.aiSummary}, Raison=$reason")
             }
+            
+            accepted
         }
         
         return parents.map { parent ->
@@ -252,12 +271,28 @@ class BookGeneratorService @Inject constructor(
         onProgress: (String) -> Unit
     ): BookDraft {
         onProgress("Préparation des scènes de ta vie...")
+        
+        // v9.4.29 : Récupération du draft actuel pour PRÉSERVER les métadonnées (Titre, Couverture, Thème)
+        val existingDraft = loadBookDraft(userId)
+        
         val scenes = extractScenes()
+        
+        // v9.4.29 : Log des scènes envoyées à l'IA pour diagnostic "réunion"
+        try {
+            val sceneSummary = scenes.map { s -> 
+                "ID: ${s["id"]}, Title: ${s["summary"]}, Age: ${s["age"]}, Included: true"
+            }.joinToString("\n")
+            android.util.Log.d("PHOENX_BOOK_DEBUG", "SCÈNES ENVOYÉES À L'IA :\n$sceneSummary")
+        } catch (e: Exception) {
+            android.util.Log.w("PHOENX_BOOK_DEBUG", "Échec log résumé scènes")
+        }
         
         if (scenes.isEmpty()) {
             throw Exception("Pas assez de souvenirs pour écrire ton livre.")
         }
-
+        
+        // ... (reste de la logique de préparation inchangée) ...
+        
         // v9.1 : Récupération du profil enrichi du Créateur
         val richProfile = offlineEntryDao.getCreatorProfileSync(userId)
         val authorProfileMap = richProfile?.let { p ->
@@ -344,11 +379,22 @@ class BookGeneratorService @Inject constructor(
             )
         }
 
+        // v9.4.29 : On crée le nouveau draft en INJECTANT les métadonnées existantes
         val draft = BookDraft(
             id = java.util.UUID.randomUUID().toString(),
             userId = userId,
             chapters = chapters,
-            totalEntries = scenes.size
+            totalEntries = scenes.size,
+            bookTitle = existingDraft?.bookTitle,
+            coverImageUrl = existingDraft?.coverImageUrl,
+            coverTitleStyle = existingDraft?.coverTitleStyle ?: "GOLD",
+            coverScale = existingDraft?.coverScale ?: 1f,
+            coverOffsetX = existingDraft?.coverOffsetX ?: 0f,
+            coverOffsetY = existingDraft?.coverOffsetY ?: 0f,
+            coverUploadedAt = existingDraft?.coverUploadedAt,
+            theme = existingDraft?.theme ?: BookTheme(),
+            visibility = existingDraft?.visibility ?: "RESTRICTED",
+            sealedMessage = existingDraft?.sealedMessage ?: ""
         )
 
         onProgress("Sauvegarde finale...")
@@ -363,10 +409,6 @@ class BookGeneratorService @Inject constructor(
         return draft
     }
 
-    /**
-     * Enregistre le brouillon dans Firestore.
-     * v9.4.27 : Utilisation d'une Map pour garantir la présence des champs de sécurité.
-     */
     suspend fun saveBookDraft(userId: String, draft: BookDraft) {
         try {
             val chaptersMap = draft.chapters.map { chapter ->
@@ -380,11 +422,12 @@ class BookGeneratorService @Inject constructor(
                 )
             }
 
-            val data: Map<String, Any?> = hashMapOf(
+            // v9.4.29 : Filtrage systématique des valeurs NULL pour éviter l'effacement accidentel de champs Firestore
+            val rawData: Map<String, Any?> = hashMapOf(
                 "id" to draft.id,
                 "userId" to draft.userId,
                 "generatedAt" to draft.generatedAt,
-                "lastUpdatedAt" to System.currentTimeMillis(), // Rétabli en Long pour compatibilité v9.4.27
+                "lastUpdatedAt" to System.currentTimeMillis(),
                 "status" to draft.status.name,
                 "chapters" to chaptersMap,
                 "totalEntries" to draft.totalEntries,
@@ -398,15 +441,25 @@ class BookGeneratorService @Inject constructor(
                 ),
                 "coverImageUrl" to draft.coverImageUrl,
                 "coverTitleStyle" to draft.coverTitleStyle,
-                "visibility" to (draft.visibility ?: "RESTRICTED") // FORCE L'ÉCRITURE
+                "visibility" to (draft.visibility ?: "RESTRICTED"),
+                "coverScale" to draft.coverScale,
+                "coverOffsetX" to draft.coverOffsetX,
+                "coverOffsetY" to draft.coverOffsetY,
+                "coverUploadedAt" to draft.coverUploadedAt
             )
+            
+            val filteredData = rawData.filterValues { it != null }
 
+            Log.d("PHOENX_COVER_W", "Écriture Firestore: doc=users/$userId/book/current_draft, data=$filteredData")
             db.collection("users").document(userId)
                 .collection("book").document("current_draft")
-                .set(data)
+                .set(filteredData, com.google.firebase.firestore.SetOptions.merge())
                 .await()
+            Log.d("PHOENX_COVER_W", "Écriture RÉUSSIE")
         } catch (e: Exception) {
+            Log.e("PHOENX_COVER_W", "ERREUR ÉCRITURE: ${e.message}")
             android.util.Log.e("PHOENX_BOOK", "Erreur lors de la sauvegarde: ${e.message}")
+            throw e // Renvoyer l'erreur pour que l'UI puisse l'afficher
         }
     }
 

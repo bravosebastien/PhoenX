@@ -41,8 +41,8 @@ class MemoryPersonSelectionManager @Inject constructor(
         characterType: String
     ): SimplifiedPerson {
         val newPerson = PersonEntity(
-            firstName = firstName,
-            lastName = lastName,
+            firstName = firstName.trim(),
+            lastName = lastName?.trim(),
             relationship = relationship,
             distinctionType = distinctionType,
             distinctionValue = distinctionValue,

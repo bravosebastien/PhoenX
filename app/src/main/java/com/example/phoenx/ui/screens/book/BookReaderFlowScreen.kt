@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.book
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,12 +27,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastForEach
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
 import com.example.phoenx.data.local.OfflineEntry
-import com.example.phoenx.data.model.BookTheme
+import com.example.phoenx.data.media.MediaManager
+import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.LocalAccentColor
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -194,7 +194,16 @@ fun BookReaderFlowScreen(
                                 Spacer(Modifier.height(32.dp))
 
                                 val content = decryptedChapters[chapter.id] ?: ""
-                                ReaderIllustrableText(content, mediaMap, fontFamily, textColor, accent, fontSizeScale)
+                                ReaderIllustrableText(
+                                    text = content, 
+                                    mediaMap = mediaMap, 
+                                    mediaManager = viewModel.mediaManager,
+                                    fontFamily = fontFamily, 
+                                    textColor = textColor, 
+                                    accent = accent, 
+                                    fontSizeScale = fontSizeScale,
+                                    creatorId = targetCreatorId ?: bookDraft?.userId
+                                )
 
                                 Spacer(Modifier.height(60.dp))
                                 HorizontalDivider(modifier = Modifier.fillMaxWidth(0.3f).align(Alignment.CenterHorizontally), color = textColor.copy(alpha = 0.1f))
@@ -262,12 +271,15 @@ fun BookReaderFlowScreen(
 fun ReaderIllustrableText(
     text: String,
     mediaMap: Map<String, OfflineEntry>,
+    mediaManager: MediaManager,
     fontFamily: FontFamily,
     textColor: Color,
     accent: Color,
-    fontSizeScale: Float
+    fontSizeScale: Float,
+    creatorId: String? = null
 ) {
-    val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9-]+)]")
+    // Regex pour détecter [PHOTO:uuid] ou [AUDIO:uuid]
+    val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9\\-]+)\\]")
     val parts = text.split(regex)
     val matches = regex.findAll(text).toList()
 
@@ -292,40 +304,20 @@ fun ReaderIllustrableText(
                 val entry = mediaMap[id]
 
                 if (type == "PHOTO" && entry != null) {
-                    val mediaSource = entry.localMediaPath ?: entry.mediaUrl
-                    if (mediaSource != null) {
-                        AsyncImage(
-                            model = mediaSource,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 400.dp)
-                                .clip(MaterialTheme.shapes.medium)
-                                .padding(vertical = 16.dp),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                } else if (type == "AUDIO" && entry != null) {
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                        colors = CardDefaults.cardColors(containerColor = textColor.copy(alpha = 0.05f)),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
-                    ) {
-                        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Surface(
-                                modifier = Modifier.size(36.dp),
-                                shape = androidx.compose.foundation.shape.CircleShape,
-                                color = accent.copy(alpha = 0.2f)
-                            ) {
-                                Icon(Icons.Default.PlayArrow, null, tint = accent, modifier = Modifier.padding(8.dp))
-                            }
-                            Spacer(Modifier.width(12.dp))
-                            Column {
-                                Text("FRAGMENT VOCAL", style = MaterialTheme.typography.labelSmall, color = accent)
-                                Text("Écouter ce souvenir", style = MaterialTheme.typography.bodySmall, color = textColor.copy(alpha = 0.6f))
-                            }
-                        }
-                    }
+                    SecureAsyncImage(
+                        mediaUrl = entry.mediaUrl,
+                        localPath = entry.localMediaPath,
+                        mediaManager = mediaManager,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 400.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .padding(vertical = 16.dp),
+                        contentScale = ContentScale.Crop,
+                        creatorId = creatorId,
+                        docType = "entries",
+                        docId = entry.id
+                    )
                 }
             }
         }

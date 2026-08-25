@@ -29,9 +29,9 @@
 *   **État** : Fonctionnel. Correction du merge différentiel effectuée pour la restauration cloud.
 
 ### D. Livre de Vie & IA Biographe
-*   **Fichiers** : `BookGeneratorService.kt`, `BookReaderFlowScreen.kt`, `BookViewerScreen.kt`, `BookEditorScreen.kt`.
-*   **Rôles** : Orchestre la génération de chapitres via Gemini. Propose deux modes de lecture : flux continu (`ReaderFlow`) ou par pages avec animations (`BookViewer` v9.2).
-*   **État** : Fonctionnel. Support des fiches personnages enrichies (v9.0) et du profil auteur (v9.1) intégré.
+*   **Fichiers** : `BookGeneratorService.kt`, `BookReaderFlowScreen.kt`, `BookEditorScreen.kt`.
+*   **Rôles** : Orchestre la génération de chapitres via Gemini. Lecture immersive en flux continu avec illustration dynamique des proches.
+*   **État** : Stable (v9.4.29). Détection automatique des personnages cités et insertion de photos inline validée.
 
 ### E. Le Cercle de Confiance (Héritage)
 *   **Fichiers** : `CercleConfianceScreen.kt`, `RecipientsScreen.kt`, `WitnessInviteScreen.kt`, `DepositaryViewModel.kt`.

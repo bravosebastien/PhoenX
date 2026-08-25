@@ -587,4 +587,14 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE creator_profile ADD COLUMN transmissionFontId TEXT NOT NULL DEFAULT 'playfair_display'")
         }
     }
+
+    /**
+     * MIGRATION_48_49 — Photos de proches dans le livre v9.4.29
+     */
+    val MIGRATION_48_49 = object : Migration(48, 49) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE creator_profile ADD COLUMN showPersonPhotos INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE recipients ADD COLUMN showPersonPhotos INTEGER NOT NULL DEFAULT 0")
+        }
+    }
 }

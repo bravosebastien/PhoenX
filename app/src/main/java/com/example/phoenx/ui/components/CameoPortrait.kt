@@ -36,7 +36,8 @@ fun CameoPortrait(
     firstName: String,
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
-    resolvedUrl: String? = null // v9.4.27 : URL déjà résolue (Source unique)
+    resolvedUrl: String? = null, // v9.4.27 : URL déjà résolue (Source unique)
+    useCharcoalFilter: Boolean = true // v9.4.29 : Permet de désactiver le filtre artistique
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -88,24 +89,25 @@ fun CameoPortrait(
     ) {
         if (!displayUrl.isNullOrBlank()) {
             // Filtre "Portrait au Fusain" via ColorMatrix
-            val charcoalMatrix = ColorMatrix().apply {
-                setToSaturation(0f) // Noir et blanc
-                // Augmentation du contraste (ajustement manuel des échelles)
-                val contrast = 1.2f
-                val translate = -0.1f
-                this[0, 0] = contrast
-                this[1, 1] = contrast
-                this[2, 2] = contrast
-                this[0, 4] = translate * 255
-                this[1, 4] = translate * 255
-                this[2, 4] = translate * 255
+            val charcoalMatrix = remember {
+                ColorMatrix().apply {
+                    setToSaturation(0f) // Noir et blanc
+                    val contrast = 1.2f
+                    val translate = -0.1f
+                    this[0, 0] = contrast
+                    this[1, 1] = contrast
+                    this[2, 2] = contrast
+                    this[0, 4] = translate * 255
+                    this[1, 4] = translate * 255
+                    this[2, 4] = translate * 255
+                }
             }
 
             AsyncImage(
                 model = displayUrl,
                 contentDescription = "Portrait de $firstName",
                 contentScale = ContentScale.Crop,
-                colorFilter = ColorFilter.colorMatrix(charcoalMatrix),
+                colorFilter = if (useCharcoalFilter) ColorFilter.colorMatrix(charcoalMatrix) else null,
                 modifier = Modifier.fillMaxSize()
             )
         } else {

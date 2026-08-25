@@ -70,7 +70,8 @@ fun BookCoverCard(
 
     val hasBackgroundImage = displayUrl != null
     
-    val titleBrush = getTitleBrush(coverTitleStyle)
+    // v9.4.29 : Fix Application des styles. Si BLACK ou WHITE, on désactive le dégradé (brush = null)
+    val titleBrush = if (coverTitleStyle == "BLACK" || coverTitleStyle == "WHITE") null else getTitleBrush(coverTitleStyle)
     val titleColor = when(coverTitleStyle) {
         "BLACK" -> Color.Black.copy(alpha = 0.85f)
         "WHITE" -> Color.White.copy(alpha = 0.85f)

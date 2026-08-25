@@ -114,7 +114,8 @@ fun PersonDetailsDialog(
                                 imagePath = profilePhotoPath, 
                                 firstName = person.firstName, 
                                 size = 80.dp,
-                                resolvedUrl = if (profilePhotoPath == person.imagePath) resolvedUrls[person.id] else null
+                                resolvedUrl = if (profilePhotoPath == person.imagePath) resolvedUrls[person.id] else null,
+                                useCharcoalFilter = false // v9.4.29 : Couleurs naturelles dans la fiche détail
                             )
                             if (!isReadOnly) {
                                 IconButton(

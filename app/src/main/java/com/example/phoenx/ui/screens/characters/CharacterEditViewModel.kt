@@ -132,8 +132,8 @@ class CharacterEditViewModel @Inject constructor(
             }
 
             val updated = current.copy(
-                firstName = firstName,
-                lastName = lastName,
+                firstName = firstName.trim(),
+                lastName = lastName?.trim(),
                 relationship = relationship,
                 distinctionType = distinctionType,
                 distinctionValue = distinctionValue,

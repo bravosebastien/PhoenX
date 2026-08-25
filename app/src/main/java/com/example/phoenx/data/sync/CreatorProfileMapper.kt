@@ -19,6 +19,7 @@ fun CreatorProfileEntity.toFirestoreMap(): Map<String, Any?> {
         "weight" to weight,
         "eyeColor" to eyeColor,
         "hairColor" to hairColor,
+        "showPersonPhotos" to showPersonPhotos,
         "updatedAt" to updatedAt
     )
 }

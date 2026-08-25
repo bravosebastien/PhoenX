@@ -240,7 +240,8 @@ class SyncWorker @AssistedInject constructor(
                         .update(
                             "richProfile", pendingProfile.toFirestoreMap(),
                             "transmissionBackgroundId", pendingProfile.transmissionBackgroundId,
-                            "transmissionFontId", pendingProfile.transmissionFontId
+                            "transmissionFontId", pendingProfile.transmissionFontId,
+                            "showPersonPhotos", pendingProfile.showPersonPhotos
                         ).await()
                     
                     offlineEntryDao.insertCreatorProfile(pendingProfile.copy(syncStatus = "synced"))

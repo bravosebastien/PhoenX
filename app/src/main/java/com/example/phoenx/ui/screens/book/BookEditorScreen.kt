@@ -444,9 +444,8 @@ fun BookEditorScreen(
                             Spacer(Modifier.height(16.dp))
                             com.example.phoenx.ui.components.GlobalThemeSelector(
                                 currentBackgroundId = globalAmbiance.backgroundId,
-                                currentFontId = globalAmbiance.fontId,
-                                onThemeChange = { bg, font -> viewModel.updateGlobalAmbiance(bg, font) }
-                            )
+                                currentFontId = globalAmbiance.fontId
+                            ) { bg, font -> viewModel.updateGlobalAmbiance(bg, font) }
                             HorizontalDivider(modifier = Modifier.padding(top = 24.dp), color = theme.contentColor.copy(alpha = 0.1f))
                         }
                     }

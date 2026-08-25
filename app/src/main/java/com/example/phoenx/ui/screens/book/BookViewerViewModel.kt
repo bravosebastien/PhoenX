@@ -7,6 +7,7 @@ import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.model.BookDraft
+import com.example.phoenx.data.sync.toPersonEntity
 import com.example.phoenx.service.BookGeneratorService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore

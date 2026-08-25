@@ -246,8 +246,8 @@ class GenealogyTreeViewModel @Inject constructor(
         viewModelScope.launch {
             val parentCsv = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ","
             val newPerson = PersonEntity(
-                firstName = firstName,
-                lastName = lastName,
+                firstName = firstName.trim(),
+                lastName = lastName?.trim(),
                 parentIds = parentCsv,
                 syncStatus = "pending"
             )
@@ -266,8 +266,8 @@ class GenealogyTreeViewModel @Inject constructor(
             val person = allPersons.value.find { it.id == personId } ?: return@launch
             val parentCsv = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ","
             val updated = person.copy(
-                firstName = firstName,
-                lastName = lastName,
+                firstName = firstName.trim(),
+                lastName = lastName?.trim(),
                 parentIds = parentCsv,
                 reparentedRelationLabel = relationLabel,
                 syncStatus = "pending"
@@ -292,6 +292,8 @@ class GenealogyTreeViewModel @Inject constructor(
         viewModelScope.launch {
             val person = allPersons.value.find { it.id == personId } ?: return@launch
             val updated = person.copy(
+                firstName = person.firstName.trim(), // v9.4.29: Auto-fix existent
+                lastName = person.lastName?.trim(),
                 biography = biography,
                 reparentedRelationLabel = reparentedRelationLabel,
                 isDeceased = isDeceased,

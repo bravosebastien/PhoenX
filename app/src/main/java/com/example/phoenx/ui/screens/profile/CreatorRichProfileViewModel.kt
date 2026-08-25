@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.local.CreatorProfileEntity
 import com.example.phoenx.data.local.OfflineEntryDao
+import com.example.phoenx.data.preferences.PreferenceManager
 import com.example.phoenx.data.sync.toFirestoreMap
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -17,7 +18,8 @@ import javax.inject.Inject
 class CreatorRichProfileViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val offlineEntryDao: OfflineEntryDao
+    private val offlineEntryDao: OfflineEntryDao,
+    private val preferenceManager: PreferenceManager
 ) : ViewModel() {
 
     private val _profile = MutableStateFlow<CreatorProfileEntity?>(null)
@@ -73,6 +75,12 @@ class CreatorRichProfileViewModel @Inject constructor(
                         "transmissionBackgroundId", finalToSave.transmissionBackgroundId,
                         "transmissionFontId", finalToSave.transmissionFontId
                     ).await()
+                
+                // 3. Mise à jour des préférences locales pour réactivité immédiate (v9.4.29)
+                preferenceManager.setGlobalTheme(
+                    finalToSave.transmissionBackgroundId,
+                    finalToSave.transmissionFontId
+                )
                 
                 offlineEntryDao.insertCreatorProfile(finalToSave.copy(syncStatus = "synced"))
             } catch (e: Exception) {

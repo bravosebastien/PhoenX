@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,57 +30,80 @@ fun SecureAsyncImage(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
     contentScale: ContentScale = ContentScale.Crop,
+    colorFilter: androidx.compose.ui.graphics.ColorFilter? = null, // v9.4.29
     creatorId: String? = null, // v9.4.27
     docType: String? = null,   // v9.4.27
     docId: String? = null,     // v9.4.27
-    field: String? = null      // v9.4.27
+    field: String? = null,     // v9.4.27
+    isEncrypted: Boolean = true // v9.4.29 : Support pour médias non-chiffrés (Cameos)
 ) {
     var imageBytes by remember(mediaUrl, localPath) { mutableStateOf<ByteArray?>(null) }
+    var resolvedSimpleUrl by remember(mediaUrl) { mutableStateOf<String?>(null) } // v9.4.29
     var isLoading by remember(mediaUrl, localPath) { mutableStateOf(false) }
 
     LaunchedEffect(mediaUrl, localPath, explicitKey, creatorId, docType, docId, field) {
-        if (imageBytes != null) return@LaunchedEffect // v9.4.27 : Évite les relancements si déjà chargé
+        if (imageBytes != null || resolvedSimpleUrl != null) return@LaunchedEffect 
 
         if (localPath != null && java.io.File(localPath).exists()) {
+            Log.d("PHOENX_SECURE_IMG", "Usage fichier local: docId=$docId, path=$localPath")
             return@LaunchedEffect
         }
         
         if (mediaUrl != null) {
+            Log.d("PHOENX_SECURE_IMG", "Début résolution: docId=$docId, url=$mediaUrl, encrypted=$isEncrypted")
             isLoading = true
             try {
-                val bytes = withContext(Dispatchers.IO) {
-                    mediaManager.downloadAndDecrypt(
-                        mediaUrl, 
-                        explicitKey,
-                        creatorId,
-                        docType,
-                        docId,
-                        field
+                if (isEncrypted) {
+                    val bytes = withContext(Dispatchers.IO) {
+                        mediaManager.downloadAndDecrypt(
+                            mediaUrl, 
+                            explicitKey,
+                            creatorId,
+                            docType,
+                            docId,
+                            field
+                        )
+                    }
+                    imageBytes = bytes
+                    Log.d("PHOENX_SECURE_IMG", "Résolution chiffrée réussie: docId=$docId, size=${bytes.size} bytes")
+                } else {
+                    // v9.4.29 : Pour les cameos, on résout simplement le chemin Storage en URL signée
+                    // On passe les paramètres de sécurité pour supporter les Destinataires
+                    val safeUrl = mediaManager.getSafeUrl(
+                        pathOrUrl = mediaUrl,
+                        explicitKey = if (creatorId != null) byteArrayOf(0) else null, // Flag pour mode Recipient si creatorId présent
+                        creatorId = creatorId,
+                        docType = docType,
+                        docId = docId
                     )
+                    resolvedSimpleUrl = safeUrl
+                    Log.d("PHOENX_SECURE_IMG", "Résolution simple réussie: docId=$docId, url=$safeUrl")
                 }
-                imageBytes = bytes
             } catch (e: Exception) {
-                android.util.Log.e("SecureMedia", "Erreur déchiffrement image: ${e.message}")
+                Log.e("PHOENX_SECURE_IMG", "Erreur résolution image: docId=$docId, msg=${e.message}")
             } finally {
                 isLoading = false
             }
+        } else {
+            Log.w("PHOENX_SECURE_IMG", "Aucun chemin ni URL pour docId=$docId")
         }
     }
 
     Box(modifier = modifier) {
-        if (localPath != null && java.io.File(localPath).exists()) {
+        val model: Any? = when {
+            localPath != null && java.io.File(localPath).exists() -> localPath
+            imageBytes != null -> imageBytes
+            resolvedSimpleUrl != null -> resolvedSimpleUrl
+            else -> null
+        }
+
+        if (model != null) {
             AsyncImage(
-                model = localPath,
+                model = model,
                 contentDescription = contentDescription,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = contentScale
-            )
-        } else if (imageBytes != null) {
-            AsyncImage(
-                model = imageBytes,
-                contentDescription = contentDescription,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = contentScale
+                contentScale = contentScale,
+                colorFilter = colorFilter
             )
         } else if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

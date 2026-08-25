@@ -24,5 +24,8 @@ data class RecipientEntity(
 
     // AMBIANCE DE TRANSMISSION v9.4.27 (Migration v47)
     val transmissionBackgroundId: String = "classic_ivory",
-    val transmissionFontId: String = "playfair_display"
+    val transmissionFontId: String = "playfair_display",
+
+    // v9.4.29 : Affichage des photos de proches dans le livre
+    val showPersonPhotos: Boolean = false
 )

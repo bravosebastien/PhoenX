@@ -72,7 +72,9 @@ class ThemeViewModel @Inject constructor(
                         "backgroundId" to bgId,
                         "fontId" to fId,
                         "accentColor" to acc
-                    )
+                    ),
+                    "transmissionBackgroundId" to bgId,
+                    "transmissionFontId" to fId
                 )
             )
         } catch (e: Exception) {

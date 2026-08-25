@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.ai.AIManager
@@ -155,10 +156,7 @@ class HomeViewModel @Inject constructor(
                 db.collection("users").document(user.uid)
                     .collection("book").document("current_draft")
                     .addSnapshotListener { snapshot, _ ->
-                        val chaptersList = snapshot?.get("chapters")
-                        @Suppress("UNCHECKED_CAST")
-                        val chapters = chaptersList as? List<Map<String, Any>> ?: emptyList()
-                        val validatedCount = chapters.count { it["status"] == "VALIDATED" }
+                        // 1. Extraction ROBUSTE des métadonnées (Indépendante des chapitres)
                         val title = snapshot?.getString("bookTitle")
                         val coverUrl = snapshot?.getString("coverImageUrl")
                         val style = snapshot?.getString("coverTitleStyle") ?: "GOLD"
@@ -166,6 +164,14 @@ class HomeViewModel @Inject constructor(
                         val offsetX = snapshot?.getDouble("coverOffsetX")?.toFloat() ?: 0f
                         val offsetY = snapshot?.getDouble("coverOffsetY")?.toFloat() ?: 0f
                         
+                        Log.d("PHOENX_COVER_R", "Lecture Firestore: doc=users/${user.uid}/book/current_draft, title=$title, style=$style, url=$coverUrl")
+
+                        // 2. Traitement des chapitres (Optionnel pour l'affichage de la couverture)
+                        val chaptersList = snapshot?.get("chapters")
+                        @Suppress("UNCHECKED_CAST")
+                        val chapters = chaptersList as? List<Map<String, Any>> ?: emptyList()
+                        val validatedCount = chapters.count { it["status"] == "VALIDATED" }
+
                         _uiState.update { it.copy(
                             validatedChaptersCount = validatedCount,
                             bookTitle = title,

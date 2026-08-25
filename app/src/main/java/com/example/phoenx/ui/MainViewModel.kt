@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -250,6 +251,23 @@ class MainViewModel @Inject constructor(
             // Ambiance de transmission globale (v9.4.27)
             val bgId = doc.getString("transmissionBackgroundId") ?: "classic_ivory"
             val fontId = doc.getString("transmissionFontId") ?: "playfair_display"
+            
+            // v9.4.29 : Rétablissement de la synchronisation vers PreferenceManager (DataStore)
+            // Indispensable pour la réactivité immédiate du thème sur tous les écrans
+            viewModelScope.launch {
+                if (bgId != preferenceManager.globalBackgroundId.first() || 
+                    fontId != preferenceManager.globalFontId.first()) {
+                    preferenceManager.setGlobalTheme(bgId, fontId)
+                }
+                
+                // On récupère aussi la couleur d'accentuation si présente dans appTheme
+                val appTheme = doc.get("appTheme") as? Map<*, *>
+                val remoteAccent = (appTheme?.get("accentColor") as? Number)?.toInt()
+                if (remoteAccent != null && remoteAccent != preferenceManager.accentColor.first()) {
+                    preferenceManager.setAccentColor(remoteAccent)
+                }
+            }
+
             _transmissionBackgroundId.value = bgId
             _transmissionFontId.value = fontId
 

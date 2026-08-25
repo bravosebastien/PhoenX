@@ -278,8 +278,8 @@ class CaptureViewModel @Inject constructor(
 
             try {
                 val newPerson = com.example.phoenx.data.local.PersonEntity(
-                    firstName = firstName,
-                    lastName = lastName,
+                    firstName = firstName.trim(),
+                    lastName = lastName?.trim(),
                     relationship = relationship,
                     distinctionType = distinctionType,
                     distinctionValue = distinctionValue,

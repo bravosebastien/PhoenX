@@ -35,7 +35,12 @@ data class BookDraft(
     val theme: BookTheme = BookTheme(), // v8.7.0 Thème visuel choisi par le Créateur
     val coverImageUrl: String? = null, // v9.2.4: Image de couverture personnalisée
     val coverTitleStyle: String = "GOLD", // v9.2.7: Style du titre par défaut
-    val visibility: String = "RESTRICTED" // v9.4.27: Sécurisation explicite
+    val visibility: String = "RESTRICTED", // v9.4.27: Sécurisation explicite
+    // v9.4.19 / v9.4.29 : Support du cadrage et métadonnées couverture
+    val coverScale: Float = 1f,
+    val coverOffsetX: Float = 0f,
+    val coverOffsetY: Float = 0f,
+    val coverUploadedAt: Long? = null
 )
 
 data class BookMetadata(

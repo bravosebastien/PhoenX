@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.model.*
+import com.example.phoenx.data.preferences.PreferenceManager
 import com.example.phoenx.service.BookGeneratorService
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,6 +26,7 @@ class BookEditorViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val offlineEntryDao: com.example.phoenx.data.local.OfflineEntryDao,
     private val mediaManager: MediaManager,
+    private val preferenceManager: PreferenceManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -305,28 +307,31 @@ class BookEditorViewModel @Inject constructor(
     }
 
     fun updateRecipients(selectedDocIds: List<String>, visibility: String? = null) {
-        val current = _bookDraft.value ?: return
+        val userId = auth.currentUser?.uid ?: return
         val allRecipients = recipients.value
         
-        // v9.2 : On stocke les VRAIS UIDs pour la sécurité Firestore/Functions
-        val persistentIds = selectedDocIds.map { docId ->
-            allRecipients.find { it.id == docId }?.linkedUid ?: docId
-        }.distinct()
-
-        // v9.4.27 : La visibilité ne change que si explicitement demandée. 
-        // Si la liste est vide, on reste en RESTRICTED par sécurité.
-        val finalVisibility = visibility ?: current.visibility ?: "RESTRICTED"
-
-        val updated = current.copy(
-            recipientIds = persistentIds,
-            visibility = finalVisibility
-        )
-        _bookDraft.value = updated
         viewModelScope.launch {
-            val userId = auth.currentUser?.uid ?: return@launch
             _isSaving.value = true
             try {
+                // v9.4.29 : Fresh Read avant modification
+                val freshDraft = bookService.loadBookDraft(userId) ?: _bookDraft.value ?: BookDraft(userId = userId)
+                
+                // v9.2 : On stocke les VRAIS UIDs pour la sécurité Firestore/Functions
+                val persistentIds = selectedDocIds.map { docId ->
+                    allRecipients.find { it.id == docId }?.linkedUid ?: docId
+                }.distinct()
+
+                // v9.4.27 : La visibilité ne change que si explicitement demandée. 
+                // Si la liste est vide, on reste en RESTRICTED par sécurité.
+                val finalVisibility = visibility ?: freshDraft.visibility ?: "RESTRICTED"
+
+                val updated = freshDraft.copy(
+                    recipientIds = persistentIds,
+                    visibility = finalVisibility
+                )
+                
                 bookService.saveBookDraft(userId, updated)
+                _bookDraft.value = updated
                 triggerSuccess()
             } catch (e: Exception) {
                 _error.value = "Erreur lors de la sauvegarde"
@@ -350,14 +355,16 @@ class BookEditorViewModel @Inject constructor(
     }
 
     fun updateSealedMessage(message: String) {
-        val current = _bookDraft.value ?: return
-        val updated = current.copy(sealedMessage = message)
-        _bookDraft.value = updated
+        val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            val userId = auth.currentUser?.uid ?: return@launch
             _isSaving.value = true
             try {
+                // v9.4.29 : Fresh Read avant modification
+                val freshDraft = bookService.loadBookDraft(userId) ?: _bookDraft.value ?: BookDraft(userId = userId)
+                val updated = freshDraft.copy(sealedMessage = message)
+                
                 bookService.saveBookDraft(userId, updated)
+                _bookDraft.value = updated
                 triggerSuccess()
             } catch (e: Exception) {
                 _error.value = "Erreur lors de la sauvegarde"
@@ -368,14 +375,16 @@ class BookEditorViewModel @Inject constructor(
     }
 
     fun updateBookTitle(title: String) {
-        val current = _bookDraft.value ?: return
-        val updated = current.copy(bookTitle = title.ifBlank { null })
-        _bookDraft.value = updated
+        val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
-            val userId = auth.currentUser?.uid ?: return@launch
             _isSaving.value = true
             try {
+                // v9.4.29 : Fresh Read avant modification
+                val freshDraft = bookService.loadBookDraft(userId) ?: _bookDraft.value ?: BookDraft(userId = userId)
+                val updated = freshDraft.copy(bookTitle = title.ifBlank { null })
+                
                 bookService.saveBookDraft(userId, updated)
+                _bookDraft.value = updated // Synchro UI
                 triggerSuccess()
             } catch (e: Exception) {
                 _error.value = "Erreur lors de la sauvegarde"
@@ -436,6 +445,9 @@ class BookEditorViewModel @Inject constructor(
         viewModelScope.launch {
             _isSaving.value = true
             try {
+                // 0. MISE À JOUR PRÉFÉRENCES LOCALES (v9.4.29 : Rétablissement réactivité thème)
+                preferenceManager.setGlobalTheme(backgroundId, fontId)
+
                 // 1. FRESH READ de la base locale (Garantie de sécurité Lot 3)
                 val currentLocal = offlineEntryDao.getCreatorProfileSync(userId) 
                     ?: com.example.phoenx.data.local.CreatorProfileEntity(userId = userId)
@@ -463,7 +475,11 @@ class BookEditorViewModel @Inject constructor(
                 offlineEntryDao.insertCreatorProfile(finalToSave.copy(syncStatus = "synced"))
                 
                 // 6. Synchronisation du thème du draft actuel (v9.4.27 : MISE À JOUR PARTIELLE CIBLÉE)
-                _bookDraft.value?.let { currentDraft ->
+                // v9.4.29 : Fresh Read Firestore avant de toucher au draft
+                val freshDraft = bookService.loadBookDraft(userId)
+                
+                freshDraft?.let { currentDraft ->
+                    // v9.4.29: Le thème du draft lui-même ne stocke pas showPersonPhotos (réglage global user)
                     val updatedThemeMap = mapOf(
                         "backgroundId" to backgroundId,
                         "fontId" to fontId
@@ -495,11 +511,13 @@ class BookEditorViewModel @Inject constructor(
 
     fun updateCoverImage(uri: Uri) {
         val userId = auth.currentUser?.uid ?: return
-        val current = _bookDraft.value ?: return
 
         viewModelScope.launch {
             _isSaving.value = true
             try {
+                // v9.4.29 : Fresh Read avant modification
+                val freshDraft = bookService.loadBookDraft(userId) ?: _bookDraft.value ?: BookDraft(userId = userId)
+
                 // 1. Conversion Uri -> File temporaire
                 val tempFile = File(context.cacheDir, "book_cover_${UUID.randomUUID()}.jpg")
                 context.contentResolver.openInputStream(uri)?.use { input ->
@@ -512,9 +530,9 @@ class BookEditorViewModel @Inject constructor(
                 val downloadUrl = mediaManager.uploadCameo(userId, "book_cover", tempFile)
                 
                 // 3. Mise à jour du Draft
-                val updatedDraft = current.copy(coverImageUrl = downloadUrl)
-                _bookDraft.value = updatedDraft
+                val updatedDraft = freshDraft.copy(coverImageUrl = downloadUrl)
                 bookService.saveBookDraft(userId, updatedDraft)
+                _bookDraft.value = updatedDraft
                 
                 tempFile.delete()
                 triggerSuccess()
@@ -529,13 +547,15 @@ class BookEditorViewModel @Inject constructor(
 
     fun updateCoverTitleStyle(style: String) {
         val userId = auth.currentUser?.uid ?: return
-        val current = _bookDraft.value ?: return
-        val updated = current.copy(coverTitleStyle = style)
-        _bookDraft.value = updated
         viewModelScope.launch {
             _isSaving.value = true
             try {
+                // v9.4.29 : Fresh Read avant modification
+                val freshDraft = bookService.loadBookDraft(userId) ?: _bookDraft.value ?: BookDraft(userId = userId)
+                val updated = freshDraft.copy(coverTitleStyle = style)
+                
                 bookService.saveBookDraft(userId, updated)
+                _bookDraft.value = updated
                 triggerSuccess()
             } catch (e: Exception) {
                 _error.value = "Erreur sauvegarde style titre"
