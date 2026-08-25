@@ -12,6 +12,7 @@ import com.example.phoenx.domain.usecase.ActivationProtocolManager
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.remoteconfig.remoteConfigSettings
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.remoteconfig.ktx.remoteConfig
@@ -57,6 +58,7 @@ class HomeViewModel @Inject constructor(
 
     private var authListener: FirebaseAuth.AuthStateListener? = null
     private var lastLoadedUserId: String? = null
+    private val activeListeners = mutableListOf<ListenerRegistration>()
 
     init {
         // v9.4.29 : Rendre le chargement réactif à l'authentification avec protection doublons
@@ -64,6 +66,7 @@ class HomeViewModel @Inject constructor(
             val user = firebaseAuth.currentUser
             if (user != null && user.uid != lastLoadedUserId) {
                 lastLoadedUserId = user.uid
+                clearActiveListeners()
                 loadUserData()
                 loadBiographerQuestion()
                 observeLatestEntries()
@@ -77,14 +80,20 @@ class HomeViewModel @Inject constructor(
         fetchRemoteConfig()
     }
 
+    private fun clearActiveListeners() {
+        activeListeners.forEach { it.remove() }
+        activeListeners.clear()
+    }
+
     override fun onCleared() {
         super.onCleared()
         authListener?.let { auth.removeAuthStateListener(it) }
+        clearActiveListeners()
     }
 
     private fun loadHomeCardsConfig() {
         val user = auth.currentUser ?: return
-        db.collection("appConfig").document("homeCards")
+        val listener = db.collection("appConfig").document("homeCards")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Log.e("PHOENX_HOME", "Erreur homeCards config: ${error.message}")
@@ -93,11 +102,12 @@ class HomeViewModel @Inject constructor(
                 val url = snapshot?.getString("genealogyCardImageUrl")
                 _uiState.update { it.copy(genealogyCardImageUrl = url) }
             }
+        activeListeners.add(listener)
     }
 
     private fun loadPresentationVideos() {
         val user = auth.currentUser ?: return
-        db.collection("presentationVideos")
+        val listener = db.collection("presentationVideos")
             .orderBy("slotIndex")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -109,6 +119,7 @@ class HomeViewModel @Inject constructor(
                 } ?: emptyList()
                 _uiState.update { it.copy(presentationVideos = videos) }
             }
+        activeListeners.add(listener)
     }
 
     private fun fetchRemoteConfig() {
@@ -139,7 +150,7 @@ class HomeViewModel @Inject constructor(
         if (user == null) return
 
         // 1. ÉCOUTEUR COUVERTURE (Indépendant et Prioritaire)
-        db.collection("users").document(user.uid)
+        val l1 = db.collection("users").document(user.uid)
             .collection("book").document("current_draft")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
@@ -171,9 +182,10 @@ class HomeViewModel @Inject constructor(
                     coverOffsetY = offsetY
                 ) }
             }
+        activeListeners.add(l1)
 
         // 2. ÉCOUTEUR STATS COMMUNAUTÉ (Indépendant)
-        db.collection("appConfig").document("stats")
+        val l2 = db.collection("appConfig").document("stats")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Log.e("PHOENX_HOME", "Erreur stats globales: ${error.message}")
@@ -182,9 +194,10 @@ class HomeViewModel @Inject constructor(
                 val count = snapshot?.getLong("totalUsers")?.toInt() ?: 0
                 _uiState.update { it.copy(globalUserCount = count) }
             }
+        activeListeners.add(l2)
 
         // 3. ÉCOUTEUR QUESTIONS RÉPONDUES (Indépendant)
-        db.collection("users").document(user.uid)
+        val l3 = db.collection("users").document(user.uid)
             .collection("entries")
             .whereNotEqualTo("enigmaQuestion", null)
             .addSnapshotListener { snapshot, error ->
@@ -194,6 +207,7 @@ class HomeViewModel @Inject constructor(
                 }
                 _uiState.update { it.copy(answeredQuestionsCount = snapshot?.size() ?: 0) }
             }
+        activeListeners.add(l3)
 
         // 4. ÉCOUTEUR CERCLE DE CONFIANCE (Indépendant et BLOQUANT)
         // On le lance dans sa propre coroutine isolée car .collect est infini.
@@ -207,7 +221,7 @@ class HomeViewModel @Inject constructor(
 
     private fun loadPendingQuestionsCount() {
         val user = auth.currentUser ?: return
-        db.collection("users").document(user.uid)
+        val listener = db.collection("users").document(user.uid)
             .collection("pendingQuestions")
             .whereEqualTo("status", "pending")
             .addSnapshotListener { snapshot, error ->
@@ -217,6 +231,7 @@ class HomeViewModel @Inject constructor(
                 }
                 _uiState.update { it.copy(pendingQuestionsCount = snapshot?.size() ?: 0) }
             }
+        activeListeners.add(listener)
     }
 
     private fun loadUserData() {

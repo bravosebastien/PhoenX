@@ -192,8 +192,10 @@ class EncryptionManager @Inject constructor() {
      * Si elle n'existe pas, elle est générée dans le Keystore matériel.
      * Retourne la clé publique encodée en Base64.
      */
+    @Synchronized
     fun ensureRsaKeyPairExists(): String {
         if (!hasLocalRsaKey()) {
+            android.util.Log.e("PHOENX_RSA", "RSA key pair missing from Keystore. Generating NEW pair...")
             val kpg: KeyPairGenerator = KeyPairGenerator.getInstance(
                 KeyProperties.KEY_ALGORITHM_RSA,
                 "AndroidKeyStore"

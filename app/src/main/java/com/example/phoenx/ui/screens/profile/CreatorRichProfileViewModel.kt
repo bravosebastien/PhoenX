@@ -69,6 +69,7 @@ class CreatorRichProfileViewModel @Inject constructor(
 
                 // 2. Sauvegarde Firestore immédiate (v9.1)
                 // v9.4.27 : Mise à jour PARTIELLE du document racine
+                android.util.Log.e("PHOENX_LOOP", "CreatorRichProfileViewModel: update richProfile, transmissionBackgroundId, transmissionFontId")
                 db.collection("users").document(userId)
                     .update(
                         "richProfile", finalToSave.toFirestoreMap(),

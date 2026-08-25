@@ -41,6 +41,7 @@ class SilenceManager @Inject constructor(
         userId: String,
         status: String // "present" | "traversing"
     ) {
+        android.util.Log.e("PHOENX_LOOP", "SilenceManager: update silenceConfig.lastCheckInAt, missedCycles, escalationLevel, lastSilenceStatus")
         db.collection("users").document(userId).update(
             mapOf(
                 "silenceConfig.lastCheckInAt" to Timestamp.now(),
@@ -56,6 +57,7 @@ class SilenceManager @Inject constructor(
         val doc = db.collection("users")
             .document(userId).get().await()
         val current = (doc.getLong("silenceConfig.missedCycles") ?: 0L)
+        android.util.Log.e("PHOENX_LOOP", "SilenceManager: update silenceConfig.missedCycles")
         db.collection("users").document(userId).update(
             "silenceConfig.missedCycles", current + 1
         ).await()

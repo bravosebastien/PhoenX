@@ -33,8 +33,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.security.MessageDigest
 import javax.inject.Inject
 
 @HiltViewModel
@@ -48,9 +51,12 @@ class MainViewModel @Inject constructor(
     private val silenceManager: SilenceManager,
     private val encryptionManager: EncryptionManager,
     private val functions: FirebaseFunctions,
-    private val database: PhoenXDatabase,
+    val database: PhoenXDatabase,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
+
+    private val repairMutex = Mutex()
+    private var isRepairCompleted = false
 
     private var userListener: ListenerRegistration? = null
     private var invitationListener: ListenerRegistration? = null
@@ -194,44 +200,107 @@ class MainViewModel @Inject constructor(
         invitationListener?.remove()
     }
 
-    /**
-     * Écoute le profil utilisateur en temps réel pour gérer le routage et les clés.
-     */
     fun checkSilenceOnLaunch(userId: String) {
         // --- RÉPARATIONS V20+ (ADN 5.0) ---
+        // S'exécute UNE SEULE FOIS au démarrage de la session
         viewModelScope.launch(Dispatchers.IO) {
-            // 1. Réparation creatorUid
-            val countUid = database.offlineEntryDao().repairEmptyCreatorUids(userId)
-            if (countUid > 0) android.util.Log.d("PHOENX_V20", "$countUid souvenirs réparés pour l'UID $userId")
-
-            // 2. Réparation Enigmes (Hachage auto de l'existant en clair) - v8.3
-            val allEntries = database.offlineEntryDao().getAllEntriesSync()
-            var repairCount = 0
-            allEntries.forEach { entry ->
-                var updatedEntry = entry
-                var needsUpdate = false
+            if (isRepairCompleted) return@launch
+            repairMutex.withLock {
+                if (isRepairCompleted) return@launch
                 
-                if (!entry.enigmaAnswer.isNullOrBlank() && !com.example.phoenx.domain.util.EnigmaUtils.isAlreadyHashed(entry.enigmaAnswer)) {
-                    updatedEntry = updatedEntry.copy(enigmaAnswer = com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(entry.enigmaAnswer))
-                    needsUpdate = true
-                }
-                
-                if (!entry.fallbackAnswer.isNullOrBlank() && !com.example.phoenx.domain.util.EnigmaUtils.isAlreadyHashed(entry.fallbackAnswer)) {
-                    updatedEntry = updatedEntry.copy(fallbackAnswer = com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(entry.fallbackAnswer))
-                    needsUpdate = true
-                }
+                try {
+                    val userDoc = db.collection("users").document(userId).get().await()
+                    
+                    // 1. Réparation creatorUid
+                    val countUid = database.offlineEntryDao().repairEmptyCreatorUids(userId)
+                    if (countUid > 0) android.util.Log.d("PHOENX_V20", "$countUid souvenirs réparés pour l'UID $userId")
 
-                if (needsUpdate) {
-                    database.offlineEntryDao().insertEntry(updatedEntry.copy(syncStatus = "pending"))
-                    repairCount++
+                    // 2. Réparation Enigmes (Hachage auto de l'existant en clair) - v8.3
+                    val allEntries = database.offlineEntryDao().getAllEntriesSync()
+                    var repairCount = 0
+                    allEntries.forEach { entry ->
+                        var updatedEntry = entry
+                        var needsUpdate = false
+                        
+                        if (!entry.enigmaAnswer.isNullOrBlank() && !com.example.phoenx.domain.util.EnigmaUtils.isAlreadyHashed(entry.enigmaAnswer)) {
+                            updatedEntry = updatedEntry.copy(enigmaAnswer = com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(entry.enigmaAnswer))
+                            needsUpdate = true
+                        }
+                        
+                        if (!entry.fallbackAnswer.isNullOrBlank() && !com.example.phoenx.domain.util.EnigmaUtils.isAlreadyHashed(entry.fallbackAnswer)) {
+                            updatedEntry = updatedEntry.copy(fallbackAnswer = com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(entry.fallbackAnswer))
+                            needsUpdate = true
+                        }
+
+                        if (needsUpdate) {
+                            database.offlineEntryDao().insertEntry(updatedEntry.copy(syncStatus = "pending"))
+                            repairCount++
+                        }
+                    }
+                    if (repairCount > 0) android.util.Log.d("PHOENX_V8.3", "$repairCount énigmes sécurisées et marquées pour re-sync.")
+
+                    // 3. SYNCHRONISATION DES CLÉS (v9.5.1 : Bouclier de Sécurité Radical)
+                    val localRsaRaw = encryptionManager.ensureRsaKeyPairExists()
+                    val cloudRsaRaw = userDoc.getString("publicEncryptionKey") ?: ""
+                    
+                    val getFingerprint = { s: String -> 
+                        val bytes = MessageDigest.getInstance("SHA-256").digest(s.replace("\\s".toRegex(), "").toByteArray())
+                        bytes.joinToString("") { "%02x".format(it) }.take(16)
+                    }
+
+                    val localFP = getFingerprint(localRsaRaw)
+                    val cloudFP = getFingerprint(cloudRsaRaw)
+                    val areRsaEqual = localFP == cloudFP
+                    
+                    android.util.Log.e("PHOENX_LOOP", "RSA SECURITY AUDIT [Thread:${Thread.currentThread().id}]")
+                    android.util.Log.e("PHOENX_LOOP", "Fingerprint Local: $localFP")
+                    android.util.Log.e("PHOENX_LOOP", "Fingerprint Cloud: $cloudFP")
+                    android.util.Log.e("PHOENX_LOOP", "Comparison (Normalized SHA-256): areEqual=$areRsaEqual")
+
+                    if (!areRsaEqual) {
+                        // ÉCRITURE DÉSACTIVÉE PAR SÉCURITÉ (v9.5.1)
+                        android.util.Log.e("PHOENX_LOOP", "!!! ALERT: RSA DISCREPANCY DETECTED - WRITE SHIELD ACTIVE !!!")
+                        // db.collection("users").document(userId).update("publicEncryptionKey", localRsaRaw).await()
+                    }
+
+                    // 4. VÉRIFICATION DE L'INTÉGRITÉ DE LA CLÉ PRIVÉE (v9.5.1)
+                    // Test de déchiffrement sur un témoignage existant
+                    val witnesses = db.collection("users").document(userId).collection("witnesses").get().await()
+                    val testimonyDoc = witnesses.documents.find { it.getString("content") != null }
+                    
+                    if (testimonyDoc != null) {
+                        android.util.Log.e("PHOENX_LOOP", "Integrity Check: Witness testimony found. Attempting decryption...")
+                        val encryptedBase64 = testimonyDoc.getString("content")!!
+                        try {
+                            val encryptedBytes = android.util.Base64.decode(encryptedBase64, android.util.Base64.DEFAULT)
+                            val decrypted = encryptionManager.decryptWithPrivateKey(encryptedBytes)
+                            if (decrypted.isNotBlank()) {
+                                android.util.Log.e("PHOENX_LOOP", "Integrity Check: SUCCESS. Private key matches cloud public key.")
+                            } else {
+                                android.util.Log.e("PHOENX_LOOP", "Integrity Check: FAILURE. Decrypted content is empty.")
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("PHOENX_LOOP", "Integrity Check: CRITICAL FAILURE. Private key lost or corrupted.", e)
+                        }
+                    } else {
+                        android.util.Log.e("PHOENX_LOOP", "Integrity Check: No witness testimony found to verify private key.")
+                    }
+
+                    // B. Sync Clé Héritage (Miroir AES)
+                    val aesKey = userDoc.getString("encryptionKey")
+                    if (aesKey != null) {
+                        ensureLegacyKey(userId, aesKey)
+                    }
+
+                    // 5. RÉCUPÉRATION / MERGE (v8.9.9)
+                    val syncRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
+                    WorkManager.getInstance(context).enqueue(syncRequest)
+                    
+                    isRepairCompleted = true
+                } catch (e: Exception) {
+                    android.util.Log.e("MainViewModel", "Erreur lors des réparations au démarrage", e)
                 }
             }
-            if (repairCount > 0) android.util.Log.d("PHOENX_V8.3", "$repairCount énigmes sécurisées et marquées pour re-sync.")
-
-            // 3. RÉCUPÉRATION / MERGE (v8.9.9)
-            // On déclenche systématiquement InitialSyncWorker au lancement pour rattraper les entrées distantes manquantes
-            val syncRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
-            WorkManager.getInstance(context).enqueue(syncRequest)
         }
 
         // Nettoyage de l'ancien écouteur si existant
@@ -255,15 +324,19 @@ class MainViewModel @Inject constructor(
             // v9.4.29 : Rétablissement de la synchronisation vers PreferenceManager (DataStore)
             // Indispensable pour la réactivité immédiate du thème sur tous les écrans
             viewModelScope.launch {
-                if (bgId != preferenceManager.globalBackgroundId.first() || 
-                    fontId != preferenceManager.globalFontId.first()) {
+                val currentBg = preferenceManager.globalBackgroundId.first()
+                val currentFont = preferenceManager.globalFontId.first()
+                if (bgId != currentBg || fontId != currentFont) {
+                    android.util.Log.e("PHOENX_LOOP", "MainViewModel: setGlobalTheme from Firestore update (bg:$bgId, font:$fontId)")
                     preferenceManager.setGlobalTheme(bgId, fontId)
                 }
                 
                 // On récupère aussi la couleur d'accentuation si présente dans appTheme
                 val appTheme = doc.get("appTheme") as? Map<*, *>
                 val remoteAccent = (appTheme?.get("accentColor") as? Number)?.toInt()
-                if (remoteAccent != null && remoteAccent != preferenceManager.accentColor.first()) {
+                val currentAccent = preferenceManager.accentColor.first()
+                if (remoteAccent != null && remoteAccent != currentAccent) {
+                    android.util.Log.e("PHOENX_LOOP", "MainViewModel: setAccentColor from Firestore update (accent:$remoteAccent)")
                     preferenceManager.setAccentColor(remoteAccent)
                 }
             }
@@ -345,15 +418,6 @@ class MainViewModel @Inject constructor(
                             encryptionManager.setSessionKey(android.util.Base64.decode(it, android.util.Base64.NO_WRAP))
                         }
                     }
-
-                    // Sync RSA
-                    val localPublicKey = encryptionManager.ensureRsaKeyPairExists()
-                    if (doc.getString("publicEncryptionKey") != localPublicKey) {
-                        db.collection("users").document(userId).update("publicEncryptionKey", localPublicKey)
-                    }
-
-                    // Miroir de clé Héritage (v8.3)
-                    ensureLegacyKey(userId, doc.getString("encryptionKey"))
                 }
             } else {
                 parsedRoles.values.firstOrNull()?.let {

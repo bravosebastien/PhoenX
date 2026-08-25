@@ -464,6 +464,7 @@ class BookEditorViewModel @Inject constructor(
                 offlineEntryDao.insertCreatorProfile(finalToSave)
 
                 // 4. Sauvegarde Firestore PARTIELLE (Point 2 Lot 2)
+                android.util.Log.e("PHOENX_LOOP", "BookEditorViewModel: update transmissionBackgroundId, transmissionFontId")
                 com.google.firebase.firestore.FirebaseFirestore.getInstance()
                     .collection("users").document(userId)
                     .update(

@@ -66,6 +66,7 @@ class ThemeViewModel @Inject constructor(
             val fId = preferenceManager.globalFontId.first()
             val acc = preferenceManager.accentColor.first()
 
+            android.util.Log.e("PHOENX_LOOP", "ThemeViewModel: syncThemeToFirestore (appTheme, transmissionBackgroundId, transmissionFontId)")
             db.collection("users").document(userId).update(
                 mapOf(
                     "appTheme" to mapOf(
