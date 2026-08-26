@@ -9,10 +9,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,9 +39,11 @@ fun EncounterScreen(
     val accent = theme.accentColor
     val encounters by viewModel.encounterPersons.collectAsState()
     val allPersons by viewModel.allSelectablePersons.collectAsState()
+    val graphLayout by viewModel.graphLayout.collectAsState()
     
     var showDialog by remember { mutableStateOf(false) }
     var selectedPerson by remember { mutableStateOf<PersonEntity?>(null) }
+    var viewMode by remember { mutableStateOf("LIST") } // "LIST" | "GRAPH"
 
     Scaffold(
         containerColor = theme.backgroundColor,
@@ -54,6 +58,16 @@ fun EncounterScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
+                    }
+                },
+                actions = {
+                    // Switcher Graphe / Liste (v9.5.1)
+                    IconButton(onClick = { viewMode = if (viewMode == "LIST") "GRAPH" else "LIST" }) {
+                        Icon(
+                            imageVector = if (viewMode == "LIST") Icons.Default.Timeline else Icons.AutoMirrored.Filled.List,
+                            contentDescription = "Changer de vue",
+                            tint = theme.contentColor
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -77,33 +91,44 @@ fun EncounterScreen(
             if (encounters.isEmpty()) {
                 EmptyEncounters(modifier = Modifier.align(Alignment.Center))
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    val grouped = encounters.sortedBy { it.encounterAge ?: 999 }.groupBy { it.encounterAge ?: -1 }
-                    
-                    grouped.forEach { (age, list) ->
-                        item {
-                            Text(
-                                text = if (age == -1) "Âge inconnu" else "À $age ans",
-                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                color = accent,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                        }
-                        items(list) { person ->
-                            EncounterItem(
-                                person = person,
-                                accent = accent,
-                                onClick = {
-                                    selectedPerson = person
-                                    showDialog = true
-                                }
-                            )
+                if (viewMode == "LIST") {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        val grouped = encounters.sortedBy { it.encounterAge ?: 999 }.groupBy { it.encounterAge ?: -1 }
+                        
+                        grouped.forEach { (age, list) ->
+                            item {
+                                Text(
+                                    text = if (age == -1) "Âge inconnu" else "À $age ans",
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                                    color = accent,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                            }
+                            items(list) { person ->
+                                EncounterItem(
+                                    person = person,
+                                    accent = accent,
+                                    onClick = {
+                                        selectedPerson = person
+                                        showDialog = true
+                                    }
+                                )
+                            }
                         }
                     }
+                } else {
+                    // VUE GRAPHE SQUELETTE (v9.5.1 ÉTAPE A)
+                    EncounterGraphRenderer(
+                        layout = graphLayout,
+                        onPersonClick = { person ->
+                            selectedPerson = person
+                            showDialog = true
+                        }
+                    )
                 }
             }
         }
