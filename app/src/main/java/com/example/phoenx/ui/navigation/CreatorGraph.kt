@@ -24,6 +24,7 @@ import com.example.phoenx.ui.screens.characters.CharactersScreen
 import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.screens.characters.CharacterEditScreen
 import com.example.phoenx.ui.screens.encounters.EncounterScreen
+import com.example.phoenx.ui.screens.encounters.EncounterDetailScreen
 import com.example.phoenx.ui.screens.detective.DetectiveCreateScreen
 import com.example.phoenx.ui.screens.detective.DetectiveHomeScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
@@ -583,7 +584,24 @@ fun NavGraphBuilder.creatorGraph(
     composable(Screen.Encounters.route) {
         EncounterScreen(
             onNavigateBack = { navController.popBackStack() },
+            navController = navController,
             mainViewModel = mainViewModel
+        )
+    }
+
+    composable(
+        route = Screen.EncounterDetail.route,
+        arguments = listOf(
+            navArgument("personId") { type = NavType.StringType },
+            navArgument("creatorId") { nullable = true; type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val personId = backStackEntry.arguments?.getString("personId") ?: ""
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        EncounterDetailScreen(
+            personId = personId,
+            targetCreatorId = creatorId,
+            navController = navController
         )
     }
 }

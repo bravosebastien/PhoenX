@@ -214,6 +214,12 @@ sealed class Screen(val route: String) {
     }
     object Encounters : Screen("encounters") // v9.5.0
     object EncountersList : Screen("encounters/list")
+    object EncounterDetail : Screen("encounter_detail/{personId}?creatorId={creatorId}") {
+        fun createRoute(personId: String, creatorId: String? = null): String {
+            return if (creatorId != null) "encounter_detail/$personId?creatorId=$creatorId"
+            else "encounter_detail/$personId"
+        }
+    }
     object EncountersMap : Screen("encounters/map")
 
     object BecomeCreatorPrompt : Screen("become_creator_prompt/{role}/{creatorName}") {
@@ -245,6 +251,9 @@ sealed class Screen(val route: String) {
         }
         object Encounters : Screen("preview/encounters/{recipientUid}") {
             fun createRoute(recipientUid: String) = "preview/encounters/$recipientUid"
+        }
+        object EncounterDetail : Screen("preview/encounter_detail/{personId}/{recipientUid}") {
+            fun createRoute(personId: String, recipientUid: String) = "preview/encounter_detail/$personId/$recipientUid"
         }
     }
 

@@ -7,6 +7,9 @@ import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.sync.SyncWorker
 import com.example.phoenx.data.sync.toFirestoreMap
+import com.example.phoenx.data.local.PersonMediaDao
+import com.example.phoenx.data.local.PersonMediaEntity
+import com.example.phoenx.data.sync.toPersonEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class EncounterViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
+    private val personMediaDao: PersonMediaDao, // v9.6.0
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     @ApplicationContext private val context: Context
@@ -34,8 +38,41 @@ class EncounterViewModel @Inject constructor(
     val contextFilter: StateFlow<String> = _contextFilter.asStateFlow()
 
     // Liste des rencontres (Filtre Room v9.5.0)
-    val encounterPersons: StateFlow<List<PersonEntity>> = offlineEntryDao.getEncounterPersons()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _encounterPersons = MutableStateFlow<List<PersonEntity>>(emptyList())
+    val encounterPersons: StateFlow<List<PersonEntity>> = _encounterPersons.asStateFlow()
+
+    init {
+        // Chargement local par défaut
+        viewModelScope.launch {
+            offlineEntryDao.getEncounterPersons().collect {
+                _encounterPersons.value = it
+            }
+        }
+    }
+
+    /**
+     * Charge les rencontres d'un héritage (v9.6.0)
+     */
+    fun loadRemoteEncounters(creatorId: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val snapshot = db.collection("users").document(creatorId)
+                    .collection("persons")
+                    .whereGreaterThan("categories", "") // v9.6.0: Filtrage catégories non vides
+                    .get().await()
+                
+                val list = snapshot.documents.map { it.toPersonEntity() }
+                    .filter { it.categories.contains(",ENCOUNTER,") }
+                
+                _encounterPersons.value = list
+            } catch (e: Exception) {
+                android.util.Log.e("EncounterVM", "Erreur chargement distant: ${e.message}")
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 
     // Liste filtrée et ordonnée pour la galerie (v9.6.0)
     val filteredEncounters: StateFlow<List<PersonEntity>> = combine(
@@ -96,6 +133,24 @@ class EncounterViewModel @Inject constructor(
 
     fun updateContextFilter(filter: String) {
         _contextFilter.value = filter
+    }
+
+    /**
+     * Récupère les médias liés à une personne (v9.6.0)
+     */
+    fun getMediaForPerson(personId: String): Flow<List<PersonMediaEntity>> {
+        return personMediaDao.getMediaForPerson(personId)
+    }
+
+    /**
+     * Calcule le nombre de souvenirs où la personne est citée (v9.6.0)
+     */
+    fun getMemoriesCountForPerson(personId: String): Flow<Int> {
+        return offlineEntryDao.getAllEntries().map { list ->
+            list.count { entry -> 
+                entry.personIds.split(",").contains(personId)
+            }
+        }
     }
 
     /**

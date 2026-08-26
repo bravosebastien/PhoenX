@@ -20,6 +20,7 @@ import com.example.phoenx.ui.screens.media.MediaViewerScreen
 import com.example.phoenx.ui.screens.questions.AskQuestionScreen
 import com.example.phoenx.ui.screens.quiz.QuizLeaderboardScreen
 import com.example.phoenx.ui.screens.quiz.QuizPlayScreen
+import com.example.phoenx.ui.screens.encounters.EncounterScreen
 import com.example.phoenx.ui.screens.recipient.*
 import com.example.phoenx.ui.screens.silence.SilenceBlockScreen
 import com.example.phoenx.ui.screens.silence.SilenceCheckInScreen
@@ -214,6 +215,23 @@ fun NavGraphBuilder.recipientGraph(
                 viewModel = viewModel
             )
         }
+    }
+
+    composable(
+        route = Screen.RecipientEncounters.route,
+        arguments = listOf(navArgument("creatorId") { type = NavType.StringType }),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
+    ) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+        EncounterScreen(
+            onNavigateBack = { navController.popBackStack() },
+            navController = navController,
+            mainViewModel = mainViewModel,
+            targetCreatorId = creatorId
+        )
     }
 
     composable(

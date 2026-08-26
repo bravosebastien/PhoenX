@@ -36,6 +36,7 @@ import coil3.compose.AsyncImage
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.MainViewModel
+import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.LocalAppTheme
 import dagger.hilt.android.EntryPointAccessors
 
@@ -43,7 +44,9 @@ import dagger.hilt.android.EntryPointAccessors
 @Composable
 fun EncounterScreen(
     onNavigateBack: () -> Unit,
+    navController: androidx.navigation.NavController,
     mainViewModel: MainViewModel,
+    targetCreatorId: String? = null, // v9.6.0
     viewModel: EncounterViewModel = hiltViewModel()
 ) {
     val theme = LocalAppTheme.current
@@ -56,8 +59,18 @@ fun EncounterScreen(
     val availableContexts by viewModel.availableContexts.collectAsState()
     val activeFilter by viewModel.contextFilter.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
-
+    
     var showSearch by remember { mutableStateOf(false) }
+
+    // Mode lecture seule si consultation d'un héritage
+    val isReadOnly = targetCreatorId != null
+
+    LaunchedEffect(targetCreatorId) {
+        if (targetCreatorId != null) {
+             viewModel.loadRemoteEncounters(targetCreatorId)
+        }
+    }
+
     var showDialog by remember { mutableStateOf(false) }
     var selectedPerson by remember { mutableStateOf<PersonEntity?>(null) }
 
@@ -222,8 +235,7 @@ fun EncounterScreen(
                                         mediaManager = mediaManager,
                                         allPersons = allPersons,
                                         onClick = {
-                                            selectedPerson = person
-                                            showDialog = true
+                                            navController.navigate(Screen.EncounterDetail.createRoute(person.id))
                                         },
                                         modifier = Modifier.weight(1f)
                                     )
