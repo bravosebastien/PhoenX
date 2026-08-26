@@ -36,9 +36,9 @@ class EncounterViewModel @Inject constructor(
     val allSelectablePersons: StateFlow<List<PersonEntity>> = offlineEntryDao.getAllPersons()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Layout du graphe (Calculé réactivement v9.5.1 - ÉTAPE A)
-    val graphLayout: StateFlow<EncounterLayout> = encounterPersons.map { encounters ->
-        EncounterGraphAlgorithm.calculateLayout(encounters)
+    // Layout du graphe (Calculé réactivement v9.5.1 - ÉTAPE B2)
+    val graphLayout: StateFlow<EncounterLayout> = combine(encounterPersons, allSelectablePersons) { encounters, all ->
+        EncounterGraphAlgorithm.calculateLayout(encounters, all)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), EncounterLayout(emptyList(), 0f))
 
     /**

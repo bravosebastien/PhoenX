@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.encounters
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,8 +17,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -25,11 +26,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.ui.theme.LocalAppTheme
+import kotlin.math.sin
 
 /**
- * EncounterGraphRenderer (v9.5.2 - ÉTAPE B1)
- * Rendu avec Zoom, Pan et Cadrage initial.
- * Note : Logique de navigation dupliquée de l'Arbre pour isolation totale.
+ * EncounterGraphRenderer (v9.5.4 - ÉTAPE B2 CORRECTIF)
+ * Alignement strict du Canvas et des Composables.
  */
 @Composable
 fun EncounterGraphRenderer(
@@ -39,17 +40,16 @@ fun EncounterGraphRenderer(
 ) {
     val theme = LocalAppTheme.current
     val density = LocalDensity.current
+    val accent = theme.accentColor
 
-    // États pour le Zoom et le Pan (Indépendants de l'Arbre)
     var scale by remember { mutableStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
 
-    // Cadrage initial sur la première rencontre
     LaunchedEffect(layout) {
         if (layout.nodes.isNotEmpty()) {
             val firstNode = layout.nodes.minByOrNull { it.y }!!
             scale = 1f
-            // Centrage horizontal et positionnement en haut avec marge
+            // Centrage horizontal et positionnement du premier noeud en haut
             offset = Offset(-firstNode.x, -firstNode.y + 100f)
         }
     }
@@ -60,19 +60,17 @@ fun EncounterGraphRenderer(
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectTransformGestures { _, pan, zoom, _ ->
-                        scale = (scale * zoom).coerceIn(0.3f, 3f)
+                        scale = (scale * zoom).coerceIn(0.2f, 3f)
                         offset += pan / scale
                     }
                 }
         ) {
-            val totalWidth = this.maxWidth
-            val totalHeight = this.maxHeight
-            
-            val centerX = with(density) { (totalWidth / 2).toPx() }
-            val centerY = with(density) { (totalHeight / 2).toPx() }
+            val totalWidthPx = constraints.maxWidth.toFloat()
+            val totalHeightPx = constraints.maxHeight.toFloat()
+            val centerX = totalWidthPx / 2f
+            val centerY = totalHeightPx / 2f
 
-            // LE CONTENEUR UNIQUE DE TRANSFORMATION
-            // Garantit que tout le contenu reste synchronisé lors du zoom/pan
+            // LE CONTENEUR UNIQUE DE TRANSFORMATION (Garant d'alignement)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -83,34 +81,83 @@ fun EncounterGraphRenderer(
                         translationY = (offset.y * scale) + centerY - (centerY * scale)
                     )
             ) {
-                // [Palier B2] Ici viendra le Canvas pour le tracé du chemin central
+                // 1. LE CANVAS (Même taille, même origine que les rectangles)
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    // A. Le Chemin Central Sinueux (Tracé du haut au bas du contenu)
+                    val path = Path()
+                    val totalContentHeightPx = layout.totalHeightDp.dp.toPx()
+                    val steps = 150
+                    
+                    for (i in 0..steps) {
+                        val yPx = i * (totalContentHeightPx / steps)
+                        val yDp = yPx.toDp().value
+                        val xDp = EncounterGraphAlgorithm.getPathX(yDp)
+                        val xPx = xDp.dp.toPx()
+                        
+                        if (i == 0) path.moveTo(xPx + centerX, yPx)
+                        else path.lineTo(xPx + centerX, yPx)
+                    }
+                    
+                    drawPath(
+                        path = path,
+                        color = accent.copy(alpha = 0.25f),
+                        style = Stroke(width = 4.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round)
+                    )
 
+                    // B. Liens de liaison (Trait Plein)
+                    layout.nodes.forEach { node ->
+                        // Position du centre du rectangle en pixels
+                        val nodeX = node.x.dp.toPx() + centerX
+                        val nodeY = node.y.dp.toPx()
+                        val end = Offset(nodeX, nodeY)
+                        
+                        if (node.parentId == null) {
+                            // Rattachement au chemin central
+                            val startXPx = EncounterGraphAlgorithm.getPathX(node.y).dp.toPx() + centerX
+                            val start = Offset(startXPx, nodeY)
+                            drawLine(color = accent.copy(alpha = 0.3f), start = start, end = end, strokeWidth = 2.dp.toPx())
+                        } else {
+                            // Branche depuis le présentateur
+                            val parent = layout.nodes.find { it.person.id == node.parentId }
+                            if (parent != null) {
+                                val start = Offset(parent.x.dp.toPx() + centerX, parent.y.dp.toPx())
+                                drawBezierCurve(this, start, end, accent.copy(alpha = 0.4f))
+                            }
+                        }
+
+                        // LOG PHOENX_GRAPH de contrôle d'alignement
+                        // android.util.Log.e("PHOENX_GRAPH", "Tracé Node ${node.person.firstName} at ($nodeX, $nodeY) PX")
+                    }
+                }
+
+                // 2. LES MÉDAILLONS (COMPOSABLES)
                 layout.nodes.forEach { node ->
                     Box(
                         modifier = Modifier
                             .offset(
-                                x = node.x.dp - 50.dp, 
-                                y = node.y.dp - 30.dp
+                                x = with(density) { (node.x.dp.toPx() + centerX).toDp() - 50.dp }, 
+                                y = with(density) { node.y.dp.toPx().toDp() - 30.dp }
                             )
                             .size(100.dp, 60.dp)
-                            .background(Color.LightGray, RoundedCornerShape(8.dp))
-                            .border(1.dp, theme.contentColor.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                            .background(if (node.isFamily) Color.Gray.copy(alpha = 0.1f) else Color.LightGray, RoundedCornerShape(8.dp))
+                            .border(1.dp, if (node.isFamily) accent.copy(alpha = 0.3f) else theme.contentColor.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                             .clickable { onPersonClick(node.person) }
                             .padding(4.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = node.person.firstName,
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = theme.contentColor,
+                            maxLines = 1
                         )
                     }
                 }
             }
         }
 
-        // Bouton de Recentrage - Déplacé en bas à gauche (v9.5.2) pour éviter le bouton "+"
+        // Bouton de Recentrage
         FloatingActionButton(
             onClick = {
                 if (layout.nodes.isNotEmpty()) {
@@ -131,5 +178,23 @@ fun EncounterGraphRenderer(
         ) {
             Icon(Icons.Default.MyLocation, "Recentrer")
         }
+    }
+}
+
+fun drawBezierCurve(drawScope: androidx.compose.ui.graphics.drawscope.DrawScope, start: Offset, end: Offset, color: Color) {
+    with(drawScope) {
+        val path = Path().apply {
+            moveTo(start.x, start.y)
+            cubicTo(
+                start.x, (start.y + end.y) / 2f,
+                end.x, (start.y + end.y) / 2f,
+                end.x, end.y
+            )
+        }
+        drawPath(
+            path = path, 
+            color = color, 
+            style = Stroke(width = 2.dp.toPx())
+        )
     }
 }
