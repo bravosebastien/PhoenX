@@ -23,6 +23,7 @@ import com.example.phoenx.ui.screens.capture.StepByStepCaptureScreen
 import com.example.phoenx.ui.screens.characters.CharactersScreen
 import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.screens.characters.CharacterEditScreen
+import com.example.phoenx.ui.screens.encounters.EncounterScreen
 import com.example.phoenx.ui.screens.detective.DetectiveCreateScreen
 import com.example.phoenx.ui.screens.detective.DetectiveHomeScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
@@ -148,6 +149,7 @@ fun NavGraphBuilder.creatorGraph(
             onNavigateToLibrary = { navController.navigate(Screen.Library.route) },
             onNavigateToBookEditor = { navController.navigate("book_editor") },
             onNavigateToGenealogy = { navController.navigate(Screen.Genealogy.createRoute()) },
+            onNavigateToEncounters = { navController.navigate(Screen.Encounters.route) }, // v9.5.0
             onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
             onNavigateToStepByStep = { navController.navigate(Screen.StepByStepCapture.route) }, // v9.4.26
             onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
@@ -575,6 +577,12 @@ fun NavGraphBuilder.creatorGraph(
         GenealogyTreeScreen(
             navController = navController,
             targetCreatorId = creatorId
+        )
+    }
+
+    composable(Screen.Encounters.route) {
+        EncounterScreen(
+            onNavigateBack = { navController.popBackStack() }
         )
     }
 }

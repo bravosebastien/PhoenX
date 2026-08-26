@@ -212,6 +212,10 @@ sealed class Screen(val route: String) {
         fun createRoute(creatorId: String? = null) = 
             if (creatorId != null) "genealogy?creatorId=$creatorId" else "genealogy"
     }
+    object Encounters : Screen("encounters") // v9.5.0
+    object EncountersList : Screen("encounters/list")
+    object EncountersMap : Screen("encounters/map")
+
     object BecomeCreatorPrompt : Screen("become_creator_prompt/{role}/{creatorName}") {
         fun createRoute(role: String, creatorName: String) = "become_creator_prompt/$role/$creatorName"
     }
@@ -239,6 +243,9 @@ sealed class Screen(val route: String) {
         object Genealogy : Screen("preview/genealogy/{recipientUid}") {
             fun createRoute(recipientUid: String) = "preview/genealogy/$recipientUid"
         }
+        object Encounters : Screen("preview/encounters/{recipientUid}") {
+            fun createRoute(recipientUid: String) = "preview/encounters/$recipientUid"
+        }
     }
 
     // GRAPHE DESTINATAIRE
@@ -252,6 +259,9 @@ sealed class Screen(val route: String) {
     object RecipientFil : Screen("recipient/fil")
     object RecipientLibrary : Screen("recipient/library/{creatorId}") {
         fun createRoute(creatorId: String) = "recipient/library/$creatorId"
+    }
+    object RecipientEncounters : Screen("recipient/encounters/{creatorId}") {
+        fun createRoute(creatorId: String) = "recipient/encounters/$creatorId"
     }
     object RecipientDiscotheque : Screen("recipient/discotheque/{creatorId}?filterRecipientId={filterRecipientId}") {
         fun createRoute(creatorId: String, filterRecipientId: String? = null) = 

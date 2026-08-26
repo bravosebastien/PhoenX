@@ -107,19 +107,28 @@ fun OfflineEntry.toFirestoreMap(encryptionManager: EncryptionManager): Map<Strin
 
 fun com.example.phoenx.data.local.PersonEntity.toFirestoreMap(storageUrl: String? = null): Map<String, Any?> {
     return mapOf(
-        "prenom" to firstName,
-        "nom" to lastName,
-        "lien" to relationship,
+        "prenom" to firstName.trim(),
+        "nom" to lastName?.trim(),
+        "lien" to relationship?.trim(),
         "distinctionType" to distinctionType,
-        "distinctionValeur" to distinctionValue,
+        "distinctionValeur" to distinctionValue?.trim(),
         "imageUrl" to (storageUrl ?: imagePath), // v8.9.9 : URL Storage pour synchronisation
         "createdAt" to createdAt,
         // v9.4.24: Genealogy fields
         "parentIds" to parentIds,
         "isDeceased" to isDeceased,
-        "biography" to biography,
+        "biography" to biography.trim(),
         "isReparented" to isReparented,
-        "reparentedRelationLabel" to reparentedRelationLabel
+        "reparentedRelationLabel" to reparentedRelationLabel?.trim(),
+        // LES RENCONTRES v9.5.0
+        "categories" to categories.split(",").filter { it.isNotBlank() }.distinct().joinToString(",", prefix = ",", postfix = ","),
+        "introducedById" to introducedById,
+        "encounterAge" to encounterAge,
+        "encounterLocationId" to encounterLocationId,
+        "encounterLocationLabel" to encounterLocationLabel?.trim(),
+        "linkNature" to linkNature?.trim(),
+        "linkStatus" to linkStatus,
+        "visibility" to visibility
     )
 }
 
@@ -127,22 +136,46 @@ fun com.example.phoenx.data.local.PersonEntity.toFirestoreMap(storageUrl: String
  * Extension pour convertir un DocumentSnapshot Firestore en PersonEntity (Room).
  */
 fun DocumentSnapshot.toPersonEntity(): com.example.phoenx.data.local.PersonEntity {
+    val rawFirstName = getString("prenom") ?: ""
+    val rawLastName = getString("nom")
+    val rawBio = getString("biography") ?: ""
+    val rawParentIds = getString("parentIds") ?: ""
+    val isDeceasedVal = getBoolean("isDeceased") ?: false
+    val isReparentedVal = getBoolean("isReparented") ?: false
+    val rawReparentedLabel = getString("reparentedRelationLabel")
+    
+    // Recalcul protecteur des catégories si absent (ADN 5.0)
+    val categoriesVal = getString("categories") ?: run {
+        // Si le champ est absent, on classe par défaut en FAMILY si critères Arbre remplis
+        val hasTreeAttributes = rawParentIds.isNotBlank() || isDeceasedVal || rawBio.isNotBlank() || isReparentedVal || !rawReparentedLabel.isNullOrBlank()
+        if (hasTreeAttributes) ",FAMILY," else ",FAMILY," // Pour l'instant, tout l'existant est FAMILY
+    }
+
     return com.example.phoenx.data.local.PersonEntity(
         id = id,
-        firstName = getString("prenom") ?: "",
-        lastName = getString("nom"),
-        relationship = getString("lien"),
+        firstName = rawFirstName.trim(),
+        lastName = rawLastName?.trim(),
+        relationship = getString("lien")?.trim(),
         distinctionType = getString("distinctionType"),
-        distinctionValue = getString("distinctionValeur"),
+        distinctionValue = getString("distinctionValeur")?.trim(),
         createdAt = getLong("createdAt") ?: System.currentTimeMillis(),
         syncStatus = "synced",
         // v9.4.24: Genealogy fields
-        parentIds = getString("parentIds") ?: "",
-        isDeceased = getBoolean("isDeceased") ?: false,
-        biography = getString("biography") ?: "",
-        isReparented = getBoolean("isReparented") ?: false,
-        reparentedRelationLabel = getString("reparentedRelationLabel"),
-        imagePath = getString("imageUrl")
+        parentIds = rawParentIds,
+        isDeceased = isDeceasedVal,
+        biography = rawBio.trim(),
+        isReparented = isReparentedVal,
+        reparentedRelationLabel = rawReparentedLabel?.trim(),
+        imagePath = getString("imageUrl"),
+        // LES RENCONTRES v9.5.0
+        categories = categoriesVal.split(",").filter { it.isNotBlank() }.distinct().joinToString(",", prefix = ",", postfix = ","),
+        introducedById = getString("introducedById"),
+        encounterAge = getLong("encounterAge")?.toInt(),
+        encounterLocationId = getString("encounterLocationId"),
+        encounterLocationLabel = getString("encounterLocationLabel")?.trim(),
+        linkNature = getString("linkNature")?.trim(),
+        linkStatus = getString("linkStatus"),
+        visibility = getString("visibility") ?: "PUBLIC"
     )
 }
 

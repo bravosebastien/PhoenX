@@ -61,6 +61,15 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM persons ORDER BY firstName ASC")
     fun getAllPersons(): Flow<List<PersonEntity>>
 
+    @Query("SELECT * FROM persons WHERE categories LIKE '%,FAMILY,%' ORDER BY firstName ASC")
+    fun getFamilyPersons(): Flow<List<PersonEntity>>
+
+    @Query("SELECT * FROM persons WHERE categories LIKE '%,ENCOUNTER,%' ORDER BY firstName ASC")
+    fun getEncounterPersons(): Flow<List<PersonEntity>>
+
+    @Query("SELECT * FROM persons ORDER BY firstName ASC")
+    suspend fun getAllPersonsSync(): List<PersonEntity>
+
     @Query("SELECT * FROM persons WHERE firstName LIKE :query || '%'")
     suspend fun searchPersonsByFirstName(query: String): List<PersonEntity>
 

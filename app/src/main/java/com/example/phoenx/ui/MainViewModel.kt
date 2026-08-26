@@ -263,7 +263,38 @@ class MainViewModel @Inject constructor(
                         // db.collection("users").document(userId).update("publicEncryptionKey", localRsaRaw).await()
                     }
 
-                    // 4. VÉRIFICATION DE L'INTÉGRITÉ DE LA CLÉ PRIVÉE (v9.5.1)
+                    // 4. CLASSIFICATION INTELLIGENTE DES PERSONNES v9.5.0 (Lot 1 Rencontres)
+                    val persons = database.offlineEntryDao().getAllPersonsSync()
+                    val personMedia = database.personMediaDao().getAllMediaSync()
+                    val parentIdsInTree = persons.flatMap { p -> p.parentIds.split(",").filter { it.isNotBlank() } }.toSet()
+                    val personIdsWithMedia = personMedia.map { it.personId }.toSet()
+
+                    var classifiedCount = 0
+                    persons.forEach { person ->
+                        // Si la personne n'a pas encore de catégorie propre au nouveau système
+                        if (person.categories == ",FAMILY," || person.categories.isBlank()) {
+                            val hasParents = person.parentIds.isNotBlank()
+                            val isParent = parentIdsInTree.contains(person.id)
+                            val hasTreeAttributes = person.isDeceased || 
+                                                person.biography.isNotBlank() || 
+                                                person.isReparented || 
+                                                !person.reparentedRelationLabel.isNullOrBlank()
+                            val hasMedia = personIdsWithMedia.contains(person.id)
+
+                            // 6 Critères Family validés (incluant person_media)
+                            if (hasParents || isParent || hasTreeAttributes || hasMedia) {
+                                // On s'assure qu'elle est bien classée FAMILY
+                                val updated = person.copy(categories = ",FAMILY,")
+                                if (updated != person) {
+                                    database.offlineEntryDao().insertPerson(updated)
+                                    classifiedCount++
+                                }
+                            }
+                        }
+                    }
+                    if (classifiedCount > 0) android.util.Log.d("PHOENX_MIGRATION", "$classifiedCount personnes classées en FAMILY.")
+
+                    // 5. VÉRIFICATION DE L'INTÉGRITÉ DE LA CLÉ PRIVÉE (v9.5.1)
                     // Test de déchiffrement sur un témoignage existant
                     val witnesses = db.collection("users").document(userId).collection("witnesses").get().await()
                     val testimonyDoc = witnesses.documents.find { it.getString("content") != null }

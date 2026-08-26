@@ -81,8 +81,8 @@ fun GenealogyTreeRenderer(
                     }
                 }
         ) {
-            val totalWidth = maxWidth
-            val totalHeight = maxHeight
+            val totalWidth = this.maxWidth
+            val totalHeight = this.maxHeight
             
             val centerX = with(density) { (totalWidth / 2).toPx() }
             val centerY = with(density) { (totalHeight / 2).toPx() }

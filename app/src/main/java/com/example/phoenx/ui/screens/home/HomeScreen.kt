@@ -92,6 +92,7 @@ fun HomeScreen(
     onNavigateToLibrary: () -> Unit,
     onNavigateToBookEditor: () -> Unit,
     onNavigateToGenealogy: () -> Unit,
+    onNavigateToEncounters: () -> Unit, // v9.5.0
     onNavigateToDetective: () -> Unit,
     onNavigateToStepByStep: () -> Unit, // v9.4.26
     onNavigateToNotificationContacts: () -> Unit,
@@ -473,6 +474,14 @@ fun HomeScreen(
                     GenealogyCard(
                         imageUrl = uiState.genealogyCardImageUrl,
                         onClick = onNavigateToGenealogy,
+                        theme = theme,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // --- AJOUT v9.5.0 : LES RENCONTRES ---
+                    com.example.phoenx.ui.screens.home.components.EncounterCard(
+                        imageUrl = uiState.encountersCardImageUrl,
+                        onClick = onNavigateToEncounters,
                         theme = theme,
                         modifier = Modifier.fillMaxWidth()
                     )

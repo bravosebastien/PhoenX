@@ -597,4 +597,21 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE recipients ADD COLUMN showPersonPhotos INTEGER NOT NULL DEFAULT 0")
         }
     }
+
+    /**
+     * MIGRATION_49_50 — Les Rencontres v9.5.0
+     * Extension du modèle PersonEntity pour le nouveau tiroir.
+     */
+    val MIGRATION_49_50 = object : Migration(49, 50) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE persons ADD COLUMN categories TEXT NOT NULL DEFAULT ',FAMILY,'")
+            db.execSQL("ALTER TABLE persons ADD COLUMN introducedById TEXT")
+            db.execSQL("ALTER TABLE persons ADD COLUMN encounterAge INTEGER")
+            db.execSQL("ALTER TABLE persons ADD COLUMN encounterLocationId TEXT")
+            db.execSQL("ALTER TABLE persons ADD COLUMN encounterLocationLabel TEXT")
+            db.execSQL("ALTER TABLE persons ADD COLUMN linkNature TEXT")
+            db.execSQL("ALTER TABLE persons ADD COLUMN linkStatus TEXT")
+            db.execSQL("ALTER TABLE persons ADD COLUMN visibility TEXT NOT NULL DEFAULT 'PUBLIC'")
+        }
+    }
 }

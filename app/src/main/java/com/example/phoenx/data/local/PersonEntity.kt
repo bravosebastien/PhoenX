@@ -32,5 +32,15 @@ data class PersonEntity(
     val isDeceased: Boolean = false,
     val biography: String = "",
     val isReparented: Boolean = false, // v9.4.23 : Marqueur pour remontée automatique
-    val reparentedRelationLabel: String? = null // v9.4.23 : Libellé de lien personnalisé
+    val reparentedRelationLabel: String? = null, // v9.4.23 : Libellé de lien personnalisé
+
+    // LES RENCONTRES v9.5.0
+    val categories: String = ",FAMILY,", // Format CSV sécurisé : ",FAMILY,ENCOUNTER,"
+    val introducedById: String? = null,
+    val encounterAge: Int? = null,
+    val encounterLocationId: String? = null,
+    val encounterLocationLabel: String? = null,
+    val linkNature: String? = null, // ami, mentor, collègue, amour, etc.
+    val linkStatus: String? = null, // PRESENT, LOST, PASSED
+    val visibility: String = "PUBLIC" // PUBLIC | PRIVATE
 )

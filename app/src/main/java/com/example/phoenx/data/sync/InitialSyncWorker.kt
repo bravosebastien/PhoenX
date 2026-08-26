@@ -68,8 +68,30 @@ class InitialSyncWorker @AssistedInject constructor(
             val remotePersons = personsSnapshot.documents
             val missingPersonDocs = remotePersons.filter { it.id !in localPersonIds }
 
+            // Recalcul protecteur des catégories pour l'Héritage (v9.5.0)
+            val parentIdsInRemoteTree = remotePersons.flatMap { doc ->
+                doc.getString("parentIds")?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+            }.toSet()
+
             missingPersonDocs.forEach { doc ->
                 val person = doc.toPersonEntity()
+                
+                // Si la catégorie est absente ou par défaut, on affine le reclassement FAMILY
+                var finalCategories = person.categories
+                if (finalCategories == ",FAMILY," || finalCategories.isEmpty()) {
+                    val hasParents = person.parentIds.isNotBlank()
+                    val isParent = parentIdsInRemoteTree.contains(person.id)
+                    val hasTreeAttributes = person.isDeceased || 
+                                           person.biography.isNotBlank() || 
+                                           person.isReparented || 
+                                           !person.reparentedRelationLabel.isNullOrBlank()
+                    
+                    // Note: Le critère 6 (Media) sera validé lors de l'étape 4 du worker
+                    if (hasParents || isParent || hasTreeAttributes) {
+                        finalCategories = ",FAMILY,"
+                    }
+                }
+
                 val storageUrl = doc.getString("imageUrl")
                 var finalLocalPath: String? = null
 
@@ -87,7 +109,7 @@ class InitialSyncWorker @AssistedInject constructor(
                     }
                 }
 
-                offlineEntryDao.insertPerson(person.copy(imagePath = finalLocalPath))
+                offlineEntryDao.insertPerson(person.copy(imagePath = finalLocalPath, categories = finalCategories))
             }
 
             // ═══ 3. RÉCUPÉRATION DES DESTINATAIRES (RECIPIENTS) — v9.4.19 ═══
@@ -110,6 +132,14 @@ class InitialSyncWorker @AssistedInject constructor(
                     .get()
                     .await()
                 
+                if (!mediaSnapshot.isEmpty) {
+                    // Critère 6 : Si la personne a des médias mais n'est pas encore FAMILY
+                    if (!person.categories.contains(",FAMILY,")) {
+                        val updated = person.copy(categories = (person.categories + "FAMILY,").split(",").filter { it.isNotBlank() }.distinct().joinToString(",", prefix = ",", postfix = ","))
+                        offlineEntryDao.insertPerson(updated)
+                    }
+                }
+
                 mediaSnapshot.documents.forEach { doc ->
                     personMediaDao.insertMedia(doc.toPersonMediaEntity())
                 }

@@ -43,11 +43,15 @@ class GenealogyTreeViewModel @Inject constructor(
     val allPersons: StateFlow<List<PersonEntity>> = _targetCreatorId.flatMapLatest { targetId ->
         android.util.Log.d("GenealogySecurityDebug", "allPersons query: targetId='$targetId', currentUser.uid='${auth.currentUser?.uid}'")
         if (targetId == null || targetId == auth.currentUser?.uid) {
-            offlineEntryDao.getAllPersons()
+            // MODE CRÉATEUR : Filtrage par catégorie FAMILY ou vide (Garde-fou)
+            offlineEntryDao.getAllPersons().map { list ->
+                list.filter { p -> 
+                    p.categories.contains(",FAMILY,") || p.categories.isBlank() || p.categories == ",,"
+                }
+            }
         } else {
-            // Lecture Firestore directe pour les Destinataires (v9.4.22)
+            // MODE HÉRITIER / APERÇU : Lecture Firestore directe avec le même filtrage
             callbackFlow {
-                android.util.Log.d("GenealogySecurityDebug", "Initiating Firestore listen for users/$targetId/persons")
                 val listener = db.collection("users").document(targetId)
                     .collection("persons")
                     .addSnapshotListener { snapshot, error ->
@@ -55,12 +59,16 @@ class GenealogyTreeViewModel @Inject constructor(
                             android.util.Log.e("GenealogySecurityDebug", "Firestore listen error: ${error.message}")
                         }
                         val list = snapshot?.documents?.map { doc ->
-                            doc.toPersonEntity() // v9.4.24: Utilise le mapper centralisé complet
+                            doc.toPersonEntity()
                         } ?: emptyList<PersonEntity>()
-                        trySend(list)
                         
-                        // Déclenche la résolution des avatars
-                        resolveAvatars(targetId, list)
+                        // Application du garde-fou sur les données distantes
+                        val filteredList = list.filter { p ->
+                            p.categories.contains(",FAMILY,") || p.categories.isBlank() || p.categories == ",,"
+                        }
+                        
+                        trySend(filteredList)
+                        resolveAvatars(targetId, filteredList)
                     }
                 awaitClose { listener.remove() }
             }

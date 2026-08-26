@@ -100,7 +100,11 @@ class HomeViewModel @Inject constructor(
                     return@addSnapshotListener
                 }
                 val url = snapshot?.getString("genealogyCardImageUrl")
-                _uiState.update { it.copy(genealogyCardImageUrl = url) }
+                val encountersUrl = snapshot?.getString("encountersCardImageUrl")
+                _uiState.update { it.copy(
+                    genealogyCardImageUrl = url,
+                    encountersCardImageUrl = encountersUrl
+                ) }
             }
         activeListeners.add(listener)
     }
@@ -353,6 +357,7 @@ data class HomeUiState(
     val coverOffsetX: Float = 0f,
     val coverOffsetY: Float = 0f,
     val genealogyCardImageUrl: String? = null,
+    val encountersCardImageUrl: String? = null,
     val presentationVideos: List<PresentationVideo> = emptyList(),
     val latestEntries: List<OfflineEntry> = emptyList()
 )
