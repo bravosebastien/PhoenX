@@ -70,11 +70,31 @@ fun EncounterDetailScreen(
         viewModel.getMemoriesCountForPerson(personId).collect { memoriesCount = it }
     }
 
+    var showEditDialog by remember { mutableStateOf(false) }
+
     if (person == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = accent)
         }
         return
+    }
+
+    if (showEditDialog) {
+        EncounterDetailsDialog(
+            initialPerson = person,
+            allPersons = allPersons,
+            onConfirm = { updatedPerson ->
+                viewModel.saveEncounter(updatedPerson)
+                showEditDialog = false
+            },
+            onDismiss = { showEditDialog = false },
+            onRemoveCategory = {
+                viewModel.removeEncounterCategory(it)
+                showEditDialog = false
+                navController.popBackStack()
+            },
+            accent = accent
+        )
     }
 
     Scaffold(
@@ -88,8 +108,8 @@ fun EncounterDetailScreen(
                     }
                 },
                 actions = {
-                    if (!isReadOnly) {
-                        TextButton(onClick = { /* Lot D: Modifier */ }) {
+                    if (!isReadOnly && person.categories.contains("ENCOUNTER")) {
+                        TextButton(onClick = { showEditDialog = true }) {
                             Text("Modifier", color = Color(0xFFBF6338), fontWeight = FontWeight.Bold)
                         }
                     }
@@ -160,45 +180,47 @@ fun EncounterDetailScreen(
                         )
                     }
                     
-                    Spacer(Modifier.height(12.dp))
-                    
-                    // Nature du lien
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(8.dp).clip(CircleShape).background(getNatureColor(person.linkNature)))
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = displayLinkNature(person.linkNature).uppercase(),
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
-                            color = theme.contentColor.copy(alpha = 0.8f)
-                        )
-                    }
+                    if (person.categories.contains("ENCOUNTER")) {
+                        Spacer(Modifier.height(12.dp))
+                        
+                        // Nature du lien
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.size(8.dp).clip(CircleShape).background(getNatureColor(person.linkNature)))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = displayLinkNature(person.linkNature).uppercase(),
+                                style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+                                color = theme.contentColor.copy(alpha = 0.8f)
+                            )
+                        }
 
-                    Spacer(Modifier.height(24.dp))
+                        Spacer(Modifier.height(24.dp))
 
-                    // Intertitre Rencontre
-                    Text("NOTRE RENCONTRE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = accent)
-                    Text(
-                        text = "J'avais ${person.encounterAge ?: "?"} ans",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        color = theme.contentColor
-                    )
-                    
-                    val contextLabel = when(person.encounterContext) {
-                        "SCHOOL" -> "École"
-                        "WORK" -> "Travail"
-                        "SPORT" -> "Sport"
-                        "PASSION" -> "Passion"
-                        "TRAVEL" -> "Voyage"
-                        "OTHER" -> "Autre"
-                        else -> null
-                    }
-                    val details = listOfNotNull(contextLabel, person.encounterLocationLabel).joinToString(" · ")
-                    if (details.isNotBlank()) {
+                        // Intertitre Rencontre
+                        Text("NOTRE RENCONTRE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = accent)
                         Text(
-                            text = details,
-                            style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
-                            color = theme.contentColor.copy(alpha = 0.6f)
+                            text = "J'avais ${person.encounterAge ?: "?"} ans",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                            color = theme.contentColor
                         )
+                        
+                        val contextLabel = when(person.encounterContext) {
+                            "SCHOOL" -> "École"
+                            "WORK" -> "Travail"
+                            "SPORT" -> "Sport"
+                            "PASSION" -> "Passion"
+                            "TRAVEL" -> "Voyage"
+                            "OTHER" -> "Autre"
+                            else -> null
+                        }
+                        val details = listOfNotNull(contextLabel, person.encounterLocationLabel).joinToString(" · ")
+                        if (details.isNotBlank()) {
+                            Text(
+                                text = details,
+                                style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                                color = theme.contentColor.copy(alpha = 0.6f)
+                            )
+                        }
                     }
                 }
             }
@@ -236,11 +258,11 @@ fun EncounterDetailScreen(
             }
 
             // 3. CE QU'ELLE M'A APPORTÉ
-            if (person.biography.isNotBlank()) {
+            if (person.encounterBiography.isNotBlank()) {
                 Text("CE QU'IL/ELLE M'A APPORTÉ", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = theme.contentColor.copy(alpha = 0.4f))
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = person.biography,
+                    text = person.encounterBiography,
                     style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic, lineHeight = 26.sp),
                     color = theme.contentColor.copy(alpha = 0.8f)
                 )

@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil3.compose.AsyncImage
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.ui.theme.LocalAppTheme
@@ -40,11 +41,29 @@ fun EncounterDetailsDialog(
     // État local du formulaire
     var firstName by remember { mutableStateOf(initialPerson?.firstName ?: "") }
     var lastName by remember { mutableStateOf(initialPerson?.lastName ?: "") }
-    var biography by remember { mutableStateOf(initialPerson?.biography ?: "") }
+    var encounterBiography by remember { mutableStateOf(initialPerson?.encounterBiography ?: "") }
     var encounterAge by remember { mutableStateOf(initialPerson?.encounterAge?.toString() ?: "") }
+    
+    // Nature
     var linkNature by remember { mutableStateOf(initialPerson?.linkNature ?: "") }
-    var linkStatus by remember { mutableStateOf(initialPerson?.linkStatus ?: "PRESENT") }
+    var linkNatureCustom by remember { 
+        mutableStateOf(
+            if (initialPerson?.linkNature != null && !listOf("Ami", "Partenaire", "Mentor", "Collègue", "Voisin").contains(initialPerson.linkNature))
+                initialPerson.linkNature 
+            else ""
+        )
+    }
+    
+    // Contexte
+    var encounterContext by remember { mutableStateOf(initialPerson?.encounterContext) }
+    var encounterContextLabel by remember { mutableStateOf(initialPerson?.encounterContextLabel ?: "") }
     var locationLabel by remember { mutableStateOf(initialPerson?.encounterLocationLabel ?: "") }
+    
+    // État du lien
+    var linkStatus by remember { mutableStateOf(initialPerson?.linkStatus ?: "PRESENT") }
+    var relationEndAge by remember { mutableStateOf(initialPerson?.relationEndAge?.toString() ?: "") }
+    var relationEndReason by remember { mutableStateOf(initialPerson?.relationEndReason ?: "") }
+
     var introducedById by remember { mutableStateOf(initialPerson?.introducedById) }
     var isPrivate by remember { mutableStateOf(initialPerson?.visibility == "PRIVATE") }
 
@@ -54,12 +73,66 @@ fun EncounterDetailsDialog(
         it.firstName.contains(query, ignoreCase = true) && it.id != initialPerson?.id
     }
 
-    Dialog(onDismissRequest = onDismiss) {
+    // Modal de confirmation de suppression
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var deleteWarningMessage by remember { mutableStateOf("") }
+    var hasIntroducedPersons by remember { mutableStateOf(false) }
+
+    fun checkBeforeDelete() {
+        if (initialPerson == null) return
+        
+        val introducedPersons = allPersons.filter { it.introducedById == initialPerson.id }
+        
+        hasIntroducedPersons = introducedPersons.isNotEmpty()
+        if (hasIntroducedPersons) {
+            val names = introducedPersons.joinToString(", ") { it.firstName }
+            deleteWarningMessage = "Cette personne a présenté : $names.\nSi vous continuez, le lien 'Présenté par' de ces personnes sera vidé."
+        } else {
+            val hasFamily = initialPerson.categories.contains("FAMILY")
+            deleteWarningMessage = if (hasFamily) {
+                "Cette personne fait aussi partie de votre Arbre Généalogique. Elle sera uniquement retirée de vos Rencontres, mais restera dans l'Arbre."
+            } else {
+                "Voulez-vous vraiment supprimer cette rencontre ?"
+            }
+        }
+        showDeleteConfirm = true
+    }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Attention") },
+            text = { Text(deleteWarningMessage) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteConfirm = false
+                        initialPerson?.let { onRemoveCategory(it) }
+                    }
+                ) {
+                    Text("Confirmer la suppression", color = Error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Annuler")
+                }
+            },
+            containerColor = theme.backgroundColor,
+            titleContentColor = theme.contentColor,
+            textContentColor = theme.contentColor
+        )
+    }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(
             shape = RoundedCornerShape(28.dp),
             color = theme.backgroundColor,
             border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.9f).padding(vertical = 16.dp)
+            modifier = Modifier.fillMaxWidth(0.95f).fillMaxHeight(0.95f).padding(vertical = 16.dp)
         ) {
             Column(
                 modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState())
@@ -103,25 +176,85 @@ fun EncounterDetailsDialog(
                 )
 
                 Spacer(Modifier.height(24.dp))
-
-                // Ce qu'il/elle m'a apporté (Bio)
-                OutlinedTextField(
-                    value = biography,
-                    onValueChange = { biography = it },
-                    label = { Text("Ce qu'il ou elle m'a apporté") },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
-                )
+                
+                // Nature du lien
+                Text("NATURE DU LIEN", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                Spacer(Modifier.height(8.dp))
+                val natures = listOf("Ami", "Partenaire", "Mentor", "Collègue", "Voisin", "Autre")
+                FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    natures.forEach { nature ->
+                        val isSelected = linkNature == nature || (nature == "Autre" && linkNature != "" && !natures.contains(linkNature))
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { 
+                                if (nature == "Autre") {
+                                    linkNature = "Autre"
+                                } else {
+                                    linkNature = nature 
+                                    linkNatureCustom = ""
+                                }
+                            },
+                            label = { Text(nature) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent.copy(alpha = 0.2f), selectedLabelColor = accent)
+                        )
+                    }
+                }
+                
+                if (linkNature == "Autre") {
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = linkNatureCustom,
+                        onValueChange = { linkNatureCustom = it },
+                        label = { Text("Précisez la nature du lien") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                    )
+                }
 
                 Spacer(Modifier.height(24.dp))
 
                 // Détails de la rencontre
+                Text("RENCONTRE", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                Spacer(Modifier.height(8.dp))
+                
+                OutlinedTextField(
+                    value = encounterAge,
+                    onValueChange = { if (it.all { char -> char.isDigit() }) encounterAge = it },
+                    label = { Text("Mon âge à la rencontre") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                )
+                
+                Spacer(Modifier.height(16.dp))
+                
+                val contexts = mapOf(
+                    "SCHOOL" to "École", 
+                    "WORK" to "Travail", 
+                    "SPORT" to "Sport", 
+                    "PASSION" to "Passion", 
+                    "TRAVEL" to "Voyage", 
+                    "OTHER" to "Autre"
+                )
+                
+                FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    contexts.forEach { (key, label) ->
+                        FilterChip(
+                            selected = encounterContext == key,
+                            onClick = { encounterContext = key },
+                            label = { Text(label) },
+                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent.copy(alpha = 0.2f), selectedLabelColor = accent)
+                        )
+                    }
+                }
+                
+                Spacer(Modifier.height(8.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedTextField(
-                        value = encounterAge,
-                        onValueChange = { if (it.all { char -> char.isDigit() }) encounterAge = it },
-                        label = { Text("Âge") },
+                        value = encounterContextLabel,
+                        onValueChange = { encounterContextLabel = it },
+                        label = { Text("Précisions (ex: sport...)") },
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
@@ -130,27 +263,10 @@ fun EncounterDetailsDialog(
                         value = locationLabel,
                         onValueChange = { locationLabel = it },
                         label = { Text("Lieu") },
-                        modifier = Modifier.weight(2f),
+                        modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                     )
-                }
-
-                Spacer(Modifier.height(24.dp))
-
-                // Nature du lien
-                Text("NATURE DU LIEN", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
-                Spacer(Modifier.height(8.dp))
-                val natures = listOf("Ami", "Partenaire", "Mentor", "Collègue", "Voisin", "Autre")
-                FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    natures.forEach { nature ->
-                        FilterChip(
-                            selected = displayLinkNature(linkNature) == nature,
-                            onClick = { linkNature = nature },
-                            label = { Text(nature) },
-                            colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent.copy(alpha = 0.2f), selectedLabelColor = accent)
-                        )
-                    }
                 }
 
                 Spacer(Modifier.height(24.dp))
@@ -169,6 +285,27 @@ fun EncounterDetailsDialog(
                             colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent.copy(alpha = 0.2f), selectedLabelColor = accent)
                         )
                     }
+                }
+                
+                if (linkNature == "Partenaire" && linkStatus != "PRESENT") {
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = relationEndAge,
+                        onValueChange = { if (it.all { char -> char.isDigit() }) relationEndAge = it },
+                        label = { Text("Mon âge à la fin de la relation") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = relationEndReason,
+                        onValueChange = { relationEndReason = it },
+                        label = { Text("Raison (optionnelle)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                    )
                 }
 
                 Spacer(Modifier.height(24.dp))
@@ -242,6 +379,20 @@ fun EncounterDetailsDialog(
                     }
                 }
 
+                Spacer(Modifier.height(24.dp))
+                
+                // Ce qu'il/elle m'a apporté (Bio)
+                Text("BIOGRAPHIE", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = encounterBiography,
+                    onValueChange = { encounterBiography = it },
+                    label = { Text("Ce qu'il ou elle m'a apporté") },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
+                )
+
                 Spacer(Modifier.height(32.dp))
 
                 // Confidentialité
@@ -271,14 +422,20 @@ fun EncounterDetailsDialog(
                                 (initialPerson.categories.split(",") + "ENCOUNTER").distinct().joinToString(",")
                             } else ",ENCOUNTER,"
 
+                            val finalNature = if (linkNature == "Autre") linkNatureCustom else linkNature
+
                             val personToSave = (initialPerson ?: PersonEntity(firstName = "")).copy(
                                 firstName = firstName,
                                 lastName = lastName.ifBlank { null },
-                                biography = biography,
+                                encounterBiography = encounterBiography,
                                 encounterAge = encounterAge.toIntOrNull(),
-                                linkNature = linkNature.ifBlank { null },
+                                linkNature = finalNature.ifBlank { null },
+                                encounterContext = encounterContext,
                                 linkStatus = linkStatus,
+                                relationEndAge = relationEndAge.toIntOrNull(),
+                                relationEndReason = relationEndReason.ifBlank { null },
                                 encounterLocationLabel = locationLabel.ifBlank { null },
+                                encounterContextLabel = encounterContextLabel.ifBlank { null },
                                 introducedById = introducedById,
                                 visibility = if (isPrivate) "PRIVATE" else "PUBLIC",
                                 categories = newCategories
@@ -295,7 +452,7 @@ fun EncounterDetailsDialog(
 
                     if (initialPerson != null) {
                         TextButton(
-                            onClick = { onRemoveCategory(initialPerson) },
+                            onClick = { checkBeforeDelete() },
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Retirer des Rencontres", color = Error)
@@ -313,3 +470,4 @@ fun EncounterDetailsDialog(
         }
     }
 }
+

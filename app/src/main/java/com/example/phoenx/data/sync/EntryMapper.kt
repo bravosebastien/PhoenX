@@ -133,7 +133,9 @@ fun com.example.phoenx.data.local.PersonEntity.toFirestoreMap(storageUrl: String
         "encounterContext" to encounterContext,
         "encounterContextLabel" to encounterContextLabel?.trim(),
         "relationEndAge" to relationEndAge,
-        "relationEndReason" to relationEndReason?.trim()
+        "relationEndReason" to relationEndReason?.trim(),
+        // ISOLATION DES CHAMPS (Lot E - v9.6.5)
+        "encounterBiography" to encounterBiography.trim()
     )
 }
 
@@ -181,7 +183,9 @@ fun DocumentSnapshot.toPersonEntity(): com.example.phoenx.data.local.PersonEntit
         encounterContext = getString("encounterContext"),
         encounterContextLabel = getString("encounterContextLabel")?.trim(),
         relationEndAge = getLong("relationEndAge")?.toInt(),
-        relationEndReason = getString("relationEndReason")?.trim()
+        relationEndReason = getString("relationEndReason")?.trim(),
+        // ISOLATION DES CHAMPS (Lot E - v9.6.5)
+        encounterBiography = getString("encounterBiography")?.trim() ?: ""
     )
 }
 

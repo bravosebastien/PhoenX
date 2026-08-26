@@ -627,4 +627,29 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE persons ADD COLUMN relationEndReason TEXT")
         }
     }
+
+    /**
+     * MIGRATION_51_52 — Isolation des champs Rencontres v9.6.5
+     */
+    val MIGRATION_51_52 = object : Migration(51, 52) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            // 1. Ajouter le champ spécifique à la bio des Rencontres
+            db.execSQL("ALTER TABLE persons ADD COLUMN encounterBiography TEXT NOT NULL DEFAULT ''")
+            
+            // 2. Copier l'ancienne bio vers ce nouveau champ UNIQUEMENT pour les rencontres
+            db.execSQL("UPDATE persons SET encounterBiography = biography WHERE categories LIKE '%ENCOUNTER%'")
+            
+            // 3. Nettoyer les faux contextes 'OTHER' créés par le bug précédent
+            db.execSQL("UPDATE persons SET encounterContext = NULL WHERE encounterContext = 'OTHER'")
+        }
+    }
+
+    /**
+     * MIGRATION_52_53 — Nettoyage supplémentaire des contextes 'OTHER' (suite bug d'édition)
+     */
+    val MIGRATION_52_53 = object : Migration(52, 53) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("UPDATE persons SET encounterContext = NULL WHERE encounterContext = 'OTHER'")
+        }
+    }
 }

@@ -170,7 +170,7 @@ class EncounterViewModel @Inject constructor(
                 val finalPerson = person.copy(
                     firstName = person.firstName.trim(),
                     lastName = person.lastName?.trim(),
-                    biography = person.biography.trim(),
+                    encounterBiography = person.encounterBiography.trim(),
                     encounterLocationLabel = person.encounterLocationLabel?.trim(),
                     linkNature = person.linkNature?.trim(),
                     encounterContextLabel = person.encounterContextLabel?.trim(),
@@ -201,6 +201,17 @@ class EncounterViewModel @Inject constructor(
      */
     fun removeEncounterCategory(person: PersonEntity) {
         viewModelScope.launch {
+            // Nettoyage des références introducedById (Lot C)
+            try {
+                val allPersons = offlineEntryDao.getAllPersons().first()
+                val personsToUpdate = allPersons.filter { it.introducedById == person.id }
+                personsToUpdate.forEach { 
+                    saveEncounter(it.copy(introducedById = null))
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("EncounterVM", "Erreur nettoyage introducedById : ${e.message}")
+            }
+
             val categories = person.categories.split(",").filter { it.isNotBlank() && it != "ENCOUNTER" }
             
             if (categories.isEmpty()) {

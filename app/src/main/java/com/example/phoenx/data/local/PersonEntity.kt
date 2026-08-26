@@ -48,5 +48,8 @@ data class PersonEntity(
     val encounterContext: String? = null, // SCHOOL, WORK, SPORT, PASSION, TRAVEL, OTHER
     val encounterContextLabel: String? = null,
     val relationEndAge: Int? = null,
-    val relationEndReason: String? = null
+    val relationEndReason: String? = null,
+
+    // ISOLATION DES CHAMPS (Lot E - v9.6.5)
+    val encounterBiography: String = ""
 )
