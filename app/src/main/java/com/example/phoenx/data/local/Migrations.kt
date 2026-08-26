@@ -614,4 +614,17 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE persons ADD COLUMN visibility TEXT NOT NULL DEFAULT 'PUBLIC'")
         }
     }
+
+    /**
+     * MIGRATION_50_51 — Refonte Galerie Rencontres v9.6.0
+     * Ajout des champs de contexte et de fin de relation.
+     */
+    val MIGRATION_50_51 = object : Migration(50, 51) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE persons ADD COLUMN encounterContext TEXT")
+            db.execSQL("ALTER TABLE persons ADD COLUMN encounterContextLabel TEXT")
+            db.execSQL("ALTER TABLE persons ADD COLUMN relationEndAge INTEGER")
+            db.execSQL("ALTER TABLE persons ADD COLUMN relationEndReason TEXT")
+        }
+    }
 }

@@ -141,11 +141,11 @@ fun EncounterDetailsDialog(
                 // Nature du lien
                 Text("NATURE DU LIEN", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                 Spacer(Modifier.height(8.dp))
-                val natures = listOf("Ami", "Mentor", "Collègue", "Amour", "Compagnon", "Voisin")
+                val natures = listOf("Ami", "Partenaire", "Mentor", "Collègue", "Voisin", "Autre")
                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     natures.forEach { nature ->
                         FilterChip(
-                            selected = linkNature == nature,
+                            selected = displayLinkNature(linkNature) == nature,
                             onClick = { linkNature = nature },
                             label = { Text(nature) },
                             colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent.copy(alpha = 0.2f), selectedLabelColor = accent)

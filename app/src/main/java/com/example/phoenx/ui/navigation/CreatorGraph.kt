@@ -582,7 +582,8 @@ fun NavGraphBuilder.creatorGraph(
 
     composable(Screen.Encounters.route) {
         EncounterScreen(
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = { navController.popBackStack() },
+            mainViewModel = mainViewModel
         )
     }
 }

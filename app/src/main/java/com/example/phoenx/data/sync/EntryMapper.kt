@@ -128,7 +128,12 @@ fun com.example.phoenx.data.local.PersonEntity.toFirestoreMap(storageUrl: String
         "encounterLocationLabel" to encounterLocationLabel?.trim(),
         "linkNature" to linkNature?.trim(),
         "linkStatus" to linkStatus,
-        "visibility" to visibility
+        "visibility" to visibility,
+        // REFONTE GALERIE v9.6.0
+        "encounterContext" to encounterContext,
+        "encounterContextLabel" to encounterContextLabel?.trim(),
+        "relationEndAge" to relationEndAge,
+        "relationEndReason" to relationEndReason?.trim()
     )
 }
 
@@ -144,18 +149,14 @@ fun DocumentSnapshot.toPersonEntity(): com.example.phoenx.data.local.PersonEntit
     val isReparentedVal = getBoolean("isReparented") ?: false
     val rawReparentedLabel = getString("reparentedRelationLabel")
     
-    // Recalcul protecteur des catégories si absent (ADN 5.0)
-    val categoriesVal = getString("categories") ?: run {
-        // Si le champ est absent, on classe par défaut en FAMILY si critères Arbre remplis
-        val hasTreeAttributes = rawParentIds.isNotBlank() || isDeceasedVal || rawBio.isNotBlank() || isReparentedVal || !rawReparentedLabel.isNullOrBlank()
-        if (hasTreeAttributes) ",FAMILY," else ",FAMILY," // Pour l'instant, tout l'existant est FAMILY
-    }
+    // ADN 5.0 : On lit la valeur brute sans tenter de recalculer ou de deviner
+    val categoriesVal = getString("categories") ?: ""
 
     return com.example.phoenx.data.local.PersonEntity(
         id = id,
         firstName = rawFirstName.trim(),
         lastName = rawLastName?.trim(),
-        relationship = getString("lien")?.trim(),
+        relationship = (getString("linkNature") ?: getString("lien"))?.trim(),
         distinctionType = getString("distinctionType"),
         distinctionValue = getString("distinctionValeur")?.trim(),
         createdAt = getLong("createdAt") ?: System.currentTimeMillis(),
@@ -175,7 +176,12 @@ fun DocumentSnapshot.toPersonEntity(): com.example.phoenx.data.local.PersonEntit
         encounterLocationLabel = getString("encounterLocationLabel")?.trim(),
         linkNature = getString("linkNature")?.trim(),
         linkStatus = getString("linkStatus"),
-        visibility = getString("visibility") ?: "PUBLIC"
+        visibility = getString("visibility") ?: "PUBLIC",
+        // REFONTE GALERIE v9.6.0
+        encounterContext = getString("encounterContext"),
+        encounterContextLabel = getString("encounterContextLabel")?.trim(),
+        relationEndAge = getLong("relationEndAge")?.toInt(),
+        relationEndReason = getString("relationEndReason")?.trim()
     )
 }
 

@@ -35,12 +35,18 @@ data class PersonEntity(
     val reparentedRelationLabel: String? = null, // v9.4.23 : Libellé de lien personnalisé
 
     // LES RENCONTRES v9.5.0
-    val categories: String = ",FAMILY,", // Format CSV sécurisé : ",FAMILY,ENCOUNTER,"
+    val categories: String = "", // Format CSV sécurisé : ",FAMILY,ENCOUNTER,"
     val introducedById: String? = null,
     val encounterAge: Int? = null,
     val encounterLocationId: String? = null,
     val encounterLocationLabel: String? = null,
     val linkNature: String? = null, // ami, mentor, collègue, amour, etc.
     val linkStatus: String? = null, // PRESENT, LOST, PASSED
-    val visibility: String = "PUBLIC" // PUBLIC | PRIVATE
+    val visibility: String = "PUBLIC", // PUBLIC | PRIVATE
+
+    // REFONTE GALERIE v9.6.0 (Lot A)
+    val encounterContext: String? = null, // SCHOOL, WORK, SPORT, PASSION, TRAVEL, OTHER
+    val encounterContextLabel: String? = null,
+    val relationEndAge: Int? = null,
+    val relationEndReason: String? = null
 )

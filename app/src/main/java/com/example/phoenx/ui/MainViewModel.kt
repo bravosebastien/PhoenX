@@ -271,18 +271,20 @@ class MainViewModel @Inject constructor(
 
                     var classifiedCount = 0
                     persons.forEach { person ->
+                        // v9.6.0 : On ne touche JAMAIS à une personne qui est déjà marquée comme Rencontre
+                        if (person.categories.contains(",ENCOUNTER,")) return@forEach
+
                         // Si la personne n'a pas encore de catégorie propre au nouveau système
                         if (person.categories == ",FAMILY," || person.categories.isBlank()) {
                             val hasParents = person.parentIds.isNotBlank()
                             val isParent = parentIdsInTree.contains(person.id)
-                            val hasTreeAttributes = person.isDeceased || 
-                                                person.biography.isNotBlank() || 
+                            val hasHardTreeAttributes = person.isDeceased || 
                                                 person.isReparented || 
                                                 !person.reparentedRelationLabel.isNullOrBlank()
-                            val hasMedia = personIdsWithMedia.contains(person.id)
 
-                            // 6 Critères Family validés (incluant person_media)
-                            if (hasParents || isParent || hasTreeAttributes || hasMedia) {
+                            // On ne reclasse en FAMILY que sur des preuves structurelles (lignées)
+                            // La biographie et les médias sont désormais exclus car ambigus (Rencontres)
+                            if (hasParents || isParent || hasHardTreeAttributes) {
                                 // On s'assure qu'elle est bien classée FAMILY
                                 val updated = person.copy(categories = ",FAMILY,")
                                 if (updated != person) {

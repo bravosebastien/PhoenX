@@ -1,77 +1,166 @@
 package com.example.phoenx.ui.screens.encounters
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Handshake
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil3.compose.AsyncImage
 import com.example.phoenx.data.local.PersonEntity
-import com.example.phoenx.ui.components.CameoPortrait
+import com.example.phoenx.data.media.MediaManager
+import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.theme.LocalAppTheme
+import dagger.hilt.android.EntryPointAccessors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EncounterScreen(
     onNavigateBack: () -> Unit,
+    mainViewModel: MainViewModel,
     viewModel: EncounterViewModel = hiltViewModel()
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
-    val encounters by viewModel.encounterPersons.collectAsState()
-    val allPersons by viewModel.allSelectablePersons.collectAsState()
-    val graphLayout by viewModel.graphLayout.collectAsState()
+    val context = LocalContext.current
     
+    val filteredEncounters by viewModel.filteredEncounters.collectAsState()
+    val allPersons by viewModel.allSelectablePersons.collectAsState()
+    val stats by viewModel.stats.collectAsState()
+    val availableContexts by viewModel.availableContexts.collectAsState()
+    val activeFilter by viewModel.contextFilter.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()
+
+    var showSearch by remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     var selectedPerson by remember { mutableStateOf<PersonEntity?>(null) }
-    var viewMode by remember { mutableStateOf("LIST") } // "LIST" | "GRAPH"
+
+    val mediaManager = remember {
+        EntryPointAccessors.fromApplication(context, MediaManager.MediaManagerEntryPoint::class.java).mediaManager()
+    }
 
     Scaffold(
         containerColor = theme.backgroundColor,
         topBar = {
-            TopAppBar(
-                title = { 
-                    Column {
-                        Text("Les Rencontres", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                        Text("Ceux qui ont compté", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.5f))
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
-                    }
-                },
-                actions = {
-                    // Switcher Graphe / Liste (v9.5.1)
-                    IconButton(onClick = { viewMode = if (viewMode == "LIST") "GRAPH" else "LIST" }) {
-                        Icon(
-                            imageVector = if (viewMode == "LIST") Icons.Default.Timeline else Icons.AutoMirrored.Filled.List,
-                            contentDescription = "Changer de vue",
-                            tint = theme.contentColor
+            Column(modifier = Modifier.background(theme.backgroundColor)) {
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                "Les Rencontres",
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                                color = theme.contentColor
+                            )
+                            Text(
+                                "Ceux qui ont compté",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = theme.contentColor.copy(alpha = 0.5f)
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { showSearch = !showSearch }) {
+                            Icon(Icons.Default.Search, null, tint = theme.contentColor)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                )
+
+                if (showSearch) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { viewModel.updateSearchQuery(it) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 8.dp),
+                        placeholder = { Text("Rechercher un nom...") },
+                        leadingIcon = { Icon(Icons.Default.Search, null, tint = accent) },
+                        trailingIcon = {
+                            IconButton(onClick = { 
+                                viewModel.updateSearchQuery("")
+                                showSearch = false 
+                            }) {
+                                Icon(Icons.Default.Close, null)
+                            }
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
+                    )
+                }
+
+                // Stats discrètes
+                Text(
+                    text = buildString {
+                        append("${stats.total} personne${if (stats.total > 1) "s" else ""}")
+                        if (stats.minAge != null && stats.maxAge != null) {
+                            append(" · de ${stats.minAge} à ${stats.maxAge} ans")
+                        }
+                    },
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    color = theme.contentColor.copy(alpha = 0.4f),
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+                )
+
+                // Barre de filtres
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(availableContexts) { filter ->
+                        val isSelected = activeFilter == filter
+                        val terracotta = Color(0xFFBF6338)
+                        
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { viewModel.updateContextFilter(filter) },
+                            label = { Text(filter) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = terracotta,
+                                selectedLabelColor = Color.White,
+                                containerColor = terracotta.copy(alpha = 0.1f),
+                                labelColor = terracotta
+                            ),
+                            border = null,
+                            shape = RoundedCornerShape(20.dp)
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-            )
+                }
+            }
         },
         floatingActionButton = {
             FloatingActionButton(
@@ -79,7 +168,7 @@ fun EncounterScreen(
                     selectedPerson = null
                     showDialog = true 
                 },
-                containerColor = accent,
+                containerColor = Color(0xFFBF6338),
                 contentColor = Color.White,
                 shape = CircleShape
             ) {
@@ -88,47 +177,63 @@ fun EncounterScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            if (encounters.isEmpty()) {
+            // Fil de vie décoratif
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(1.dp)
+                    .offset(x = 28.dp)
+                    .background(Color(0xFFDED3C0))
+            )
+
+            if (filteredEncounters.isEmpty()) {
                 EmptyEncounters(modifier = Modifier.align(Alignment.Center))
             } else {
-                if (viewMode == "LIST") {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(20.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        val grouped = encounters.sortedBy { it.encounterAge ?: 999 }.groupBy { it.encounterAge ?: -1 }
+                val grouped = filteredEncounters.groupBy { it.encounterAge }
+                val sortedAges = grouped.keys.sortedBy { it ?: Int.MAX_VALUE }
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 100.dp)
+                ) {
+                    sortedAges.forEach { age ->
+                        val persons = grouped[age] ?: emptyList()
                         
-                        grouped.forEach { (age, list) ->
-                            item {
-                                Text(
-                                    text = if (age == -1) "Âge inconnu" else "À $age ans",
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = accent,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-                            items(list) { person ->
-                                EncounterItem(
-                                    person = person,
-                                    accent = accent,
-                                    onClick = {
-                                        selectedPerson = person
-                                        showDialog = true
-                                    }
-                                )
+                        // Header de section d'âge
+                        item {
+                            AgeHeader(age = age)
+                        }
+
+                        // Grille 2 colonnes par section
+                        val rows = persons.chunked(2)
+                        itemsIndexed(rows) { rowIndex, rowItems ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(start = 56.dp, end = 20.dp, bottom = 14.dp),
+                                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                            ) {
+                                rowItems.forEachIndexed { colIndex, person ->
+                                    val isLeft = colIndex == 0
+                                    EncounterCard(
+                                        person = person,
+                                        isLeft = isLeft,
+                                        rowIndex = rowIndex,
+                                        mediaManager = mediaManager,
+                                        allPersons = allPersons,
+                                        onClick = {
+                                            selectedPerson = person
+                                            showDialog = true
+                                        },
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                                if (rowItems.size == 1) {
+                                    Spacer(modifier = Modifier.weight(1f))
+                                }
                             }
                         }
                     }
-                } else {
-                    // VUE GRAPHE SQUELETTE (v9.5.1 ÉTAPE A)
-                    EncounterGraphRenderer(
-                        layout = graphLayout,
-                        onPersonClick = { person ->
-                            selectedPerson = person
-                            showDialog = true
-                        }
-                    )
                 }
             }
         }
@@ -153,68 +258,174 @@ fun EncounterScreen(
 }
 
 @Composable
-fun EncounterItem(
-    person: PersonEntity,
-    accent: Color,
-    onClick: () -> Unit
-) {
-    val theme = LocalAppTheme.current
-    Surface(
+fun AgeHeader(age: Int?) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        color = theme.contentColor.copy(alpha = 0.04f),
-        shape = RoundedCornerShape(16.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
+            .padding(vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CameoPortrait(
-                imagePath = person.imagePath,
-                firstName = person.firstName,
-                size = 56.dp
-            )
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = person.firstName + (person.lastName?.let { " $it" } ?: ""),
-                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                    color = theme.contentColor
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Handshake, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text = person.linkNature ?: "Rencontre",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = theme.contentColor.copy(alpha = 0.6f)
+        Box(
+            modifier = Modifier
+                .padding(start = 22.dp)
+                .size(12.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFFFFDF5)) // Fond parchemin
+                .border(1.5.dp, Color(0xFFBF6338), CircleShape)
+        )
+        
+        Text(
+            text = if (age == null) "Sans date" else "À $age ans",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold
+            ),
+            color = Color(0xFFBF6338),
+            modifier = Modifier.padding(start = 22.dp)
+        )
+    }
+}
+
+@Composable
+fun EncounterCard(
+    person: PersonEntity,
+    isLeft: Boolean,
+    rowIndex: Int,
+    mediaManager: MediaManager,
+    allPersons: List<PersonEntity>,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val theme = LocalAppTheme.current
+    val nature = displayLinkNature(person.linkNature)
+    val isPartner = nature == "Partenaire"
+    val isLost = person.linkStatus == "LOST"
+    val isPassed = person.linkStatus == "PASSED"
+    
+    // Alternance d'inclinaison
+    val tilt = if ((rowIndex + (if (isLeft) 0 else 1)) % 2 == 0) 1.5f else -1.5f
+
+    var safeUrl by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(person.imagePath) {
+        safeUrl = mediaManager.getSafeUrl(person.imagePath)
+    }
+
+    Column(
+        modifier = modifier
+            .rotate(tilt)
+            .clickable(onClick = onClick)
+    ) {
+        // Image
+        Box(
+            modifier = Modifier
+                .aspectRatio(1f)
+                .shadow(4.dp, RoundedCornerShape(11.dp))
+                .clip(RoundedCornerShape(11.dp))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(Color(0xFFE9E4D1), Color(0xFFDED3C0))
                     )
-                }
-                if (!person.encounterLocationLabel.isNullOrBlank()) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 2.dp)) {
-                        Icon(Icons.Default.LocationOn, null, tint = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.size(12.dp))
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            text = person.encounterLocationLabel!!,
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                            color = theme.contentColor.copy(alpha = 0.4f)
-                        )
-                    }
+                )
+                .then(
+                    if (isPartner) Modifier.border(2.dp, Color(0xFFB4646A), RoundedCornerShape(11.dp))
+                    else Modifier
+                )
+        ) {
+            if (safeUrl != null) {
+                AsyncImage(
+                    model = safeUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(if (isLost || isPassed) 0.5f else 1f),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    Icons.Default.Person,
+                    null,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .align(Alignment.Center)
+                        .alpha(0.2f),
+                    tint = theme.contentColor
+                )
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // Nom
+        Text(
+            text = person.firstName + (person.lastName?.let { " $it" } ?: ""),
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontFamily = theme.fontFamily,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            ),
+            color = if (isLost || isPassed) Color(0xFF8E8578) else theme.contentColor,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        // Nature
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            val natureColor = if (isLost || isPassed) Color.Gray else getNatureColor(person.linkNature)
+            Box(
+                Modifier
+                    .size(6.dp)
+                    .clip(CircleShape)
+                    .background(natureColor))
+            Spacer(Modifier.width(6.dp))
+            
+            val natureText = buildString {
+                append(nature)
+                if (isPartner && person.relationEndAge != null) {
+                    append(" · de ${person.encounterAge} à ${person.relationEndAge} ans")
                 }
             }
             
-            if (person.visibility == "PRIVATE") {
-                Icon(
-                    Icons.Default.Lock,
-                    null,
-                    tint = theme.contentColor.copy(alpha = 0.2f),
-                    modifier = Modifier.size(16.dp)
-                )
-            }
+            Text(
+                text = natureText,
+                style = MaterialTheme.typography.labelSmall,
+                color = theme.contentColor.copy(alpha = 0.6f)
+            )
+        }
+
+        // Contexte et infos
+        val contextLabel = when(person.encounterContext) {
+            "SCHOOL" -> "École"
+            "WORK" -> "Travail"
+            "SPORT" -> "Sport"
+            "PASSION" -> "Passion"
+            "TRAVEL" -> "Voyage"
+            "OTHER" -> "Autre"
+            else -> null
+        }
+        
+        val introducerName = if (!person.introducedById.isNullOrBlank()) {
+            allPersons.find { it.id == person.introducedById }?.firstName
+        } else null
+
+        val footerText = buildList {
+            if (isLost) add("perdu de vue")
+            if (isPassed) add("n'est plus là")
+            contextLabel?.let { add(it) }
+            person.encounterContextLabel?.takeIf { it.isNotBlank() }?.let { add(it) }
+            introducerName?.let { add("présentée par $it") }
+        }.joinToString(" · ")
+
+        if (footerText.isNotBlank()) {
+            Text(
+                text = footerText,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 9.sp,
+                    fontStyle = if (isLost || isPassed) FontStyle.Italic else null
+                ),
+                color = theme.contentColor.copy(alpha = 0.4f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -238,10 +449,16 @@ fun EmptyEncounters(modifier: Modifier = Modifier) {
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             color = theme.contentColor.copy(alpha = 0.4f)
         )
-        Text(
-            "Ajoute les personnes qui ont marqué ta route.",
-            style = MaterialTheme.typography.bodySmall,
-            color = theme.contentColor.copy(alpha = 0.3f)
-        )
+    }
+}
+
+fun getNatureColor(nature: String?): Color {
+    return when(displayLinkNature(nature)) {
+        "Ami" -> Color(0xFF7C9068)
+        "Partenaire" -> Color(0xFFB4646A)
+        "Mentor" -> Color(0xFF7A8CA3)
+        "Collègue" -> Color(0xFFA08A5F)
+        "Voisin" -> Color(0xFF7FA8A8)
+        else -> Color(0xFFA39A8E)
     }
 }
