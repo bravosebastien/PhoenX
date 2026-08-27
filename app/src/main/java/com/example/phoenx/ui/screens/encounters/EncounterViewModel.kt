@@ -37,6 +37,9 @@ class EncounterViewModel @Inject constructor(
     private val _contextFilter = MutableStateFlow("Tous")
     val contextFilter: StateFlow<String> = _contextFilter.asStateFlow()
 
+    private val _groupingMode = MutableStateFlow("Âge")
+    val groupingMode: StateFlow<String> = _groupingMode.asStateFlow()
+
     // Liste des rencontres (Filtre Room v9.5.0)
     private val _encounterPersons = MutableStateFlow<List<PersonEntity>>(emptyList())
     val encounterPersons: StateFlow<List<PersonEntity>> = _encounterPersons.asStateFlow()
@@ -133,6 +136,10 @@ class EncounterViewModel @Inject constructor(
 
     fun updateContextFilter(filter: String) {
         _contextFilter.value = filter
+    }
+
+    fun updateGroupingMode(mode: String) {
+        _groupingMode.value = mode
     }
 
     /**

@@ -59,6 +59,7 @@ fun EncounterScreen(
     val availableContexts by viewModel.availableContexts.collectAsState()
     val activeFilter by viewModel.contextFilter.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
+    val groupingMode by viewModel.groupingMode.collectAsState()
     
     var showSearch by remember { mutableStateOf(false) }
 
@@ -146,6 +147,30 @@ fun EncounterScreen(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
                 )
 
+                // Sélecteur de regroupement (Âge / Présenté par)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val terracotta = Color(0xFFBF6338)
+                    listOf("Âge", "Présenté par").forEach { mode ->
+                        val isSelected = groupingMode == mode
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { viewModel.updateGroupingMode(mode) },
+                            label = { Text(mode) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = terracotta,
+                                selectedLabelColor = Color.White,
+                                containerColor = Color.Transparent,
+                                labelColor = theme.contentColor
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(enabled = true, selected = isSelected, borderColor = terracotta),
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                    }
+                }
+
                 // Barre de filtres
                 LazyRow(
                     modifier = Modifier
@@ -202,46 +227,95 @@ fun EncounterScreen(
             if (filteredEncounters.isEmpty()) {
                 EmptyEncounters(modifier = Modifier.align(Alignment.Center))
             } else {
-                val grouped = filteredEncounters.groupBy { it.encounterAge }
-                val sortedAges = grouped.keys.sortedBy { it ?: Int.MAX_VALUE }
-
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 100.dp)
                 ) {
-                    sortedAges.forEach { age ->
-                        val persons = grouped[age] ?: emptyList()
-                        
-                        // Header de section d'âge
-                        item {
-                            AgeHeader(age = age)
-                        }
+                    if (groupingMode == "Âge") {
+                        val grouped = filteredEncounters.groupBy { it.encounterAge }
+                        val sortedAges = grouped.keys.sortedBy { it ?: Int.MAX_VALUE }
 
-                        // Grille 2 colonnes par section
-                        val rows = persons.chunked(2)
-                        itemsIndexed(rows) { rowIndex, rowItems ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(start = 56.dp, end = 20.dp, bottom = 14.dp),
-                                horizontalArrangement = Arrangement.spacedBy(14.dp)
-                            ) {
-                                rowItems.forEachIndexed { colIndex, person ->
-                                    val isLeft = colIndex == 0
-                                    EncounterCard(
-                                        person = person,
-                                        isLeft = isLeft,
-                                        rowIndex = rowIndex,
-                                        mediaManager = mediaManager,
-                                        allPersons = allPersons,
-                                        onClick = {
-                                            navController.navigate(Screen.EncounterDetail.createRoute(person.id))
-                                        },
-                                        modifier = Modifier.weight(1f)
-                                    )
+                        sortedAges.forEach { age ->
+                            val persons = grouped[age] ?: emptyList()
+                            
+                            item {
+                                AgeHeader(age = age)
+                            }
+
+                            val rows = persons.chunked(2)
+                            itemsIndexed(rows) { rowIndex, rowItems ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 56.dp, end = 20.dp, bottom = 14.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                                ) {
+                                    rowItems.forEachIndexed { colIndex, person ->
+                                        val isLeft = colIndex == 0
+                                        EncounterCard(
+                                            person = person,
+                                            isLeft = isLeft,
+                                            rowIndex = rowIndex,
+                                            mediaManager = mediaManager,
+                                            allPersons = allPersons,
+                                            onClick = {
+                                                navController.navigate(Screen.EncounterDetail.createRoute(person.id))
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    if (rowItems.size == 1) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
                                 }
-                                if (rowItems.size == 1) {
-                                    Spacer(modifier = Modifier.weight(1f))
+                            }
+                        }
+                    } else {
+                        // Mode Présenté par
+                        val introducerMap = allPersons.associateBy(
+                            { it.id }, 
+                            { it.firstName + (it.lastName?.let { n -> " $n" } ?: "") }
+                        )
+                        val grouped = filteredEncounters.groupBy { it.introducedById }
+                        
+                        // Tri alphabétique du nom du présentateur. Les non-renseignés à la fin.
+                        val sortedKeys = grouped.keys.sortedWith(
+                            compareBy<String?> { it.isNullOrBlank() }.thenBy { introducerMap[it] ?: "ZZZ" }
+                        )
+
+                        sortedKeys.forEach { introducerId ->
+                            val persons = grouped[introducerId] ?: emptyList()
+                            val introducerName = if (introducerId.isNullOrBlank()) "Non renseigné" else introducerMap[introducerId] ?: "Personne inconnue"
+                            
+                            item {
+                                IntroducerHeader(name = introducerName)
+                            }
+                            
+                            val rows = persons.chunked(2)
+                            itemsIndexed(rows) { rowIndex, rowItems ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 56.dp, end = 20.dp, bottom = 14.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                                ) {
+                                    rowItems.forEachIndexed { colIndex, person ->
+                                        val isLeft = colIndex == 0
+                                        EncounterCard(
+                                            person = person,
+                                            isLeft = isLeft,
+                                            rowIndex = rowIndex,
+                                            mediaManager = mediaManager,
+                                            allPersons = allPersons,
+                                            onClick = {
+                                                navController.navigate(Screen.EncounterDetail.createRoute(person.id))
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    if (rowItems.size == 1) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
                                 }
                             }
                         }
@@ -265,6 +339,35 @@ fun EncounterScreen(
                 showDialog = false
             },
             accent = accent
+        )
+    }
+}
+
+@Composable
+fun IntroducerHeader(name: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(start = 22.dp)
+                .size(12.dp)
+                .clip(CircleShape)
+                .background(Color(0xFFFFFDF5)) // Fond parchemin
+                .border(1.5.dp, Color(0xFFBF6338), CircleShape)
+        )
+        
+        Text(
+            text = name,
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold
+            ),
+            color = Color(0xFFBF6338),
+            modifier = Modifier.padding(start = 22.dp)
         )
     }
 }
