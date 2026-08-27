@@ -226,6 +226,26 @@ class MediaManager @Inject constructor(
     }
 
     /**
+     * Uploade un média secondaire (Photo/Vidéo) dédié aux Rencontres.
+     * Les données sont chiffrées avant l'upload (AES-256-GCM).
+     */
+    suspend fun uploadEncounterMedia(userId: String, mediaId: String, localFile: File): String {
+        val fileBytes = localFile.readBytes()
+        val encryptedBytes = encryptionManager.encryptBytes(fileBytes)
+
+        val extension = if (localFile.name.endsWith(".mp4", ignoreCase = true)) ".mp4" else ".jpg"
+
+        val storageRef = storage.reference
+            .child("users")
+            .child(userId)
+            .child("encounter_media")
+            .child("$mediaId$extension.enc")
+
+        storageRef.putBytes(encryptedBytes).await()
+        return storageRef.path.removePrefix("/")
+    }
+
+    /**
      * Télécharge un portrait Cameo depuis Storage (v9.4.17).
      */
     suspend fun downloadCameo(pathOrUrl: String, destFile: File) {

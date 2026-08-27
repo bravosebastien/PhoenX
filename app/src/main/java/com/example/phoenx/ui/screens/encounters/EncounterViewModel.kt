@@ -68,6 +68,7 @@ class EncounterViewModel @Inject constructor(
                 
                 val list = snapshot.documents.map { it.toPersonEntity() }
                     .filter { it.categories.contains(",ENCOUNTER,") }
+                    .filter { it.visibility != "PRIVATE" } // v9.6.5 : Sécurité Jardin Secret
                 
                 _encounterPersons.value = list
             } catch (e: Exception) {
@@ -293,6 +294,56 @@ class EncounterViewModel @Inject constructor(
                 .collection("persons").document(person.id).delete().await()
         } catch (e: Exception) {
             android.util.Log.e("EncounterVM", "Erreur suppression finale : ${e.message}")
+        }
+    }
+
+    /**
+     * Supprime un média spécifique (Arbre ou Rencontre)
+     */
+    fun removeMedia(media: PersonMediaEntity) {
+        viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
+            
+            // 1. Suppression Storage
+            try {
+                mediaManager.deleteFile(media.mediaPath)
+            } catch (e: Exception) {
+                android.util.Log.e("EncounterVM", "Erreur suppression fichier media ${media.id}: ${e.message}")
+            }
+            
+            // 2. Suppression Firestore
+            try {
+                db.collection("users").document(userId)
+                    .collection("persons").document(media.personId)
+                    .collection("media").document(media.id)
+                    .delete()
+                    .await()
+            } catch (e: Exception) {
+                android.util.Log.e("EncounterVM", "Erreur suppression Firestore media ${media.id}: ${e.message}")
+            }
+            
+            // 3. Suppression Room
+            try {
+                personMediaDao.deleteMedia(media)
+            } catch (e: Exception) {
+                android.util.Log.e("EncounterVM", "Erreur suppression Room media ${media.id}: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Ajoute un média secondaire à une Rencontre
+     */
+    fun addMediaComplement(personId: String, file: java.io.File, type: String) {
+        viewModelScope.launch {
+            val media = PersonMediaEntity(
+                personId = personId,
+                mediaPath = file.absolutePath,
+                mediaType = type,
+                syncStatus = "pending"
+            )
+            personMediaDao.insertMedia(media)
+            SyncWorker.trigger(context)
         }
     }
 
