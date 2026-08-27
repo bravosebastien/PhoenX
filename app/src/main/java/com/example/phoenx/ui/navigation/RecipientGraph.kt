@@ -226,11 +226,16 @@ fun NavGraphBuilder.recipientGraph(
         popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+        // Récupération de la clé d'héritage depuis le ViewModel partagé (comme sur les autres écrans)
+        val viewModel: RecipientMediaViewModel = hiltViewModel()
+        val heirKey by viewModel.heirKey.collectAsState()
+        
         EncounterScreen(
             onNavigateBack = { navController.popBackStack() },
             navController = navController,
             mainViewModel = mainViewModel,
-            targetCreatorId = creatorId
+            targetCreatorId = creatorId,
+            heirKey = heirKey
         )
     }
 

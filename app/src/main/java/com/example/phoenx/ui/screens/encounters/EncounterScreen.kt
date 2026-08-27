@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.MainViewModel
@@ -47,6 +48,7 @@ fun EncounterScreen(
     navController: androidx.navigation.NavController,
     mainViewModel: MainViewModel,
     targetCreatorId: String? = null, // v9.6.0
+    heirKey: ByteArray? = null, // v9.6.5 : Clé de déchiffrement héritage
     viewModel: EncounterViewModel = hiltViewModel()
 ) {
     val theme = LocalAppTheme.current
@@ -256,10 +258,12 @@ fun EncounterScreen(
                                             person = person,
                                             isLeft = isLeft,
                                             rowIndex = rowIndex,
+                                            targetCreatorId = targetCreatorId,
+                                            heirKey = heirKey,
                                             mediaManager = mediaManager,
                                             allPersons = allPersons,
                                             onClick = {
-                                                navController.navigate(Screen.EncounterDetail.createRoute(person.id))
+                                                navController.navigate(Screen.EncounterDetail.createRoute(person.id, targetCreatorId))
                                             },
                                             modifier = Modifier.weight(1f)
                                         )
@@ -305,10 +309,12 @@ fun EncounterScreen(
                                             person = person,
                                             isLeft = isLeft,
                                             rowIndex = rowIndex,
+                                            targetCreatorId = targetCreatorId,
+                                            heirKey = heirKey,
                                             mediaManager = mediaManager,
                                             allPersons = allPersons,
                                             onClick = {
-                                                navController.navigate(Screen.EncounterDetail.createRoute(person.id))
+                                                navController.navigate(Screen.EncounterDetail.createRoute(person.id, targetCreatorId))
                                             },
                                             modifier = Modifier.weight(1f)
                                         )
@@ -406,6 +412,8 @@ fun EncounterCard(
     person: PersonEntity,
     isLeft: Boolean,
     rowIndex: Int,
+    targetCreatorId: String? = null,
+    heirKey: ByteArray? = null,
     mediaManager: MediaManager,
     allPersons: List<PersonEntity>,
     onClick: () -> Unit,
@@ -419,12 +427,6 @@ fun EncounterCard(
     
     // Alternance d'inclinaison
     val tilt = if ((rowIndex + (if (isLeft) 0 else 1)) % 2 == 0) 1.5f else -1.5f
-
-    var safeUrl by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(person.encounterImagePath, person.imagePath) {
-        // Affiche la photo de rencontre en priorité, sinon celle de l'arbre
-        safeUrl = mediaManager.getSafeUrl(person.encounterImagePath) ?: mediaManager.getSafeUrl(person.imagePath)
-    }
 
     Column(
         modifier = modifier
@@ -447,10 +449,20 @@ fun EncounterCard(
                     else Modifier
                 )
         ) {
-            if (safeUrl != null) {
-                AsyncImage(
-                    model = safeUrl,
-                    contentDescription = null,
+            val activePath = person.encounterImagePath ?: person.imagePath
+            if (activePath != null) {
+                val isPathEncrypted = (person.encounterImagePath != null) && !(person.encounterImagePath.startsWith("/data/") || !person.encounterImagePath.startsWith("users/"))
+                val fieldParam = if (person.encounterImagePath != null) "encounterImagePath" else "imageUrl"
+
+                SecureAsyncImage(
+                    mediaUrl = activePath,
+                    mediaManager = mediaManager,
+                    isEncrypted = isPathEncrypted,
+                    explicitKey = if (targetCreatorId != null) heirKey else null, // Utilisation de la vraie clé d'héritier
+                    creatorId = targetCreatorId,
+                    docType = "persons",
+                    docId = person.id,
+                    field = fieldParam,
                     modifier = Modifier
                         .fillMaxSize()
                         .alpha(if (isLost || isPassed) 0.5f else 1f),

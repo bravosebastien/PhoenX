@@ -25,6 +25,7 @@ import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.screens.characters.CharacterEditScreen
 import com.example.phoenx.ui.screens.encounters.EncounterScreen
 import com.example.phoenx.ui.screens.encounters.EncounterDetailScreen
+import com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel
 import com.example.phoenx.ui.screens.detective.DetectiveCreateScreen
 import com.example.phoenx.ui.screens.detective.DetectiveHomeScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
@@ -598,9 +599,17 @@ fun NavGraphBuilder.creatorGraph(
     ) { backStackEntry ->
         val personId = backStackEntry.arguments?.getString("personId") ?: ""
         val creatorId = backStackEntry.arguments?.getString("creatorId")
+        // Même si on est dans le graphe Créateur, l'écran peut être appelé en mode Héritier via l'alias
+        val isHeirMode = creatorId != null
+        val heirKey = if (isHeirMode) {
+            val viewModel: RecipientMediaViewModel = hiltViewModel()
+            viewModel.heirKey.collectAsState().value
+        } else null
+
         EncounterDetailScreen(
             personId = personId,
             targetCreatorId = creatorId,
+            heirKey = heirKey,
             navController = navController
         )
     }

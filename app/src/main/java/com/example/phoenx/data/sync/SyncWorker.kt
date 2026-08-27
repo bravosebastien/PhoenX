@@ -58,7 +58,9 @@ class SyncWorker @AssistedInject constructor(
         
         val allPersons = offlineEntryDao.getAllPersons().first()
         val personsToSync = allPersons.filter { 
-            it.syncStatus == "pending" || (!it.imagePath.isNullOrBlank() && it.imagePath!!.startsWith("/data/")) 
+            it.syncStatus == "pending" || 
+            (!it.imagePath.isNullOrBlank() && it.imagePath!!.startsWith("/data/")) ||
+            (!it.encounterImagePath.isNullOrBlank() && it.encounterImagePath!!.startsWith("/data/"))
         }
 
         val pendingStandalone = standaloneMediaDao.getPendingSync()

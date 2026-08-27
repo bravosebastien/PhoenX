@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.first
 fun EncounterDetailScreen(
     personId: String,
     targetCreatorId: String? = null,
+    heirKey: ByteArray? = null,
     navController: NavController,
     viewModel: EncounterViewModel = hiltViewModel()
 ) {
@@ -173,7 +174,7 @@ fun EncounterDetailScreen(
                             mediaUrl = activePath,
                             mediaManager = mediaManager,
                             isEncrypted = isPathEncrypted,
-                            explicitKey = if (isReadOnly) ByteArray(0) else null,
+                            explicitKey = if (isReadOnly) heirKey else null, // Utilisation de la vraie clé
                             creatorId = targetCreatorId,
                             docType = "persons",
                             docId = personId,

@@ -23,6 +23,7 @@ import javax.inject.Inject
 class EncounterViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val personMediaDao: PersonMediaDao, // v9.6.0
+    private val mediaManager: com.example.phoenx.data.media.MediaManager,
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     @ApplicationContext private val context: Context
@@ -188,9 +189,17 @@ class EncounterViewModel @Inject constructor(
 
                 offlineEntryDao.insertPerson(finalPerson)
 
+                val encounterPath = finalPerson.encounterImagePath
+                val isLocalEncounterPath = !encounterPath.isNullOrBlank() && (encounterPath.startsWith("/data/") || !encounterPath.startsWith("users/"))
+                val safeEncounterStorageUrl = if (isLocalEncounterPath) null else encounterPath
+
+                val imagePath = finalPerson.imagePath
+                val isLocalImagePath = !imagePath.isNullOrBlank() && (imagePath.startsWith("/data/") || !imagePath.startsWith("users/"))
+                val safeImageStorageUrl = if (isLocalImagePath) null else imagePath
+
                 db.collection("users").document(userId)
                     .collection("persons").document(finalPerson.id)
-                    .set(finalPerson.toFirestoreMap())
+                    .set(finalPerson.toFirestoreMap(storageUrl = safeImageStorageUrl, encounterStorageUrl = safeEncounterStorageUrl))
                     .await()
 
                 offlineEntryDao.insertPerson(finalPerson.copy(syncStatus = "synced"))
@@ -234,12 +243,56 @@ class EncounterViewModel @Inject constructor(
 
     private suspend fun deletePersonPermanently(person: PersonEntity) {
         val userId = auth.currentUser?.uid ?: return
+        
+        // 1. Suppression du portrait de Rencontre spécifique
+        if (!person.encounterImagePath.isNullOrBlank()) {
+            try {
+                mediaManager.deleteFile(person.encounterImagePath)
+            } catch (e: Exception) {
+                android.util.Log.e("EncounterVM", "Erreur suppression portrait Storage: ${e.message}")
+            }
+        }
+
+        // 2. Nettoyage des médias secondaires
+        try {
+            val mediaList = personMediaDao.getMediaForPerson(person.id).first()
+            mediaList.forEach { media ->
+                // Suppression Storage
+                try {
+                    mediaManager.deleteFile(media.mediaPath)
+                } catch (e: Exception) {
+                    android.util.Log.e("EncounterVM", "Erreur suppression fichier media ${media.id}: ${e.message}")
+                }
+                
+                // Suppression Firestore
+                try {
+                    db.collection("users").document(userId)
+                        .collection("persons").document(person.id)
+                        .collection("media").document(media.id)
+                        .delete()
+                        .await()
+                } catch (e: Exception) {
+                    android.util.Log.e("EncounterVM", "Erreur suppression Firestore media ${media.id}: ${e.message}")
+                }
+                
+                // Suppression Room
+                try {
+                    personMediaDao.deleteMedia(media)
+                } catch (e: Exception) {
+                    android.util.Log.e("EncounterVM", "Erreur suppression Room media ${media.id}: ${e.message}")
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("EncounterVM", "Erreur liste médias à supprimer: ${e.message}")
+        }
+
+        // 3. Suppression finale de la personne
         try {
             offlineEntryDao.deletePerson(person)
             db.collection("users").document(userId)
                 .collection("persons").document(person.id).delete().await()
         } catch (e: Exception) {
-            android.util.Log.e("EncounterVM", "Erreur suppression : ${e.message}")
+            android.util.Log.e("EncounterVM", "Erreur suppression finale : ${e.message}")
         }
     }
 
