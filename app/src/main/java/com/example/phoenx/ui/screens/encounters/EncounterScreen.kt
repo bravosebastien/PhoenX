@@ -318,8 +318,9 @@ fun EncounterCard(
     val tilt = if ((rowIndex + (if (isLeft) 0 else 1)) % 2 == 0) 1.5f else -1.5f
 
     var safeUrl by remember { mutableStateOf<String?>(null) }
-    LaunchedEffect(person.imagePath) {
-        safeUrl = mediaManager.getSafeUrl(person.imagePath)
+    LaunchedEffect(person.encounterImagePath, person.imagePath) {
+        // Affiche la photo de rencontre en priorité, sinon celle de l'arbre
+        safeUrl = mediaManager.getSafeUrl(person.encounterImagePath) ?: mediaManager.getSafeUrl(person.imagePath)
     }
 
     Column(

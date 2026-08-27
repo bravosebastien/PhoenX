@@ -51,5 +51,6 @@ data class PersonEntity(
     val relationEndReason: String? = null,
 
     // ISOLATION DES CHAMPS (Lot E - v9.6.5)
-    val encounterBiography: String = ""
+    val encounterBiography: String = "",
+    val encounterImagePath: String? = null // Étape 3: Photo dédiée
 )

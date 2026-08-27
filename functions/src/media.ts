@@ -56,7 +56,10 @@ export const getInheritedFileUrl = onCall(async (request) => {
 
     if (field === "coverUrl") {
         storageUrl = itemData.coverUrl;
+    } else if (field === "encounterImagePath") { // v9.6.5 : Support pour portrait de Rencontre
+        storageUrl = itemData.encounterImagePath;
     } else {
+        // Fallback par défaut, aucun changement de comportement pour l'existant
         if (docType === "entries") storageUrl = itemData.mediaUrl;
         else if (docType === "standaloneMedia" && itemData.type === "PHOTO") storageUrl = itemData.content;
         else if (docType === "book") storageUrl = itemData.coverImageUrl;

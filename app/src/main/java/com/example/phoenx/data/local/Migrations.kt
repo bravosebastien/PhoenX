@@ -652,4 +652,13 @@ object RoomMigrations {
             db.execSQL("UPDATE persons SET encounterContext = NULL WHERE encounterContext = 'OTHER'")
         }
     }
+
+    /**
+     * MIGRATION_53_54 — Photo de profil dédiée aux Rencontres
+     */
+    val MIGRATION_53_54 = object : Migration(53, 54) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE persons ADD COLUMN encounterImagePath TEXT")
+        }
+    }
 }

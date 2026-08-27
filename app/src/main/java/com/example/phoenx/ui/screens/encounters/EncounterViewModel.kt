@@ -235,4 +235,22 @@ class EncounterViewModel @Inject constructor(
             android.util.Log.e("EncounterVM", "Erreur suppression : ${e.message}")
         }
     }
+
+    /**
+     * Convertit une Uri en File pour l'upload d'image (Étape 3)
+     */
+    fun uriToFile(uri: android.net.Uri): java.io.File? {
+        return try {
+            val contentResolver = context.contentResolver
+            val inputStream = contentResolver.openInputStream(uri)
+            val tempFile = java.io.File(context.cacheDir, "encounter_portrait_${java.util.UUID.randomUUID()}.jpg")
+            inputStream?.use { input ->
+                tempFile.outputStream().use { output -> input.copyTo(output) }
+            }
+            tempFile
+        } catch (e: Exception) {
+            android.util.Log.e("EncounterVM", "Erreur copie URI: ${e.message}")
+            null
+        }
+    }
 }

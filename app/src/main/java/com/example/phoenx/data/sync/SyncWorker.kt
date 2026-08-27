@@ -98,13 +98,30 @@ class SyncWorker @AssistedInject constructor(
                         storageUrl = path // C'est déjà une référence Storage
                     }
 
+                    // Étape 3: Synchronisation de l'image de profil dédiée Rencontres
+                    var encounterStorageUrl: String? = null
+                    val encounterPath = person.encounterImagePath
+                    if (!encounterPath.isNullOrBlank() && (encounterPath.startsWith("/data/") || !encounterPath.startsWith("users/"))) {
+                        val file = File(encounterPath)
+                        if (file.exists()) {
+                            android.util.Log.d("PersonSync", "Upload portrait Rencontre pour ${person.firstName}")
+                            encounterStorageUrl = mediaManager.uploadEncounterPortrait(userId, person.id, file)
+                        }
+                    } else {
+                        encounterStorageUrl = encounterPath
+                    }
+
                     db.collection("users").document(userId)
                         .collection("persons").document(person.id)
-                        .set(person.toFirestoreMap(storageUrl))
+                        .set(person.toFirestoreMap(storageUrl, encounterStorageUrl))
                         .await()
                     
                     ensuredPersonIds.add(person.id)
-                    offlineEntryDao.insertPerson(person.copy(imagePath = storageUrl, syncStatus = "synced"))
+                    offlineEntryDao.insertPerson(person.copy(
+                        imagePath = storageUrl, 
+                        encounterImagePath = encounterStorageUrl, 
+                        syncStatus = "synced"
+                    ))
                     android.util.Log.d("PersonSync", "Upload Firestore RÉUSSI pour ${person.firstName}")
                 } catch (e: Exception) {
                     android.util.Log.e("PersonSync", "ÉCHEC upload pour ${person.firstName}: ${e.message}")

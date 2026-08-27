@@ -105,7 +105,7 @@ fun OfflineEntry.toFirestoreMap(encryptionManager: EncryptionManager): Map<Strin
     )
 }
 
-fun com.example.phoenx.data.local.PersonEntity.toFirestoreMap(storageUrl: String? = null): Map<String, Any?> {
+fun com.example.phoenx.data.local.PersonEntity.toFirestoreMap(storageUrl: String? = null, encounterStorageUrl: String? = null): Map<String, Any?> {
     return mapOf(
         "prenom" to firstName.trim(),
         "nom" to lastName?.trim(),
@@ -135,7 +135,8 @@ fun com.example.phoenx.data.local.PersonEntity.toFirestoreMap(storageUrl: String
         "relationEndAge" to relationEndAge,
         "relationEndReason" to relationEndReason?.trim(),
         // ISOLATION DES CHAMPS (Lot E - v9.6.5)
-        "encounterBiography" to encounterBiography.trim()
+        "encounterBiography" to encounterBiography.trim(),
+        "encounterImagePath" to (encounterStorageUrl ?: encounterImagePath)
     )
 }
 
@@ -185,7 +186,8 @@ fun DocumentSnapshot.toPersonEntity(): com.example.phoenx.data.local.PersonEntit
         relationEndAge = getLong("relationEndAge")?.toInt(),
         relationEndReason = getString("relationEndReason")?.trim(),
         // ISOLATION DES CHAMPS (Lot E - v9.6.5)
-        encounterBiography = getString("encounterBiography")?.trim() ?: ""
+        encounterBiography = getString("encounterBiography")?.trim() ?: "",
+        encounterImagePath = getString("encounterImagePath")
     )
 }
 

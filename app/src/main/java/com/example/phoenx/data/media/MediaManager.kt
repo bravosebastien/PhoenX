@@ -37,7 +37,8 @@ class MediaManager @Inject constructor(
         explicitKey: ByteArray? = null,
         creatorId: String? = null,
         docType: String? = null,
-        docId: String? = null
+        docId: String? = null,
+        field: String? = null
     ): String? {
         if (pathOrUrl.isNullOrBlank()) return null
         if (pathOrUrl.startsWith("http")) return pathOrUrl
@@ -51,11 +52,13 @@ class MediaManager @Inject constructor(
         // MODE DESTINATAIRE : Résolution sécurisée via Cloud Function (v9.4.27)
         if (explicitKey != null && creatorId != null && docType != null && docId != null) {
             return try {
-                val params = mapOf(
+                val params = mutableMapOf(
                     "creatorId" to creatorId,
                     "docType" to docType,
                     "docId" to docId
                 )
+                if (field != null) params["field"] = field
+
                 val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
                 val data = result.data as? Map<*, *>
                 data?.get("url") as? String
@@ -201,6 +204,24 @@ class MediaManager @Inject constructor(
             .child("$personId.jpg")
 
         storageRef.putFile(android.net.Uri.fromFile(localFile)).await()
+        return storageRef.path.removePrefix("/")
+    }
+
+    /**
+     * Uploade un portrait dédié aux Rencontres vers Firebase Storage.
+     * Les données sont chiffrées avant l'upload (AES-256-GCM).
+     */
+    suspend fun uploadEncounterPortrait(userId: String, personId: String, localFile: File): String {
+        val fileBytes = localFile.readBytes()
+        val encryptedBytes = encryptionManager.encryptBytes(fileBytes)
+
+        val storageRef = storage.reference
+            .child("users")
+            .child(userId)
+            .child("encounter_portraits")
+            .child("$personId.jpg.enc")
+
+        storageRef.putBytes(encryptedBytes).await()
         return storageRef.path.removePrefix("/")
     }
 

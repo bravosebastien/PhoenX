@@ -26,7 +26,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import coil3.compose.AsyncImage
+import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.PersonMediaEntity
 import com.example.phoenx.data.media.MediaManager
@@ -71,6 +75,22 @@ fun EncounterDetailScreen(
     }
 
     var showEditDialog by remember { mutableStateOf(false) }
+
+    // Launcher pour changer la photo de profil (Étape 3)
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            val file = viewModel.uriToFile(uri)
+            if (file != null) {
+                // On a le nouveau fichier local. On sauvegarde avec le nouveau chemin.
+                // SyncWorker s'occupera d'uploader ce chemin local vers encounter_portraits/
+                person?.let {
+                    viewModel.saveEncounter(it.copy(encounterImagePath = file.absolutePath))
+                }
+            }
+        }
+    }
 
     if (person == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -129,16 +149,8 @@ fun EncounterDetailScreen(
             Row(modifier = Modifier.fillMaxWidth()) {
                 // Portrait
                 val isPartner = displayLinkNature(person.linkNature) == "Partenaire"
-                var safeUrl by remember { mutableStateOf<String?>(null) }
-                
-                LaunchedEffect(person.imagePath) {
-                    safeUrl = if (isReadOnly) {
-                        // Résolution Héritier (Lot 3)
-                        mediaManager.getSafeUrl(person.imagePath, ByteArray(0), targetCreatorId, "persons", personId)
-                    } else {
-                        mediaManager.getSafeUrl(person.imagePath)
-                    }
-                }
+                val activePath = person.encounterImagePath ?: person.imagePath
+                val isPathEncrypted = (person.encounterImagePath != null) && !(person.encounterImagePath.startsWith("/data/") || !person.encounterImagePath.startsWith("users/"))
 
                 Box(
                     modifier = Modifier
@@ -146,14 +158,26 @@ fun EncounterDetailScreen(
                         .clip(RoundedCornerShape(10.dp))
                         .background(theme.contentColor.copy(alpha = 0.05f))
                         .then(
+                            if (!isReadOnly && person.categories.contains("ENCOUNTER")) Modifier.clickable {
+                                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                            } else Modifier
+                        )
+                        .then(
                             if (isPartner) Modifier.border(2.dp, Color(0xFFB4646A), RoundedCornerShape(10.dp))
                             else Modifier
                         )
                 ) {
-                    if (safeUrl != null) {
-                        AsyncImage(
-                            model = safeUrl,
-                            contentDescription = null,
+                    if (activePath != null) {
+                        val fieldParam = if (person.encounterImagePath != null) "encounterImagePath" else "imageUrl"
+                        SecureAsyncImage(
+                            mediaUrl = activePath,
+                            mediaManager = mediaManager,
+                            isEncrypted = isPathEncrypted,
+                            explicitKey = if (isReadOnly) ByteArray(0) else null,
+                            creatorId = targetCreatorId,
+                            docType = "persons",
+                            docId = personId,
+                            field = fieldParam,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )

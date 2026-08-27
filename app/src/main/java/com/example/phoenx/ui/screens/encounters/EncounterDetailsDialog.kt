@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.encounters
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -21,7 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import coil3.compose.AsyncImage
+import androidx.compose.ui.platform.LocalContext
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import com.example.phoenx.ui.components.SecureAsyncImage
+import dagger.hilt.android.EntryPointAccessors
+import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.Error
@@ -37,12 +45,33 @@ fun EncounterDetailsDialog(
     accent: Color
 ) {
     val theme = LocalAppTheme.current
+    val context = LocalContext.current
     
     // État local du formulaire
     var firstName by remember { mutableStateOf(initialPerson?.firstName ?: "") }
     var lastName by remember { mutableStateOf(initialPerson?.lastName ?: "") }
     var encounterBiography by remember { mutableStateOf(initialPerson?.encounterBiography ?: "") }
     var encounterAge by remember { mutableStateOf(initialPerson?.encounterAge?.toString() ?: "") }
+    var encounterImagePath by remember { mutableStateOf(initialPerson?.encounterImagePath) }
+
+    // Launcher Image
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            try {
+                val contentResolver = context.contentResolver
+                val inputStream = contentResolver.openInputStream(uri)
+                val tempFile = java.io.File(context.cacheDir, "encounter_portrait_${java.util.UUID.randomUUID()}.jpg")
+                inputStream?.use { input ->
+                    tempFile.outputStream().use { output -> input.copyTo(output) }
+                }
+                encounterImagePath = tempFile.absolutePath
+            } catch (e: Exception) {
+                android.util.Log.e("EncounterDialog", "Erreur copie URI: ${e.message}")
+            }
+        }
+    }
     
     // Nature
     var linkNature by remember { mutableStateOf(initialPerson?.linkNature ?: "") }
@@ -153,6 +182,43 @@ fun EncounterDetailsDialog(
                 }
 
                 Spacer(Modifier.height(24.dp))
+
+                val mediaManager = remember { EntryPointAccessors.fromApplication(context, MediaManager.MediaManagerEntryPoint::class.java).mediaManager() }
+
+                Box(
+                    modifier = Modifier
+                        .size(120.dp, 156.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(theme.contentColor.copy(alpha = 0.05f))
+                        .clickable {
+                            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        }
+                ) {
+                    val activePath = encounterImagePath ?: initialPerson?.imagePath
+                    if (activePath != null) {
+                        val isPathEncrypted = (encounterImagePath != null) && !activePath.startsWith("/")
+                        SecureAsyncImage(
+                            mediaUrl = activePath,
+                            mediaManager = mediaManager,
+                            isEncrypted = isPathEncrypted,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(Icons.Default.AddPhotoAlternate, null, modifier = Modifier.size(32.dp).alpha(0.4f), tint = theme.contentColor)
+                            Spacer(Modifier.height(8.dp))
+                            Text("Ajouter", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.5f))
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(32.dp))
 
                 // Identité
                 OutlinedTextField(
@@ -396,14 +462,41 @@ fun EncounterDetailsDialog(
                 Spacer(Modifier.height(32.dp))
 
                 // Confidentialité
+                var showPrivacyInfo by remember { mutableStateOf(false) }
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Gardé pour moi", fontWeight = FontWeight.Bold, color = theme.contentColor)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Gardé pour moi", fontWeight = FontWeight.Bold, color = theme.contentColor)
+                            Spacer(Modifier.width(8.dp))
+                            IconButton(
+                                onClick = { showPrivacyInfo = !showPrivacyInfo },
+                                modifier = Modifier.size(16.dp)
+                            ) {
+                                Icon(Icons.Default.Info, contentDescription = "Information", tint = accent.copy(alpha = 0.7f))
+                            }
+                        }
                         Text("Invisible pour les héritiers", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                        
+                        if (showPrivacyInfo) {
+                            Spacer(Modifier.height(8.dp))
+                            Surface(
+                                color = theme.contentColor.copy(alpha = 0.05f),
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+                            ) {
+                                Text(
+                                    text = "Si activé, cette rencontre n'apparaîtra jamais dans l'application de vos destinataires, même une fois votre héritage activé. C'est votre jardin secret.",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = theme.contentColor.copy(alpha = 0.8f),
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                            }
+                        }
                     }
                     Switch(
                         checked = isPrivate,
@@ -428,6 +521,7 @@ fun EncounterDetailsDialog(
                                 firstName = firstName,
                                 lastName = lastName.ifBlank { null },
                                 encounterBiography = encounterBiography,
+                                encounterImagePath = encounterImagePath,
                                 encounterAge = encounterAge.toIntOrNull(),
                                 linkNature = finalNature.ifBlank { null },
                                 encounterContext = encounterContext,
