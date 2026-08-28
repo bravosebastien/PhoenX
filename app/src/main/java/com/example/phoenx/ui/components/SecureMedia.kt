@@ -35,13 +35,14 @@ fun SecureAsyncImage(
     docType: String? = null,   // v9.4.27
     docId: String? = null,     // v9.4.27
     field: String? = null,     // v9.4.27
+    personId: String? = null,  // v9.6.6 : Pour résolution personMedia
     isEncrypted: Boolean = true // v9.4.29 : Support pour médias non-chiffrés (Cameos)
 ) {
     var imageBytes by remember(mediaUrl, localPath) { mutableStateOf<ByteArray?>(null) }
     var resolvedSimpleUrl by remember(mediaUrl) { mutableStateOf<String?>(null) } // v9.4.29
     var isLoading by remember(mediaUrl, localPath) { mutableStateOf(false) }
 
-    LaunchedEffect(mediaUrl, localPath, explicitKey, creatorId, docType, docId, field) {
+    LaunchedEffect(mediaUrl, localPath, explicitKey, creatorId, docType, docId, field, personId) {
         if (imageBytes != null || resolvedSimpleUrl != null) return@LaunchedEffect 
 
         if (localPath != null && java.io.File(localPath).exists()) {
@@ -61,7 +62,8 @@ fun SecureAsyncImage(
                             creatorId,
                             docType,
                             docId,
-                            field
+                            field,
+                            personId
                         )
                     }
                     imageBytes = bytes
@@ -74,7 +76,9 @@ fun SecureAsyncImage(
                         explicitKey = if (creatorId != null) byteArrayOf(0) else null, // Flag pour mode Recipient si creatorId présent
                         creatorId = creatorId,
                         docType = docType,
-                        docId = docId
+                        docId = docId,
+                        field = field,
+                        personId = personId
                     )
                     resolvedSimpleUrl = safeUrl
                     Log.d("PHOENX_SECURE_IMG", "Résolution simple réussie: docId=$docId, url=$safeUrl")

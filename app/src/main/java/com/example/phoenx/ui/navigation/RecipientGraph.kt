@@ -641,7 +641,9 @@ fun NavGraphBuilder.recipientGraph(
             navArgument("mediaUrl") { nullable = true; type = NavType.StringType },
             navArgument("entryType") { nullable = true; type = NavType.StringType },
             navArgument("aiSummary") { nullable = true; type = NavType.StringType },
-            navArgument("sourceDocType") { nullable = true; type = NavType.StringType }
+            navArgument("sourceDocType") { nullable = true; type = NavType.StringType },
+            navArgument("personId") { nullable = true; type = NavType.StringType },
+            navArgument("isEncrypted") { defaultValue = true; type = NavType.BoolType }
         ),
         enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
         exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
@@ -654,6 +656,8 @@ fun NavGraphBuilder.recipientGraph(
         val entryType = backStackEntry.arguments?.getString("entryType")
         val aiSummary = backStackEntry.arguments?.getString("aiSummary")
         val sourceDocType = backStackEntry.arguments?.getString("sourceDocType")
+        val personId = backStackEntry.arguments?.getString("personId")
+        val isEncrypted = backStackEntry.arguments?.getBoolean("isEncrypted") ?: true
 
         MediaViewerScreen(
             entryId = entryId,
@@ -662,6 +666,8 @@ fun NavGraphBuilder.recipientGraph(
             entryType = entryType,
             aiSummary = aiSummary,
             sourceDocType = sourceDocType,
+            personId = personId,
+            isEncrypted = isEncrypted,
             onExit = { navController.popBackStack() }
         )
     }

@@ -109,14 +109,16 @@ sealed class Screen(val route: String) {
             return route
         }
     }
-    object MediaViewer : Screen("media_viewer/{entryId}?creatorId={creatorId}&mediaUrl={mediaUrl}&entryType={entryType}&aiSummary={aiSummary}&sourceDocType={sourceDocType}") {
+    object MediaViewer : Screen("media_viewer/{entryId}?creatorId={creatorId}&mediaUrl={mediaUrl}&entryType={entryType}&aiSummary={aiSummary}&sourceDocType={sourceDocType}&personId={personId}&isEncrypted={isEncrypted}") {
         fun createRoute(
             entryId: String, 
             creatorId: String? = null,
             mediaUrl: String? = null,
             entryType: String? = null,
             aiSummary: String? = null,
-            sourceDocType: String? = null
+            sourceDocType: String? = null,
+            personId: String? = null,
+            isEncrypted: Boolean = true
         ): String {
             var route = "media_viewer/$entryId"
             val params = mutableListOf<String>()
@@ -125,6 +127,8 @@ sealed class Screen(val route: String) {
             if (entryType != null) params.add("entryType=$entryType")
             if (aiSummary != null) params.add("aiSummary=${URLEncoder.encode(aiSummary, StandardCharsets.UTF_8.toString())}")
             if (sourceDocType != null) params.add("sourceDocType=$sourceDocType")
+            if (personId != null) params.add("personId=$personId")
+            params.add("isEncrypted=$isEncrypted")
             
             if (params.isNotEmpty()) route += "?" + params.joinToString("&")
             return route

@@ -33,6 +33,8 @@ import androidx.media3.ui.PlayerView
 import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.example.phoenx.ui.theme.BackgroundPrimary
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
 @UnstableApi
@@ -44,9 +46,12 @@ fun MediaViewerScreen(
     entryType: String? = null,
     aiSummary: String? = null,
     sourceDocType: String? = null,
+    personId: String? = null,
+    isEncrypted: Boolean = true,
     onExit: () -> Unit,
     viewModel: MediaViewerViewModel = hiltViewModel()
 ) {
+    android.util.Log.d("PHX_MEDIA_DEBUG", "MediaViewerScreen COMPOSABLE: entryId=$entryId")
     val entry by viewModel.entry.collectAsState()
     val heirKey by viewModel.heirKey.collectAsState()
 
@@ -57,7 +62,9 @@ fun MediaViewerScreen(
             mediaUrl = mediaUrl,
             entryType = entryType,
             aiSummary = aiSummary,
-            sourceDocType = sourceDocType
+            sourceDocType = sourceDocType,
+            personId = personId,
+            isEncrypted = isEncrypted
         )
     }
 
@@ -81,7 +88,9 @@ fun MediaViewerScreen(
                         mediaManager = viewModel.mediaManager,
                         creatorId = creatorId,             // v9.4.27
                         docType = entry!!.sourceDocType,   // v9.4.27
-                        docId = entry!!.id                 // v9.4.27
+                        docId = entry!!.id,                // v9.4.27
+                        personId = entry!!.personId,       // v9.6.6
+                        isEncrypted = entry!!.isEncrypted   // v9.6.6
                     )
                 }
                 com.example.phoenx.domain.model.EntryType.VIDEO -> {
@@ -93,7 +102,9 @@ fun MediaViewerScreen(
                         mediaManager = viewModel.mediaManager,
                         creatorId = creatorId,
                         docType = entry!!.sourceDocType,
-                        docId = entry!!.id
+                        docId = entry!!.id,
+                        personId = entry!!.personId,
+                        isEncrypted = entry!!.isEncrypted
                     )
                 }
                 com.example.phoenx.domain.model.EntryType.AUDIO,
@@ -107,7 +118,9 @@ fun MediaViewerScreen(
                         title = entry!!.aiSummary,
                         creatorId = creatorId,
                         docType = entry!!.sourceDocType,
-                        docId = entry!!.id
+                        docId = entry!!.id,
+                        personId = entry!!.personId,
+                        isEncrypted = entry!!.isEncrypted
                     )
                 }
                 else -> {
@@ -143,7 +156,9 @@ fun ZoomableImage(
     mediaManager: com.example.phoenx.data.media.MediaManager,
     creatorId: String? = null, // v9.4.27
     docType: String? = null,   // v9.4.27
-    docId: String? = null      // v9.4.27
+    docId: String? = null,     // v9.4.27
+    personId: String? = null,  // v9.6.6
+    isEncrypted: Boolean = true // v9.6.6
 ) {
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
@@ -173,7 +188,9 @@ fun ZoomableImage(
             contentScale = ContentScale.Fit,
             creatorId = creatorId, // v9.4.27
             docType = docType,     // v9.4.27
-            docId = docId          // v9.4.27
+            docId = docId,         // v9.4.27
+            personId = personId,   // v9.6.6
+            isEncrypted = isEncrypted // v9.6.6
         )
     }
 }
@@ -187,7 +204,9 @@ fun VideoPlayer(
     mediaManager: com.example.phoenx.data.media.MediaManager,
     creatorId: String? = null,
     docType: String? = null,
-    docId: String? = null
+    docId: String? = null,
+    personId: String? = null,
+    isEncrypted: Boolean = true
 ) {
     val context = LocalContext.current
     var resolvedUrl by remember(mediaUrl, localPath, explicitKey) { mutableStateOf<String?>(null) }
@@ -211,13 +230,27 @@ fun VideoPlayer(
         isLoading = true
         try {
             android.util.Log.d("MediaViewerDiag", "VideoPlayer: Début téléchargement/déchiffrement complet...")
-            val videoBytes = mediaManager.downloadAndDecrypt(
-                pathOrUrl = mediaUrl,
-                explicitKey = explicitKey,
-                creatorId = creatorId,
-                docType = docType,
-                docId = docId
-            )
+            val videoBytes = if (isEncrypted) {
+                mediaManager.downloadAndDecrypt(
+                    pathOrUrl = mediaUrl,
+                    explicitKey = explicitKey,
+                    creatorId = creatorId,
+                    docType = docType,
+                    docId = docId,
+                    personId = personId
+                )
+            } else {
+                // v9.6.6 : Pour l'Arbre, on télécharge simplement le fichier en clair
+                val safeUrl = mediaManager.getSafeUrl(
+                    pathOrUrl = mediaUrl,
+                    explicitKey = if (creatorId != null) byteArrayOf(0) else null,
+                    creatorId = creatorId,
+                    docType = docType,
+                    docId = docId,
+                    personId = personId
+                )
+                withContext(Dispatchers.IO) { java.net.URL(safeUrl).readBytes() }
+            }
             
             val tempFile = File(context.cacheDir, "decrypted_video_${System.identityHashCode(mediaUrl)}.mp4")
             tempFile.writeBytes(videoBytes)
@@ -238,6 +271,7 @@ fun VideoPlayer(
     }
 
     val exoPlayer = remember(resolvedUrl) {
+        android.util.Log.d("PHX_MEDIA_DEBUG", "ExoPlayer CREATE: resolvedUrl=$resolvedUrl")
         ExoPlayer.Builder(context).build().apply {
             // Utilisation de DefaultDataSource sur le fichier déchiffré
             val factory = androidx.media3.datasource.DefaultDataSource.Factory(context)
@@ -272,6 +306,7 @@ fun VideoPlayer(
 
     DisposableEffect(exoPlayer) {
         onDispose { 
+            android.util.Log.d("PHX_MEDIA_DEBUG", "ExoPlayer RELEASE: resolvedUrl=$resolvedUrl")
             exoPlayer.release() 
             // Nettoyage du fichier temporaire si c'était un fichier déchiffré à la volée
             if (resolvedUrl != null && resolvedUrl!!.contains("decrypted_video_")) {
@@ -291,9 +326,11 @@ fun VideoPlayer(
             PlayerView(ctx).apply {
                 player = exoPlayer
                 useController = true
+                // Correction v9.6.6 : Forcer fond noir opaque
+                setBackgroundColor(android.graphics.Color.BLACK)
             }
         },
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize().background(Color.Black)
     )
 }
 
@@ -307,7 +344,9 @@ fun AudioPlayer(
     title: String,
     creatorId: String? = null,
     docType: String? = null,
-    docId: String? = null
+    docId: String? = null,
+    personId: String? = null,
+    isEncrypted: Boolean = true
 ) {
     val context = LocalContext.current
     var resolvedUrl by remember(mediaUrl, localPath, explicitKey) { mutableStateOf<String?>(null) }
@@ -316,10 +355,11 @@ fun AudioPlayer(
         android.util.Log.d("MediaViewerDiag", "AudioPlayer - Début résolution URL pour MediaUrl: $mediaUrl, LocalPath: $localPath")
         resolvedUrl = localPath ?: mediaManager.getSafeUrl(
             mediaUrl,
-            explicitKey,
+            if (isEncrypted) explicitKey else if (creatorId != null) byteArrayOf(0) else null,
             creatorId,
             docType,
-            docId
+            docId,
+            personId = personId
         )
         android.util.Log.d("MediaViewerDiag", "AudioPlayer - URL résolue: $resolvedUrl")
     }
@@ -342,7 +382,7 @@ fun AudioPlayer(
                 androidx.media3.datasource.DefaultDataSource.Factory(context)
             } else {
                 android.util.Log.d("MediaViewerDiag", "Utilisation EncryptedMediaDataSource (Distant/Chiffré)")
-                mediaManager.getEncryptedDataSourceFactory(explicitKey)
+                mediaManager.getEncryptedDataSourceFactory(if (isEncrypted) explicitKey else null)
             }
 
             val uri = resolvedUrl!!.toUri()

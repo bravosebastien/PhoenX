@@ -38,7 +38,8 @@ class MediaManager @Inject constructor(
         creatorId: String? = null,
         docType: String? = null,
         docId: String? = null,
-        field: String? = null
+        field: String? = null,
+        personId: String? = null // v9.6.6 : Pour résolution personMedia
     ): String? {
         if (pathOrUrl.isNullOrBlank()) return null
         if (pathOrUrl.startsWith("http")) return pathOrUrl
@@ -58,6 +59,7 @@ class MediaManager @Inject constructor(
                     "docId" to docId
                 )
                 if (field != null) params["field"] = field
+                if (personId != null) params["personId"] = personId
 
                 val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
                 val data = result.data as? Map<*, *>
@@ -145,7 +147,8 @@ class MediaManager @Inject constructor(
         creatorId: String? = null,
         docType: String? = null,
         docId: String? = null,
-        field: String? = null // v9.4.27
+        field: String? = null, // v9.4.27
+        personId: String? = null // v9.6.6
     ): ByteArray {
         var isSignedUrl = false
         val finalUrl = if (explicitKey != null && creatorId != null && docType != null && docId != null) {
@@ -157,6 +160,7 @@ class MediaManager @Inject constructor(
                     "docId" to docId
                 )
                 if (field != null) params["field"] = field
+                if (personId != null) params["personId"] = personId
 
                 val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
                 val data = result.data as? Map<*, *>
@@ -229,11 +233,11 @@ class MediaManager @Inject constructor(
      * Uploade un média secondaire (Photo/Vidéo) dédié aux Rencontres.
      * Les données sont chiffrées avant l'upload (AES-256-GCM).
      */
-    suspend fun uploadEncounterMedia(userId: String, mediaId: String, localFile: File): String {
+    suspend fun uploadEncounterMedia(userId: String, mediaId: String, localFile: File, type: String): String {
         val fileBytes = localFile.readBytes()
         val encryptedBytes = encryptionManager.encryptBytes(fileBytes)
 
-        val extension = if (localFile.name.endsWith(".mp4", ignoreCase = true)) ".mp4" else ".jpg"
+        val extension = if (type == "VIDEO") ".mp4" else ".jpg"
 
         val storageRef = storage.reference
             .child("users")

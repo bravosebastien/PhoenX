@@ -68,8 +68,9 @@ fun EncounterScreen(
     // Mode lecture seule si consultation d'un héritage
     val isReadOnly = targetCreatorId != null
 
-    LaunchedEffect(targetCreatorId) {
+    LaunchedEffect(targetCreatorId, heirKey) {
         if (targetCreatorId != null) {
+             viewModel.setHeirKey(heirKey)
              viewModel.loadRemoteEncounters(targetCreatorId)
         }
     }
@@ -203,16 +204,18 @@ fun EncounterScreen(
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { 
-                    selectedPerson = null
-                    showDialog = true 
-                },
-                containerColor = Color(0xFFBF6338),
-                contentColor = Color.White,
-                shape = CircleShape
-            ) {
-                Icon(Icons.Default.Add, null)
+            if (!isReadOnly) {
+                FloatingActionButton(
+                    onClick = { 
+                        selectedPerson = null
+                        showDialog = true 
+                    },
+                    containerColor = Color(0xFFBF6338),
+                    contentColor = Color.White,
+                    shape = CircleShape
+                ) {
+                    Icon(Icons.Default.Add, null)
+                }
             }
         }
     ) { padding ->
@@ -335,6 +338,7 @@ fun EncounterScreen(
         EncounterDetailsDialog(
             initialPerson = selectedPerson,
             allPersons = allPersons,
+            navController = navController,
             onConfirm = { 
                 viewModel.saveEncounter(it)
                 showDialog = false 

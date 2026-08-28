@@ -45,6 +45,9 @@ class EncounterViewModel @Inject constructor(
     private val _encounterPersons = MutableStateFlow<List<PersonEntity>>(emptyList())
     val encounterPersons: StateFlow<List<PersonEntity>> = _encounterPersons.asStateFlow()
 
+    private val _heirKey = MutableStateFlow<ByteArray?>(null)
+    val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
+
     init {
         // Chargement local par défaut
         viewModelScope.launch {
@@ -347,14 +350,21 @@ class EncounterViewModel @Inject constructor(
         }
     }
 
+    fun setHeirKey(key: ByteArray?) {
+        _heirKey.value = key
+    }
+
     /**
      * Convertit une Uri en File pour l'upload d'image (Étape 3)
      */
     fun uriToFile(uri: android.net.Uri): java.io.File? {
         return try {
             val contentResolver = context.contentResolver
+            val mimeType = contentResolver.getType(uri)
+            val extension = if (mimeType?.contains("video") == true) "mp4" else "jpg"
+            
             val inputStream = contentResolver.openInputStream(uri)
-            val tempFile = java.io.File(context.cacheDir, "encounter_portrait_${java.util.UUID.randomUUID()}.jpg")
+            val tempFile = java.io.File(context.cacheDir, "encounter_media_${java.util.UUID.randomUUID()}.$extension")
             inputStream?.use { input ->
                 tempFile.outputStream().use { output -> input.copyTo(output) }
             }

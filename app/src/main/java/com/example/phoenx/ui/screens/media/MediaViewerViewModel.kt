@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.media
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.data.encryption.EncryptionManager
@@ -14,18 +15,18 @@ import com.example.phoenx.domain.model.PhoenXEntry
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.time.Instant
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class MediaViewerViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
-    private val standaloneMediaDao: StandaloneMediaDao, // v9.4.27
+    private val standaloneMediaDao: StandaloneMediaDao,
     private val encryptionManager: EncryptionManager,
     val mediaManager: MediaManager,
     private val auth: FirebaseAuth,
@@ -35,14 +36,24 @@ class MediaViewerViewModel @Inject constructor(
     private val _entryId = MutableStateFlow<String?>(null)
     private val _creatorId = MutableStateFlow<String?>(null)
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
-    
-    // Paramètres transmis directement (v9.4.27)
+
     private val _manualMediaUrl = MutableStateFlow<String?>(null)
     private val _manualEntryType = MutableStateFlow<String?>(null)
     private val _manualAiSummary = MutableStateFlow<String?>(null)
     private val _manualSourceDocType = MutableStateFlow<String?>(null)
+    private val _manualPersonId = MutableStateFlow<String?>(null)
+    private val _manualIsEncrypted = MutableStateFlow<Boolean>(true)
 
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
+
+    init {
+        Log.d("PHX_MEDIA_DEBUG", "ViewModel INIT: hash=${System.identityHashCode(this)}")
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("PHX_MEDIA_DEBUG", "ViewModel CLEARED: hash=${System.identityHashCode(this)}")
+    }
 
     /**
      * Source de vérité hybride et stable (v9.4.27)
@@ -50,7 +61,7 @@ class MediaViewerViewModel @Inject constructor(
      */
     val entry: StateFlow<PhoenXEntry?> = combine(
         _entryId, _creatorId, _heirKey, 
-        _manualMediaUrl, _manualEntryType, _manualAiSummary, _manualSourceDocType
+        _manualMediaUrl, _manualEntryType, _manualAiSummary, _manualSourceDocType, _manualPersonId, _manualIsEncrypted
     ) { args: Array<Any?> ->
         val id = args[0] as? String
         val cId = args[1] as? String
@@ -59,22 +70,30 @@ class MediaViewerViewModel @Inject constructor(
         val mType = args[4] as? String
         val mSum = args[5] as? String
         val mDocType = args[6] as? String
+        val mPersonId = args[7] as? String
+        val mIsEncrypted = args[8] as? Boolean ?: true
 
-        android.util.Log.d("MediaViewerVM", "COMBINE TICK: id=$id cId=$cId keyPresent=${key != null} manualUrl=${mUrl != null}")
+        Log.d("PHX_MEDIA_DEBUG", "COMBINE TICK: hash=${System.identityHashCode(this)} id=$id mUrl=${mUrl != null}")
+
+        if (id == null) return@combine null
 
         val isRecipient = cId != null && cId != auth.currentUser?.uid
         
         // GATING : On attend la clé si on est destinataire
-        if (isRecipient && key == null) return@combine null
+        if (isRecipient && key == null) {
+            Log.d("PHX_MEDIA_DEBUG", "GATING: Waiting for heir key for id=$id")
+            return@combine null
+        }
 
         // OPTION 2 : Transmission directe (Prioritaire)
-        if (id != null && mUrl != null && mType != null) {
+        if (mUrl != null && mType != null) {
             val domainType = when(mType) {
                 "PHOTO", "GALLERY" -> EntryType.PHOTO
                 "AUDIO" -> EntryType.AUDIO
                 "VIDEO" -> EntryType.VIDEO
                 else -> EntryType.THOUGHT
             }
+            Log.d("PHX_MEDIA_DEBUG", "COMBINE SUCCESS (Direct): id=$id type=$domainType")
             return@combine PhoenXEntry(
                 id = id,
                 creatorUid = cId ?: "",
@@ -84,7 +103,9 @@ class MediaViewerViewModel @Inject constructor(
                 timestamp = Instant.now(),
                 aiSummary = mSum ?: "",
                 mediaUrl = mUrl,
-                sourceDocType = mDocType ?: "entries"
+                sourceDocType = mDocType ?: "entries",
+                personId = mPersonId,
+                isEncrypted = mIsEncrypted
             )
         }
         
@@ -138,10 +159,15 @@ class MediaViewerViewModel @Inject constructor(
         mediaUrl: String? = null,
         entryType: String? = null,
         aiSummary: String? = null,
-        sourceDocType: String? = null
+        sourceDocType: String? = null,
+        personId: String? = null,
+        isEncrypted: Boolean = true
     ) {
-        android.util.Log.d("MediaViewerVM", "Instance loadMedia = ${System.identityHashCode(this)}")
-        android.util.Log.d("MediaSupportDiag", "loadMedia: entryId=$entryId, manualUrl=${mediaUrl != null}")
+        Log.d("PHX_MEDIA_DEBUG", "loadMedia START: hash=${System.identityHashCode(this)} id=$entryId")
+        
+        // Reset pour forcer le combine (Fix Bug 3)
+        _entryId.value = null
+        Log.d("PHX_MEDIA_DEBUG", "loadMedia: _entryId RESET to null")
         
         val cleanCreatorId = creatorId?.takeIf { it.isNotBlank() && !it.startsWith("{") && it != "null" }
         
@@ -151,19 +177,19 @@ class MediaViewerViewModel @Inject constructor(
         _manualEntryType.value = entryType
         _manualAiSummary.value = aiSummary
         _manualSourceDocType.value = sourceDocType
+        _manualPersonId.value = personId
+        _manualIsEncrypted.value = isEncrypted
+        Log.d("PHX_MEDIA_DEBUG", "loadMedia END: _entryId SET to $entryId")
 
         if (cleanCreatorId != null && cleanCreatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
                 try {
-                    android.util.Log.d("MediaViewerVM", "Lancement requête entry_keys pour creatorId=$creatorId")
-                    val keyDoc = db.collection("users").document(creatorId!!)
+                    val keyDoc = db.collection("users").document(cleanCreatorId)
                         .collection("entry_keys").document("main").get().await()
                     
-                    android.util.Log.d("MediaViewerVM", "Requête terminée, exists=${keyDoc.exists()}")
-                    android.util.Log.d("MediaViewerVM", "Contenu brut du document: ${keyDoc.data}")
                     val keyBase64 = keyDoc.getString("key")
                     if (keyBase64 != null) {
-                        _heirKey.value = android.util.Base64.decode(keyBase64 as String, android.util.Base64.NO_WRAP)
+                        _heirKey.value = android.util.Base64.decode(keyBase64, android.util.Base64.NO_WRAP)
                     }
                 } catch (e: Exception) {
                     android.util.Log.e("MediaViewerVM", "Erreur chargement clé héritage: ${e.message}")
@@ -172,73 +198,41 @@ class MediaViewerViewModel @Inject constructor(
         }
     }
 
-    // --- MAPPERS INTERNES (v9.4.27) ---
-
     private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager): PhoenXEntry {
-        val decryptedText = try { 
-            encryptionManager.decryptText(encryptedPayload)
-        } catch(_: Exception) { "Contenu chiffré" }
-        
-        // Parsing simplifié de l'âge
-        val age = try {
-            val json = org.json.JSONObject(ageAtCreation)
-            AgeSnapshot(json.getInt("years"), json.getInt("months"), json.getInt("days"))
-        } catch(_: Exception) { AgeSnapshot(0,0,0) }
-
-        val domainType = when(entryType) {
-            "PHOTO", "GALLERY" -> EntryType.PHOTO // v9.4.27 : Restauration GALLERY
-            "AUDIO", "EMOTION" -> EntryType.AUDIO
-            "VIDEO" -> EntryType.VIDEO
-            else -> EntryType.THOUGHT
-        }
-
-        android.util.Log.d("MediaSupportDiag", "toDomain (Offline) - Original Type: $entryType -> Domain Type: $domainType")
-
         return PhoenXEntry(
             id = id,
             creatorUid = creatorUid,
-            ageAtCreation = age,
-            encryptedContent = decryptedText.toByteArray(),
-            type = domainType,
             timestamp = Instant.ofEpochMilli(createdAt),
+            ageAtCreation = AgeSnapshot(0, 0, 0),
+            encryptedContent = encryptedPayload,
+            type = when(entryType) {
+                "PHOTO" -> EntryType.PHOTO
+                "VIDEO" -> EntryType.VIDEO
+                "AUDIO" -> EntryType.AUDIO
+                else -> EntryType.THOUGHT
+            },
             aiSummary = aiSummary,
-            userComment = userComment,
             mediaUrl = mediaUrl,
-            localMediaPath = localMediaPath,
-            coverUrl = coverUrl,
-            localCoverPath = localCoverPath,
-            mediaProvider = mediaProvider,
-            recipientIds = recipientIds.split(",").filter { it.isNotBlank() },
-            visibility = visibility
+            localMediaPath = localMediaPath
         )
     }
 
     private fun StandaloneMediaEntity.toStandaloneDomain(): PhoenXEntry {
-        val domainType = when(type) {
-            "PHOTO" -> EntryType.PHOTO
-            "SPOTIFY", "DEEZER" -> EntryType.AUDIO
-            "YOUTUBE", "VIDEO" -> EntryType.VIDEO
-            else -> EntryType.THOUGHT
-        }
-
-        android.util.Log.d("MediaSupportDiag", "toStandaloneDomain - Original Type: $type -> Domain Type: $domainType")
-
         return PhoenXEntry(
             id = id,
             creatorUid = creatorUid,
-            ageAtCreation = AgeSnapshot(0,0,0),
-            encryptedContent = content.toByteArray(),
-            type = domainType,
             timestamp = Instant.ofEpochMilli(createdAt),
+            ageAtCreation = AgeSnapshot(0, 0, 0),
+            encryptedContent = ByteArray(0),
+            type = when(type) {
+                "PHOTO" -> EntryType.PHOTO
+                "VIDEO" -> EntryType.VIDEO
+                "AUDIO" -> EntryType.AUDIO
+                else -> EntryType.THOUGHT
+            },
             aiSummary = title,
-            userComment = userComment,
             mediaUrl = content,
-            coverUrl = coverUrl,
-            localCoverPath = localCoverPath,
-            mediaProvider = mediaProvider,
-            recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct(),
-            visibility = visibility,
-            sourceDocType = "standaloneMedia" // v9.4.27
+            sourceDocType = "standaloneMedia"
         )
     }
 }

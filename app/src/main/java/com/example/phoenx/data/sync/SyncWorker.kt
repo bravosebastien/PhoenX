@@ -238,7 +238,7 @@ class SyncWorker @AssistedInject constructor(
                             val parentPerson = allPersons.find { it.id == media.personId }
                             currentPath = if (parentPerson?.categories?.contains(",ENCOUNTER,") == true) {
                                 // Média de Rencontre (Chiffré)
-                                mediaManager.uploadEncounterMedia(userId, "encounter_media_${media.id}", localFile)
+                                mediaManager.uploadEncounterMedia(userId, "encounter_media_${media.id}", localFile, media.mediaType)
                             } else {
                                 // Média d'Arbre (En clair)
                                 mediaManager.uploadCameo(userId, "person_media_${media.id}", localFile)

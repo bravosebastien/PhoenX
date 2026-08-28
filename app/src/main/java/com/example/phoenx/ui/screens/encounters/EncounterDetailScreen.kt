@@ -104,6 +104,7 @@ fun EncounterDetailScreen(
         EncounterDetailsDialog(
             initialPerson = person,
             allPersons = allPersons,
+            navController = navController,
             onConfirm = { updatedPerson ->
                 viewModel.saveEncounter(updatedPerson)
                 showEditDialog = false
@@ -300,23 +301,39 @@ fun EncounterDetailScreen(
                 Spacer(Modifier.height(16.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(personMedia) { media ->
-                        var mediaUrl by remember { mutableStateOf<String?>(null) }
-                        LaunchedEffect(media.mediaPath) {
-                            mediaUrl = if (isReadOnly) {
-                                mediaManager.getSafeUrl(media.mediaPath, ByteArray(0), targetCreatorId, "personMedia", media.id)
-                            } else {
-                                mediaManager.getSafeUrl(media.mediaPath)
-                            }
-                        }
                         Box(
                             modifier = Modifier
                                 .size(120.dp)
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(theme.contentColor.copy(alpha = 0.05f))
+                                .clickable {
+                                    navController.navigate(
+                                        Screen.MediaViewer.createRoute(
+                                            entryId = media.id,
+                                            creatorId = targetCreatorId,
+                                            mediaUrl = media.mediaPath,
+                                            entryType = media.mediaType,
+                                            aiSummary = "Média de Rencontre",
+                                            sourceDocType = "personMedia",
+                                            personId = personId,
+                                            isEncrypted = !media.mediaPath.startsWith("/")
+                                        )
+                                    )
+                                }
                         ) {
-                            if (mediaUrl != null) {
-                                AsyncImage(model = mediaUrl, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                            }
+                            val isPathEncrypted = !media.mediaPath.startsWith("/")
+                            SecureAsyncImage(
+                                mediaUrl = media.mediaPath,
+                                mediaManager = mediaManager,
+                                isEncrypted = isPathEncrypted,
+                                explicitKey = if (isReadOnly) heirKey else null,
+                                creatorId = targetCreatorId,
+                                docType = "personMedia",
+                                docId = media.id,
+                                personId = personId, // v9.6.6
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
                         }
                     }
                 }

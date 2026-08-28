@@ -21,12 +21,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.zIndex
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.ui.components.SecureAsyncImage
 import dagger.hilt.android.EntryPointAccessors
 import com.example.phoenx.data.media.MediaManager
@@ -39,13 +40,22 @@ import com.example.phoenx.ui.theme.Error
 fun EncounterDetailsDialog(
     initialPerson: PersonEntity? = null,
     allPersons: List<PersonEntity>,
+    navController: androidx.navigation.NavController,
     onConfirm: (PersonEntity) -> Unit,
     onDismiss: () -> Unit,
     onRemoveCategory: (PersonEntity) -> Unit,
-    accent: Color
+    accent: Color,
+    viewModel: EncounterViewModel = hiltViewModel()
 ) {
     val theme = LocalAppTheme.current
     val context = LocalContext.current
+
+    val heirKey by viewModel.heirKey.collectAsState()
+
+    val mediaList by remember(initialPerson?.id) {
+        if (initialPerson != null) viewModel.getMediaForPerson(initialPerson.id)
+        else kotlinx.coroutines.flow.flowOf(emptyList())
+    }.collectAsState(initial = emptyList())
     
     // État local du formulaire
     var firstName by remember { mutableStateOf(initialPerson?.firstName ?: "") }
@@ -54,7 +64,7 @@ fun EncounterDetailsDialog(
     var encounterAge by remember { mutableStateOf(initialPerson?.encounterAge?.toString() ?: "") }
     var encounterImagePath by remember { mutableStateOf(initialPerson?.encounterImagePath) }
 
-    // Launcher Image
+    // Launcher Image Profil
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
@@ -105,15 +115,11 @@ fun EncounterDetailsDialog(
     // Modal de confirmation de suppression
     var showDeleteConfirm by remember { mutableStateOf(false) }
     var deleteWarningMessage by remember { mutableStateOf("") }
-    var hasIntroducedPersons by remember { mutableStateOf(false) }
 
     fun checkBeforeDelete() {
         if (initialPerson == null) return
-        
         val introducedPersons = allPersons.filter { it.introducedById == initialPerson.id }
-        
-        hasIntroducedPersons = introducedPersons.isNotEmpty()
-        if (hasIntroducedPersons) {
+        if (introducedPersons.isNotEmpty()) {
             val names = introducedPersons.joinToString(", ") { it.firstName }
             deleteWarningMessage = "Cette personne a présenté : $names.\nSi vous continuez, le lien 'Présenté par' de ces personnes sera vidé."
         } else {
@@ -153,18 +159,29 @@ fun EncounterDetailsDialog(
         )
     }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black.copy(alpha = 0.4f))
+            .zIndex(100f)
+            .clickable(enabled = false) { } // Capture clicks to prevent interacting with background
     ) {
+        BackHandler { onDismiss() }
+
         Surface(
             shape = RoundedCornerShape(28.dp),
             color = theme.backgroundColor,
             border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
-            modifier = Modifier.fillMaxWidth(0.95f).fillMaxHeight(0.95f).padding(vertical = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .fillMaxHeight(0.95f)
+                .align(Alignment.Center)
+                .padding(vertical = 16.dp)
         ) {
             Column(
-                modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState())
+                modifier = Modifier
+                    .padding(24.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -446,6 +463,117 @@ fun EncounterDetailsDialog(
                 }
 
                 Spacer(Modifier.height(24.dp))
+
+                // MÉDIAS SECONDAIRES (v9.6.6): Flow réactif pour mise à jour immédiate
+                val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+                    uri?.let {
+                        val file = viewModel.uriToFile(it)
+                        if (file != null && initialPerson != null) {
+                            val mime = context.contentResolver.getType(it)
+                            val type = if (mime?.contains("video") == true) "VIDEO" else "PHOTO"
+                            viewModel.addMediaComplement(initialPerson.id, file, type)
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("PHOTOS & VIDÉOS", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                    if (initialPerson != null) {
+                        IconButton(onClick = { 
+                            photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+                        }) {
+                            Icon(Icons.Default.AddPhotoAlternate, null, tint = accent)
+                        }
+                    }
+                }
+                
+                Spacer(Modifier.height(8.dp))
+
+                if (initialPerson == null) {
+                    Text("Créez d'abord la rencontre pour ajouter des photos.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.3f))
+                } else {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                        color = accent.copy(alpha = 0.05f),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                    ) {
+                        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Lock, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Text(
+                                "Ce média sera chiffré et protégé. Il ne sera visible par vos Destinataires qu'une fois votre héritage activé, SAUF si cette rencontre est \"Gardée pour moi\" (elle restera alors totalement invisible).",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = theme.contentColor.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+
+                    if (mediaList.isEmpty()) {
+                        Text("Aucune photo ajoutée.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.3f))
+                    } else {
+                        mediaList.chunked(3).forEach { row ->
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                row.forEach { media ->
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .aspectRatio(1f)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable {
+                                                android.util.Log.d("PHX_MEDIA_DEBUG", "Thumbnail CLICK: mediaId=${media.id}, type=${media.mediaType}")
+                                                // Ouverture du visualiseur plein écran (v9.6.6)
+                                                navController.navigate(
+                                                    com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(
+                                                        entryId = media.id,
+                                                        creatorId = null,
+                                                        mediaUrl = media.mediaPath,
+                                                        entryType = media.mediaType,
+                                                        aiSummary = "Photo de ${firstName}",
+                                                        sourceDocType = "personMedia",
+                                                        personId = initialPerson?.id,
+                                                        isEncrypted = !media.mediaPath.startsWith("/")
+                                                    )
+                                                )
+                                            }
+                                    ) {
+                                        val isPathEncrypted = !media.mediaPath.startsWith("/")
+                                        SecureAsyncImage(
+                                            mediaUrl = media.mediaPath,
+                                            mediaManager = mediaManager,
+                                            explicitKey = if (heirKey != null) heirKey else null,
+                                            isEncrypted = isPathEncrypted,
+                                            creatorId = null, // Formulaire créateur uniquement
+                                            docType = "personMedia",
+                                            docId = media.id,
+                                            personId = initialPerson.id,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                        IconButton(
+                                            onClick = { viewModel.removeMedia(media) },
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .size(18.dp)
+                                                .offset(x = (-4).dp, y = 4.dp)
+                                                .background(Color.Black.copy(alpha = 0.6f), CircleShape)
+                                        ) {
+                                            Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(10.dp))
+                                        }
+                                    }
+                                }
+                                // Remplissage pour garder la grille alignée
+                                repeat(3 - row.size) { Spacer(Modifier.weight(1f)) }
+                            }
+                            Spacer(Modifier.height(8.dp))
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(24.dp))
                 
                 // Ce qu'il/elle m'a apporté (Bio)
                 Text("BIOGRAPHIE", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
@@ -564,4 +692,3 @@ fun EncounterDetailsDialog(
         }
     }
 }
-
