@@ -60,19 +60,15 @@ fun EncounterDetailScreen(
         EntryPointAccessors.fromApplication(context, MediaManager.MediaManagerEntryPoint::class.java).mediaManager()
     }
 
-    // Chargement des médias et statistiques
-    var personMedia by remember { mutableStateOf<List<PersonMediaEntity>>(emptyList()) }
-    var memoriesCount by remember { mutableIntStateOf(0) }
-
-    LaunchedEffect(personId) {
-        // Médias de la personne
-        viewModel.getMediaForPerson(personId).collect { personMedia = it }
+    // Chargement des médias et statistiques (v9.6.6 : Passage en Flow réactif)
+    android.util.Log.d("PHX_MEDIA_DEBUG", "EncounterDetailScreen COMPOSABLE: personId=$personId")
+    val personMedia by viewModel.getMediaForPerson(personId).collectAsState(initial = emptyList())
+    
+    LaunchedEffect(personMedia) {
+        android.util.Log.d("PHX_MEDIA_DEBUG", "EncounterDetailScreen personMedia EMIT: size=${personMedia.size}, ids=${personMedia.map { it.id }}")
     }
 
-    LaunchedEffect(personId) {
-        // Décompte des souvenirs (v9.6.0)
-        viewModel.getMemoriesCountForPerson(personId).collect { memoriesCount = it }
-    }
+    val memoriesCount by viewModel.getMemoriesCountForPerson(personId).collectAsState(initial = 0)
 
     var showEditDialog by remember { mutableStateOf(false) }
 

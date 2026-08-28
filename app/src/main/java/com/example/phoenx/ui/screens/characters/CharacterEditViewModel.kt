@@ -150,7 +150,7 @@ class CharacterEditViewModel @Inject constructor(
                 characterType = characterType
             )
 
-            offlineEntryDao.insertPerson(updated)
+            offlineEntryDao.upsertPerson(updated)
             
             // Déclenchement Sync
             val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>().build()

@@ -73,8 +73,8 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM persons WHERE firstName LIKE :query || '%'")
     suspend fun searchPersonsByFirstName(query: String): List<PersonEntity>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPerson(person: PersonEntity)
+    @Upsert
+    suspend fun upsertPerson(person: PersonEntity)
 
     @Delete
     suspend fun deletePerson(person: PersonEntity)

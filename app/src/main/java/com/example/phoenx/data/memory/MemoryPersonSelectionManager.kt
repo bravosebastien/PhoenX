@@ -49,7 +49,7 @@ class MemoryPersonSelectionManager @Inject constructor(
             imagePath = imagePath,
             characterType = characterType
         )
-        offlineEntryDao.insertPerson(newPerson)
+        offlineEntryDao.upsertPerson(newPerson)
 
         return SimplifiedPerson(
             id = newPerson.id,

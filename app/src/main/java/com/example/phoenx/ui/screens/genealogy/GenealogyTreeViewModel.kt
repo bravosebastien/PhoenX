@@ -226,7 +226,7 @@ class GenealogyTreeViewModel @Inject constructor(
                 currentParents.add(parentId)
                 val newCsv = "," + currentParents.joinToString(",") + ","
                 val updatedChild = child.copy(parentIds = newCsv, syncStatus = "pending")
-                offlineEntryDao.insertPerson(updatedChild)
+                offlineEntryDao.upsertPerson(updatedChild)
                 SyncWorker.trigger(context) // v9.4.24
             }
         }
@@ -236,7 +236,7 @@ class GenealogyTreeViewModel @Inject constructor(
         viewModelScope.launch {
             val person = allPersons.value.find { it.id == personId } ?: return@launch
             val updated = person.copy(biography = bio, syncStatus = "pending")
-            offlineEntryDao.insertPerson(updated)
+            offlineEntryDao.upsertPerson(updated)
             SyncWorker.trigger(context) // v9.4.24
         }
     }
@@ -245,7 +245,7 @@ class GenealogyTreeViewModel @Inject constructor(
         viewModelScope.launch {
             val person = allPersons.value.find { it.id == personId } ?: return@launch
             val updated = person.copy(isDeceased = !person.isDeceased, syncStatus = "pending")
-            offlineEntryDao.insertPerson(updated)
+            offlineEntryDao.upsertPerson(updated)
             SyncWorker.trigger(context) // v9.4.24
         }
     }
@@ -259,7 +259,7 @@ class GenealogyTreeViewModel @Inject constructor(
                 parentIds = parentCsv,
                 syncStatus = "pending"
             )
-            offlineEntryDao.insertPerson(newPerson)
+            offlineEntryDao.upsertPerson(newPerson)
             
             // Si on créait un ascendant ou un co-parent, on lie les enfants au nouveau parent (v9.4.23)
             childrenIdsToLink.forEach { childId ->
@@ -280,7 +280,7 @@ class GenealogyTreeViewModel @Inject constructor(
                 reparentedRelationLabel = relationLabel,
                 syncStatus = "pending"
             )
-            offlineEntryDao.insertPerson(updated)
+            offlineEntryDao.upsertPerson(updated)
         }
     }
 
@@ -308,7 +308,7 @@ class GenealogyTreeViewModel @Inject constructor(
                 imagePath = imagePath,
                 syncStatus = "pending"
             )
-            offlineEntryDao.insertPerson(updated)
+            offlineEntryDao.upsertPerson(updated)
 
             // Fix : on efface l'ancienne photo mémorisée pour cette personne,
             // sinon l'application continue d'afficher l'ancienne photo indéfiniment
@@ -366,7 +366,7 @@ class GenealogyTreeViewModel @Inject constructor(
                         syncStatus = "pending"
                     )
                     
-                    offlineEntryDao.insertPerson(updatedChild)
+                    offlineEntryDao.upsertPerson(updatedChild)
                     
                     // Mise à jour Firestore immédiate
                     val updates = mutableMapOf<String, Any?>(

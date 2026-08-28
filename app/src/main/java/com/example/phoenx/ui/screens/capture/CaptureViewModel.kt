@@ -286,7 +286,7 @@ class CaptureViewModel @Inject constructor(
                     imagePath = finalImagePath,
                     characterType = characterType
                 )
-                offlineEntryDao.insertPerson(newPerson)
+                offlineEntryDao.upsertPerson(newPerson)
                 
                 // Point 1 : Conversion pour le sélecteur unifié
                 val simplified = SimplifiedPerson(

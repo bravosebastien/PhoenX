@@ -194,7 +194,7 @@ class EncounterViewModel @Inject constructor(
                     syncStatus = "pending"
                 )
 
-                offlineEntryDao.insertPerson(finalPerson)
+                offlineEntryDao.upsertPerson(finalPerson)
 
                 val encounterPath = finalPerson.encounterImagePath
                 val isLocalEncounterPath = !encounterPath.isNullOrBlank() && (encounterPath.startsWith("/data/") || !encounterPath.startsWith("users/"))
@@ -209,7 +209,7 @@ class EncounterViewModel @Inject constructor(
                     .set(finalPerson.toFirestoreMap(storageUrl = safeImageStorageUrl, encounterStorageUrl = safeEncounterStorageUrl))
                     .await()
 
-                offlineEntryDao.insertPerson(finalPerson.copy(syncStatus = "synced"))
+                offlineEntryDao.upsertPerson(finalPerson.copy(syncStatus = "synced"))
                 SyncWorker.trigger(context)
             } catch (e: Exception) {
                 android.util.Log.e("EncounterVM", "Erreur sauvegarde rencontre : ${e.message}")
@@ -370,6 +370,7 @@ class EncounterViewModel @Inject constructor(
                 thumbnailPath = thumbnailPath,
                 syncStatus = "pending"
             )
+            android.util.Log.d("PHX_MEDIA_DEBUG", "EncounterViewModel addMediaComplement: personId=$personId, mediaId=${media.id}")
             personMediaDao.insertMedia(media)
             SyncWorker.trigger(context)
         }

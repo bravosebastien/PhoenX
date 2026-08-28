@@ -119,7 +119,7 @@ class SyncWorker @AssistedInject constructor(
                         .await()
 
                     ensuredPersonIds.add(person.id)
-                    offlineEntryDao.insertPerson(person.copy(
+                    offlineEntryDao.upsertPerson(person.copy(
                         imagePath = storageUrl,
                         encounterImagePath = encounterStorageUrl,
                         syncStatus = "synced"

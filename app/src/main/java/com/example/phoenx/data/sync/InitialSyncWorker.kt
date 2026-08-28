@@ -92,7 +92,7 @@ class InitialSyncWorker @AssistedInject constructor(
                     }
                 }
 
-                offlineEntryDao.insertPerson(person.copy(imagePath = finalLocalPath, categories = finalCategories))
+                offlineEntryDao.upsertPerson(person.copy(imagePath = finalLocalPath, categories = finalCategories))
             }
 
             // ═══ 3. RÉCUPÉRATION DES DESTINATAIRES (RECIPIENTS) — v9.4.19 ═══

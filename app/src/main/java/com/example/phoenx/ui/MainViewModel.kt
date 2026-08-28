@@ -288,7 +288,7 @@ class MainViewModel @Inject constructor(
                                 // On s'assure qu'elle est bien classée FAMILY
                                 val updated = person.copy(categories = ",FAMILY,")
                                 if (updated != person) {
-                                    database.offlineEntryDao().insertPerson(updated)
+                                    database.offlineEntryDao().upsertPerson(updated)
                                     classifiedCount++
                                 }
                             }
