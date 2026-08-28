@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.theme.LocalAppTheme
 import dagger.hilt.android.EntryPointAccessors
@@ -37,7 +38,13 @@ fun CameoPortrait(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
     resolvedUrl: String? = null, // v9.4.27 : URL déjà résolue (Source unique)
-    useCharcoalFilter: Boolean = true // v9.4.29 : Permet de désactiver le filtre artistique
+    useCharcoalFilter: Boolean = true, // v9.4.29 : Permet de désactiver le filtre artistique
+    creatorId: String? = null, // v9.6.6
+    docType: String? = null,
+    docId: String? = null,
+    field: String? = null,
+    explicitKey: ByteArray? = null,
+    isEncrypted: Boolean = false
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -54,20 +61,27 @@ fun CameoPortrait(
     }
     val displayUrl = resolvedUrl ?: internalUrl ?: fallbackUrl
 
-    LaunchedEffect(imagePath, resolvedUrl) {
-        // SÉCURITÉ : Si une URL résolue est fournie (ViewModel), on ne déclenche AUCUNE résolution locale.
-        // Cela garantit qu'un Destinataire n'appellera jamais mediaManager.getSafeUrl() (interdit).
-        if (resolvedUrl == null && !imagePath.isNullOrBlank()) {
-            android.util.Log.d("PHOENX_TREE_TRACE", "Résolution interne pour $firstName ($imagePath)")
-            val mediaManager = dagger.hilt.android.EntryPointAccessors.fromApplication(
-                context.applicationContext,
-                MediaManager.MediaManagerEntryPoint::class.java
-            ).mediaManager()
+    val mediaManager = remember(context) {
+        dagger.hilt.android.EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            MediaManager.MediaManagerEntryPoint::class.java
+        ).mediaManager()
+    }
+
+    LaunchedEffect(imagePath, resolvedUrl, creatorId) {
+        // SÉCURITÉ : Si une URL résolue est fournie (ViewModel) OU si nous sommes en mode Destinataire (creatorId présent),
+        // on ne déclenche AUCUNE résolution locale. On laisse SecureAsyncImage gérer la résolution sécurisée.
+        if (resolvedUrl == null && creatorId == null && !imagePath.isNullOrBlank()) {
+            android.util.Log.d("PHOENX_TREE_TRACE", "Résolution interne Créateur pour $firstName ($imagePath)")
 
             if (java.io.File(imagePath).exists()) {
                 internalUrl = if (imagePath.startsWith("file://")) imagePath else "file://$imagePath"
             } else {
-                internalUrl = mediaManager.getSafeUrl(imagePath) // Cas Storage direct
+                try {
+                    internalUrl = mediaManager.getSafeUrl(imagePath)
+                } catch (e: Exception) {
+                    android.util.Log.w("PHOENX_TREE_TRACE", "Échec getSafeUrl pour $firstName")
+                }
             }
         } else if (resolvedUrl != null) {
             android.util.Log.d("PHOENX_TREE_TRACE", "Usage de resolvedUrl pour $firstName: $resolvedUrl")
@@ -88,27 +102,34 @@ fun CameoPortrait(
         contentAlignment = Alignment.Center
     ) {
         if (!displayUrl.isNullOrBlank()) {
-            // Filtre "Portrait au Fusain" via ColorMatrix
+            // Filtre "Portrait au Fusain" via ColorMatrix (v9.6.6 : Correction mathématique)
             val charcoalMatrix = remember {
-                ColorMatrix().apply {
-                    setToSaturation(0f) // Noir et blanc
-                    val contrast = 1.2f
-                    val translate = -0.1f
-                    this[0, 0] = contrast
-                    this[1, 1] = contrast
-                    this[2, 2] = contrast
-                    this[0, 4] = translate * 255
-                    this[1, 4] = translate * 255
-                    this[2, 4] = translate * 255
-                }
+                val contrast = 1.2f
+                val translate = -0.1f * 255f
+                val r = 0.213f * contrast
+                val g = 0.715f * contrast
+                val b = 0.072f * contrast
+                
+                ColorMatrix(floatArrayOf(
+                    r, g, b, 0f, translate,
+                    r, g, b, 0f, translate,
+                    r, g, b, 0f, translate,
+                    0f, 0f, 0f, 1f, 0f
+                ))
             }
 
-            AsyncImage(
-                model = displayUrl,
-                contentDescription = "Portrait de $firstName",
-                contentScale = ContentScale.Crop,
+            SecureAsyncImage(
+                mediaUrl = displayUrl,
+                mediaManager = mediaManager,
+                explicitKey = explicitKey,
+                creatorId = creatorId,
+                docType = docType,
+                docId = docId,
+                field = field,
+                isEncrypted = isEncrypted || displayUrl.endsWith(".enc"),
                 colorFilter = if (useCharcoalFilter) ColorFilter.colorMatrix(charcoalMatrix) else null,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
             )
         } else {
             // Placeholder Initiale style Fusain

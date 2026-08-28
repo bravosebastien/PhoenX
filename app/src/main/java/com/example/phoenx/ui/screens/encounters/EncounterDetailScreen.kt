@@ -263,7 +263,22 @@ fun EncounterDetailScreen(
                         border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
                     ) {
                         Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                            CameoPortrait(imagePath = introducer.imagePath, firstName = introducer.firstName, size = 48.dp)
+                            val introducerPath = introducer.encounterImagePath ?: introducer.imagePath
+                            val isIntroducerPathEncrypted = introducerPath?.endsWith(".enc") == true
+                            val introducerField = if (introducer.encounterImagePath != null) "encounterImagePath" else "imageUrl"
+
+                            CameoPortrait(
+                                imagePath = introducerPath,
+                                firstName = introducer.firstName,
+                                size = 48.dp,
+                                creatorId = targetCreatorId,
+                                docType = "persons",
+                                docId = introducer.id,
+                                field = introducerField,
+                                isEncrypted = isIntroducerPathEncrypted,
+                                explicitKey = if (isReadOnly) heirKey else null,
+                                useCharcoalFilter = false // v9.6.6 : Photo normale dans le badge
+                            )
                             Spacer(Modifier.width(16.dp))
                             Text(
                                 text = "Présenté(e) par ${introducer.firstName}",
