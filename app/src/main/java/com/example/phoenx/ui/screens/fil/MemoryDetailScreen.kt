@@ -37,6 +37,7 @@ import androidx.navigation.NavController
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -87,8 +88,17 @@ fun MemoryDetailScreen(
         ActivityResultContracts.CaptureVideo()
     ) { success ->
         if (success && tempVideoUri != null) {
-            val file = viewModel.uriToFile(tempVideoUri!!)
-            if (file != null) viewModel.addMediaComplement(entryId, file, "VIDEO")
+            val isValid = com.example.phoenx.ui.util.VideoUtils.isVideoDurationValid(
+                context, tempVideoUri!!, com.example.phoenx.ui.util.VideoUtils.MAX_VIDEO_DURATION_SECONDS_STANDARD
+            )
+            if (isValid) {
+                val file = viewModel.uriToFile(tempVideoUri!!)
+                if (file != null) viewModel.addMediaComplement(entryId, file, "VIDEO")
+            } else {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Cette vidéo dépasse la durée maximale de 90 secondes autorisée.")
+                }
+            }
         }
     }
 
@@ -153,11 +163,24 @@ fun MemoryDetailScreen(
     ) { uris ->
         if (uris.isNotEmpty()) {
             uris.forEach { uri ->
-                val file = viewModel.uriToFile(uri)
-                if (file != null) {
-                    val mime = context.contentResolver.getType(uri)
-                    val type = if (mime?.contains("video") == true) "VIDEO" else "PHOTO"
-                    viewModel.addMediaComplement(entryId, file, type)
+                val mime = context.contentResolver.getType(uri)
+                val type = if (mime?.contains("video") == true) "VIDEO" else "PHOTO"
+                
+                if (type == "VIDEO") {
+                    val isValid = com.example.phoenx.ui.util.VideoUtils.isVideoDurationValid(
+                        context, uri, com.example.phoenx.ui.util.VideoUtils.MAX_VIDEO_DURATION_SECONDS_STANDARD
+                    )
+                    if (isValid) {
+                        val file = viewModel.uriToFile(uri)
+                        if (file != null) viewModel.addMediaComplement(entryId, file, "VIDEO")
+                    } else {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Cette vidéo dépasse la durée maximale de 90 secondes autorisée.")
+                        }
+                    }
+                } else {
+                    val file = viewModel.uriToFile(uri)
+                    if (file != null) viewModel.addMediaComplement(entryId, file, "PHOTO")
                 }
             }
         }

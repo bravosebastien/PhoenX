@@ -27,7 +27,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.activity.result.PickVisualMediaRequest
 import coil3.compose.AsyncImage
+import dagger.hilt.android.EntryPointAccessors
+import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.PersonMediaEntity
 import com.example.phoenx.ui.components.CameoPortrait
@@ -53,12 +56,6 @@ fun PersonDetailsDialog(
     val mediaList by viewModel.getMediaForPerson(person.id).collectAsState(initial = emptyList())
     val resolvedUrls by viewModel.resolvedUrls.collectAsState()
     
-    LaunchedEffect(mediaList) {
-        mediaList.forEach { media ->
-            viewModel.resolveMediaUrl(person.id, media)
-        }
-    }
-    
     var biography by remember(person) { mutableStateOf(person.biography) }
     var isDeceased by remember(person) { mutableStateOf(person.isDeceased) }
     var relationLabel by remember(person) { mutableStateOf(person.reparentedRelationLabel ?: "") }
@@ -66,15 +63,33 @@ fun PersonDetailsDialog(
     var showDeleteConfirm by remember { mutableStateOf(false) } // v9.4.22
     val children by viewModel.getChildrenOf(person.id).collectAsState(initial = emptyList())
     val deleteRelationLabels = remember { mutableStateMapOf<String, String>() }
+    var videoErrorMessage by remember { mutableStateOf<String?>(null) } // v9.6.6
 
-    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
         if (uri != null) {
-            val fileName = "person_media_${UUID.randomUUID()}.jpg"
-            val file = File(context.filesDir, fileName)
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                FileOutputStream(file).use { output -> input.copyTo(output) }
+            val mime = context.contentResolver.getType(uri)
+            val type = if (mime?.contains("video") == true) "VIDEO" else "PHOTO"
+
+            if (type == "VIDEO") {
+                val isValid = com.example.phoenx.ui.util.VideoUtils.isVideoDurationValid(
+                    context, uri, com.example.phoenx.ui.util.VideoUtils.MAX_VIDEO_DURATION_SECONDS_STANDARD
+                )
+                if (isValid) {
+                    val file = viewModel.uriToFile(uri)
+                    if (file != null) {
+                        viewModel.addMedia(person.id, file, "VIDEO")
+                        videoErrorMessage = null
+                    }
+                } else {
+                    videoErrorMessage = "Cette vidéo dépasse la durée maximale de 90 secondes autorisée. Merci de choisir une vidéo plus courte."
+                }
+            } else {
+                val file = viewModel.uriToFile(uri)
+                if (file != null) {
+                    viewModel.addMedia(person.id, file, "PHOTO")
+                    videoErrorMessage = null
+                }
             }
-            viewModel.addMedia(person.id, file.absolutePath, "PHOTO")
         }
     }
 
@@ -218,10 +233,21 @@ fun PersonDetailsDialog(
                             )
                         }
                         if (!isReadOnly) {
-                            IconButton(onClick = { photoPicker.launch("image/*") }) {
+                            IconButton(onClick = { 
+                                photoPicker.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) 
+                            }) {
                                 Icon(Icons.Default.AddPhotoAlternate, null, tint = accent)
                             }
                         }
+                    }
+
+                    if (videoErrorMessage != null) {
+                        Text(
+                            text = videoErrorMessage!!,
+                            color = Error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
                     }
                     
                     if (!isReadOnly) {
@@ -249,11 +275,40 @@ fun PersonDetailsDialog(
                         mediaList.chunked(3).forEach { row ->
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 row.forEach { media ->
-                                    MediaThumbnail(
-                                        media = media.copy(mediaPath = resolvedUrls[media.id] ?: media.mediaPath),
-                                        onRemove = { viewModel.removeMedia(media) },
-                                        isReadOnly = isReadOnly
-                                    )
+                                    val activeUrl = media.thumbnailPath ?: media.mediaPath
+                                    val isPathEncrypted = !activeUrl.startsWith("/")
+                                    val fieldParam = if (media.thumbnailPath != null) "thumbnailPath" else "mediaPath"
+
+                                    Box(modifier = Modifier.size(90.dp).clip(RoundedCornerShape(8.dp))) {
+                                        com.example.phoenx.ui.components.SecureAsyncImage(
+                                            mediaUrl = activeUrl,
+                                            mediaManager = EntryPointAccessors.fromApplication(context, MediaManager.MediaManagerEntryPoint::class.java).mediaManager(),
+                                            isEncrypted = isPathEncrypted,
+                                            docType = "personMedia",
+                                            docId = media.id,
+                                            field = fieldParam,
+                                            personId = person.id,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+
+                                        if (media.mediaType == "VIDEO") {
+                                            Icon(
+                                                Icons.Default.PlayCircle,
+                                                null,
+                                                tint = Color.White.copy(alpha = 0.8f),
+                                                modifier = Modifier.size(24.dp).align(Alignment.Center)
+                                            )
+                                        }
+
+                                        if (!isReadOnly) {
+                                            IconButton(
+                                                onClick = { viewModel.removeMedia(media) },
+                                                modifier = Modifier.align(Alignment.TopEnd).size(24.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                                            ) {
+                                                Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(14.dp))
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             Spacer(Modifier.height(8.dp))
@@ -354,22 +409,4 @@ fun PersonDetailsDialog(
     }
 }
 
-@Composable
-fun MediaThumbnail(media: PersonMediaEntity, onRemove: () -> Unit, isReadOnly: Boolean = false) {
-    Box(modifier = Modifier.size(90.dp).clip(RoundedCornerShape(8.dp))) {
-        AsyncImage(
-            model = media.mediaPath,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
-        if (!isReadOnly) {
-            IconButton(
-                onClick = onRemove,
-                modifier = Modifier.align(Alignment.TopEnd).size(24.dp).background(Color.Black.copy(alpha = 0.5f), CircleShape)
-            ) {
-                Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(14.dp))
-            }
-        }
-    }
-}
+

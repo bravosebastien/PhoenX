@@ -453,12 +453,34 @@ class GenealogyTreeViewModel @Inject constructor(
         }
     }
 
-    fun addMedia(personId: String, path: String, type: String) {
+    fun addMedia(personId: String, file: java.io.File, type: String) {
         viewModelScope.launch {
+            var thumbnailPath: String? = null
+
+            if (type == "VIDEO") {
+                try {
+                    val retriever = android.media.MediaMetadataRetriever()
+                    retriever.setDataSource(file.absolutePath)
+                    val bitmap = retriever.getFrameAtTime(0)
+                    retriever.release()
+
+                    if (bitmap != null) {
+                        val thumbFile = java.io.File(context.cacheDir, "thumb_${file.name}.jpg")
+                        java.io.FileOutputStream(thumbFile).use { out ->
+                            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 70, out)
+                        }
+                        thumbnailPath = thumbFile.absolutePath
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("GenealogyVM", "Erreur vignette vidéo: ${e.message}")
+                }
+            }
+
             val media = PersonMediaEntity(
                 personId = personId,
-                mediaPath = path,
+                mediaPath = file.absolutePath,
                 mediaType = type,
+                thumbnailPath = thumbnailPath,
                 syncStatus = "pending"
             )
             personMediaDao.insertMedia(media)
@@ -475,5 +497,23 @@ class GenealogyTreeViewModel @Inject constructor(
     fun resolveMediaUrl(personId: String, media: PersonMediaEntity) {
         val creatorId = _targetCreatorId.value ?: auth.currentUser?.uid ?: return
         resolveSingleUrl(creatorId, "personMedia", media.id, media.mediaPath, personId)
+    }
+
+    fun uriToFile(uri: android.net.Uri): java.io.File? {
+        return try {
+            val contentResolver = context.contentResolver
+            val mimeType = contentResolver.getType(uri)
+            val extension = if (mimeType?.contains("video") == true) "mp4" else "jpg"
+
+            val inputStream = contentResolver.openInputStream(uri)
+            val tempFile = java.io.File(context.cacheDir, "genealogy_media_${java.util.UUID.randomUUID()}.$extension")
+            inputStream?.use { input ->
+                tempFile.outputStream().use { output -> input.copyTo(output) }
+            }
+            tempFile
+        } catch (e: Exception) {
+            android.util.Log.e("GenealogyVM", "Erreur copie URI: ${e.message}")
+            null
+        }
     }
 }

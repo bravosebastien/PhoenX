@@ -465,13 +465,31 @@ fun EncounterDetailsDialog(
                 Spacer(Modifier.height(24.dp))
 
                 // MÉDIAS SECONDAIRES (v9.6.6): Flow réactif pour mise à jour immédiate
+                var videoErrorMessage by remember { mutableStateOf<String?>(null) }
                 val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
                     uri?.let {
-                        val file = viewModel.uriToFile(it)
-                        if (file != null && initialPerson != null) {
-                            val mime = context.contentResolver.getType(it)
-                            val type = if (mime?.contains("video") == true) "VIDEO" else "PHOTO"
-                            viewModel.addMediaComplement(initialPerson.id, file, type)
+                        val mime = context.contentResolver.getType(it)
+                        val type = if (mime?.contains("video") == true) "VIDEO" else "PHOTO"
+                        
+                        if (type == "VIDEO") {
+                            val isValid = com.example.phoenx.ui.util.VideoUtils.isVideoDurationValid(
+                                context, it, com.example.phoenx.ui.util.VideoUtils.MAX_VIDEO_DURATION_SECONDS_STANDARD
+                            )
+                            if (isValid) {
+                                val file = viewModel.uriToFile(it)
+                                if (file != null && initialPerson != null) {
+                                    viewModel.addMediaComplement(initialPerson.id, file, "VIDEO")
+                                    videoErrorMessage = null
+                                }
+                            } else {
+                                videoErrorMessage = "Cette vidéo dépasse la durée maximale de 90 secondes autorisée, pour garantir qu'elle soit lisible par vos proches. Merci de choisir une vidéo plus courte."
+                            }
+                        } else {
+                            val file = viewModel.uriToFile(it)
+                            if (file != null && initialPerson != null) {
+                                viewModel.addMediaComplement(initialPerson.id, file, "PHOTO")
+                                videoErrorMessage = null
+                            }
                         }
                     }
                 }
@@ -489,6 +507,15 @@ fun EncounterDetailsDialog(
                             Icon(Icons.Default.AddPhotoAlternate, null, tint = accent)
                         }
                     }
+                }
+                
+                if (videoErrorMessage != null) {
+                    Text(
+                        text = videoErrorMessage!!,
+                        color = Error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
                 }
                 
                 Spacer(Modifier.height(8.dp))

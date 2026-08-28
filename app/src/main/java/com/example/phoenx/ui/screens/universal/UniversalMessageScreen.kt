@@ -69,28 +69,15 @@ fun UniversalMessageScreen(
     var bioLine by remember { mutableStateOf("") }
     var charteAccepted by remember { mutableStateOf(false) }
 
-    fun checkVideoDuration(uri: Uri): Boolean {
-        val retriever = android.media.MediaMetadataRetriever()
-        return try {
-            retriever.setDataSource(context, uri)
-            val duration = retriever.extractMetadata(
-                android.media.MediaMetadataRetriever.METADATA_KEY_DURATION
-            )?.toLongOrNull() ?: 0L
-            duration <= 30_000L // 30 secondes max
-        } catch (e: Exception) {
-            false
-        } finally {
-            retriever.release()
-        }
-    }
-
     val photoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         photoUris = (photoUris + uris).take(3)
     }
 
     val videoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
-            val isValid = checkVideoDuration(uri)
+            val isValid = com.example.phoenx.ui.util.VideoUtils.isVideoDurationValid(
+                context, uri, com.example.phoenx.ui.util.VideoUtils.MAX_VIDEO_DURATION_SECONDS_PACTE
+            )
             if (!isValid) {
                 errorMessage = "Cette vidéo dépasse 30 secondes. Choisis un extrait plus court."
                 videoUri = null
