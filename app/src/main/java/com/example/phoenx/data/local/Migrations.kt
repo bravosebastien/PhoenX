@@ -661,4 +661,13 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE persons ADD COLUMN encounterImagePath TEXT")
         }
     }
+
+    /**
+     * MIGRATION_54_55 — Miniature pour vidéos de Rencontres (v9.6.6)
+     */
+    val MIGRATION_54_55 = object : Migration(54, 55) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE person_media ADD COLUMN thumbnailPath TEXT")
+        }
+    }
 }

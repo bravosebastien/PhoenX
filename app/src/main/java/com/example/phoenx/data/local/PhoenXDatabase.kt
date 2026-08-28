@@ -19,7 +19,7 @@ import androidx.room.RoomDatabase
     StandaloneMediaEntity::class,
     PersonMediaEntity::class,
     LivingLinkEntity::class
-], version = 54, exportSchema = false)
+], version = 55, exportSchema = false)
 abstract class PhoenXDatabase : RoomDatabase() {
     abstract fun offlineEntryDao(): OfflineEntryDao
     abstract fun standaloneMediaDao(): StandaloneMediaDao

@@ -247,6 +247,15 @@ class SyncWorker @AssistedInject constructor(
                             // CORRECTIF : on réassigne "media" avec le nouveau chemin AVANT toFirestoreMap()
                             media = media.copy(mediaPath = currentPath)
 
+                            // GESTION MINIATURE (v9.6.6)
+                            if (media.thumbnailPath != null && media.thumbnailPath!!.startsWith("/")) {
+                                val thumbFile = File(media.thumbnailPath!!)
+                                if (thumbFile.exists()) {
+                                    val thumbPath = mediaManager.uploadEncounterMedia(userId, "encounter_media_thumb_${media.id}", thumbFile, "PHOTO")
+                                    media = media.copy(thumbnailPath = thumbPath)
+                                }
+                            }
+
                             // Mise à jour locale pour éviter de re-uploader
                             personMediaDao.insertMedia(media)
                         }

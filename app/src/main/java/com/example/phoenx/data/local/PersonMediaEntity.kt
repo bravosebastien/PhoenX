@@ -23,6 +23,7 @@ data class PersonMediaEntity(
     val personId: String,
     val mediaPath: String, // Chemin local ou URL Storage
     val mediaType: String, // "PHOTO" | "VIDEO"
+    val thumbnailPath: String? = null, // v9.6.6 : Miniature pour les vidéos
     val capturedAt: Long = System.currentTimeMillis(),
     val syncStatus: String = "pending"
 )

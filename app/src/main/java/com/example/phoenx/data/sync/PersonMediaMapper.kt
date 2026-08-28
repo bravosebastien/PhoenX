@@ -8,6 +8,7 @@ fun PersonMediaEntity.toFirestoreMap(): Map<String, Any?> {
         "personId" to personId,
         "mediaPath" to mediaPath,
         "mediaType" to mediaType,
+        "thumbnailPath" to thumbnailPath, // v9.6.6
         "capturedAt" to capturedAt
     )
 }
@@ -18,6 +19,7 @@ fun DocumentSnapshot.toPersonMediaEntity(): PersonMediaEntity {
         personId = getString("personId") ?: "",
         mediaPath = getString("mediaPath") ?: "",
         mediaType = getString("mediaType") ?: "PHOTO",
+        thumbnailPath = getString("thumbnailPath"), // v9.6.6
         capturedAt = getLong("capturedAt") ?: System.currentTimeMillis(),
         syncStatus = "synced"
     )

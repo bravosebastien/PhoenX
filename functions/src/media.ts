@@ -58,6 +58,8 @@ export const getInheritedFileUrl = onCall(async (request) => {
         storageUrl = itemData.coverUrl;
     } else if (field === "encounterImagePath") { // v9.6.5 : Support pour portrait de Rencontre
         storageUrl = itemData.encounterImagePath;
+    } else if (field === "thumbnailPath") { // v9.6.6 : Support pour miniature de vidéo
+        storageUrl = itemData.thumbnailPath;
     } else {
         // Fallback par défaut, aucun changement de comportement pour l'existant
         if (docType === "entries") storageUrl = itemData.mediaUrl;

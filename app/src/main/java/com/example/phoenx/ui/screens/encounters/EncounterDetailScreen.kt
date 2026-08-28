@@ -8,8 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -321,19 +320,32 @@ fun EncounterDetailScreen(
                                     )
                                 }
                         ) {
-                            val isPathEncrypted = !media.mediaPath.startsWith("/")
+                            val activeUrl = media.thumbnailPath ?: media.mediaPath
+                            val isPathEncrypted = !activeUrl.startsWith("/")
+                            val fieldParam = if (media.thumbnailPath != null) "thumbnailPath" else "mediaPath"
+
                             SecureAsyncImage(
-                                mediaUrl = media.mediaPath,
+                                mediaUrl = activeUrl,
                                 mediaManager = mediaManager,
                                 isEncrypted = isPathEncrypted,
                                 explicitKey = if (isReadOnly) heirKey else null,
                                 creatorId = targetCreatorId,
                                 docType = "personMedia",
                                 docId = media.id,
-                                personId = personId, // v9.6.6
+                                field = fieldParam,
+                                personId = personId,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop
                             )
+
+                            if (media.mediaType == "VIDEO") {
+                                Icon(
+                                    Icons.Default.PlayCircle,
+                                    null,
+                                    tint = Color.White.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(32.dp).align(Alignment.Center)
+                                )
+                            }
                         }
                     }
                 }

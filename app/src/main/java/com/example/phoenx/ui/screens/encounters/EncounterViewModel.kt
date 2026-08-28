@@ -17,6 +17,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
+import java.io.FileOutputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -339,10 +342,32 @@ class EncounterViewModel @Inject constructor(
      */
     fun addMediaComplement(personId: String, file: java.io.File, type: String) {
         viewModelScope.launch {
+            var thumbnailPath: String? = null
+            
+            if (type == "VIDEO") {
+                try {
+                    val retriever = MediaMetadataRetriever()
+                    retriever.setDataSource(file.absolutePath)
+                    val bitmap = retriever.getFrameAtTime(0)
+                    retriever.release()
+                    
+                    if (bitmap != null) {
+                        val thumbFile = java.io.File(context.cacheDir, "thumb_${file.name}.jpg")
+                        FileOutputStream(thumbFile).use { out ->
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 70, out)
+                        }
+                        thumbnailPath = thumbFile.absolutePath
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("EncounterVM", "Erreur vignette vidéo: ${e.message}")
+                }
+            }
+
             val media = PersonMediaEntity(
                 personId = personId,
                 mediaPath = file.absolutePath,
                 mediaType = type,
+                thumbnailPath = thumbnailPath,
                 syncStatus = "pending"
             )
             personMediaDao.insertMedia(media)

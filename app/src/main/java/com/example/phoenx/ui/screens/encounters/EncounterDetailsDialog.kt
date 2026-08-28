@@ -541,18 +541,33 @@ fun EncounterDetailsDialog(
                                                 )
                                             }
                                     ) {
-                                        val isPathEncrypted = !media.mediaPath.startsWith("/")
+                                        val activeUrl = media.thumbnailPath ?: media.mediaPath
+                                        val isPathEncrypted = !activeUrl.startsWith("/")
+                                        val fieldParam = if (media.thumbnailPath != null) "thumbnailPath" else "mediaPath"
+
                                         SecureAsyncImage(
-                                            mediaUrl = media.mediaPath,
+                                            mediaUrl = activeUrl,
                                             mediaManager = mediaManager,
                                             explicitKey = if (heirKey != null) heirKey else null,
                                             isEncrypted = isPathEncrypted,
                                             creatorId = null, // Formulaire créateur uniquement
                                             docType = "personMedia",
                                             docId = media.id,
+                                            field = fieldParam,
                                             personId = initialPerson.id,
                                             modifier = Modifier.fillMaxSize()
                                         )
+                                        
+                                        // Indicateur vidéo (v9.6.6)
+                                        if (media.mediaType == "VIDEO") {
+                                            Icon(
+                                                Icons.Default.PlayCircle,
+                                                null,
+                                                tint = Color.White.copy(alpha = 0.8f),
+                                                modifier = Modifier.size(24.dp).align(Alignment.Center)
+                                            )
+                                        }
+
                                         IconButton(
                                             onClick = { viewModel.removeMedia(media) },
                                             modifier = Modifier
