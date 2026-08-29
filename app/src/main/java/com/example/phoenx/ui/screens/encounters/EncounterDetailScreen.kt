@@ -147,7 +147,7 @@ fun EncounterDetailScreen(
                 // Portrait
                 val isPartner = displayLinkNature(person.linkNature) == "Partenaire"
                 val activePath = person.encounterImagePath ?: person.imagePath
-                val isPathEncrypted = (person.encounterImagePath != null) && !(person.encounterImagePath.startsWith("/data/") || !person.encounterImagePath.startsWith("users/"))
+                val isPathEncrypted = activePath?.endsWith(".enc") == true
 
                 Box(
                     modifier = Modifier

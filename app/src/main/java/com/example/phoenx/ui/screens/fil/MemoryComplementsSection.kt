@@ -75,11 +75,25 @@ fun MemoryComplementsSection(
     ) { uris ->
         if (uris.isNotEmpty()) {
             uris.forEach { uri ->
-                val file = viewModel.uriToFile(uri)
-                if (file != null) {
-                    val mime = context.contentResolver.getType(uri)
-                    val type = if (mime?.contains("video") == true) "VIDEO" else "PHOTO"
-                    viewModel.addMediaComplement(entryId, file, type)
+                val mime = context.contentResolver.getType(uri)
+                val type = if (mime?.contains("video") == true) "VIDEO" else "PHOTO"
+
+                if (type == "VIDEO") {
+                    val isValid = com.example.phoenx.ui.util.VideoUtils.isVideoDurationValid(
+                        context, uri, com.example.phoenx.ui.util.VideoUtils.MAX_VIDEO_DURATION_SECONDS_STANDARD
+                    )
+                    if (isValid) {
+                        val file = viewModel.uriToFile(uri)
+                        if (file != null) viewModel.addMediaComplement(entryId, file, "VIDEO")
+                    } else {
+                        // v9.6.6 : Notification d'erreur pour vidéo trop longue
+                        android.widget.Toast.makeText(context, "Cette vidéo dépasse 90 secondes.", android.widget.Toast.LENGTH_LONG).show()
+                    }
+                } else {
+                    val file = viewModel.uriToFile(uri)
+                    if (file != null) {
+                        viewModel.addMediaComplement(entryId, file, "PHOTO")
+                    }
                 }
             }
         }

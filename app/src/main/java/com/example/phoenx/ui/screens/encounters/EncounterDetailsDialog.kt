@@ -214,7 +214,7 @@ fun EncounterDetailsDialog(
                 ) {
                     val activePath = encounterImagePath ?: initialPerson?.imagePath
                     if (activePath != null) {
-                        val isPathEncrypted = (encounterImagePath != null) && !activePath.startsWith("/")
+                        val isPathEncrypted = activePath.endsWith(".enc")
                         SecureAsyncImage(
                             mediaUrl = activePath,
                             mediaManager = mediaManager,
