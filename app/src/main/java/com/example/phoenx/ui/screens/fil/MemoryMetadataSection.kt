@@ -473,7 +473,9 @@ fun MemoryMetadataSection(
                                         onRemove = { viewModel.removePerson(it) }, 
                                         onManageCharacters = { navController.navigate(Screen.Characters.route) }, 
                                         accent = accent, 
-                                        enabled = !isReadOnly
+                                        enabled = !isReadOnly,
+                                        creatorId = if (isReadOnly) entry.creatorUid else null,
+                                        heirKey = if (isReadOnly) viewModel.heirKey.collectAsState().value else null
                                     )
                                 }
                             }

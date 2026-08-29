@@ -12,7 +12,6 @@ import com.example.phoenx.data.sync.toPersonEntity
 import com.example.phoenx.domain.genealogy.TreeAlgorithm
 import com.example.phoenx.domain.model.TreeLayout
 import com.example.phoenx.domain.model.VisualGroup
-import com.example.phoenx.domain.model.VisualTreeNode
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
@@ -40,6 +39,9 @@ class GenealogyTreeViewModel @Inject constructor(
     private val _resolvedUrls = MutableStateFlow<Map<String, String>>(emptyMap())
     val resolvedUrls: StateFlow<Map<String, String>> = _resolvedUrls.asStateFlow()
 
+    private val _heirKey = MutableStateFlow<ByteArray?>(null)
+    val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
+
     val allPersons: StateFlow<List<PersonEntity>> = _targetCreatorId.flatMapLatest { targetId ->
         android.util.Log.d("GenealogySecurityDebug", "allPersons query: targetId='$targetId', currentUser.uid='${auth.currentUser?.uid}'")
         if (targetId == null || targetId == auth.currentUser?.uid) {
@@ -50,90 +52,48 @@ class GenealogyTreeViewModel @Inject constructor(
                 }
             }
         } else {
-            // MODE HÉRITIER / APERÇU : Lecture Firestore directe avec le même filtrage
+            // MODE DESTINATAIRE (Rattrapage v9.4.27)
             callbackFlow {
                 val listener = db.collection("users").document(targetId)
                     .collection("persons")
                     .addSnapshotListener { snapshot, error ->
                         if (error != null) {
-                            android.util.Log.e("GenealogySecurityDebug", "Firestore listen error: ${error.message}")
+                            android.util.Log.e("GenealogySecurityDebug", "Erreur snapshot persons: ${error.message}")
+                            return@addSnapshotListener
                         }
-                        val list = snapshot?.documents?.map { doc ->
-                            doc.toPersonEntity()
-                        } ?: emptyList<PersonEntity>()
-                        
-                        // Application du garde-fou sur les données distantes
-                        val filteredList = list.filter { p ->
-                            p.categories.contains(",FAMILY,") || p.categories.isBlank() || p.categories == ",,"
-                        }
-                        
-                        trySend(filteredList)
-                        resolveAvatars(targetId, filteredList)
+                        val list = snapshot?.documents?.map { it.toPersonEntity() } ?: emptyList()
+                        // v9.6.5 : Sécurité Jardin Secret
+                        val filtered = list.filter { it.visibility != "PRIVATE" }
+                        android.util.Log.d("GenealogySecurityDebug", "Snapshot distant persons: count=${filtered.size}")
+                        trySend(filtered)
                     }
                 awaitClose { listener.remove() }
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    init {
-        // Observation réactive pour le fallback photo (Point 4)
-        combine(allPersons, personMediaDao.getAllMedia()) { persons, media ->
-            val creatorId = _targetCreatorId.value ?: auth.currentUser?.uid ?: return@combine
-            persons.forEach { person ->
-                if (person.imagePath.isNullOrBlank()) {
-                    // Fallback sur la galerie si pas de photo de profil
-                    val firstMedia = media.find { it.personId == person.id }
-                    if (firstMedia != null) {
-                        resolveSingleUrl(creatorId, "personMedia", person.id, firstMedia.mediaPath, person.id)
-                    }
-                } else {
-                    // Photo de profil dédiée
-                    resolveSingleUrl(creatorId, "persons", person.id, person.imagePath)
-                }
-            }
-        }.launchIn(viewModelScope)
-    }
-
-    private fun resolveAvatars(creatorId: String, persons: List<PersonEntity>) {
-        persons.forEach { person ->
-            if (!person.imagePath.isNullOrBlank()) {
-                resolveSingleUrl(creatorId, "persons", person.id, person.imagePath)
-            }
-        }
-    }
-
-    private fun resolveSingleUrl(creatorId: String, docType: String, docId: String, path: String, personId: String? = null) {
-        // v9.4.24: On ne bloque que si l'URL est déjà une URL distante (http/https)
-        // pour permettre la mise à jour chemin local -> URL Storage
-        val current = _resolvedUrls.value[docId]
-        if (current != null && current.startsWith("http")) return
-
-        // Fix : si la photo est un fichier qui existe déjà directement sur le téléphone
-        // (une photo tout juste choisie, pas encore envoyée sur nos serveurs), on l'utilise
-        // telle quelle, sans essayer de la traiter comme une adresse en ligne.
-        if (java.io.File(path).exists()) {
-            _resolvedUrls.update { it + (docId to "file://$path") }
-            return
-        }
+    /**
+     * Résolution d'une URL pour un média de l'Arbre (v9.4.17)
+     */
+    fun resolveSingleUrl(creatorId: String, docType: String, docId: String, path: String, personId: String? = null) {
+        if (path.isBlank()) return
+        if (_resolvedUrls.value.containsKey(docId)) return
 
         viewModelScope.launch {
             try {
-                if (creatorId == auth.currentUser?.uid) {
-                    // Mode Créateur : Résolution locale sécurisée
-                    val url = mediaManager.getSafeUrl(path)
-                    if (url != null) _resolvedUrls.update { it + (docId to url) }
+                if (java.io.File(path).exists()) {
+                    val localUrl = if (path.startsWith("file://")) path else "file://$path"
+                    _resolvedUrls.update { it + (docId to localUrl) }
                 } else {
-                    // Mode Destinataire : Appel Cloud Function v9.4.22
-                    val params = mutableMapOf(
-                        "creatorId" to creatorId,
-                        "docType" to docType,
-                        "docId" to docId
+                    // Résolution Storage
+                    val url = mediaManager.getSafeUrl(
+                        pathOrUrl = path,
+                        creatorId = if (creatorId != auth.currentUser?.uid) creatorId else null,
+                        docType = docType,
+                        docId = docId,
+                        field = if (docType == "persons") "imageUrl" else "mediaPath",
+                        personId = personId
                     )
-                    if (personId != null) params["personId"] = personId
-
-                    val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
-                    val data = result.data as? Map<*, *>
-                    val url = data?.get("url") as? String
                     if (url != null) {
                         android.util.Log.d("PHOENX_TREE_TRACE", "SUCCÈS résolution $docId: $url")
                         _resolvedUrls.update { it + (docId to url) }
@@ -161,6 +121,10 @@ class GenealogyTreeViewModel @Inject constructor(
         }
     }
 
+    fun setHeirKey(key: ByteArray?) {
+        _heirKey.value = key
+    }
+
     /**
      * Calcul du layout pour le rendu visuel (v9.4.22)
      */
@@ -178,274 +142,91 @@ class GenealogyTreeViewModel @Inject constructor(
      */
     val treeGroups: StateFlow<List<VisualGroup>> = treeLayout.map { layout ->
         val nodes = layout.nodes
-        if (nodes.isEmpty()) return@map emptyList()
+        val groups = mutableListOf<VisualGroup>()
+        val processedNodeIds = mutableSetOf<String>()
 
-        val groupsById = nodes.groupBy { it.groupId }
-        val rootGroupIds = nodes.filter { it.generation == 0 }.map { it.groupId }.distinct()
-        
-        rootGroupIds.map { gid -> buildGroupHierarchy(gid, groupsById, nodes) }
+        // Groupement par couples et niveaux
+        nodes.forEach { node ->
+            if (!processedNodeIds.contains(node.person.id)) {
+                // Trouver le partenaire éventuel
+                val spouseId = layout.coupleConnections.find { it.first == node.person.id }?.second
+                    ?: layout.coupleConnections.find { it.second == node.person.id }?.first
+                
+                val members = mutableListOf(node.person)
+                processedNodeIds.add(node.person.id)
+                
+                if (spouseId != null) {
+                    layout.nodes.find { it.person.id == spouseId }?.let {
+                        members.add(it.person)
+                        processedNodeIds.add(it.person.id)
+                    }
+                }
+
+                groups.add(VisualGroup(
+                    id = "group_${node.person.id}",
+                    level = node.generation,
+                    members = members,
+                    children = emptyList()
+                ))
+            }
+        }
+
+        // Attribution des enfants à chaque groupe
+        val finalGroups = groups.map { group ->
+            val parentIds = group.members.map { it.id }
+            val childrenNodeIds = layout.connections
+                .filter { it.first.any { pid -> parentIds.contains(pid) } }
+                .map { it.second }
+            
+            group.copy(children = groups.filter { childGroup -> 
+                childGroup.members.any { childrenNodeIds.contains(it.id) }
+            })
+        }
+
+        // On ne retourne que les racines (level 0) pour la récursion UI
+        finalGroups.filter { it.level == 0 }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private fun buildGroupHierarchy(groupId: String, groupsById: Map<String, List<VisualTreeNode>>, allNodes: List<VisualTreeNode>): VisualGroup {
-        val members = groupsById[groupId]?.map { it.person } ?: emptyList()
-        val generation = groupsById[groupId]?.firstOrNull()?.generation ?: 0
-        val memberIds = members.map { it.id }
-        
-        val childGroupIds = allNodes.filter { node ->
-            node.groupId != groupId && node.person.parentIds.any { pid -> memberIds.contains(pid) }
-        }.map { it.groupId }.distinct()
-        
-        return VisualGroup(
-            id = groupId,
-            members = members,
-            level = generation,
-            children = childGroupIds.map { buildGroupHierarchy(it, groupsById, allNodes) }
-        )
-    }
-
     /**
-     * Récupère les enfants d'une personne donnée (Reverse Lookup)
-     */
-    fun getChildrenOf(personId: String): Flow<List<PersonEntity>> {
-        return offlineEntryDao.getChildrenOf(personId)
-    }
-
-    /**
-     * Ajoute un lien de parenté (v9.4.22)
-     * @param parentId L'ID du parent à ajouter
-     * @param childId L'ID de la personne qui reçoit ce parent
-     */
-    fun linkParent(parentId: String, childId: String) {
-        viewModelScope.launch {
-            val child = allPersons.value.find { it.id == childId } ?: return@launch
-            val currentParents = child.parentIds.trim(',').split(",")
-                .filter { it.isNotBlank() }
-                .toMutableList()
-            
-            if (!currentParents.contains(parentId) && currentParents.size < 2) {
-                currentParents.add(parentId)
-                val newCsv = "," + currentParents.joinToString(",") + ","
-                val updatedChild = child.copy(parentIds = newCsv, syncStatus = "pending")
-                offlineEntryDao.upsertPerson(updatedChild)
-                SyncWorker.trigger(context) // v9.4.24
-            }
-        }
-    }
-
-    fun updateBiography(personId: String, bio: String) {
-        viewModelScope.launch {
-            val person = allPersons.value.find { it.id == personId } ?: return@launch
-            val updated = person.copy(biography = bio, syncStatus = "pending")
-            offlineEntryDao.upsertPerson(updated)
-            SyncWorker.trigger(context) // v9.4.24
-        }
-    }
-
-    fun toggleDeceased(personId: String) {
-        viewModelScope.launch {
-            val person = allPersons.value.find { it.id == personId } ?: return@launch
-            val updated = person.copy(isDeceased = !person.isDeceased, syncStatus = "pending")
-            offlineEntryDao.upsertPerson(updated)
-            SyncWorker.trigger(context) // v9.4.24
-        }
-    }
-
-    fun createAndLinkPerson(firstName: String, lastName: String?, parentIds: List<String>, childrenIdsToLink: List<String> = emptyList()) {
-        viewModelScope.launch {
-            val parentCsv = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ","
-            val newPerson = PersonEntity(
-                firstName = firstName.trim(),
-                lastName = lastName?.trim(),
-                parentIds = parentCsv,
-                syncStatus = "pending"
-            )
-            offlineEntryDao.upsertPerson(newPerson)
-            
-            // Si on créait un ascendant ou un co-parent, on lie les enfants au nouveau parent (v9.4.23)
-            childrenIdsToLink.forEach { childId ->
-                linkParent(newPerson.id, childId)
-            }
-            SyncWorker.trigger(context) // v9.4.24
-        }
-    }
-
-    fun updatePersonIdentity(personId: String, firstName: String, lastName: String?, parentIds: List<String>, relationLabel: String? = null) {
-        viewModelScope.launch {
-            val person = allPersons.value.find { it.id == personId } ?: return@launch
-            val parentCsv = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ","
-            val updated = person.copy(
-                firstName = firstName.trim(),
-                lastName = lastName?.trim(),
-                parentIds = parentCsv,
-                reparentedRelationLabel = relationLabel,
-                syncStatus = "pending"
-            )
-            offlineEntryDao.upsertPerson(updated)
-        }
-    }
-
-    /**
-     * Enregistre l'intégralité des détails modifiables d'une personne (v9.4.24)
-     */
-    /**
-     * Enregistre l'intégralité des détails modifiables d'une personne (v9.4.24)
-     */
-    fun savePersonDetails(
-        personId: String,
-        biography: String,
-        reparentedRelationLabel: String?,
-        isDeceased: Boolean,
-        imagePath: String?
-    ) {
-        viewModelScope.launch {
-            val person = allPersons.value.find { it.id == personId } ?: return@launch
-            val updated = person.copy(
-                firstName = person.firstName.trim(), // v9.4.29: Auto-fix existent
-                lastName = person.lastName?.trim(),
-                biography = biography,
-                reparentedRelationLabel = reparentedRelationLabel,
-                isDeceased = isDeceased,
-                imagePath = imagePath,
-                syncStatus = "pending"
-            )
-            offlineEntryDao.upsertPerson(updated)
-
-            // Fix : on efface l'ancienne photo mémorisée pour cette personne,
-            // sinon l'application continue d'afficher l'ancienne photo indéfiniment
-            // au lieu de la nouvelle qui vient d'être choisie.
-            _resolvedUrls.update { it - personId }
-
-            // Sync immédiate Firestore (v9.4.24: SANS imagePath local)
-            val updates = mutableMapOf<String, Any?>(
-                "biography" to biography,
-                "reparentedRelationLabel" to reparentedRelationLabel,
-                "isDeceased" to isDeceased
-            )
-            db.collection("users").document(auth.currentUser?.uid ?: "")
-                .collection("persons").document(personId)
-                .update(updates)
-
-            SyncWorker.trigger(context) // v9.4.24
-        }
-    }
-
-    fun deletePerson(personId: String, childRelationLabels: Map<String, String> = emptyMap()) {
-        val userId = auth.currentUser?.uid ?: return
-        viewModelScope.launch {
-            try {
-                // Snapshot actuel
-                val currentPersons = allPersons.value
-                val personToDelete = currentPersons.find { it.id == personId } ?: return@launch
-                
-                // 1. Identification des parents de P (Grands-parents des futurs orphelins)
-                val grandparentIds = personToDelete.parentIds.trim(',').split(",").filter { it.isNotBlank() }
-
-                // 2. Nettoyage et REMONTÉE des liens chez les enfants (v9.4.23)
-                val children = currentPersons.filter { it.parentIds.contains(",$personId,") }
-                
-                children.forEach { child ->
-                    val parentList = child.parentIds.trim(',').split(",").filter { it.isNotBlank() }.toMutableList()
-                    parentList.remove(personId)
-                    
-                    // Si P avait des parents, on les injecte (remontée)
-                    var hasBeenPromoted = false
-                    grandparentIds.forEach { gpid ->
-                        if (!parentList.contains(gpid) && parentList.size < 2) {
-                            parentList.add(gpid)
-                            hasBeenPromoted = true
-                        }
-                    }
-                    
-                    val newParentCsv = if (parentList.isEmpty()) "" else "," + parentList.joinToString(",") + ","
-                    val customLabel = childRelationLabels[child.id]
-                    
-                    val updatedChild = child.copy(
-                        parentIds = newParentCsv,
-                        isReparented = hasBeenPromoted,
-                        reparentedRelationLabel = customLabel ?: child.reparentedRelationLabel,
-                        syncStatus = "pending"
-                    )
-                    
-                    offlineEntryDao.upsertPerson(updatedChild)
-                    
-                    // Mise à jour Firestore immédiate
-                    val updates = mutableMapOf<String, Any?>(
-                        "parentIds" to newParentCsv,
-                        "isReparented" to hasBeenPromoted,
-                        "reparentedRelationLabel" to (customLabel ?: child.reparentedRelationLabel)
-                    )
-                    db.collection("users").document(userId)
-                        .collection("persons").document(child.id)
-                        .update(updates)
-                }
-
-                // 3. Suppression Firestore du document principal
-                db.collection("users").document(userId)
-                    .collection("persons").document(personId)
-                    .delete()
-                    .await()
-
-                SyncWorker.trigger(context) // v9.4.24
-
-                // 4. Suppression des médias associés (Fichiers + Room + Firestore)
-                val mediaList = personMediaDao.getMediaForPerson(personId).first()
-                mediaList.forEach { media ->
-                    try {
-                        val file = File(media.mediaPath)
-                        if (file.exists()) file.delete()
-                    } catch (e: Exception) {}
-                    personMediaDao.deleteMedia(media)
-                    
-                    // Suppression média Firestore
-                    db.collection("users").document(userId)
-                        .collection("persons").document(personId)
-                        .collection("media").document(media.id)
-                        .delete()
-                }
-
-                // 5. Suppression finale de la personne (Room)
-                offlineEntryDao.deletePerson(personToDelete)
-                // Suppression du portrait Cameo local
-                if (!personToDelete.imagePath.isNullOrBlank()) {
-                    try {
-                        File(personToDelete.imagePath).delete()
-                    } catch (e: Exception) {}
-                }
-
-            } catch (e: Exception) {
-                android.util.Log.e("GenealogyVM", "Erreur lors de la suppression de la personne $personId", e)
-            }
-        }
-    }
-
-    // --- GESTION MÉDIAS ---
-
-    /**
-     * Récupère les médias d'une personne (Lecture Hybride Room/Firestore v9.4.27)
+     * Récupère les médias d'une personne avec résolution automatique (v9.4.17)
      */
     fun getMediaForPerson(personId: String): Flow<List<PersonMediaEntity>> {
         val targetId = _targetCreatorId.value
         val currentUid = auth.currentUser?.uid ?: ""
         
         return if (targetId == null || targetId == currentUid) {
-            // Mode Créateur : Room locale
             personMediaDao.getMediaForPerson(personId)
         } else {
-            // Mode Héritier : Firestore directe (v9.4.27)
             callbackFlow {
                 val listener = db.collection("users").document(targetId)
                     .collection("persons").document(personId)
                     .collection("media")
-                    .addSnapshotListener { snapshot, _ ->
-                        val list = snapshot?.documents?.map { doc ->
-                            PersonMediaEntity(
-                                id = doc.id,
-                                personId = personId,
-                                mediaPath = doc.getString("mediaPath") ?: "",
-                                mediaType = doc.getString("mediaType") ?: "PHOTO",
-                                syncStatus = "synced"
-                            )
+                    .addSnapshotListener { snapshot, error ->
+                        if (error != null) {
+                            android.util.Log.e("GenealogySecurityDebug", "Erreur snapshot media: ${error.message}")
+                            return@addSnapshotListener
+                        }
+                        val list = snapshot?.documents?.mapNotNull { doc ->
+                            try {
+                                PersonMediaEntity(
+                                    id = doc.id,
+                                    personId = personId,
+                                    mediaPath = doc.getString("mediaPath") ?: "",
+                                    mediaType = doc.getString("mediaType") ?: "PHOTO",
+                                    thumbnailPath = doc.getString("thumbnailPath"),
+                                    syncStatus = "synced"
+                                )
+                            } catch (e: Exception) { null }
                         } ?: emptyList()
+                        
+                        // Déclenche la résolution des URLs pour les nouveaux médias
+                        list.forEach { media ->
+                            resolveSingleUrl(targetId, "personMedia", media.id, media.mediaPath, personId)
+                            if (media.thumbnailPath != null) {
+                                resolveSingleUrl(targetId, "personMedia", "thumb_${media.id}", media.thumbnailPath, personId)
+                            }
+                        }
+                        
                         trySend(list)
                     }
                 awaitClose { listener.remove() }
@@ -453,19 +234,22 @@ class GenealogyTreeViewModel @Inject constructor(
         }
     }
 
-    fun addMedia(personId: String, file: java.io.File, type: String) {
+    /**
+     * Ajoute un média à la galerie d'une personne.
+     */
+    fun addMedia(personId: String, file: File, type: String) {
         viewModelScope.launch {
             var thumbnailPath: String? = null
-
+            
             if (type == "VIDEO") {
                 try {
                     val retriever = android.media.MediaMetadataRetriever()
                     retriever.setDataSource(file.absolutePath)
                     val bitmap = retriever.getFrameAtTime(0)
                     retriever.release()
-
+                    
                     if (bitmap != null) {
-                        val thumbFile = java.io.File(context.cacheDir, "thumb_${file.name}.jpg")
+                        val thumbFile = File(context.cacheDir, "thumb_${file.name}.jpg")
                         java.io.FileOutputStream(thumbFile).use { out ->
                             bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 70, out)
                         }
@@ -490,16 +274,136 @@ class GenealogyTreeViewModel @Inject constructor(
 
     fun removeMedia(media: PersonMediaEntity) {
         viewModelScope.launch {
-            personMediaDao.deleteMedia(media)
+            val userId = auth.currentUser?.uid ?: return@launch
+            
+            // 1. Suppression Storage
+            try {
+                mediaManager.deleteFile(media.mediaPath)
+            } catch (e: Exception) {
+                android.util.Log.e("GenealogyVM", "Erreur suppression fichier media ${media.id}: ${e.message}")
+            }
+            
+            // 2. Suppression Firestore
+            try {
+                db.collection("users").document(userId)
+                    .collection("persons").document(media.personId)
+                    .collection("media").document(media.id)
+                    .delete()
+                    .await()
+            } catch (e: Exception) {
+                android.util.Log.e("GenealogyVM", "Erreur suppression Firestore media ${media.id}: ${e.message}")
+            }
+            
+            // 3. Suppression Room
+            try {
+                personMediaDao.deleteMedia(media)
+            } catch (e: Exception) {
+                android.util.Log.e("GenealogyVM", "Erreur suppression Room media ${media.id}: ${e.message}")
+            }
         }
     }
 
-    fun resolveMediaUrl(personId: String, media: PersonMediaEntity) {
-        val creatorId = _targetCreatorId.value ?: auth.currentUser?.uid ?: return
-        resolveSingleUrl(creatorId, "personMedia", media.id, media.mediaPath, personId)
+    fun savePersonDetails(personId: String, biography: String, relationLabel: String?, isDeceased: Boolean, photoPath: String?) {
+        viewModelScope.launch {
+            val persons = offlineEntryDao.getPersonsByIds(listOf(personId))
+            if (persons.isNotEmpty()) {
+                val updated = persons.first().copy(
+                    biography = biography,
+                    reparentedRelationLabel = relationLabel,
+                    isDeceased = isDeceased,
+                    imagePath = photoPath,
+                    syncStatus = "pending"
+                )
+                offlineEntryDao.upsertPerson(updated)
+                SyncWorker.trigger(context)
+            }
+        }
     }
 
-    fun uriToFile(uri: android.net.Uri): java.io.File? {
+    fun deletePerson(personId: String, reparentedLabels: Map<String, String>) {
+        viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
+            val person = offlineEntryDao.getPersonsByIds(listOf(personId)).firstOrNull() ?: return@launch
+            
+            // 1. Gérer le re-parentage des enfants (Continuité de l'arbre)
+            val children = offlineEntryDao.getChildrenOf(personId).first()
+            val parents = person.parentIds.trim(',').split(",").filter { it.isNotBlank() }
+            
+            children.forEach { child ->
+                val currentParents = child.parentIds.trim(',').split(",").filter { it.isNotBlank() && it != personId }
+                val newParents = (currentParents + parents).distinct()
+                
+                val updatedChild = child.copy(
+                    parentIds = if (newParents.isEmpty()) "" else "," + newParents.joinToString(",") + ",",
+                    isReparented = parents.isNotEmpty(), // Marqueur visuel si rattaché aux grands-parents
+                    reparentedRelationLabel = reparentedLabels[child.id],
+                    syncStatus = "pending"
+                )
+                offlineEntryDao.upsertPerson(updatedChild)
+            }
+
+            // 2. Supprimer la personne (Local + Firestore)
+            offlineEntryDao.deletePerson(person)
+            db.collection("users").document(userId).collection("persons").document(personId).delete().await()
+            
+            // 3. Nettoyer les médias rattachés
+            val mediaList = personMediaDao.getMediaForPerson(personId).first()
+            mediaList.forEach { removeMedia(it) }
+            
+            SyncWorker.trigger(context)
+        }
+    }
+
+    fun updatePersonIdentity(personId: String, firstName: String, lastName: String?, parentIds: List<String>) {
+        viewModelScope.launch {
+            val persons = offlineEntryDao.getPersonsByIds(listOf(personId))
+            if (persons.isNotEmpty()) {
+                val updated = persons.first().copy(
+                    firstName = firstName,
+                    lastName = lastName,
+                    parentIds = "," + parentIds.joinToString(",") + ",",
+                    syncStatus = "pending"
+                )
+                offlineEntryDao.upsertPerson(updated)
+                SyncWorker.trigger(context)
+            }
+        }
+    }
+
+    fun createAndLinkPerson(firstName: String, lastName: String?, parentIds: List<String>, childrenIdsToLink: List<String> = emptyList()) {
+        viewModelScope.launch {
+            val newPerson = PersonEntity(
+                firstName = firstName,
+                lastName = lastName,
+                parentIds = "," + parentIds.joinToString(",") + ",",
+                syncStatus = "pending"
+            )
+            offlineEntryDao.upsertPerson(newPerson)
+            
+            // Lier aux enfants existants
+            if (childrenIdsToLink.isNotEmpty()) {
+                val children = offlineEntryDao.getPersonsByIds(childrenIdsToLink)
+                children.forEach { child ->
+                    val currentParents = child.parentIds.trim(',').split(",").filter { it.isNotBlank() }
+                    if (!currentParents.contains(newPerson.id)) {
+                        val updatedChild = child.copy(
+                            parentIds = "," + (currentParents + newPerson.id).joinToString(",") + ",",
+                            syncStatus = "pending"
+                        )
+                        offlineEntryDao.upsertPerson(updatedChild)
+                    }
+                }
+            }
+            
+            SyncWorker.trigger(context)
+        }
+    }
+
+    fun getChildrenOf(personId: String): Flow<List<PersonEntity>> {
+        return offlineEntryDao.getChildrenOf(personId)
+    }
+
+    fun uriToFile(uri: android.net.Uri): File? {
         return try {
             val contentResolver = context.contentResolver
             val mimeType = contentResolver.getType(uri)

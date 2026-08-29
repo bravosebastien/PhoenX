@@ -8,7 +8,7 @@ fun PersonEntity.toResolvedPerson(photoUrl: String?): ResolvedPerson {
         id = id,
         firstName = firstName,
         lastName = lastName,
-        photoUrl = photoUrl,
+        photoUrl = photoUrl ?: imagePath,
         isDeceased = isDeceased,
         biography = biography,
         parentIds = parentIds.trim(',').split(",").filter { it.isNotBlank() },

@@ -52,8 +52,10 @@ fun EncounterDetailScreen(
     val accent = theme.accentColor
     val context = LocalContext.current
     
+    val personState by viewModel.getPersonById(personId, targetCreatorId).collectAsState(initial = null)
+    val currentPerson = personState // v9.6.6 : Local copy for smart casting
+    
     val allPersons by viewModel.allSelectablePersons.collectAsState()
-    val person = allPersons.find { it.id == personId }
     val isReadOnly = targetCreatorId != null
 
     val mediaManager = remember {
@@ -71,8 +73,19 @@ fun EncounterDetailScreen(
     val memoriesCount by viewModel.getMemoriesCountForPerson(personId).collectAsState(initial = 0)
 
     var showEditDialog by remember { mutableStateOf(false) }
+    var loadTimeout by remember { mutableStateOf(false) }
 
-    // Launcher pour changer la photo de profil (Étape 3)
+    LaunchedEffect(personId, targetCreatorId) {
+        if (targetCreatorId != null) {
+            viewModel.loadRemoteEncounters(targetCreatorId)
+        }
+        // v9.6.6 : Timeout de sécurité pour éviter le chargement infini
+        kotlinx.coroutines.delay(8000)
+        if (currentPerson == null) {
+            loadTimeout = true
+        }
+    }
+    
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
@@ -81,23 +94,34 @@ fun EncounterDetailScreen(
             if (file != null) {
                 // On a le nouveau fichier local. On sauvegarde avec le nouveau chemin.
                 // SyncWorker s'occupera d'uploader ce chemin local vers encounter_portraits/
-                person?.let {
+                currentPerson?.let {
                     viewModel.saveEncounter(it.copy(encounterImagePath = file.absolutePath))
                 }
             }
         }
     }
 
-    if (person == null) {
+    if (currentPerson == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = accent)
+            if (loadTimeout) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.ErrorOutline, null, tint = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                    Spacer(Modifier.height(16.dp))
+                    Text("Impossible de charger la fiche.", color = theme.contentColor.copy(alpha = 0.5f))
+                    TextButton(onClick = { navController.popBackStack() }) {
+                        Text("Retour", color = accent)
+                    }
+                }
+            } else {
+                CircularProgressIndicator(color = accent)
+            }
         }
         return
     }
 
     if (showEditDialog) {
         EncounterDetailsDialog(
-            initialPerson = person,
+            initialPerson = currentPerson,
             allPersons = allPersons,
             navController = navController,
             onConfirm = { updatedPerson ->
@@ -125,7 +149,7 @@ fun EncounterDetailScreen(
                     }
                 },
                 actions = {
-                    if (!isReadOnly && person.categories.contains("ENCOUNTER")) {
+                    if (!isReadOnly && currentPerson.categories.contains("ENCOUNTER")) {
                         TextButton(onClick = { showEditDialog = true }) {
                             Text("Modifier", color = Color(0xFFBF6338), fontWeight = FontWeight.Bold)
                         }
@@ -145,8 +169,8 @@ fun EncounterDetailScreen(
             // 1. HEADER : PORTRAIT ET IDENTITÉ
             Row(modifier = Modifier.fillMaxWidth()) {
                 // Portrait
-                val isPartner = displayLinkNature(person.linkNature) == "Partenaire"
-                val activePath = person.encounterImagePath ?: person.imagePath
+                val isPartner = displayLinkNature(currentPerson.linkNature) == "Partenaire"
+                val activePath = currentPerson.encounterImagePath ?: currentPerson.imagePath
                 val isPathEncrypted = activePath?.endsWith(".enc") == true
 
                 Box(
@@ -155,7 +179,7 @@ fun EncounterDetailScreen(
                         .clip(RoundedCornerShape(10.dp))
                         .background(theme.contentColor.copy(alpha = 0.05f))
                         .then(
-                            if (!isReadOnly && person.categories.contains("ENCOUNTER")) Modifier.clickable {
+                            if (!isReadOnly && currentPerson.categories.contains("ENCOUNTER")) Modifier.clickable {
                                 galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
                             } else Modifier
                         )
@@ -165,7 +189,7 @@ fun EncounterDetailScreen(
                         )
                 ) {
                     if (activePath != null) {
-                        val fieldParam = if (person.encounterImagePath != null) "encounterImagePath" else "imageUrl"
+                        val fieldParam = if (currentPerson.encounterImagePath != null) "encounterImagePath" else "imageUrl"
                         SecureAsyncImage(
                             mediaUrl = activePath,
                             mediaManager = mediaManager,
@@ -188,28 +212,28 @@ fun EncounterDetailScreen(
                 // Identité
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = person.firstName,
+                        text = currentPerson.firstName,
                         style = MaterialTheme.typography.displaySmall.copy(fontSize = 38.sp, fontWeight = FontWeight.Bold, fontFamily = theme.fontFamily),
                         color = theme.contentColor,
                         lineHeight = 42.sp
                     )
-                    if (!person.lastName.isNullOrBlank()) {
+                    if (!currentPerson.lastName.isNullOrBlank()) {
                         Text(
-                            text = person.lastName!!.uppercase(),
+                            text = currentPerson.lastName!!.uppercase(),
                             style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp),
                             color = theme.contentColor.copy(alpha = 0.6f)
                         )
                     }
                     
-                    if (person.categories.contains("ENCOUNTER")) {
+                    if (currentPerson.categories.contains("ENCOUNTER")) {
                         Spacer(Modifier.height(12.dp))
                         
                         // Nature du lien
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.size(8.dp).clip(CircleShape).background(getNatureColor(person.linkNature)))
+                            Box(Modifier.size(8.dp).clip(CircleShape).background(getNatureColor(currentPerson.linkNature)))
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                text = displayLinkNature(person.linkNature).uppercase(),
+                                text = displayLinkNature(currentPerson.linkNature).uppercase(),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
                                 color = theme.contentColor.copy(alpha = 0.8f)
                             )
@@ -220,12 +244,12 @@ fun EncounterDetailScreen(
                         // Intertitre Rencontre
                         Text("NOTRE RENCONTRE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = accent)
                         Text(
-                            text = "J'avais ${person.encounterAge ?: "?"} ans",
+                            text = "J'avais ${currentPerson.encounterAge ?: "?"} ans",
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                             color = theme.contentColor
                         )
                         
-                        val contextLabel = when(person.encounterContext) {
+                        val contextLabel = when(currentPerson.encounterContext) {
                             "SCHOOL" -> "École"
                             "WORK" -> "Travail"
                             "SPORT" -> "Sport"
@@ -234,7 +258,7 @@ fun EncounterDetailScreen(
                             "OTHER" -> "Autre"
                             else -> null
                         }
-                        val details = listOfNotNull(contextLabel, person.encounterLocationLabel).joinToString(" · ")
+                        val details = listOfNotNull(contextLabel, currentPerson.encounterLocationLabel).joinToString(" · ")
                         if (details.isNotBlank()) {
                             Text(
                                 text = details,
@@ -249,8 +273,8 @@ fun EncounterDetailScreen(
             Spacer(Modifier.height(40.dp))
 
             // 2. PRÉSENTÉ PAR
-            if (!person.introducedById.isNullOrBlank()) {
-                val introducer = allPersons.find { it.id == person.introducedById }
+            if (!currentPerson.introducedById.isNullOrBlank()) {
+                val introducer = allPersons.find { it.id == currentPerson.introducedById }
                 if (introducer != null) {
                     Surface(
                         modifier = Modifier
@@ -294,11 +318,11 @@ fun EncounterDetailScreen(
             }
 
             // 3. CE QU'ELLE M'A APPORTÉ
-            if (person.encounterBiography.isNotBlank()) {
+            if (currentPerson.encounterBiography.isNotBlank()) {
                 Text("CE QU'IL/ELLE M'A APPORTÉ", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = theme.contentColor.copy(alpha = 0.4f))
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = person.encounterBiography,
+                    text = currentPerson.encounterBiography,
                     style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic, lineHeight = 26.sp),
                     color = theme.contentColor.copy(alpha = 0.8f)
                 )
@@ -326,13 +350,13 @@ fun EncounterDetailScreen(
                                             aiSummary = "Média de Rencontre",
                                             sourceDocType = "personMedia",
                                             personId = personId,
-                                            isEncrypted = !media.mediaPath.startsWith("/")
+                                            isEncrypted = media.mediaPath.endsWith(".enc")
                                         )
                                     )
                                 }
                         ) {
                             val activeUrl = media.thumbnailPath ?: media.mediaPath
-                            val isPathEncrypted = !activeUrl.startsWith("/")
+                            val isPathEncrypted = activeUrl.endsWith(".enc")
                             val fieldParam = if (media.thumbnailPath != null) "thumbnailPath" else "mediaPath"
 
                             SecureAsyncImage(
@@ -377,23 +401,22 @@ fun EncounterDetailScreen(
                         color = theme.contentColor,
                         modifier = Modifier.weight(1f)
                     )
-                    // Note: Le clic vers le Fil de Pensée filtré n'est pas encore possible (filtre non implémenté côté Fil)
                 }
             }
 
             Spacer(Modifier.height(40.dp))
 
             // 6. ÉTAT DU LIEN (BAS DE FICHE)
-            val linkStatus = person.linkStatus ?: "PRESENT"
-            if (person.relationEndAge != null) {
+            val linkStatus = currentPerson.linkStatus ?: "PRESENT"
+            if (currentPerson.relationEndAge != null) {
                 StatusBadge(
-                    label = "Nos chemins se sont séparés · j'avais ${person.relationEndAge} ans",
+                    label = "Nos chemins se sont séparés · j'avais ${currentPerson.relationEndAge} ans",
                     color = Color.Gray
                 )
-                if (!person.relationEndReason.isNullOrBlank()) {
+                if (!currentPerson.relationEndReason.isNullOrBlank()) {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = person.relationEndReason!!,
+                        text = currentPerson.relationEndReason!!,
                         style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
                         color = theme.contentColor.copy(alpha = 0.5f)
                     )

@@ -12,8 +12,8 @@ export const getInheritedFileUrl = onCall(async (request) => {
     const { creatorId, docType, docId, field = "default" } = request.data;
     const requesterUid = request.auth.uid;
 
-    // 1. Allowlist étendue aux portraits Cameo
-    const ALLOWED_TYPES = ["entries", "standaloneMedia", "book", "persons", "personMedia"];
+    // 1. Allowlist étendue aux portraits Cameo et Cercle (v9.6.6)
+    const ALLOWED_TYPES = ["entries", "standaloneMedia", "book", "persons", "personMedia", "recipients", "witnesses", "depositaries"];
     if (!ALLOWED_TYPES.includes(docType)) {
         throw new HttpsError("invalid-argument", "Type de document non supporté.");
     }
@@ -60,6 +60,8 @@ export const getInheritedFileUrl = onCall(async (request) => {
         storageUrl = itemData.encounterImagePath;
     } else if (field === "thumbnailPath") { // v9.6.6 : Support pour miniature de vidéo
         storageUrl = itemData.thumbnailPath;
+    } else if (field === "photoUrl") { // v9.6.6 : Support pour avatars du Cercle
+        storageUrl = itemData.photoUrl;
     } else {
         // Fallback par défaut, aucun changement de comportement pour l'existant
         if (docType === "entries") storageUrl = itemData.mediaUrl;
@@ -67,6 +69,7 @@ export const getInheritedFileUrl = onCall(async (request) => {
         else if (docType === "book") storageUrl = itemData.coverImageUrl;
         else if (docType === "persons") storageUrl = itemData.imageUrl;
         else if (docType === "personMedia") storageUrl = itemData.mediaPath;
+        else if (["recipients", "witnesses", "depositaries"].includes(docType)) storageUrl = itemData.photoUrl;
     }
 
     if (!storageUrl) throw new HttpsError("not-found", "Aucun fichier.");

@@ -56,7 +56,10 @@ fun PersonSelector(
     onManageCharacters: () -> Unit = {},
     accent: Color,
     enabled: Boolean = true,
-    simpleMode: Boolean = false // v9.4.22 : Masque "Gérer" et "Moi"
+    simpleMode: Boolean = false, // v9.4.22 : Masque "Gérer" et "Moi"
+    // v9.6.6 : Sécurité
+    creatorId: String? = null,
+    heirKey: ByteArray? = null
 ) {
     val theme = LocalAppTheme.current
     var query by remember { mutableStateOf("") }
@@ -119,10 +122,22 @@ fun PersonSelector(
                     label = { Text(person.name) },
                     enabled = enabled,
                     leadingIcon = {
+                        val docType = when(person.sourceType) {
+                            "arbre_livre" -> "persons"
+                            "destinataire" -> "recipients"
+                            "temoin" -> "witnesses"
+                            "depositaire" -> "depositaries"
+                            else -> "persons"
+                        }
                         CameoPortrait(
                             imagePath = person.photoUrl,
                             firstName = person.name,
-                            size = 20.dp
+                            size = 20.dp,
+                            creatorId = creatorId,
+                            docType = docType,
+                            docId = person.id,
+                            field = "photoUrl",
+                            explicitKey = heirKey
                         )
                     },
                     trailingIcon = { Icon(Icons.Default.Close, null, modifier = Modifier.size(14.dp)) },
@@ -188,10 +203,22 @@ fun PersonSelector(
                             headlineContent = { Text(person.name, color = theme.contentColor, fontWeight = FontWeight.Bold) },
                             supportingContent = { Text(person.relationship ?: "Proche", color = theme.contentColor.copy(alpha = 0.6f)) },
                             leadingContent = {
+                                val docType = when(person.sourceType) {
+                                    "arbre_livre" -> "persons"
+                                    "destinataire" -> "recipients"
+                                    "temoin" -> "witnesses"
+                                    "depositaire" -> "depositaries"
+                                    else -> "persons"
+                                }
                                 CameoPortrait(
                                     imagePath = person.photoUrl,
                                     firstName = person.name,
-                                    size = 32.dp
+                                    size = 32.dp,
+                                    creatorId = creatorId,
+                                    docType = docType,
+                                    docId = person.id,
+                                    field = "photoUrl",
+                                    explicitKey = heirKey
                                 )
                             },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent),

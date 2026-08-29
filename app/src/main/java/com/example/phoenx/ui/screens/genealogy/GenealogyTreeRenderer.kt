@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -158,7 +159,8 @@ fun GenealogyTreeRenderer(
                             onAddChild = { onAddChild(node.person) },
                             accent = accent,
                             enabled = enabled,
-                            isDotted = isSpouse
+                            isDotted = isSpouse,
+                            creatorId = creatorId
                         )
                     }
                 }
@@ -195,9 +197,17 @@ fun PersonNodeCard(
     onAddChild: () -> Unit,
     accent: Color,
     enabled: Boolean = true,
-    isDotted: Boolean = false
+    isDotted: Boolean = false,
+    creatorId: String? = null
 ) {
     val theme = LocalAppTheme.current
+    val context = LocalContext.current
+    val mediaManager = remember(context) {
+        dagger.hilt.android.EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            com.example.phoenx.data.media.MediaManager.MediaManagerEntryPoint::class.java
+        ).mediaManager()
+    }
     var showReparentInfo by remember { mutableStateOf(false) }
 
     if (showReparentInfo) {
@@ -244,9 +254,15 @@ fun PersonNodeCard(
                 contentAlignment = Alignment.Center
             ) {
                 if (person.photoUrl != null) {
-                    AsyncImage(
-                        model = person.photoUrl,
-                        contentDescription = null,
+                    val isPathEncrypted = person.photoUrl.endsWith(".enc")
+                    com.example.phoenx.ui.components.SecureAsyncImage(
+                        mediaUrl = person.photoUrl,
+                        mediaManager = mediaManager,
+                        creatorId = creatorId,
+                        docType = "persons",
+                        docId = person.id,
+                        field = "imageUrl",
+                        isEncrypted = isPathEncrypted,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )

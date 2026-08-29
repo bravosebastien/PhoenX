@@ -82,6 +82,9 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM persons WHERE id IN (:ids)")
     suspend fun getPersonsByIds(ids: List<String>): List<PersonEntity>
 
+    @Query("SELECT * FROM persons WHERE id = :id")
+    fun getPersonByIdFlow(id: String): Flow<PersonEntity?>
+
     @Query("SELECT * FROM persons WHERE parentIds LIKE '%,' || :personId || ',%'")
     fun getChildrenOf(personId: String): Flow<List<PersonEntity>>
 

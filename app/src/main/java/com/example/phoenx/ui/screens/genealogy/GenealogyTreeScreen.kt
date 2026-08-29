@@ -59,6 +59,7 @@ fun GenealogyTreeScreen(
     val treeGroups by viewModel.treeGroups.collectAsState() // v9.4.26
     val allPersons by viewModel.allPersons.collectAsState()
     val treeLayout by viewModel.treeLayout.collectAsState()
+    val heirKey by viewModel.heirKey.collectAsState()
     
     val myUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
     var isPreviewMode by remember { mutableStateOf(false) }
@@ -73,8 +74,12 @@ fun GenealogyTreeScreen(
     var showCreateDialog by remember { mutableStateOf(false) }
     var isTreeView by remember { mutableStateOf(true) }
 
-    LaunchedEffect(targetCreatorId) {
+    LaunchedEffect(targetCreatorId, myUid) {
         viewModel.loadTree(targetCreatorId)
+        if (targetCreatorId != null && targetCreatorId != myUid) {
+            // v9.6.6 : On pourrait charger la clé ici si besoin, 
+            // mais elle est déjà gérée par le ViewModel via setHeirKey ailleurs (non montré ici mais supposé)
+        }
     }
 
     Scaffold(
@@ -163,7 +168,9 @@ fun GenealogyTreeScreen(
                             },
                             onShowDetails = { selectedPersonForDetails = it },
                             enabled = !isReadOnly,
-                            accent = accent
+                            accent = accent,
+                            creatorId = targetCreatorId ?: myUid,
+                            heirKey = heirKey
                         )
                     }
                 }

@@ -28,7 +28,9 @@ fun GroupTreeNode(
     onAddChild: (PersonEntity) -> Unit,
     onShowDetails: (PersonEntity) -> Unit,
     enabled: Boolean = true,
-    accent: Color
+    accent: Color,
+    creatorId: String? = null,
+    heirKey: ByteArray? = null
 ) {
     val theme = LocalAppTheme.current
 
@@ -54,7 +56,12 @@ fun GroupTreeNode(
                                 imagePath = resolved.photoUrl,
                                 firstName = resolved.firstName,
                                 size = 40.dp,
-                                resolvedUrl = resolved.photoUrl // v9.4.27 : Source unique déjà résolue
+                                resolvedUrl = resolved.photoUrl, // v9.4.27 : Source unique déjà résolue
+                                creatorId = creatorId,
+                                docType = "persons",
+                                docId = resolved.id,
+                                field = "imageUrl",
+                                explicitKey = heirKey
                             )
                             Spacer(Modifier.width(12.dp))
                             Column(modifier = Modifier.weight(1f)) {
@@ -94,7 +101,9 @@ fun GroupTreeNode(
                     onAddChild = onAddChild,
                     onShowDetails = onShowDetails,
                     enabled = enabled,
-                    accent = accent
+                    accent = accent,
+                    creatorId = creatorId,
+                    heirKey = heirKey
                 )
                 Spacer(Modifier.height(8.dp))
             }

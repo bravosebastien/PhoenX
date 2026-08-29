@@ -169,6 +169,18 @@ class EncounterViewModel @Inject constructor(
     }
 
     /**
+     * Retourne une personne par son ID, en gérant le local et le distant (v9.6.6)
+     */
+    fun getPersonById(personId: String, targetCreatorId: String?): Flow<PersonEntity?> {
+        return if (targetCreatorId == null || targetCreatorId == auth.currentUser?.uid) {
+            offlineEntryDao.getPersonByIdFlow(personId)
+        } else {
+            // Mode Héritier : On cherche dans la liste déjà chargée ou on observe le Flow
+            encounterPersons.map { list -> list.find { it.id == personId } }
+        }
+    }
+
+    /**
      * Sauvegarde atomique d'une rencontre (Room + Firestore)
      */
     fun saveEncounter(person: PersonEntity) {
