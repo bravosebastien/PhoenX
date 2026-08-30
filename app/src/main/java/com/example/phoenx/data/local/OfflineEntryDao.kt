@@ -23,6 +23,19 @@ interface OfflineEntryDao {
     @Query("DELETE FROM offline_entries WHERE id = :id")
     suspend fun deleteEntry(id: String)
 
+    // v9.6.7 : Reconciliation
+    @Query("SELECT * FROM offline_entries WHERE syncStatus = 'synced' OR markedForDeletionAt IS NOT NULL")
+    suspend fun getSyncedAndPendingDeletionEntriesSync(): List<OfflineEntry>
+
+    @Query("DELETE FROM amendments WHERE entryId = :entryId")
+    suspend fun deleteAmendmentsByEntryId(entryId: String)
+
+    @Query("DELETE FROM offline_entries WHERE parentEntryId = :parentId")
+    suspend fun deleteComplementsByParentId(parentId: String)
+
+    @Query("UPDATE offline_entries SET markedForDeletionAt = :timestamp WHERE id = :entryId")
+    suspend fun markForDeletion(entryId: String, timestamp: Long?)
+
     // Amendments
     @Query("SELECT * FROM amendments WHERE entryId = :entryId ORDER BY createdAt ASC")
     fun getAmendmentsForEntry(entryId: String): Flow<List<AmendmentEntity>>

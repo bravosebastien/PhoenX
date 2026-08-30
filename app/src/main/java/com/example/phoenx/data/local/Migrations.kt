@@ -670,4 +670,13 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE person_media ADD COLUMN thumbnailPath TEXT")
         }
     }
+
+    /**
+     * MIGRATION_55_56 — Réconciliation Sécurisée des Souvenirs (v9.6.7)
+     */
+    val MIGRATION_55_56 = object : Migration(55, 56) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN markedForDeletionAt INTEGER")
+        }
+    }
 }

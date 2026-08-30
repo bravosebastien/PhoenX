@@ -103,7 +103,10 @@ data class OfflineEntry(
     val mediaProvider: String? = null, // "PHOENX", "SPOTIFY", "DEEZER", "YOUTUBE"
 
     // NUANCE PERSONNELLE v9.4.27 (Migration v45)
-    val tonalNuance: String? = null
+    val tonalNuance: String? = null,
+
+    // RÉCONCILIATION SÉCURISÉE v9.6.7 (Migration v56)
+    val markedForDeletionAt: Long? = null
 ) {
     fun isChild(): Boolean = parentEntryId != null
 

@@ -54,11 +54,20 @@ fun FloatingAssistantBubble(
         val bubbleSizePx = with(density) { bubbleSize.toPx() }
 
         // Position par défaut : en bas à droite (v9.4.25)
+        // v9.6.7 : Sécurisation initiale pour éviter le hors-champ immédiat
         var offsetX by remember { 
-            mutableFloatStateOf(initialX ?: (maxWidthPx - bubbleSizePx - 100f)) 
+            val savedX = initialX ?: (maxWidthPx - bubbleSizePx - 100f)
+            mutableFloatStateOf(savedX.coerceIn(0f, maxWidthPx - bubbleSizePx)) 
         }
         var offsetY by remember { 
-            mutableFloatStateOf(initialY ?: (maxHeightPx - bubbleSizePx - 250f))
+            val savedY = initialY ?: (maxHeightPx - bubbleSizePx - 250f)
+            mutableFloatStateOf(savedY.coerceIn(0f, maxHeightPx - bubbleSizePx))
+        }
+
+        // v9.6.7 : Recalage automatique lors d'une rotation ou changement de taille (Tablette)
+        LaunchedEffect(maxWidthPx, maxHeightPx) {
+            offsetX = offsetX.coerceIn(0f, maxWidthPx - bubbleSizePx)
+            offsetY = offsetY.coerceIn(0f, maxHeightPx - bubbleSizePx)
         }
 
         Box(

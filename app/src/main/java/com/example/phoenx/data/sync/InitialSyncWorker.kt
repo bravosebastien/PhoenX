@@ -40,20 +40,61 @@ class InitialSyncWorker @AssistedInject constructor(
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return Result.failure()
 
         return try {
-            // ═══ 1. RÉCUPÉRATION DES SOUVENIRS (ENTRIES) ═══
-            val localEntries = offlineEntryDao.getAllEntriesSync()
-            val localIds = localEntries.map { it.id }.toSet()
+            // ═══ 1. RÉCUPÉRATION DES SOUVENIRS (ENTRIES + Reconciliation v9.6.7) ═══
+            val localReferenceEntries = offlineEntryDao.getSyncedAndPendingDeletionEntriesSync()
+            val localIds = localReferenceEntries.map { it.id }.toSet()
 
             val entriesSnapshot = db.collection("users").document(userId)
                 .collection("entries")
                 .get()
                 .await()
 
-            val remoteEntries = entriesSnapshot.documents.mapNotNull { it.toOfflineEntry(encryptionManager) }
-            val missingEntries = remoteEntries.filter { it.id !in localIds }
-            
-            missingEntries.forEach { entry ->
-                offlineEntryDao.insertEntry(entry.copy(syncStatus = "synced"))
+            if (entriesSnapshot != null) {
+                val remoteEntries = entriesSnapshot.documents.mapNotNull { it.toOfflineEntry(encryptionManager) }
+                val remoteIds = remoteEntries.map { it.id }.toSet()
+
+                android.util.Log.d("EntrySyncDebug", "Snapshot reçu : ${remoteEntries.size} documents distants.")
+                
+                // --- A. MISE À JOUR ET RESTAURATION ---
+                remoteEntries.forEach { remoteEntry ->
+                    // Upsert systématique pour synchroniser les changements
+                    // L'objet remoteEntry a markedForDeletionAt = null, ce qui restaure les entrées si elles reviennent
+                    offlineEntryDao.insertEntry(remoteEntry.copy(syncStatus = "synced"))
+                    
+                    val local = localReferenceEntries.find { it.id == remoteEntry.id }
+                    if (local?.markedForDeletionAt != null) {
+                        android.util.Log.d("EntrySyncDebug", "Restauration : ${remoteEntry.id} (réapparu sur le serveur)")
+                    }
+                }
+
+                // --- B. RÉCONCILIATION SÉCURISÉE (SOFT-DELETE) ---
+                val localReferenceCount = localReferenceEntries.size
+                val remoteCount = remoteEntries.size
+
+                // Seuil de sécurité : au moins 50% de présence ou min 1 si local non vide (anti-vidage massif)
+                val isThresholdSafe = remoteCount >= (localReferenceCount / 2) && (remoteCount > 0 || localReferenceCount == 0)
+
+                if (isThresholdSafe) {
+                    localReferenceEntries.forEach { local ->
+                        if (local.id !in remoteIds) {
+                            if (local.markedForDeletionAt == null) {
+                                // Cas A : 1ère absence -> Marquage
+                                android.util.Log.d("EntrySyncDebug", "Marquage pour suppression (Étape 1) : ${local.id}")
+                                offlineEntryDao.markForDeletion(local.id, System.currentTimeMillis())
+                            } else {
+                                // Cas B : 2ème absence -> Suppression physique
+                                android.util.Log.d("EntrySyncDebug", "Suppression CONFIRMÉE (Étape 2) : ${local.id}")
+                                
+                                // Action atomique de nettoyage des dépendances
+                                offlineEntryDao.deleteAmendmentsByEntryId(local.id)
+                                offlineEntryDao.deleteComplementsByParentId(local.id)
+                                offlineEntryDao.deleteEntry(local.id)
+                            }
+                        }
+                    }
+                } else {
+                    android.util.Log.w("EntrySyncDebug", "ALERTE ANOMALIE : remoteCount ($remoteCount) suspect par rapport au local ($localReferenceCount). Suppression annulée.")
+                }
             }
 
             // ═══ 2. RÉCUPÉRATION DES PERSONNES (CAMEOS + Reconciliation v9.6.7) ═══
