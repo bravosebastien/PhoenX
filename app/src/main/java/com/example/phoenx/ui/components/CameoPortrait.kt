@@ -118,15 +118,20 @@ fun CameoPortrait(
                 ))
             }
 
+            val isPathEncrypted = displayUrl?.endsWith(".enc") == true
+            val isLocal = displayUrl?.let { it.startsWith("/") || it.startsWith("file://") } == true
+            val cleanLocalPath = if (displayUrl?.startsWith("file://") == true) displayUrl.substring(7) else if (displayUrl?.startsWith("/") == true) displayUrl else null
+
             SecureAsyncImage(
-                mediaUrl = displayUrl,
+                mediaUrl = if (isLocal && !isPathEncrypted) null else displayUrl,
+                localPath = cleanLocalPath,
                 mediaManager = mediaManager,
                 explicitKey = explicitKey,
                 creatorId = creatorId,
                 docType = docType,
                 docId = docId,
                 field = field,
-                isEncrypted = isEncrypted || displayUrl.endsWith(".enc"),
+                isEncrypted = isEncrypted || isPathEncrypted,
                 colorFilter = if (useCharcoalFilter) ColorFilter.colorMatrix(charcoalMatrix) else null,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop

@@ -75,7 +75,7 @@ class GenealogyTreeViewModel @Inject constructor(
     /**
      * Résolution d'une URL pour un média de l'Arbre (v9.4.17)
      */
-    fun resolveSingleUrl(creatorId: String, docType: String, docId: String, path: String, personId: String? = null) {
+    fun resolveSingleUrl(creatorId: String, docType: String, docId: String, path: String, personId: String? = null, fieldOverride: String? = null) {
         if (path.isBlank()) return
         if (_resolvedUrls.value.containsKey(docId)) return
 
@@ -83,7 +83,9 @@ class GenealogyTreeViewModel @Inject constructor(
             try {
                 if (java.io.File(path).exists()) {
                     val localUrl = if (path.startsWith("file://")) path else "file://$path"
+                    android.util.Log.d("TreePhotoDebug", "Updating Map (Local): id=$docId, oldSize=${_resolvedUrls.value.size}")
                     _resolvedUrls.update { it + (docId to localUrl) }
+                    android.util.Log.d("TreePhotoDebug", "Updated Map (Local): id=$docId, newSize=${_resolvedUrls.value.size}")
                 } else {
                     // Résolution Storage
                     val url = mediaManager.getSafeUrl(
@@ -91,12 +93,14 @@ class GenealogyTreeViewModel @Inject constructor(
                         creatorId = if (creatorId != auth.currentUser?.uid) creatorId else null,
                         docType = docType,
                         docId = docId,
-                        field = if (docType == "persons") "imageUrl" else "mediaPath",
+                        field = fieldOverride ?: (if (docType == "persons") "imageUrl" else "mediaPath"),
                         personId = personId
                     )
                     if (url != null) {
                         android.util.Log.d("PHOENX_TREE_TRACE", "SUCCÈS résolution $docId: $url")
+                        android.util.Log.d("TreePhotoDebug", "Updating Map (Remote): id=$docId, oldSize=${_resolvedUrls.value.size}")
                         _resolvedUrls.update { it + (docId to url) }
+                        android.util.Log.d("TreePhotoDebug", "Updated Map (Remote): id=$docId, newSize=${_resolvedUrls.value.size}")
                     } else {
                         android.util.Log.w("PHOENX_TREE_TRACE", "URL Nulle retournée pour $docId")
                     }
@@ -109,12 +113,16 @@ class GenealogyTreeViewModel @Inject constructor(
 
     fun loadTree(creatorId: String?) {
         _targetCreatorId.value = creatorId
-        // Si mode Créateur, on pré-résout les avatars locaux
+        // Si mode Créateur, on pré-résout les avatars locaux en observant le flux (v9.6.7)
         if (creatorId == null || creatorId == auth.currentUser?.uid) {
             viewModelScope.launch {
-                allPersons.first().forEach { person ->
-                    if (!person.imagePath.isNullOrBlank()) {
-                        resolveSingleUrl(auth.currentUser?.uid ?: "", "persons", person.id, person.imagePath)
+                allPersons.collectLatest { persons ->
+                    persons.forEach { person ->
+                        val bestPath = person.encounterImagePath ?: person.imagePath
+                        if (!bestPath.isNullOrBlank()) {
+                            val field = if (person.encounterImagePath != null) "encounterImagePath" else "imageUrl"
+                            resolveSingleUrl(auth.currentUser?.uid ?: "", "persons", person.id, bestPath, fieldOverride = field)
+                        }
                     }
                 }
             }
@@ -129,6 +137,7 @@ class GenealogyTreeViewModel @Inject constructor(
      * Calcul du layout pour le rendu visuel (v9.4.22)
      */
     val treeLayout: StateFlow<TreeLayout> = combine(allPersons, _resolvedUrls) { persons, urls ->
+        android.util.Log.d("TreePhotoDebug", "Recalculating TreeLayout: persons=${persons.size}, resolvedUrls=${urls.size}")
         // On récupère le premier média de galerie pour ceux qui n'ont pas de photo de profil
         val resolved = persons.map { person ->
             var finalPhotoUrl = urls[person.id]

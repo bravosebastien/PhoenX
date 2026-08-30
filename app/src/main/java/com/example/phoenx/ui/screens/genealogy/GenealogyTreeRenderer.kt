@@ -253,15 +253,17 @@ fun PersonNodeCard(
                     .clickable { onClick() },
                 contentAlignment = Alignment.Center
             ) {
-                if (person.photoUrl != null) {
-                    val isPathEncrypted = person.photoUrl.endsWith(".enc")
+                android.util.Log.d("TreePhotoDebug", "PersonNodeCard Recomposing: id=${person.id}, name=${person.firstName}, photoUrl=${person.photoUrl ?: "null"}, localPath=${person.localPath ?: "null"}")
+                if (person.photoUrl != null || person.localPath != null) {
+                    val isPathEncrypted = person.photoUrl?.endsWith(".enc") == true
                     com.example.phoenx.ui.components.SecureAsyncImage(
                         mediaUrl = person.photoUrl,
+                        localPath = person.localPath,
                         mediaManager = mediaManager,
                         creatorId = creatorId,
                         docType = "persons",
                         docId = person.id,
-                        field = "imageUrl",
+                        field = person.photoField,
                         isEncrypted = isPathEncrypted,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop

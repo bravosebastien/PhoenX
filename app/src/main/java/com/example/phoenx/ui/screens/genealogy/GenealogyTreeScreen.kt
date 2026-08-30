@@ -316,6 +316,7 @@ fun GenealogyTreeScreen(
             viewModel = viewModel,
             onDismiss = { selectedPersonForDetails = null },
             accent = accent,
+            navController = navController, // v9.6.7
             isReadOnly = isReadOnly,
             onEditLinks = { 
                 selectedPersonForAddingRelation = null

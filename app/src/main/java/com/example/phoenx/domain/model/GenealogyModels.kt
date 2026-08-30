@@ -13,7 +13,9 @@ data class ResolvedPerson(
     val biography: String,
     val parentIds: List<String>,
     val isReparented: Boolean = false, // v9.4.23
-    val reparentedRelationLabel: String? = null // v9.4.23
+    val reparentedRelationLabel: String? = null, // v9.4.23
+    val photoField: String = "imageUrl", // v9.6.7
+    val localPath: String? = null // v9.6.7 : Persistance du chemin local
 )
 
 /**

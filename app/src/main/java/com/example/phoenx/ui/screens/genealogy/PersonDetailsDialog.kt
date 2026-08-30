@@ -48,6 +48,7 @@ fun PersonDetailsDialog(
     viewModel: GenealogyTreeViewModel,
     onDismiss: () -> Unit,
     accent: Color,
+    navController: androidx.navigation.NavController, // v9.6.7
     isReadOnly: Boolean = false,
     onEditLinks: () -> Unit = {}
 ) {
@@ -279,7 +280,25 @@ fun PersonDetailsDialog(
                                     val isPathEncrypted = !activeUrl.startsWith("/")
                                     val fieldParam = if (media.thumbnailPath != null) "thumbnailPath" else "mediaPath"
 
-                                    Box(modifier = Modifier.size(90.dp).clip(RoundedCornerShape(8.dp))) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(90.dp)
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable {
+                                                navController.navigate(
+                                                    com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(
+                                                        entryId = media.id,
+                                                        creatorId = null,
+                                                        mediaUrl = media.mediaPath,
+                                                        entryType = media.mediaType,
+                                                        aiSummary = "Média de ${person.firstName}",
+                                                        sourceDocType = "personMedia",
+                                                        personId = person.id,
+                                                        isEncrypted = isPathEncrypted
+                                                    )
+                                                )
+                                            }
+                                    ) {
                                         com.example.phoenx.ui.components.SecureAsyncImage(
                                             mediaUrl = activeUrl,
                                             mediaManager = EntryPointAccessors.fromApplication(context, MediaManager.MediaManagerEntryPoint::class.java).mediaManager(),

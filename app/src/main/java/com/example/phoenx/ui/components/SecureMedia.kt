@@ -69,19 +69,22 @@ fun SecureAsyncImage(
                     imageBytes = bytes
                     Log.d("PHOENX_SECURE_IMG", "Résolution chiffrée réussie: docId=$docId, size=${bytes.size} bytes")
                 } else {
-                    // v9.4.29 : Pour les cameos, on résout simplement le chemin Storage en URL signée
-                    // On passe les paramètres de sécurité pour supporter les Destinataires
-                    val safeUrl = mediaManager.getSafeUrl(
-                        pathOrUrl = mediaUrl,
-                        explicitKey = if (creatorId != null) byteArrayOf(0) else null, // Flag pour mode Recipient si creatorId présent
-                        creatorId = creatorId,
-                        docType = docType,
-                        docId = docId,
-                        field = field,
-                        personId = personId
-                    )
-                    resolvedSimpleUrl = safeUrl
-                    Log.d("PHOENX_SECURE_IMG", "Résolution simple réussie: docId=$docId, url=$safeUrl")
+                    // v9.4.29 : Pour les cameos, on résout le chemin Storage en URL signée (sauf si déjà URL http)
+                    if (mediaUrl.startsWith("http")) {
+                        resolvedSimpleUrl = mediaUrl
+                    } else {
+                        val safeUrl = mediaManager.getSafeUrl(
+                            pathOrUrl = mediaUrl,
+                            explicitKey = if (creatorId != null) byteArrayOf(0) else null, // Flag pour mode Recipient si creatorId présent
+                            creatorId = creatorId,
+                            docType = docType,
+                            docId = docId,
+                            field = field,
+                            personId = personId
+                        )
+                        resolvedSimpleUrl = safeUrl
+                    }
+                    Log.d("PHOENX_SECURE_IMG", "Résolution simple réussie: docId=$docId, url=$resolvedSimpleUrl")
                 }
             } catch (e: Exception) {
                 Log.e("PHOENX_SECURE_IMG", "Erreur résolution image: docId=$docId, msg=${e.message}")
@@ -93,23 +96,31 @@ fun SecureAsyncImage(
         }
     }
 
-    Box(modifier = modifier) {
-        val model: Any? = when {
+    // v9.6.7 : Calcul du modèle et de l'état de chargement immédiat
+    val currentModel: Any? = remember(localPath, imageBytes, resolvedSimpleUrl) {
+        when {
             localPath != null && java.io.File(localPath).exists() -> localPath
             imageBytes != null -> imageBytes
             resolvedSimpleUrl != null -> resolvedSimpleUrl
+            // Si c'est déjà une URL HTTP, on peut l'utiliser comme modèle immédiatement
+            mediaUrl?.startsWith("http") == true -> mediaUrl
             else -> null
         }
+    }
 
-        if (model != null) {
+    // On n'affiche le chargement que si on n'a vraiment rien à montrer et que c'est en cours
+    val showLoading = isLoading && currentModel == null
+
+    Box(modifier = modifier) {
+        if (currentModel != null) {
             AsyncImage(
-                model = model,
+                model = currentModel,
                 contentDescription = contentDescription,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = contentScale,
                 colorFilter = colorFilter
             )
-        } else if (isLoading) {
+        } else if (showLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
             }
