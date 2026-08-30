@@ -56,43 +56,58 @@ class InitialSyncWorker @AssistedInject constructor(
                 offlineEntryDao.insertEntry(entry.copy(syncStatus = "synced"))
             }
 
-            // ═══ 2. RÉCUPÉRATION DES PERSONNES (CAMEOS) ═══
-            val localPersons = offlineEntryDao.getAllPersons().first()
-            val localPersonIds = localPersons.map { it.id }.toSet()
+            // ═══ 2. RÉCUPÉRATION DES PERSONNES (CAMEOS + Reconciliation v9.6.7) ═══
+            val localPersons = offlineEntryDao.getAllPersonsSync() // v9.6.7: Utilisation sync
+            val syncedLocalPersonIds = localPersons.filter { it.syncStatus == "synced" }.map { it.id }.toSet()
 
             val personsSnapshot = db.collection("users").document(userId)
                 .collection("persons")
                 .get()
                 .await()
 
-            val remotePersons = personsSnapshot.documents
-            val missingPersonDocs = remotePersons.filter { it.id !in localPersonIds }
+            if (personsSnapshot != null) {
+                val remotePersonDocs = personsSnapshot.documents
+                val remoteIds = remotePersonDocs.map { it.id }.toSet()
 
-            missingPersonDocs.forEach { doc ->
-                val person = doc.toPersonEntity()
-                
-                // v9.6.0 : Suppression du reclassement automatique FAMILY suspect.
-                // On fait confiance aux données de Firestore ou à la valeur par défaut du mapper.
-                val finalCategories = person.categories
+                // 1. Mise à jour ou ajout des personnes distantes
+                remotePersonDocs.forEach { doc ->
+                    val person = doc.toPersonEntity()
+                    val finalCategories = person.categories
+                    val storageUrl = doc.getString("imageUrl")
+                    var finalLocalPath: String? = null
 
-                val storageUrl = doc.getString("imageUrl")
-                var finalLocalPath: String? = null
-
-                // Si la personne a un portrait sur Storage, on le télécharge
-                if (!storageUrl.isNullOrBlank()) {
-                    try {
-                        val cameoDir = File(appContext.filesDir, "cameos")
-                        if (!cameoDir.exists()) cameoDir.mkdirs()
-                        
-                        val destFile = File(cameoDir, "cameo_${person.id}.jpg")
-                        mediaManager.downloadCameo(storageUrl, destFile)
-                        finalLocalPath = destFile.absolutePath
-                    } catch (e: Exception) {
-                        android.util.Log.e("InitialSyncWorker", "Erreur download portrait pour ${person.id}")
+                    // Si la personne a un portrait sur Storage, on le télécharge (comportement existant)
+                    if (!storageUrl.isNullOrBlank()) {
+                        try {
+                            val cameoDir = File(appContext.filesDir, "cameos")
+                            if (!cameoDir.exists()) cameoDir.mkdirs()
+                            val destFile = File(cameoDir, "cameo_${person.id}.jpg")
+                            mediaManager.downloadCameo(storageUrl, destFile)
+                            finalLocalPath = destFile.absolutePath
+                        } catch (e: Exception) {
+                            android.util.Log.e("InitialSyncWorker", "Erreur download portrait pour ${person.id}")
+                        }
                     }
+
+                    // Upsert systématique pour mettre à jour les infos (biographie, etc.)
+                    offlineEntryDao.upsertPerson(person.copy(
+                        imagePath = finalLocalPath, 
+                        categories = finalCategories,
+                        syncStatus = "synced"
+                    ))
                 }
 
-                offlineEntryDao.upsertPerson(person.copy(imagePath = finalLocalPath, categories = finalCategories))
+                // 2. RÉCONCILIATION : Suppression des personnes fantômes (supprimées ailleurs)
+                // Room gérera automatiquement la suppression en cascade des médias liés (PersonMediaEntity)
+                syncedLocalPersonIds.forEach { localId ->
+                    if (localId !in remoteIds) {
+                        android.util.Log.d("SyncReconciliation", "Suppression personne fantôme locale : id=$localId")
+                        val personToDelete = localPersons.find { it.id == localId }
+                        if (personToDelete != null) {
+                            offlineEntryDao.deletePerson(personToDelete)
+                        }
+                    }
+                }
             }
 
             // ═══ 3. RÉCUPÉRATION DES DESTINATAIRES (RECIPIENTS) — v9.4.19 ═══
@@ -107,7 +122,7 @@ class InitialSyncWorker @AssistedInject constructor(
 
             // ═══ 4. RÉCUPÉRATION DES MÉDIAS DE L'ARBRE (v9.4.22 + Reconciliation v9.6.7) ═══
             // On itère sur les personnes déjà téléchargées à l'étape 2
-            val persons = offlineEntryDao.getAllPersons().first()
+            val persons = offlineEntryDao.getAllPersonsSync()
             persons.forEach { person ->
                 try {
                     val mediaSnapshot = db.collection("users").document(userId)
