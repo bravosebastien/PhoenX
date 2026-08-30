@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.example.phoenx.ui.components.SecureAsyncImage
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.MainViewModel
@@ -110,6 +111,14 @@ fun EncounterScreen(
                         IconButton(onClick = { showSearch = !showSearch }) {
                             Icon(Icons.Default.Search, null, tint = theme.contentColor)
                         }
+                        InfoButton(
+                            title = "Les Rencontres",
+                            points = listOf(
+                                "Les Rencontres, c'est l'endroit pour raconter les personnes qui ont marqué ta vie en dehors de ta famille — un ami, un mentor, une rencontre décisive.",
+                                "Classe-les par âge ou découvre qui t'a présenté qui grâce au badge cliquable sur chaque fiche.",
+                                "Par défaut, une rencontre est visible par tes Destinataires une fois ton héritage activé — mais tu peux la marquer 'Gardée pour moi' pour qu'elle reste ton jardin secret, invisible pour tout le monde."
+                            )
+                        )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )

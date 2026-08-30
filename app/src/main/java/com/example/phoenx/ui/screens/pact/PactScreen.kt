@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.PactEntity
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,6 +69,12 @@ fun PactScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
+                },
+                actions = {
+                    InfoButton(
+                        title = "Le Pacte",
+                        points = listOf("Le Pacte, c'est un message à deux voix que vous composez avec une personne choisie — chacun écrit sa version de son côté, en toute confidentialité. Le contenu ne se révèle à personne, pas même à vous deux, tant que chacun n'a pas cliqué sur 'J'ai terminé ma version'. Vous pouvez aussi choisir, chacun de votre côté, si ce Pacte doit nourrir votre Livre de Ma Vie ou rester un échange privé entre vous deux.")
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )

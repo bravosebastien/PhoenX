@@ -36,6 +36,59 @@ class AssistantViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    // v9.6.7 : Gestion du surnom de l'assistant
+    private val _nickname = MutableStateFlow<String?>(null)
+    val nickname: StateFlow<String?> = _nickname.asStateFlow()
+    
+    private val _showNicknameDialog = MutableStateFlow(false)
+    val showNicknameDialog: StateFlow<Boolean> = _showNicknameDialog.asStateFlow()
+
+    private val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+
+    init {
+        loadNickname()
+    }
+
+    private fun loadNickname() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                val doc = db.collection("users").document(userId).get().await()
+                val savedNickname = doc.getString("assistantNickname")
+                _nickname.value = savedNickname
+            } catch (e: Exception) {
+                android.util.Log.e("AssistantVM", "Erreur chargement surnom: ${e.message}")
+            }
+        }
+    }
+
+    fun saveNickname(newNickname: String) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(userId)
+                    .update("assistantNickname", newNickname)
+                    .await()
+                _nickname.value = newNickname
+                _showNicknameDialog.value = false
+            } catch (e: Exception) {
+                android.util.Log.e("AssistantVM", "Erreur sauvegarde surnom: ${e.message}")
+            }
+        }
+    }
+
+    fun dismissNicknameDialog() {
+        _showNicknameDialog.value = false
+    }
+
+    fun toggleChat() {
+        _isChatOpen.value = !_isChatOpen.value
+        // Au premier clic, si pas de surnom, on demande
+        if (_isChatOpen.value && _nickname.value == null) {
+            _showNicknameDialog.value = true
+        }
+    }
+
     val suggestedQuestions = listOf(
         "Comment déposer mon premier souvenir ?",
         "Qui pourra voir ce que j'écris ?",
@@ -48,10 +101,6 @@ class AssistantViewModel @Inject constructor(
         }
     }
 
-    fun toggleChat() {
-        _isChatOpen.value = !_isChatOpen.value
-    }
-
     fun savePosition(x: Float, y: Float) {
         viewModelScope.launch {
             preferenceManager.saveAssistantBubblePosition(x, y)
@@ -61,7 +110,9 @@ class AssistantViewModel @Inject constructor(
     fun askQuestion(question: String) {
         if (question.isBlank()) return
         
-        val userName = auth.currentUser?.displayName ?: "Utilisateur"
+        // v9.6.7 : Utilisation du surnom si disponible, repli sur displayName
+        val userName = _nickname.value ?: auth.currentUser?.displayName ?: "Utilisateur"
+
         val userMsg = ChatMessage(question, isUser = true)
         _chatMessages.update { it + userMsg }
         _isLoading.value = true

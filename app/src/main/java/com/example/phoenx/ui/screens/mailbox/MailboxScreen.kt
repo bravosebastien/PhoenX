@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.OfflineEntry
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 import java.time.Instant
 import java.time.ZoneId
@@ -48,6 +49,12 @@ fun MailboxScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
+                },
+                actions = {
+                    InfoButton(
+                        title = "Capsules Temporelles",
+                        points = listOf("Une Capsule Temporelle est un souvenir que vous programmez pour s'ouvrir à une date précise, choisie à l'avance — un anniversaire, un mariage à venir, une date qui compte pour vous. Le destinataire ne peut pas l'ouvrir avant cette date : elle apparaît dans sa Boîte aux Lettres avec la date d'ouverture affichée, en attendant. Une fois programmée, la date ne peut plus être modifiée directement — il faut supprimer la capsule et la recréer si vous voulez changer la date.")
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )

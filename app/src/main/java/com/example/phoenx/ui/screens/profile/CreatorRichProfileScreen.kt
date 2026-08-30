@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.CreatorProfileEntity
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.theme.*
 
@@ -71,6 +72,10 @@ fun CreatorRichProfileScreen(
                             Text("Enregistrer", color = accent, fontWeight = FontWeight.Bold)
                         }
                     }
+                    InfoButton(
+                        title = "Le Portrait de Vie",
+                        points = listOf("Le Portrait de Vie rassemble, en quelques champs simples, les informations factuelles qui vous décrivent — description physique, famille, parcours. Contrairement au Livre de Ma Vie qui raconte une histoire, ce portrait sert de fiche de référence : il aide l'intelligence artificielle à ne jamais se tromper sur les faits vous concernant quand elle rédige votre Livre.")
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )

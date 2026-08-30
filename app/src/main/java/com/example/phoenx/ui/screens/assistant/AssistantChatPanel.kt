@@ -32,15 +32,54 @@ fun AssistantChatPanel(
     val accent = theme.accentColor
     val messages by viewModel.chatMessages.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
-    
+    val showNicknameDialog by viewModel.showNicknameDialog.collectAsState()
+    val nickname by viewModel.nickname.collectAsState()
+
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var question by remember { mutableStateOf("") }
+    var nicknameInput by remember { mutableStateOf("") }
 
-    // v9.4.27 : Injection d'un message de bienvenue si la conversation est vide
-    LaunchedEffect(messages) {
+    // v9.6.7 : Dialogue de bienvenue pour le surnom
+    if (showNicknameDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissNicknameDialog() },
+            containerColor = theme.backgroundColor,
+            title = { Text("Bienvenue", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text("Avant de commencer, comment aimeriez-vous que je vous appelle ?", color = theme.contentColor.copy(alpha = 0.7f))
+                    Spacer(Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = nicknameInput,
+                        onValueChange = { nicknameInput = it },
+                        label = { Text("Votre prénom ou surnom") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accent,
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.saveNickname(nicknameInput) },
+                    enabled = nicknameInput.isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
+                ) {
+                    Text("Confirmer", color = Color.White)
+                }
+            }
+        )
+    }
+
+    // v9.4.27/v9.6.7 : Injection d'un message de bienvenue si la conversation est vide
+    LaunchedEffect(messages, nickname) {
         if (messages.isEmpty()) {
-            val userName = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.displayName ?: "ami"
-            viewModel.injectSystemMessage("Bienvenue $userName ! Je suis ton assistant PHOEN-X. Mon rôle est de t'accompagner pour que tu puisses transmettre ce qui compte vraiment. Que souhaites-tu savoir pour tes premiers pas ?")
+            val name = nickname ?: com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.displayName ?: "ami"
+            viewModel.injectSystemMessage("Bienvenue $name ! Je suis ton assistant PHOEN-X. Mon rôle est de t'accompagner pour que tu puisses transmettre ce qui compte vraiment. Que souhaites-tu savoir pour tes premiers pas ?")
         }
     }
 

@@ -30,6 +30,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.domain.util.EnigmaUtils
 import com.example.phoenx.data.model.Quiz
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.data.model.QuizQuestion
 import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.theme.*
@@ -74,6 +75,12 @@ fun QuizCreateScreen(
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                         }
+                    },
+                    actions = {
+                        InfoButton(
+                            title = "Mon Quiz",
+                            points = listOf("Mon Quiz vous permet de créer un jeu de questions sur vous-même, à faire deviner à vos proches. Pour chaque question, vous pouvez taper une réponse libre ou proposer plusieurs choix — le bouton 'Magie IA' peut même vous suggérer de fausses réponses crédibles pour rendre le jeu plus amusant. Vous pouvez tester votre propre quiz avant de le partager, et ajouter un petit message taquin qui s'affichera en cas de mauvaise réponse.")
+                        )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                 )

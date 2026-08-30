@@ -30,6 +30,7 @@ import androidx.navigation.NavController
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.domain.util.AgeUtils
+import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.screens.recipient.RecipientUiState
 import com.example.phoenx.ui.screens.recipient.RecipientViewModel
 import com.example.phoenx.ui.theme.*
@@ -89,6 +90,12 @@ fun PortraitProcheScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
                     }
+                },
+                actions = {
+                    InfoButton(
+                        title = "Portrait Proche",
+                        points = listOf("Le Portrait Proche vous propose 20 questions pour dresser le portrait d'une personne qui compte pour vous — un proche déjà présent dans votre Cercle de Confiance. Vos réponses sont rassemblées en un seul souvenir, marqué d'un badge 'Portrait' dans votre Fil de Pensée. Vous pouvez recommencer un Portrait Proche pour la même personne autant de fois que vous le souhaitez : chaque version reste distincte, avec sa propre date.")
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
