@@ -44,7 +44,8 @@ fun CameoPortrait(
     docId: String? = null,
     field: String? = null,
     explicitKey: ByteArray? = null,
-    isEncrypted: Boolean = false
+    isEncrypted: Boolean = false,
+    hideIfEmpty: Boolean = false // v9.6.7
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -94,7 +95,7 @@ fun CameoPortrait(
     }
 
     Box(
-        modifier = modifier
+        modifier = if (hideIfEmpty && displayUrl.isNullOrBlank()) Modifier.size(0.dp) else modifier
             .size(width = size, height = size * 1.25f)
             .clip(cameoShape)
             .background(theme.contentColor.copy(alpha = 0.05f))
@@ -134,9 +135,10 @@ fun CameoPortrait(
                 isEncrypted = isEncrypted || isPathEncrypted,
                 colorFilter = if (useCharcoalFilter) ColorFilter.colorMatrix(charcoalMatrix) else null,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                hideIfEmpty = hideIfEmpty
             )
-        } else {
+        } else if (!hideIfEmpty) {
             // Placeholder Initiale style Fusain
             Text(
                 text = firstName.take(1).uppercase(),

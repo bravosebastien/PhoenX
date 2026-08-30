@@ -349,7 +349,8 @@ fun IllustrableText(
                         contentScale = ContentScale.Crop,
                         creatorId = creatorId, // v9.4.27
                         docType = "entries",   // v9.4.27
-                        docId = entry.id       // v9.4.27
+                        docId = entry.id,       // v9.4.27
+                        hideIfEmpty = true // v9.6.7 : Masque le bloc si la photo est supprimée
                     )
                 } else if (type == "AUDIO" && entry != null) {
                     Card(

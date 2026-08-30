@@ -316,7 +316,8 @@ fun ReaderIllustrableText(
                         contentScale = ContentScale.Crop,
                         creatorId = creatorId,
                         docType = "entries",
-                        docId = entry.id
+                        docId = entry.id,
+                        hideIfEmpty = true // v9.6.7 : Masque le bloc si la photo est supprimée
                     )
                 }
             }

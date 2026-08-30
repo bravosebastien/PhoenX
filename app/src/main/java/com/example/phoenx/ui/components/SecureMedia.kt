@@ -36,7 +36,8 @@ fun SecureAsyncImage(
     docId: String? = null,     // v9.4.27
     field: String? = null,     // v9.4.27
     personId: String? = null,  // v9.6.6 : Pour résolution personMedia
-    isEncrypted: Boolean = true // v9.4.29 : Support pour médias non-chiffrés (Cameos)
+    isEncrypted: Boolean = true, // v9.4.29 : Support pour médias non-chiffrés (Cameos)
+    hideIfEmpty: Boolean = false // v9.6.7 : Permet de masquer totalement le bloc si vide (Livre)
 ) {
     var imageBytes by remember(docId) { mutableStateOf<ByteArray?>(null) }
     var resolvedSimpleUrl by remember(docId) { mutableStateOf<String?>(null) }
@@ -122,7 +123,7 @@ fun SecureAsyncImage(
     // On n'affiche le chargement que si on n'a vraiment rien à montrer et que c'est en cours
     val showLoading = isLoading && currentModel == null
 
-    Box(modifier = modifier) {
+    Box(modifier = if (hideIfEmpty && currentModel == null && !showLoading) Modifier.size(0.dp) else modifier) {
         if (currentModel != null) {
             AsyncImage(
                 model = currentModel,
@@ -135,8 +136,8 @@ fun SecureAsyncImage(
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
             }
-        } else {
-            // Placeholder/Error state
+        } else if (!hideIfEmpty) {
+            // Placeholder/Error state : visible uniquement si hideIfEmpty est false
             Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.2f)))
         }
     }
