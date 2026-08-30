@@ -105,18 +105,41 @@ class InitialSyncWorker @AssistedInject constructor(
                 offlineEntryDao.insertRecipient(doc.toRecipientEntity())
             }
 
-            // ═══ 4. RÉCUPÉRATION DES MÉDIAS DE L'ARBRE (v9.4.22) ═══
+            // ═══ 4. RÉCUPÉRATION DES MÉDIAS DE L'ARBRE (v9.4.22 + Reconciliation v9.6.7) ═══
             // On itère sur les personnes déjà téléchargées à l'étape 2
             val persons = offlineEntryDao.getAllPersons().first()
             persons.forEach { person ->
-                val mediaSnapshot = db.collection("users").document(userId)
-                    .collection("persons").document(person.id)
-                    .collection("media")
-                    .get()
-                    .await()
-                
-                mediaSnapshot.documents.forEach { doc ->
-                    personMediaDao.insertMedia(doc.toPersonMediaEntity())
+                try {
+                    val mediaSnapshot = db.collection("users").document(userId)
+                        .collection("persons").document(person.id)
+                        .collection("media")
+                        .get()
+                        .await()
+                    
+                    if (mediaSnapshot != null) {
+                        val remoteMediaEntities = mediaSnapshot.documents.map { it.toPersonMediaEntity() }
+                        val remoteIds = remoteMediaEntities.map { it.id }.toSet()
+
+                        // 1. Ajout/Mise à jour des médias distants
+                        remoteMediaEntities.forEach { entity ->
+                            personMediaDao.insertMedia(entity)
+                        }
+
+                        // 2. RÉCONCILIATION : Suppression des entrées locales qui n'existent plus sur le serveur
+                        // On ne traite que les médias dont le statut est "synced" pour éviter d'effacer un média en cours d'upload.
+                        val localMedia = personMediaDao.getMediaForPerson(person.id).first()
+                        val syncedLocalMedia = localMedia.filter { it.syncStatus == "synced" }
+                        
+                        syncedLocalMedia.forEach { local ->
+                            if (local.id !in remoteIds) {
+                                android.util.Log.d("SyncReconciliation", "Suppression média fantôme local : id=${local.id} (Personne=${person.id})")
+                                personMediaDao.deleteMedia(local)
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("SyncReconciliation", "Erreur lors de la réconciliation media pour ${person.id} : ${e.message}")
+                    // SÉCURITÉ : En cas d'erreur de lecture Firestore, on ne supprime RIEN localement.
                 }
             }
 
