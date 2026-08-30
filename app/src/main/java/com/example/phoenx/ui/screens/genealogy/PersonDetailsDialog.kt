@@ -54,7 +54,10 @@ fun PersonDetailsDialog(
 ) {
     val theme = LocalAppTheme.current
     val context = LocalContext.current
-    val mediaList by viewModel.getMediaForPerson(person.id).collectAsState(initial = emptyList())
+    
+    // v9.6.7 : Mémorisation du flux pour garantir la stabilité et la réactivité Room
+    val mediaFlow = remember(person.id) { viewModel.getMediaForPerson(person.id) }
+    val mediaList by mediaFlow.collectAsState(initial = emptyList())
     val resolvedUrls by viewModel.resolvedUrls.collectAsState()
     
     var biography by remember(person) { mutableStateOf(person.biography) }
@@ -277,7 +280,12 @@ fun PersonDetailsDialog(
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 row.forEach { media ->
                                     val activeUrl = media.thumbnailPath ?: media.mediaPath
-                                    val isPathEncrypted = !activeUrl.startsWith("/")
+                                    val cacheKey = if (media.thumbnailPath != null) "thumb_${media.id}" else media.id
+                                    val resolvedUrl = resolvedUrls[cacheKey]
+
+                                    val isPathEncrypted = activeUrl.endsWith(".enc")
+                                    val isLocal = activeUrl.startsWith("/") || activeUrl.startsWith("file://")
+                                    val cleanLocalPath = if (activeUrl.startsWith("file://")) activeUrl.substring(7) else if (activeUrl.startsWith("/")) activeUrl else null
                                     val fieldParam = if (media.thumbnailPath != null) "thumbnailPath" else "mediaPath"
 
                                     Box(
@@ -294,13 +302,17 @@ fun PersonDetailsDialog(
                                                         aiSummary = "Média de ${person.firstName}",
                                                         sourceDocType = "personMedia",
                                                         personId = person.id,
-                                                        isEncrypted = isPathEncrypted
+                                                        isEncrypted = media.mediaPath.endsWith(".enc")
                                                     )
                                                 )
                                             }
                                     ) {
+                                        // v9.6.7 : Harmonisation complète avec la photo de profil (CameoPortrait)
+                                        // On laisse SecureAsyncImage gérer le fallback local via mediaUrl (file://)
+                                        val bestUrl = resolvedUrl ?: (if (activeUrl.startsWith("/")) "file://$activeUrl" else activeUrl)
+                                        
                                         com.example.phoenx.ui.components.SecureAsyncImage(
-                                            mediaUrl = activeUrl,
+                                            mediaUrl = bestUrl,
                                             mediaManager = EntryPointAccessors.fromApplication(context, MediaManager.MediaManagerEntryPoint::class.java).mediaManager(),
                                             isEncrypted = isPathEncrypted,
                                             docType = "personMedia",

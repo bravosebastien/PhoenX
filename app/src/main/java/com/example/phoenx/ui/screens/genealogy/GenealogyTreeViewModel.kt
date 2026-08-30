@@ -204,7 +204,19 @@ class GenealogyTreeViewModel @Inject constructor(
         val currentUid = auth.currentUser?.uid ?: ""
         
         return if (targetId == null || targetId == currentUid) {
-            personMediaDao.getMediaForPerson(personId)
+            personMediaDao.getMediaForPerson(personId).onEach { list ->
+                // v9.6.7 : Pré-résolution réactive uniquement pour les nouveaux IDs
+                val currentCache = _resolvedUrls.value
+                list.forEach { media ->
+                    val path = media.thumbnailPath ?: media.mediaPath
+                    val cacheKey = if (media.thumbnailPath != null) "thumb_${media.id}" else media.id
+                    
+                    if (!currentCache.containsKey(cacheKey) && !path.isNullOrBlank()) {
+                        val field = if (media.thumbnailPath != null) "thumbnailPath" else "mediaPath"
+                        resolveSingleUrl(currentUid, "personMedia", cacheKey, path, personId, fieldOverride = field)
+                    }
+                }
+            }
         } else {
             callbackFlow {
                 val listener = db.collection("users").document(targetId)

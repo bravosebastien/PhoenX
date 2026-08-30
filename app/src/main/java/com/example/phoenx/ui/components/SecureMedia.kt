@@ -38,19 +38,27 @@ fun SecureAsyncImage(
     personId: String? = null,  // v9.6.6 : Pour résolution personMedia
     isEncrypted: Boolean = true // v9.4.29 : Support pour médias non-chiffrés (Cameos)
 ) {
-    var imageBytes by remember(mediaUrl, localPath) { mutableStateOf<ByteArray?>(null) }
-    var resolvedSimpleUrl by remember(mediaUrl) { mutableStateOf<String?>(null) } // v9.4.29
-    var isLoading by remember(mediaUrl, localPath) { mutableStateOf(false) }
+    var imageBytes by remember(docId) { mutableStateOf<ByteArray?>(null) }
+    var resolvedSimpleUrl by remember(docId) { mutableStateOf<String?>(null) }
+    var isLoading by remember(docId, mediaUrl, localPath) { mutableStateOf(false) }
+
+    // v9.6.7 : Détection automatique des chemins locaux injectés dans mediaUrl
+    val effectiveLocalPath = remember(localPath, mediaUrl) {
+        localPath ?: if (mediaUrl?.let { it.startsWith("/") || it.startsWith("file://") } == true) {
+            if (mediaUrl.startsWith("file://")) mediaUrl.substring(7) else mediaUrl
+        } else null
+    }
 
     LaunchedEffect(mediaUrl, localPath, explicitKey, creatorId, docType, docId, field, personId) {
-        if (imageBytes != null || resolvedSimpleUrl != null) return@LaunchedEffect 
-
-        if (localPath != null && java.io.File(localPath).exists()) {
-            Log.d("PHOENX_SECURE_IMG", "Usage fichier local: docId=$docId, path=$localPath")
+        // On ne reset PAS imageBytes/resolvedSimpleUrl si le docId est le même, 
+        // pour éviter le trou visuel pendant la nouvelle résolution.
+        
+        if (effectiveLocalPath != null && java.io.File(effectiveLocalPath).exists()) {
+            Log.d("PHOENX_SECURE_IMG", "Usage fichier local: docId=$docId, path=$effectiveLocalPath")
             return@LaunchedEffect
         }
         
-        if (mediaUrl != null) {
+        if (mediaUrl != null && !mediaUrl.startsWith("/") && !mediaUrl.startsWith("file://")) {
             Log.d("PHOENX_SECURE_IMG", "Début résolution: docId=$docId, url=$mediaUrl, encrypted=$isEncrypted")
             isLoading = true
             try {
@@ -91,21 +99,24 @@ fun SecureAsyncImage(
             } finally {
                 isLoading = false
             }
-        } else {
+        } else if (mediaUrl == null && effectiveLocalPath == null) {
             Log.w("PHOENX_SECURE_IMG", "Aucun chemin ni URL pour docId=$docId")
         }
     }
 
-    // v9.6.7 : Calcul du modèle et de l'état de chargement immédiat
-    val currentModel: Any? = remember(localPath, imageBytes, resolvedSimpleUrl) {
-        when {
-            localPath != null && java.io.File(localPath).exists() -> localPath
+    // v9.6.7 : Calcul du modèle et persistance pour éviter le trou visuel (gap) lors d'un changement de chemin
+    var lastSuccessfulModel by remember(docId) { mutableStateOf<Any?>(null) }
+    
+    val currentModel: Any? = remember(effectiveLocalPath, imageBytes, resolvedSimpleUrl, mediaUrl) {
+        val model = when {
+            effectiveLocalPath != null && java.io.File(effectiveLocalPath).exists() -> effectiveLocalPath
             imageBytes != null -> imageBytes
             resolvedSimpleUrl != null -> resolvedSimpleUrl
-            // Si c'est déjà une URL HTTP, on peut l'utiliser comme modèle immédiatement
             mediaUrl?.startsWith("http") == true -> mediaUrl
             else -> null
         }
+        if (model != null) lastSuccessfulModel = model
+        model ?: lastSuccessfulModel
     }
 
     // On n'affiche le chargement que si on n'a vraiment rien à montrer et que c'est en cours
