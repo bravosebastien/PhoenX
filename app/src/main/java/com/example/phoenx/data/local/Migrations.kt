@@ -679,4 +679,13 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN markedForDeletionAt INTEGER")
         }
     }
+
+    /**
+     * MIGRATION_56_57 — Contrôle granulaire des photos dans le Livre (v9.6.7)
+     */
+    val MIGRATION_56_57 = object : Migration(56, 57) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN includedInBook INTEGER NOT NULL DEFAULT 1")
+        }
+    }
 }

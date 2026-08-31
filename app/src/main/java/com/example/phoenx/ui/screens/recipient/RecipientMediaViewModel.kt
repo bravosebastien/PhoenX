@@ -490,7 +490,7 @@ class RecipientMediaViewModel @Inject constructor(
     /**
      * Met à jour un média (v9.4.27)
      */
-    fun updateMediaEntry(id: String, title: String, comment: String?, url: String, recipientIds: List<String>, visibility: String, isComplement: Boolean) {
+    fun updateMediaEntry(id: String, title: String, comment: String?, url: String, recipientIds: List<String>, visibility: String, isComplement: Boolean, includedInBook: Boolean = true) {
         viewModelScope.launch {
             try {
                 if (isComplement) {
@@ -499,6 +499,7 @@ class RecipientMediaViewModel @Inject constructor(
                     offlineEntryDao.updateEntryComment(comment, id)
                     offlineEntryDao.updateEntryVisibility(visibility, id)
                     offlineEntryDao.updateEntryRecipients(recipientIds.joinToString(","), id)
+                    offlineEntryDao.updateIncludedInBook(id, includedInBook)
                 } else {
                     // Média isolé
                     val provider = when {
@@ -853,7 +854,8 @@ class RecipientMediaViewModel @Inject constructor(
             mediaProvider = mediaProvider ?: if (domainType == EntryType.AUDIO) "PHOENX" else null, // v9.4.27 : Fallback pour filtres
             recipientIds = recipientIds.split(",").map { it.trim() }.filter { it.isNotBlank() },
             visibility = visibility,
-            silentAttribution = silentAttribution
+            silentAttribution = silentAttribution,
+            includedInBook = includedInBook // v9.6.7
         )
     }
 
@@ -918,7 +920,8 @@ class RecipientMediaViewModel @Inject constructor(
             mediaProvider = mediaProvider ?: type, // v9.4.27 : Fallback sur type si provider null
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct(),
             visibility = visibility,
-            sourceDocType = "standaloneMedia" // v9.4.27
+            sourceDocType = "standaloneMedia", // v9.4.27
+            includedInBook = true // Standalone non supporté pour l'instant
         )
     }
 }

@@ -252,15 +252,16 @@ fun RecipientPhotosScreen(
             type = "PHOTO",
             recipients = recipients,
             onDismiss = { editingMedia = null },
-            onSave = { title, comment, url, ids, visibility, _ ->
-                viewModel.updateMediaEntry(editingMedia!!.id, title, comment, url, ids, visibility, isComplement)
+            onSave = { title, comment, url, ids, visibility, _, included ->
+                viewModel.updateMediaEntry(editingMedia!!.id, title, comment, url, ids, visibility, isComplement, included)
                 editingMedia = null
             },
             initialTitle = editingMedia!!.aiSummary,
             initialUserComment = editingMedia!!.userComment,
             initialUrl = editingMedia!!.mediaUrl ?: "",
             initialRecipientIds = editingMedia!!.recipientIds,
-            initialVisibility = editingMedia!!.visibility
+            initialVisibility = editingMedia!!.visibility,
+            initialIncludedInBook = editingMedia!!.includedInBook
         )
     }
 }

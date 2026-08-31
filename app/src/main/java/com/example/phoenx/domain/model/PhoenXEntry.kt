@@ -47,7 +47,8 @@ data class PhoenXEntry(
     // MÉTA-DONNÉES DE SOURCE v9.4.27
     val sourceDocType: String = "entries",
     val personId: String? = null, // v9.6.6 : Pour résolution personMedia
-    val isEncrypted: Boolean = true // v9.6.6
+    val isEncrypted: Boolean = true, // v9.6.6
+    val includedInBook: Boolean = true // v9.6.7
 )
 
 data class PhoenXAmendment(

@@ -106,7 +106,10 @@ data class OfflineEntry(
     val tonalNuance: String? = null,
 
     // RÉCONCILIATION SÉCURISÉE v9.6.7 (Migration v56)
-    val markedForDeletionAt: Long? = null
+    val markedForDeletionAt: Long? = null,
+
+    // CONTRÔLE GRANULAIRE LIVRE v9.6.7 (Migration v57)
+    val includedInBook: Boolean = true
 ) {
     fun isChild(): Boolean = parentEntryId != null
 

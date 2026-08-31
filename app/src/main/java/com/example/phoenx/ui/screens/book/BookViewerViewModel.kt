@@ -201,17 +201,20 @@ class BookViewerViewModel @Inject constructor(
                             emotionalCategory = "",
                             visibility = doc.getString("visibility") ?: "RESTRICTED",
                             recipientIds = (doc.get("recipientIds") as? List<*>)?.joinToString(",") ?: "",
-                            mediaUrl = doc.getString("mediaUrl")
+                            mediaUrl = doc.getString("mediaUrl"),
+                            includedInBook = doc.getBoolean("includedInBook") ?: true
                         )
                     }
                 }
 
-                // 5. FILTRAGE DE SÉCURITÉ (v9.4.27)
+                // 5. FILTRAGE DE SÉCURITÉ ET CONTRÔLE GRANULAIRE (v9.6.7)
                 if (entry != null) {
                     val isVisible = entry.visibility == "EVERYONE" || 
                         (recipientUid != null && entry.recipientIds.split(",").map { it.trim() }.contains(recipientUid))
                     
-                    if (isVisible || recipientUid == null) {
+                    val isIncluded = entry.includedInBook
+                    
+                    if ((isVisible || recipientUid == null) && isIncluded) {
                         resolvedMedia[mediaId] = entry
                     }
                 }

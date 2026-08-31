@@ -310,17 +310,19 @@ fun MemoryComplementsSection(
             type = editingMedia!!.mediaProvider ?: editingMedia!!.entryType,
             recipients = recipients,
             onDismiss = { editingMedia = null },
-            onSave = { title, comment, _, ids, visibility, _ ->
+            onSave = { title, comment, _, ids, visibility, _, included ->
                 viewModel.updateComplementTitle(editingMedia!!.id, title)
                 viewModel.updateComplementComment(editingMedia!!.id, comment)
                 viewModel.updateEntryVisibility(editingMedia!!.id, visibility)
                 viewModel.updateEntryRecipients(editingMedia!!.id, ids)
+                viewModel.updateIncludedInBook(editingMedia!!.id, included)
                 editingMedia = null
             },
             initialTitle = editingMedia!!.aiSummary,
             initialUserComment = editingMedia!!.userComment,
             initialRecipientIds = editingMedia!!.recipientIds.split(",").filter { it.isNotBlank() },
             initialVisibility = editingMedia!!.visibility,
+            initialIncludedInBook = editingMedia!!.includedInBook,
             onChangeCover = if (editingMedia!!.entryType == "AUDIO") { { coverLauncher.launch("image/*") } } else null
         )
     }

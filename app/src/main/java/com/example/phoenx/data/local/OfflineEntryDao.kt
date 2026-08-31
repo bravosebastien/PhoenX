@@ -36,6 +36,9 @@ interface OfflineEntryDao {
     @Query("UPDATE offline_entries SET markedForDeletionAt = :timestamp WHERE id = :entryId")
     suspend fun markForDeletion(entryId: String, timestamp: Long?)
 
+    @Query("UPDATE offline_entries SET includedInBook = :included WHERE id = :entryId")
+    suspend fun updateIncludedInBook(entryId: String, included: Boolean): Int
+
     // Amendments
     @Query("SELECT * FROM amendments WHERE entryId = :entryId ORDER BY createdAt ASC")
     fun getAmendmentsForEntry(entryId: String): Flow<List<AmendmentEntity>>

@@ -69,6 +69,11 @@ class MemoryMetadataUpdater @Inject constructor(
         }
     }
 
+    suspend fun updateIncludedInBook(entryId: String, included: Boolean) {
+        offlineEntryDao.updateIncludedInBook(entryId, included)
+        syncTrigger.triggerSync(entryId)
+    }
+
     suspend fun updateRecipients(entryId: String, newRecipientDocIds: List<String>, allRecipients: List<RecipientEntity>) {
         val persistentIds = newRecipientDocIds.map { docId ->
             allRecipients.find { it.id == docId }?.linkedUid ?: docId

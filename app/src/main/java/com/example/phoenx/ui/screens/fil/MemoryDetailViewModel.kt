@@ -389,6 +389,12 @@ class MemoryDetailViewModel @Inject constructor(
         }
     }
 
+    fun updateIncludedInBook(entryId: String, included: Boolean) {
+        viewModelScope.launch {
+            memoryMetadataUpdater.updateIncludedInBook(entryId, included)
+        }
+    }
+
     fun updateComplementCover(complementId: String, imageUri: Uri) {
         viewModelScope.launch {
             memoryMetadataUpdater.updateComplementCover(complementId, imageUri)

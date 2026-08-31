@@ -101,7 +101,8 @@ fun OfflineEntry.toFirestoreMap(encryptionManager: EncryptionManager): Map<Strin
         // ENRICHISSEMENT MÉDIA v9.4.27 (Migration v43)
         "userComment" to userComment,
         "coverUrl" to coverUrl,
-        "mediaProvider" to mediaProvider
+        "mediaProvider" to mediaProvider,
+        "includedInBook" to includedInBook // v9.6.7
     )
 }
 
@@ -262,7 +263,8 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
         // v9.4.27
         userComment = this["userComment"] as? String,
         coverUrl = this["coverUrl"] as? String,
-        mediaProvider = this["mediaProvider"] as? String
+        mediaProvider = this["mediaProvider"] as? String,
+        includedInBook = this["includedInBook"] as? Boolean ?: true // v9.6.7
     )
 }
 

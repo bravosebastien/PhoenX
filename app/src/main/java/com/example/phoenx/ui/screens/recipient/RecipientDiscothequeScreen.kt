@@ -302,7 +302,7 @@ fun RecipientDiscothequeScreen(
             type = "SPOTIFY",
             recipients = recipientsList,
             onDismiss = { showAddDialog = false },
-            onSave = { title, desc, url, ids, visibility, autoThumb ->
+            onSave = { title, desc, url, ids, visibility, autoThumb, _ ->
                 // v9.4.27 : Détection automatique Deezer
                 val provider = if (url.contains("deezer")) "DEEZER" else "SPOTIFY"
                 viewModel.addStandaloneMedia(title, url, provider, ids, desc, null, visibility, autoThumb)
@@ -320,13 +320,13 @@ fun RecipientDiscothequeScreen(
             type = initialType,
             recipients = recipientsList,
             onDismiss = { editingMedia = null },
-            onSave = { title, desc, url, ids, visibility, _ ->
+            onSave = { title, desc, url, ids, visibility, _, included ->
                 // v9.4.27 : Détection automatique Deezer à l'édition aussi
                 val finalProvider = if (!isComplement && url.contains("deezer")) "DEEZER" 
                                    else if (!isComplement) "SPOTIFY" 
                                    else initialType
                                    
-                viewModel.updateMediaEntry(editingMedia!!.id, title, desc, url, ids, visibility, isComplement)
+                viewModel.updateMediaEntry(editingMedia!!.id, title, desc, url, ids, visibility, isComplement, included)
                 // Note: updateMediaEntry updates the entity, and we might need to ensure mediaProvider is updated
                 // for standalone if it changes.
                 editingMedia = null
@@ -336,6 +336,7 @@ fun RecipientDiscothequeScreen(
             initialUrl = editingMedia!!.mediaUrl ?: "",
             initialRecipientIds = editingMedia!!.recipientIds,
             initialVisibility = editingMedia!!.visibility,
+            initialIncludedInBook = editingMedia!!.includedInBook,
             onChangeCover = { coverLauncher.launch("image/*") },
             onFetchMetadata = { url -> viewModel.fetchExternalMetadata(url) }
         )
