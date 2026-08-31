@@ -26,12 +26,18 @@ const VALID_COMPARTMENTS = [
 ];
 
 // Helper pour simplifier les appels avec le nouveau SDK pérenne
-async function generateWithGemini(prompt: string): Promise<string> {
+async function generateWithGemini(prompt: string, caller: string = "unknown"): Promise<string> {
     try {
         const result = await ai.models.generateContent({
             model: AI_MODEL,
             contents: [prompt]
         });
+
+        if (result.usageMetadata) {
+            const { promptTokenCount, candidatesTokenCount, totalTokenCount } = result.usageMetadata;
+            console.log(`[GEMINI USAGE - ${caller}] Prompt: ${promptTokenCount}, Candidates: ${candidatesTokenCount}, Total: ${totalTokenCount}`);
+        }
+
         return result.text || "";
     } catch (e: any) {
         console.error(`[GEMINI ERROR] sur modèle ${AI_MODEL}:`, e.message);
@@ -69,7 +75,7 @@ export const analyzeEntry = onCall({
     Choisis les compartiments les plus pertinents où ranger ce souvenir.
     Résumé : ${summary}`;
 
-    const text = await generateWithGemini(prompt) || "{}";
+    const text = await generateWithGemini(prompt, "analyzeEntry") || "{}";
 
     const analysis = JSON.parse(text.replace(/```json|```/g, "").trim());
 
@@ -94,7 +100,7 @@ export const generateBiographerQuestion = onCall({
     }
     const { themes } = request.data;
     const prompt = `${AI_RULES} Génère UNE question de biographe (15 mots max). Thèmes : ${themes || "vie"}.`;
-    return await generateWithGemini(prompt) || "Quel souvenir te fait sourire ?";
+    return await generateWithGemini(prompt, "generateBiographerQuestion") || "Quel souvenir te fait sourire ?";
 });
 
 // 3. Portrait d'Essence
@@ -107,7 +113,7 @@ export const generateEssencePortrait = onCall({
     const { summaries } = request.data;
     if (!summaries?.length) return "Continue à déposer tes pensées...";
     const prompt = `${AI_RULES} Portrait d'Essence au CONDITIONNEL. Données : ${summaries.join(" | ")}`;
-    return await generateWithGemini(prompt) || "";
+    return await generateWithGemini(prompt, "generateEssencePortrait") || "";
 });
 
 // 4. Détection d'Évolution
@@ -119,7 +125,7 @@ export const detectThoughtEvolution = onCall({
     }
     const { entriesByAge } = request.data;
     const prompt = `${AI_RULES} Transitions thématiques par âge en JSON. Données : ${JSON.stringify(entriesByAge)}`;
-    const text = await generateWithGemini(prompt) || '{"transitions":[]}';
+    const text = await generateWithGemini(prompt, "detectThoughtEvolution") || '{"transitions":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());
 });
 
@@ -133,7 +139,7 @@ export const generateYoungSelfSuggestions = onCall({
     const { targetAge, summariesAtThatAge } = request.data;
     if (!summariesAtThatAge?.length) return "";
     const prompt = `${AI_RULES} Suggestions pour lettre à soi-même à ${targetAge} ans. Résumés: ${summariesAtThatAge.join(" | ")}`;
-    return await generateWithGemini(prompt) || "";
+    return await generateWithGemini(prompt, "generateYoungSelfSuggestions") || "";
 });
 
 // 8. Génération du livre (v7.6 Multimédia)
@@ -174,7 +180,7 @@ export const generateBookChapters = onCall({
     6. Pour chaque enregistrement vocal (id et description), intègre son essence émotionnelle. Tu peux aussi insérer une balise [AUDIO:id_exact].
     7. Réponds UNIQUEMENT en JSON avec cette structure : {"chapters": [{"title": "Nom du chapitre", "content": "Texte avec balises [PHOTO:id] incluses", "orderIndex": 0}]}`;
 
-    const text = await generateWithGemini(prompt) || '{"chapters":[]}';
+    const text = await generateWithGemini(prompt, "generateBookChapters") || '{"chapters":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());
 });
 
@@ -200,7 +206,7 @@ export const generateBookPlan = onCall({
     2. Pour chaque chapitre, donne un titre poétique et la liste des IDs des scènes incluses.
     3. Réponds UNIQUEMENT en JSON avec cette structure : {"plan": [{"title": "Titre du chapitre", "sceneIds": ["id1", "id2"], "description": "Brève intention narrative"}]}`;
 
-    const text = await generateWithGemini(prompt) || '{"plan":[]}';
+    const text = await generateWithGemini(prompt, "generateBookPlan") || '{"plan":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());
 });
 
@@ -225,7 +231,7 @@ export const generateDistractors = onCall({
     2. Ne propose pas de réponses absurdes ou offensantes.
     3. Réponds UNIQUEMENT en JSON avec cette structure : {"distractors": ["Choix 1", "Choix 2", "Choix 3"]}`;
 
-    const text = await generateWithGemini(prompt) || '{"distractors":[]}';
+    const text = await generateWithGemini(prompt, "generateDistractors") || '{"distractors":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());
 });
 
@@ -249,7 +255,7 @@ export const modifyBookChapter = onCall({
 
     Réponds UNIQUEMENT avec le nouveau texte du chapitre.`;
 
-    const newContent = await generateWithGemini(prompt);
+    const newContent = await generateWithGemini(prompt, "modifyBookChapter");
     return { newContent: newContent || currentContent };
 });
 
@@ -272,7 +278,7 @@ export const generateGlobalIntro = onCall({
 
     Réponds UNIQUEMENT avec le texte de l'introduction.`;
 
-    const content = await generateWithGemini(prompt);
+    const content = await generateWithGemini(prompt, "generateGlobalIntro");
     return { content: content || "" };
 });
 
@@ -321,6 +327,6 @@ export const askAssistant = onCall({
 
     const prompt = `${systemPrompt}\n\nQuestion : ${question}`;
 
-    const answer = await generateWithGemini(prompt);
+    const answer = await generateWithGemini(prompt, "askAssistant");
     return { answer: answer || "Désolé, je ne parviens pas à répondre pour le moment." };
 });
