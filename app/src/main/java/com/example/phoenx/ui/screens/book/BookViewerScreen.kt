@@ -1,6 +1,8 @@
 package com.example.phoenx.ui.screens.book
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -206,7 +208,25 @@ fun BookViewerScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 val decryptedText = decryptedChapters[chapter.id] ?: ""
-                IllustrableText(decryptedText, mediaMap, viewModel.mediaManager, targetCreatorId)
+                IllustrableText(
+                    text = decryptedText, 
+                    mediaMap = mediaMap, 
+                    mediaManager = viewModel.mediaManager, 
+                    creatorId = targetCreatorId,
+                    onMediaClick = { entry ->
+                        navController.navigate(
+                            com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(
+                                entryId = entry.id,
+                                creatorId = targetCreatorId,
+                                mediaUrl = entry.mediaUrl,
+                                entryType = entry.entryType,
+                                aiSummary = entry.aiSummary,
+                                sourceDocType = "entries",
+                                isEncrypted = entry.mediaUrl?.endsWith(".enc") == true
+                            )
+                        )
+                    }
+                )
 
                 Spacer(modifier = Modifier.height(80.dp))
             }
@@ -308,7 +328,8 @@ fun IllustrableText(
     text: String,
     mediaMap: Map<String, OfflineEntry>,
     mediaManager: MediaManager,
-    creatorId: String? = null // v9.4.27
+    creatorId: String? = null,
+    onMediaClick: (OfflineEntry) -> Unit
 ) {
     val accent = LocalAccentColor.current
     // Regex pour détecter [PHOTO:uuid] ou [AUDIO:uuid]
@@ -316,9 +337,14 @@ fun IllustrableText(
     val parts = text.split(regex)
     val matches = regex.findAll(text).toList()
 
+    var lastWasPhoto = false
+
     Column {
         parts.forEachIndexed { index, part ->
-            if (part.isNotBlank()) {
+            val isSignificantText = part.trim().isNotEmpty()
+
+            if (isSignificantText) {
+                lastWasPhoto = false
                 Text(
                     text = part.trim(),
                     style = TextStyle(
@@ -337,22 +363,29 @@ fun IllustrableText(
                 val entry = mediaMap[id]
 
                 if (type == "PHOTO" && entry != null) {
-                    SecureAsyncImage(
-                        mediaUrl = entry.mediaUrl,
-                        localPath = entry.localMediaPath,
-                        mediaManager = mediaManager,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 400.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .padding(vertical = 16.dp),
-                        contentScale = ContentScale.Crop,
-                        creatorId = creatorId, // v9.4.27
-                        docType = "entries",   // v9.4.27
-                        docId = entry.id,       // v9.4.27
-                        hideIfEmpty = true // v9.6.7 : Masque le bloc si la photo est supprimée
-                    )
+                    if (!lastWasPhoto) {
+                        SecureAsyncImage(
+                            mediaUrl = entry.mediaUrl,
+                            localPath = entry.localMediaPath,
+                            mediaManager = mediaManager,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(vertical = 24.dp)
+                                .fillMaxWidth(0.6f)
+                                .aspectRatio(1f)
+                                .border(0.5.dp, Color(0xFFF2EDE8).copy(alpha = 0.1f), RoundedCornerShape(12.dp)) // Bordure fine
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable { onMediaClick(entry) },
+                            contentScale = ContentScale.Crop,
+                            creatorId = creatorId,
+                            docType = "entries",
+                            docId = entry.id,
+                            hideIfEmpty = true
+                        )
+                        lastWasPhoto = true
+                    }
                 } else if (type == "AUDIO" && entry != null) {
+                    lastWasPhoto = false
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.05f)),

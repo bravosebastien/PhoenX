@@ -202,7 +202,20 @@ fun BookReaderFlowScreen(
                                     textColor = textColor, 
                                     accent = accent, 
                                     fontSizeScale = fontSizeScale,
-                                    creatorId = targetCreatorId ?: bookDraft?.userId
+                                    creatorId = targetCreatorId ?: bookDraft?.userId,
+                                    onMediaClick = { entry ->
+                                        navController.navigate(
+                                            com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(
+                                                entryId = entry.id,
+                                                creatorId = targetCreatorId ?: bookDraft?.userId,
+                                                mediaUrl = entry.mediaUrl,
+                                                entryType = entry.entryType,
+                                                aiSummary = entry.aiSummary,
+                                                sourceDocType = "entries",
+                                                isEncrypted = entry.mediaUrl?.endsWith(".enc") == true
+                                            )
+                                        )
+                                    }
                                 )
 
                                 Spacer(Modifier.height(60.dp))
@@ -276,16 +289,22 @@ fun ReaderIllustrableText(
     textColor: Color,
     accent: Color,
     fontSizeScale: Float,
-    creatorId: String? = null
+    creatorId: String? = null,
+    onMediaClick: (OfflineEntry) -> Unit
 ) {
     // Regex pour détecter [PHOTO:uuid] ou [AUDIO:uuid]
     val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9\\-]+)\\]")
     val parts = text.split(regex)
     val matches = regex.findAll(text).toList()
 
+    var lastWasPhoto = false
+
     Column {
         parts.forEachIndexed { index, part ->
-            if (part.isNotBlank()) {
+            val isSignificantText = part.trim().isNotEmpty()
+            
+            if (isSignificantText) {
+                lastWasPhoto = false
                 Text(
                     text = part.trim(),
                     style = TextStyle(
@@ -304,21 +323,27 @@ fun ReaderIllustrableText(
                 val entry = mediaMap[id]
 
                 if (type == "PHOTO" && entry != null) {
-                    SecureAsyncImage(
-                        mediaUrl = entry.mediaUrl,
-                        localPath = entry.localMediaPath,
-                        mediaManager = mediaManager,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 400.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .padding(vertical = 16.dp),
-                        contentScale = ContentScale.Crop,
-                        creatorId = creatorId,
-                        docType = "entries",
-                        docId = entry.id,
-                        hideIfEmpty = true // v9.6.7 : Masque le bloc si la photo est supprimée
-                    )
+                    if (!lastWasPhoto) {
+                        SecureAsyncImage(
+                            mediaUrl = entry.mediaUrl,
+                            localPath = entry.localMediaPath,
+                            mediaManager = mediaManager,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .padding(vertical = 24.dp)
+                                .fillMaxWidth(0.6f) // Illustration discrète
+                                .aspectRatio(1f)
+                                .border(0.5.dp, textColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)) // Bordure fine "chic"
+                                .clip(RoundedCornerShape(12.dp)) // Léger arrondi
+                                .clickable { onMediaClick(entry) },
+                            contentScale = ContentScale.Crop,
+                            creatorId = creatorId,
+                            docType = "entries",
+                            docId = entry.id,
+                            hideIfEmpty = true
+                        )
+                        lastWasPhoto = true
+                    }
                 }
             }
         }
