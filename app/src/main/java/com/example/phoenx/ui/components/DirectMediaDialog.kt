@@ -167,7 +167,7 @@ fun DirectMediaDialog(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("Inclure dans mon Livre", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
-                        Text("Si décoché, cette photo restera dans vos souvenirs mais ne sera pas insérée dans le manuscrit.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                        Text("Si décochée, cette photo restera dans vos souvenirs mais ne sera jamais insérée dans le manuscrit. Si cochée, elle pourra être choisie par l'intelligence artificielle en écrivant votre récit, sans que ce soit garanti.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
                     }
                     Switch(
                         checked = includedInBook,
