@@ -25,6 +25,7 @@ class SyncWorker @AssistedInject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val standaloneMediaDao: StandaloneMediaDao,
     private val personMediaDao: PersonMediaDao, // v9.4.22
+    private val personalityDao: com.example.phoenx.data.local.PersonalityDao, // v9.7.0
     private val mediaManager: MediaManager,
     private val encryptionManager: EncryptionManager
 ) : CoroutineWorker(appContext, workerParams) {
@@ -73,9 +74,13 @@ class SyncWorker @AssistedInject constructor(
         // v9.4.27 : Profil Créateur (Ambiance Globale)
         val pendingProfile = offlineEntryDao.getPendingProfiles().firstOrNull()
 
-        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées, ${personsToSync.size} personnes, ${pendingStandalone.size} standalone, ${mediaToSync.size} personMedia et ${if (pendingProfile != null) 1 else 0} profil en attente")
+        // v9.7.0 : Personnalités
+        val pendingPersonalities = personalityDao.getPendingPersonalities()
+        val pendingPersonalityMedia = personalityDao.getPendingMedia()
 
-        if (pendingEntries.isEmpty() && personsToSync.isEmpty() && pendingStandalone.isEmpty() && mediaToSync.isEmpty() && pendingProfile == null) return Result.success()
+        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées, ${personsToSync.size} personnes, ${pendingStandalone.size} standalone, ${mediaToSync.size} personMedia, ${pendingPersonalities.size} personalities, ${pendingPersonalityMedia.size} personalityMedia et ${if (pendingProfile != null) 1 else 0} profil en attente")
+
+        if (pendingEntries.isEmpty() && personsToSync.isEmpty() && pendingStandalone.isEmpty() && mediaToSync.isEmpty() && pendingProfile == null && pendingPersonalities.isEmpty() && pendingPersonalityMedia.isEmpty()) return Result.success()
 
         val db = FirebaseFirestore.getInstance()
         var hasError = false
@@ -290,6 +295,63 @@ class SyncWorker @AssistedInject constructor(
                     android.util.Log.d("PersonSync", "Profil Créateur synchronisé avec succès")
                 } catch (e: Exception) {
                     android.util.Log.e("PersonSync", "ÉCHEC synchronisation profil : ${e.message}")
+                    hasError = true
+                }
+            }
+
+            // 6. Synchronisation des Personnalités (v9.7.0)
+            pendingPersonalities.forEach { personality ->
+                try {
+                    var storageUrl: String? = null
+                    val path = personality.mainPhotoPath
+                    if (path.startsWith("/data/") || !path.startsWith("users/")) {
+                        val file = File(path)
+                        if (file.exists()) {
+                            storageUrl = mediaManager.uploadCameo(userId, "personality_${personality.id}", file)
+                        }
+                    } else {
+                        storageUrl = path
+                    }
+
+                    db.collection("users").document(userId)
+                        .collection("personalities").document(personality.id)
+                        .set(personality.toFirestoreMap(storageUrl))
+                        .await()
+
+                    personalityDao.insertPersonality(personality.copy(
+                        mainPhotoPath = storageUrl ?: path,
+                        syncStatus = "synced"
+                    ))
+                } catch (e: Exception) {
+                    android.util.Log.e("SyncWorker", "Erreur upload personnalité ${personality.id}: ${e.message}")
+                    hasError = true
+                }
+            }
+
+            // 7. Synchronisation Media Personnalités (v9.7.0)
+            pendingPersonalityMedia.forEach { originalMedia ->
+                try {
+                    var currentPath = originalMedia.mediaPath
+                    if (currentPath.startsWith("/data/") || (!currentPath.startsWith("http") && !currentPath.startsWith("users/"))) {
+                        val localFile = File(currentPath)
+                        if (localFile.exists()) {
+                            currentPath = mediaManager.uploadCameo(userId, "personality_media_${originalMedia.id}", localFile)
+                        }
+                    }
+
+                    val firestoreMap = originalMedia.toFirestoreMap(currentPath)
+                    db.collection("users").document(userId)
+                        .collection("personalities").document(originalMedia.personalityId)
+                        .collection("media").document(originalMedia.id)
+                        .set(firestoreMap)
+                        .await()
+
+                    personalityDao.insertMedia(originalMedia.copy(
+                        mediaPath = currentPath,
+                        syncStatus = "synced"
+                    ))
+                } catch (e: Exception) {
+                    android.util.Log.e("SyncWorker", "Erreur upload personalityMedia ${originalMedia.id}: ${e.message}")
                     hasError = true
                 }
             }

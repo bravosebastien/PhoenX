@@ -59,7 +59,10 @@ class MediaManager @Inject constructor(
                     "docId" to docId
                 )
                 if (field != null) params["field"] = field
-                if (personId != null) params["personId"] = personId
+                if (personId != null) {
+                    if (docType == "personalityMedia") params["personalityId"] = personId
+                    else params["personId"] = personId
+                }
 
                 val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
                 val data = result.data as? Map<*, *>
@@ -160,7 +163,10 @@ class MediaManager @Inject constructor(
                     "docId" to docId
                 )
                 if (field != null) params["field"] = field
-                if (personId != null) params["personId"] = personId
+                if (personId != null) {
+                    if (docType == "personalityMedia") params["personalityId"] = personId
+                    else params["personId"] = personId
+                }
 
                 val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
                 val data = result.data as? Map<*, *>

@@ -33,7 +33,8 @@ fun PreviewDashboardScreen(
     onNavigateToMedia: (String) -> Unit,
     onNavigateToBook: () -> Unit,
     onNavigateToVault: () -> Unit,
-    onNavigateToGenealogy: () -> Unit, // v9.4.27
+    onNavigateToGenealogy: () -> Unit,
+    onNavigateToPersonalities: () -> Unit, // v9.7.0
     viewModel: PreviewViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -164,6 +165,14 @@ fun PreviewDashboardScreen(
                             icon = Icons.Default.Public,
                             accent = accent,
                             onClick = onNavigateToGenealogy
+                        )
+
+                        PreviewPillarItem(
+                            title = "Personnalités",
+                            count = 0, // À brancher sur le vrai count si besoin
+                            icon = Icons.Default.Star,
+                            accent = accent,
+                            onClick = onNavigateToPersonalities
                         )
                     }
 

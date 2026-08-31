@@ -216,6 +216,19 @@ sealed class Screen(val route: String) {
         fun createRoute(creatorId: String? = null) = 
             if (creatorId != null) "genealogy?creatorId=$creatorId" else "genealogy"
     }
+    object Personalities : Screen("personalities?creatorId={creatorId}") {
+        fun createRoute(creatorId: String? = null) = 
+            if (creatorId != null) "personalities?creatorId=$creatorId" else "personalities"
+    }
+    object PersonalityDetail : Screen("personality_detail/{personalityId}?creatorId={creatorId}") {
+        fun createRoute(personalityId: String, creatorId: String? = null): String {
+            return if (creatorId != null) "personality_detail/$personalityId?creatorId=$creatorId"
+            else "personality_detail/$personalityId"
+        }
+    }
+    object PersonalityEdit : Screen("personality_edit/{personalityId}") {
+        fun createRoute(personalityId: String) = "personality_edit/$personalityId"
+    }
     object Encounters : Screen("encounters") // v9.5.0
     object EncountersList : Screen("encounters/list")
     object EncounterDetail : Screen("encounter_detail/{personId}?creatorId={creatorId}") {
@@ -252,6 +265,9 @@ sealed class Screen(val route: String) {
         }
         object Genealogy : Screen("preview/genealogy/{recipientUid}") {
             fun createRoute(recipientUid: String) = "preview/genealogy/$recipientUid"
+        }
+        object Personalities : Screen("preview/personalities/{recipientUid}") {
+            fun createRoute(recipientUid: String) = "preview/personalities/$recipientUid"
         }
         object Encounters : Screen("preview/encounters/{recipientUid}") {
             fun createRoute(recipientUid: String) = "preview/encounters/$recipientUid"

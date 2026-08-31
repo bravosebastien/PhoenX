@@ -12,8 +12,8 @@ export const getInheritedFileUrl = onCall(async (request) => {
     const { creatorId, docType, docId, field = "default" } = request.data;
     const requesterUid = request.auth.uid;
 
-    // 1. Allowlist étendue aux portraits Cameo et Cercle (v9.6.6)
-    const ALLOWED_TYPES = ["entries", "standaloneMedia", "book", "persons", "personMedia", "recipients", "witnesses", "depositaries"];
+    // 1. Allowlist étendue aux personnalités et portraits Cameo/Cercle (v9.7.0)
+    const ALLOWED_TYPES = ["entries", "standaloneMedia", "book", "persons", "personMedia", "recipients", "witnesses", "depositaries", "personalities", "personalityMedia"];
     if (!ALLOWED_TYPES.includes(docType)) {
         throw new HttpsError("invalid-argument", "Type de document non supporté.");
     }
@@ -31,6 +31,8 @@ export const getInheritedFileUrl = onCall(async (request) => {
 
     const docRef = docType === "personMedia"
         ? db.collection("users").doc(creatorId).collection("persons").doc(request.data.personId).collection("media").doc(docId)
+        : docType === "personalityMedia"
+        ? db.collection("users").doc(creatorId).collection("personalities").doc(request.data.personalityId).collection("media").doc(docId)
         : db.collection("users").doc(creatorId).collection(docType).doc(docId);
     const itemDoc = await docRef.get();
     if (!itemDoc.exists) throw new HttpsError("not-found", "Document introuvable.");
@@ -69,6 +71,8 @@ export const getInheritedFileUrl = onCall(async (request) => {
         else if (docType === "book") storageUrl = itemData.coverImageUrl;
         else if (docType === "persons") storageUrl = itemData.imageUrl;
         else if (docType === "personMedia") storageUrl = itemData.mediaPath;
+        else if (docType === "personalities") storageUrl = itemData.mainPhotoPath;
+        else if (docType === "personalityMedia") storageUrl = itemData.mediaPath;
         else if (["recipients", "witnesses", "depositaries"].includes(docType)) storageUrl = itemData.photoUrl;
     }
 

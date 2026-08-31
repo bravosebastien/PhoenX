@@ -582,6 +582,50 @@ fun NavGraphBuilder.creatorGraph(
         )
     }
 
+    composable(
+        route = Screen.Personalities.route,
+        arguments = listOf(navArgument("creatorId") { nullable = true; type = NavType.StringType })
+    ) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        com.example.phoenx.ui.screens.personalities.PersonalitiesScreen(
+            navController = navController,
+            targetCreatorId = creatorId
+        )
+    }
+
+    composable(
+        route = Screen.PersonalityDetail.route,
+        arguments = listOf(
+            navArgument("personalityId") { type = NavType.StringType },
+            navArgument("creatorId") { nullable = true; type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val personalityId = backStackEntry.arguments?.getString("personalityId") ?: ""
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        val heirKey = if (creatorId != null) {
+            val viewModel: RecipientMediaViewModel = hiltViewModel()
+            viewModel.heirKey.collectAsState().value
+        } else null
+
+        com.example.phoenx.ui.screens.personalities.PersonalityDetailScreen(
+            personalityId = personalityId,
+            navController = navController,
+            targetCreatorId = creatorId,
+            heirKey = heirKey
+        )
+    }
+
+    composable(
+        route = Screen.PersonalityEdit.route,
+        arguments = listOf(navArgument("personalityId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val personalityId = backStackEntry.arguments?.getString("personalityId") ?: ""
+        com.example.phoenx.ui.screens.personalities.PersonalityEditScreen(
+            personalityId = personalityId,
+            navController = navController
+        )
+    }
+
     composable(Screen.Encounters.route) {
         EncounterScreen(
             onNavigateBack = { navController.popBackStack() },

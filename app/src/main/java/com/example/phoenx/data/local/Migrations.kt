@@ -688,4 +688,39 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN includedInBook INTEGER NOT NULL DEFAULT 1")
         }
     }
+
+    /**
+     * MIGRATION_57_58 — Le tiroir des Personnalités (v9.7.0)
+     */
+    val MIGRATION_57_58 = object : Migration(57, 58) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `personalities` (
+                    `id` TEXT NOT NULL, 
+                    `name` TEXT NOT NULL, 
+                    `category` TEXT NOT NULL, 
+                    `customCategoryLabel` TEXT, 
+                    `mainPhotoPath` TEXT NOT NULL, 
+                    `biography` TEXT NOT NULL, 
+                    `personalComment` TEXT NOT NULL, 
+                    `createdAt` INTEGER NOT NULL, 
+                    `syncStatus` TEXT NOT NULL, 
+                    PRIMARY KEY(`id`)
+                )
+            """.trimIndent())
+
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `personality_media` (
+                    `id` TEXT NOT NULL, 
+                    `personalityId` TEXT NOT NULL, 
+                    `mediaPath` TEXT NOT NULL, 
+                    `capturedAt` INTEGER NOT NULL, 
+                    `syncStatus` TEXT NOT NULL, 
+                    PRIMARY KEY(`id`), 
+                    FOREIGN KEY(`personalityId`) REFERENCES `personalities`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE 
+                )
+            """.trimIndent())
+            db.execSQL("CREATE INDEX IF NOT EXISTS `index_personality_media_personalityId` ON `personality_media` (`personalityId`)")
+        }
+    }
 }

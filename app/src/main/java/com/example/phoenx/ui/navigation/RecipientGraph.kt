@@ -728,6 +728,41 @@ fun NavGraphBuilder.recipientGraph(
     }
 
     composable(
+        route = Screen.Personalities.route,
+        arguments = listOf(navArgument("creatorId") { type = NavType.StringType; nullable = true })
+    ) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        val mediaViewModel: RecipientMediaViewModel = hiltViewModel()
+        val heirKey by mediaViewModel.heirKey.collectAsState()
+
+        com.example.phoenx.ui.screens.personalities.PersonalitiesScreen(
+            navController = navController,
+            targetCreatorId = creatorId,
+            heirKey = heirKey
+        )
+    }
+
+    composable(
+        route = Screen.PersonalityDetail.route,
+        arguments = listOf(
+            navArgument("personalityId") { type = NavType.StringType },
+            navArgument("creatorId") { type = NavType.StringType; nullable = true }
+        )
+    ) { backStackEntry ->
+        val personalityId = backStackEntry.arguments?.getString("personalityId") ?: ""
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        val mediaViewModel: RecipientMediaViewModel = hiltViewModel()
+        val heirKey by mediaViewModel.heirKey.collectAsState()
+
+        com.example.phoenx.ui.screens.personalities.PersonalityDetailScreen(
+            personalityId = personalityId,
+            navController = navController,
+            targetCreatorId = creatorId,
+            heirKey = heirKey
+        )
+    }
+
+    composable(
         route = "recipient_memory_detail/{entryId}/{creatorId}",
         arguments = listOf(
             navArgument("entryId") { type = NavType.StringType },

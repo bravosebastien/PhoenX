@@ -209,3 +209,62 @@ fun DrawScope.drawCassettes(theme: AppThemeState) {
         }
     }
 }
+
+// ═══════════════════════════════════
+// PERSONNALITÉS — Bustes (v9.7.0)
+// ═══════════════════════════════════
+fun DrawScope.drawBusts(glowIntensity: Float, theme: AppThemeState) {
+    val w = size.width
+    val h = size.height
+    val accent = theme.accentColor
+    
+    val bustCount = 2
+    for (i in 0 until bustCount) {
+        val centerX = w * (0.33f + i * 0.34f)
+        val bottomY = h * 0.85f
+        val bustW = w * 0.25f
+        val bustH = h * 0.50f
+        
+        // Socle
+        drawRect(
+            color = Color(0xFF2A2A2A),
+            topLeft = Offset(centerX - bustW * 0.4f, bottomY - bustH * 0.2f),
+            size = Size(bustW * 0.8f, bustH * 0.2f)
+        )
+        
+        // Corps (Buste)
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF4A4A4A), Color(0xFF2A2A2A)),
+                center = Offset(centerX, bottomY - bustH * 0.5f),
+                radius = bustW * 0.5f
+            ),
+            radius = bustW * 0.4f,
+            center = Offset(centerX, bottomY - bustH * 0.5f)
+        )
+        
+        // Tête
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(Color(0xFF5A5A5A), Color(0xFF3A3A3A)),
+                center = Offset(centerX, bottomY - bustH * 0.8f),
+                radius = bustW * 0.3f
+            ),
+            radius = bustW * 0.25f,
+            center = Offset(centerX, bottomY - bustH * 0.8f)
+        )
+
+        // Lueur de savoir (v9.7.0)
+        if (glowIntensity > 0) {
+            drawCircle(
+                brush = Brush.radialGradient(
+                    colors = listOf(accent.copy(alpha = 0.2f * glowIntensity), Color.Transparent),
+                    center = Offset(centerX, bottomY - bustH * 0.6f),
+                    radius = bustW * 0.8f
+                ),
+                radius = bustW * 0.8f,
+                center = Offset(centerX, bottomY - bustH * 0.6f)
+            )
+        }
+    }
+}

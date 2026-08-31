@@ -32,7 +32,8 @@ enum class CompartmentId {
     TIROIR_SECRET,     // Tiroir à Clé Unique
     LE_PACTE,          // Deux livres reliés / le Pacte
     PORTRAIT_PROCHE,   // Portrait d'un Proche
-    RECONCILIATION     // Protocole de Réconciliation
+    RECONCILIATION,    // Protocole de Réconciliation
+    PERSONNALITES      // Personnalités publiques (v9.7.0)
 }
 
 // Un compartiment de la bibliothèque

@@ -29,7 +29,8 @@ data class OldLibraryUiState(
 class OldLibraryViewModel @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
-    private val offlineEntryDao: OfflineEntryDao
+    private val offlineEntryDao: OfflineEntryDao,
+    private val personalityDao: com.example.phoenx.data.local.PersonalityDao // v9.7.0
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OldLibraryUiState())
@@ -52,6 +53,9 @@ class OldLibraryViewModel @Inject constructor(
 
                 val itemCounts = mutableMapOf<CompartmentId, Int>()
                 
+                val personalityCount = withContext(Dispatchers.IO) { personalityDao.getPersonalityCount() }
+                itemCounts[CompartmentId.PERSONNALITES] = personalityCount
+
                 entries.forEach { entry ->
                     val compId = when(entry.entryType) {
                         "TEXT" -> CompartmentId.BIBLIOTHEQUE
@@ -115,6 +119,7 @@ class OldLibraryViewModel @Inject constructor(
                     CompartmentId.MAPPEMONDE -> "map"
                     CompartmentId.CENT_QUESTIONS -> "questions_room"
                     CompartmentId.COFFRE_FORT -> "recipient/detective"
+                    CompartmentId.PERSONNALITES -> "personalities"
                     else -> "home"
                 }
             )

@@ -32,6 +32,7 @@ fun DrawScope.drawCompartmentContent(
         CompartmentId.PHOTOS -> drawPhotoFrames(glowIntensity, theme)
         CompartmentId.MAPPEMONDE -> drawGlobe(glowIntensity, theme)
         CompartmentId.PORTRAIT_PROCHE -> drawPortraitFrame(glowIntensity, theme)
+        CompartmentId.PERSONNALITES -> drawBusts(glowIntensity, theme)
         
         // Compartiments orphelins (v8.9.4) - Absorbés ou fusionnés
         CompartmentId.MES_MEILLEURS, CompartmentId.TIROIR_SECRET -> { /* No-op */ }

@@ -330,3 +330,26 @@ export const askAssistant = onCall({
     const answer = await generateWithGemini(prompt, "askAssistant");
     return { answer: answer || "Désolé, je ne parviens pas à répondre pour le moment." };
 });
+
+// 23. Contrôle de contenu des Personnalités (v9.7.0)
+export const checkPersonalityContent = onCall({
+    secrets: ["GEMINI_API_KEY"]
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
+
+    const { text } = request.data;
+    if (!text) throw new HttpsError("invalid-argument", "Texte manquant");
+
+    const prompt = `Consigne de modération PHOEN-X :
+    Ce texte fait-il l'apologie de violences, de haine, ou d'idéologies extrémistes, ou se contente-t-il de mentionner une personnalité controversée dans un contexte factuel, historique ou personnel ?
+
+    Texte à analyser : "${text}"
+
+    Réponds UNIQUEMENT en JSON avec cette structure :
+    {"isSafe": boolean, "reason": "Optionnelle, brève explication si non-safe"}`;
+
+    const result = await generateWithGemini(prompt, "checkPersonalityContent");
+    return JSON.parse(result.replace(/```json|```/g, "").trim());
+});

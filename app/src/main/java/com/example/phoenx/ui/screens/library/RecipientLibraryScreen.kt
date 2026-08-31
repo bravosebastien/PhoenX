@@ -280,6 +280,17 @@ fun RecipientLibraryScreen(
                     CompactGridItem("Le Miroir à Deux", Icons.Outlined.Handshake, { navController.navigate("le_pacte") }, theme, itemModifier)
                     CompactGridItem("Réconciliation", Icons.Outlined.Mail, { navController.navigate("reconciliation") }, theme, itemModifier)
                     CompactGridItem("Capsules", Icons.Outlined.MailOutline, { navController.navigate("lettres") }, theme, itemModifier)
+                }
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    maxItemsInEachRow = 3
+                ) {
+                    val itemModifier = Modifier.weight(1f)
+                    CompactGridItem("Personnalités", Icons.Outlined.Star, { 
+                        val route = if (isCreatorMode) "personalities" else "personalities?creatorId=$targetCreatorId"
+                        navController.navigate(route) 
+                    }, theme, itemModifier)
                     // Remplissage si nécessaire
                     repeat(2) { Spacer(modifier = itemModifier) }
                 }

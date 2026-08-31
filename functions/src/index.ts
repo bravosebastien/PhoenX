@@ -14,7 +14,8 @@ import {
     generateDistractors,
     modifyBookChapter,
     generateGlobalIntro,
-    askAssistant
+    askAssistant,
+    checkPersonalityContent
 } from "./ai";
 
 import {
@@ -99,6 +100,7 @@ export {
     modifyBookChapter,
     generateGlobalIntro,
     askAssistant,
+    checkPersonalityContent,
 
     // Book
     getCreatorBookStatus,

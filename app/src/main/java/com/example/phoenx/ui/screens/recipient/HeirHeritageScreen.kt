@@ -179,6 +179,12 @@ fun HeirHeritageScreen(
                         // Navigation automatique vers le quiz du créateur (v8.5.9)
                         navController.navigate("quiz_play/$creatorId/main_quiz") 
                     }
+                    SpecialAccessCard(
+                        title = "Persos",
+                        icon = Icons.Default.Star,
+                        modifier = Modifier.weight(1f),
+                        theme = theme
+                    ) { navController.navigate(Screen.Personalities.createRoute(creatorId)) }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f), modifier = Modifier.padding(horizontal = 24.dp))

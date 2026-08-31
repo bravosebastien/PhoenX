@@ -19,6 +19,7 @@ import com.example.phoenx.ui.screens.book.BookReaderFlowScreen
 import com.example.phoenx.ui.screens.preview.*
 import com.example.phoenx.ui.util.NavigationAnimations
 import com.example.phoenx.ui.theme.TransmissionTheme
+import com.google.firebase.auth.FirebaseAuth
 
 /**
  * PreviewGraph (v9.4.27)
@@ -46,8 +47,30 @@ fun NavGraphBuilder.previewGraph(
             onNavigateToMedia = { type -> navController.navigate(Screen.Preview.Media.createRoute(type, recipientUid)) },
             onNavigateToBook = { navController.navigate(Screen.Preview.Book.createRoute(recipientUid)) },
             onNavigateToVault = { navController.navigate(Screen.Preview.Vault.createRoute(recipientUid)) },
-            onNavigateToGenealogy = { navController.navigate(Screen.Preview.Genealogy.createRoute(recipientUid)) }
+            onNavigateToGenealogy = { navController.navigate(Screen.Preview.Genealogy.createRoute(recipientUid)) },
+            onNavigateToPersonalities = { navController.navigate(Screen.Preview.Personalities.createRoute(recipientUid)) }
         )
+    }
+
+    composable(
+        route = Screen.Preview.Personalities.route,
+        arguments = listOf(navArgument("recipientUid") { type = NavType.StringType }),
+        enterTransition = { NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { NavigationAnimations.getPopExitTransition(this) }
+    ) { backStackEntry ->
+        val recipientUid = backStackEntry.arguments?.getString("recipientUid") ?: ""
+        val viewModel: PreviewViewModel = hiltViewModel()
+        val state by viewModel.state.collectAsState()
+
+        TransmissionTheme(backgroundId = state.ambiance.backgroundId, fontId = state.ambiance.fontId) {
+            com.example.phoenx.ui.screens.personalities.PersonalitiesScreen(
+                navController = navController,
+                targetCreatorId = FirebaseAuth.getInstance().currentUser?.uid, // En mode aperçu, le créateur est soi-même
+                heirKey = null // Pas de chiffrement pour les personnalités
+            )
+        }
     }
 
     composable(
