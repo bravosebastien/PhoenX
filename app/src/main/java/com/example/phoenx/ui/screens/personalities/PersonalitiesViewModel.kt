@@ -24,7 +24,7 @@ class PersonalitiesViewModel @Inject constructor(
     private val functions: FirebaseFunctions
 ) : ViewModel() {
 
-    private val _targetCreatorId = MutableStateFlow<String?>(null)
+    private val _targetCreatorId = MutableStateFlow<String?>(auth.currentUser?.uid) // v9.7.3 : Initialisation avec UID propre
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
 
     private val _remotePersonalities = MutableStateFlow<List<PersonalityEntity>>(emptyList())
@@ -100,6 +100,7 @@ class PersonalitiesViewModel @Inject constructor(
 
     fun addMedia(personalityId: String, file: java.io.File) {
         viewModelScope.launch {
+            android.util.Log.d("PHOENX_PERSO_DB", "ÉCRITURE MÉDIA: parent=$personalityId, path=${file.name}")
             val entity = PersonalityMediaEntity(
                 id = UUID.randomUUID().toString(),
                 personalityId = personalityId,
@@ -132,17 +133,24 @@ class PersonalitiesViewModel @Inject constructor(
 
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
     fun getMediaForPersonality(personalityId: String): Flow<List<PersonalityMediaEntity>> {
+        android.util.Log.d("PHOENX_PERSO_TRACE", "getMediaForPersonality appelé pour ID: $personalityId")
         return _targetCreatorId.flatMapLatest { targetId ->
-            if (targetId == null || targetId == auth.currentUser?.uid) {
-                personalityDao.getMediaForPersonality(personalityId)
+            val isHeir = targetId != null && targetId != auth.currentUser?.uid
+            android.util.Log.d("PHOENX_PERSO_TRACE", "Résolution flux média: isHeir=$isHeir, targetId=$targetId")
+            
+            if (!isHeir) {
+                personalityDao.getMediaForPersonality(personalityId).onEach { 
+                    android.util.Log.d("PHOENX_PERSO_TRACE", "Données locales reçues: ${it.size} items")
+                }
             } else {
                 // Load from Firestore
                 callbackFlow {
-                    val listener = firestore.collection("users").document(targetId)
+                    android.util.Log.d("PHOENX_PERSO_TRACE", "Ouverture SnapshotListener Firestore pour média")
+                    val listener = firestore.collection("users").document(targetId!!)
                         .collection("personalities").document(personalityId)
                         .collection("media").addSnapshotListener { snapshot, error ->
                             if (error != null) {
-                                android.util.Log.e("PersonalitiesVM", "Error listening to media", error)
+                                android.util.Log.e("PHOENX_PERSO_TRACE", "Erreur SnapshotListener", error)
                                 return@addSnapshotListener
                             }
                             val list = snapshot?.documents?.mapNotNull { doc ->
@@ -153,6 +161,7 @@ class PersonalitiesViewModel @Inject constructor(
                                     syncStatus = "synced"
                                 )
                             } ?: emptyList()
+                            android.util.Log.d("PHOENX_PERSO_TRACE", "Données distantes reçues: ${list.size} items")
                             trySend(list)
                         }
                     awaitClose { listener.remove() }

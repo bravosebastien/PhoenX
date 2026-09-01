@@ -17,7 +17,7 @@ interface PersonalityDao {
     @Query("SELECT * FROM personalities WHERE id = :id")
     suspend fun getPersonalityByIdSync(id: String): PersonalityEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert // v9.7.3 : Remplace @Insert(REPLACE) pour éviter DELETE CASCADE
     suspend fun insertPersonality(personality: PersonalityEntity)
 
     @Delete
@@ -30,7 +30,7 @@ interface PersonalityDao {
     @Query("SELECT * FROM personality_media WHERE personalityId = :personalityId ORDER BY capturedAt ASC")
     fun getMediaForPersonality(personalityId: String): Flow<List<PersonalityMediaEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert // v9.7.3 : Plus robuste
     suspend fun insertMedia(media: PersonalityMediaEntity)
 
     @Delete

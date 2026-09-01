@@ -49,8 +49,15 @@ fun PersonalityDetailScreen(
     val accent = theme.accentColor
     val personality by viewModel.personalities.collectAsState()
     val item = personality.find { it.id == personalityId }
-    val mediaList by viewModel.getMediaForPersonality(personalityId).collectAsState(initial = emptyList())
+    
+    // v9.7.2 : Correction Bug 2 - Utilisation de remember pour éviter la recréation du Flow
+    val mediaList by remember(personalityId) { 
+        viewModel.getMediaForPersonality(personalityId) 
+    }.collectAsState(initial = emptyList())
+
     val context = LocalContext.current
+
+    android.util.Log.d("PHOENX_PERSO_UI", "Détail Personnalité ouvert. ID reçu: $personalityId")
 
     var readingMode by remember { mutableStateOf<String?>(null) } // "BIO" | "COMMENT"
 
@@ -196,22 +203,32 @@ fun PersonalityDetailScreen(
                         )
                     }
 
-                    // Petite Galerie (v9.7.1 : Plus robuste et scrollable si besoin)
+                    // Petite Galerie (v9.7.2 : Logs de diagnostic et rendu forcé)
+                    android.util.Log.d("PHOENX_PERSO_UI", "Rendu Galerie: ${mediaList.size} items trouvés pour $personalityId")
+                    
                     if (mediaList.isNotEmpty()) {
                         Spacer(Modifier.height(32.dp))
                         SectionHeader(title = "GALERIE PHOTOS")
                         Spacer(Modifier.height(16.dp))
                         
                         androidx.compose.foundation.lazy.LazyRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp), // Hauteur fixe pour garantir la visibilité
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
-                            items(mediaList) { media ->
+                            items(
+                                items = mediaList,
+                                key = { it.id } // Clé unique pour aider Compose
+                            ) { media ->
                                 Box(
                                     modifier = Modifier
                                         .size(100.dp)
                                         .clip(RoundedCornerShape(8.dp))
+                                        .background(theme.contentColor.copy(alpha = 0.05f))
                                         .clickable {
+                                            android.util.Log.d("PHOENX_PERSO_UI", "Clic photo: ${media.id}")
                                             navController.navigate(
                                                 com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(
                                                     entryId = media.id,
@@ -220,7 +237,7 @@ fun PersonalityDetailScreen(
                                                     entryType = "PHOTO",
                                                     aiSummary = "Photo de ${item.name}",
                                                     sourceDocType = "personalityMedia",
-                                                    personId = item.id,
+                                                    personId = personalityId, // Correction: on passe l'ID de la personnalité parente
                                                     isEncrypted = false
                                                 )
                                             )
@@ -233,7 +250,7 @@ fun PersonalityDetailScreen(
                                         explicitKey = heirKey,
                                         docType = "personalityMedia",
                                         docId = media.id,
-                                        personId = item.id, // v9.7.1
+                                        personId = personalityId, // Correction
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop,
                                         isEncrypted = false
