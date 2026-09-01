@@ -99,8 +99,6 @@ service cloud.firestore {
           (userId + '_recipient') in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.myRoles &&
           resource.data.get("visibility", "PUBLIC") != "PRIVATE"
         ));
-
-        }
       }
 
       // ═══ PERSONALITIES — Tiroir dédié v9.7.0 ═══

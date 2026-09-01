@@ -213,89 +213,97 @@ class InitialSyncWorker @AssistedInject constructor(
             }
 
             // ═══ 6. RÉCUPÉRATION DES PERSONNALITÉS (v9.7.0 + Mirroring) ═══
-            val localPersonalities = personalityDao.getAllPersonalities().first()
-            val syncedLocalPersoIds = localPersonalities.filter { it.syncStatus == "synced" }.map { it.id }.toSet()
+            android.util.Log.d("PHOENX_SYNC_PERSO", "InitialSyncWorker: Démarrage sync personnalités")
+            try {
+                val localPersonalities = personalityDao.getAllPersonalities().first()
+                val syncedLocalPersoIds = localPersonalities.filter { it.syncStatus == "synced" }.map { it.id }.toSet()
 
-            val personalitiesSnapshot = db.collection("users").document(userId)
-                .collection("personalities")
-                .get()
-                .await()
+                val personalitiesSnapshot = db.collection("users").document(userId)
+                    .collection("personalities")
+                    .get()
+                    .await()
 
-            if (personalitiesSnapshot != null) {
-                val remotePersoDocs = personalitiesSnapshot.documents
-                val remotePersoIds = remotePersoDocs.map { it.id }.toSet()
+                if (personalitiesSnapshot != null) {
+                    val remotePersoDocs = personalitiesSnapshot.documents
+                    val remotePersoIds = remotePersoDocs.map { it.id }.toSet()
+                    android.util.Log.d("PHOENX_SYNC_PERSO", "InitialSyncWorker: ${remotePersoDocs.size} personnalités trouvées sur Firestore")
 
-                remotePersoDocs.forEach { doc ->
-                    val mainPhotoUrl = doc.getString("mainPhotoPath")
-                    var finalLocalPath: String? = null
-                    
-                    if (!mainPhotoUrl.isNullOrBlank()) {
-                        try {
-                            val persoDir = File(appContext.filesDir, "personalities")
-                            if (!persoDir.exists()) persoDir.mkdirs()
-                            val destFile = File(persoDir, "main_${doc.id}.jpg")
-                            mediaManager.downloadCameo(mainPhotoUrl, destFile)
-                            finalLocalPath = destFile.absolutePath
-                        } catch (e: Exception) {
-                            android.util.Log.e("InitialSyncWorker", "Erreur download main photo pour perso ${doc.id}")
+                    remotePersoDocs.forEach { doc ->
+                        val mainPhotoUrl = doc.getString("mainPhotoPath")
+                        var finalLocalPath: String? = null
+                        
+                        if (!mainPhotoUrl.isNullOrBlank()) {
+                            try {
+                                val persoDir = File(appContext.filesDir, "personalities")
+                                if (!persoDir.exists()) persoDir.mkdirs()
+                                val destFile = File(persoDir, "main_${doc.id}.jpg")
+                                mediaManager.downloadCameo(mainPhotoUrl, destFile)
+                                finalLocalPath = destFile.absolutePath
+                            } catch (e: Exception) {
+                                android.util.Log.e("PHOENX_SYNC_PERSO", "InitialSyncWorker: Erreur download main photo pour perso ${doc.id}", e)
+                            }
+                        }
+
+                        val entity = PersonalityEntity(
+                            id = doc.id,
+                            name = doc.getString("name") ?: "",
+                            category = doc.getString("category") ?: "Autre",
+                            customCategoryLabel = doc.getString("customCategoryLabel"),
+                            mainPhotoPath = finalLocalPath ?: mainPhotoUrl ?: "",
+                            biography = doc.getString("biography") ?: "",
+                            personalComment = doc.getString("personalComment") ?: "",
+                            createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
+                            syncStatus = "synced"
+                        )
+                        personalityDao.insertPersonality(entity)
+                        android.util.Log.d("PHOENX_SYNC_PERSO", "InitialSyncWorker: Personnalité insérée/mise à jour dans Room: ${entity.name}")
+
+                        // Synchronisation de la galerie media
+                        val mediaSnapshot = db.collection("users").document(userId)
+                            .collection("personalities").document(doc.id)
+                            .collection("media")
+                            .get()
+                            .await()
+                        
+                        if (mediaSnapshot != null) {
+                            val remoteMediaIds = mediaSnapshot.documents.map { it.id }.toSet()
+                            mediaSnapshot.documents.forEach { mediaDoc ->
+                                val mediaEntity = PersonalityMediaEntity(
+                                    id = mediaDoc.id,
+                                    personalityId = doc.id,
+                                    mediaPath = mediaDoc.getString("mediaPath") ?: "",
+                                    capturedAt = mediaDoc.getLong("capturedAt") ?: System.currentTimeMillis(),
+                                    syncStatus = "synced"
+                                )
+                                personalityDao.insertMedia(mediaEntity)
+                            }
+
+                            // Réconciliation galerie
+                            val localMedia = personalityDao.getMediaForPersonality(doc.id).first()
+                            localMedia.filter { it.syncStatus == "synced" }.forEach { local ->
+                                if (local.id !in remoteMediaIds) {
+                                    personalityDao.deleteMedia(local)
+                                }
+                            }
                         }
                     }
 
-                    val entity = PersonalityEntity(
-                        id = doc.id,
-                        name = doc.getString("name") ?: "",
-                        category = doc.getString("category") ?: "Autre",
-                        customCategoryLabel = doc.getString("customCategoryLabel"),
-                        mainPhotoPath = finalLocalPath ?: mainPhotoUrl ?: "",
-                        biography = doc.getString("biography") ?: "",
-                        personalComment = doc.getString("personalComment") ?: "",
-                        createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
-                        syncStatus = "synced"
-                    )
-                    personalityDao.insertPersonality(entity)
-
-                    // Synchronisation de la galerie media
-                    val mediaSnapshot = db.collection("users").document(userId)
-                        .collection("personalities").document(doc.id)
-                        .collection("media")
-                        .get()
-                        .await()
-                    
-                    if (mediaSnapshot != null) {
-                        val remoteMediaIds = mediaSnapshot.documents.map { it.id }.toSet()
-                        mediaSnapshot.documents.forEach { mediaDoc ->
-                            val mediaEntity = PersonalityMediaEntity(
-                                id = mediaDoc.id,
-                                personalityId = doc.id,
-                                mediaPath = mediaDoc.getString("mediaPath") ?: "",
-                                capturedAt = mediaDoc.getLong("capturedAt") ?: System.currentTimeMillis(),
-                                syncStatus = "synced"
-                            )
-                            personalityDao.insertMedia(mediaEntity)
-                        }
-
-                        // Réconciliation galerie
-                        val localMedia = personalityDao.getMediaForPersonality(doc.id).first()
-                        localMedia.filter { it.syncStatus == "synced" }.forEach { local ->
-                            if (local.id !in remoteMediaIds) {
-                                personalityDao.deleteMedia(local)
+                    // Réconciliation personnalités
+                    syncedLocalPersoIds.forEach { localId ->
+                        if (localId !in remotePersoIds) {
+                            localPersonalities.find { it.id == localId }?.let {
+                                personalityDao.deletePersonality(it)
                             }
                         }
                     }
                 }
-
-                // Réconciliation personnalités
-                syncedLocalPersoIds.forEach { localId ->
-                    if (localId !in remotePersoIds) {
-                        localPersonalities.find { it.id == localId }?.let {
-                            personalityDao.deletePersonality(it)
-                        }
-                    }
-                }
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_SYNC_PERSO", "InitialSyncWorker: ÉCHEC bloc personnalités", e)
             }
 
             Result.success()
         } catch (e: Exception) {
+            android.util.Log.e("PHOENX_SYNC_PERSO", "InitialSyncWorker: ERREUR CRITIQUE", e)
             Result.retry()
         }
     }

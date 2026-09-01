@@ -162,6 +162,57 @@ fun BookEditorScreen(
                         
                         Spacer(Modifier.width(12.dp))
                         
+                        // MENU ACTIONS (v9.7.4 : Annuler régénération)
+                        val hasBackup by viewModel.hasBackup.collectAsState()
+                        var showActionMenu by remember { mutableStateOf(false) }
+                        var showRestoreConfirm by remember { mutableStateOf(false) }
+
+                        if (bookDraft != null) {
+                            Box {
+                                IconButton(onClick = { showActionMenu = true }) {
+                                    Icon(Icons.Default.MoreVert, null, tint = theme.contentColor.copy(alpha = 0.6f))
+                                }
+                                DropdownMenu(
+                                    expanded = showActionMenu,
+                                    onDismissRequest = { showActionMenu = false },
+                                    containerColor = theme.backgroundColor
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Annuler la dernière régénération", color = if (hasBackup) theme.contentColor else theme.contentColor.copy(alpha = 0.3f)) },
+                                        leadingIcon = { Icon(Icons.Default.History, null, tint = if (hasBackup) accent else theme.contentColor.copy(alpha = 0.3f)) },
+                                        enabled = hasBackup,
+                                        onClick = {
+                                            showActionMenu = false
+                                            showRestoreConfirm = true
+                                        }
+                                    )
+                                }
+                            }
+
+                            if (showRestoreConfirm) {
+                                AlertDialog(
+                                    onDismissRequest = { showRestoreConfirm = false },
+                                    containerColor = theme.backgroundColor,
+                                    title = { Text("Restaurer la version précédente ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                                    text = { Text("Le contenu actuel sera remplacé par celui d'avant ta dernière régénération complète. Cette action est définitive.", color = theme.contentColor.copy(alpha = 0.7f)) },
+                                    confirmButton = {
+                                        Button(
+                                            onClick = {
+                                                showRestoreConfirm = false
+                                                viewModel.restoreBackup()
+                                            },
+                                            colors = ButtonDefaults.buttonColors(containerColor = accent)
+                                        ) { Text("Restaurer", color = theme.backgroundColor) }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = { showRestoreConfirm = false }) {
+                                            Text("Annuler", color = theme.contentColor)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
                         InfoButton(
                             title = "Le Livre de Ma Vie",
                             points = listOf(
@@ -584,7 +635,7 @@ fun BookEditorScreen(
                 onDismissRequest = { showRegenerateConfirm = false },
                 containerColor = theme.backgroundColor,
                 title = { Text("Réécrire tout le livre ?", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
-                text = { Text("L'IA va reprendre l'ensemble de vos souvenirs pour créer un nouveau manuscrit. Vos modifications actuelles seront remplacées.", color = theme.contentColor.copy(alpha = 0.7f)) },
+                text = { Text("Cette action va réécrire l'intégralité de tes chapitres. Le contenu actuel sera remplacé.\n\nSi tu veux seulement ajuster un chapitre précis (par exemple changer le ton), utilise plutôt 'Demander à l'IA' directement dans ce chapitre.", color = theme.contentColor.copy(alpha = 0.7f)) },
                 confirmButton = {
                     Button(
                         onClick = { 
@@ -593,7 +644,7 @@ fun BookEditorScreen(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = accent),
                         modifier = Modifier.phoenXMatiere()
-                    ) { Text("Confirmer", color = theme.backgroundColor, fontWeight = FontWeight.Bold) }
+                    ) { Text("Continuer et régénérer tout", color = theme.backgroundColor, fontWeight = FontWeight.Bold) }
                 },
                 dismissButton = {
                     TextButton(onClick = { showRegenerateConfirm = false }) {

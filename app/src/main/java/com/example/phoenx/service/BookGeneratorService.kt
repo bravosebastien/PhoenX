@@ -362,6 +362,13 @@ class BookGeneratorService @Inject constructor(
 
         onProgress("Chiffrement et sécurisation...")
 
+        // v9.7.4 : SAUVEGARDE AUTOMATIQUE AVANT RÉÉCRITURE
+        try {
+            backupCurrentDraft(userId)
+        } catch (e: Exception) {
+            android.util.Log.e("PHOENX_BOOK", "Échec sauvegarde backup avant régénération", e)
+        }
+
         // 1. GÉNÉRATION D'UNE CLÉ DÉDIÉE AU LIVRE (Pour transmission future)
         val bookKey = encryptionManager.generateNewSessionKey()
         val bookKeyBase64 = android.util.Base64.encodeToString(bookKey, android.util.Base64.NO_WRAP)
@@ -490,5 +497,55 @@ class BookGeneratorService @Inject constructor(
             .await()
         val response = result.data as Map<*, *>
         return response["content"] as String
+    }
+
+    // --- v9.7.4 : SÉCURITÉ RÉGÉNÉRATION (BACKUP & RESTORE) ---
+
+    suspend fun hasBackup(userId: String): Boolean {
+        return try {
+            val doc = db.collection("users").document(userId)
+                .collection("book").document("backup_draft").get().await()
+            doc.exists()
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    private suspend fun backupCurrentDraft(userId: String) {
+        val currentDoc = db.collection("users").document(userId)
+            .collection("book").document("current_draft").get().await()
+        
+        if (currentDoc.exists()) {
+            val data = currentDoc.data ?: return
+            db.collection("users").document(userId)
+                .collection("book").document("backup_draft")
+                .set(data)
+                .await()
+            android.util.Log.d("PHOENX_BOOK", "Backup du manuscrit actuel créé.")
+        }
+    }
+
+    suspend fun restoreFromBackup(userId: String) {
+        val backupDoc = db.collection("users").document(userId)
+            .collection("book").document("backup_draft").get().await()
+        
+        if (backupDoc.exists()) {
+            val data = backupDoc.data ?: return
+            // 1. Restaurer vers current_draft
+            db.collection("users").document(userId)
+                .collection("book").document("current_draft")
+                .set(data)
+                .await()
+            
+            // 2. Supprimer le backup
+            db.collection("users").document(userId)
+                .collection("book").document("backup_draft")
+                .delete()
+                .await()
+            
+            android.util.Log.d("PHOENX_BOOK", "Restauration depuis backup réussie.")
+        } else {
+            throw Exception("Aucune sauvegarde disponible à restaurer.")
+        }
     }
 }

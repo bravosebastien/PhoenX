@@ -24,8 +24,15 @@ class PersonalitiesViewModel @Inject constructor(
     private val functions: FirebaseFunctions
 ) : ViewModel() {
 
-    private val _targetCreatorId = MutableStateFlow<String?>(auth.currentUser?.uid) // v9.7.3 : Initialisation avec UID propre
+    private val _targetCreatorId = MutableStateFlow<String?>(null)
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
+
+    init {
+        // v9.7.4 : Initialisation réactive de l'UID
+        viewModelScope.launch {
+            _targetCreatorId.value = auth.currentUser?.uid
+        }
+    }
 
     private val _remotePersonalities = MutableStateFlow<List<PersonalityEntity>>(emptyList())
 
@@ -34,7 +41,9 @@ class PersonalitiesViewModel @Inject constructor(
         personalityDao.getAllPersonalities(),
         _remotePersonalities
     ) { targetId, local, remote ->
-        if (targetId == null || targetId == auth.currentUser?.uid) local else remote
+        val list = if (targetId == null || targetId == auth.currentUser?.uid) local else remote
+        android.util.Log.d("PHOENX_SYNC_PERSO", "PersonalitiesViewModel: Lecture des données (${list.size} items)")
+        list
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _categoryFilter = MutableStateFlow<String?>(null)

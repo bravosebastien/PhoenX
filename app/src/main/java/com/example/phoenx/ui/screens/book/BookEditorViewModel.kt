@@ -71,6 +71,9 @@ class BookEditorViewModel @Inject constructor(
     private val _saveSuccess = MutableStateFlow(false)
     val saveSuccess: StateFlow<Boolean> = _saveSuccess
 
+    private val _hasBackup = MutableStateFlow(false) // v9.7.4
+    val hasBackup: StateFlow<Boolean> = _hasBackup.asStateFlow()
+
     // AMBIANCE GLOBALE v9.4.27
     private val _globalAmbiance = MutableStateFlow(com.example.phoenx.ui.screens.recipient.AmbianceState())
     val globalAmbiance: StateFlow<com.example.phoenx.ui.screens.recipient.AmbianceState> = _globalAmbiance.asStateFlow()
@@ -151,6 +154,26 @@ class BookEditorViewModel @Inject constructor(
             } else {
                 _bookDraft.value = null
             }
+
+            // v9.7.4 : Vérifier l'existence d'un backup
+            _hasBackup.value = bookService.hasBackup(userId)
+        }
+    }
+
+    fun restoreBackup() {
+        viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
+            _isSaving.value = true
+            try {
+                bookService.restoreFromBackup(userId)
+                loadExistingBook() // Recharge tout
+                _hasBackup.value = false // Backup consommé
+                triggerSuccess()
+            } catch (e: Exception) {
+                _error.value = e.message
+            } finally {
+                _isSaving.value = false
+            }
         }
     }
 
@@ -172,6 +195,9 @@ class BookEditorViewModel @Inject constructor(
                 }
                 _bookDraft.value = draft
                 decryptAllChapters(userId, draft)
+                
+                // v9.7.4 : Mettre à jour l'état du backup
+                _hasBackup.value = bookService.hasBackup(userId)
             } catch (e: Exception) {
                 _error.value = e.message ?: "Erreur lors de la génération."
             } finally {

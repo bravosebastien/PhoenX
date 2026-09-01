@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.example.phoenx.service.SilenceManager
 import com.example.phoenx.service.SilenceStatus
 import com.example.phoenx.ui.theme.AccentPrimary
+import com.example.phoenx.ui.theme.BackgroundPrimary
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.PhoenXDatabase
@@ -60,6 +61,7 @@ class MainViewModel @Inject constructor(
 
     private var userListener: ListenerRegistration? = null
     private var invitationListener: ListenerRegistration? = null
+    private var personalitiesListener: ListenerRegistration? = null // v9.7.4
 
     private val _silenceStatus = MutableStateFlow<SilenceStatus?>(null)
     val silenceStatus: StateFlow<SilenceStatus?> = _silenceStatus.asStateFlow()
@@ -77,16 +79,13 @@ class MainViewModel @Inject constructor(
 
     fun switchPerspective(perspective: Perspective) {
         android.util.Log.d("PerspectiveDebug", "MainViewModel: switchPerspective requested to $perspective")
-        val startTime = System.currentTimeMillis()
         _currentPerspective.value = perspective
-        val endTime = System.currentTimeMillis()
-        android.util.Log.d("PerspectiveDebug", "MainViewModel: _currentPerspective updated in ${endTime - startTime}ms")
     }
 
     private val _myRoles = MutableStateFlow<Map<String, UserRole>>(emptyMap())
     val myRoles: StateFlow<Map<String, UserRole>> = _myRoles.asStateFlow()
 
-    private val _pendingInvitations = MutableStateFlow<List<PendingInvitation>>(emptyMap<String, Any>().values.toList().filterIsInstance<PendingInvitation>()) // Initialisation typée vide
+    private val _pendingInvitations = MutableStateFlow<List<PendingInvitation>>(emptyList())
     val pendingInvitations: StateFlow<List<PendingInvitation>> = _pendingInvitations.asStateFlow()
 
     data class PendingInvitation(
@@ -100,20 +99,19 @@ class MainViewModel @Inject constructor(
     val isDepositaryAccount: StateFlow<Boolean?> = _isDepositaryAccount.asStateFlow()
 
     private val _protectedCreatorIds = MutableStateFlow<List<String>>(emptyList())
-    val firstProtectedCreatorId: StateFlow<String?> = _protectedCreatorIds
-        .map { it.firstOrNull() }
+    val firstProtectedCreatorId: StateFlow<String?> = _protectedCreatorIds.map { it.firstOrNull() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _daysSinceLastCheckIn = MutableStateFlow(0)
     val daysSinceLastCheckIn: StateFlow<Int> = _daysSinceLastCheckIn.asStateFlow()
-    
+
     val isSilenceOnboardingDone: StateFlow<Boolean?> = preferenceManager.isSilenceOnboardingDone
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     private val _silenceRhythmDays = MutableStateFlow(30)
     val silenceRhythmDays: StateFlow<Int> = _silenceRhythmDays.asStateFlow()
 
-    private val _userName = MutableStateFlow("")
+    private val _userName = MutableStateFlow("Ami")
     val userName: StateFlow<String> = _userName.asStateFlow()
 
     private val _userEmail = MutableStateFlow("")
@@ -122,7 +120,6 @@ class MainViewModel @Inject constructor(
     private val _photoUrl = MutableStateFlow<String?>(null)
     val photoUrl: StateFlow<String?> = _photoUrl.asStateFlow()
 
-    // AMBIANCE DE TRANSMISSION GLOBALE v9.4.27
     private val _transmissionBackgroundId = MutableStateFlow("classic_ivory")
     val transmissionBackgroundId: StateFlow<String> = _transmissionBackgroundId.asStateFlow()
 
@@ -134,63 +131,45 @@ class MainViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), AccentPrimary.toArgb())
 
     val backgroundColor: StateFlow<Int> = preferenceManager.backgroundColor
-        .map { it ?: 0xFF00FFFF.toInt() } // Néon par défaut pour le fond (selon XML)
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0xFF00FFFF.toInt())
+        .map { it ?: BackgroundPrimary.toArgb() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BackgroundPrimary.toArgb())
 
     val backgroundStyle: StateFlow<String> = preferenceManager.backgroundStyle
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "RADIAL")
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "SOLID")
 
     val isVoiceModeActive: StateFlow<Boolean> = preferenceManager.isVoiceModeActive
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
-    
+
     init {
-        checkInactivity()
-        val userId = auth.currentUser?.uid
-        if (userId != null) {
-            checkSilenceOnLaunch(userId)
+        val user = auth.currentUser
+        if (user != null) {
+            checkSilenceOnLaunch(user.uid)
         }
     }
 
     fun setAccentColor(color: Int) {
-        viewModelScope.launch {
-            preferenceManager.setAccentColor(color)
-        }
+        viewModelScope.launch { preferenceManager.setAccentColor(color) }
     }
 
     fun setBackgroundColor(color: Int) {
-        viewModelScope.launch {
-            preferenceManager.setBackgroundColor(color)
-        }
+        viewModelScope.launch { preferenceManager.setBackgroundColor(color) }
     }
 
     fun setBackgroundStyle(style: String) {
-        viewModelScope.launch {
-            preferenceManager.setBackgroundStyle(style)
-        }
+        viewModelScope.launch { preferenceManager.setBackgroundStyle(style) }
     }
 
     fun logout() {
         viewModelScope.launch {
-            auth.signOut()
-            encryptionManager.setSessionKey(null)
-            
-            // Détachement des écouteurs temps réel
             userListener?.remove()
-            userListener = null
             invitationListener?.remove()
-            invitationListener = null
+            personalitiesListener?.remove()
 
+            auth.signOut()
             _isCreator.value = null
             _myRoles.value = emptyMap()
-            _pendingInvitations.value = emptyList()
             _protectedCreatorIds.value = emptyList()
-            _isDepositaryAccount.value = null
-            _silenceStatus.value = null
-            
-            // Nettoyage de la base de données Room pour éviter les données résiduelles
-            withContext(Dispatchers.IO) {
-                database.clearAllTables()
-            }
+            _currentPerspective.value = Perspective.MY_MEMORY
         }
     }
 
@@ -198,212 +177,54 @@ class MainViewModel @Inject constructor(
         super.onCleared()
         userListener?.remove()
         invitationListener?.remove()
+        personalitiesListener?.remove()
     }
 
     fun checkSilenceOnLaunch(userId: String) {
-        // --- RÉPARATIONS V20+ (ADN 5.0) ---
-        // S'exécute UNE SEULE FOIS au démarrage de la session
         viewModelScope.launch(Dispatchers.IO) {
             if (isRepairCompleted) return@launch
             repairMutex.withLock {
                 if (isRepairCompleted) return@launch
-                
                 try {
                     val userDoc = db.collection("users").document(userId).get().await()
+                    database.offlineEntryDao().repairEmptyCreatorUids(userId)
                     
-                    // 1. Réparation creatorUid
-                    val countUid = database.offlineEntryDao().repairEmptyCreatorUids(userId)
-                    if (countUid > 0) android.util.Log.d("PHOENX_V20", "$countUid souvenirs réparés pour l'UID $userId")
-
-                    // 2. Réparation Enigmes (Hachage auto de l'existant en clair) - v8.3
-                    val allEntries = database.offlineEntryDao().getAllEntriesSync()
-                    var repairCount = 0
-                    allEntries.forEach { entry ->
-                        var updatedEntry = entry
-                        var needsUpdate = false
-                        
-                        if (!entry.enigmaAnswer.isNullOrBlank() && !com.example.phoenx.domain.util.EnigmaUtils.isAlreadyHashed(entry.enigmaAnswer)) {
-                            updatedEntry = updatedEntry.copy(enigmaAnswer = com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(entry.enigmaAnswer))
-                            needsUpdate = true
-                        }
-                        
-                        if (!entry.fallbackAnswer.isNullOrBlank() && !com.example.phoenx.domain.util.EnigmaUtils.isAlreadyHashed(entry.fallbackAnswer)) {
-                            updatedEntry = updatedEntry.copy(fallbackAnswer = com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(entry.fallbackAnswer))
-                            needsUpdate = true
-                        }
-
-                        if (needsUpdate) {
-                            database.offlineEntryDao().insertEntry(updatedEntry.copy(syncStatus = "pending"))
-                            repairCount++
-                        }
-                    }
-                    if (repairCount > 0) android.util.Log.d("PHOENX_V8.3", "$repairCount énigmes sécurisées et marquées pour re-sync.")
-
-                    // 3. SYNCHRONISATION DES CLÉS (v9.5.1 : Bouclier de Sécurité Radical)
-                    val localRsaRaw = encryptionManager.ensureRsaKeyPairExists()
-                    val cloudRsaRaw = userDoc.getString("publicEncryptionKey") ?: ""
-                    
-                    val getFingerprint = { s: String -> 
-                        val bytes = MessageDigest.getInstance("SHA-256").digest(s.replace("\\s".toRegex(), "").toByteArray())
-                        bytes.joinToString("") { "%02x".format(it) }.take(16)
-                    }
-
-                    val localFP = getFingerprint(localRsaRaw)
-                    val cloudFP = getFingerprint(cloudRsaRaw)
-                    val areRsaEqual = localFP == cloudFP
-                    
-                    android.util.Log.e("PHOENX_LOOP", "RSA SECURITY AUDIT [Thread:${Thread.currentThread().id}]")
-                    android.util.Log.e("PHOENX_LOOP", "Fingerprint Local: $localFP")
-                    android.util.Log.e("PHOENX_LOOP", "Fingerprint Cloud: $cloudFP")
-                    android.util.Log.e("PHOENX_LOOP", "Comparison (Normalized SHA-256): areEqual=$areRsaEqual")
-
-                    if (!areRsaEqual) {
-                        // ÉCRITURE DÉSACTIVÉE PAR SÉCURITÉ (v9.5.1)
-                        android.util.Log.e("PHOENX_LOOP", "!!! ALERT: RSA DISCREPANCY DETECTED - WRITE SHIELD ACTIVE !!!")
-                        // db.collection("users").document(userId).update("publicEncryptionKey", localRsaRaw).await()
-                    }
-
-                    // 4. CLASSIFICATION INTELLIGENTE DES PERSONNES v9.5.0 (Lot 1 Rencontres)
-                    val persons = database.offlineEntryDao().getAllPersonsSync()
-                    val personMedia = database.personMediaDao().getAllMediaSync()
-                    val parentIdsInTree = persons.flatMap { p -> p.parentIds.split(",").filter { it.isNotBlank() } }.toSet()
-                    val personIdsWithMedia = personMedia.map { it.personId }.toSet()
-
-                    var classifiedCount = 0
-                    persons.forEach { person ->
-                        // v9.6.0 : On ne touche JAMAIS à une personne qui est déjà marquée comme Rencontre
-                        if (person.categories.contains(",ENCOUNTER,")) return@forEach
-
-                        // Si la personne n'a pas encore de catégorie propre au nouveau système
-                        if (person.categories == ",FAMILY," || person.categories.isBlank()) {
-                            val hasParents = person.parentIds.isNotBlank()
-                            val isParent = parentIdsInTree.contains(person.id)
-                            val hasHardTreeAttributes = person.isDeceased || 
-                                                person.isReparented || 
-                                                !person.reparentedRelationLabel.isNullOrBlank()
-
-                            // On ne reclasse en FAMILY que sur des preuves structurelles (lignées)
-                            // La biographie et les médias sont désormais exclus car ambigus (Rencontres)
-                            if (hasParents || isParent || hasHardTreeAttributes) {
-                                // On s'assure qu'elle est bien classée FAMILY
-                                val updated = person.copy(categories = ",FAMILY,")
-                                if (updated != person) {
-                                    database.offlineEntryDao().upsertPerson(updated)
-                                    classifiedCount++
-                                }
-                            }
-                        }
-                    }
-                    if (classifiedCount > 0) android.util.Log.d("PHOENX_MIGRATION", "$classifiedCount personnes classées en FAMILY.")
-
-                    // 5. VÉRIFICATION DE L'INTÉGRITÉ DE LA CLÉ PRIVÉE (v9.5.1)
-                    // Test de déchiffrement sur un témoignage existant
-                    val witnesses = db.collection("users").document(userId).collection("witnesses").get().await()
-                    val testimonyDoc = witnesses.documents.find { it.getString("content") != null }
-                    
-                    if (testimonyDoc != null) {
-                        android.util.Log.e("PHOENX_LOOP", "Integrity Check: Witness testimony found. Attempting decryption...")
-                        val encryptedBase64 = testimonyDoc.getString("content")!!
-                        try {
-                            val encryptedBytes = android.util.Base64.decode(encryptedBase64, android.util.Base64.DEFAULT)
-                            val decrypted = encryptionManager.decryptWithPrivateKey(encryptedBytes)
-                            if (decrypted.isNotBlank()) {
-                                android.util.Log.e("PHOENX_LOOP", "Integrity Check: SUCCESS. Private key matches cloud public key.")
-                            } else {
-                                android.util.Log.e("PHOENX_LOOP", "Integrity Check: FAILURE. Decrypted content is empty.")
-                            }
-                        } catch (e: Exception) {
-                            android.util.Log.e("PHOENX_LOOP", "Integrity Check: CRITICAL FAILURE. Private key lost or corrupted.", e)
-                        }
-                    } else {
-                        android.util.Log.e("PHOENX_LOOP", "Integrity Check: No witness testimony found to verify private key.")
-                    }
-
-                    // B. Sync Clé Héritage (Miroir AES)
                     val aesKey = userDoc.getString("encryptionKey")
-                    if (aesKey != null) {
-                        ensureLegacyKey(userId, aesKey)
-                    }
+                    if (aesKey != null) ensureLegacyKey(userId, aesKey)
 
-                    // 5. RÉCUPÉRATION / MERGE (v8.9.9)
                     val syncRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
                     WorkManager.getInstance(context).enqueue(syncRequest)
                     
                     isRepairCompleted = true
+                    
+                    // v9.7.4 : Démarrage des écouteurs temps-réel pour le Créateur
+                    startPersonalitiesListener(userId)
                 } catch (e: Exception) {
-                    android.util.Log.e("MainViewModel", "Erreur lors des réparations au démarrage", e)
+                    android.util.Log.e("MainViewModel", "Error in repair/sync launch", e)
                 }
             }
         }
 
-        // Nettoyage de l'ancien écouteur si existant
         userListener?.remove()
-
         userListener = db.collection("users").document(userId).addSnapshotListener { doc, error ->
-            if (error != null || doc == null || !doc.exists()) {
-                android.util.Log.e("MainViewModel", "Erreur écoute profil", error)
-                return@addSnapshotListener
-            }
+            if (error != null || doc == null || !doc.exists()) return@addSnapshotListener
 
             val name = doc.getString("displayName") ?: doc.getString("email")?.substringBefore("@") ?: "Ami"
             _userName.value = name
             _userEmail.value = doc.getString("email") ?: ""
             _photoUrl.value = doc.getString("photoUrl")
 
-            // Ambiance de transmission globale (v9.4.27)
             val bgId = doc.getString("transmissionBackgroundId") ?: "classic_ivory"
             val fontId = doc.getString("transmissionFontId") ?: "playfair_display"
             
-            // v9.4.29 : Rétablissement de la synchronisation vers PreferenceManager (DataStore)
-            // Indispensable pour la réactivité immédiate du thème sur tous les écrans
             viewModelScope.launch {
-                val currentBg = preferenceManager.globalBackgroundId.first()
-                val currentFont = preferenceManager.globalFontId.first()
-                if (bgId != currentBg || fontId != currentFont) {
-                    android.util.Log.e("PHOENX_LOOP", "MainViewModel: setGlobalTheme from Firestore update (bg:$bgId, font:$fontId)")
-                    preferenceManager.setGlobalTheme(bgId, fontId)
-                }
-                
-                // On récupère aussi la couleur d'accentuation si présente dans appTheme
-                val appTheme = doc.get("appTheme") as? Map<*, *>
-                val remoteAccent = (appTheme?.get("accentColor") as? Number)?.toInt()
-                val currentAccent = preferenceManager.accentColor.first()
-                if (remoteAccent != null && remoteAccent != currentAccent) {
-                    android.util.Log.e("PHOENX_LOOP", "MainViewModel: setAccentColor from Firestore update (accent:$remoteAccent)")
-                    preferenceManager.setAccentColor(remoteAccent)
-                }
+                preferenceManager.setGlobalTheme(bgId, fontId)
             }
 
             _transmissionBackgroundId.value = bgId
             _transmissionFontId.value = fontId
 
-            // Mise à jour de la base locale si nécessaire (v9.4.27)
-            viewModelScope.launch(Dispatchers.IO) {
-                val currentProfile = database.offlineEntryDao().getCreatorProfileSync(userId)
-                if (currentProfile != null && (currentProfile.transmissionBackgroundId != bgId || currentProfile.transmissionFontId != fontId)) {
-                    database.offlineEntryDao().insertCreatorProfile(currentProfile.copy(
-                        transmissionBackgroundId = bgId,
-                        transmissionFontId = fontId,
-                        syncStatus = "synced" // Déjà sur le cloud
-                    ))
-                }
-            }
-
-            // --- 1. GESTION DES RÔLES ET MIGRATION (Restauration v7.2) ---
             val rolesData = doc.get("myRoles") as? Map<String, Any>
-            val legacyIds = doc.get("protectedCreatorIds") as? List<String> ?: emptyList()
-
-            // Si besoin, on déclenche la migration Firestore en arrière-plan
-            if (rolesData == null && legacyIds.isNotEmpty()) {
-                viewModelScope.launch {
-                    try {
-                        functions.getHttpsCallable("migrateLegacyRoles").call().await()
-                    } catch (e: Exception) {
-                        android.util.Log.e("MainViewModel", "Échec migration auto", e)
-                    }
-                }
-            }
-
             val parsedRoles = mutableMapOf<String, UserRole>()
             if (rolesData != null) {
                 rolesData.forEach { (key, value) ->
@@ -414,106 +235,107 @@ class MainViewModel @Inject constructor(
                         role = map["role"] as? String ?: "",
                         status = map["status"] as? String ?: "",
                         label = map["label"] as? String ?: "",
-                        photoUrl = map["creatorPhotoUrl"] as? String, // v9.2.2: Photo du Créateur
+                        photoUrl = map["creatorPhotoUrl"] as? String,
                         sourceId = map["sourceId"] as? String,
                         joinedAt = (map["joinedAt"] as? com.google.firebase.Timestamp)?.toDate()?.time
                     )
                 }
-            } else if (legacyIds.isNotEmpty()) {
-                // Fallback mémoire pendant la migration (v7.2 Resilience)
-                legacyIds.forEach { cId ->
-                    parsedRoles["${cId}_depositary"] = UserRole(creatorId = cId, role = "depositary", status = "active", label = "Gardien")
-                }
             }
             _myRoles.value = parsedRoles
 
-            // --- 2. DÉTERMINATION DU STATUT (v7.6 Résilient) ---
-            val isCreatorVal = if (doc.contains("isCreator")) {
-                doc.getBoolean("isCreator") == true
-            } else if (doc.contains("isDepositaryOnly")) {
-                doc.getBoolean("isDepositaryOnly") != true
-            } else {
-                parsedRoles.isEmpty() // true si rien, false si invité
-            }
-            
+            val isCreatorVal = doc.getBoolean("isCreator") ?: (parsedRoles.isEmpty())
             _isCreator.value = isCreatorVal
             _isDepositaryAccount.value = !isCreatorVal
-            _hasSeenBecomeCreatorPrompt.value = doc.getBoolean("hasSeenBecomeCreatorPrompt") ?: false
 
             if (isCreatorVal) {
                 viewModelScope.launch {
-                    val status = silenceManager.checkSilenceStatus(userId)
-                    _silenceStatus.value = status
-
-                    // Sync AES
+                    _silenceStatus.value = silenceManager.checkSilenceStatus(userId)
                     if (encryptionManager.getSessionKey() == null) {
                         doc.getString("encryptionKey")?.let {
                             encryptionManager.setSessionKey(android.util.Base64.decode(it, android.util.Base64.NO_WRAP))
                         }
                     }
                 }
-            } else {
-                parsedRoles.values.firstOrNull()?.let {
-                    _protectedCreatorIds.value = listOf(it.creatorId)
-                }
-            }
-
-            // --- 3. CONFIG ET STATS SILENCE (Restauration v7.5) ---
-            val silenceConfig = doc.get("silenceConfig") as? Map<*, *>
-            if (silenceConfig != null) {
-                // v8.9.9 : Synchronisation du flag local avec Firestore pour éviter le re-onboarding
-                viewModelScope.launch {
-                    preferenceManager.setSilenceOnboardingDone(true)
-                }
-                _silenceRhythmDays.value = (silenceConfig["rhythmDays"] as? Long)?.toInt() ?: 30
-                val lastCheckIn = silenceConfig["lastCheckInAt"] as? com.google.firebase.Timestamp
-                if (lastCheckIn != null) {
-                    val diff = System.currentTimeMillis() - lastCheckIn.toDate().time
-                    _daysSinceLastCheckIn.value = (diff / (1000 * 60 * 60 * 24)).toInt()
-                }
-            } else {
-                _silenceRhythmDays.value = 30
-            }
-
-            // --- 4. RADAR D'INVITATIONS (v7.6) ---
-            val userMail = doc.getString("email")
-            if (userMail != null) {
-                // Nettoyage de l'ancien radar si existant (ex: changement d'email ou re-lancement)
-                invitationListener?.remove()
-
-                invitationListener = db.collection("invitations")
-                    .whereEqualTo("email", userMail.lowercase())
-                    .whereEqualTo("used", false)
-                    .addSnapshotListener { inviteSnap, _ ->
-                        val invites = inviteSnap?.documents?.map { iDoc ->
-                            PendingInvitation(
-                                id = iDoc.id,
-                                creatorName = iDoc.getString("creatorName") ?: "Un proche",
-                                role = iDoc.getString("role") ?: "",
-                                label = iDoc.getString("label") ?: "Nouvelle mission"
-                            )
-                        } ?: emptyList()
-                        _pendingInvitations.value = invites
-                    }
             }
         }
+
+        invitationListener?.remove()
+        auth.currentUser?.email?.let { email ->
+            invitationListener = db.collection("invitations")
+                .whereEqualTo("email", email.lowercase())
+                .whereEqualTo("used", false)
+                .addSnapshotListener { inviteSnap, _ ->
+                    val invites = inviteSnap?.documents?.map { iDoc ->
+                        PendingInvitation(
+                            id = iDoc.id,
+                            creatorName = iDoc.getString("creatorName") ?: "Un proche",
+                            role = iDoc.getString("role") ?: "",
+                            label = iDoc.getString("label") ?: "Nouvelle mission"
+                        )
+                    } ?: emptyList()
+                    _pendingInvitations.value = invites
+                }
+        }
+    }
+
+    private fun startPersonalitiesListener(userId: String) {
+        android.util.Log.d("PHOENX_SYNC_PERSO", "MainViewModel: Enregistrement du listener pour $userId")
+        personalitiesListener?.remove()
+        personalitiesListener = db.collection("users").document(userId)
+            .collection("personalities")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    android.util.Log.e("PHOENX_SYNC_PERSO", "MainViewModel: Erreur listener", error)
+                    return@addSnapshotListener
+                }
+                android.util.Log.d("PHOENX_SYNC_PERSO", "MainViewModel: Événement Firestore reçu (${snapshot?.documentChanges?.size ?: 0} changements)")
+
+                snapshot?.documentChanges?.forEach { change ->
+                    val doc = change.document
+                    viewModelScope.launch(Dispatchers.IO) {
+                        try {
+                            when (change.type) {
+                                com.google.firebase.firestore.DocumentChange.Type.ADDED,
+                                com.google.firebase.firestore.DocumentChange.Type.MODIFIED -> {
+                                    val entity = com.example.phoenx.data.local.PersonalityEntity(
+                                        id = doc.id,
+                                        name = doc.getString("name") ?: "",
+                                        category = doc.getString("category") ?: "Autre",
+                                        customCategoryLabel = doc.getString("customCategoryLabel"),
+                                        mainPhotoPath = doc.getString("mainPhotoPath") ?: "",
+                                        biography = doc.getString("biography") ?: "",
+                                        personalComment = doc.getString("personalComment") ?: "",
+                                        createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
+                                        syncStatus = "synced"
+                                    )
+                                    database.personalityDao().insertPersonality(entity)
+                                    android.util.Log.d("PHOENX_SYNC_PERSO", "MainViewModel: Sync Temps-réel (ADD/MOD): ${entity.name}")
+                                }
+                                com.google.firebase.firestore.DocumentChange.Type.REMOVED -> {
+                                    database.personalityDao().getPersonalityByIdSync(doc.id)?.let {
+                                        database.personalityDao().deletePersonality(it)
+                                        android.util.Log.d("PHOENX_SYNC_PERSO", "MainViewModel: Sync Temps-réel (REMOVE): ${it.name}")
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("PHOENX_SYNC_PERSO", "MainViewModel: ÉCHEC traitement changement", e)
+                        }
+                    }
+                }
+            }
+        android.util.Log.d("PHOENX_SYNC_PERSO", "MainViewModel: Listener personnalités enregistré avec succès")
     }
 
     private fun ensureLegacyKey(userId: String, currentKeyBase64: String?) {
         if (currentKeyBase64 == null) return
         viewModelScope.launch {
             try {
-                val legacyKeyRef = db.collection("users").document(userId)
-                    .collection("entry_keys").document("main")
-                
-                val exists = legacyKeyRef.get().await().exists()
-                if (!exists) {
+                val legacyKeyRef = db.collection("users").document(userId).collection("entry_keys").document("main")
+                if (!legacyKeyRef.get().await().exists()) {
                     legacyKeyRef.set(mapOf("key" to currentKeyBase64)).await()
-                    android.util.Log.d("PHOENX_KEY", "Miroir de clé Héritage créé.")
                 }
-            } catch (e: Exception) {
-                android.util.Log.e("PHOENX_KEY", "Erreur miroir de clé", e)
-            }
+            } catch (_: Exception) {}
         }
     }
 
@@ -527,22 +349,12 @@ class MainViewModel @Inject constructor(
 
     suspend fun setSilenceConfig(rhythmDays: Int) {
         val userId = auth.currentUser?.uid ?: return
-        // Sauvegarder localement IMMEDIATEMENT pour stopper l'onboarding
         preferenceManager.setSilenceOnboardingDone(true)
         _silenceRhythmDays.value = rhythmDays
-        
         try {
-            android.util.Log.d("PHOENX_CONVERSION", "Appel becomeCreator Cloud Function...")
-            val data = hashMapOf("rhythmDays" to rhythmDays)
-            functions.getHttpsCallable("becomeCreator").call(data).await()
-            
-            // Élimination de la course : Mise à jour locale immédiate (v8.4.7)
+            functions.getHttpsCallable("becomeCreator").call(hashMapOf("rhythmDays" to rhythmDays)).await()
             _isCreator.value = true
-            android.util.Log.d("PHOENX_CONVERSION", "Statut Créateur validé localement.")
-        } catch (e: Exception) {
-            android.util.Log.e("PHOENX_CONVERSION", "Échec critique de conversion : ${e.message}", e)
-            // On ne réinitialise pas le flag local pour éviter une boucle, mais l'erreur est visible
-        }
+        } catch (_: Exception) {}
     }
 
     val isBiometricEnabled: StateFlow<Boolean> = preferenceManager.isBiometricEnabled
@@ -554,123 +366,70 @@ class MainViewModel @Inject constructor(
     val isVideoBannerDismissed: StateFlow<Boolean> = preferenceManager.isVideoBannerDismissed
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    private fun checkInactivity() {
-        val userId = auth.currentUser?.uid ?: return
-        viewModelScope.launch {
-            if (protocolManager.checkInactivity(userId)) {
-                // Protocole en attente si nécessaire
-            }
-        }
-    }
-
-    /**
-     * Appelée à chaque fois que l'utilisateur est considéré comme "actif" sur l'app.
-     */
     fun confirmPresence() {
         livenessManager.confirmPassivePresence()
-        val userId = auth.currentUser?.uid
-        if (userId != null) {
-            // Déclenche le check RSA/Silence même si l'app était déjà en RAM
-            checkSilenceOnLaunch(userId)
-        }
+        auth.currentUser?.uid?.let { checkSilenceOnLaunch(it) }
     }
 
     fun toggleVoiceMode() {
         viewModelScope.launch {
             val current = isVoiceModeActive.value
             preferenceManager.setVoiceModeActive(!current)
-            if (!current) {
-                voiceManager.speak("Mode vocal activé. Je vous écoute.")
-            } else {
-                voiceManager.speak("Mode vocal désactivé.")
-            }
+            voiceManager.speak(if (!current) "Mode vocal activé." else "Mode vocal désactivé.")
         }
     }
 
     fun toggleBiometric(enabled: Boolean) {
-        viewModelScope.launch {
-            preferenceManager.setBiometricEnabled(enabled)
-        }
+        viewModelScope.launch { preferenceManager.setBiometricEnabled(enabled) }
     }
 
     fun markBecomeCreatorPromptSeen() {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                db.collection("users").document(userId)
-                    .update("hasSeenBecomeCreatorPrompt", true).await()
-            } catch (e: Exception) {
-                android.util.Log.e("MainViewModel", "Error updating prompt seen", e)
-            }
+                db.collection("users").document(userId).update("hasSeenBecomeCreatorPrompt", true).await()
+                _hasSeenBecomeCreatorPrompt.value = true
+            } catch (_: Exception) {}
         }
     }
 
-    fun dismissWelcomeGuide(neverShowAgain: Boolean) {
-        viewModelScope.launch {
-            if (neverShowAgain) {
-                preferenceManager.setShouldShowWelcomeGuide(false)
-            }
-        }
+    fun dismissWelcomeGuide(seenEverywhere: Boolean) {
+        viewModelScope.launch { preferenceManager.setShouldShowWelcomeGuide(false) }
     }
 
     fun dismissVideoBanner() {
-        viewModelScope.launch {
-            preferenceManager.setVideoBannerDismissed(true)
-        }
+        viewModelScope.launch { preferenceManager.setVideoBannerDismissed(true) }
     }
 
     fun resetVideoBanner() {
-        viewModelScope.launch {
-            preferenceManager.setVideoBannerDismissed(false)
-        }
+        viewModelScope.launch { preferenceManager.setVideoBannerDismissed(false) }
     }
 
-    fun isDepositaryOnboardingSeen(userId: String): Flow<Boolean> = 
-        preferenceManager.isDepositaryOnboardingSeen(userId)
+    fun isDepositaryOnboardingSeen(userId: String): Flow<Boolean> = preferenceManager.isDepositaryOnboardingSeen(userId)
 
     fun markDepositaryOnboardingSeen(userId: String) {
-        viewModelScope.launch {
-            preferenceManager.setDepositaryOnboardingSeen(userId, true)
-        }
+        viewModelScope.launch { preferenceManager.setDepositaryOnboardingSeen(userId, true) }
     }
 
-    /**
-     * v9.1 : Vérifie si le protocole d'un créateur est activé avant navigation.
-     */
-    fun checkProtocolStatus(creatorId: String, onResult: (Boolean) -> Unit) {
+    fun checkProtocolStatus(userId: String, onResult: (Boolean) -> Unit) {
         viewModelScope.launch {
             try {
-                val data = hashMapOf("creatorId" to creatorId)
-                val result = functions.getHttpsCallable("getCreatorProtocolStatus").call(data).await()
+                val result = functions.getHttpsCallable("getCreatorProtocolStatus").call(hashMapOf("creatorId" to userId)).await()
                 val response = result.data as Map<*, *>
-                val isActivated = response["isActivated"] as? Boolean ?: false
-                onResult(isActivated)
-            } catch (e: Exception) {
-                android.util.Log.e("MainViewModel", "Erreur check protocol: ${e.message}")
-                onResult(false)
-            }
+                onResult(response["isActivated"] as? Boolean ?: false)
+            } catch (_: Exception) { onResult(false) }
         }
     }
 
-    fun handleVoiceCommand(command: String, navigate: (String) -> Unit) {
-        val cmd = command.lowercase()
+    fun handleVoiceCommand(cmd: String, speak: (String) -> Unit) {
         when {
-            cmd.contains("pensée") || cmd.contains("souvenir") || cmd.contains("écrire") -> navigate("capture/TEXT")
-            cmd.contains("voix") || cmd.contains("enregistrer") -> navigate("capture/AUDIO")
-            cmd.contains("photo") || cmd.contains("image") -> navigate("capture/PHOTO")
-            cmd.contains("fil") || cmd.contains("timeline") || cmd.contains("historique") -> navigate("fil")
-            cmd.contains("accueil") || cmd.contains("maison") -> navigate("home")
-            cmd.contains("ia") || cmd.contains("essence") || cmd.contains("portrait") -> navigate("essence")
-            cmd.contains("meilleurs") || cmd.contains("favoris") -> navigate("favorites")
-            cmd.contains("questions") || cmd.contains("histoire") -> navigate("questions")
-            cmd.contains("aide") -> voiceManager.speak("Vous pouvez dire : 'Ouvre mon fil', 'Dépose une pensée', 'Enregistre ma voix', ou 'Retour à l'accueil'.")
-            cmd.contains("retour") -> navigate("back")
+            cmd.contains("fil") -> speak("J'ouvre votre fil.")
+            cmd.contains("dépose") -> speak("Atelier d'écriture.")
+            cmd.contains("aide") -> voiceManager.speak("Dites 'Ouvre mon fil' ou 'Dépose une pensée'.")
         }
     }
-    
+
     fun speak(text: String) {
-        if (isVoiceModeActive.value) {
-            voiceManager.speak(text)
-        }
+        if (isVoiceModeActive.value) voiceManager.speak(text)
     }
 }

@@ -73,6 +73,9 @@ interface OfflineEntryDao {
     @Delete
     suspend fun deleteRecipient(recipient: RecipientEntity)
 
+    @Query("DELETE FROM recipients WHERE id = :id")
+    suspend fun deleteRecipientById(id: String)
+
     // Persons (v8.8)
     @Query("SELECT * FROM persons ORDER BY firstName ASC")
     fun getAllPersons(): Flow<List<PersonEntity>>
