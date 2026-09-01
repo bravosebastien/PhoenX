@@ -64,6 +64,10 @@ class InitialSyncWorker @AssistedInject constructor(
                     // L'objet remoteEntry a markedForDeletionAt = null, ce qui restaure les entrées si elles reviennent
                     offlineEntryDao.insertEntry(remoteEntry.copy(syncStatus = "synced"))
                     
+                    if (remoteEntry.locationId != null || remoteEntry.latitude != null) {
+                        android.util.Log.d("PHOENX_MAP_TRACE", "InitialSyncWorker: Entrée synchronisée avec localisation: id=${remoteEntry.id}, locId=${remoteEntry.locationId}, lat=${remoteEntry.latitude}")
+                    }
+
                     val local = localReferenceEntries.find { it.id == remoteEntry.id }
                     if (local?.markedForDeletionAt != null) {
                         android.util.Log.d("EntrySyncDebug", "Restauration : ${remoteEntry.id} (réapparu sur le serveur)")

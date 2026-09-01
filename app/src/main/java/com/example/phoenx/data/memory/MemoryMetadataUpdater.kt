@@ -183,25 +183,35 @@ class MemoryMetadataUpdater @Inject constructor(
     }
 
     suspend fun updateLocation(entryId: String, lat: Double?, lng: Double?, name: String?, locId: String?) {
-        android.util.Log.d("PHOENX_LOCATION_TRACE", "Ecriture lieu (Updater): entryId=$entryId, locationId=$locId, name=$name")
-        offlineEntryDao.updateEntryLocation(lat, lng, name, locId, entryId)
-        syncTrigger.triggerSync(entryId)
+        android.util.Log.d("PHOENX_MAP_TRACE", "updateLocation (Updater): entryId=$entryId, locationId=$locId, lat=$lat, lng=$lng, name=$name")
+        try {
+            offlineEntryDao.updateEntryLocation(lat, lng, name, locId, entryId)
+            android.util.Log.d("PHOENX_MAP_TRACE", "   -> Écriture Room réussie")
+            syncTrigger.triggerSync(entryId)
+        } catch (e: Exception) {
+            android.util.Log.e("PHOENX_MAP_TRACE", "   -> ÉCHEC écriture Room: ${e.message}")
+        }
     }
 
     suspend fun assignLocationFromId(entryId: String, locationId: String) {
-        android.util.Log.d("PHOENX_LOCATION_TRACE", "assignLocationFromId (Updater) avec id=$locationId")
+        android.util.Log.d("PHOENX_MAP_TRACE", "assignLocationFromId (Updater): entryId=$entryId, locationId=$locationId")
         val uid = auth.currentUser?.uid ?: return
         try {
             val doc = db.collection("users").document(uid)
                 .collection("locations").document(locationId).get().await()
             
-            val lat = doc.getDouble("latitude")
-            val lng = doc.getDouble("longitude")
-            val name = doc.getString("placeName")
-            
-            updateLocation(entryId, lat, lng, name, locationId)
+            if (doc.exists()) {
+                val lat = doc.getDouble("latitude")
+                val lng = doc.getDouble("longitude")
+                val name = doc.getString("placeName")
+                android.util.Log.d("PHOENX_MAP_TRACE", "   -> Données Firestore récupérées: lat=$lat, lng=$lng, name=$name")
+                
+                updateLocation(entryId, lat, lng, name, locationId)
+            } else {
+                android.util.Log.w("PHOENX_MAP_TRACE", "   -> Document Lieu Firestore INTROUVABLE: $locationId")
+            }
         } catch (e: Exception) {
-            android.util.Log.e("MemoryMetadataUpdater", "Erreur résolution lieu Firestore", e)
+            android.util.Log.e("PHOENX_MAP_TRACE", "   -> ERREUR résolution lieu Firestore: ${e.message}", e)
         }
     }
 

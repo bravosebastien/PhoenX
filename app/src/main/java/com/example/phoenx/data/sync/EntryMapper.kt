@@ -43,6 +43,15 @@ private fun Any?.asLong(): Long? {
     }
 }
 
+private fun Any?.asDouble(): Double? {
+    return when (this) {
+        is Double -> this
+        is Number -> this.toDouble()
+        is String -> this.toDoubleOrNull()
+        else -> null
+    }
+}
+
 /**
  * Extension pour convertir une OfflineEntry (Room) en Map pour Firestore.
  */
@@ -102,6 +111,7 @@ fun OfflineEntry.toFirestoreMap(encryptionManager: EncryptionManager): Map<Strin
         "userComment" to userComment,
         "coverUrl" to coverUrl,
         "mediaProvider" to mediaProvider,
+        "tonalNuance" to tonalNuance, // v9.4.27
         "includedInBook" to includedInBook // v9.6.7
     )
 }
@@ -246,6 +256,11 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
         enigmaQuestion = this["enigmaQuestion"] as? String,
         enigmaAnswer = this["enigmaAnswer"] as? String,
         fallbackAnswer = this["fallbackAnswer"] as? String,
+        latitude = this["latitude"].asDouble(),
+        longitude = this["longitude"].asDouble(),
+        locationName = this["locationName"] as? String,
+        pactId = this["pactId"] as? String,
+        locationId = this["locationId"] as? String,
         mediaUrl = this["mediaUrl"] as? String,
         localMediaPath = null,
         memoryDate = this["memoryDate"].asLong(),
@@ -264,8 +279,19 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
         userComment = this["userComment"] as? String,
         coverUrl = this["coverUrl"] as? String,
         mediaProvider = this["mediaProvider"] as? String,
+        tonalNuance = this["tonalNuance"] as? String, // v9.4.27
         includedInBook = this["includedInBook"] as? Boolean ?: true // v9.6.7
-    )
+    ).also {
+        val rawLat = this["latitude"]
+        val rawLng = this["longitude"]
+        val rawLocId = this["locationId"]
+        android.util.Log.d("PHOENX_MAP_TRACE", "EntryMapper: Mapping id=${it.id}. Raw lat=$rawLat, raw lng=$rawLng, raw locId=$rawLocId")
+        if (it.locationId != null || it.latitude != null) {
+            android.util.Log.d("PHOENX_MAP_TRACE", "   -> Mapping final: locId=${it.locationId}, lat=${it.latitude}, lng=${it.longitude}")
+        } else {
+            android.util.Log.w("PHOENX_MAP_TRACE", "   -> ALERTE: Localisation VIDE dans l'objet final (it.locationId=${it.locationId})")
+        }
+    }
 }
 
 /**

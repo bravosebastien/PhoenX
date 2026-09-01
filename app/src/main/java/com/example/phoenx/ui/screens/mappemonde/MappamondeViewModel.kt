@@ -108,22 +108,27 @@ class MappamondeViewModel @Inject constructor(
                 android.util.Log.d("PHOENX_MAP_TRACE", "Firestore: ${snapshot.size()} locations chargées.")
 
                 val locations = snapshot.documents.mapNotNull { it.toObject(LocationMemory::class.java)?.copy(id = it.id) }
-                
+                android.util.Log.d("PHOENX_MAP_TRACE", "MappamondeVM: ${locations.size} lieux trouvés. IDs: ${locations.map { it.id }}")
+
                 // Charger les entrées pour chaque lieu pour la timeline
                 val locationsWithEntries = coroutineScope {
                     locations.map { loc ->
                         async {
                             val entries = if (loc.entryIds.isNotEmpty()) {
+                                android.util.Log.d("PHOENX_MAP_TRACE", "MappamondeVM: Recherche entries pour lieu ${loc.id} (placeName=${loc.placeName}). IDs attendus: ${loc.entryIds}")
                                 // v9.4.27 : Lecture hybride pour les entrées rattachées au lieu
                                 if (targetCreatorId != null && targetCreatorId != auth.currentUser?.uid) {
-                                    // Mode Héritier : On ne peut pas facilement lire les entries via OfflineEntryDao 
-                                    // car il manque les IDs. Pour l'instant on garde une liste vide ou on implémentera 
-                                    // un fetch Firestore si nécessaire.
+                                    // Mode Héritier
                                     emptyList<OfflineEntry>()
                                 } else {
-                                    offlineEntryDao.getEntriesByIds(loc.entryIds).first()
+                                    val list = offlineEntryDao.getEntriesByIds(loc.entryIds).first()
+                                    android.util.Log.d("PHOENX_MAP_TRACE", "   -> ${list.size} entries trouvées dans Room pour ce lieu.")
+                                    list
                                 }
-                            } else emptyList<OfflineEntry>()
+                            } else {
+                                android.util.Log.d("PHOENX_MAP_TRACE", "MappamondeVM: Lieu ${loc.id} sans entryIds rattachés.")
+                                emptyList<OfflineEntry>()
+                            }
                             LocationWithEntries(loc, entries)
                         }
                     }.awaitAll()
