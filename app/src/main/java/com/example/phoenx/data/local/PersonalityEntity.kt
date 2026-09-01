@@ -15,4 +15,15 @@ data class PersonalityEntity(
     val personalComment: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val syncStatus: String = "pending"
-)
+) {
+    companion object {
+        val CATEGORIES = listOf(
+            "Sport", "Cinéma et Télévision", "Musique", "Peinture", "Sculpture",
+            "Littérature", "Poésie", "Sciences", "Médecine", "Philosophie",
+            "Spiritualité", "Politique", "Histoire", "Résistance et engagement",
+            "Humour", "Théâtre", "Danse", "Photographie", "Mode", "Architecture",
+            "Gastronomie", "Journalisme", "Entrepreneuriat", "Exploration",
+            "Activisme", "Éducation", "Artisanat d'art", "Bande dessinée", "Autre"
+        )
+    }
+}

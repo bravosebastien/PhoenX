@@ -69,16 +69,10 @@ fun EncounterDetailsDialog(
         ActivityResultContracts.PickVisualMedia()
     ) { uri ->
         if (uri != null) {
-            try {
-                val contentResolver = context.contentResolver
-                val inputStream = contentResolver.openInputStream(uri)
-                val tempFile = java.io.File(context.cacheDir, "encounter_portrait_${java.util.UUID.randomUUID()}.jpg")
-                inputStream?.use { input ->
-                    tempFile.outputStream().use { output -> input.copyTo(output) }
-                }
-                encounterImagePath = tempFile.absolutePath
-            } catch (e: Exception) {
-                android.util.Log.e("EncounterDialog", "Erreur copie URI: ${e.message}")
+            // v9.7.9 : Application de la compression unifiée (Modèle Souvenirs)
+            val compressedFile = com.example.phoenx.ui.util.ImageUtils.compressAndResize(context, uri)
+            if (compressedFile != null) {
+                encounterImagePath = compressedFile.absolutePath
             }
         }
     }

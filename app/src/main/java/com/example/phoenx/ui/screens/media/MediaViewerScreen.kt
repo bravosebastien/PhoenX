@@ -1,6 +1,8 @@
 package com.example.phoenx.ui.screens.media
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.core.net.toUri
 import androidx.compose.foundation.gestures.transformable
@@ -135,15 +137,27 @@ fun MediaViewerScreen(
             CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = AccentPrimary)
         }
 
-        // BOUTON FERMER
-        IconButton(
-            onClick = onExit,
+        // BOUTON FERMER (v9.7.9 : Style Unifié Glassmorphism)
+        Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(24.dp)
-                .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                .size(40.dp)
+                .clickable { onExit() },
+            contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.Close, null, tint = Color.White)
+            Box(
+                modifier = Modifier
+                    .size(28.dp)
+                    .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                    .border(0.5.dp, Color.White.copy(alpha = 0.2f), CircleShape)
+            )
+            Icon(
+                imageVector = Icons.Default.Close, 
+                contentDescription = "Fermer", 
+                tint = Color.White.copy(alpha = 0.9f),
+                modifier = Modifier.size(16.dp)
+            )
         }
     }
 }

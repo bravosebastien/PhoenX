@@ -206,22 +206,21 @@ class MemoryMetadataUpdater @Inject constructor(
     }
 
     fun uriToFile(uri: Uri): File? {
-        return try {
-            val contentResolver = context.contentResolver
-            val mimeType = contentResolver.getType(uri)
-            val extension = when {
-                mimeType?.contains("video") == true -> "mp4"
-                uri.toString().contains(".mp4") -> "mp4"
-                else -> "jpg"
+        val mimeType = context.contentResolver.getType(uri)
+        if (mimeType?.contains("video") == true) {
+            return try {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val tempFile = File(context.cacheDir, "temp_media_${UUID.randomUUID()}.mp4")
+                inputStream?.use { input ->
+                    tempFile.outputStream().use { output -> input.copyTo(output) }
+                }
+                tempFile
+            } catch (e: Exception) {
+                null
             }
-            val inputStream = contentResolver.openInputStream(uri)
-            val tempFile = File(context.cacheDir, "temp_media_${UUID.randomUUID()}.$extension")
-            inputStream?.use { input ->
-                tempFile.outputStream().use { output -> input.copyTo(output) }
-            }
-            tempFile
-        } catch (e: Exception) {
-            null
+        } else {
+            // v9.7.9 : Compression unifiée (Modèle Rencontres)
+            return com.example.phoenx.ui.util.ImageUtils.compressAndResize(context, uri)
         }
     }
 }

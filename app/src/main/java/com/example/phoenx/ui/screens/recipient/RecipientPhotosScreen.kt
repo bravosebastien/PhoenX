@@ -309,52 +309,76 @@ fun PhotoItem(
             
             // 1. INFO (Haut Gauche)
             if (!entry.userComment.isNullOrBlank()) {
-                Box(modifier = Modifier.align(Alignment.TopStart).padding(4.dp)) {
-                    IconButton(
-                        onClick = { onToggleInfo() },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.ChatBubbleOutline, 
-                            contentDescription = null, 
-                            tint = Color.White, 
-                            modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape)
-                        )
-                    }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(4.dp)
+                        .size(36.dp)
+                        .clickable { onToggleInfo() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp) // v9.7.9
+                            .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                            .border(0.5.dp, Color.White.copy(alpha = 0.2f), CircleShape)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ChatBubbleOutline, 
+                        contentDescription = null, 
+                        tint = Color.White.copy(alpha = 0.9f), 
+                        modifier = Modifier.size(13.dp)
+                    )
                 }
             }
 
             // 2. SUPPRIMER (Haut Droite)
             if (isCreatorMode) {
-                Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
-                    IconButton(
-                        onClick = { onDelete() },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete, 
-                            contentDescription = null, 
-                            tint = Color.White.copy(alpha = 0.9f), 
-                            modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape)
-                        )
-                    }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .size(36.dp)
+                        .clickable { onDelete() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                            .border(0.5.dp, Color.White.copy(alpha = 0.2f), CircleShape)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Delete, 
+                        contentDescription = null, 
+                        tint = Color.White.copy(alpha = 0.9f), 
+                        modifier = Modifier.size(13.dp)
+                    )
                 }
             }
 
-            // 3. ÉDITER (Bas GAUCHE - conforme layout unifié)
+            // 3. ÉDITER (Bas GAUCHE)
             if (isCreatorMode) {
-                Box(modifier = Modifier.align(Alignment.BottomStart).padding(4.dp)) {
-                    IconButton(
-                        onClick = { onEdit() },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit, 
-                            contentDescription = null, 
-                            tint = Color.White, 
-                            modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape)
-                        )
-                    }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(4.dp)
+                        .size(36.dp)
+                        .clickable { onEdit() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                            .border(0.5.dp, Color.White.copy(alpha = 0.2f), CircleShape)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Edit, 
+                        contentDescription = null, 
+                        tint = Color.White.copy(alpha = 0.9f), 
+                        modifier = Modifier.size(13.dp)
+                    )
                 }
             }
         }

@@ -21,7 +21,8 @@ class PersonalitiesViewModel @Inject constructor(
     private val personalityDao: PersonalityDao,
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
-    private val functions: FirebaseFunctions
+    private val functions: FirebaseFunctions,
+    private val mediaManager: com.example.phoenx.data.media.MediaManager // v9.7.5
 ) : ViewModel() {
 
     private val _targetCreatorId = MutableStateFlow<String?>(null)
@@ -101,9 +102,49 @@ class PersonalitiesViewModel @Inject constructor(
     }
 
     fun deletePersonality(personality: PersonalityEntity) {
-        viewModelScope.launch {
-            personalityDao.deletePersonality(personality)
-            // Handle Firestore deletion
+        val userId = auth.currentUser?.uid ?: return
+        // v9.7.5 : Utilisation de NonCancellable pour garantir que la suppression se termine même si l'écran est fermé
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.NonCancellable) {
+            try {
+                android.util.Log.d("PHOENX_PERSO_DB", "SUPPRESSION PERSONNALITÉ lancée: id=${personality.id}, name=${personality.name}")
+                
+                // 1. Suppression Firestore (Sous-collection média et fichiers Storage associés)
+                val mediaSnapshot = firestore.collection("users").document(userId)
+                    .collection("personalities").document(personality.id)
+                    .collection("media").get().await()
+                
+                mediaSnapshot.documents.forEach { doc ->
+                    val storagePath = doc.getString("mediaPath")
+                    if (storagePath != null && !storagePath.startsWith("/")) {
+                        // C'est un chemin Storage, on tente de le supprimer
+                        try {
+                            mediaManager.deleteFile(storagePath)
+                        } catch (_: Exception) {}
+                    }
+                    doc.reference.delete().await()
+                }
+                android.util.Log.d("PHOENX_PERSO_DB", "Sous-collection média Firestore et Storage nettoyés (${mediaSnapshot.size()} items)")
+
+                // 2. Suppression de la photo principale sur Storage
+                if (!personality.mainPhotoPath.startsWith("/")) {
+                    try {
+                        mediaManager.deleteFile(personality.mainPhotoPath)
+                    } catch (_: Exception) {}
+                }
+
+                // 3. Suppression Firestore (Document principal)
+                firestore.collection("users").document(userId)
+                    .collection("personalities").document(personality.id)
+                    .delete().await()
+                android.util.Log.d("PHOENX_PERSO_DB", "Document principal Firestore supprimé")
+
+                // 4. Suppression Room locale (La cascade gère personality_media)
+                personalityDao.deletePersonality(personality)
+                
+                android.util.Log.d("PHOENX_PERSO_DB", "SUPPRESSION TERMINÉE (Room + Firestore + Storage)")
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_PERSO_DB", "ERREUR SUPPRESSION: ${e.message}", e)
+            }
         }
     }
 
@@ -122,8 +163,25 @@ class PersonalitiesViewModel @Inject constructor(
     }
 
     fun removeMedia(media: PersonalityMediaEntity) {
-        viewModelScope.launch {
-            personalityDao.deleteMedia(media)
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.NonCancellable) {
+            try {
+                // 1. Suppression Storage
+                if (!media.mediaPath.startsWith("/")) {
+                    mediaManager.deleteFile(media.mediaPath)
+                }
+
+                // 2. Suppression Firestore
+                firestore.collection("users").document(userId)
+                    .collection("personalities").document(media.personalityId)
+                    .collection("media").document(media.id)
+                    .delete().await()
+
+                // 3. Suppression Room locale
+                personalityDao.deleteMedia(media)
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_PERSO_DB", "Erreur suppression média isolé", e)
+            }
         }
     }
 

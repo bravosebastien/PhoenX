@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.phoenx.accessibility.VoiceAccessibilityManager
+import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.preferences.PreferenceManager
 import com.example.phoenx.domain.liveness.LivenessManager
 import com.example.phoenx.domain.usecase.ActivationProtocolManager
@@ -38,6 +39,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.security.MessageDigest
 import javax.inject.Inject
 
@@ -51,6 +53,7 @@ class MainViewModel @Inject constructor(
     private val preferenceManager: PreferenceManager,
     private val silenceManager: SilenceManager,
     private val encryptionManager: EncryptionManager,
+    private val mediaManager: MediaManager, // v9.7.4
     private val functions: FirebaseFunctions,
     val database: PhoenXDatabase,
     @ApplicationContext private val context: Context
@@ -297,12 +300,28 @@ class MainViewModel @Inject constructor(
                             when (change.type) {
                                 com.google.firebase.firestore.DocumentChange.Type.ADDED,
                                 com.google.firebase.firestore.DocumentChange.Type.MODIFIED -> {
+                                    val mainPhotoUrl = doc.getString("mainPhotoPath")
+                                    var finalLocalPath: String? = null
+
+                                    if (!mainPhotoUrl.isNullOrBlank() && !mainPhotoUrl.startsWith("/")) {
+                                        try {
+                                            val persoDir = File(context.filesDir, "personalities")
+                                            if (!persoDir.exists()) persoDir.mkdirs()
+                                            val destFile = File(persoDir, "main_${doc.id}.jpg")
+                                            mediaManager.downloadCameo(mainPhotoUrl, destFile)
+                                            finalLocalPath = destFile.absolutePath
+                                            android.util.Log.d("PHOENX_SYNC_PERSO", "Photo téléchargée en temps réel pour: ${doc.id}")
+                                        } catch (e: Exception) {
+                                            android.util.Log.e("PHOENX_SYNC_PERSO", "Erreur download temps réel photo", e)
+                                        }
+                                    }
+
                                     val entity = com.example.phoenx.data.local.PersonalityEntity(
                                         id = doc.id,
                                         name = doc.getString("name") ?: "",
                                         category = doc.getString("category") ?: "Autre",
                                         customCategoryLabel = doc.getString("customCategoryLabel"),
-                                        mainPhotoPath = doc.getString("mainPhotoPath") ?: "",
+                                        mainPhotoPath = finalLocalPath ?: mainPhotoUrl ?: "",
                                         biography = doc.getString("biography") ?: "",
                                         personalComment = doc.getString("personalComment") ?: "",
                                         createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),

@@ -60,23 +60,35 @@ fun SecureAsyncImage(
         }
         
         if (mediaUrl != null && !mediaUrl.startsWith("/") && !mediaUrl.startsWith("file://")) {
-            Log.d("PHOENX_SECURE_IMG", "Début résolution: docId=$docId, url=$mediaUrl, encrypted=$isEncrypted")
+            val startTime = System.currentTimeMillis()
+            Log.d("PHOENX_SYNC_PERF", "[$startTime] Début résolution ($docId): url=$mediaUrl, encrypted=$isEncrypted")
             isLoading = true
             try {
                 if (isEncrypted) {
-                    val bytes = withContext(Dispatchers.IO) {
-                        mediaManager.downloadAndDecrypt(
-                            mediaUrl, 
-                            explicitKey,
-                            creatorId,
-                            docType,
-                            docId,
-                            field,
-                            personId
-                        )
+                    // v9.7.9 : Vérification du cache mémoire avant téléchargement
+                    val cacheKey = "${docType}_${docId}_${field ?: "main"}"
+                    val cachedBytes = com.example.phoenx.ui.util.DecryptedCache.get(cacheKey)
+                    
+                    if (cachedBytes != null) {
+                        imageBytes = cachedBytes
+                        Log.d("PHOENX_SYNC_PERF", "[0 ms] Succès Cache Mémoire ($docId)")
+                    } else {
+                        val bytes = withContext(Dispatchers.IO) {
+                            mediaManager.downloadAndDecrypt(
+                                mediaUrl, 
+                                explicitKey,
+                                creatorId,
+                                docType,
+                                docId,
+                                field,
+                                personId
+                            )
+                        }
+                        imageBytes = bytes
+                        com.example.phoenx.ui.util.DecryptedCache.put(cacheKey, bytes)
+                        val duration = System.currentTimeMillis() - startTime
+                        Log.d("PHOENX_SYNC_PERF", "[$duration ms] Résolution chiffrée réussie ($docId)")
                     }
-                    imageBytes = bytes
-                    Log.d("PHOENX_SECURE_IMG", "Résolution chiffrée réussie: docId=$docId, size=${bytes.size} bytes")
                 } else {
                     // v9.4.29 : Pour les cameos, on résout le chemin Storage en URL signée (sauf si déjà URL http)
                     if (mediaUrl.startsWith("http")) {
@@ -93,7 +105,8 @@ fun SecureAsyncImage(
                         )
                         resolvedSimpleUrl = safeUrl
                     }
-                    Log.d("PHOENX_SECURE_IMG", "Résolution simple réussie: docId=$docId, url=$resolvedSimpleUrl")
+                    val duration = System.currentTimeMillis() - startTime
+                    Log.d("PHOENX_SYNC_PERF", "[$duration ms] Résolution simple réussie ($docId)")
                 }
             } catch (e: Exception) {
                 Log.e("PHOENX_SECURE_IMG", "Erreur résolution image: docId=$docId, msg=${e.message}")

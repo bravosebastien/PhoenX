@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.personalities
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
@@ -12,11 +13,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -60,6 +63,7 @@ fun PersonalityDetailScreen(
     android.util.Log.d("PHOENX_PERSO_UI", "Détail Personnalité ouvert. ID reçu: $personalityId")
 
     var readingMode by remember { mutableStateOf<String?>(null) } // "BIO" | "COMMENT"
+    var showDeleteConfirm by remember { mutableStateOf(false) } // v9.7.5
 
     val isReadOnly = targetCreatorId != null
 
@@ -98,7 +102,8 @@ fun PersonalityDetailScreen(
                         docType = "personalities",
                         docId = item.id,
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        isEncrypted = false // v9.7.4 : Photo publique non chiffrée
                     )
                     
                     // Gradient overlay
@@ -113,28 +118,75 @@ fun PersonalityDetailScreen(
                             )
                     )
 
-                    // Back Button
-                    IconButton(
-                        onClick = { navController.popBackStack() },
+                    // 1. Bouton RETOUR (Haut-Gauche)
+                    Box(
                         modifier = Modifier
                             .statusBarsPadding()
-                            .padding(16.dp)
-                            .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                            .padding(12.dp)
+                            .size(40.dp) // Zone de clic
+                            .clickable { navController.popBackStack() },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp) // Halo réduit v9.7.9
+                                .background(theme.contentColor.copy(alpha = 0.1f), CircleShape)
+                                .border(0.5.dp, accent.copy(alpha = 0.3f), CircleShape)
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = null, 
+                            tint = theme.contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
 
-                    // Edit Button (Creator Only)
                     if (!isReadOnly) {
-                        IconButton(
-                            onClick = { navController.navigate("personality_edit/${item.id}") },
+                        // 2. Bouton ÉDITER (Haut-Droite)
+                        Box(
                             modifier = Modifier
                                 .statusBarsPadding()
                                 .align(Alignment.TopEnd)
-                                .padding(16.dp)
-                                .background(accent, CircleShape)
+                                .padding(12.dp)
+                                .size(40.dp)
+                                .clickable { navController.navigate("personality_edit/${item.id}") },
+                            contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Edit, null, tint = theme.backgroundColor)
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .background(theme.contentColor.copy(alpha = 0.1f), CircleShape)
+                                    .border(0.5.dp, accent.copy(alpha = 0.3f), CircleShape)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Edit, 
+                                contentDescription = "Modifier", 
+                                tint = theme.contentColor.copy(alpha = 0.7f),
+                                modifier = Modifier.size(15.dp)
+                            )
+                        }
+
+                        // 3. Bouton SUPPRIMER (Bas-Droite)
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(12.dp)
+                                .size(40.dp)
+                                .clickable { showDeleteConfirm = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .background(theme.contentColor.copy(alpha = 0.1f), CircleShape)
+                                    .border(0.5.dp, accent.copy(alpha = 0.3f), CircleShape)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Delete, 
+                                contentDescription = "Supprimer", 
+                                tint = theme.contentColor.copy(alpha = 0.7f),
+                                modifier = Modifier.size(15.dp)
+                            )
                         }
                     }
                 }
@@ -142,20 +194,26 @@ fun PersonalityDetailScreen(
                 Column(modifier = Modifier.padding(horizontal = 24.dp)) {
                     Text(
                         text = item.name,
-                        style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontFamily = theme.fontFamily, // v9.7.6 : Style plume
+                            fontWeight = FontWeight.Bold
+                        ),
                         color = theme.contentColor
                     )
                     
                     Surface(
-                        color = accent.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.padding(top = 8.dp)
+                        color = theme.contentColor.copy(alpha = 0.05f),
+                        shape = RoundedCornerShape(4.dp),
+                        modifier = Modifier.padding(top = 8.dp).alpha(0.7f)
                     ) {
                         Text(
                             text = if (item.category == "Autre") item.customCategoryLabel ?: "Autre" else item.category,
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = accent,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Medium,
+                                letterSpacing = 0.5.sp
+                            ),
+                            color = theme.contentColor.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                         )
                     }
 
@@ -168,8 +226,9 @@ fun PersonalityDetailScreen(
                             .fillMaxWidth()
                             .padding(top = 12.dp)
                             .clickable { readingMode = "BIO" },
-                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
+                        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.02f)),
+                        border = androidx.compose.foundation.BorderStroke(0.5.dp, theme.contentColor.copy(alpha = 0.08f)),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
                             text = item.biography.ifBlank { "Aucune biographie renseignée." },
@@ -190,8 +249,9 @@ fun PersonalityDetailScreen(
                             .fillMaxWidth()
                             .padding(top = 12.dp)
                             .clickable { readingMode = "COMMENT" },
-                        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
-                        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.1f))
+                        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.03f)),
+                        border = androidx.compose.foundation.BorderStroke(0.5.dp, accent.copy(alpha = 0.15f)),
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
                             text = item.personalComment.ifBlank { "Aucun commentaire personnel." },
@@ -322,14 +382,44 @@ fun PersonalityDetailScreen(
             }
         }
     }
+
+    if (showDeleteConfirm && item != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("Supprimer ${item.name} ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Cette action est irréversible. Toutes les informations et photos associées seront définitivement supprimées.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deletePersonality(item)
+                        showDeleteConfirm = false
+                        navController.popBackStack()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)
+                ) {
+                    Text("Supprimer définitivement", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Annuler", color = theme.contentColor)
+                }
+            }
+        )
+    }
 }
 
 @Composable
 private fun SectionHeader(title: String) {
     val theme = LocalAppTheme.current
+    val accent = theme.accentColor
     Text(
         text = title,
-        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
-        color = theme.contentColor.copy(alpha = 0.4f)
+        style = MaterialTheme.typography.labelSmall.copy(
+            fontWeight = FontWeight.Black, 
+            letterSpacing = 1.5.sp
+        ),
+        color = accent.copy(alpha = 0.4f) // v9.7.6 : Utilise une nuance de l'accent
     )
 }

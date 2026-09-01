@@ -330,19 +330,25 @@ class CaptureViewModel @Inject constructor(
      * Convertit un Uri Android (Galerie) en File temporaire utilisable par saveEntry.
      */
     fun uriToFile(uri: Uri): File? {
-        return try {
-            val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
-            val tempFile = File(context.cacheDir, "temp_gallery_${UUID.randomUUID()}.jpg")
-            val outputStream = FileOutputStream(tempFile)
-            inputStream?.use { input ->
-                outputStream.use { output ->
-                    input.copyTo(output)
+        val mimeType = context.contentResolver.getType(uri)
+        if (mimeType?.contains("video") == true) {
+            return try {
+                val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+                val tempFile = File(context.cacheDir, "temp_gallery_${UUID.randomUUID()}.mp4")
+                val outputStream = FileOutputStream(tempFile)
+                inputStream?.use { input ->
+                    outputStream.use { output ->
+                        input.copyTo(output)
+                    }
                 }
+                tempFile
+            } catch (e: Exception) {
+                Log.e("CaptureVM", "Erreur lors de la conversion Vidéo : ${e.message}")
+                null
             }
-            tempFile
-        } catch (e: Exception) {
-            Log.e("CaptureVM", "Erreur lors de la conversion Uri -> File : ${e.message}")
-            null
+        } else {
+            // v9.7.9 : Compression unifiée pour toutes les photos
+            return com.example.phoenx.ui.util.ImageUtils.compressAndResize(context, uri)
         }
     }
 

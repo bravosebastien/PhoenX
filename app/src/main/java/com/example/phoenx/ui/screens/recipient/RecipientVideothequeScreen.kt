@@ -420,28 +420,75 @@ fun VHSCard(
 
             // 1. INFO (Haut Gauche)
             if (!entry.userComment.isNullOrBlank()) {
-                Box(modifier = Modifier.align(Alignment.TopStart).padding(4.dp)) {
-                    IconButton(onClick = onToggleInfo, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.ChatBubbleOutline, null, tint = Color.White, modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape))
-                    }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .padding(4.dp)
+                        .size(36.dp)
+                        .clickable { onToggleInfo() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp) // v9.7.9
+                            .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                            .border(0.5.dp, Color.White.copy(alpha = 0.2f), CircleShape)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ChatBubbleOutline, 
+                        contentDescription = null, 
+                        tint = Color.White.copy(alpha = 0.9f), 
+                        modifier = Modifier.size(13.dp)
+                    )
                 }
             }
 
-            // 2. ACTIONS HAUT DROITE (v9.4.27 : Unification & Position Camera)
-            Box(modifier = Modifier.align(Alignment.TopEnd).padding(4.dp)) {
+            // 2. ACTIONS HAUT DROITE
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(4.dp)
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Indicateur Caméra (Discret)
-                    Icon(
-                        Icons.Default.Videocam, 
-                        null, 
-                        tint = Color.White.copy(alpha = 0.7f), 
-                        modifier = Modifier.size(18.dp).shadow(1.dp, CircleShape)
-                    )
+                    // Indicateur Caméra (v9.7.9 : Glassmorphism)
+                    Box(
+                        modifier = Modifier.size(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(Color.Black.copy(alpha = 0.2f), CircleShape)
+                                .border(0.5.dp, Color.White.copy(alpha = 0.1f), CircleShape)
+                        )
+                        Icon(
+                            Icons.Default.Videocam, 
+                            null, 
+                            tint = Color.White.copy(alpha = 0.7f), 
+                            modifier = Modifier.size(14.dp)
+                        )
+                    }
                     
                     if (isCreatorMode) {
-                        Spacer(Modifier.width(4.dp))
-                        IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                            Icon(Icons.Default.Delete, null, tint = Color.White.copy(alpha = 0.9f), modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape))
+                        Spacer(Modifier.width(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clickable { onDelete() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                                    .border(0.5.dp, Color.White.copy(alpha = 0.2f), CircleShape)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Delete, 
+                                contentDescription = null, 
+                                tint = Color.White.copy(alpha = 0.9f), 
+                                modifier = Modifier.size(13.dp)
+                            )
                         }
                     }
                 }
@@ -449,10 +496,26 @@ fun VHSCard(
 
             // 3. ÉDITER (Bas GAUCHE)
             if (isCreatorMode) {
-                Box(modifier = Modifier.align(Alignment.BottomStart).padding(4.dp)) {
-                    IconButton(onClick = onEdit, modifier = Modifier.size(32.dp)) {
-                        Icon(Icons.Default.Edit, null, tint = Color.White, modifier = Modifier.size(18.dp).shadow(2.dp, CircleShape))
-                    }
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(4.dp)
+                        .size(36.dp)
+                        .clickable { onEdit() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .background(Color.Black.copy(alpha = 0.3f), CircleShape)
+                            .border(0.5.dp, Color.White.copy(alpha = 0.2f), CircleShape)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Edit, 
+                        contentDescription = null, 
+                        tint = Color.White.copy(alpha = 0.9f), 
+                        modifier = Modifier.size(13.dp)
+                    )
                 }
             }
 

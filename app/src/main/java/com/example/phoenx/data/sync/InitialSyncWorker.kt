@@ -120,7 +120,7 @@ class InitialSyncWorker @AssistedInject constructor(
                     val storageUrl = doc.getString("imageUrl")
                     var finalLocalPath: String? = null
 
-                    // Si la personne a un portrait sur Storage, on le télécharge (comportement existant)
+                    // 1. Portrait Arbre (Public/Cameo)
                     if (!storageUrl.isNullOrBlank()) {
                         try {
                             val cameoDir = File(appContext.filesDir, "cameos")
@@ -133,9 +133,30 @@ class InitialSyncWorker @AssistedInject constructor(
                         }
                     }
 
-                    // Upsert systématique pour mettre à jour les infos (biographie, etc.)
+                    // 2. Portrait Rencontre (Chiffré - v9.7.9)
+                    val encounterUrl = doc.getString("encounterImagePath")
+                    var finalEncounterLocalPath: String? = person.encounterImagePath
+                    
+                    if (!encounterUrl.isNullOrBlank() && !encounterUrl.startsWith("/")) {
+                        try {
+                            val encounterDir = File(appContext.filesDir, "encounters")
+                            if (!encounterDir.exists()) encounterDir.mkdirs()
+                            val destFile = File(encounterDir, "encounter_${person.id}.jpg")
+                            
+                            // Téléchargement et déchiffrement immédiat pour mise en cache disque
+                            val decryptedBytes = mediaManager.downloadAndDecrypt(encounterUrl)
+                            destFile.writeBytes(decryptedBytes)
+                            finalEncounterLocalPath = destFile.absolutePath
+                            android.util.Log.d("InitialSyncWorker", "Portrait Rencontre pré-chargé et déchiffré: ${person.firstName}")
+                        } catch (e: Exception) {
+                            android.util.Log.e("InitialSyncWorker", "Échec pré-chargement portrait rencontre: ${person.id}")
+                        }
+                    }
+
+                    // Upsert systématique avec les deux chemins locaux
                     offlineEntryDao.upsertPerson(person.copy(
                         imagePath = finalLocalPath, 
+                        encounterImagePath = finalEncounterLocalPath,
                         categories = finalCategories,
                         syncStatus = "synced"
                     ))
@@ -181,7 +202,41 @@ class InitialSyncWorker @AssistedInject constructor(
 
                         // 1. Ajout/Mise à jour des médias distants
                         remoteMediaEntities.forEach { entity ->
-                            personMediaDao.insertMedia(entity)
+                            var finalPath = entity.mediaPath
+                            var finalThumbPath = entity.thumbnailPath
+                            
+                            // Si c'est un média de rencontre chiffré, on le pré-télécharge (v9.7.9)
+                            if (person.categories.contains(",ENCOUNTER,") && !finalPath.startsWith("/")) {
+                                try {
+                                    val encounterMediaDir = File(appContext.filesDir, "encounter_media")
+                                    if (!encounterMediaDir.exists()) encounterMediaDir.mkdirs()
+                                    
+                                    val destFile = File(encounterMediaDir, "${entity.id}${if(entity.mediaType == "VIDEO") ".mp4" else ".jpg"}")
+                                    if (!destFile.exists()) {
+                                        val decryptedBytes = mediaManager.downloadAndDecrypt(finalPath)
+                                        destFile.writeBytes(decryptedBytes)
+                                    }
+                                    finalPath = destFile.absolutePath
+                                    
+                                    // Gestion miniature vidéo chiffrée
+                                    if (entity.mediaType == "VIDEO" && !finalThumbPath.isNullOrBlank() && !finalThumbPath.startsWith("/")) {
+                                        val thumbFile = File(encounterMediaDir, "thumb_${entity.id}.jpg")
+                                        if (!thumbFile.exists()) {
+                                            val thumbBytes = mediaManager.downloadAndDecrypt(finalThumbPath)
+                                            thumbFile.writeBytes(thumbBytes)
+                                        }
+                                        finalThumbPath = thumbFile.absolutePath
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("InitialSyncWorker", "Échec pré-chargement média rencontre: ${entity.id}")
+                                }
+                            }
+                            
+                            personMediaDao.insertMedia(entity.copy(
+                                mediaPath = finalPath,
+                                thumbnailPath = finalThumbPath,
+                                syncStatus = "synced"
+                            ))
                         }
 
                         // 2. RÉCONCILIATION : Suppression des entrées locales qui n'existent plus sur le serveur

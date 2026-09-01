@@ -52,6 +52,7 @@ class MediaManager @Inject constructor(
 
         // MODE DESTINATAIRE : Résolution sécurisée via Cloud Function (v9.4.27)
         if (explicitKey != null && creatorId != null && docType != null && docId != null) {
+            val cfStart = System.currentTimeMillis()
             return try {
                 val params = mutableMapOf(
                     "creatorId" to creatorId,
@@ -66,15 +67,20 @@ class MediaManager @Inject constructor(
 
                 val result = functions.getHttpsCallable("getInheritedFileUrl").call(params).await()
                 val data = result.data as? Map<*, *>
-                data?.get("url") as? String
+                val url = data?.get("url") as? String
+                android.util.Log.d("PHOENX_SYNC_PERF", "   [${System.currentTimeMillis() - cfStart} ms] Cloud Function getInheritedFileUrl ($docId)")
+                url
             } catch (e: Exception) {
                 android.util.Log.e("MediaManager", "Échec getSafeUrl (CF) pour $docId", e)
                 null
             }
         }
 
+        val storageStart = System.currentTimeMillis()
         return try {
-            storage.getReference(pathOrUrl).downloadUrl.await().toString()
+            val url = storage.getReference(pathOrUrl).downloadUrl.await().toString()
+            android.util.Log.d("PHOENX_SYNC_PERF", "   [${System.currentTimeMillis() - storageStart} ms] Storage getDownloadUrl ($pathOrUrl)")
+            url
         } catch (e: Exception) {
             // Repli de secours : si la résolution Storage échoue mais que c'est un chemin local valide
             val file = File(pathOrUrl)
@@ -154,6 +160,7 @@ class MediaManager @Inject constructor(
         personId: String? = null // v9.6.6
     ): ByteArray {
         var isSignedUrl = false
+        val cfStart = System.currentTimeMillis()
         val finalUrl = if (explicitKey != null && creatorId != null && docType != null && docId != null) {
             // MODE DESTINATAIRE : Résolution sécurisée via Cloud Function (Signature v9.4.27)
             try {
@@ -173,6 +180,7 @@ class MediaManager @Inject constructor(
                 val url = data?.get("url") as? String
                 if (url != null) {
                     isSignedUrl = true
+                    android.util.Log.d("PHOENX_SYNC_PERF", "   [${System.currentTimeMillis() - cfStart} ms] Cloud Function getInheritedFileUrl ($docId)")
                     url
                 } else pathOrUrl
             } catch (e: Exception) {
@@ -184,6 +192,7 @@ class MediaManager @Inject constructor(
             pathOrUrl
         }
 
+        val downloadStart = System.currentTimeMillis()
         val encryptedBytes = if (isSignedUrl) {
             // Téléchargement HTTP direct pour les URLs signées (Contourne l'erreur SDK Storage v9.4.27)
             withContext(Dispatchers.IO) {
@@ -198,8 +207,12 @@ class MediaManager @Inject constructor(
             }
             storageRef.getBytes(Long.MAX_VALUE).await()
         }
+        android.util.Log.d("PHOENX_SYNC_PERF", "   [${System.currentTimeMillis() - downloadStart} ms] Download bytes (${encryptedBytes.size} bytes)")
 
-        return encryptionManager.decryptBytes(encryptedBytes, explicitKey)
+        val decryptStart = System.currentTimeMillis()
+        val decrypted = encryptionManager.decryptBytes(encryptedBytes, explicitKey)
+        android.util.Log.d("PHOENX_SYNC_PERF", "   [${System.currentTimeMillis() - decryptStart} ms] Decrypt bytes")
+        return decrypted
     }
 
     /**

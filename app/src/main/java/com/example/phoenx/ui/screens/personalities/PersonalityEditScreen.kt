@@ -80,8 +80,9 @@ fun PersonalityEditScreen(
 
     var isCheckingContent by remember { mutableStateOf(false) }
     var showWarningDialog by remember { mutableStateOf<String?>(null) }
+    var showDeleteConfirm by remember { mutableStateOf(false) } // v9.7.5
     
-    val categories = listOf("Sport", "Cinéma", "Peinture", "Sculpture", "Sciences", "Symboles de la paix", "Symboles du chaos", "Symboles de l'amour", "Symboles de la haine", "Autre")
+    val categories = PersonalityEntity.CATEGORIES
 
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
@@ -123,10 +124,7 @@ fun PersonalityEditScreen(
                 },
                 actions = {
                     if (existing != null) {
-                        IconButton(onClick = { 
-                            viewModel.deletePersonality(existing)
-                            navController.popBackStack() 
-                        }) {
+                        IconButton(onClick = { showDeleteConfirm = true }) {
                             Icon(Icons.Default.Delete, null, tint = com.example.phoenx.ui.theme.Error)
                         }
                     }
@@ -143,14 +141,17 @@ fun PersonalityEditScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // PHOTO PRINCIPALE
+            // PHOTO PRINCIPALE (Style Médaillon v9.7.6)
             Box(
                 modifier = Modifier
-                    .size(150.dp)
+                    .size(160.dp)
                     .align(Alignment.CenterHorizontally)
                     .clip(CircleShape)
                     .background(theme.contentColor.copy(alpha = 0.05f))
                     .border(2.dp, accent.copy(alpha = 0.3f), CircleShape)
+                    .padding(5.dp)
+                    .border(0.5.dp, accent.copy(alpha = 0.1f), CircleShape)
+                    .clip(CircleShape)
                     .clickable { photoPicker.launch("image/*") },
                 contentAlignment = Alignment.Center
             ) {
@@ -161,21 +162,29 @@ fun PersonalityEditScreen(
                         docType = "personalities",
                         docId = existing?.id ?: "temp",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                        contentScale = ContentScale.Crop,
+                        isEncrypted = false
                     )
                 } else {
                     Icon(Icons.Default.AddAPhoto, null, tint = accent, modifier = Modifier.size(32.dp))
                 }
                 
+                // CAMERA BADGE (v9.7.9 : Position Top-Right)
                 Box(
                     modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(4.dp)
-                        .size(32.dp)
-                        .background(accent, CircleShape),
+                        .align(Alignment.TopEnd)
+                        .offset(x = 4.dp, y = (-4).dp)
+                        .size(36.dp)
+                        .background(accent, CircleShape)
+                        .border(1.dp, theme.backgroundColor, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.CameraAlt, null, tint = theme.backgroundColor, modifier = Modifier.size(16.dp))
+                    Icon(
+                        Icons.Default.CameraAlt, 
+                        null, 
+                        tint = theme.backgroundColor, 
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             }
 
@@ -402,6 +411,32 @@ fun PersonalityEditScreen(
             dismissButton = {
                 TextButton(onClick = { showWarningDialog = null }) {
                     Text("Modifier le texte", color = theme.contentColor)
+                }
+            }
+        )
+    }
+
+    if (showDeleteConfirm && existing != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("Supprimer ${existing.name} ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Cette action est irréversible. Toutes les informations et photos associées seront définitivement supprimées.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.deletePersonality(existing)
+                        showDeleteConfirm = false
+                        navController.popBackStack()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)
+                ) {
+                    Text("Supprimer définitivement", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Annuler", color = theme.contentColor)
                 }
             }
         )

@@ -396,20 +396,22 @@ class EncounterViewModel @Inject constructor(
      * Convertit une Uri en File pour l'upload d'image (Étape 3)
      */
     fun uriToFile(uri: android.net.Uri): java.io.File? {
-        return try {
-            val contentResolver = context.contentResolver
-            val mimeType = contentResolver.getType(uri)
-            val extension = if (mimeType?.contains("video") == true) "mp4" else "jpg"
-            
-            val inputStream = contentResolver.openInputStream(uri)
-            val tempFile = java.io.File(context.cacheDir, "encounter_media_${java.util.UUID.randomUUID()}.$extension")
-            inputStream?.use { input ->
-                tempFile.outputStream().use { output -> input.copyTo(output) }
+        val mimeType = context.contentResolver.getType(uri)
+        if (mimeType?.contains("video") == true) {
+            return try {
+                val inputStream = context.contentResolver.openInputStream(uri)
+                val tempFile = java.io.File(context.cacheDir, "encounter_media_${java.util.UUID.randomUUID()}.mp4")
+                inputStream?.use { input ->
+                    tempFile.outputStream().use { output -> input.copyTo(output) }
+                }
+                tempFile
+            } catch (e: Exception) {
+                android.util.Log.e("EncounterVM", "Erreur copie vidéo: ${e.message}")
+                null
             }
-            tempFile
-        } catch (e: Exception) {
-            android.util.Log.e("EncounterVM", "Erreur copie URI: ${e.message}")
-            null
+        } else {
+            // v9.7.9 : Compression unifiée pour les photos (Modèle Souvenirs)
+            return com.example.phoenx.ui.util.ImageUtils.compressAndResize(context, uri)
         }
     }
 }

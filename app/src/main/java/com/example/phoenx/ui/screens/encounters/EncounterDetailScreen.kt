@@ -144,16 +144,10 @@ fun EncounterDetailScreen(
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
-                    }
+                    // v9.7.8 : Retour déplacé sur le portrait pour uniformité
                 },
                 actions = {
-                    if (!isReadOnly && currentPerson.categories.contains("ENCOUNTER")) {
-                        TextButton(onClick = { showEditDialog = true }) {
-                            Text("Modifier", color = Color(0xFFBF6338), fontWeight = FontWeight.Bold)
-                        }
-                    }
+                    // v9.7.7 : Bouton Modifier déplacé sur le visuel pour harmonisation
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
@@ -179,11 +173,6 @@ fun EncounterDetailScreen(
                         .clip(RoundedCornerShape(10.dp))
                         .background(theme.contentColor.copy(alpha = 0.05f))
                         .then(
-                            if (!isReadOnly && currentPerson.categories.contains("ENCOUNTER")) Modifier.clickable {
-                                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-                            } else Modifier
-                        )
-                        .then(
                             if (isPartner) Modifier.border(2.dp, Color(0xFFB4646A), RoundedCornerShape(10.dp))
                             else Modifier
                         )
@@ -194,7 +183,7 @@ fun EncounterDetailScreen(
                             mediaUrl = activePath,
                             mediaManager = mediaManager,
                             isEncrypted = isPathEncrypted,
-                            explicitKey = if (isReadOnly) heirKey else null, // Utilisation de la vraie clé
+                            explicitKey = if (isReadOnly) heirKey else null, 
                             creatorId = targetCreatorId,
                             docType = "persons",
                             docId = personId,
@@ -204,6 +193,106 @@ fun EncounterDetailScreen(
                         )
                     } else {
                         Icon(Icons.Default.Person, null, modifier = Modifier.size(64.dp).align(Alignment.Center).alpha(0.2f), tint = theme.contentColor)
+                    }
+
+                    // 1. Bouton RETOUR (v9.7.9 : Coin Haut-Gauche)
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(8.dp)
+                            .size(40.dp)
+                            .clickable { navController.popBackStack() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(28.dp)
+                                .background(theme.contentColor.copy(alpha = 0.1f), CircleShape)
+                                .border(0.5.dp, accent.copy(alpha = 0.3f), CircleShape)
+                        )
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = null, 
+                            tint = theme.contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+
+                    // 2. Bouton ÉDITER (v9.7.9 : Coin Haut-Droite)
+                    if (!isReadOnly && currentPerson.categories.contains("ENCOUNTER")) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                                .size(40.dp)
+                                .clickable { showEditDialog = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .background(theme.contentColor.copy(alpha = 0.1f), CircleShape)
+                                    .border(0.5.dp, accent.copy(alpha = 0.3f), CircleShape)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Edit, 
+                                contentDescription = "Modifier", 
+                                tint = theme.contentColor.copy(alpha = 0.7f),
+                                modifier = Modifier.size(15.dp)
+                            )
+                        }
+                    }
+
+                    // 3. Bouton SUPPRIMER (v9.7.9 : Coin Bas-Droite)
+                    if (!isReadOnly && currentPerson.categories.contains("ENCOUNTER")) {
+                        var showDeleteConfirm by remember { mutableStateOf(false) }
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(8.dp)
+                                .size(40.dp)
+                                .clickable { showDeleteConfirm = true },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(28.dp)
+                                    .background(theme.contentColor.copy(alpha = 0.1f), CircleShape)
+                                    .border(0.5.dp, accent.copy(alpha = 0.3f), CircleShape)
+                            )
+                            Icon(
+                                imageVector = Icons.Default.Delete, 
+                                contentDescription = "Supprimer", 
+                                tint = theme.contentColor.copy(alpha = 0.7f),
+                                modifier = Modifier.size(15.dp)
+                            )
+                        }
+
+                        if (showDeleteConfirm) {
+                            AlertDialog(
+                                onDismissRequest = { showDeleteConfirm = false },
+                                containerColor = theme.backgroundColor,
+                                title = { Text("Retirer cette rencontre ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                                text = { Text("Cette personne ne figurera plus dans vos rencontres. Ses souvenirs associés resteront intacts.", color = theme.contentColor.copy(alpha = 0.7f)) },
+                                confirmButton = {
+                                    Button(
+                                        onClick = {
+                                            viewModel.removeEncounterCategory(currentPerson)
+                                            showDeleteConfirm = false
+                                            navController.popBackStack()
+                                        },
+                                        colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)
+                                    ) {
+                                        Text("Retirer", color = Color.White)
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showDeleteConfirm = false }) {
+                                        Text("Annuler", color = theme.contentColor)
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
 
