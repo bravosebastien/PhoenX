@@ -133,17 +133,23 @@ fun SecureAsyncImage(
         model ?: lastSuccessfulModel
     }
 
+    // v9.8.11 : Suivi de l'erreur de décodage Coil pour effacement complet du cadre si échec
+    var isCoilError by remember(docId) { mutableStateOf(false) }
+
     // On n'affiche le chargement que si on n'a vraiment rien à montrer et que c'est en cours
     val showLoading = isLoading && currentModel == null
+    val hasNoValidImage = (currentModel == null || isCoilError) && !showLoading
 
-    Box(modifier = if (hideIfEmpty && currentModel == null && !showLoading) Modifier.size(0.dp) else modifier) {
-        if (currentModel != null) {
+    Box(modifier = if (hideIfEmpty && hasNoValidImage) Modifier.size(0.dp) else modifier) {
+        if (currentModel != null && !isCoilError) {
             AsyncImage(
                 model = currentModel,
                 contentDescription = contentDescription,
                 modifier = Modifier.fillMaxSize(),
                 contentScale = contentScale,
-                colorFilter = colorFilter
+                colorFilter = colorFilter,
+                onError = { isCoilError = true },
+                onSuccess = { isCoilError = false }
             )
         } else if (showLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
