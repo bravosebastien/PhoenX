@@ -58,9 +58,18 @@ class BookViewerViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    // v8.7.0 : Progrès de lecture et Confort
-    private val _readingProgress = MutableStateFlow<ReadingPosition?>(null)
-    val readingProgress: StateFlow<ReadingPosition?> = _readingProgress.asStateFlow()
+    // v9.8.0 : Choix du mode de lecture
+    enum class BookReadingMode { SCROLL, PAGES }
+    private val _readingMode = MutableStateFlow(BookReadingMode.SCROLL)
+    val readingMode: StateFlow<BookReadingMode> = _readingMode.asStateFlow()
+
+    // v8.7.0 : Progrès de lecture SCROLL
+    private val _scrollProgress = MutableStateFlow<ScrollPosition?>(null)
+    val scrollProgress: StateFlow<ScrollPosition?> = _scrollProgress.asStateFlow()
+
+    // v9.8.0 : Progrès de lecture PAGES
+    private val _pagesProgress = MutableStateFlow<PagesPosition?>(null)
+    val pagesProgress: StateFlow<PagesPosition?> = _pagesProgress.asStateFlow()
 
     private val _fontSizeScale = MutableStateFlow(1.0f)
     val fontSizeScale: StateFlow<Float> = _fontSizeScale.asStateFlow()
@@ -235,11 +244,20 @@ class BookViewerViewModel @Inject constructor(
                     .collection("reading_progress").document("${creatorId}_book").get().kotlinAwait()
                 
                 if (doc.exists()) {
-                    _readingProgress.value = ReadingPosition(
+                    // Chargement SCROLL
+                    _scrollProgress.value = ScrollPosition(
                         itemIndex = doc.getLong("itemIndex")?.toInt() ?: 0,
                         offset = doc.getLong("offset")?.toInt() ?: 0,
                         savedAtScale = doc.getDouble("savedAtScale")?.toFloat() ?: 1.0f
                     )
+                    // Chargement PAGES
+                    _pagesProgress.value = PagesPosition(
+                        chapterId = doc.getString("chapterId"),
+                        characterOffset = doc.getLong("characterOffset")?.toInt() ?: 0
+                    )
+                    // Chargement Mode préféré
+                    val savedMode = doc.getString("preferredMode") ?: "SCROLL"
+                    _readingMode.value = if (savedMode == "PAGES") BookReadingMode.PAGES else BookReadingMode.SCROLL
                 }
             } catch (e: Exception) {
                 android.util.Log.e("PHOENX_READING", "Erreur chargement progrès")
@@ -247,22 +265,57 @@ class BookViewerViewModel @Inject constructor(
         }
     }
 
-    fun saveReadingProgress(creatorId: String, index: Int, offset: Int) {
+    fun saveScrollProgress(creatorId: String, index: Int, offset: Int) {
         val readerId = auth.currentUser?.uid ?: return
         val currentScale = _fontSizeScale.value
         viewModelScope.launch {
             try {
                 db.collection("users").document(readerId)
                     .collection("reading_progress").document("${creatorId}_book")
-                    .set(mapOf(
+                    .update(mapOf(
                         "itemIndex" to index,
                         "offset" to offset,
                         "savedAtScale" to currentScale,
                         "timestamp" to System.currentTimeMillis()
                     )).kotlinAwait()
             } catch (e: Exception) {
-                android.util.Log.e("PHOENX_READING", "Erreur sauvegarde progrès")
+                // Si le document n'existe pas encore (fallback set)
+                db.collection("users").document(readerId)
+                    .collection("reading_progress").document("${creatorId}_book")
+                    .set(mapOf("itemIndex" to index, "offset" to offset, "savedAtScale" to currentScale), com.google.firebase.firestore.SetOptions.merge())
             }
+        }
+    }
+
+    fun savePagesProgress(creatorId: String, chapterId: String?, characterOffset: Int) {
+        val readerId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(readerId)
+                    .collection("reading_progress").document("${creatorId}_book")
+                    .update(mapOf(
+                        "chapterId" to chapterId,
+                        "characterOffset" to characterOffset,
+                        "timestamp" to System.currentTimeMillis()
+                    )).kotlinAwait()
+            } catch (e: Exception) {
+                db.collection("users").document(readerId)
+                    .collection("reading_progress").document("${creatorId}_book")
+                    .set(mapOf("chapterId" to chapterId, "characterOffset" to characterOffset), com.google.firebase.firestore.SetOptions.merge())
+            }
+        }
+    }
+
+    fun updateReadingMode(mode: BookReadingMode) {
+        _readingMode.value = mode
+        val readerId = auth.currentUser?.uid ?: return
+        val creatorId = _bookDraft.value?.userId ?: return
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(readerId)
+                    .collection("reading_progress").document("${creatorId}_book")
+                    .update("preferredMode", mode.name).kotlinAwait()
+            } catch (_: Exception) {}
         }
     }
 
@@ -271,8 +324,5 @@ class BookViewerViewModel @Inject constructor(
     }
 }
 
-data class ReadingPosition(
-    val itemIndex: Int,
-    val offset: Int,
-    val savedAtScale: Float
-)
+data class ScrollPosition(val itemIndex: Int, val offset: Int, val savedAtScale: Float)
+data class PagesPosition(val chapterId: String?, val characterOffset: Int)

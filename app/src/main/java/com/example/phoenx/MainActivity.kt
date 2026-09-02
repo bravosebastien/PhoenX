@@ -182,7 +182,8 @@ class MainActivity : FragmentActivity() {
                                   !currentRoute.startsWith("onboarding") &&
                                   !currentRoute.startsWith("auth") &&
                                   !currentRoute.contains("CAMERA_PHOTO") &&
-                                  !currentRoute.contains("CAMERA_VIDEO")
+                                  !currentRoute.contains("CAMERA_VIDEO") &&
+                                  !currentRoute.startsWith("book_reader")
 
         LaunchedEffect(isVoiceActive) {
             if (isVoiceActive) {
