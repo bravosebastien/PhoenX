@@ -30,3 +30,7 @@ Ce fichier répertorie les modules et fichiers considérés comme stabilisés, t
 ## 6. Sécurité Firestore
 *   **Fichier :** `firestore.rules`.
 *   **Règle :** Ne pas réécrire les blocs existants (users, entries, persons, personalities, book, entry_keys, etc.). Toujours effectuer un comptage automatisé des blocs `match` avant/après déploiement.
+
+## 7. Livre — Pagination et Modes
+*   **Fichiers :** `BookReaderFlowScreen.kt`, `BookViewerViewModel.kt`.
+*   **État :** Double mode de lecture (Défilement/Pages) validé. Moteur de pagination dynamique par atomes textuels. Marque-pages indépendants par ancre de caractère. Effet 3D et opacité des pages stabilisés.

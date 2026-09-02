@@ -85,12 +85,8 @@ fun BookReaderFlowScreen(
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val availableWidth = with(density) { (maxWidth - 64.dp).toPx() }
         val availableHeight = with(density) { (maxHeight - 96.dp).toPx() }
-        
-        // v9.8.2 : Détection Tablette (Largeur > 600dp)
-        val isTablet = maxWidth >= 600.dp
-        val effectiveReadingMode = readingMode
 
-        LaunchedEffect(bookDraft, decryptedChapters, decryptedIntro, fontSizeScale, ambiance.fontId, availableWidth, availableHeight) {
+        LaunchedEffect(bookDraft, decryptedChapters, decryptedIntro, mediaMap, fontSizeScale, ambiance.fontId, availableWidth, availableHeight) {
             val draft = bookDraft ?: return@LaunchedEffect
             if (decryptedChapters.isEmpty() && draft.chapters.isNotEmpty()) return@LaunchedEffect
             
@@ -186,16 +182,17 @@ fun BookReaderFlowScreen(
                             val id = matches[index].groupValues[2]
                             val entry = mediaMap[id]
                             if (entry != null) {
-                                // v9.8.3 : Hauteur photo plafonnée pour tablette (max 50% de l'écran)
-                                val photoHeight = minOf(availableWidth * 0.8f, availableHeight * 0.5f) + with(density) { 48.dp.toPx() }
+                                // v9.8.4 : Calcul précis des dimensions pour synchronisation Moteur/UI
+                                val photoTargetWidth = availableWidth * 0.8f
+                                val photoTargetHeight = minOf(photoTargetWidth, availableHeight * 0.5f)
+                                val photoTotalBudget = photoTargetHeight + with(density) { 48.dp.toPx() }
                                 
-                                if (availableHeight - currentY < photoHeight) flush(chapter.id)
+                                if (availableHeight - currentY < photoTotalBudget) flush(chapter.id)
                                 
                                 if (currentAtoms.isEmpty()) currentPageFirstOffset = globalCharOffset
-                                currentAtoms.add(BookAtom.Photo(entry))
-                                currentY += photoHeight
+                                currentAtoms.add(BookAtom.Photo(entry, photoTargetWidth, photoTargetHeight))
+                                currentY += photoTotalBudget
                                 
-                                // Sécurité : si la photo rempli presque toute la page, on flush pour le texte suivant
                                 if (availableHeight - currentY < with(density) { 100.dp.toPx() }) flush(chapter.id)
                             }
                             globalCharOffset += matches[index].value.length
@@ -231,14 +228,14 @@ fun BookReaderFlowScreen(
                             Text("Mode de lecture", modifier = Modifier.padding(16.dp), style = MaterialTheme.typography.labelSmall, color = textColor.copy(alpha = 0.6f))
                             Row(modifier = Modifier.padding(horizontal = 8.dp)) {
                                 FilterChip(
-                                    selected = effectiveReadingMode == BookViewerViewModel.BookReadingMode.SCROLL,
+                                    selected = readingMode == BookViewerViewModel.BookReadingMode.SCROLL,
                                     onClick = { viewModel.updateReadingMode(BookViewerViewModel.BookReadingMode.SCROLL) },
                                     label = { Text("Défilement") },
                                     leadingIcon = { Icon(Icons.Default.FormatAlignJustify, null, modifier = Modifier.size(16.dp)) }
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 FilterChip(
-                                    selected = effectiveReadingMode == BookViewerViewModel.BookReadingMode.PAGES,
+                                    selected = readingMode == BookViewerViewModel.BookReadingMode.PAGES,
                                     onClick = { viewModel.updateReadingMode(BookViewerViewModel.BookReadingMode.PAGES) },
                                     label = { Text("Pages") },
                                     leadingIcon = { Icon(Icons.Default.AutoStories, null, modifier = Modifier.size(16.dp)) }
@@ -258,7 +255,7 @@ fun BookReaderFlowScreen(
             },
             containerColor = background.color
         ) { padding ->
-            if (isLoadingData || (effectiveReadingMode == BookViewerViewModel.BookReadingMode.PAGES && isPaginating)) {
+            if (isLoadingData || (readingMode == BookViewerViewModel.BookReadingMode.PAGES && isPaginating)) {
                 Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator(color = accent)
@@ -269,7 +266,7 @@ fun BookReaderFlowScreen(
                     }
                 }
             } else {
-                if (effectiveReadingMode == BookViewerViewModel.BookReadingMode.SCROLL) {
+                if (readingMode == BookViewerViewModel.BookReadingMode.SCROLL) {
                     ScrollModeView(padding, bookDraft, decryptedChapters, decryptedIntro, mediaMap, viewModel, listState = rememberLazyListState(), scrollProgress, fontSizeScale, fontFamily, textColor, accent, targetCreatorId, navController)
                 } else {
                     PagesModeView(padding, pages, pagesProgress, viewModel, targetCreatorId, bookDraft, fontSizeScale, fontFamily, background, textColor, accent, navController)
@@ -444,9 +441,29 @@ fun PagesModeView(
                             Spacer(Modifier.height(32.dp))
                         }
                         is BookAtom.Text -> Text(text = atom.content, style = TextStyle(fontFamily = fontFamily, fontSize = (18 * fontSizeScale).sp, color = textColor, lineHeight = (32 * fontSizeScale).sp, fontStyle = if (atom.isItalic) FontStyle.Italic else FontStyle.Normal), modifier = Modifier.padding(bottom = 12.dp))
-                        is BookAtom.Photo -> SecureAsyncImage(mediaUrl = atom.entry.mediaUrl, localPath = atom.entry.localMediaPath, mediaManager = viewModel.mediaManager, modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 24.dp).fillMaxWidth(0.8f).aspectRatio(1f).border(0.5.dp, textColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)).clip(RoundedCornerShape(12.dp)).clickable {
-                            navController.navigate(com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(atom.entry.id, targetCreatorId ?: bookDraft?.userId, atom.entry.mediaUrl, atom.entry.entryType, atom.entry.aiSummary, "entries", null, atom.entry.mediaUrl?.endsWith(".enc") ?: true))
-                        }, contentScale = ContentScale.Crop, creatorId = targetCreatorId ?: bookDraft?.userId, docType = "entries", docId = atom.entry.id, hideIfEmpty = true)
+                        is BookAtom.Photo -> {
+                            // v9.8.4 : Utilisation des dimensions scellées par le moteur
+                            SecureAsyncImage(
+                                mediaUrl = atom.entry.mediaUrl, 
+                                localPath = atom.entry.localMediaPath, 
+                                mediaManager = viewModel.mediaManager, 
+                                modifier = Modifier
+                                    .align(Alignment.CenterHorizontally)
+                                    .padding(vertical = 24.dp)
+                                    .size(width = with(density) { atom.widthPx.toDp() }, height = with(density) { atom.heightPx.toDp() })
+                                    .border(0.5.dp, textColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        navController.navigate(com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(atom.entry.id, targetCreatorId ?: bookDraft?.userId, atom.entry.mediaUrl, atom.entry.entryType, atom.entry.aiSummary, "entries", null, atom.entry.mediaUrl?.endsWith(".enc") ?: true))
+                                    }, 
+                                contentScale = ContentScale.Crop, 
+                                creatorId = targetCreatorId ?: bookDraft?.userId, 
+                                docType = "entries", 
+                                docId = atom.entry.id, 
+                                hideIfEmpty = true,
+                                isEncrypted = atom.entry.mediaUrl?.endsWith(".enc") ?: true // Flag explicite v9.8.4
+                            )
+                        }
                     }
                 }
             }
@@ -497,7 +514,7 @@ sealed class BookAtom {
     data class Cover(val title: String, val author: String) : BookAtom()
     data class ChapterHeader(val title: String, val index: Int) : BookAtom()
     data class Text(val content: String, val charOffset: Int, val isItalic: Boolean = false) : BookAtom()
-    data class Photo(val entry: OfflineEntry) : BookAtom()
+    data class Photo(val entry: OfflineEntry, val widthPx: Float = 0f, val heightPx: Float = 0f) : BookAtom()
 }
 
 data class BookPage(val atoms: List<BookAtom>, val pageNumber: Int, val chapterId: String?, val firstCharOffset: Int = 0)
