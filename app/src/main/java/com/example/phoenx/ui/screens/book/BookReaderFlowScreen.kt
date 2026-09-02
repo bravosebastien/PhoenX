@@ -48,6 +48,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.absoluteValue
 
+// v9.8.14 : Limite de photos par chapitre
+private const val MAX_PHOTOS_PER_CHAPTER = 3
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookReaderFlowScreen(
@@ -79,6 +82,10 @@ fun BookReaderFlowScreen(
     var pages by remember { mutableStateOf<List<BookPage>>(emptyList()) }
     var isPaginating by remember { mutableStateOf(false) }
 
+    // v9.8.14 : Dialogue d'exclusion photo
+    var photoToExclude by remember { mutableStateOf<OfflineEntry?>(null) }
+    val isCreator = targetCreatorId == null || simulatedRecipientUid != null
+
     LaunchedEffect(targetCreatorId, simulatedRecipientUid) {
         viewModel.loadBook(targetCreatorId, simulatedRecipientUid)
     }
@@ -89,7 +96,6 @@ fun BookReaderFlowScreen(
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val availableWidth = with(density) { (maxWidth - 64.dp).toPx() }
-        // v9.8.13 : Calcul DYNAMIQUE via WindowInsets (Status Bar + Nav Bar réelles + TopAppBar 64dp + PagerPadding 96dp + NuméroPage 20dp + Sécurité 16dp)
         val dynamicDeduction = topInset + bottomInset + 196.dp
         val availableHeight = with(density) { (maxHeight - dynamicDeduction).toPx() }
 
@@ -141,6 +147,8 @@ fun BookReaderFlowScreen(
 
                     var globalCharOffset = 0
                     currentPageFirstOffset = 0
+                    var photosInChapter = 0
+                    var lastWasPhoto = false
 
                     val headerHeight = with(density) { (26 * fontSizeScale + 60).dp.toPx() }
                     currentAtoms.add(BookAtom.ChapterHeader(chapter.title, chapter.orderIndex))
@@ -150,6 +158,7 @@ fun BookReaderFlowScreen(
                         if (part.isNotBlank()) {
                             var remainingText = part.trim()
                             var blockOffset = 0
+                            lastWasPhoto = false
 
                             while (remainingText.isNotEmpty()) {
                                 if (currentAtoms.isEmpty()) currentPageFirstOffset = globalCharOffset + blockOffset
@@ -191,58 +200,58 @@ fun BookReaderFlowScreen(
                             val id = matches[index].groupValues[2]
                             val entry = mediaMap[id]
 
-                            if (type == "PHOTO" && entry != null) {
-                                // v9.8.6 : Calcul des proportions réelles (sans charger l'image)
-                                var ratio = 1f // Carré par défaut
-                                if (!entry.localMediaPath.isNullOrBlank()) {
-                                    val file = java.io.File(entry.localMediaPath)
-                                    if (file.exists()) {
-                                        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                                        BitmapFactory.decodeFile(file.absolutePath, options)
+                            // v9.8.14 : Triplé de filtres (1. Explicitement inclus, 2. Non-consécutif, 3. Max 3 par chapitre)
+                            if (type == "PHOTO" && entry != null && entry.includedInBook) {
+                                if (!lastWasPhoto && photosInChapter < MAX_PHOTOS_PER_CHAPTER) {
+                                    lastWasPhoto = true
+                                    photosInChapter++
 
-                                        if (options.outWidth > 0 && options.outHeight > 0) {
-                                            // v9.8.8 : Correction ratio via EXIF (Rotation appareil photo)
-                                            var w = options.outWidth.toFloat()
-                                            var h = options.outHeight.toFloat()
+                                    var ratio = 1f
+                                    if (!entry.localMediaPath.isNullOrBlank()) {
+                                        val file = java.io.File(entry.localMediaPath)
+                                        if (file.exists()) {
+                                            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                                            BitmapFactory.decodeFile(file.absolutePath, options)
 
-                                            try {
-                                                val exif = android.media.ExifInterface(file.absolutePath)
-                                                val orientation = exif.getAttributeInt(
-                                                    android.media.ExifInterface.TAG_ORIENTATION,
-                                                    android.media.ExifInterface.ORIENTATION_NORMAL
-                                                )
-                                                if (orientation == android.media.ExifInterface.ORIENTATION_ROTATE_90 ||
-                                                    orientation == android.media.ExifInterface.ORIENTATION_ROTATE_270) {
-                                                    val temp = w
-                                                    w = h
-                                                    h = temp
+                                            if (options.outWidth > 0 && options.outHeight > 0) {
+                                                var w = options.outWidth.toFloat()
+                                                var h = options.outHeight.toFloat()
+
+                                                try {
+                                                    val exif = android.media.ExifInterface(file.absolutePath)
+                                                    val orientation = exif.getAttributeInt(
+                                                        android.media.ExifInterface.TAG_ORIENTATION,
+                                                        android.media.ExifInterface.ORIENTATION_NORMAL
+                                                    )
+                                                    if (orientation == android.media.ExifInterface.ORIENTATION_ROTATE_90 ||
+                                                        orientation == android.media.ExifInterface.ORIENTATION_ROTATE_270) {
+                                                        val temp = w
+                                                        w = h
+                                                        h = temp
+                                                    }
+                                                } catch (e: Exception) {
+                                                    android.util.Log.w("PHOENX_BOOK", "Erreur lecture EXIF: ${e.message}")
                                                 }
-                                            } catch (e: Exception) {
-                                                android.util.Log.w("PHOENX_BOOK", "Erreur lecture EXIF: ${e.message}")
-                                            }
 
-                                            ratio = w / h
+                                                ratio = w / h
+                                            }
                                         }
                                     }
+
+                                    val photoTargetWidth = availableWidth * 0.6f
+                                    var photoTargetHeight = photoTargetWidth / ratio
+                                    photoTargetHeight = minOf(photoTargetHeight, availableHeight * 0.5f)
+
+                                    val photoTotalBudget = photoTargetHeight + with(density) { 48.dp.toPx() }
+
+                                    if (availableHeight - currentY < photoTotalBudget) flush(chapter.id)
+
+                                    if (currentAtoms.isEmpty()) currentPageFirstOffset = globalCharOffset
+                                    currentAtoms.add(BookAtom.Photo(entry, photoTargetWidth, photoTargetHeight))
+                                    currentY += photoTotalBudget
+
+                                    if (availableHeight - currentY < with(density) { 60.dp.toPx() }) flush(chapter.id)
                                 }
-
-                                val photoTargetWidth = availableWidth * 0.6f
-                                var photoTargetHeight = photoTargetWidth / ratio
-
-                                // Plafond de sécurité (max 50% de la hauteur de page)
-                                photoTargetHeight = minOf(photoTargetHeight, availableHeight * 0.5f)
-
-                                val photoTotalBudget = photoTargetHeight + with(density) { 48.dp.toPx() }
-
-                                if (availableHeight - currentY < photoTotalBudget) flush(chapter.id)
-
-                                if (currentAtoms.isEmpty()) currentPageFirstOffset = globalCharOffset
-                                currentAtoms.add(BookAtom.Photo(entry, photoTargetWidth, photoTargetHeight))
-                                currentY += photoTotalBudget
-
-                                // RÈGLE DE REMPLISSAGE (v9.8.6) : On ne flush plus après une photo. 
-                                // On continue d'ajouter si la place le permet.
-                                if (availableHeight - currentY < with(density) { 60.dp.toPx() }) flush(chapter.id)
                             }
                             globalCharOffset += matches[index].value.length
                         }
@@ -316,11 +325,39 @@ fun BookReaderFlowScreen(
                 }
             } else {
                 if (readingMode == BookViewerViewModel.BookReadingMode.SCROLL) {
-                    ScrollModeView(padding, bookDraft, decryptedChapters, decryptedIntro, mediaMap, viewModel, listState = rememberLazyListState(), scrollProgress, fontSizeScale, fontFamily, textColor, accent, targetCreatorId, navController)
+                    ScrollModeView(padding, bookDraft, decryptedChapters, decryptedIntro, mediaMap, viewModel, listState = rememberLazyListState(), scrollProgress, fontSizeScale, fontFamily, textColor, accent, targetCreatorId, navController, onMediaExclude = { entry -> photoToExclude = entry })
                 } else {
-                    PagesModeView(padding, pages, pagesProgress, viewModel, targetCreatorId, bookDraft, fontSizeScale, fontFamily, background, textColor, accent, navController)
+                    PagesModeView(padding, pages, pagesProgress, viewModel, targetCreatorId, bookDraft, fontSizeScale, fontFamily, background, textColor, accent, navController, isCreator = isCreator, onMediaExclude = { entry -> photoToExclude = entry })
                 }
             }
+        }
+
+        // v9.8.14 : Dialogue de confirmation pour retrait de photo
+        if (photoToExclude != null) {
+            AlertDialog(
+                onDismissRequest = { photoToExclude = null },
+                title = { Text("Retirer cette photo de votre Livre ?") },
+                text = { Text("Cette photo ne réapparaîtra plus dans votre Livre de Vie à l'avenir.") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val entry = photoToExclude
+                            if (entry != null) {
+                                viewModel.excludePhotoFromBook(entry.id)
+                            }
+                            photoToExclude = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Retirer")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { photoToExclude = null }) {
+                        Text("Annuler")
+                    }
+                }
+            )
         }
     }
 }
@@ -340,7 +377,8 @@ fun ScrollModeView(
     textColor: Color,
     accent: Color,
     targetCreatorId: String?,
-    navController: NavController
+    navController: NavController,
+    onMediaExclude: ((OfflineEntry) -> Unit)? = null
 ) {
     val coroutineScope = rememberCoroutineScope()
     var showResumeBanner by remember { mutableStateOf(false) }
@@ -391,9 +429,20 @@ fun ScrollModeView(
                         Spacer(Modifier.height(32.dp))
 
                         val content = decryptedChapters[chapter.id] ?: ""
-                        ReaderIllustrableText(text = content, mediaMap = mediaMap, mediaManager = viewModel.mediaManager, fontFamily = fontFamily, textColor = textColor, accent = accent, fontSizeScale = fontSizeScale, creatorId = targetCreatorId ?: bookDraft?.userId, onMediaClick = { entry ->
-                            navController.navigate(com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(entry.id, targetCreatorId ?: bookDraft?.userId, entry.mediaUrl, entry.entryType, entry.aiSummary, "entries", null, entry.mediaUrl?.contains(".enc") ?: true))
-                        })
+                        ReaderIllustrableText(
+                            text = content, 
+                            mediaMap = mediaMap, 
+                            mediaManager = viewModel.mediaManager, 
+                            fontFamily = fontFamily, 
+                            textColor = textColor, 
+                            accent = accent, 
+                            fontSizeScale = fontSizeScale, 
+                            creatorId = targetCreatorId ?: bookDraft?.userId, 
+                            onMediaClick = { entry ->
+                                navController.navigate(com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(entry.id, targetCreatorId ?: bookDraft?.userId, entry.mediaUrl, entry.entryType, entry.aiSummary, "entries", null, entry.mediaUrl?.contains(".enc") ?: true))
+                            },
+                            onMediaExclude = onMediaExclude
+                        )
 
                         Spacer(Modifier.height(60.dp))
                         HorizontalDivider(modifier = Modifier.fillMaxWidth(0.3f).align(Alignment.CenterHorizontally), color = textColor.copy(alpha = 0.1f))
@@ -436,12 +485,13 @@ fun PagesModeView(
     background: BookBackgroundOption,
     textColor: Color,
     accent: Color,
-    navController: NavController
+    navController: NavController,
+    isCreator: Boolean = false,
+    onMediaExclude: ((OfflineEntry) -> Unit)? = null
 ) {
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val density = LocalDensity.current
 
-    // v9.8.7 : Restauration immédiate après navigation (ex: retour de MediaViewer)
     val returnToPage by navController.currentBackStackEntry?.savedStateHandle
         ?.getStateFlow<Int?>("returnToPage", null)
         ?.collectAsState() ?: remember { mutableStateOf(null) }
@@ -480,16 +530,14 @@ fun PagesModeView(
         val page = pages[pageIndex]
         Box(modifier = Modifier
             .fillMaxSize()
-            .background(background.color) // v9.8.1 : Page opaque pour éviter transparence
+            .background(background.color)
             .graphicsLayer {
                 val pageOffset = ((pagerState.currentPage - pageIndex) + pagerState.currentPageOffsetFraction)
                 if (pageOffset != 0f) {
                     transformOrigin = TransformOrigin(pivotFractionX = if (pageOffset > 0) 0f else 1f, pivotFractionY = 0.5f)
                     rotationY = pageOffset * -45f
-                    // v9.8.1 : Suppression alpha et augmentation distance caméra pour réduire distorsion
                     cameraDistance = 12f * density.density
                 }
-                // v9.8.3 : Filet de sécurité clip toujours actif
                 clip = true
             }
         ) {
@@ -505,35 +553,46 @@ fun PagesModeView(
                         }
                         is BookAtom.Text -> Text(text = atom.content, style = TextStyle(fontFamily = fontFamily, fontSize = (18 * fontSizeScale).sp, color = textColor, lineHeight = (32 * fontSizeScale).sp, fontStyle = if (atom.isItalic) FontStyle.Italic else FontStyle.Normal), modifier = Modifier.padding(bottom = 12.dp))
                         is BookAtom.Photo -> {
-                            // v9.8.8 : Log investigation pour cadres vides
-                            LaunchedEffect(atom.entry.id) {
-                                android.util.Log.d("PHOENX_BOOK_IMG", "Rendu photo ID: ${atom.entry.id} | Local: ${atom.entry.localMediaPath} | URL: ${atom.entry.mediaUrl}")
-                            }
-
-                            // v9.8.4 : Utilisation des dimensions scellées par le moteur
-                            SecureAsyncImage(
-                                mediaUrl = atom.entry.mediaUrl,
-                                localPath = atom.entry.localMediaPath,
-                                mediaManager = viewModel.mediaManager,
+                            Box(
                                 modifier = Modifier
                                     .align(Alignment.CenterHorizontally)
                                     .padding(vertical = 24.dp)
                                     .size(width = with(density) { atom.widthPx.toDp() }, height = with(density) { atom.heightPx.toDp() })
-                                    .border(0.5.dp, textColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable {
-                                        // v9.8.7 : Sauvegarde immédiate du numéro de page avant navigation
-                                        navController.currentBackStackEntry?.savedStateHandle?.set("returnToPage", pageIndex)
-
-                                        navController.navigate(com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(atom.entry.id, targetCreatorId ?: bookDraft?.userId, atom.entry.mediaUrl, atom.entry.entryType, atom.entry.aiSummary, "entries", null, atom.entry.mediaUrl?.contains(".enc") ?: true))
-                                    },
-                                contentScale = ContentScale.Crop, // v9.8.9 : Crop pour garantir que la photo remplit exactement le cadre (coins arrondis toujours alignés), le cadre étant déjà calculé sur les vraies proportions (EXIF inclus)
-                                creatorId = targetCreatorId ?: bookDraft?.userId,
-                                docType = "entries",
-                                docId = atom.entry.id,
-                                hideIfEmpty = true,
-                                isEncrypted = atom.entry.mediaUrl?.contains(".enc") ?: true
-                            )
+                            ) {
+                                SecureAsyncImage(
+                                    mediaUrl = atom.entry.mediaUrl,
+                                    localPath = atom.entry.localMediaPath,
+                                    mediaManager = viewModel.mediaManager,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .border(0.5.dp, textColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .clickable {
+                                            navController.currentBackStackEntry?.savedStateHandle?.set("returnToPage", pageIndex)
+                                            navController.navigate(com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(atom.entry.id, targetCreatorId ?: bookDraft?.userId, atom.entry.mediaUrl, atom.entry.entryType, atom.entry.aiSummary, "entries", null, atom.entry.mediaUrl?.contains(".enc") ?: true))
+                                        },
+                                    contentScale = ContentScale.Crop,
+                                    creatorId = targetCreatorId ?: bookDraft?.userId,
+                                    docType = "entries",
+                                    docId = atom.entry.id,
+                                    hideIfEmpty = true,
+                                    isEncrypted = atom.entry.mediaUrl?.contains(".enc") ?: true
+                                )
+                                // v9.8.14 : Icône discrète d'exclusion pour le Créateur
+                                if (isCreator && onMediaExclude != null) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(6.dp)
+                                            .size(24.dp)
+                                            .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                                            .clickable { onMediaExclude(atom.entry) },
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(Icons.Default.Close, contentDescription = "Retirer du livre", tint = Color.White, modifier = Modifier.size(14.dp))
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -555,11 +614,24 @@ fun BookCoverView(title: String, author: String, fontFamily: FontFamily, textCol
 }
 
 @Composable
-fun ReaderIllustrableText(text: String, mediaMap: Map<String, OfflineEntry>, mediaManager: MediaManager, fontFamily: FontFamily, textColor: Color, accent: Color, fontSizeScale: Float, creatorId: String? = null, onMediaClick: (OfflineEntry) -> Unit) {
+fun ReaderIllustrableText(
+    text: String, 
+    mediaMap: Map<String, OfflineEntry>, 
+    mediaManager: MediaManager, 
+    fontFamily: FontFamily, 
+    textColor: Color, 
+    accent: Color, 
+    fontSizeScale: Float, 
+    creatorId: String? = null, 
+    onMediaClick: (OfflineEntry) -> Unit,
+    onMediaExclude: ((OfflineEntry) -> Unit)? = null
+) {
     val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9\\-]+)\\]")
     val parts = text.split(regex)
     val matches = regex.findAll(text).toList()
     var lastWasPhoto = false
+    var photosInChapter = 0
+
     Column {
         parts.forEachIndexed { index, part ->
             if (part.trim().isNotEmpty()) {
@@ -570,10 +642,43 @@ fun ReaderIllustrableText(text: String, mediaMap: Map<String, OfflineEntry>, med
                 val type = matches[index].groupValues[1]
                 val id = matches[index].groupValues[2]
                 val entry = mediaMap[id]
-                if (type == "PHOTO" && entry != null) {
-                    if (!lastWasPhoto) {
-                        SecureAsyncImage(mediaUrl = entry.mediaUrl, localPath = entry.localMediaPath, mediaManager = mediaManager, modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 24.dp).fillMaxWidth(0.6f).aspectRatio(1f).border(0.5.dp, textColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp)).clip(RoundedCornerShape(12.dp)).clickable { onMediaClick(entry) }, contentScale = ContentScale.Crop, creatorId = creatorId, docType = "entries", docId = entry.id, hideIfEmpty = true)
+
+                // v9.8.14 : Triplé de filtres (Inclus, Non-consécutif, Max 3 par chapitre)
+                if (type == "PHOTO" && entry != null && entry.includedInBook) {
+                    if (!lastWasPhoto && photosInChapter < MAX_PHOTOS_PER_CHAPTER) {
+                        Box(modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 24.dp)) {
+                            SecureAsyncImage(
+                                mediaUrl = entry.mediaUrl, 
+                                localPath = entry.localMediaPath, 
+                                mediaManager = mediaManager, 
+                                modifier = Modifier
+                                    .fillMaxWidth(0.6f)
+                                    .aspectRatio(1f)
+                                    .border(0.5.dp, textColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { onMediaClick(entry) }, 
+                                contentScale = ContentScale.Crop, 
+                                creatorId = creatorId, 
+                                docType = "entries", 
+                                docId = entry.id, 
+                                hideIfEmpty = true
+                            )
+                            if (onMediaExclude != null) {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .padding(6.dp)
+                                        .size(24.dp)
+                                        .background(Color.Black.copy(alpha = 0.4f), CircleShape)
+                                        .clickable { onMediaExclude(entry) },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(Icons.Default.Close, contentDescription = "Retirer du livre", tint = Color.White, modifier = Modifier.size(14.dp))
+                                }
+                            }
+                        }
                         lastWasPhoto = true
+                        photosInChapter++
                     }
                 }
             }

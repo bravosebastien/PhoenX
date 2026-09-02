@@ -319,6 +319,31 @@ class BookViewerViewModel @Inject constructor(
         }
     }
 
+    // v9.8.14 : Exclusion définitive d'une photo du livre
+    fun excludePhotoFromBook(photoId: String) {
+        viewModelScope.launch {
+            try {
+                val userId = auth.currentUser?.uid ?: return@launch
+
+                // 1. Mise à jour Room
+                offlineEntryDao.updateIncludedInBook(photoId, false)
+
+                // 2. Mise à jour Firestore
+                db.collection("users").document(userId)
+                    .collection("entries").document(photoId)
+                    .update("includedInBook", false)
+                    .kotlinAwait()
+
+                // 3. Répercussion mémoire immédiate pour repagination instantanée
+                _mediaMap.value = _mediaMap.value.toMutableMap().apply { remove(photoId) }
+
+                android.util.Log.d("PHOENX_BOOK", "Photo $photoId exclue du livre avec succès")
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_BOOK", "Erreur exclusion photo $photoId: ${e.message}")
+            }
+        }
+    }
+
     fun updateFontSize(scale: Float) {
         _fontSizeScale.value = scale.coerceIn(0.8f, 1.5f)
     }
