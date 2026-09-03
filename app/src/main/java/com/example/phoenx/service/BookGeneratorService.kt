@@ -362,15 +362,52 @@ class BookGeneratorService @Inject constructor(
         val bookKey = encryptionManager.generateNewSessionKey()
         val bookKeyBase64 = android.util.Base64.encodeToString(bookKey, android.util.Base64.NO_WRAP)
 
-        val chapters = rawChapters.mapIndexed { index, ch ->
+        // Lot 3 : rattachement chapitre/sceneIds fiable, indépendant de la position dans le tableau.
+        // On privilégie les sceneIds renvoyés par l'IA pour CE chapitre précis ; à défaut (ancienne
+        // réponse sans ce champ), on retombe sur le plan par correspondance de TITRE — jamais par index,
+        // qui ne garantit rien si l'IA ne restitue pas ses chapitres dans l'ordre du plan reçu.
+        val validSceneIds = scenes.mapNotNull { it["id"] as? String }.toSet()
+        val ageById = scenes.mapNotNull { scene ->
+            val sceneId = scene["id"] as? String
+            val sceneAge = scene["age"] as? Int
+            if (sceneId != null && sceneAge != null) sceneId to sceneAge else null
+        }.toMap()
+
+        data class RawChapterInfo(
+            val title: String,
+            val content: String,
+            val sceneIds: List<String>,
+            val minAge: Int
+        )
+
+        val rawInfos = rawChapters.mapIndexed { index, ch ->
             val content = ch["content"] as String
             val title = ch["title"] as String
-            val planItem = effectivePlan.getOrNull(index)
-            val chapterSceneIds = (planItem?.get("sceneIds") as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList()
 
+            val aiReportedSceneIds = (ch["sceneIds"] as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList()
+            val fallbackPlanSceneIds = if (aiReportedSceneIds.isEmpty()) {
+                (effectivePlan.firstOrNull { it["title"] == title }?.get("sceneIds") as? List<*>)
+                    ?.mapNotNull { it?.toString() } ?: emptyList()
+            } else emptyList()
+
+            val chapterSceneIds = aiReportedSceneIds.ifEmpty { fallbackPlanSceneIds }
+                .filter { it in validSceneIds }
+
+            // Chapitre non résolu (aucun sceneId valide) : relégué en fin de livre, dans son ordre
+            // d'arrivée d'origine, plutôt que planté ou mélangé au reste.
+            val minAge = chapterSceneIds.mapNotNull { ageById[it] }.minOrNull() ?: (ageMax + 1 + index)
+
+            RawChapterInfo(title, content, chapterSceneIds, minAge)
+        }
+
+        // Lot 3 : ordre chronologique imposé par le code, jamais laissé à la seule discrétion de
+        // l'IA — son ordre de sortie n'est pas garanti stable d'une régénération à l'autre.
+        val orderedInfos = rawInfos.sortedBy { it.minAge }
+
+        val chapters = orderedInfos.mapIndexed { index, info ->
             val fingerprint = computeChapterFingerprint(
-                chapterTitle = title,
-                chapterSceneIds = chapterSceneIds,
+                chapterTitle = info.title,
+                chapterSceneIds = info.sceneIds,
                 scenes = scenes,
                 ageMin = ageMin,
                 ageMax = ageMax,
@@ -380,13 +417,13 @@ class BookGeneratorService @Inject constructor(
 
             BookChapter(
                 id = java.util.UUID.randomUUID().toString(),
-                title = title,
-                content = encryptionManager.encryptText(content, bookKey).let { 
-                    android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT) 
+                title = info.title,
+                content = encryptionManager.encryptText(info.content, bookKey).let {
+                    android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT)
                 },
                 status = ChapterStatus.DRAFT,
-                orderIndex = (ch["orderIndex"] as? Number)?.toInt() ?: index,
-                sceneIds = chapterSceneIds,
+                orderIndex = index,
+                sceneIds = info.sceneIds,
                 sourceFingerprint = fingerprint
             )
         }

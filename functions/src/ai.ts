@@ -173,15 +173,16 @@ export const generateBookChapters = onCall({
     ${authorProfileInstruction}
     Données source (Scènes) : ${JSON.stringify(scenes)}
 
-    Instructions de rédaction (v9.4.27) :
+    Instructions de rédaction (v9.5 — Lot 3 régénération partielle) :
     1. Rédige un récit fluide, à la première personne du singulier ("Je"), en couvrant la période de ${ageMin} à ${ageMax} ans.
     2. RÈGLE DE NON-PARAPHRASE (CRITIQUE) : Ne reproduis jamais la structure de phrase ou le choix de mots exact des 'summary' fournis. Tu es un biographe littéraire, pas un traducteur. Réécris entièrement chaque idée avec ton propre style narratif, fluide et élégant. Une simple reformulation par synonymes est interdite.
-    3. Utilise les 'userComment' (commentaires personnels) pour enrichir la description des médias et des souvenirs : ils apportent le contexte émotionnel que le résumé n'a pas forcément capté.
-    3. Intègre les 'amendments' pour montrer comment la pensée de l'auteur a évolué sur un même sujet au fil des années.
-    4. Utilise les données de l'Arbre Généalogique ('characters' avec parentIds et biography) pour assurer la cohérence des liens familiaux et donner de l'épaisseur aux proches cités.
-    5. Pour chaque photo fournie (avec id et description), insère la balise [PHOTO:id_exact] à l'endroit le plus opportun dans ton texte.
-    6. Pour chaque enregistrement vocal (id et description), intègre son essence émotionnelle. Tu peux aussi insérer une balise [AUDIO:id_exact].
-    7. Réponds UNIQUEMENT en JSON avec cette structure : {"chapters": [{"title": "Nom du chapitre", "content": "Texte avec balises [PHOTO:id] incluses", "orderIndex": 0}]}`;
+    3. RÈGLE DE PRUDENCE FACTUELLE (CRITIQUE) : Si la matière source d'une scène est pauvre (résumé très court, pas de 'userComment', aucun détail concret dans les compléments), reste sobre. N'invente JAMAIS de lieux, dates précises, ambiances sensorielles ou détails circonstanciés que tu ne peux pas déduire raisonnablement des données fournies. Une phrase courte et honnête vaut toujours mieux qu'un embellissement inventé.
+    4. Utilise les 'userComment' (commentaires personnels) pour enrichir la description des médias et des souvenirs : ils apportent le contexte émotionnel que le résumé n'a pas forcément capté.
+    5. Intègre les 'amendments' pour montrer comment la pensée de l'auteur a évolué sur un même sujet au fil des années.
+    6. Utilise les données de l'Arbre Généalogique ('characters' avec parentIds et biography) pour assurer la cohérence des liens familiaux et donner de l'épaisseur aux proches cités.
+    7. Pour chaque photo fournie (avec id et description), insère la balise [PHOTO:id_exact] à l'endroit le plus opportun dans ton texte.
+    8. Pour chaque enregistrement vocal (id et description), intègre son essence émotionnelle. Tu peux aussi insérer une balise [AUDIO:id_exact].
+    9. Réponds UNIQUEMENT en JSON avec cette structure : {"chapters": [{"title": "Nom du chapitre", "content": "Texte avec balises [PHOTO:id] incluses", "orderIndex": 0, "sceneIds": ["id_exact_1", "id_exact_2"]}]}. Le champ 'sceneIds' doit lister EXACTEMENT les IDs des scènes (fournies dans les données source) réellement utilisées pour rédiger CE chapitre précis — jamais d'ID inventé, jamais la liste complète par défaut.`;
 
     const text = await generateWithGemini(prompt, "generateBookChapters") || '{"chapters":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());
