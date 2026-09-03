@@ -163,7 +163,7 @@ export const generateBookChapters = onCall({
 
     let authorProfileInstruction = "";
     if (authorProfile && typeof authorProfile === "object" && Object.keys(authorProfile).length > 0) {
-        authorProfileInstruction = `Profil de l'auteur (Créateur du livre) : ${JSON.stringify(authorProfile)}. Utilise ces éléments personnels (métier, centres d'intérêt, contexte familial, éléments biographiques) pour nourrir la personnalité et le ton du narrateur.`;
+        authorProfileInstruction = `Profil de l'auteur (Créateur du livre) : ${JSON.stringify(authorProfile)}. Utilise ces éléments personnels (métier, centres d'intérêt, contexte familial, éléments biographiques) pour nourrir la personnalité et le ton du narrateur. ATTENTION : ce profil décrit l'état ACTUEL de l'auteur au moment où il rédige son livre (métier actuel, situation familiale actuelle, etc.), pas des faits valables à tout âge. N'insère JAMAIS un élément de ce profil dans un chapitre se déroulant clairement à un autre âge de sa vie que celui d'aujourd'hui — sauf s'il s'agit d'un trait de fond plausible depuis longtemps (une passion ancienne, un trait de caractère), à utiliser alors avec prudence et sans le dater précisément.`;
     }
 
     const prompt = `${AI_RULES}
