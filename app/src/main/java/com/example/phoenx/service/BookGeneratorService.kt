@@ -512,40 +512,110 @@ class BookGeneratorService @Inject constructor(
     }
 
     private suspend fun backupCurrentDraft(userId: String) {
-        val currentDoc = db.collection("users").document(userId)
-            .collection("book").document("current_draft").get().await()
+        // v9.8.16 : Force la lecture serveur (Source.SERVER) pour éviter le cache local obsolète
+        val currentDoc = try {
+            db.collection("users").document(userId)
+                .collection("book").document("current_draft")
+                .get(com.google.firebase.firestore.Source.SERVER).await()
+        } catch (e: Exception) {
+            db.collection("users").document(userId)
+                .collection("book").document("current_draft")
+                .get().await()
+        }
         
         if (currentDoc.exists()) {
             val data = currentDoc.data ?: return
+            
+            // Log de diagnostic v9.8.16
+            val chapters = data["chapters"] as? List<*>
+            val firstChapter = chapters?.firstOrNull() as? Map<*, *>
+            val firstContent = (firstChapter?.get("content") as? String) ?: ""
+            val preview = if (firstContent.length > 30) firstContent.substring(0, 30) else firstContent
+            android.util.Log.d("PHOENX_BOOK_BACKUP", "BACKUP: Chapitres=${chapters?.size ?: 0}, Extrait Chiffré Ch1='$preview'")
+
             db.collection("users").document(userId)
                 .collection("book").document("backup_draft")
                 .set(data)
                 .await()
-            android.util.Log.d("PHOENX_BOOK", "Backup du manuscrit actuel créé.")
         }
+
+        val keyDoc = try {
+            db.collection("users").document(userId)
+                .collection("book_keys").document("main")
+                .get(com.google.firebase.firestore.Source.SERVER).await()
+        } catch (e: Exception) {
+            db.collection("users").document(userId)
+                .collection("book_keys").document("main")
+                .get().await()
+        }
+
+        if (keyDoc.exists()) {
+            val keyData = keyDoc.data ?: return
+            db.collection("users").document(userId)
+                .collection("book_keys").document("backup")
+                .set(keyData)
+                .await()
+        }
+        android.util.Log.d("PHOENX_BOOK", "Backup du manuscrit ET de sa clé créés.")
     }
 
     suspend fun restoreFromBackup(userId: String) {
-        val backupDoc = db.collection("users").document(userId)
-            .collection("book").document("backup_draft").get().await()
-        
-        if (backupDoc.exists()) {
-            val data = backupDoc.data ?: return
-            // 1. Restaurer vers current_draft
-            db.collection("users").document(userId)
-                .collection("book").document("current_draft")
-                .set(data)
-                .await()
-            
-            // 2. Supprimer le backup
+        val backupDoc = try {
             db.collection("users").document(userId)
                 .collection("book").document("backup_draft")
-                .delete()
-                .await()
-            
-            android.util.Log.d("PHOENX_BOOK", "Restauration depuis backup réussie.")
-        } else {
+                .get(com.google.firebase.firestore.Source.SERVER).await()
+        } catch (e: Exception) {
+            db.collection("users").document(userId)
+                .collection("book").document("backup_draft")
+                .get().await()
+        }
+        
+        if (!backupDoc.exists()) {
             throw Exception("Aucune sauvegarde disponible à restaurer.")
         }
+
+        val data = backupDoc.data ?: return
+
+        // Log de diagnostic v9.8.16
+        val chapters = data["chapters"] as? List<*>
+        val firstChapter = chapters?.firstOrNull() as? Map<*, *>
+        val firstContent = (firstChapter?.get("content") as? String) ?: ""
+        val preview = if (firstContent.length > 30) firstContent.substring(0, 30) else firstContent
+        android.util.Log.d("PHOENX_BOOK_BACKUP", "RESTORE: Chapitres=${chapters?.size ?: 0}, Extrait Chiffré Ch1='$preview'")
+
+        db.collection("users").document(userId)
+            .collection("book").document("current_draft")
+            .set(data)
+            .await()
+
+        val keyBackupDoc = try {
+            db.collection("users").document(userId)
+                .collection("book_keys").document("backup")
+                .get(com.google.firebase.firestore.Source.SERVER).await()
+        } catch (e: Exception) {
+            db.collection("users").document(userId)
+                .collection("book_keys").document("backup")
+                .get().await()
+        }
+
+        if (keyBackupDoc.exists()) {
+            val keyData = keyBackupDoc.data ?: return
+            db.collection("users").document(userId)
+                .collection("book_keys").document("main")
+                .set(keyData)
+                .await()
+        }
+
+        // Nettoyage des deux sauvegardes ensemble
+        db.collection("users").document(userId)
+            .collection("book").document("backup_draft")
+            .delete()
+            .await()
+        db.collection("users").document(userId)
+            .collection("book_keys").document("backup")
+            .delete()
+            .await()
+
+        android.util.Log.d("PHOENX_BOOK", "Restauration du manuscrit ET de sa clé réussie.")
     }
 }

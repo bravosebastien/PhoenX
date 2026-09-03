@@ -626,9 +626,7 @@ fun ReaderIllustrableText(
     onMediaClick: (OfflineEntry) -> Unit,
     onMediaExclude: ((OfflineEntry) -> Unit)? = null
 ) {
-    val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9\\-]+)\\]")
-    val parts = text.split(regex)
-    val matches = regex.findAll(text).toList()
+    val (parts, matches) = splitTextAndMediaTags(text)
     var lastWasPhoto = false
     var photosInChapter = 0
 
@@ -684,6 +682,27 @@ fun ReaderIllustrableText(
             }
         }
     }
+}
+
+// v9.8.17 : Découpage propre préservant la ponctuation immédiatement rattachée aux balises média
+private fun splitTextAndMediaTags(content: String): Pair<List<String>, List<MatchResult>> {
+    val regex = Regex("\\[(PHOTO|AUDIO):([a-f0-9\\-]+)\\]")
+    val matches = regex.findAll(content).toList()
+    val rawParts = content.split(regex).toMutableList()
+
+    val punctuationRegex = Regex("^([,.:;!\\?…])")
+    for (i in matches.indices) {
+        if (i + 1 < rawParts.size) {
+            val nextPart = rawParts[i + 1]
+            val pMatch = punctuationRegex.find(nextPart)
+            if (pMatch != null) {
+                val punct = pMatch.value
+                rawParts[i] = rawParts[i] + punct
+                rawParts[i + 1] = nextPart.substring(punct.length)
+            }
+        }
+    }
+    return Pair(rawParts, matches)
 }
 
 sealed class BookAtom {
