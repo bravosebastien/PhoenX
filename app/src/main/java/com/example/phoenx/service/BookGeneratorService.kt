@@ -63,7 +63,9 @@ class BookGeneratorService @Inject constructor(
                     content = ch["content"] as? String ?: "",
                     status = try { ChapterStatus.valueOf(ch["status"] as? String ?: "DRAFT") } catch(e: Exception) { ChapterStatus.DRAFT },
                     lastModified = toLong(ch["lastModified"]),
-                    orderIndex = (ch["orderIndex"] as? Number)?.toInt() ?: 0
+                    orderIndex = (ch["orderIndex"] as? Number)?.toInt() ?: 0,
+                    sceneIds = (ch["sceneIds"] as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList(),
+                    sourceFingerprint = ch["sourceFingerprint"] as? String ?: ""
                 )
             } ?: emptyList()
 
@@ -291,7 +293,8 @@ class BookGeneratorService @Inject constructor(
             throw Exception("Pas assez de souvenirs pour écrire ton livre.")
         }
         
-        // ... (reste de la logique de préparation inchangée) ...
+        // Lot 1 : S'assurer qu'un plan existe systématiquement
+        val effectivePlan = plan ?: generateBookPlan()
         
         // v9.1 : Récupération du profil enrichi du Créateur
         val richProfile = offlineEntryDao.getCreatorProfileSync(userId)
@@ -328,7 +331,7 @@ class BookGeneratorService @Inject constructor(
             "ageMax" to ageMax,
             "soulTone" to dominantTone, // Injection v9.3.1
             "authorProfile" to authorProfileMap, // Transmis à l'IA Biographe v9.1
-            "plan" to plan // Injection v9.3.1
+            "plan" to effectivePlan // Injection v9.3.1 (Lot 1 : plan effectif)
         )
 
         // v9.0 : Log temporaire du payload envoyé à l'IA pour vérification des fiches personnages
@@ -359,16 +362,32 @@ class BookGeneratorService @Inject constructor(
         val bookKey = encryptionManager.generateNewSessionKey()
         val bookKeyBase64 = android.util.Base64.encodeToString(bookKey, android.util.Base64.NO_WRAP)
 
-        val chapters = rawChapters.map { ch ->
+        val chapters = rawChapters.mapIndexed { index, ch ->
             val content = ch["content"] as String
+            val title = ch["title"] as String
+            val planItem = effectivePlan.getOrNull(index)
+            val chapterSceneIds = (planItem?.get("sceneIds") as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList()
+
+            val fingerprint = computeChapterFingerprint(
+                chapterTitle = title,
+                chapterSceneIds = chapterSceneIds,
+                scenes = scenes,
+                ageMin = ageMin,
+                ageMax = ageMax,
+                soulTone = dominantTone,
+                authorProfileMap = authorProfileMap
+            )
+
             BookChapter(
                 id = java.util.UUID.randomUUID().toString(),
-                title = ch["title"] as String,
+                title = title,
                 content = encryptionManager.encryptText(content, bookKey).let { 
                     android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT) 
                 },
                 status = ChapterStatus.DRAFT,
-                orderIndex = (ch["orderIndex"] as Number).toInt()
+                orderIndex = (ch["orderIndex"] as? Number)?.toInt() ?: index,
+                sceneIds = chapterSceneIds,
+                sourceFingerprint = fingerprint
             )
         }
 
@@ -411,7 +430,9 @@ class BookGeneratorService @Inject constructor(
                     "content" to chapter.content,
                     "status" to chapter.status.name,
                     "lastModified" to chapter.lastModified,
-                    "orderIndex" to chapter.orderIndex
+                    "orderIndex" to chapter.orderIndex,
+                    "sceneIds" to chapter.sceneIds,
+                    "sourceFingerprint" to chapter.sourceFingerprint
                 )
             }
 
@@ -603,5 +624,62 @@ class BookGeneratorService @Inject constructor(
             .await()
 
         android.util.Log.d("PHOENX_BOOK", "Restauration du manuscrit ET de sa clé réussie.")
+    }
+
+    private fun computeChapterFingerprint(
+        chapterTitle: String,
+        chapterSceneIds: List<String>,
+        scenes: List<Map<String, Any?>>,
+        ageMin: Int,
+        ageMax: Int,
+        soulTone: String?,
+        authorProfileMap: Map<String, Any>?
+    ): String {
+        return try {
+            val sortedSceneIds = chapterSceneIds.sorted()
+            val sceneMapById = scenes.associateBy { it["id"] as? String ?: "" }
+            val chapterScenes = sortedSceneIds.mapNotNull { sceneMapById[it] }
+
+            val fingerprintData = mutableMapOf<String, Any?>(
+                "chapterTitle" to chapterTitle,
+                "sceneIds" to sortedSceneIds,
+                "scenes" to chapterScenes,
+                "ageMin" to ageMin,
+                "ageMax" to ageMax,
+                "soulTone" to soulTone,
+                "authorProfile" to authorProfileMap
+            )
+
+            val canonicalJsonString = convertToJsonValue(fingerprintData).toString()
+            val digest = java.security.MessageDigest.getInstance("SHA-256")
+            val hashBytes = digest.digest(canonicalJsonString.toByteArray(Charsets.UTF_8))
+            hashBytes.joinToString("") { "%02x".format(it) }
+        } catch (e: Exception) {
+            android.util.Log.e("PHOENX_BOOK", "Échec calcul fingerprint chapitre", e)
+            ""
+        }
+    }
+
+    private fun convertToJsonValue(obj: Any?): Any {
+        return when (obj) {
+            null -> org.json.JSONObject.NULL
+            is Map<*, *> -> {
+                val jsonObject = org.json.JSONObject()
+                val sortedKeys = obj.keys.mapNotNull { it?.toString() }.sorted()
+                for (key in sortedKeys) {
+                    jsonObject.put(key, convertToJsonValue(obj[key]))
+                }
+                jsonObject
+            }
+            is List<*> -> {
+                val jsonArray = org.json.JSONArray()
+                for (item in obj) {
+                    jsonArray.put(convertToJsonValue(item))
+                }
+                jsonArray
+            }
+            is Number, is Boolean, is String -> obj
+            else -> obj.toString()
+        }
     }
 }

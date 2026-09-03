@@ -12,7 +12,9 @@ data class BookChapter(
     val content: String = "", // Chiffré Tink
     val status: ChapterStatus = ChapterStatus.DRAFT,
     val lastModified: Long = System.currentTimeMillis(),
-    val orderIndex: Int = 0
+    val orderIndex: Int = 0,
+    val sceneIds: List<String> = emptyList(),
+    val sourceFingerprint: String = ""
 )
 
 data class BookTheme(
