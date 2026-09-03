@@ -150,7 +150,7 @@ export const generateBookChapters = onCall({
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
 
-    const { scenes, ageMin, ageMax, soulTone, plan, evolutionInsights } = request.data;
+    const { scenes, ageMin, ageMax, soulTone, plan, authorProfile } = request.data;
     if (!scenes || scenes.length === 0) throw new HttpsError("invalid-argument", "Pas de souvenirs à traiter");
 
     const toneInstruction = soulTone ? `Le ton de ce récit doit être : ${soulTone}.` : "Le ton doit être celui d'un biographe bienveillant, respectueux et narratif.";
@@ -161,13 +161,16 @@ export const generateBookChapters = onCall({
         Chaque chapitre doit traiter uniquement les scenes dont les IDs sont listés pour lui.`;
     }
 
-    const insightsInstruction = evolutionInsights ? `Utilise ces analyses sur l'évolution de la pensée de l'auteur pour donner du relief et de la profondeur au récit : ${evolutionInsights}` : "";
+    let authorProfileInstruction = "";
+    if (authorProfile && typeof authorProfile === "object" && Object.keys(authorProfile).length > 0) {
+        authorProfileInstruction = `Profil de l'auteur (Créateur du livre) : ${JSON.stringify(authorProfile)}. Utilise ces éléments personnels (métier, centres d'intérêt, contexte familial, éléments biographiques) pour nourrir la personnalité et le ton du narrateur.`;
+    }
 
     const prompt = `${AI_RULES}
     Tu es le biographe attitré de l'utilisateur. Tu dois rédiger un Livre de Vie structuré en chapitres.
     ${toneInstruction}
     ${planInstruction}
-    ${insightsInstruction}
+    ${authorProfileInstruction}
     Données source (Scènes) : ${JSON.stringify(scenes)}
 
     Instructions de rédaction (v9.4.27) :

@@ -317,19 +317,6 @@ class BookGeneratorService @Inject constructor(
         val allTones = scenes.mapNotNull { it["soulTone"] as? String }
         val dominantTone = allTones.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
 
-        onProgress("Analyse de l'évolution de ta pensée...")
-        val evolutionInsights = try {
-            val summaries = scenes.mapNotNull { it["summary"] as? String }
-            if (summaries.isNotEmpty()) {
-                val evolutionResult = functions.getHttpsCallable("detectThoughtEvolution")
-                    .call(hashMapOf("summaries" to summaries))
-                    .await()
-                evolutionResult.data as? String
-            } else null
-        } catch (e: Exception) {
-            null
-        }
-
         onProgress("Rédaction des chapitres illustrés par l'IA...")
         
         val ageMin = scenes.minOf { it["age"] as Int }
@@ -341,8 +328,7 @@ class BookGeneratorService @Inject constructor(
             "ageMax" to ageMax,
             "soulTone" to dominantTone, // Injection v9.3.1
             "authorProfile" to authorProfileMap, // Transmis à l'IA Biographe v9.1
-            "plan" to plan, // Injection v9.3.1
-            "evolutionInsights" to evolutionInsights // Injection v9.3.1
+            "plan" to plan // Injection v9.3.1
         )
 
         // v9.0 : Log temporaire du payload envoyé à l'IA pour vérification des fiches personnages
