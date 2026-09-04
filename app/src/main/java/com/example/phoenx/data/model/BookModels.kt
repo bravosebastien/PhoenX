@@ -14,7 +14,23 @@ data class BookChapter(
     val lastModified: Long = System.currentTimeMillis(),
     val orderIndex: Int = 0,
     val sceneIds: List<String> = emptyList(),
-    val sourceFingerprint: String = ""
+    val sourceFingerprint: String = "",
+    // Lot 2 (tableau de bord de régénération) : empreinte fine par souvenir inclus, clé = sceneId.
+    // Vide pour les chapitres générés avant le Lot 2 (repli sur sourceFingerprint).
+    val sceneDiagnostics: Map<String, SceneDiagnostic> = emptyMap()
+)
+
+/**
+ * Empreintes locales d'un souvenir au moment de la génération d'un chapitre (Lot 2).
+ * Recalculées à la demande à partir du contenu réel — jamais mises à jour à la main.
+ */
+data class SceneDiagnostic(
+    val contentHash: String = "", // résumé, commentaire, amendments, catégorie/ton
+    val characterHashes: Map<String, String> = emptyMap(), // clé = "Prénom Nom" de la personne taguée
+    val complementsHash: String = "", // descriptions/commentaires des médias complémentaires
+    val photoCount: Int = 0,
+    val audioCount: Int = 0,
+    val storyCount: Int = 0
 )
 
 data class BookTheme(
@@ -42,7 +58,34 @@ data class BookDraft(
     val coverScale: Float = 1f,
     val coverOffsetX: Float = 0f,
     val coverOffsetY: Float = 0f,
-    val coverUploadedAt: Long? = null
+    val coverUploadedAt: Long? = null,
+    // Lot 2 : empreinte du contexte global (âge min/max, Ton de l'Âme, Portrait de Vie) à la dernière
+    // génération. Vide pour les livres générés avant le Lot 2.
+    val metaFingerprint: String = ""
+)
+
+// --- Lot 2 : Tableau de bord de régénération (comparaison locale, gratuite, sans appel IA) ---
+
+enum class ChapterRegenStatus { INTACT, TO_REWORK }
+
+data class ChapterRegenInfo(
+    val chapterId: String = "",
+    val title: String = "",
+    val orderIndex: Int = 0,
+    val status: ChapterRegenStatus = ChapterRegenStatus.INTACT,
+    val reasons: List<String> = emptyList() // raisons propres à ce chapitre (hors raison globale)
+)
+
+data class OrphanSceneInfo(
+    val sceneId: String = "",
+    val summary: String = "",
+    val age: Int = 0
+)
+
+data class RegenerationDashboard(
+    val chapters: List<ChapterRegenInfo> = emptyList(),
+    val orphanScenes: List<OrphanSceneInfo> = emptyList(),
+    val globalReason: String? = null // ex: Portrait de Vie / Ton de l'Âme changé, affecte tous les chapitres
 )
 
 data class BookMetadata(

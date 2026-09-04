@@ -123,7 +123,7 @@ fun RecipientMemoryDetailScreen(
             ) {
                 // TITRE
                 Text(
-                    text = entry!!.aiSummary.ifBlank { "Souvenir" },
+                    text = entry!!.userTitle.ifBlank { entry!!.aiSummary }.ifBlank { "Souvenir" },
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor
                 )

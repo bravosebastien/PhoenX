@@ -723,4 +723,18 @@ object RoomMigrations {
             db.execSQL("CREATE INDEX IF NOT EXISTS `index_personality_media_personalityId` ON `personality_media` (`personalityId`)")
         }
     }
+
+    /**
+     * MIGRATION_58_59 — Séparation Titre / Résumé (l'Étincelle)
+     * aiSummary servait à la fois de titre éditable par l'utilisateur et de résumé fourni à l'IA
+     * du Livre — un même champ, deux vocations différentes. Nouveau champ userTitle dédié au titre ;
+     * reprise intégrale de l'existant pour ne rien perdre à l'écran (le titre affiché ne change pas
+     * tant que l'utilisateur ne le modifie pas).
+     */
+    val MIGRATION_58_59 = object : Migration(58, 59) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN userTitle TEXT NOT NULL DEFAULT ''")
+            db.execSQL("UPDATE offline_entries SET userTitle = aiSummary")
+        }
+    }
 }

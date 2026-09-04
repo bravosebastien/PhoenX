@@ -258,6 +258,7 @@ class FilViewModel @Inject constructor(
             },
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = aiSummary,
+            userTitle = userTitle,
             hasEnigma = enigmaQuestion != null,
             recipientIds = recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() },
             visibility = visibility,
@@ -283,6 +284,7 @@ class FilViewModel @Inject constructor(
             targetAge = targetAge,
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = aiSummary,
+            userTitle = userTitle,
             aiTags = aiTags.split(",").filter { it.isNotEmpty() }.map { it.trim() },
             amendments = amendments,
             temporalEvolution = if (amendments.isNotEmpty()) {

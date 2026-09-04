@@ -53,6 +53,13 @@ class BookEditorViewModel @Inject constructor(
     private val _proposedPlan = MutableStateFlow<List<Map<String, Any?>>?>(null)
     val proposedPlan: StateFlow<List<Map<String, Any?>>?> = _proposedPlan
 
+    // Lot 2 : Tableau de bord de régénération (comparaison locale, gratuite, sans appel IA)
+    private val _regenerationDashboard = MutableStateFlow<RegenerationDashboard?>(null)
+    val regenerationDashboard: StateFlow<RegenerationDashboard?> = _regenerationDashboard
+
+    private val _isLoadingDashboard = MutableStateFlow(false)
+    val isLoadingDashboard: StateFlow<Boolean> = _isLoadingDashboard
+
     private val _isModifyingWithAi = MutableStateFlow(false)
     val isModifyingWithAi: StateFlow<Boolean> = _isModifyingWithAi
 
@@ -224,6 +231,29 @@ class BookEditorViewModel @Inject constructor(
 
     fun cancelPlan() {
         _proposedPlan.value = null
+    }
+
+    /**
+     * Lot 2 : calcule l'état "intact / à retravailler" de chaque chapitre par comparaison locale
+     * avec le contenu actuel — aucun appel IA, ne modifie rien.
+     */
+    fun loadRegenerationDashboard() {
+        viewModelScope.launch {
+            val userId = auth.currentUser?.uid ?: return@launch
+            _isLoadingDashboard.value = true
+            _error.value = null
+            try {
+                _regenerationDashboard.value = bookService.computeRegenerationDashboard(userId)
+            } catch (e: Exception) {
+                _error.value = "Erreur lors de l'analyse des chapitres."
+            } finally {
+                _isLoadingDashboard.value = false
+            }
+        }
+    }
+
+    fun dismissRegenerationDashboard() {
+        _regenerationDashboard.value = null
     }
 
     fun selectChapter(chapter: BookChapter?) {

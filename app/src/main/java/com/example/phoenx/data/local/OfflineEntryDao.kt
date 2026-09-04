@@ -190,8 +190,9 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM offline_entries WHERE id IN (:ids)")
     fun getEntriesByIds(ids: List<String>): Flow<List<OfflineEntry>>
 
-    @Query("UPDATE offline_entries SET aiSummary = :newSummary WHERE id = :entryId")
-    suspend fun updateEntrySummary(newSummary: String, entryId: String): Int
+    // Migration v59 : titre utilisateur (l'Étincelle), distinct du résumé fourni à l'IA du Livre.
+    @Query("UPDATE offline_entries SET userTitle = :newTitle WHERE id = :entryId")
+    suspend fun updateEntryTitle(newTitle: String, entryId: String): Int
 
     @Query("UPDATE offline_entries SET aiSummary = :title WHERE id = :entryId")
     suspend fun updateEntryMediaTitle(title: String, entryId: String): Int

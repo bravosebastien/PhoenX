@@ -437,6 +437,7 @@ class CaptureViewModel @Inject constructor(
                     compartmentIds = finalCompartmentIds, // v9.4.27 : Rempli automatiquement
                     createdAt = System.currentTimeMillis(),
                     aiSummary = analysis.summary,
+                    userTitle = rawText, // Migration v59 : titre initial = texte de capture (l'Étincelle)
                     locationName = locationName ?: _preselectedLocationName.value,
                     locationId = locationId,
                     includeInBook = includeInBook,

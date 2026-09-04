@@ -2,6 +2,7 @@ package com.example.phoenx.service
 
 import android.util.Log
 import com.example.phoenx.data.encryption.EncryptionManager
+import com.example.phoenx.data.local.CreatorProfileEntity
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.model.*
 import com.example.phoenx.domain.util.AgeUtils
@@ -65,7 +66,21 @@ class BookGeneratorService @Inject constructor(
                     lastModified = toLong(ch["lastModified"]),
                     orderIndex = (ch["orderIndex"] as? Number)?.toInt() ?: 0,
                     sceneIds = (ch["sceneIds"] as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList(),
-                    sourceFingerprint = ch["sourceFingerprint"] as? String ?: ""
+                    sourceFingerprint = ch["sourceFingerprint"] as? String ?: "",
+                    sceneDiagnostics = (ch["sceneDiagnostics"] as? Map<*, *>)?.mapNotNull { (key, value) ->
+                        val sceneId = key as? String ?: return@mapNotNull null
+                        val diagMap = value as? Map<*, *> ?: return@mapNotNull null
+                        sceneId to SceneDiagnostic(
+                            contentHash = diagMap["contentHash"] as? String ?: "",
+                            characterHashes = (diagMap["characterHashes"] as? Map<*, *>)
+                                ?.entries?.mapNotNull { (k, v) -> (k as? String)?.let { it to (v as? String ?: "") } }
+                                ?.toMap() ?: emptyMap(),
+                            complementsHash = diagMap["complementsHash"] as? String ?: "",
+                            photoCount = (diagMap["photoCount"] as? Number)?.toInt() ?: 0,
+                            audioCount = (diagMap["audioCount"] as? Number)?.toInt() ?: 0,
+                            storyCount = (diagMap["storyCount"] as? Number)?.toInt() ?: 0
+                        )
+                    }?.toMap() ?: emptyMap()
                 )
             } ?: emptyList()
 
@@ -96,7 +111,8 @@ class BookGeneratorService @Inject constructor(
                 coverScale = (rawData["coverScale"] as? Number)?.toFloat() ?: 1f,
                 coverOffsetX = (rawData["coverOffsetX"] as? Number)?.toFloat() ?: 0f,
                 coverOffsetY = (rawData["coverOffsetY"] as? Number)?.toFloat() ?: 0f,
-                coverUploadedAt = toLong(rawData["coverUploadedAt"], 0L).let { if (it == 0L) null else it }
+                coverUploadedAt = toLong(rawData["coverUploadedAt"], 0L).let { if (it == 0L) null else it },
+                metaFingerprint = rawData["metaFingerprint"] as? String ?: ""
             )
 
             android.util.Log.d("PHOENX_BOOK_TRACE", "3. Mapping manuel réussi. Chapitres: ${draft.chapters.size}")
@@ -177,7 +193,15 @@ class BookGeneratorService @Inject constructor(
             
             accepted
         }
-        
+
+        // Chantier fusion des compléments (4 septembre) : format lisible pour l'IA (un horodatage
+        // brut en millisecondes n'est pas fiable pour un LLM). Fuseau LOCAL de l'appareil,
+        // explicitement, jamais UTC — une date saisie le 1er janvier ne doit jamais ressortir au
+        // 31 décembre précédent.
+        val eventDateFormatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.FRANCE).apply {
+            timeZone = java.util.TimeZone.getDefault()
+        }
+
         return parents.map { parent ->
             val complements = allEntries.filter { it.parentEntryId == parent.id }
             val age = AgeUtils.parseAgeJson(parent.ageAtCreation)
@@ -225,9 +249,41 @@ class BookGeneratorService @Inject constructor(
                 else -> "MEMORY"
             }
 
+            // Étape 3 : l'IA du Livre lit désormais le Récit réel (déchiffré côté Créateur, à la
+            // volée, jamais stocké en clair), et non plus le seul titre (aiSummary). Repli sur le
+            // titre utilisateur si le Récit est vide ou son déchiffrement a échoué — jamais le texte
+            // chiffré brut envoyé tel quel.
+            val decryptedRecit = try {
+                val text = encryptionManager.decryptText(parent.encryptedPayload)
+                when {
+                    text.isBlank() -> null
+                    text == "Contenu chiffré" -> null // même sentinel que MemoryDetailViewModel/RecipientMediaViewModel
+                    looksLikeUndecryptedGarbage(text) -> {
+                        android.util.Log.e("PHOENX_BOOK", "Récit suspect (forme non textuelle) pour ${parent.id}, repli sur le titre")
+                        null
+                    }
+                    else -> text
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_BOOK", "Échec déchiffrement du Récit pour ${parent.id}", e)
+                null
+            }
+            val effectiveSummary = decryptedRecit ?: parent.userTitle.ifBlank { parent.aiSummary }
+
+            // Chantier fusion des compléments (4 septembre) : date de l'ÉVÉNEMENT choisie par le
+            // Créateur sur l'écran du souvenir — jamais une date de saisie/modification. Sert à
+            // signaler à l'IA que le Récit principal et un complément peuvent parler d'un moment
+            // différent. Aucun repli inventé : null si le Créateur n'a rien renseigné. Les
+            // compléments n'ont aucune date d'événement propre exploitable (jamais éditable dans
+            // l'app pour un complément) — volontairement absente de "stories" ci-dessous.
+            val summaryEventDate: String? = (parent.memoryDate ?: parent.memoryDateStart)?.let { millis ->
+                eventDateFormatter.format(java.util.Date(millis))
+            }
+
             mapOf(
                 "id" to parent.id, // v9.3.1
-                "summary" to parent.aiSummary,
+                "summary" to effectiveSummary,
+                "summaryEventDate" to summaryEventDate,
                 "age" to age.years,
                 "category" to parent.emotionalCategory,
                 "tonalNuance" to parent.tonalNuance, // Ajouté v9.4.27
@@ -298,23 +354,7 @@ class BookGeneratorService @Inject constructor(
         
         // v9.1 : Récupération du profil enrichi du Créateur
         val richProfile = offlineEntryDao.getCreatorProfileSync(userId)
-        val authorProfileMap = richProfile?.let { p ->
-            val map = mutableMapOf<String, Any>()
-            if (!p.bio.isNullOrBlank()) map["bio"] = p.bio
-            if (!p.profession.isNullOrBlank()) map["profession"] = p.profession
-            if (p.hasSiblings == true && !p.siblingsDetail.isNullOrBlank()) map["family_siblings"] = p.siblingsDetail
-            if (p.hasChildren == true && !p.childrenDetail.isNullOrBlank()) map["family_children"] = p.childrenDetail
-            if (!p.hobbies.isNullOrBlank()) map["hobbies"] = p.hobbies
-            // Portrait physique
-            val physical = mutableListOf<String>()
-            p.height?.let { physical.add("$it cm") }
-            p.weight?.let { physical.add("$it kg") }
-            p.eyeColor?.let { physical.add("Yeux $it") }
-            p.hairColor?.let { physical.add("Cheveux $it") }
-            if (physical.isNotEmpty()) map["physical_appearance"] = physical.joinToString(", ")
-            
-            if (map.isNotEmpty()) map else null
-        }
+        val authorProfileMap = buildAuthorProfileMap(richProfile)
 
         // v9.3.1 : Calcul du Ton de l'Âme dominant
         val allTones = scenes.mapNotNull { it["soulTone"] as? String }
@@ -404,6 +444,9 @@ class BookGeneratorService @Inject constructor(
         // l'IA — son ordre de sortie n'est pas garanti stable d'une régénération à l'autre.
         val orderedInfos = rawInfos.sortedBy { it.minAge }
 
+        // Lot 2 : base pour les empreintes fines par souvenir (tableau de bord de régénération)
+        val sceneMapById = scenes.associateBy { it["id"] as? String ?: "" }
+
         val chapters = orderedInfos.mapIndexed { index, info ->
             val fingerprint = computeChapterFingerprint(
                 chapterTitle = info.title,
@@ -415,6 +458,10 @@ class BookGeneratorService @Inject constructor(
                 authorProfileMap = authorProfileMap
             )
 
+            val sceneDiagnostics = info.sceneIds.mapNotNull { sceneId ->
+                sceneMapById[sceneId]?.let { scene -> sceneId to computeSceneDiagnostic(scene) }
+            }.toMap()
+
             BookChapter(
                 id = java.util.UUID.randomUUID().toString(),
                 title = info.title,
@@ -424,7 +471,8 @@ class BookGeneratorService @Inject constructor(
                 status = ChapterStatus.DRAFT,
                 orderIndex = index,
                 sceneIds = info.sceneIds,
-                sourceFingerprint = fingerprint
+                sourceFingerprint = fingerprint,
+                sceneDiagnostics = sceneDiagnostics
             )
         }
 
@@ -443,7 +491,8 @@ class BookGeneratorService @Inject constructor(
             coverUploadedAt = existingDraft?.coverUploadedAt,
             theme = existingDraft?.theme ?: BookTheme(),
             visibility = existingDraft?.visibility ?: "RESTRICTED",
-            sealedMessage = existingDraft?.sealedMessage ?: ""
+            sealedMessage = existingDraft?.sealedMessage ?: "",
+            metaFingerprint = computeMetaFingerprint(ageMin, ageMax, dominantTone, authorProfileMap)
         )
 
         onProgress("Sauvegarde finale...")
@@ -469,7 +518,17 @@ class BookGeneratorService @Inject constructor(
                     "lastModified" to chapter.lastModified,
                     "orderIndex" to chapter.orderIndex,
                     "sceneIds" to chapter.sceneIds,
-                    "sourceFingerprint" to chapter.sourceFingerprint
+                    "sourceFingerprint" to chapter.sourceFingerprint,
+                    "sceneDiagnostics" to chapter.sceneDiagnostics.mapValues { (_, diag) ->
+                        mapOf(
+                            "contentHash" to diag.contentHash,
+                            "characterHashes" to diag.characterHashes,
+                            "complementsHash" to diag.complementsHash,
+                            "photoCount" to diag.photoCount,
+                            "audioCount" to diag.audioCount,
+                            "storyCount" to diag.storyCount
+                        )
+                    }
                 )
             }
 
@@ -496,7 +555,8 @@ class BookGeneratorService @Inject constructor(
                 "coverScale" to draft.coverScale,
                 "coverOffsetX" to draft.coverOffsetX,
                 "coverOffsetY" to draft.coverOffsetY,
-                "coverUploadedAt" to draft.coverUploadedAt
+                "coverUploadedAt" to draft.coverUploadedAt,
+                "metaFingerprint" to draft.metaFingerprint
             )
             
             val filteredData = rawData.filterValues { it != null }
@@ -718,5 +778,213 @@ class BookGeneratorService @Inject constructor(
             is Number, is Boolean, is String -> obj
             else -> obj.toString()
         }
+    }
+
+    /**
+     * Construit le bloc authorProfile transmis à l'IA à partir du Portrait de Vie.
+     * Factorisé (Lot 2) pour être utilisé identiquement par generateBook() et le tableau de bord.
+     */
+    private fun buildAuthorProfileMap(richProfile: CreatorProfileEntity?): Map<String, Any>? {
+        return richProfile?.let { p ->
+            val map = mutableMapOf<String, Any>()
+            if (!p.bio.isNullOrBlank()) map["bio"] = p.bio
+            if (!p.profession.isNullOrBlank()) map["profession"] = p.profession
+            if (p.hasSiblings == true && !p.siblingsDetail.isNullOrBlank()) map["family_siblings"] = p.siblingsDetail
+            if (p.hasChildren == true && !p.childrenDetail.isNullOrBlank()) map["family_children"] = p.childrenDetail
+            if (!p.hobbies.isNullOrBlank()) map["hobbies"] = p.hobbies
+            val physical = mutableListOf<String>()
+            p.height?.let { physical.add("$it cm") }
+            p.weight?.let { physical.add("$it kg") }
+            p.eyeColor?.let { physical.add("Yeux $it") }
+            p.hairColor?.let { physical.add("Cheveux $it") }
+            if (physical.isNotEmpty()) map["physical_appearance"] = physical.joinToString(", ")
+
+            if (map.isNotEmpty()) map else null
+        }
+    }
+
+    /**
+     * Étape 3 : dernier recours si le déchiffrement du Récit ne lève aucune exception et ne renvoie
+     * pas le sentinel "Contenu chiffré", mais produit tout de même du charabia non textuel (clé
+     * périmée après une restauration bancale, par ex.). Un vrai Récit en français contient des
+     * espaces ; un blob chiffré/base64 mal déchiffré n'en contient jamais sur une telle longueur.
+     */
+    private fun looksLikeUndecryptedGarbage(text: String): Boolean {
+        if (text.length < 20) return false
+        if (!text.contains(' ')) return true
+        val base64ish = text.count { it.isLetterOrDigit() || it == '+' || it == '/' || it == '=' }
+        return base64ish.toDouble() / text.length > 0.98
+    }
+
+    private fun sha256OfJson(data: Any?): String {
+        return try {
+            val canonicalJsonString = convertToJsonValue(data).toString()
+            val digest = java.security.MessageDigest.getInstance("SHA-256")
+            digest.digest(canonicalJsonString.toByteArray(Charsets.UTF_8)).joinToString("") { "%02x".format(it) }
+        } catch (e: Exception) {
+            ""
+        }
+    }
+
+    /**
+     * Lot 2 : empreinte fine d'UN souvenir (scène au format extractScenes()), décomposée par nature
+     * de contenu pour permettre une raison en clair précise dans le tableau de bord de régénération.
+     */
+    private fun computeSceneDiagnostic(scene: Map<String, Any?>): SceneDiagnostic {
+        val contentHash = sha256OfJson(
+            mapOf(
+                "summary" to scene["summary"],
+                "summaryEventDate" to scene["summaryEventDate"], // chantier fusion des compléments (4 septembre)
+                "userComment" to scene["userComment"],
+                "amendments" to scene["amendments"],
+                "category" to scene["category"],
+                "tonalNuance" to scene["tonalNuance"],
+                "soulTone" to scene["soulTone"],
+                "originType" to scene["originType"]
+            )
+        )
+
+        @Suppress("UNCHECKED_CAST")
+        val characters = scene["characters"] as? List<Map<String, Any?>> ?: emptyList()
+        val characterHashes = characters.associate { c ->
+            val name = "${c["firstName"] ?: ""} ${c["lastName"] ?: ""}".trim().ifBlank { "?" }
+            name to sha256OfJson(c)
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        val photos = scene["photos"] as? List<Map<String, Any?>> ?: emptyList()
+        @Suppress("UNCHECKED_CAST")
+        val vocals = scene["vocal_essence"] as? List<Map<String, Any?>> ?: emptyList()
+        @Suppress("UNCHECKED_CAST")
+        val stories = scene["stories"] as? List<Map<String, Any?>> ?: emptyList()
+
+        val complementsHash = sha256OfJson(mapOf("photos" to photos, "vocal_essence" to vocals, "stories" to stories))
+
+        return SceneDiagnostic(
+            contentHash = contentHash,
+            characterHashes = characterHashes,
+            complementsHash = complementsHash,
+            photoCount = photos.size,
+            audioCount = vocals.size,
+            storyCount = stories.size
+        )
+    }
+
+    private fun computeMetaFingerprint(ageMin: Int, ageMax: Int, soulTone: String?, authorProfileMap: Map<String, Any>?): String {
+        return sha256OfJson(mapOf("ageMin" to ageMin, "ageMax" to ageMax, "soulTone" to soulTone, "authorProfile" to authorProfileMap))
+    }
+
+    private fun truncateLabel(text: String?, max: Int = 40): String {
+        val t = text?.trim().orEmpty().ifBlank { return "ce souvenir" }
+        return if (t.length <= max) t else t.take(max).trimEnd() + "…"
+    }
+
+    /**
+     * Lot 2 : Tableau de bord de régénération. Comparaison 100% locale, aucun appel IA — recalcule
+     * les empreintes à partir du contenu réel actuel et les compare à celles stockées à la dernière
+     * génération. Ne modifie rien, ne déclenche aucune régénération.
+     */
+    suspend fun computeRegenerationDashboard(userId: String): RegenerationDashboard {
+        val draft = loadBookDraft(userId) ?: return RegenerationDashboard()
+        val scenes = extractScenes()
+        val sceneMapById = scenes.associateBy { it["id"] as? String ?: "" }
+
+        val richProfile = offlineEntryDao.getCreatorProfileSync(userId)
+        val authorProfileMap = buildAuthorProfileMap(richProfile)
+        val allTones = scenes.mapNotNull { it["soulTone"] as? String }
+        val dominantTone = allTones.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
+        val ageMin = scenes.mapNotNull { it["age"] as? Int }.minOrNull() ?: 0
+        val ageMax = scenes.mapNotNull { it["age"] as? Int }.maxOrNull() ?: 0
+
+        val currentMetaFingerprint = computeMetaFingerprint(ageMin, ageMax, dominantTone, authorProfileMap)
+        val globalReason = if (draft.metaFingerprint.isNotEmpty() && draft.metaFingerprint != currentMetaFingerprint) {
+            "Votre Portrait de Vie ou le Ton de l'Âme global du livre a changé depuis la dernière génération — cela concerne tous les chapitres."
+        } else null
+
+        fun mediaReason(label: String, storedCount: Int, currentCount: Int, sceneLabel: String): String? = when {
+            currentCount > storedCount -> "Vous avez ajouté $label à « $sceneLabel »."
+            currentCount < storedCount -> "Vous avez retiré $label de « $sceneLabel »."
+            else -> null
+        }
+
+        val chapterInfos = draft.chapters.sortedBy { it.orderIndex }.map { chapter ->
+            val reasons = mutableListOf<String>()
+
+            if (chapter.sceneDiagnostics.isEmpty() && chapter.sceneIds.isNotEmpty()) {
+                // Repli (chapitre généré avant le Lot 2) : pas de détail fin disponible, on retombe
+                // sur le hash global déjà connu (Lot 1/3).
+                val fallbackFingerprint = computeChapterFingerprint(
+                    chapterTitle = chapter.title,
+                    chapterSceneIds = chapter.sceneIds,
+                    scenes = scenes,
+                    ageMin = ageMin,
+                    ageMax = ageMax,
+                    soulTone = dominantTone,
+                    authorProfileMap = authorProfileMap
+                )
+                if (fallbackFingerprint != chapter.sourceFingerprint) {
+                    reasons.add("Le contenu source a changé depuis la dernière génération — détail précis disponible après la prochaine régénération complète.")
+                }
+            } else {
+                for (sceneId in chapter.sceneIds) {
+                    val storedDiag = chapter.sceneDiagnostics[sceneId]
+                    val currentScene = sceneMapById[sceneId]
+                    if (currentScene == null) {
+                        reasons.add("Un souvenir de ce chapitre n'est plus disponible ou a été retiré du Livre.")
+                        continue
+                    }
+                    if (storedDiag == null) continue // sceneId ajouté hors génération (ne devrait pas arriver), ignoré
+
+                    val currentDiag = computeSceneDiagnostic(currentScene)
+                    val sceneLabel = truncateLabel(currentScene["summary"] as? String)
+
+                    if (currentDiag.contentHash != storedDiag.contentHash) {
+                        reasons.add("Vous avez modifié le souvenir « $sceneLabel ».")
+                    }
+
+                    val allNames = storedDiag.characterHashes.keys + currentDiag.characterHashes.keys
+                    for (name in allNames) {
+                        if (storedDiag.characterHashes[name] != currentDiag.characterHashes[name]) {
+                            reasons.add("Vous avez enrichi la fiche de $name dans l'Arbre.")
+                        }
+                    }
+
+                    mediaReason("une photo", storedDiag.photoCount, currentDiag.photoCount, sceneLabel)?.let { reasons.add(it) }
+                    mediaReason("un enregistrement audio", storedDiag.audioCount, currentDiag.audioCount, sceneLabel)?.let { reasons.add(it) }
+                    mediaReason("un récit", storedDiag.storyCount, currentDiag.storyCount, sceneLabel)?.let { reasons.add(it) }
+
+                    val countsUnchanged = currentDiag.photoCount == storedDiag.photoCount &&
+                        currentDiag.audioCount == storedDiag.audioCount &&
+                        currentDiag.storyCount == storedDiag.storyCount
+                    if (countsUnchanged && currentDiag.complementsHash != storedDiag.complementsHash) {
+                        reasons.add("Vous avez modifié la description d'un média de « $sceneLabel ».")
+                    }
+                }
+            }
+
+            ChapterRegenInfo(
+                chapterId = chapter.id,
+                title = chapter.title,
+                orderIndex = chapter.orderIndex,
+                status = if (reasons.isNotEmpty() || globalReason != null) ChapterRegenStatus.TO_REWORK else ChapterRegenStatus.INTACT,
+                reasons = reasons.distinct()
+            )
+        }
+
+        val allChapterSceneIds = draft.chapters.flatMap { it.sceneIds }.toSet()
+        val orphanScenes = scenes.filter { (it["id"] as? String ?: "") !in allChapterSceneIds }
+            .map { scene ->
+                OrphanSceneInfo(
+                    sceneId = scene["id"] as? String ?: "",
+                    summary = truncateLabel(scene["summary"] as? String, 60),
+                    age = scene["age"] as? Int ?: 0
+                )
+            }
+
+        return RegenerationDashboard(
+            chapters = chapterInfos,
+            orphanScenes = orphanScenes,
+            globalReason = globalReason
+        )
     }
 }

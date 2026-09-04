@@ -38,9 +38,11 @@ class MemoryMetadataUpdater @Inject constructor(
         }
     }
 
+    // Migration v59 : le titre (l'Étincelle) a son propre champ, distinct du résumé fourni à l'IA
+    // du Livre (aiSummary) — plus jamais écrasé par une simple frappe dans le champ Titre.
     suspend fun updateTitle(entryId: String, newTitle: String) {
         try {
-            offlineEntryDao.updateEntrySummary(newTitle, entryId)
+            offlineEntryDao.updateEntryTitle(newTitle, entryId)
             syncTrigger.triggerSync(entryId)
         } catch (e: Exception) {
             android.util.Log.e("MemoryMetadataUpdater", "Error updating title", e)

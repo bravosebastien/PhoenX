@@ -152,10 +152,12 @@ class LocationDetailViewModel @Inject constructor(
         }
     }
 
+    // Migration v59 : renomme la vocation réelle de cette fonction — c'est le titre (l'Étincelle)
+    // qui est édité ici, jamais le résumé fourni à l'IA du Livre.
     fun updateEntrySummary(entryId: String, newSummary: String) {
         viewModelScope.launch {
             try {
-                offlineEntryDao.updateEntrySummary(newSummary, entryId)
+                offlineEntryDao.updateEntryTitle(newSummary, entryId)
             } catch (e: Exception) {
                 android.util.Log.e("LocationDetailVM", "Error updating entry", e)
             }

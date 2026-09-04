@@ -109,7 +109,11 @@ data class OfflineEntry(
     val markedForDeletionAt: Long? = null,
 
     // CONTRÔLE GRANULAIRE LIVRE v9.6.7 (Migration v57)
-    val includedInBook: Boolean = true
+    val includedInBook: Boolean = true,
+
+    // SÉPARATION TITRE / RÉSUMÉ (Migration v59) : titre saisi par l'utilisateur (l'Étincelle),
+    // distinct de aiSummary qui reste réservé au résumé fourni à l'IA du Livre.
+    val userTitle: String = ""
 ) {
     fun isChild(): Boolean = parentEntryId != null
 
@@ -152,6 +156,7 @@ data class OfflineEntry(
         if (memoryDateEnd != other.memoryDateEnd) return false
         if (silentAttribution != other.silentAttribution) return false
         if (tonalNuance != other.tonalNuance) return false
+        if (userTitle != other.userTitle) return false
 
         return true
     }
@@ -190,6 +195,7 @@ data class OfflineEntry(
         result = 31 * result + (memoryDateStart?.hashCode() ?: 0)
         result = 31 * result + (memoryDateEnd?.hashCode() ?: 0)
         result = 31 * result + silentAttribution.hashCode()
+        result = 31 * result + userTitle.hashCode()
         return result
     }
 }

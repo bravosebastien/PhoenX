@@ -75,9 +75,10 @@ fun BookEditorScreen(
     val userName by viewModel.userName.collectAsState()
     val entryCount by viewModel.entryCount.collectAsState() // v9.3.1
     val globalAmbiance by viewModel.globalAmbiance.collectAsState() // v9.4.27
+    val regenerationDashboard by viewModel.regenerationDashboard.collectAsState() // Lot 2
+    val isLoadingDashboard by viewModel.isLoadingDashboard.collectAsState() // Lot 2
     var showChapterEditor by remember { mutableStateOf(false) }
-    var forceRestricted by remember { mutableStateOf(false) } 
-    var showRegenerateConfirm by remember { mutableStateOf(false) }
+    var forceRestricted by remember { mutableStateOf(false) }
     var showOnboarding by remember { mutableStateOf(false) }
     var showAiExplanation by remember { mutableStateOf(false) }
     var showIntroEditor by remember { mutableStateOf(false) }
@@ -280,7 +281,7 @@ fun BookEditorScreen(
                             }
 
                             OutlinedButton(
-                                onClick = { showRegenerateConfirm = true },
+                                onClick = { viewModel.loadRegenerationDashboard() },
                                 modifier = Modifier.weight(1f).height(56.dp),
                                 border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
                                 shape = RoundedCornerShape(12.dp),
@@ -629,28 +630,26 @@ fun BookEditorScreen(
             }
         }
 
-        // ── POPUP DE CONFIRMATION RÉGÉNÉRATION ────
-        if (showRegenerateConfirm) {
-            AlertDialog(
-                onDismissRequest = { showRegenerateConfirm = false },
-                containerColor = theme.backgroundColor,
-                title = { Text("Réécrire tout le livre ?", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
-                text = { Text("Cette action va réécrire l'intégralité de tes chapitres. Le contenu actuel sera remplacé.\n\nSi tu veux seulement ajuster un chapitre précis (par exemple changer le ton), utilise plutôt 'Demander à l'IA' directement dans ce chapitre.", color = theme.contentColor.copy(alpha = 0.7f)) },
-                confirmButton = {
-                    Button(
-                        onClick = { 
-                            showRegenerateConfirm = false
-                            viewModel.generateBook() 
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = accent),
-                        modifier = Modifier.phoenXMatiere()
-                    ) { Text("Continuer et régénérer tout", color = theme.backgroundColor, fontWeight = FontWeight.Bold) }
+        // ── TABLEAU DE BORD DE RÉGÉNÉRATION (Lot 2) — comparaison locale, gratuite, sans appel IA ──
+        if (isLoadingDashboard) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f))
+                    .clickable(enabled = false) {},
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = accent)
+            }
+        }
+        if (regenerationDashboard != null && !isGenerating) {
+            RegenerationDashboardView(
+                dashboard = regenerationDashboard!!,
+                onConfirmRegenerate = {
+                    viewModel.dismissRegenerationDashboard()
+                    viewModel.generateBook()
                 },
-                dismissButton = {
-                    TextButton(onClick = { showRegenerateConfirm = false }) {
-                        Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
-                    }
-                }
+                onCancel = { viewModel.dismissRegenerationDashboard() }
             )
         }
 

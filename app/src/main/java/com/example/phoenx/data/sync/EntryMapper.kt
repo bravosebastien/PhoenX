@@ -82,6 +82,8 @@ fun OfflineEntry.toFirestoreMap(encryptionManager: EncryptionManager): Map<Strin
         "createdAt" to createdAt,
         // CHIFFREMENT v9.4.12 : Conversion String -> Blob (AES-256-GCM)
         "aiSummary" to if (aiSummary.isNotEmpty()) Blob.fromBytes(encryptionManager.encryptText(aiSummary)) else "",
+        // Migration v59 : titre utilisateur (l'Étincelle), chiffré au même titre que aiSummary.
+        "userTitle" to if (userTitle.isNotEmpty()) Blob.fromBytes(encryptionManager.encryptText(userTitle)) else "",
         "aiTags" to if (aiTags.isNotEmpty()) Blob.fromBytes(encryptionManager.encryptText(aiTags)) else "",
         "enigmaQuestion" to enigmaQuestion,
         "enigmaAnswer" to enigmaAnswer,
@@ -228,6 +230,15 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
         summaryObj is String -> summaryObj
         summaryObj != null -> encryptionManager.decryptText(summaryObj.extractBytes(), explicitKey)
         else -> ""
+    }
+
+    // Migration v59 : titre utilisateur (l'Étincelle). Repli sur aiSummary déchiffré si absent
+    // (document synchronisé par un autre appareil avant l'existence de ce champ) — jamais de titre vide.
+    val userTitleObj = this["userTitle"]
+    val finalUserTitle = when {
+        userTitleObj is String && userTitleObj.isNotEmpty() -> userTitleObj
+        userTitleObj != null && userTitleObj !is String -> encryptionManager.decryptText(userTitleObj.extractBytes(), explicitKey)
+        else -> finalSummary
     }
 
     val tagsObj = this["aiTags"]

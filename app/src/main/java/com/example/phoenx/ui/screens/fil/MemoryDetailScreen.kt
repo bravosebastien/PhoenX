@@ -224,7 +224,7 @@ fun MemoryDetailScreen(
 
     LaunchedEffect(entry, content) {
         if (entry != null) {
-            if (editableTitle.isEmpty()) editableTitle = entry!!.aiSummary
+            if (editableTitle.isEmpty()) editableTitle = entry!!.userTitle.ifBlank { entry!!.aiSummary }
             if (editableText.isEmpty() || entry!!.parentEntryId != null) {
                 editableText = content
             }
@@ -233,7 +233,7 @@ fun MemoryDetailScreen(
 
     LaunchedEffect(editableTitle) {
         if (!isReadOnly && entry != null && !entry!!.isChild() && entry!!.entryType != "QUESTION_ANSWER") {
-            if (editableTitle.isNotEmpty() && editableTitle != entry!!.aiSummary) {
+            if (editableTitle.isNotEmpty() && editableTitle != entry!!.userTitle.ifBlank { entry!!.aiSummary }) {
                 delay(1000)
                 viewModel.updateTitle(editableTitle)
             }
@@ -357,8 +357,13 @@ fun MemoryDetailScreen(
                                         ) {
                                             Column(modifier = Modifier.padding(16.dp)) {
                                                 if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER" || isReadOnly) {
+                                                    val essentialText = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") {
+                                                        entry!!.aiSummary
+                                                    } else {
+                                                        entry!!.userTitle.ifBlank { entry!!.aiSummary }
+                                                    }
                                                     Text(
-                                                        text = entry!!.aiSummary,
+                                                        text = essentialText,
                                                         style = MaterialTheme.typography.bodyLarge.copy(
                                                             fontFamily = theme.fontFamily,
                                                             fontStyle = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") FontStyle.Italic else null,

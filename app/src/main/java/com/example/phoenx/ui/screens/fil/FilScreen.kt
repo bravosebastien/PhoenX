@@ -423,7 +423,7 @@ fun TimelineEntryItem(
                     val displayText = when(entry.type) {
                         EntryType.PORTRAIT -> entry.aiSummary
                         EntryType.QUESTION_ANSWER -> entry.aiSummary
-                        else -> entry.aiSummary.ifBlank { "Souvenir sans titre" }
+                        else -> entry.userTitle.ifBlank { entry.aiSummary }.ifBlank { "Souvenir sans titre" }
                     }
 
                     Text(

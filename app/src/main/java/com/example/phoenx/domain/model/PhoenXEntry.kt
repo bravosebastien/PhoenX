@@ -19,6 +19,8 @@ data class PhoenXEntry(
     
     // IA SIGNATURE 5.0
     val aiSummary: String = "",
+    // Migration v59 : titre utilisateur (l'Étincelle), distinct du résumé fourni à l'IA du Livre.
+    val userTitle: String = "",
     val userComment: String? = null, // v9.4.27 (Commentaire personnel)
     val aiTags: List<String> = emptyList(),
     val temporalEvolution: String? = null,

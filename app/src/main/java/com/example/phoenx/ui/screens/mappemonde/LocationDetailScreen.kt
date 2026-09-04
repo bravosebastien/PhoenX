@@ -316,7 +316,7 @@ fun EditableMemoryCard(
 ) {
     val accent = theme.accentColor
     var isEditing by remember { mutableStateOf(false) }
-    var editedText by remember { mutableStateOf(entry.aiSummary) }
+    var editedText by remember { mutableStateOf(entry.userTitle) }
     var showMenu by remember { mutableStateOf(false) }
     var showRecipientDialog by remember { mutableStateOf(false) }
 
@@ -399,12 +399,12 @@ fun EditableMemoryCard(
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                         )
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                            TextButton(onClick = { isEditing = false; editedText = entry.aiSummary }) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f)) }
+                            TextButton(onClick = { isEditing = false; editedText = entry.userTitle }) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f)) }
                             TextButton(onClick = { onUpdate(editedText); isEditing = false }) { Text("Sauvegarder", color = accent) }
                         }
                     }
                 } else {
-                    Text(text = entry.aiSummary, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, lineHeight = 22.sp), color = theme.contentColor)
+                    Text(text = entry.userTitle, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, lineHeight = 22.sp), color = theme.contentColor)
                 }
             }
             Spacer(modifier = Modifier.height(14.dp))

@@ -24,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.phoenx.data.model.ChapterRegenStatus
+import com.example.phoenx.data.model.RegenerationDashboard
 import com.example.phoenx.ui.theme.AppThemeState
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.phoenXMatiere
@@ -217,6 +219,153 @@ fun ProposedPlanView(
             Text("Confirmer et rédiger", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
         
+        TextButton(onClick = onCancel, modifier = Modifier.padding(top = 8.dp)) {
+            Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+        }
+    }
+}
+
+/**
+ * Lot 2 : Tableau de bord de régénération. Affiche l'état de chaque chapitre (intact / à retravailler
+ * + raison en clair) et les souvenirs pas encore intégrés à un chapitre. Comparaison 100% locale et
+ * gratuite — cet écran ne déclenche aucun appel IA. Le bouton en bas continue de régénérer
+ * l'INTÉGRALITÉ du livre, exactement comme avant (comportement inchangé, le Lot 3 fera l'envoi
+ * ciblé des seuls chapitres cochés).
+ */
+@Composable
+fun RegenerationDashboardView(
+    dashboard: RegenerationDashboard,
+    onConfirmRegenerate: () -> Unit,
+    onCancel: () -> Unit
+) {
+    val theme = LocalAppTheme.current
+    val accent = theme.accentColor
+    val intactColor = Color(0xFF4CAF50)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(theme.backgroundColor)
+            .padding(24.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(Icons.Default.FactCheck, null, tint = accent, modifier = Modifier.size(48.dp))
+        Spacer(Modifier.height(16.dp))
+        Text(
+            "État de vos chapitres",
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, color = theme.contentColor)
+        )
+        Text(
+            "Comparaison locale avec votre dernière génération — aucun appel à l'IA, rien n'est encore modifié.",
+            style = MaterialTheme.typography.bodySmall,
+            color = theme.contentColor.copy(alpha = 0.6f),
+            textAlign = TextAlign.Center
+        )
+
+        dashboard.globalReason?.let { reason ->
+            Spacer(Modifier.height(16.dp))
+            Surface(
+                color = accent.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, accent.copy(alpha = 0.2f)),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.Top) {
+                    Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(reason, style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.8f))
+                }
+            }
+        }
+
+        Spacer(Modifier.height(24.dp))
+
+        dashboard.chapters.forEach { chapterInfo ->
+            val isIntact = chapterInfo.status == ChapterRegenStatus.INTACT
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = if (isIntact) Icons.Default.CheckCircle else Icons.Default.EditNote,
+                            contentDescription = null,
+                            tint = if (isIntact) intactColor else accent,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            "CHAPITRE ${chapterInfo.orderIndex + 1} · ${if (isIntact) "INTACT" else "À RETRAVAILLER"}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isIntact) intactColor else accent
+                        )
+                    }
+                    Text(
+                        chapterInfo.title,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = theme.contentColor,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                    if (chapterInfo.reasons.isNotEmpty()) {
+                        Column(modifier = Modifier.padding(top = 8.dp)) {
+                            chapterInfo.reasons.forEach { reason ->
+                                Text(
+                                    "• $reason",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = theme.contentColor.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (dashboard.orphanScenes.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Souvenirs pas encore dans un chapitre (${dashboard.orphanScenes.size})",
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
+                color = theme.contentColor,
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp)
+            )
+            dashboard.orphanScenes.forEach { orphan ->
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Icon(Icons.Default.NewReleases, null, tint = accent, modifier = Modifier.size(14.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        "« ${orphan.summary} »",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = theme.contentColor.copy(alpha = 0.7f)
+                    )
+                }
+            }
+        }
+
+        Spacer(Modifier.height(32.dp))
+
+        Text(
+            "Le bouton ci-dessous réécrit encore l'INTÉGRALITÉ des chapitres, y compris ceux marqués intacts.",
+            style = MaterialTheme.typography.labelSmall,
+            color = theme.contentColor.copy(alpha = 0.5f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+
+        Button(
+            onClick = onConfirmRegenerate,
+            modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
+            colors = ButtonDefaults.buttonColors(containerColor = accent)
+        ) {
+            Text("Réécrire tout le livre maintenant", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+        }
+
         TextButton(onClick = onCancel, modifier = Modifier.padding(top = 8.dp)) {
             Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
         }
