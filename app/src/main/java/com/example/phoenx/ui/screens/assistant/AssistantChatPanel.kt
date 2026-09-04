@@ -39,7 +39,14 @@ fun AssistantChatPanel(
     var question by remember { mutableStateOf("") }
     var nicknameInput by remember { mutableStateOf("") }
 
-    // v9.6.7 : Dialogue de bienvenue pour le surnom
+    // v9.4.27/v9.6.7 : Injection d'un message de bienvenue si la conversation est vide
+    LaunchedEffect(messages, nickname) {
+        if (messages.isEmpty() && nickname != null) {
+            val name = nickname ?: com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.displayName ?: "ami"
+            viewModel.injectSystemMessage("Bienvenue $name ! Je suis ton assistant PHOEN-X. Mon rôle est de t'accompagner pour que tu puisses transmettre ce qui compte vraiment. Que souhaites-tu savoir pour tes premiers pas ?")
+        }
+    }
+
     if (showNicknameDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.dismissNicknameDialog() },
@@ -73,122 +80,115 @@ fun AssistantChatPanel(
                 }
             }
         )
-    }
-
-    // v9.4.27/v9.6.7 : Injection d'un message de bienvenue si la conversation est vide
-    LaunchedEffect(messages, nickname) {
-        if (messages.isEmpty()) {
-            val name = nickname ?: com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.displayName ?: "ami"
-            viewModel.injectSystemMessage("Bienvenue $name ! Je suis ton assistant PHOEN-X. Mon rôle est de t'accompagner pour que tu puisses transmettre ce qui compte vraiment. Que souhaites-tu savoir pour tes premiers pas ?")
-        }
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        containerColor = theme.backgroundColor,
-        dragHandle = { BottomSheetDefaults.DragHandle(color = theme.contentColor.copy(alpha = 0.2f)) }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.85f) // v9.4.27 : Un peu plus grand pour confort
-                .padding(horizontal = 20.dp)
-                .navigationBarsPadding()
-                .imePadding() // CRUCIAL : Remonte le contenu quand le clavier s'ouvre
-                .padding(bottom = 16.dp)
+    } else {
+        // v9.8.18 : On n'affiche le panneau de discussion QUE si le dialogue de bienvenue est fermé
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = sheetState,
+            containerColor = theme.backgroundColor,
+            dragHandle = { BottomSheetDefaults.DragHandle(color = theme.contentColor.copy(alpha = 0.2f)) }
         ) {
-            // Header
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "Assistant PHOEN-X",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = theme.contentColor,
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(onClick = { viewModel.clearChat() }) {
-                    Text("Effacer", style = MaterialTheme.typography.labelSmall, color = accent)
-                }
-            }
-            
-            Spacer(Modifier.height(16.dp))
-
-            // Liste des messages
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                reverseLayout = true // Pour voir les derniers messages en bas
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.85f) // v9.4.27 : Un peu plus grand pour confort
+                    .padding(horizontal = 20.dp)
+                    .navigationBarsPadding()
+                    .imePadding() // CRUCIAL : Remonte le contenu quand le clavier s'ouvre
+                    .padding(bottom = 16.dp)
             ) {
-                if (isLoading) {
-                    item {
-                        LinearProgressIndicator(
-                            modifier = Modifier.fillMaxWidth().height(2.dp),
-                            color = accent
-                        )
+                // Header
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "Assistant PHOEN-X",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        color = theme.contentColor,
+                        modifier = Modifier.weight(1f)
+                    )
+                    IconButton(onClick = { viewModel.clearChat() }) {
+                        Text("Effacer", style = MaterialTheme.typography.labelSmall, color = accent)
                     }
                 }
                 
-                // v9.4.27 : Suggestions de questions si début de conversation
-                if (messages.size <= 1 && !isLoading) {
-                    item {
-                        androidx.compose.foundation.lazy.LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        ) {
-                            items(viewModel.suggestedQuestions) { suggestion ->
-                                FilterChip(
-                                    selected = false,
-                                    onClick = { viewModel.askQuestion(suggestion) },
-                                    label = { Text(suggestion, fontSize = 11.sp) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        containerColor = accent.copy(alpha = 0.1f),
-                                        labelColor = accent
-                                    ),
-                                    border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
-                                )
+                Spacer(Modifier.height(16.dp))
+
+                // Liste des messages
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    reverseLayout = true // Pour voir les derniers messages en bas
+                ) {
+                    if (isLoading) {
+                        item {
+                            LinearProgressIndicator(
+                                modifier = Modifier.fillMaxWidth().height(2.dp),
+                                color = accent
+                            )
+                        }
+                    }
+                    
+                    // v9.4.27 : Suggestions de questions si début de conversation
+                    if (messages.size <= 1 && !isLoading) {
+                        item {
+                            androidx.compose.foundation.lazy.LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            ) {
+                                items(viewModel.suggestedQuestions) { suggestion ->
+                                    FilterChip(
+                                        selected = false,
+                                        onClick = { viewModel.askQuestion(suggestion) },
+                                        label = { Text(suggestion, fontSize = 11.sp) },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            containerColor = accent.copy(alpha = 0.1f),
+                                            labelColor = accent
+                                        ),
+                                        border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
+                                    )
+                                }
                             }
                         }
                     }
-                }
-                
-                items(messages.reversed()) { msg ->
-                    ChatBubble(msg, theme.contentColor, accent)
-                }
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            // Champ de saisie (v9.4.25 : Ancré en bas avec support clavier)
-            OutlinedTextField(
-                value = question,
-                onValueChange = { question = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                placeholder = { Text("Posez votre question...", fontSize = 14.sp) },
-                trailingIcon = {
-                    IconButton(
-                        onClick = { 
-                            viewModel.askQuestion(question)
-                            question = "" 
-                        },
-                        enabled = question.isNotBlank() && !isLoading
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.Send, null, tint = accent)
+                    
+                    items(messages.reversed()) { msg ->
+                        ChatBubble(msg, theme.contentColor, accent)
                     }
-                },
-                shape = RoundedCornerShape(24.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = accent,
-                    unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
-                    focusedTextColor = theme.contentColor,
-                    unfocusedTextColor = theme.contentColor
-                ),
-                maxLines = 3
-            )
-            
-            // v9.4.29 : Spacer de sécurité pour le clavier
-            Spacer(Modifier.imePadding())
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                // Champ de saisie (v9.4.25 : Ancré en bas avec support clavier)
+                OutlinedTextField(
+                    value = question,
+                    onValueChange = { question = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    placeholder = { Text("Posez votre question...", fontSize = 14.sp) },
+                    trailingIcon = {
+                        IconButton(
+                            onClick = { 
+                                viewModel.askQuestion(question)
+                                question = "" 
+                            },
+                            enabled = question.isNotBlank() && !isLoading
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.Send, null, tint = accent)
+                        }
+                    },
+                    shape = RoundedCornerShape(24.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accent,
+                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
+                        focusedTextColor = theme.contentColor,
+                        unfocusedTextColor = theme.contentColor
+                    ),
+                    maxLines = 3
+                )
+                
+                // v9.4.29 : Spacer de sécurité pour le clavier
+                Spacer(Modifier.imePadding())
+            }
         }
     }
 }
