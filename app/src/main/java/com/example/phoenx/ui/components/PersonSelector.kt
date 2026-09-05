@@ -421,6 +421,12 @@ fun CreatePersonDialog(
                 Spacer(Modifier.height(24.dp))
 
                 Text("Pour les différencier (si besoin)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.align(Alignment.Start))
+                Text(
+                    text = "Cette précision aide l'intelligence artificielle du Livre de Ma Vie à ne jamais confondre deux personnes portant le même prénom (par exemple deux amis appelés Marc) — indique un détail distinctif comme un nom de famille, un surnom, ou une ville.",
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, lineHeight = 16.sp),
+                    color = theme.contentColor.copy(alpha = 0.5f),
+                    modifier = Modifier.padding(top = 4.dp).align(Alignment.Start)
+                )
                 Spacer(Modifier.height(12.dp))
 
                 @OptIn(ExperimentalLayoutApi::class)

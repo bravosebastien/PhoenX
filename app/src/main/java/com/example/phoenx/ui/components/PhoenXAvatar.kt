@@ -94,14 +94,5 @@ fun PhoenXAvatar(
                 modifier = Modifier.size(size * 0.6f)
             )
         }
-        
-        // Bordure intérieure pour effet de profondeur si Cameo
-        if (shape == AvatarShape.CAMEO) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .border(2.dp, theme.backgroundColor.copy(alpha = 0.2f), avatarShape)
-            )
-        }
     }
 }

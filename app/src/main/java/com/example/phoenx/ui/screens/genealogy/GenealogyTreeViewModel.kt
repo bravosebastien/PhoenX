@@ -48,7 +48,11 @@ class GenealogyTreeViewModel @Inject constructor(
             // MODE CRÉATEUR : Filtrage par catégorie FAMILY ou vide (Garde-fou)
             offlineEntryDao.getAllPersons().map { list ->
                 list.filter { p -> 
-                    p.categories.contains(",FAMILY,") || p.categories.isBlank() || p.categories == ",,"
+                    val hasFamilyCat = p.categories.contains(",FAMILY,")
+                    val isOldFamilyData = p.categories.isBlank() || p.categories == ",,"
+                    val hasFamilyMarkers = p.parentIds.replace(",", "").isNotBlank() || p.isDeceased
+                    
+                    hasFamilyCat || (isOldFamilyData && hasFamilyMarkers)
                 }
             }
         } else {
@@ -62,8 +66,14 @@ class GenealogyTreeViewModel @Inject constructor(
                             return@addSnapshotListener
                         }
                         val list = snapshot?.documents?.map { it.toPersonEntity() } ?: emptyList()
-                        // v9.6.5 : Sécurité Jardin Secret
-                        val filtered = list.filter { it.visibility != "PRIVATE" }
+                        // v9.6.5 : Sécurité Jardin Secret + Filtrage Catégories (v12.2)
+                        val filtered = list.filter { p -> 
+                            val hasFamilyCat = p.categories.contains(",FAMILY,")
+                            val isOldFamilyData = p.categories.isBlank() || p.categories == ",,"
+                            val hasFamilyMarkers = p.parentIds.replace(",", "").isNotBlank() || p.isDeceased
+                            
+                            p.visibility != "PRIVATE" && (hasFamilyCat || (isOldFamilyData && hasFamilyMarkers))
+                        }
                         android.util.Log.d("GenealogySecurityDebug", "Snapshot distant persons: count=${filtered.size}")
                         trySend(filtered)
                     }
@@ -397,6 +407,7 @@ class GenealogyTreeViewModel @Inject constructor(
                 firstName = firstName,
                 lastName = lastName,
                 parentIds = "," + parentIds.joinToString(",") + ",",
+                categories = ",FAMILY,",
                 syncStatus = "pending"
             )
             offlineEntryDao.upsertPerson(newPerson)

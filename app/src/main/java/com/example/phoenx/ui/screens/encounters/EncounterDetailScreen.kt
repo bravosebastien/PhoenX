@@ -389,8 +389,7 @@ fun EncounterDetailScreen(
                                 docId = introducer.id,
                                 field = introducerField,
                                 isEncrypted = isIntroducerPathEncrypted,
-                                explicitKey = if (isReadOnly) heirKey else null,
-                                useCharcoalFilter = false // v9.6.6 : Photo normale dans le badge
+                                explicitKey = if (isReadOnly) heirKey else null
                             )
                             Spacer(Modifier.width(16.dp))
                             Text(

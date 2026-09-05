@@ -72,16 +72,7 @@ fun GenealogyCard(
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
-                    // Scrim pour la lisibilité du texte
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    listOf(Color.Transparent, Color.Black.copy(alpha = 0.4f))
-                                )
-                            )
-                    )
+                    // v12.2 : Suppression du scrim pour couleurs naturelles
                 } else {
                     // Fallback visuel : Icône discrète
                     Box(

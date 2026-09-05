@@ -120,19 +120,7 @@ fun BookCoverCard(
                         ),
                         contentScale = androidx.compose.ui.layout.ContentScale.Crop
                     )
-                    // Voile sombre progressif réduit pour la visibilité du livre (v9.2.7)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Brush.verticalGradient(
-                                    listOf(
-                                        Color.Black.copy(alpha = 0.08f),
-                                        Color.Black.copy(alpha = 0.25f)
-                                    )
-                                )
-                            )
-                    )
+                    // v12.2 : Suppression du voile sombre pour couleurs naturelles
                 } else {
                     // 3. Stylized Drawing (Fallback v9.2.6)
                     Box(

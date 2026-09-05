@@ -11,8 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -38,7 +36,6 @@ fun CameoPortrait(
     modifier: Modifier = Modifier,
     size: Dp = 40.dp,
     resolvedUrl: String? = null, // v9.4.27 : URL déjà résolue (Source unique)
-    useCharcoalFilter: Boolean = true, // v9.4.29 : Permet de désactiver le filtre artistique
     creatorId: String? = null, // v9.6.6
     docType: String? = null,
     docId: String? = null,
@@ -103,22 +100,6 @@ fun CameoPortrait(
         contentAlignment = Alignment.Center
     ) {
         if (!displayUrl.isNullOrBlank()) {
-            // Filtre "Portrait au Fusain" via ColorMatrix (v9.6.6 : Correction mathématique)
-            val charcoalMatrix = remember {
-                val contrast = 1.2f
-                val translate = -0.1f * 255f
-                val r = 0.213f * contrast
-                val g = 0.715f * contrast
-                val b = 0.072f * contrast
-                
-                ColorMatrix(floatArrayOf(
-                    r, g, b, 0f, translate,
-                    r, g, b, 0f, translate,
-                    r, g, b, 0f, translate,
-                    0f, 0f, 0f, 1f, 0f
-                ))
-            }
-
             val isPathEncrypted = displayUrl?.endsWith(".enc") == true
             val isLocal = displayUrl?.let { it.startsWith("/") || it.startsWith("file://") } == true
             val cleanLocalPath = if (displayUrl?.startsWith("file://") == true) displayUrl.substring(7) else if (displayUrl?.startsWith("/") == true) displayUrl else null
@@ -133,16 +114,12 @@ fun CameoPortrait(
                 docId = docId,
                 field = field,
                 isEncrypted = isEncrypted || isPathEncrypted,
-                colorFilter = if (useCharcoalFilter) ColorFilter.colorMatrix(charcoalMatrix) else null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-                hideIfEmpty = hideIfEmpty
             )
         } else if (!hideIfEmpty) {
-            // Placeholder Initiale style Fusain
+            // Placeholder Initiale (Couleur accent)
             Text(
                 text = firstName.take(1).uppercase(),
-                color = accent.copy(alpha = 0.6f),
+                color = accent, 
                 style = MaterialTheme.typography.labelLarge.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = (size.value * 0.4).sp,
@@ -150,12 +127,5 @@ fun CameoPortrait(
                 )
             )
         }
-        
-        // Bordure intérieure estompée pour effet médaillon
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .border(2.dp, theme.backgroundColor.copy(alpha = 0.2f), cameoShape)
-        )
     }
 }
