@@ -365,32 +365,33 @@ class BookEditorViewModel @Inject constructor(
     fun updateRecipients(selectedDocIds: List<String>, visibility: String? = null) {
         val userId = auth.currentUser?.uid ?: return
         val allRecipients = recipients.value
-        
+        val currentDraft = _bookDraft.value ?: return
+
         viewModelScope.launch {
             _isSaving.value = true
             try {
-                // v9.4.29 : Fresh Read avant modification
-                val freshDraft = bookService.loadBookDraft(userId) ?: _bookDraft.value ?: BookDraft(userId = userId)
-                
-                // v9.2 : On stocke les VRAIS UIDs pour la sécurité Firestore/Functions
+                // v12.2 Correctif Clignotement : On convertit DocIDs -> UIDs immédiatement
                 val persistentIds = selectedDocIds.map { docId ->
                     allRecipients.find { it.id == docId }?.linkedUid ?: docId
                 }.distinct()
 
-                // v9.4.27 : La visibilité ne change que si explicitement demandée. 
-                // Si la liste est vide, on reste en RESTRICTED par sécurité.
-                val finalVisibility = visibility ?: freshDraft.visibility ?: "RESTRICTED"
+                val finalVisibility = visibility ?: currentDraft.visibility ?: "RESTRICTED"
 
-                val updated = freshDraft.copy(
+                val updated = currentDraft.copy(
                     recipientIds = persistentIds,
                     visibility = finalVisibility
                 )
                 
-                bookService.saveBookDraft(userId, updated)
+                // Optimistic Update synchrone pour l'UI
                 _bookDraft.value = updated
+                
+                // Sauvegarde asynchrone
+                bookService.saveBookDraft(userId, updated)
                 triggerSuccess()
             } catch (e: Exception) {
                 _error.value = "Erreur lors de la sauvegarde"
+                // En cas d'échec, on rechargera l'état réel
+                loadExistingBook()
             } finally {
                 _isSaving.value = false
             }
@@ -399,6 +400,7 @@ class BookEditorViewModel @Inject constructor(
 
     /**
      * Alterne la sélection d'un destinataire (v9.4.19)
+     * v12.2 : Utilisation d'un calcul basé sur la liste de DocIDs mappés pour éviter les désynchronisations.
      */
     fun toggleRecipient(docId: String) {
         val current = selectedRecipientIds.value
@@ -407,7 +409,7 @@ class BookEditorViewModel @Inject constructor(
         } else {
             current + docId
         }
-        updateRecipients(newList, _bookDraft.value?.visibility ?: "RESTRICTED")
+        updateRecipients(newList, bookDraft.value?.visibility ?: "RESTRICTED")
     }
 
     fun updateSealedMessage(message: String) {
