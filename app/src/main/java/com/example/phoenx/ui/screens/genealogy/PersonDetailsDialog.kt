@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -125,38 +126,70 @@ fun PersonDetailsDialog(
                 ) {
                     Spacer(Modifier.height(24.dp))
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Box(contentAlignment = Alignment.BottomEnd) {
-                            CameoPortrait(
-                                imagePath = profilePhotoPath, 
-                                firstName = person.firstName, 
-                                size = 80.dp,
-                                resolvedUrl = if (profilePhotoPath == person.imagePath) resolvedUrls[person.id] else null,
-                                useCharcoalFilter = false // v9.4.29 : Couleurs naturelles dans la fiche détail
-                            )
+                        // PORTRAIT UNIFIÉ (Inspiré des Rencontres, format moyen haut-gauche)
+                        Box(
+                            modifier = Modifier
+                                .size(110.dp, 140.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(theme.contentColor.copy(alpha = 0.05f))
+                                .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                                .clickable(enabled = !isReadOnly) { profilePhotoPicker.launch("image/*") }
+                        ) {
+                            val activePath = profilePhotoPath ?: person.imagePath
+                            if (activePath != null) {
+                                val isPathEncrypted = activePath.endsWith(".enc")
+                                com.example.phoenx.ui.components.SecureAsyncImage(
+                                    mediaUrl = activePath,
+                                    mediaManager = EntryPointAccessors.fromApplication(context, MediaManager.MediaManagerEntryPoint::class.java).mediaManager(),
+                                    isEncrypted = isPathEncrypted,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(
+                                    Icons.Default.Person, 
+                                    null, 
+                                    modifier = Modifier.size(48.dp).align(Alignment.Center).alpha(0.2f), 
+                                    tint = theme.contentColor
+                                )
+                            }
+                            
                             if (!isReadOnly) {
-                                IconButton(
-                                    onClick = { profilePhotoPicker.launch("image/*") },
+                                Box(
                                     modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .padding(8.dp)
                                         .size(28.dp)
                                         .background(accent, CircleShape)
-                                        .border(2.dp, theme.backgroundColor, CircleShape)
+                                        .border(2.dp, theme.backgroundColor, CircleShape),
+                                    contentAlignment = Alignment.Center
                                 ) {
                                     Icon(Icons.Default.CameraAlt, null, tint = theme.backgroundColor, modifier = Modifier.size(14.dp))
                                 }
                             }
                         }
                         
-                        Spacer(Modifier.width(16.dp))
+                        Spacer(Modifier.width(20.dp))
                         
+                        // IDENTITÉ ET ACTIONS RAPIDES (Style inspiré des Rencontres)
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(person.firstName, style = MaterialTheme.typography.headlineSmall, color = theme.contentColor)
+                            Text(
+                                text = person.firstName, 
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.Bold, 
+                                    fontFamily = theme.fontFamily
+                                ), 
+                                color = theme.contentColor
+                            )
                             
                             if (!isReadOnly) {
-                                // Case "Décédé(e)"
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                // Case "Décédé(e)" (Spécifique Arbre)
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(top = 8.dp)
+                                ) {
                                     Checkbox(
                                         checked = isDeceased,
                                         onCheckedChange = { isDeceased = it },
@@ -165,10 +198,10 @@ fun PersonDetailsDialog(
                                     Text("Décédé(e)", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
                                 }
                                 
-                                // Bouton "Modifier identité / liens" (v9.4.24: Correction Layout)
+                                // Bouton de liens (Style bouton d'action Rencontres)
                                 OutlinedButton(
                                     onClick = onEditLinks,
-                                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
                                     shape = RoundedCornerShape(8.dp),
                                     border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
@@ -177,14 +210,27 @@ fun PersonDetailsDialog(
                                     Icon(Icons.Default.Link, null, modifier = Modifier.size(14.dp))
                                     Spacer(Modifier.width(6.dp))
                                     Text(
-                                        "Modifier identité / liens",
+                                        "Identité & Liens",
                                         style = MaterialTheme.typography.labelSmall,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             } else if (person.isDeceased) {
-                                Text("Décédé(e)", style = MaterialTheme.typography.labelSmall, color = accent, modifier = Modifier.padding(top = 4.dp))
+                                // Badge Décédé en mode lecture
+                                Surface(
+                                    modifier = Modifier.padding(top = 8.dp),
+                                    color = theme.contentColor.copy(alpha = 0.05f),
+                                    shape = RoundedCornerShape(16.dp),
+                                    border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+                                ) {
+                                    Text(
+                                        "Décédé(e)", 
+                                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                                        color = theme.contentColor.copy(alpha = 0.5f),
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -319,7 +365,8 @@ fun PersonDetailsDialog(
                                             docId = media.id,
                                             field = fieldParam,
                                             personId = person.id,
-                                            modifier = Modifier.fillMaxSize()
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
                                         )
 
                                         if (media.mediaType == "VIDEO") {
