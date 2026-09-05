@@ -36,6 +36,7 @@ import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.CameoPortrait
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.LocalAppTheme
+import com.example.phoenx.ui.theme.Error
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 
@@ -73,6 +74,7 @@ fun EncounterDetailScreen(
     val memoriesCount by viewModel.getMemoriesCountForPerson(personId).collectAsState(initial = 0)
 
     var showEditDialog by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) } // v12.2 : Sorti de la photo
     var loadTimeout by remember { mutableStateOf(false) }
 
     LaunchedEffect(personId, targetCreatorId) {
@@ -138,16 +140,63 @@ fun EncounterDetailScreen(
         )
     }
 
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            containerColor = theme.backgroundColor,
+            title = { Text("Retirer cette rencontre ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text("Cette personne ne figurera plus dans vos rencontres. Ses souvenirs associés resteront intacts.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.removeEncounterCategory(currentPerson)
+                        showDeleteConfirm = false
+                        navController.popBackStack()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Error)
+                ) {
+                    Text("Retirer", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) {
+                    Text("Annuler", color = theme.contentColor)
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    // v9.7.8 : Retour déplacé sur le portrait pour uniformité
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = "Retour", 
+                            tint = theme.contentColor
+                        )
+                    }
                 },
                 actions = {
-                    // v9.7.7 : Bouton Modifier déplacé sur le visuel pour harmonisation
+                    if (!isReadOnly && currentPerson.categories.contains("ENCOUNTER")) {
+                        IconButton(onClick = { showEditDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Edit, 
+                                contentDescription = "Modifier", 
+                                tint = theme.contentColor
+                            )
+                        }
+                        IconButton(onClick = { showDeleteConfirm = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete, 
+                                contentDescription = "Supprimer", 
+                                tint = Error
+                            )
+                        }
+                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
             )
@@ -193,106 +242,6 @@ fun EncounterDetailScreen(
                         )
                     } else {
                         Icon(Icons.Default.Person, null, modifier = Modifier.size(64.dp).align(Alignment.Center).alpha(0.2f), tint = theme.contentColor)
-                    }
-
-                    // 1. Bouton RETOUR (v9.7.9 : Coin Haut-Gauche)
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(8.dp)
-                            .size(40.dp)
-                            .clickable { navController.popBackStack() },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(28.dp)
-                                .background(theme.contentColor.copy(alpha = 0.1f), CircleShape)
-                                .border(0.5.dp, accent.copy(alpha = 0.3f), CircleShape)
-                        )
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = null, 
-                            tint = theme.contentColor.copy(alpha = 0.7f),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-
-                    // 2. Bouton ÉDITER (v9.7.9 : Coin Haut-Droite)
-                    if (!isReadOnly && currentPerson.categories.contains("ENCOUNTER")) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(8.dp)
-                                .size(40.dp)
-                                .clickable { showEditDialog = true },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .background(theme.contentColor.copy(alpha = 0.1f), CircleShape)
-                                    .border(0.5.dp, accent.copy(alpha = 0.3f), CircleShape)
-                            )
-                            Icon(
-                                imageVector = Icons.Default.Edit, 
-                                contentDescription = "Modifier", 
-                                tint = theme.contentColor.copy(alpha = 0.7f),
-                                modifier = Modifier.size(15.dp)
-                            )
-                        }
-                    }
-
-                    // 3. Bouton SUPPRIMER (v9.7.9 : Coin Bas-Droite)
-                    if (!isReadOnly && currentPerson.categories.contains("ENCOUNTER")) {
-                        var showDeleteConfirm by remember { mutableStateOf(false) }
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(8.dp)
-                                .size(40.dp)
-                                .clickable { showDeleteConfirm = true },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(28.dp)
-                                    .background(theme.contentColor.copy(alpha = 0.1f), CircleShape)
-                                    .border(0.5.dp, accent.copy(alpha = 0.3f), CircleShape)
-                            )
-                            Icon(
-                                imageVector = Icons.Default.Delete, 
-                                contentDescription = "Supprimer", 
-                                tint = theme.contentColor.copy(alpha = 0.7f),
-                                modifier = Modifier.size(15.dp)
-                            )
-                        }
-
-                        if (showDeleteConfirm) {
-                            AlertDialog(
-                                onDismissRequest = { showDeleteConfirm = false },
-                                containerColor = theme.backgroundColor,
-                                title = { Text("Retirer cette rencontre ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-                                text = { Text("Cette personne ne figurera plus dans vos rencontres. Ses souvenirs associés resteront intacts.", color = theme.contentColor.copy(alpha = 0.7f)) },
-                                confirmButton = {
-                                    Button(
-                                        onClick = {
-                                            viewModel.removeEncounterCategory(currentPerson)
-                                            showDeleteConfirm = false
-                                            navController.popBackStack()
-                                        },
-                                        colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)
-                                    ) {
-                                        Text("Retirer", color = Color.White)
-                                    }
-                                },
-                                dismissButton = {
-                                    TextButton(onClick = { showDeleteConfirm = false }) {
-                                        Text("Annuler", color = theme.contentColor)
-                                    }
-                                }
-                            )
-                        }
                     }
                 }
 
