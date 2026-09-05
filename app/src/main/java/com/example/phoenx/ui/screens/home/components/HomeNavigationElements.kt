@@ -4,7 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AccountCircle
-import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material3.*
@@ -111,7 +111,7 @@ fun HomeHeader(name: String, photoUrl: String?, date: String, onProfileClick: ()
 fun HomeNavigationBar(
     onNavigateToHome: () -> Unit,
     onNavigateToTrustCircle: () -> Unit,
-    onNavigateToIA: () -> Unit,
+    onNavigateToLibrary: () -> Unit,
     onOpenProfile: () -> Unit
 ) {
     val theme = LocalAppTheme.current
@@ -126,7 +126,7 @@ fun HomeNavigationBar(
         ) {
             NavItem(Icons.Outlined.Home, "Accueil", true, onNavigateToHome)
             NavItem(Icons.Outlined.People, "Mon Cercle", false, onNavigateToTrustCircle)
-            NavItem(Icons.Outlined.AutoAwesome, "L'IA", false, onNavigateToIA)
+            NavItem(Icons.Outlined.AutoStories, "Bibliothèque", false, onNavigateToLibrary)
             NavItem(Icons.Outlined.AccountCircle, "Profil", false, onOpenProfile)
         }
     }

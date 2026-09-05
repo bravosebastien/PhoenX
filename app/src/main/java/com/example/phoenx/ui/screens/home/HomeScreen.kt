@@ -204,7 +204,7 @@ fun HomeScreen(
                 HomeNavigationBar(
                     onNavigateToHome = { },
                     onNavigateToTrustCircle = onNavigateToTrustCircle,
-                    onNavigateToIA = onNavigateToIA,
+                    onNavigateToLibrary = onNavigateToLibrary,
                     onOpenProfile = { scope.launch { drawerState.open() } }
                 )
             }

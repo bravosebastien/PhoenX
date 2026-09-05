@@ -115,11 +115,7 @@ fun RecipientLibraryScreen(
                 ),
                 color = theme.contentColor
             )
-            Row {
-                Icon(Icons.Outlined.Info, null, tint = accent, modifier = Modifier.size(20.dp))
-                Spacer(modifier = Modifier.width(12.dp))
-                Icon(Icons.Outlined.Search, null, tint = accent, modifier = Modifier.size(20.dp))
-            }
+            Spacer(modifier = Modifier.width(48.dp)) // Compensation visuelle pour centrage relatif
         }
 
         Text(
@@ -162,14 +158,6 @@ fun RecipientLibraryScreen(
             theme = theme
         )
 
-        CompactEssentialRow(
-            title = "Lettre à Mon Jeune Moi",
-            info = "Écris à celui que tu étais",
-            icon = Icons.Outlined.HistoryEdu,
-            onClick = { navController.navigate("youngselfletters") },
-            theme = theme
-        )
-
         Spacer(modifier = Modifier.height(64.dp))
 
         // ── 2. GRILLE DE 6 BLOCS VISIBLES (AGRANDIS v8.9.6) ──────────────────
@@ -188,33 +176,23 @@ fun RecipientLibraryScreen(
             val itemModifier = Modifier.weight(1f)
             
             CompactGridItem(
-                label = "Le Coffre-Fort",
-                icon = Icons.Outlined.Lock,
-                onClick = { 
-                    if (isCreatorMode) navController.navigate("coffre_fort")
-                    else navController.navigate(Screen.RecipientDetective.createRoute(targetCreatorId))
-                },
+                label = "Vidéothèque",
+                icon = Icons.Outlined.Movie,
+                onClick = { navController.navigate(Screen.RecipientVideotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) },
                 theme = theme,
                 modifier = itemModifier
             )
             CompactGridItem(
-                label = "100 Questions",
-                icon = Icons.Outlined.HelpOutline,
-                onClick = { navController.navigate("cent_questions") },
+                label = "Photothèque",
+                icon = Icons.Outlined.PhotoCamera,
+                onClick = { navController.navigate(Screen.RecipientPhotos.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) },
                 theme = theme,
                 modifier = itemModifier
             )
             CompactGridItem(
-                label = "Portraits",
-                icon = Icons.Outlined.AccountCircle,
-                onClick = { navController.navigate("portrait_proche") },
-                theme = theme,
-                modifier = itemModifier
-            )
-            CompactGridItem(
-                label = "Mon Quiz",
-                icon = Icons.Outlined.EmojiEvents,
-                onClick = { if (isCreatorMode) navController.navigate("quiz_create") },
+                label = "Discothèque",
+                icon = Icons.Outlined.Album,
+                onClick = { navController.navigate(Screen.RecipientDiscotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) },
                 theme = theme,
                 modifier = itemModifier
             )
@@ -222,6 +200,13 @@ fun RecipientLibraryScreen(
                 label = "Mappemonde",
                 icon = Icons.Outlined.Public,
                 onClick = { navController.navigate("mappemonde") },
+                theme = theme,
+                modifier = itemModifier
+            )
+            CompactGridItem(
+                label = "Le Littéraire",
+                icon = Icons.Outlined.AutoStories,
+                onClick = { navController.navigate("literary_library") },
                 theme = theme,
                 modifier = itemModifier
             )
@@ -264,64 +249,69 @@ fun RecipientLibraryScreen(
         AnimatedVisibility(visible = isExpanded) {
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                 
-                // GROUPE 1 : ACTIONS DE CRÉATION
                 Text(
-                    "DÉPOSER ET TRANSMETTRE",
+                    "AUTRES COMPARTIMENTS",
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.2.sp),
                     color = theme.contentColor.copy(alpha = 0.3f),
                     modifier = Modifier.padding(start = 8.dp, top = 32.dp, bottom = 12.dp)
                 )
+
+                val itemModifier = Modifier.weight(1f)
+
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     maxItemsInEachRow = 3
                 ) {
-                    val itemModifier = Modifier.weight(1f)
-                    CompactGridItem("Le Miroir à Deux", Icons.Outlined.Handshake, { navController.navigate("le_pacte") }, theme, itemModifier)
-                    CompactGridItem("Réconciliation", Icons.Outlined.Mail, { navController.navigate("reconciliation") }, theme, itemModifier)
-                    CompactGridItem("Capsules", Icons.Outlined.MailOutline, { navController.navigate("lettres") }, theme, itemModifier)
-                }
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    maxItemsInEachRow = 3
-                ) {
-                    val itemModifier = Modifier.weight(1f)
                     CompactGridItem("Personnalités", Icons.Outlined.Star, { 
                         val route = if (isCreatorMode) "personalities" else "personalities?creatorId=$targetCreatorId"
                         navController.navigate(route) 
                     }, theme, itemModifier)
-                    // Remplissage si nécessaire
-                    repeat(2) { Spacer(modifier = itemModifier) }
+                    
+                    CompactGridItem("Mon Quiz", Icons.Outlined.EmojiEvents, { 
+                        if (isCreatorMode) navController.navigate("quiz_create") 
+                    }, theme, itemModifier)
+
+                    CompactGridItem("Capsule temporelle", Icons.Outlined.MailOutline, { 
+                        navController.navigate("lettres") 
+                    }, theme, itemModifier)
                 }
 
-                // GROUPE 2 : MÉDIATHÈQUE (Auto)
-                Text(
-                    "MA MÉDIATHÈQUE",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.2.sp),
-                    color = theme.contentColor.copy(alpha = 0.3f),
-                    modifier = Modifier.padding(start = 8.dp, top = 32.dp, bottom = 12.dp)
-                )
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    maxItemsInEachRow = 3
-                ) {
-                    val itemModifier = Modifier.weight(1f)
-                    CompactGridItem("Littéraire", Icons.Outlined.AutoStories, { navController.navigate("literary_library") }, theme, itemModifier)
-                    CompactGridItem("Discothèque", Icons.Outlined.Album, { navController.navigate(Screen.RecipientDiscotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) }, theme, itemModifier)
-                    CompactGridItem("Vidéothèque", Icons.Outlined.Movie, { navController.navigate(Screen.RecipientVideotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) }, theme, itemModifier)
-                }
-                
                 FlowRow(
                     modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     maxItemsInEachRow = 3
                 ) {
-                    val itemModifier = Modifier.weight(1f)
-                    CompactGridItem("Photos", Icons.Outlined.PhotoCamera, { navController.navigate(Screen.RecipientPhotos.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) }, theme, itemModifier)
-                    // Remplissage
-                    repeat(2) { Spacer(modifier = itemModifier) }
+                    CompactGridItem("Réconciliation", Icons.Outlined.Mail, { 
+                        navController.navigate("reconciliation") 
+                    }, theme, itemModifier)
+
+                    CompactGridItem("Le Miroir à Deux", Icons.Outlined.Handshake, { 
+                        navController.navigate("le_pacte") 
+                    }, theme, itemModifier)
+
+                    CompactGridItem("Le Coffre-Fort", Icons.Outlined.Lock, { 
+                        if (isCreatorMode) navController.navigate("coffre_fort")
+                        else navController.navigate(Screen.RecipientDetective.createRoute(targetCreatorId))
+                    }, theme, itemModifier)
+                }
+
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    maxItemsInEachRow = 3
+                ) {
+                    CompactGridItem("100 Questions", Icons.Outlined.HelpOutline, { 
+                        navController.navigate("cent_questions") 
+                    }, theme, itemModifier)
+
+                    CompactGridItem("Portraits", Icons.Outlined.AccountCircle, { 
+                        navController.navigate("portrait_proche") 
+                    }, theme, itemModifier)
+
+                    CompactGridItem("Lettre à Moi", Icons.Outlined.HistoryEdu, { 
+                        navController.navigate("youngselfletters") 
+                    }, theme, itemModifier)
                 }
             }
         }
