@@ -159,24 +159,26 @@ fun DirectMediaDialog(
                 
                 HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
 
-                // v9.6.7 : Contrôle granulaire pour le Livre
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Inclure dans mon Livre", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
-                        Text("Si décochée, cette photo restera dans vos souvenirs mais ne sera jamais insérée dans le manuscrit. Si cochée, elle pourra être choisie par l'intelligence artificielle en écrivant votre récit, sans que ce soit garanti.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                // v9.6.7 : Contrôle granulaire pour le Livre (Uniquement pour PHOTOS réelles - v12.2)
+                if (type == "PHOTO") {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Inclure dans mon Livre", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                            Text("Si décochée, cette photo restera dans vos souvenirs mais ne sera jamais insérée dans le manuscrit. Si cochée, elle pourra être choisie par l'intelligence artificielle en écrivant votre récit, sans que ce soit garanti.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                        }
+                        Switch(
+                            checked = includedInBook,
+                            onCheckedChange = { includedInBook = it },
+                            colors = SwitchDefaults.colors(checkedThumbColor = accent)
+                        )
                     }
-                    Switch(
-                        checked = includedInBook,
-                        onCheckedChange = { includedInBook = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = accent)
-                    )
-                }
 
-                HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
+                }
 
                 Text("Visibilité & Destinataires", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                 RecipientSelector(
@@ -199,7 +201,8 @@ fun DirectMediaDialog(
                     val uids = selectedIds.map { docId ->
                         recipients.find { it.id == docId }?.linkedUid ?: docId
                     }
-                    onSave(title, userComment.ifBlank { null }, url, uids, visibility, autoThumbnailUrl, includedInBook)
+                    val finalIncludedInBook = if (type == "PHOTO") includedInBook else false
+                    onSave(title, userComment.ifBlank { null }, url, uids, visibility, autoThumbnailUrl, finalIncludedInBook)
                 },
                 enabled = if (type == "AUDIO" || type == "PHOTO" || type == "VIDEO") title.isNotBlank() else url.isNotBlank()
             ) {

@@ -557,8 +557,13 @@ class MemoryDetailViewModel @Inject constructor(
 
     fun updateIncludeInBook(include: Boolean) {
         val id = _entryId.value ?: return
+        val currentEntry = entry.value ?: return
+        
+        // v12.2 : Force false si c'est une vidéo ou un audio
+        val finalInclude = if (currentEntry.entryType == "VIDEO" || currentEntry.entryType == "CAMERA_VIDEO" || currentEntry.entryType == "AUDIO") false else include
+        
         viewModelScope.launch {
-            memoryMetadataUpdater.updateIncludeInBook(id, include)
+            memoryMetadataUpdater.updateIncludeInBook(id, finalInclude)
         }
     }
 

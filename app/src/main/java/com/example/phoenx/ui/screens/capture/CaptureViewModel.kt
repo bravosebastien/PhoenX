@@ -440,7 +440,7 @@ class CaptureViewModel @Inject constructor(
                     userTitle = rawText, // Migration v59 : titre initial = texte de capture (l'Étincelle)
                     locationName = locationName ?: _preselectedLocationName.value,
                     locationId = locationId,
-                    includeInBook = includeInBook,
+                    includeInBook = if (type == "VIDEO" || type == "CAMERA_VIDEO" || type == "AUDIO") false else includeInBook,
                     questionId = pendingQuestionId,
                     parentEntryId = parentEntryId, // v9.4.27 : RÉTABLI
                     enigmaQuestion = enigmaQuestion,

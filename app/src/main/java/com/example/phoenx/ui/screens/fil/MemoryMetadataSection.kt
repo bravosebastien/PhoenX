@@ -386,7 +386,8 @@ fun MemoryMetadataSection(
                         }
 
                         // v9.4.27 : Bloc Souveraineté Premium (Livre de Vie)
-                        if (!isReadOnly) {
+                        // v12.2 : Masqué pour les vidéos et audios car non supportés par l'IA du Livre
+                        if (!isReadOnly && entry.entryType != "VIDEO" && entry.entryType != "CAMERA_VIDEO" && entry.entryType != "AUDIO") {
                             Spacer(modifier = Modifier.height(24.dp))
                             Surface(
                                 modifier = Modifier

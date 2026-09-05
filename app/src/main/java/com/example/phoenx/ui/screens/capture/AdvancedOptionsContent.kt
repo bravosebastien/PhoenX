@@ -37,7 +37,8 @@ fun AdvancedOptionsContent(
     includeInBook: Boolean,
     onIncludeInBookChange: (Boolean) -> Unit,
     soulTone: String?,
-    onSoulToneChange: (String?) -> Unit
+    onSoulToneChange: (String?) -> Unit,
+    type: String = "TEXT" // v12.2
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
@@ -212,39 +213,42 @@ fun AdvancedOptionsContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        // v12.2 : Masqué pour les vidéos et audios (seuls Textes et Photos sont éligibles au Livre)
+        if (type != "VIDEO" && type != "CAMERA_VIDEO" && type != "AUDIO") {
+            Spacer(modifier = Modifier.height(32.dp))
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.AutoStories, null, tint = accent, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(12.dp))
-            Text("Livre de Vie", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
-            Spacer(modifier = Modifier.weight(1f))
-            Switch(
-                checked = includeInBook,
-                onCheckedChange = onIncludeInBookChange,
-                colors = SwitchDefaults.colors(checkedThumbColor = accent)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.AutoStories, null, tint = accent, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("Livre de Vie", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
+                Spacer(modifier = Modifier.weight(1f))
+                Switch(
+                    checked = includeInBook,
+                    onCheckedChange = onIncludeInBookChange,
+                    colors = SwitchDefaults.colors(checkedThumbColor = accent)
+                )
+            }
+            Text(
+                "Inclure ce fragment dans ton Livre de Vie global (Générateur IA).",
+                style = MaterialTheme.typography.bodySmall,
+                color = theme.contentColor.copy(alpha = 0.6f),
+                modifier = Modifier.padding(start = 32.dp)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(20.dp))
+                Spacer(modifier = Modifier.width(12.dp))
+                Text("Ton de l'Âme", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
+            }
+            Text(
+                "Influence le style du récit généré par l'IA.",
+                style = MaterialTheme.typography.bodySmall,
+                color = theme.contentColor.copy(alpha = 0.6f),
+                modifier = Modifier.padding(start = 32.dp)
             )
         }
-        Text(
-            "Inclure ce fragment dans ton Livre de Vie global (Générateur IA).",
-            style = MaterialTheme.typography.bodySmall,
-            color = theme.contentColor.copy(alpha = 0.6f),
-            modifier = Modifier.padding(start = 32.dp)
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(20.dp))
-            Spacer(modifier = Modifier.width(12.dp))
-            Text("Ton de l'Âme", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
-        }
-        Text(
-            "Influence le style du récit généré par l'IA.",
-            style = MaterialTheme.typography.bodySmall,
-            color = theme.contentColor.copy(alpha = 0.6f),
-            modifier = Modifier.padding(start = 32.dp)
-        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
