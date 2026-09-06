@@ -13,7 +13,7 @@ export const getInheritedFileUrl = onCall(async (request) => {
     const requesterUid = request.auth.uid;
 
     // 1. Allowlist étendue aux personnalités et portraits Cameo/Cercle (v9.7.0)
-    const ALLOWED_TYPES = ["entries", "standaloneMedia", "book", "persons", "personMedia", "recipients", "witnesses", "depositaries", "personalities", "personalityMedia"];
+    const ALLOWED_TYPES = ["entries", "standaloneMedia", "book", "persons", "personMedia", "recipients", "witnesses", "depositaries", "personalities", "personalityMedia", "rankings"];
     if (!ALLOWED_TYPES.includes(docType)) {
         throw new HttpsError("invalid-argument", "Type de document non supporté.");
     }
@@ -73,6 +73,7 @@ export const getInheritedFileUrl = onCall(async (request) => {
         else if (docType === "personMedia") storageUrl = itemData.mediaPath;
         else if (docType === "personalities") storageUrl = itemData.mainPhotoPath;
         else if (docType === "personalityMedia") storageUrl = itemData.mediaPath;
+        else if (docType === "rankings") storageUrl = itemData.coverImageUrl;
         else if (["recipients", "witnesses", "depositaries"].includes(docType)) storageUrl = itemData.photoUrl;
     }
 

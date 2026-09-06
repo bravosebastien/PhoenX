@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -28,42 +29,66 @@ class LibraryCoverViewModel @Inject constructor(
     private val _uploadProgress = MutableStateFlow(0f)
     val uploadProgress: StateFlow<Float> = _uploadProgress.asStateFlow()
 
+    private val registrations = mutableListOf<ListenerRegistration>()
+    private val coversMap = mutableMapOf<String, LibraryCover>()
+
     init {
         loadCovers()
     }
 
     fun loadCovers() {
         val userId = auth.currentUser?.uid ?: return
-        viewModelScope.launch {
-            try {
-                // 1. Charger la couverture du Livre (BIBLIOTHEQUE) depuis current_draft (v9.4.19)
-                val bookDoc = db.collection("users").document(userId).collection("book").document("current_draft").get().await()
-                val coversMap = mutableMapOf<String, LibraryCover>()
-                
-                if (bookDoc.exists() && bookDoc.contains("coverImageUrl")) {
-                    coversMap["BIBLIOTHEQUE"] = LibraryCover(
+        
+        // Nettoyage des anciens écouteurs si appel répété
+        clearRegistrations()
+
+        // 1. Écouteur pour la couverture du Livre (BIBLIOTHEQUE)
+        val bookReg = db.collection("users").document(userId)
+            .collection("book").document("current_draft")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+                if (snapshot != null && snapshot.exists() && snapshot.contains("coverImageUrl")) {
+                    val cover = LibraryCover(
                         compartmentId = "BIBLIOTHEQUE",
                         mediaType = "photo",
-                        mediaUrl = bookDoc.getString("coverImageUrl") ?: "",
-                        scale = bookDoc.getDouble("coverScale")?.toFloat() ?: 1f,
-                        offsetX = bookDoc.getDouble("coverOffsetX")?.toFloat() ?: 0f,
-                        offsetY = bookDoc.getDouble("coverOffsetY")?.toFloat() ?: 0f
+                        mediaUrl = snapshot.getString("coverImageUrl") ?: "",
+                        scale = snapshot.getDouble("coverScale")?.toFloat() ?: 1f,
+                        offsetX = snapshot.getDouble("coverOffsetX")?.toFloat() ?: 0f,
+                        offsetY = snapshot.getDouble("coverOffsetY")?.toFloat() ?: 0f
                     )
+                    updateLocalMap("BIBLIOTHEQUE", cover)
                 }
+            }
+        registrations.add(bookReg)
 
-                // 2. Charger les autres compartiments depuis libraryCover
-                val snapshot = db.collection("users").document(userId).collection("libraryCover").get().await()
-                snapshot.documents.forEach { doc ->
+        // 2. Écouteur pour les autres compartiments
+        val collReg = db.collection("users").document(userId)
+            .collection("libraryCover")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) return@addSnapshotListener
+                snapshot?.documents?.forEach { doc ->
                     val c = doc.toObject(LibraryCover::class.java)
                     if (c != null && c.compartmentId != "BIBLIOTHEQUE") {
-                        coversMap[c.compartmentId] = c
+                        updateLocalMap(c.compartmentId, c)
                     }
                 }
-                _covers.value = coversMap
-            } catch (e: Exception) {
-                // Erreur silencieuse
             }
-        }
+        registrations.add(collReg)
+    }
+
+    private fun updateLocalMap(id: String, cover: LibraryCover) {
+        coversMap[id] = cover
+        _covers.value = coversMap.toMap()
+    }
+
+    private fun clearRegistrations() {
+        registrations.forEach { it.remove() }
+        registrations.clear()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        clearRegistrations()
     }
 
     fun uploadCover(compartmentId: String, uri: Uri, mediaType: String, scale: Float = 1f, offsetX: Float = 0f, offsetY: Float = 0f) {

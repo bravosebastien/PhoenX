@@ -13,6 +13,7 @@ import com.example.phoenx.data.local.StandaloneMediaDao
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.sync.toOfflineEntry
 import com.example.phoenx.data.sync.toPersonEntity
+import com.example.phoenx.data.sync.toRankingEntity // v12.2
 import com.example.phoenx.data.sync.toStandaloneMediaEntity // v9.4.27
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -34,6 +35,7 @@ class InitialSyncWorker @AssistedInject constructor(
     private val standaloneMediaDao: StandaloneMediaDao,
     private val personMediaDao: PersonMediaDao, // v9.4.22
     private val personalityDao: com.example.phoenx.data.local.PersonalityDao, // v9.7.0
+    private val rankingDao: com.example.phoenx.data.local.RankingDao, // v12.2
     private val mediaManager: MediaManager,
     private val encryptionManager: EncryptionManager,
     private val db: FirebaseFirestore
@@ -358,6 +360,34 @@ class InitialSyncWorker @AssistedInject constructor(
                 }
             } catch (e: Exception) {
                 android.util.Log.e("PHOENX_SYNC_PERSO", "InitialSyncWorker: ÉCHEC bloc personnalités", e)
+            }
+
+            // ═══ 7. RÉCUPÉRATION DES CLASSEMENTS (v12.2) ═══
+            android.util.Log.d("RankingSync", "InitialSyncWorker: Démarrage sync classements")
+            try {
+                val rankingsSnapshot = db.collection("users").document(userId)
+                    .collection("rankings")
+                    .get()
+                    .await()
+
+                if (rankingsSnapshot != null) {
+                    val remoteRankings = rankingsSnapshot.documents.map { it.toRankingEntity() }
+                    val remoteIds = remoteRankings.map { it.id }.toSet()
+                    
+                    remoteRankings.forEach { ranking ->
+                        rankingDao.upsertRanking(ranking)
+                    }
+
+                    // Réconciliation (Suppression locale si absent du serveur)
+                    val localRankings = rankingDao.getAllRankings().first()
+                    localRankings.filter { it.syncStatus == "synced" }.forEach { local ->
+                        if (local.id !in remoteIds) {
+                            rankingDao.deleteRanking(local)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("RankingSync", "InitialSyncWorker: ÉCHEC bloc classements", e)
             }
 
             Result.success()

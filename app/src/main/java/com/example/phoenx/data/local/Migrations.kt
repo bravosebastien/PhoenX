@@ -737,4 +737,25 @@ object RoomMigrations {
             db.execSQL("UPDATE offline_entries SET userTitle = aiSummary")
         }
     }
+
+    /**
+     * MIGRATION_59_60 — Mes Classements (v12.2)
+     */
+    val MIGRATION_59_60 = object : Migration(59, 60) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `rankings` (
+                    `id` TEXT NOT NULL, 
+                    `title` TEXT NOT NULL, 
+                    `itemCount` INTEGER NOT NULL, 
+                    `items` TEXT NOT NULL, 
+                    `coverImageUrl` TEXT, 
+                    `createdAt` INTEGER NOT NULL, 
+                    `updatedAt` INTEGER NOT NULL, 
+                    `syncStatus` TEXT NOT NULL, 
+                    PRIMARY KEY(`id`)
+                )
+            """.trimIndent())
+        }
+    }
 }

@@ -71,7 +71,8 @@ object DatabaseModule {
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_55_56,
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_56_57,
             com.example.phoenx.data.local.RoomMigrations.MIGRATION_57_58,
-            com.example.phoenx.data.local.RoomMigrations.MIGRATION_58_59
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_58_59,
+            com.example.phoenx.data.local.RoomMigrations.MIGRATION_59_60
         ).build()
     }
 
@@ -93,5 +94,10 @@ object DatabaseModule {
     @Provides
     fun providePersonalityDao(db: PhoenXDatabase): com.example.phoenx.data.local.PersonalityDao {
         return db.personalityDao()
+    }
+
+    @Provides
+    fun provideRankingDao(db: PhoenXDatabase): com.example.phoenx.data.local.RankingDao {
+        return db.rankingDao()
     }
 }

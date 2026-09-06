@@ -49,6 +49,8 @@ import androidx.media3.common.util.UnstableApi
 import com.example.phoenx.ui.screens.questions.PendingQuestionsScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
 import com.example.phoenx.ui.screens.quiz.QuizCreateScreen
+import com.example.phoenx.ui.screens.rankings.RankingDetailScreen
+import com.example.phoenx.ui.screens.rankings.RankingListScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
 import com.example.phoenx.ui.screens.recipient.RecipientDetailScreen
 import com.example.phoenx.ui.screens.recipient.RecipientPermissionsScreen
@@ -570,6 +572,26 @@ fun NavGraphBuilder.creatorGraph(
     composable("le_pacte") { PactScreen(onNavigateBack = { navController.popBackStack() }, onNavigateToDetail = { id -> navController.navigate("pact/$id") }) }
     composable("lettres") { com.example.phoenx.ui.screens.mailbox.MailboxScreen(onNavigateBack = { navController.popBackStack() }) }
     composable("mappemonde") { MappamondeScreen(navController = navController, mode = MapMode.CREATOR) }
+
+    composable(
+        route = Screen.Rankings.route,
+        arguments = listOf(navArgument("creatorId") { nullable = true; type = NavType.StringType })
+    ) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        RankingListScreen(navController = navController, targetCreatorId = creatorId)
+    }
+
+    composable(
+        route = Screen.RankingDetail.route,
+        arguments = listOf(
+            navArgument("id") { type = NavType.StringType },
+            navArgument("creatorId") { nullable = true; type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val id = backStackEntry.arguments?.getString("id") ?: ""
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        RankingDetailScreen(rankingId = id, navController = navController, targetCreatorId = creatorId)
+    }
 
     composable(
         route = Screen.Genealogy.route,

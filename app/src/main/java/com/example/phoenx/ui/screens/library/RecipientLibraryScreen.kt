@@ -290,9 +290,8 @@ fun RecipientLibraryScreen(
                         navController.navigate("le_pacte") 
                     }, theme, itemModifier)
 
-                    CompactGridItem("Le Coffre-Fort", Icons.Outlined.Lock, { 
-                        if (isCreatorMode) navController.navigate("coffre_fort")
-                        else navController.navigate(Screen.RecipientDetective.createRoute(targetCreatorId))
+                    CompactGridItem("Mes Classements", Icons.Outlined.FormatListNumbered, { 
+                        navController.navigate(Screen.Rankings.createRoute(targetCreatorId))
                     }, theme, itemModifier)
                 }
 
@@ -301,6 +300,11 @@ fun RecipientLibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     maxItemsInEachRow = 3
                 ) {
+                    CompactGridItem("Le Coffre-Fort", Icons.Outlined.Lock, { 
+                        if (isCreatorMode) navController.navigate("coffre_fort")
+                        else navController.navigate(Screen.RecipientDetective.createRoute(targetCreatorId))
+                    }, theme, itemModifier)
+
                     CompactGridItem("100 Questions", Icons.Outlined.HelpOutline, { 
                         navController.navigate("cent_questions") 
                     }, theme, itemModifier)
@@ -308,10 +312,19 @@ fun RecipientLibraryScreen(
                     CompactGridItem("Portraits", Icons.Outlined.AccountCircle, { 
                         navController.navigate("portrait_proche") 
                     }, theme, itemModifier)
+                }
 
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    maxItemsInEachRow = 3
+                ) {
                     CompactGridItem("Lettre à Moi", Icons.Outlined.HistoryEdu, { 
                         navController.navigate("youngselfletters") 
                     }, theme, itemModifier)
+                    
+                    // Remplissage
+                    repeat(2) { Spacer(modifier = itemModifier) }
                 }
             }
         }

@@ -239,6 +239,16 @@ sealed class Screen(val route: String) {
     }
     object EncountersMap : Screen("encounters/map")
 
+    object Rankings : Screen("rankings?creatorId={creatorId}") {
+        fun createRoute(creatorId: String? = null) = if (creatorId != null) "rankings?creatorId=$creatorId" else "rankings"
+    }
+    object RankingDetail : Screen("rankings/{id}?creatorId={creatorId}") {
+        fun createRoute(id: String, creatorId: String? = null): String {
+            return if (creatorId != null) "rankings/$id?creatorId=$creatorId"
+            else "rankings/$id"
+        }
+    }
+
     object BecomeCreatorPrompt : Screen("become_creator_prompt/{role}/{creatorName}") {
         fun createRoute(role: String, creatorName: String) = "become_creator_prompt/$role/$creatorName"
     }

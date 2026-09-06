@@ -10,6 +10,7 @@ import com.example.phoenx.data.local.PersonMediaDao
 import com.example.phoenx.data.local.StandaloneMediaDao
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.sync.toFirestoreMap
+import com.example.phoenx.data.sync.toRankingEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.assisted.Assisted
@@ -26,6 +27,7 @@ class SyncWorker @AssistedInject constructor(
     private val standaloneMediaDao: StandaloneMediaDao,
     private val personMediaDao: PersonMediaDao, // v9.4.22
     private val personalityDao: com.example.phoenx.data.local.PersonalityDao, // v9.7.0
+    private val rankingDao: com.example.phoenx.data.local.RankingDao, // v12.2
     private val mediaManager: MediaManager,
     private val encryptionManager: EncryptionManager
 ) : CoroutineWorker(appContext, workerParams) {
@@ -78,9 +80,12 @@ class SyncWorker @AssistedInject constructor(
         val pendingPersonalities = personalityDao.getPendingPersonalities()
         val pendingPersonalityMedia = personalityDao.getPendingMedia()
 
-        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées, ${personsToSync.size} personnes, ${pendingStandalone.size} standalone, ${mediaToSync.size} personMedia, ${pendingPersonalities.size} personalities, ${pendingPersonalityMedia.size} personalityMedia et ${if (pendingProfile != null) 1 else 0} profil en attente")
+        // v12.2 : Classements
+        val pendingRankings = rankingDao.getPendingSync()
 
-        if (pendingEntries.isEmpty() && personsToSync.isEmpty() && pendingStandalone.isEmpty() && mediaToSync.isEmpty() && pendingProfile == null && pendingPersonalities.isEmpty() && pendingPersonalityMedia.isEmpty()) return Result.success()
+        android.util.Log.d("PersonSync", "SyncWorker: ${pendingEntries.size} entrées, ${personsToSync.size} personnes, ${pendingStandalone.size} standalone, ${mediaToSync.size} personMedia, ${pendingPersonalities.size} personalities, ${pendingPersonalityMedia.size} personalityMedia, ${pendingRankings.size} rankings et ${if (pendingProfile != null) 1 else 0} profil en attente")
+
+        if (pendingEntries.isEmpty() && personsToSync.isEmpty() && pendingStandalone.isEmpty() && mediaToSync.isEmpty() && pendingProfile == null && pendingPersonalities.isEmpty() && pendingPersonalityMedia.isEmpty() && pendingRankings.isEmpty()) return Result.success()
 
         val db = FirebaseFirestore.getInstance()
         var hasError = false
@@ -352,6 +357,21 @@ class SyncWorker @AssistedInject constructor(
                     ))
                 } catch (e: Exception) {
                     android.util.Log.e("SyncWorker", "Erreur upload personalityMedia ${originalMedia.id}: ${e.message}")
+                    hasError = true
+                }
+            }
+
+            // 8. Synchronisation des Classements (v12.2)
+            pendingRankings.forEach { ranking ->
+                try {
+                    db.collection("users").document(userId)
+                        .collection("rankings").document(ranking.id)
+                        .set(ranking.toFirestoreMap())
+                        .await()
+
+                    rankingDao.upsertRanking(ranking.copy(syncStatus = "synced"))
+                } catch (e: Exception) {
+                    android.util.Log.e("SyncWorker", "Erreur upload classement ${ranking.id}: ${e.message}")
                     hasError = true
                 }
             }
