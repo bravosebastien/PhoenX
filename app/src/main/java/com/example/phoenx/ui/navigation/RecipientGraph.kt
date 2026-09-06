@@ -700,6 +700,14 @@ fun NavGraphBuilder.recipientGraph(
         )
     }
 
+    composable(Screen.HundredQuestionsLeaderboard.route) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        com.example.phoenx.ui.screens.questions.HundredQuestionsLeaderboardScreen(
+            creatorId = creatorId,
+            onNavigateBack = { navController.popBackStack() }
+        )
+    }
+
     composable(
         route = Screen.Map.route,
         arguments = listOf(

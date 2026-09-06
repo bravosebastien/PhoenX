@@ -23,8 +23,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -383,6 +385,27 @@ fun MemoryDetailScreen(
                                                 }
                                             }
                                         }
+                                    }
+                                }
+
+                                // IMAGE PRINCIPALE (v12.3 : Pour Questions de vie)
+                                if (entry!!.mediaUrl != null || entry!!.localMediaPath != null) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(200.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .background(theme.contentColor.copy(alpha = 0.05f))
+                                    ) {
+                                        com.example.phoenx.ui.components.SecureAsyncImage(
+                                            mediaUrl = entry!!.mediaUrl,
+                                            localPath = entry!!.localMediaPath,
+                                            mediaManager = viewModel.mediaManager,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop,
+                                            docType = "entries",
+                                            docId = entry!!.id
+                                        )
                                     }
                                 }
 

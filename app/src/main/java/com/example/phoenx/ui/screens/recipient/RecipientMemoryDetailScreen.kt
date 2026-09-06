@@ -164,6 +164,28 @@ fun RecipientMemoryDetailScreen(
                     }
                 }
 
+                // IMAGE PRINCIPALE (v12.3)
+                if (entry!!.mediaUrl != null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(250.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(theme.contentColor.copy(alpha = 0.05f))
+                    ) {
+                        SecureAsyncImage(
+                            mediaUrl = entry!!.mediaUrl,
+                            mediaManager = mediaManager,
+                            explicitKey = heirKey,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop,
+                            creatorId = creatorId,
+                            docType = "entries",
+                            docId = entry!!.id
+                        )
+                    }
+                }
+
                 // RÉCIT (Tronqué v9.4.27)
                 Column {
                     val récitLabel = if (entry!!.entryType == "QUESTION_ANSWER") "MA RÉPONSE" else "LE RÉCIT"

@@ -171,7 +171,8 @@ class BookGeneratorService @Inject constructor(
         val parents = allEntries.filter { entry ->
             val isParent = entry.parentEntryId == null
             val isIncluded = entry.includeInBook
-            val noEnigma = entry.enigmaQuestion == null
+            // v12.3 : Les questions à deviner sont incluses même si elles ont une énigme (une fois débloquées par l'IA ou lue par héritage)
+            val noEnigma = entry.enigmaQuestion == null || entry.isGuessQuestion
             
             val doubleConsentOk = if (entry.pactId != null) {
                 val pact = pacts[entry.pactId]
@@ -246,6 +247,7 @@ class BookGeneratorService @Inject constructor(
             val originType = when {
                 parent.entryType == "PORTRAIT" -> "PORTRAIT"
                 parent.questionId != null -> "QUESTION"
+                parent.isGuessQuestion -> "GUESS_QUESTION" // v12.3
                 else -> "MEMORY"
             }
 
@@ -280,6 +282,19 @@ class BookGeneratorService @Inject constructor(
                 eventDateFormatter.format(java.util.Date(millis))
             }
 
+            val photosList = complements.filter { it.entryType == "PHOTO" || it.entryType == "GALLERY" }
+                .map { mapOf("id" to it.id, "description" to it.aiSummary, "userComment" to it.userComment) }
+                .toMutableList()
+            
+            // v12.3 : Inclusion de la photo directe si présente (Cas des questions personnalisées)
+            if (parent.mediaUrl != null || parent.localMediaPath != null) {
+                photosList.add(0, mapOf(
+                    "id" to parent.id, 
+                    "description" to parent.aiSummary, 
+                    "userComment" to parent.userComment
+                ))
+            }
+
             mapOf(
                 "id" to parent.id, // v9.3.1
                 "summary" to effectiveSummary,
@@ -292,8 +307,7 @@ class BookGeneratorService @Inject constructor(
                 "characters" to characters, // Transmis à l'IA Biographe
                 "userComment" to parent.userComment, // Priority 2 : Personal context
                 "amendments" to mappedAmendments, // Priority 1 : Thought evolution
-                "photos" to complements.filter { it.entryType == "PHOTO" || it.entryType == "GALLERY" }
-                    .map { mapOf("id" to it.id, "description" to it.aiSummary, "userComment" to it.userComment) },
+                "photos" to photosList,
                 "vocal_essence" to complements.filter { it.entryType == "AUDIO" }
                     .map { mapOf("id" to it.id, "description" to it.aiSummary, "userComment" to it.userComment) },
                 "stories" to complements.filter { it.entryType == "TEXT" || it.entryType == "THOUGHT" }

@@ -45,25 +45,17 @@ fun CaptureScreen(
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
-    val context = LocalContext.current
     
-    var title by remember { mutableStateOf(initialTitle ?: "") }
-    val uiState by viewModel.uiState.collectAsState()
-    val isSttListening by viewModel.isSttListening.collectAsState()
-    val transcript by viewModel.transcript.collectAsState()
-
-    // Gestion des permissions (v9.4.27)
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            viewModel.startVocalCapture(title)
+    val decodedTitle = remember(initialTitle) {
+        try {
+            java.net.URLDecoder.decode(initialTitle ?: "", "UTF-8")
+        } catch (e: Exception) {
+            initialTitle ?: ""
         }
     }
-
-    LaunchedEffect(transcript) {
-        if (transcript.isNotEmpty()) title = transcript
-    }
+    
+    var title by remember { mutableStateOf(decodedTitle) }
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         containerColor = theme.backgroundColor,
@@ -143,27 +135,6 @@ fun CaptureScreen(
                         unfocusedIndicatorColor = Color.Transparent
                     )
                 )
-                
-                IconButton(
-                    onClick = {
-                        if (isSttListening) {
-                            viewModel.stopVocalCapture()
-                        } else {
-                            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
-                                viewModel.startVocalCapture(title)
-                            } else {
-                                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                            }
-                        }
-                    },
-                    modifier = Modifier.align(Alignment.TopEnd).background(if (isSttListening) Color.Red.copy(alpha = 0.1f) else Color.Transparent, CircleShape)
-                ) {
-                    Icon(
-                        imageVector = if (isSttListening) Icons.Default.Stop else Icons.Default.Mic,
-                        contentDescription = null,
-                        tint = if (isSttListening) Color.Red else accent
-                    )
-                }
             }
 
             if (locationName != null) {

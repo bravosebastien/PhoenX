@@ -47,7 +47,7 @@ class MemoryDetailViewModel @Inject constructor(
     private val audioRecorder: com.example.phoenx.data.audio.PhoenXAudioRecorder,
     private val wavRecorder: com.example.phoenx.data.audio.WavAudioRecorder,
     private val sttManager: com.example.phoenx.data.audio.SpeechToTextManager,
-    private val mediaManager: com.example.phoenx.data.media.MediaManager,
+    val mediaManager: com.example.phoenx.data.media.MediaManager,
     private val preferenceManager: com.example.phoenx.data.preferences.PreferenceManager,
     private val livingLinkService: com.example.phoenx.data.living.LivingLinkService, // v9.4.27
     private val syncTrigger: com.example.phoenx.data.sync.SyncTrigger,

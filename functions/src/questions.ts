@@ -191,3 +191,55 @@ export const onPendingQuestionUpdated = onDocumentUpdated(
             }
         }
     });
+
+/**
+ * PHOEN-X v12.3 - Enregistrement sécurisé du résultat d'une devinette
+ */
+export const submitGuessResult = onCall(async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Non authentifié");
+
+    const { creatorId, entryId, answer, attemptCount } = request.data;
+    const recipientUid = request.auth.uid;
+
+    // 1. Vérifier que l'appelant est bien un destinataire de ce créateur
+    const userDoc = await db.collection("users").doc(recipientUid).get();
+    const myRoles = userDoc.data()?.myRoles || {};
+    if (!(`${creatorId}_recipient` in myRoles)) {
+        throw new HttpsError("permission-denied", "Accès refusé.");
+    }
+
+    // 2. Vérification de la réponse côté serveur (v12.3)
+    const entryRef = db.collection("users").doc(creatorId).collection("entries").doc(entryId);
+    const entryDoc = await entryRef.get();
+    if (!entryDoc.exists) throw new HttpsError("not-found", "Souvenir introuvable");
+
+    const entryData = entryDoc.data()!;
+    const correctHash = entryData.enigmaAnswer;
+    const fallbackAnswer = entryData.fallbackAnswer; // Chiffré Tink ? non, hashé SHA-256 dans OfflineEntry pour devinette
+
+    // Recalcul du hash SHA-256 de la réponse reçue
+    const crypto = require("crypto");
+    const normalized = (answer || "").trim().toLowerCase();
+    const hashedInput = crypto.createHash("sha256").update(normalized).digest("hex");
+
+    const isCorrect = (hashedInput === correctHash) || (hashedInput === fallbackAnswer);
+
+    // 3. Récupérer le nom du destinataire pour le classement
+    const recipientDoc = await db.collection("users").doc(creatorId).collection("recipients")
+        .where("linkedUid", "==", recipientUid).limit(1).get();
+
+    const recipientName = recipientDoc.empty ? "Anonyme" : (recipientDoc.docs[0].data().name || "Proche");
+
+    // 4. Enregistrer le résultat dans la collection de l'utilisateur (v12.3 ALIGNEMENT)
+    const resultRef = db.collection("users").doc(creatorId).collection("guessResults").doc();
+    await resultRef.set({
+        recipientId: recipientUid,
+        recipientName,
+        entryId,
+        isCorrect,
+        attemptCount,
+        completedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    return { success: true, isCorrect };
+});

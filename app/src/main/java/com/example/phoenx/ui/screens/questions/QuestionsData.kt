@@ -12,7 +12,7 @@ object QuestionsData {
         "Travail", "Argent & Réussite", "Valeurs",
         "Foi & Spiritualité", "Corps & Santé", "Regrets",
         "Rêves", "Voyages & Lieux", "Créativité & Passions",
-        "Secrets & Aveux", "Sagesse"
+        "Secrets & Aveux", "Sagesse", "Mes Questions"
     )
 
     val allQuestions = listOf(

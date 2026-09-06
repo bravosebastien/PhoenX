@@ -102,16 +102,40 @@ class DetectiveViewModel @Inject constructor(
         }
     }
 
-    fun attemptUnlock(entry: OfflineEntry, answer: String) {
+    fun attemptUnlock(entry: OfflineEntry, answer: String, creatorId: String?) {
         val hashedInput = EnigmaUtils.hashAnswer(answer)
+        val isCorrect = entry.enigmaAnswer == hashedInput || entry.fallbackAnswer == hashedInput
         
-        if (entry.enigmaAnswer == hashedInput || entry.fallbackAnswer == hashedInput) {
-            _uiState.update { it.copy(unlockedEntryId = entry.id) }
+        val newAttempts = _uiState.value.attempts.toMutableMap()
+        val count = (newAttempts[entry.id] ?: 0) + 1
+        newAttempts[entry.id] = count
+
+        if (isCorrect) {
+            _uiState.update { it.copy(unlockedEntryId = entry.id, attempts = newAttempts) }
         } else {
-            val newAttempts = _uiState.value.attempts.toMutableMap()
-            val count = (newAttempts[entry.id] ?: 0) + 1
-            newAttempts[entry.id] = count
             _uiState.update { it.copy(error = "Mauvaise réponse. Cherche encore...", attempts = newAttempts) }
+        }
+
+        // v12.3 : Envoi de la réponse au serveur pour vérification et stat
+        if (creatorId != null && creatorId != auth.currentUser?.uid) {
+            submitGuessResult(creatorId, entry.id, answer, count)
+        }
+    }
+
+    private fun submitGuessResult(creatorId: String, entryId: String, answer: String, attemptCount: Int) {
+        viewModelScope.launch {
+            try {
+                val functions = com.google.firebase.functions.FirebaseFunctions.getInstance()
+                functions.getHttpsCallable("submitGuessResult")
+                    .call(mapOf(
+                        "creatorId" to creatorId,
+                        "entryId" to entryId,
+                        "answer" to answer,
+                        "attemptCount" to attemptCount
+                    )).await()
+            } catch (e: Exception) {
+                android.util.Log.e("DetectiveVM", "Erreur lors de l'envoi du résultat", e)
+            }
         }
     }
 

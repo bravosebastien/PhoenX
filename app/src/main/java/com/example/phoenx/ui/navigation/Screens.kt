@@ -97,6 +97,12 @@ sealed class Screen(val route: String) {
     }
     object Favorites : Screen("favorites")
     object Questions : Screen("questions")
+    object QuestionAnswer : Screen("questions/answer/{questionId}") {
+        fun createRoute(questionId: String) = "questions/answer/$questionId"
+    }
+    object HundredQuestionsLeaderboard : Screen("questions/leaderboard?creatorId={creatorId}") {
+        fun createRoute(creatorId: String? = null) = if (creatorId != null) "questions/leaderboard?creatorId=$creatorId" else "questions/leaderboard"
+    }
     object PendingQuestions : Screen("questions/pending")
     object DetectiveHome : Screen("detective/home")
     object MemoryDetail : Screen("memory_detail/{entryId}?creatorId={creatorId}&triggerAction={triggerAction}") {

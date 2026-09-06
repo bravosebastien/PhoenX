@@ -113,7 +113,10 @@ data class OfflineEntry(
 
     // SÉPARATION TITRE / RÉSUMÉ (Migration v59) : titre saisi par l'utilisateur (l'Étincelle),
     // distinct de aiSummary qui reste réservé au résumé fourni à l'IA du Livre.
-    val userTitle: String = ""
+    val userTitle: String = "",
+
+    // DEVINETTES & QUESTIONS PERSONNALISÉES (v12.3)
+    val isGuessQuestion: Boolean = false
 ) {
     fun isChild(): Boolean = parentEntryId != null
 
@@ -157,6 +160,7 @@ data class OfflineEntry(
         if (silentAttribution != other.silentAttribution) return false
         if (tonalNuance != other.tonalNuance) return false
         if (userTitle != other.userTitle) return false
+        if (isGuessQuestion != other.isGuessQuestion) return false
 
         return true
     }
@@ -196,6 +200,7 @@ data class OfflineEntry(
         result = 31 * result + (memoryDateEnd?.hashCode() ?: 0)
         result = 31 * result + silentAttribution.hashCode()
         result = 31 * result + userTitle.hashCode()
+        result = 31 * result + isGuessQuestion.hashCode()
         return result
     }
 }

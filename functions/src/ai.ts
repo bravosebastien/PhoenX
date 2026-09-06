@@ -185,7 +185,8 @@ export const generateBookChapters = onCall({
     6. Utilise les données de l'Arbre Généalogique ('characters' avec parentIds et biography) pour assurer la cohérence des liens familiaux et donner de l'épaisseur aux proches cités.
     7. Pour chaque photo fournie (avec id et description), insère la balise [PHOTO:id_exact] à l'endroit le plus opportun dans ton texte.
     8. Pour chaque enregistrement vocal (id et description), intègre son essence émotionnelle. Tu peux aussi insérer une balise [AUDIO:id_exact].
-    9. Réponds UNIQUEMENT en JSON avec cette structure : {"chapters": [{"title": "Nom du chapitre", "content": "Texte avec balises [PHOTO:id] incluses", "orderIndex": 0, "sceneIds": ["id_exact_1", "id_exact_2"]}]}. Le champ 'sceneIds' doit lister EXACTEMENT les IDs des scènes (fournies dans les données source) réellement utilisées pour rédiger CE chapitre précis — jamais d'ID inventé, jamais la liste complète par défaut.`;
+    8bis. RÈGLE DES DEVINETTES (v12.3) : Si une scène est de type 'GUESS_QUESTION', tu dois IMPÉRATIVEMENT envelopper le récit qui s'y rapporte avec les balises [GUESS:id_exact] et [/GUESS]. Ces balises permettent de masquer ce contenu aux lecteurs qui n'auraient pas encore résolu la devinette.
+    9. Réponds UNIQUEMENT en JSON avec cette structure : {"chapters": [{"title": "Nom du chapitre", "content": "Texte avec balises [PHOTO:id] et [GUESS:id] incluses", "orderIndex": 0, "sceneIds": ["id_exact_1", "id_exact_2"]}]}. Le champ 'sceneIds' doit lister EXACTEMENT les IDs des scènes (fournies dans les données source) réellement utilisées pour rédiger CE chapitre précis — jamais d'ID inventé, jamais la liste complète par défaut.`;
 
     const text = await generateWithGemini(prompt, "generateBookChapters") || '{"chapters":[]}';
     return JSON.parse(text.replace(/```json|```/g, "").trim());

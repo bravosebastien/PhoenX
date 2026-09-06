@@ -322,7 +322,26 @@ fun NavGraphBuilder.creatorGraph(
     }
 
     composable(Screen.Questions.route) {
-        QuestionsScreen(onNavigateBack = { navController.popBackStack() })
+        com.example.phoenx.ui.screens.questions.HundredQuestionsScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onAnswerQuestion = { id, _ -> 
+                navController.navigate(Screen.QuestionAnswer.createRoute(id))
+            },
+            onNavigateToLeaderboard = {
+                navController.navigate(Screen.HundredQuestionsLeaderboard.createRoute())
+            }
+        )
+    }
+
+    composable(
+        route = Screen.QuestionAnswer.route,
+        arguments = listOf(navArgument("questionId") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val qId = backStackEntry.arguments?.getString("questionId") ?: ""
+        com.example.phoenx.ui.screens.questions.QuestionAnswerScreen(
+            questionId = qId,
+            onNavigateBack = { navController.popBackStack() }
+        )
     }
 
     composable("questions_room") {
@@ -405,6 +424,14 @@ fun NavGraphBuilder.creatorGraph(
         com.example.phoenx.ui.screens.recipient.HeirAllocationScreen(
             recipientId = recipientId,
             navController = navController
+        )
+    }
+
+    composable(Screen.HundredQuestionsLeaderboard.route) {
+        val creatorId = it.arguments?.getString("creatorId")
+        com.example.phoenx.ui.screens.questions.HundredQuestionsLeaderboardScreen(
+            creatorId = creatorId,
+            onNavigateBack = { navController.popBackStack() }
         )
     }
 
@@ -558,7 +585,17 @@ fun NavGraphBuilder.creatorGraph(
         FilScreen(navController = navController, onNavigateBack = { navController.popBackStack() }) 
     }
     composable("coffre_fort") { DetectiveHomeScreen(navController = navController) }
-    composable("cent_questions") { QuestionsScreen(onNavigateBack = { navController.popBackStack() }) }
+    composable("cent_questions") { 
+        com.example.phoenx.ui.screens.questions.HundredQuestionsScreen(
+            onNavigateBack = { navController.popBackStack() },
+            onAnswerQuestion = { id, _ -> 
+                navController.navigate(Screen.QuestionAnswer.createRoute(id))
+            },
+            onNavigateToLeaderboard = {
+                navController.navigate(Screen.HundredQuestionsLeaderboard.createRoute())
+            }
+        )
+    }
     composable(
         route = "portrait_proche?recipientId={recipientId}",
         arguments = listOf(navArgument("recipientId") { nullable = true })

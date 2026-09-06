@@ -22,7 +22,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.data.local.OfflineEntry
+import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.*
+import dagger.hilt.android.EntryPointAccessors
+import com.example.phoenx.data.media.MediaManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +42,14 @@ fun DetectivePlayerScreen(
     val accent = theme.accentColor
     var selectedEntry by remember { mutableStateOf<OfflineEntry?>(null) }
     var answer by remember { mutableStateOf("") }
+    
+    val context = LocalContext.current
+    val mediaManager = remember(context) {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            MediaManager.MediaManagerEntryPoint::class.java
+        ).mediaManager()
+    }
 
     LaunchedEffect(creatorId) {
         viewModel.loadData(creatorId)
@@ -144,6 +158,28 @@ fun DetectivePlayerScreen(
                             )
                         }
 
+                        // PHOTO ÉVENTUELLE (v12.3) - Affichage en grand pour servir de support à la devinette
+                        if (selectedEntry!!.mediaUrl != null) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(250.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(theme.contentColor.copy(alpha = 0.05f))
+                            ) {
+                                SecureAsyncImage(
+                                    mediaUrl = selectedEntry!!.mediaUrl,
+                                    mediaManager = mediaManager,
+                                    isEncrypted = false,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Fit, // On veut voir toute l'image pour l'indice
+                                    creatorId = creatorId,
+                                    docType = "entries",
+                                    docId = selectedEntry!!.id
+                                )
+                            }
+                        }
+
                         Text(selectedEntry!!.enigmaQuestion ?: "", style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily), color = theme.contentColor)
                         
                         // AFFICHAGE DE L'INDICE
@@ -213,7 +249,7 @@ fun DetectivePlayerScreen(
                 },
                 confirmButton = {
                     Button(
-                        onClick = { viewModel.attemptUnlock(selectedEntry!!, answer) },
+                        onClick = { viewModel.attemptUnlock(selectedEntry!!, answer, creatorId) },
                         colors = ButtonDefaults.buttonColors(containerColor = accent)
                     ) {
                         Text("Vérifier", color = theme.backgroundColor, fontWeight = FontWeight.Bold)

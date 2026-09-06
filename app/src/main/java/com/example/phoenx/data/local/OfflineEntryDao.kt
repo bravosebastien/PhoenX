@@ -175,6 +175,9 @@ interface OfflineEntryDao {
     @Query("SELECT * FROM offline_entries WHERE id = :entryId")
     fun getEntryById(entryId: String): Flow<OfflineEntry?>
 
+    @Query("SELECT * FROM offline_entries WHERE questionId = :questionId LIMIT 1")
+    suspend fun getEntryByQuestionIdSync(questionId: String): OfflineEntry?
+
     @Query("SELECT * FROM offline_entries WHERE parentEntryId = :parentId ORDER BY createdAt ASC")
     fun getComplements(parentId: String): Flow<List<OfflineEntry>>
 

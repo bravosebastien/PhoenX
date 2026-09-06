@@ -177,8 +177,53 @@ class BookViewerViewModel @Inject constructor(
         }
 
         // 3. Déchiffrement des chapitres
+        // v12.3 : Récupération des devinettes résolues pour filtrage dynamique (si destinataire)
+        val solvedGuessIds = mutableSetOf<String>()
+        if (recipientUid != null) {
+            try {
+                val guessSnap = db.collection("users").document(userId)
+                    .collection("guessResults")
+                    .whereEqualTo("recipientId", recipientUid)
+                    .whereEqualTo("isCorrect", true)
+                    .get().kotlinAwait()
+                guessSnap.documents.forEach { doc ->
+                    solvedGuessIds.add(doc.getString("entryId") ?: "")
+                }
+
+                // v12.3 : On ajoute aussi les questions auto-débloquées (unlockedAt != null)
+                val autoUnlockSnap = db.collection("users").document(userId)
+                    .collection("entries")
+                    .whereEqualTo("isGuessQuestion", true)
+                    .whereNotEqualTo("unlockedAt", null)
+                    .get().kotlinAwait()
+                autoUnlockSnap.documents.forEach { solvedGuessIds.add(it.id) }
+
+            } catch (e: Exception) {
+                android.util.Log.w("PHOENX_BOOK", "Impossible de charger les devinettes résolues")
+            }
+        }
+
         draft.chapters.forEach { chapter ->
-            val decrypted = encryptionManager.decrypt(chapter.content, bookKey)
+            var decrypted = encryptionManager.decrypt(chapter.content, bookKey)
+            
+            // v12.3 : Filtrage dynamique des devinettes non résolues
+            if (recipientUid != null) {
+                val guessRegex = Regex("\\[GUESS:([a-f0-9\\-]+)\\]([\\s\\S]*?)\\[/GUESS\\]")
+                decrypted = guessRegex.replace(decrypted) { match ->
+                    val guessId = match.groupValues[1]
+                    val content = match.groupValues[2]
+                    if (solvedGuessIds.contains(guessId)) {
+                        content // Afficher normalement
+                    } else {
+                        "\n\n[🔒 Ce récit est scellé par une devinette. Résous-la dans le Coffre-Fort pour le découvrir ici.]\n\n"
+                    }
+                }
+            } else {
+                // Créateur voit tout : on retire juste les balises mais on garde le contenu
+                decrypted = decrypted.replace(Regex("\\[GUESS:[a-f0-9\\-]+\\]"), "")
+                    .replace("[/GUESS]", "")
+            }
+
             chapterContents[chapter.id] = decrypted
             
             // Extraction des IDs média [PHOTO:uuid] ou [AUDIO:uuid] (Regex robuste v9.8.4)

@@ -75,7 +75,9 @@ import {
     notifyQuestionRightGranted,
     notifyNewPendingQuestion,
     sealPendingQuestion,
-    onPendingQuestionUpdated
+    onPendingQuestionUpdated,
+    submitGuessResult,
+    submitGuessResult
 } from "./questions";
 
 import {
@@ -148,6 +150,7 @@ export {
     notifyNewPendingQuestion,
     sealPendingQuestion,
     onPendingQuestionUpdated,
+    submitGuessResult,
 
     // Witnesses
     sendWitnessInvitation,
