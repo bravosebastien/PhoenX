@@ -23,3 +23,33 @@ fun CreatorProfileEntity.toFirestoreMap(): Map<String, Any?> {
         "updatedAt" to updatedAt
     )
 }
+
+/**
+ * Extension pour convertir un DocumentSnapshot Firestore en CreatorProfileEntity (Room).
+ * (v12.2 : Rapatriement lors de la réinstallation)
+ */
+fun com.google.firebase.firestore.DocumentSnapshot.toCreatorProfileEntity(userId: String): CreatorProfileEntity {
+    val richProfile = get("richProfile") as? Map<String, Any?> ?: emptyMap()
+    
+    return CreatorProfileEntity(
+        userId = userId,
+        bio = richProfile["bio"] as? String,
+        profession = richProfile["profession"] as? String,
+        hasSiblings = richProfile["hasSiblings"] as? Boolean,
+        siblingsDetail = richProfile["siblingsDetail"] as? String,
+        hasChildren = richProfile["hasChildren"] as? Boolean,
+        childrenDetail = richProfile["childrenDetail"] as? String,
+        hobbies = richProfile["hobbies"] as? String,
+        height = (richProfile["height"] as? Long)?.toInt(),
+        weight = (richProfile["weight"] as? Long)?.toInt(),
+        eyeColor = richProfile["eyeColor"] as? String,
+        hairColor = richProfile["hairColor"] as? String,
+        updatedAt = richProfile["updatedAt"] as? Long ?: System.currentTimeMillis(),
+        syncStatus = "synced",
+        
+        // Root fields
+        transmissionBackgroundId = getString("transmissionBackgroundId") ?: "classic_ivory",
+        transmissionFontId = getString("transmissionFontId") ?: "playfair_display",
+        showPersonPhotos = getBoolean("showPersonPhotos") ?: (richProfile["showPersonPhotos"] as? Boolean ?: false)
+    )
+}
