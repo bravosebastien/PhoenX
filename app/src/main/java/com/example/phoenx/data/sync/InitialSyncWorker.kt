@@ -12,6 +12,7 @@ import com.example.phoenx.data.local.PersonalityMediaEntity
 import com.example.phoenx.data.local.StandaloneMediaDao
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.sync.toOfflineEntry
+import com.example.phoenx.data.sync.toAmendmentEntity // v12.2
 import com.example.phoenx.data.sync.toPersonEntity
 import com.example.phoenx.data.sync.toRankingEntity // v12.2
 import com.example.phoenx.data.sync.toStandaloneMediaEntity // v9.4.27
@@ -65,6 +66,24 @@ class InitialSyncWorker @AssistedInject constructor(
                     // Upsert systématique pour synchroniser les changements
                     // L'objet remoteEntry a markedForDeletionAt = null, ce qui restaure les entrées si elles reviennent
                     offlineEntryDao.insertEntry(remoteEntry.copy(syncStatus = "synced"))
+                    
+                    // --- RACHAT DES AMENDEMENTS (v12.2) ---
+                    try {
+                        val amSnapshot = db.collection("users").document(userId)
+                            .collection("entries").document(remoteEntry.id)
+                            .collection("amendments")
+                            .get()
+                            .await()
+                        
+                        amSnapshot.documents.forEach { amDoc ->
+                            val amendment = amDoc.toAmendmentEntity(remoteEntry.id)
+                            if (amendment != null) {
+                                offlineEntryDao.insertAmendment(amendment)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("InitialSyncWorker", "Erreur rapatriement amendements pour ${remoteEntry.id}")
+                    }
                     
                     if (remoteEntry.locationId != null || remoteEntry.latitude != null) {
                         android.util.Log.d("PHOENX_MAP_TRACE", "InitialSyncWorker: Entrée synchronisée avec localisation: id=${remoteEntry.id}, locId=${remoteEntry.locationId}, lat=${remoteEntry.latitude}")
@@ -211,7 +230,7 @@ class InitialSyncWorker @AssistedInject constructor(
                             var finalPath = entity.mediaPath
                             var finalThumbPath = entity.thumbnailPath
                             
-                            // Si c'est un média de rencontre chiffré, on le pré-télécharge (v9.7.9)
+                            // 1. Média de rencontre chiffré (v9.7.9)
                             if (person.categories.contains(",ENCOUNTER,") && !finalPath.startsWith("/")) {
                                 try {
                                     val encounterMediaDir = File(appContext.filesDir, "encounter_media")
@@ -236,9 +255,22 @@ class InitialSyncWorker @AssistedInject constructor(
                                 } catch (e: Exception) {
                                     android.util.Log.e("InitialSyncWorker", "Échec pré-chargement média rencontre: ${entity.id}")
                                 }
+                            } 
+                            // 2. Média d'arbre public (v12.2) : Download local pour cohérence avec portraits
+                            else if (!finalPath.startsWith("/") && !finalPath.startsWith("http")) {
+                                try {
+                                    val cameoDir = File(appContext.filesDir, "cameos")
+                                    if (!cameoDir.exists()) cameoDir.mkdirs()
+                                    val destFile = File(cameoDir, "person_media_${entity.id}.jpg")
+                                    mediaManager.downloadCameo(finalPath, destFile)
+                                    finalPath = destFile.absolutePath
+                                } catch (e: Exception) {
+                                    android.util.Log.e("InitialSyncWorker", "Erreur download gallery media public pour ${entity.id}")
+                                }
                             }
                             
                             personMediaDao.insertMedia(entity.copy(
+                                personId = person.id, // Force le lien parent (v12.2)
                                 mediaPath = finalPath,
                                 thumbnailPath = finalThumbPath,
                                 syncStatus = "synced"

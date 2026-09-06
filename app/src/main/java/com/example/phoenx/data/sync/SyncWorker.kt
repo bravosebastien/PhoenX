@@ -45,7 +45,7 @@ class SyncWorker @AssistedInject constructor(
                 .build()
             androidx.work.WorkManager.getInstance(context).enqueueUniqueWork(
                 "phoenx_immediate_sync",
-                androidx.work.ExistingWorkPolicy.REPLACE,
+                androidx.work.ExistingWorkPolicy.APPEND_OR_REPLACE,
                 request
             )
         }

@@ -306,6 +306,22 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
 }
 
 /**
+ * Extension pour convertir un DocumentSnapshot Firestore en AmendmentEntity (Room).
+ * (v12.2 : Rapatriement lors de la réinstallation)
+ */
+fun DocumentSnapshot.toAmendmentEntity(entryId: String): com.example.phoenx.data.local.AmendmentEntity? {
+    if (!exists()) return null
+    return com.example.phoenx.data.local.AmendmentEntity(
+        id = id,
+        entryId = entryId,
+        encryptedContent = getBlob("encryptedContent")?.toBytes() ?: ByteArray(0),
+        ageAtAmendment = getString("ageAtAmendment") ?: "{}",
+        createdAt = getLong("createdAt") ?: System.currentTimeMillis(),
+        aiEvolution = getString("aiEvolution")
+    )
+}
+
+/**
  * Extension pour convertir un DocumentSnapshot Firestore en StandaloneMediaEntity (Room).
  */
 fun DocumentSnapshot.toStandaloneMediaEntity(): com.example.phoenx.data.local.StandaloneMediaEntity {
