@@ -132,6 +132,7 @@ fun QuestionAnswerScreen(
                     }
                 } else if (uiState.currentMediaUrl != null) {
                     Box(modifier = Modifier.fillMaxWidth().height(200.dp).clip(RoundedCornerShape(12.dp))) {
+                        // v12.3.2 : Résolution robuste via MediaManager (Garantit persistance après redémarrage)
                         SecureAsyncImage(
                             mediaUrl = uiState.currentMediaUrl,
                             localPath = uiState.currentMediaPath,
@@ -139,7 +140,7 @@ fun QuestionAnswerScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
                             docType = "entries",
-                            docId = questionId, // Utilisation de l'ID de la question comme clé stable
+                            docId = questionId,
                             isEncrypted = uiState.currentMediaUrl?.contains(".enc") ?: true
                         )
                         Row(modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)) {

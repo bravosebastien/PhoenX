@@ -91,7 +91,7 @@ fun HomeHeader(name: String, photoUrl: String?, date: String, onProfileClick: ()
                 points = listOf(
                     "VOTRE LÉGENDE : C'est ici que vous gérez votre héritage émotionnel et numérique.",
                     "LE SILENCE : Votre état de présence est surveillé pour garantir que vos secrets ne seront libérés qu'au bon moment.",
-                    "LA BIBLIOTHÈQUE : Accédez à tous vos compartiments (Photos, Vidéos, Secrets, Quiz).",
+                    "LA BIBLIOTHÈQUE : Accédez à tous vos compartiments (Photos, Vidéos, Secrets, etc.).",
                     "CERCLE DE CONFIANCE : Gérez qui sont vos destinataires et vos témoins."
                 )
             )

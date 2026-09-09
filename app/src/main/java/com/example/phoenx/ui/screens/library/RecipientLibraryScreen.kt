@@ -55,7 +55,7 @@ fun RecipientLibraryScreen(
         pageKey = "library",
         title = "Ma Bibliothèque",
         contentPoints = listOf(
-            "Accède à tous tes compartiments : Photos, Vidéos, Secrets, Quiz.",
+            "Accède à tous tes compartiments : Photos, Vidéos, Secrets, etc.",
             "C'est ici que sont centralisés tous tes souvenirs déposés."
         ),
         preferenceManager = themeViewModel.preferenceManager
@@ -119,7 +119,7 @@ fun RecipientLibraryScreen(
         }
 
         Text(
-            text = "15 compartiments · $totalSouvenirs souvenirs déposés",
+            text = "14 compartiments · $totalSouvenirs souvenirs déposés",
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
             color = theme.contentColor.copy(alpha = 0.5f),
             modifier = Modifier.padding(start = 16.dp, bottom = 14.dp)
@@ -268,9 +268,11 @@ fun RecipientLibraryScreen(
                         navController.navigate(route) 
                     }, theme, itemModifier)
                     
+                    /* Haché v12.3 (Réversible)
                     CompactGridItem("Mon Quiz", Icons.Outlined.EmojiEvents, { 
                         if (isCreatorMode) navController.navigate("quiz_create") 
                     }, theme, itemModifier)
+                    */
 
                     CompactGridItem("Capsule temporelle", Icons.Outlined.MailOutline, { 
                         navController.navigate("lettres") 

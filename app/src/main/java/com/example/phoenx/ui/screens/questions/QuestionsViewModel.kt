@@ -96,7 +96,7 @@ class QuestionsViewModel @Inject constructor(
                 
                 _uiState.update { it.copy(
                     currentAnswerText = decodedText,
-                    currentMediaPath = entry.localMediaPath,
+                    currentMediaPath = entry.localMediaPath ?: File(context.filesDir, "media/PHX_QFIX_${entry.id}.jpg").let { if (it.exists()) it.absolutePath else null },
                     currentMediaUrl = entry.mediaUrl
                 ) }
             } else {
@@ -119,14 +119,19 @@ class QuestionsViewModel @Inject constructor(
                                 encryptionManager.decryptText(remoteEntry.encryptedPayload)
                             } catch (e: Exception) { "" }
                             
+                            // Reconstruction du chemin local prévisible si le fichier existe déjà (v12.3.2)
+                            val predictableLocalPath = File(context.filesDir, "media/PHX_QFIX_${remoteEntry.id}.jpg").let { 
+                                if (it.exists()) it.absolutePath else null 
+                            }
+
                             _uiState.update { it.copy(
                                 currentAnswerText = decodedText,
-                                currentMediaPath = null,
+                                currentMediaPath = predictableLocalPath,
                                 currentMediaUrl = remoteEntry.mediaUrl
                             ) }
                             
                             // Réparation locale immédiate (Point 1 du bug critique)
-                            offlineEntryDao.insertEntry(remoteEntry)
+                            offlineEntryDao.insertEntry(remoteEntry.copy(localMediaPath = predictableLocalPath))
                             return@launch
                         }
                     }

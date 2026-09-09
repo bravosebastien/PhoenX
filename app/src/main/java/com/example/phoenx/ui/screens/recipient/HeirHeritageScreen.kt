@@ -170,6 +170,7 @@ fun HeirHeritageScreen(
                         modifier = Modifier.weight(1f),
                         theme = theme
                     ) { navController.navigate(Screen.Map.createRoute(targetCreatorId = creatorId)) }
+                    /* Haché v12.3 (Réversible)
                     SpecialAccessCard(
                         title = "Quiz",
                         icon = Icons.Outlined.EmojiEvents,
@@ -179,6 +180,7 @@ fun HeirHeritageScreen(
                         // Navigation automatique vers le quiz du créateur (v8.5.9)
                         navController.navigate("quiz_play/$creatorId/main_quiz") 
                     }
+                    */
                     SpecialAccessCard(
                         title = "Persos",
                         icon = Icons.Default.Star,
