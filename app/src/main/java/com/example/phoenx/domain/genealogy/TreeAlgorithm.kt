@@ -58,7 +58,15 @@ object TreeAlgorithm {
             }
         }
 
-        val nodeGenerations = persons.associate { it.id to (groupLevels[find(it.id)] ?: 0) }
+        val nodeGenerations = persons.associate { person -> 
+            val baseLevel = groupLevels[find(person.id)] ?: 0
+            val finalLevel = if (person.parentIds.isEmpty()) {
+                baseLevel + person.manualGenerationOffset
+            } else {
+                baseLevel
+            }
+            person.id to finalLevel
+        }
         val levels = nodeGenerations.values.distinct().sorted()
 
         // --- PHASE 2 : Construction des liens de couple RÉELS ---

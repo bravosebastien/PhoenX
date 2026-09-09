@@ -52,5 +52,8 @@ data class PersonEntity(
 
     // ISOLATION DES CHAMPS (Lot E - v9.6.5)
     val encounterBiography: String = "",
-    val encounterImagePath: String? = null // Étape 3: Photo dédiée
+    val encounterImagePath: String? = null, // Étape 3: Photo dédiée
+    
+    // v12.3 : RÉGLAGE MANUEL DU NIVEAU (Racines uniquement)
+    val manualGenerationOffset: Int = 0
 )

@@ -164,29 +164,56 @@ fun HeirHeritageScreen(
                         modifier = Modifier.weight(1f),
                         theme = theme
                     ) { navController.navigate(Screen.Genealogy.createRoute(creatorId)) }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     SpecialAccessCard(
                         title = "Mappemonde", // v9.4.27 : Accès à la Mappemonde
                         icon = Icons.Default.Public,
                         modifier = Modifier.weight(1f),
                         theme = theme
                     ) { navController.navigate(Screen.Map.createRoute(targetCreatorId = creatorId)) }
-                    /* Haché v12.3 (Réversible)
-                    SpecialAccessCard(
-                        title = "Quiz",
-                        icon = Icons.Outlined.EmojiEvents,
-                        modifier = Modifier.weight(1f),
-                        theme = theme
-                    ) { 
-                        // Navigation automatique vers le quiz du créateur (v8.5.9)
-                        navController.navigate("quiz_play/$creatorId/main_quiz") 
-                    }
-                    */
                     SpecialAccessCard(
                         title = "Persos",
                         icon = Icons.Default.Star,
                         modifier = Modifier.weight(1f),
                         theme = theme
                     ) { navController.navigate(Screen.Personalities.createRoute(creatorId)) }
+                    SpecialAccessCard(
+                        title = "Rencontres",
+                        icon = Icons.Default.Groups,
+                        modifier = Modifier.weight(1f),
+                        theme = theme
+                    ) { navController.navigate(Screen.RecipientEncounters.createRoute(creatorId)) }
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    SpecialAccessCard(
+                        title = "Photos",
+                        icon = Icons.Default.PhotoLibrary,
+                        modifier = Modifier.weight(1f),
+                        theme = theme
+                    ) { navController.navigate(Screen.RecipientPhotos.createRoute(creatorId)) }
+                    SpecialAccessCard(
+                        title = "Vidéos",
+                        icon = Icons.Default.Videocam,
+                        modifier = Modifier.weight(1f),
+                        theme = theme
+                    ) { navController.navigate(Screen.RecipientVideotheque.createRoute(creatorId)) }
+                    SpecialAccessCard(
+                        title = "Audios",
+                        icon = Icons.Default.MusicNote,
+                        modifier = Modifier.weight(1f),
+                        theme = theme
+                    ) { navController.navigate(Screen.RecipientDiscotheque.createRoute(creatorId)) }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f), modifier = Modifier.padding(horizontal = 24.dp))

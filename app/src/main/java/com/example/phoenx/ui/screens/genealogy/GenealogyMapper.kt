@@ -24,6 +24,7 @@ fun PersonEntity.toResolvedPerson(resolvedUrl: String?): ResolvedPerson {
         isReparented = isReparented,
         reparentedRelationLabel = reparentedRelationLabel,
         photoField = if (encounterImagePath != null) "encounterImagePath" else "imageUrl",
-        localPath = cleanLocalPath
+        localPath = cleanLocalPath,
+        manualGenerationOffset = manualGenerationOffset
     )
 }

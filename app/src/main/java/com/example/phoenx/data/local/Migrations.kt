@@ -767,4 +767,13 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN isGuessQuestion INTEGER NOT NULL DEFAULT 0")
         }
     }
+
+    /**
+     * MIGRATION_61_62 — Réglage manuel du niveau (v12.3)
+     */
+    val MIGRATION_61_62 = object : Migration(61, 62) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE persons ADD COLUMN manualGenerationOffset INTEGER NOT NULL DEFAULT 0")
+        }
+    }
 }

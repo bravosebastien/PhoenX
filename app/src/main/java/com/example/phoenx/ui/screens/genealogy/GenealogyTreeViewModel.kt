@@ -38,6 +38,9 @@ class GenealogyTreeViewModel @Inject constructor(
     // Cache des URLs résolues (Id du média/personne -> URL signée ou locale)
     private val _resolvedUrls = MutableStateFlow<Map<String, String>>(emptyMap())
     val resolvedUrls: StateFlow<Map<String, String>> = _resolvedUrls.asStateFlow()
+    
+    // v12.3 : Cache de validation des chemins pour éviter les résolutions infinies ou bloquées sur un ancien chemin
+    private val _resolutionPathCache = mutableMapOf<String, String>() 
 
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
@@ -87,7 +90,11 @@ class GenealogyTreeViewModel @Inject constructor(
      */
     fun resolveSingleUrl(creatorId: String, docType: String, docId: String, path: String, personId: String? = null, fieldOverride: String? = null) {
         if (path.isBlank()) return
-        if (_resolvedUrls.value.containsKey(docId)) return
+        
+        // v12.3 : Si le chemin n'a pas changé et qu'on a déjà une URL résolue, on ne fait rien
+        if (_resolutionPathCache[docId] == path && _resolvedUrls.value.containsKey(docId)) return
+
+        _resolutionPathCache[docId] = path
 
         viewModelScope.launch {
             try {
@@ -343,6 +350,21 @@ class GenealogyTreeViewModel @Inject constructor(
                     reparentedRelationLabel = relationLabel,
                     isDeceased = isDeceased,
                     imagePath = photoPath,
+                    syncStatus = "pending"
+                )
+                offlineEntryDao.upsertPerson(updated)
+                SyncWorker.trigger(context)
+            }
+        }
+    }
+
+    fun updateGenerationOffset(personId: String, delta: Int) {
+        viewModelScope.launch {
+            val persons = offlineEntryDao.getPersonsByIds(listOf(personId))
+            if (persons.isNotEmpty()) {
+                val person = persons.first()
+                val updated = person.copy(
+                    manualGenerationOffset = person.manualGenerationOffset + delta,
                     syncStatus = "pending"
                 )
                 offlineEntryDao.upsertPerson(updated)

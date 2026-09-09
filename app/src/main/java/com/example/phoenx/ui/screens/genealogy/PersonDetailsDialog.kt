@@ -235,6 +235,41 @@ fun PersonDetailsDialog(
                         }
                     }
 
+                    // v12.3 : RÉGLAGE MANUEL DU NIVEAU (Racines uniquement)
+                    if (!isReadOnly && person.parentIds.trim(',').isBlank()) {
+                        Spacer(Modifier.height(24.dp))
+                        Text(
+                            "ALIGNEMENT VERTICAL", 
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
+                            color = theme.contentColor.copy(alpha = 0.4f)
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(top = 8.dp)
+                        ) {
+                            Text(
+                                "Cette personne n'a pas d'ascendance. Vous pouvez ajuster sa position verticale pour l'aligner avec ses beaux-parents.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = theme.contentColor.copy(alpha = 0.6f),
+                                modifier = Modifier.weight(1f)
+                            )
+                            Spacer(Modifier.width(16.dp))
+                            Row {
+                                FilledTonalIconButton(
+                                    onClick = { viewModel.updateGenerationOffset(person.id, -1) },
+                                    colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = theme.contentColor.copy(alpha = 0.05f))
+                                ) { Icon(Icons.Default.ArrowUpward, "Remonter", modifier = Modifier.size(18.dp)) }
+                                
+                                Spacer(Modifier.width(8.dp))
+                                
+                                FilledTonalIconButton(
+                                    onClick = { viewModel.updateGenerationOffset(person.id, 1) },
+                                    colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = theme.contentColor.copy(alpha = 0.05f))
+                                ) { Icon(Icons.Default.ArrowDownward, "Descendre", modifier = Modifier.size(18.dp)) }
+                            }
+                        }
+                    }
+
                     if (person.isReparented) {
                         Spacer(Modifier.height(16.dp))
                         OutlinedTextField(

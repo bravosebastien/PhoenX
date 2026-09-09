@@ -22,7 +22,7 @@ import androidx.room.RoomDatabase
     PersonalityEntity::class,
     PersonalityMediaEntity::class,
     RankingEntity::class
-], version = 61, exportSchema = false)
+], version = 62, exportSchema = false)
 abstract class PhoenXDatabase : RoomDatabase() {
     abstract fun offlineEntryDao(): OfflineEntryDao
     abstract fun standaloneMediaDao(): StandaloneMediaDao
