@@ -106,18 +106,20 @@ object TreeAlgorithm {
                         group.forEach { child ->
                             if (processedIds.add(child.id)) {
                                 levelOrdered.add(child)
-                            }
-                        }
-
-                        // Puis on ajoute les conjoints de cette fratrie sur le côté EXTÉRIEUR (après le bloc)
-                        group.forEach { child ->
-                            val spouse = personsAtLevel.find { p ->
-                                !processedIds.contains(p.id) && 
-                                p.parentIds.none { pid -> persons.any { it.id == pid } } &&
-                                coupleConnections.any { (it.first == child.id && it.second == p.id) || (it.first == p.id && it.second == child.id) }
-                            }
-                            spouse?.let { 
-                                if (processedIds.add(it.id)) levelOrdered.add(it)
+                                
+                                // CORRECTION (v12.3) : Ajouter TOUS les conjoints liés à cette personne
+                                // On cherche dans coupleConnections tous les partenaires de 'child'
+                                val partners = coupleConnections.filter { it.first == child.id || it.second == child.id }
+                                partners.forEach { connection ->
+                                    val spouseId = if (connection.first == child.id) connection.second else connection.first
+                                    
+                                    // On vérifie que le conjoint est bien à ce niveau et n'a pas encore été traité
+                                    personsAtLevel.find { it.id == spouseId && !processedIds.contains(it.id) }?.let { spouse ->
+                                        if (processedIds.add(spouse.id)) {
+                                            levelOrdered.add(spouse)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

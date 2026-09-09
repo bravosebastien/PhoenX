@@ -389,10 +389,11 @@ class GenealogyTreeViewModel @Inject constructor(
         viewModelScope.launch {
             val persons = offlineEntryDao.getPersonsByIds(listOf(personId))
             if (persons.isNotEmpty()) {
+                val cleanParentIds = parentIds.filter { it.isNotBlank() }.distinct()
                 val updated = persons.first().copy(
-                    firstName = firstName,
-                    lastName = lastName,
-                    parentIds = "," + parentIds.joinToString(",") + ",",
+                    firstName = firstName.trim(),
+                    lastName = lastName?.trim(),
+                    parentIds = if (cleanParentIds.isEmpty()) "" else "," + cleanParentIds.joinToString(",") + ",",
                     syncStatus = "pending"
                 )
                 offlineEntryDao.upsertPerson(updated)
@@ -404,25 +405,29 @@ class GenealogyTreeViewModel @Inject constructor(
     fun createAndLinkPerson(firstName: String, lastName: String?, parentIds: List<String>, childrenIdsToLink: List<String> = emptyList()) {
         viewModelScope.launch {
             val newPerson = PersonEntity(
-                firstName = firstName,
-                lastName = lastName,
-                parentIds = "," + parentIds.joinToString(",") + ",",
+                firstName = firstName.trim(),
+                lastName = lastName?.trim(),
+                parentIds = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ",",
                 categories = ",FAMILY,",
                 syncStatus = "pending"
             )
             offlineEntryDao.upsertPerson(newPerson)
             
-            // Lier aux enfants existants
+            // Lier aux enfants existants (v12.3: Robustesse accrue)
             if (childrenIdsToLink.isNotEmpty()) {
                 val children = offlineEntryDao.getPersonsByIds(childrenIdsToLink)
+                android.util.Log.d("GenealogyLink", "Liaison de ${newPerson.firstName} à ${children.size} enfants: $childrenIdsToLink")
+                
                 children.forEach { child ->
-                    val currentParents = child.parentIds.trim(',').split(",").filter { it.isNotBlank() }
+                    val currentParents = child.parentIds.split(",").filter { it.isNotBlank() }
                     if (!currentParents.contains(newPerson.id)) {
+                        val newList = (currentParents + newPerson.id).distinct()
                         val updatedChild = child.copy(
-                            parentIds = "," + (currentParents + newPerson.id).joinToString(",") + ",",
+                            parentIds = "," + newList.joinToString(",") + ",",
                             syncStatus = "pending"
                         )
                         offlineEntryDao.upsertPerson(updatedChild)
+                        android.util.Log.d("GenealogyLink", "Enfant mis à jour: ${child.firstName}, nouveaux parents: ${updatedChild.parentIds}")
                     }
                 }
             }
