@@ -130,9 +130,36 @@ fun GenealogyTreeRenderer(
                         val n1 = layout.nodes.find { it.person.id == id1 }
                         val n2 = layout.nodes.find { it.person.id == id2 }
                         if (n1 != null && n2 != null) {
-                            val p1 = Offset(n1.x.dp.toPx() + centerX, n1.y.dp.toPx() + centerY)
-                            val p2 = Offset(n2.x.dp.toPx() + centerX, n2.y.dp.toPx() + centerY)
-                            drawLine(color = accent.copy(alpha = 0.4f), start = p1, end = p2, strokeWidth = 3.dp.toPx())
+                            // CORRECTIF (v12.3) : Alignement sur le vrai centre du cercle photo (35dp au-dessus du centre de la carte)
+                            val circleCenterOffset = 35.dp.toPx()
+                            val p1 = Offset(n1.x.dp.toPx() + centerX, n1.y.dp.toPx() + centerY - circleCenterOffset)
+                            val p2 = Offset(n2.x.dp.toPx() + centerX, n2.y.dp.toPx() + centerY - circleCenterOffset)
+                            
+                            // DÉTECTION D'OBSTACLES (v12.3)
+                            val hasObstacle = layout.nodes.any { 
+                                it.person.id != id1 && it.person.id != id2 &&
+                                it.y == n1.y && 
+                                it.x > minOf(n1.x, n2.x) && it.x < maxOf(n1.x, n2.x)
+                            }
+
+                            if (hasObstacle) {
+                                // RENDU EN ARC (Bézier quadratique)
+                                val midX = (p1.x + p2.x) / 2
+                                /* 
+                                   PROPRIÉTÉ BÉZIER : Le sommet d'une courbe quadratique est à mi-hauteur du point de contrôle.
+                                   Dégagement réel voulu : 35dp (rayon) + 25dp (marge) = 60dp.
+                                   Offset du point de contrôle : 60dp * 2 = 120dp.
+                                */
+                                val controlOffset = 120.dp.toPx() 
+                                val path = Path().apply {
+                                    moveTo(p1.x, p1.y)
+                                    quadraticTo(midX, p1.y - controlOffset, p2.x, p2.y)
+                                }
+                                drawPath(path = path, color = accent.copy(alpha = 0.4f), style = Stroke(width = 3.dp.toPx()))
+                            } else {
+                                // Cas normal : Trait droit horizontal entre les centres des photos
+                                drawLine(color = accent.copy(alpha = 0.4f), start = p1, end = p2, strokeWidth = 3.dp.toPx())
+                            }
                         }
                     }
                 }
