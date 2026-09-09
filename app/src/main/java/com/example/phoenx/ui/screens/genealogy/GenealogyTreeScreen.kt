@@ -333,7 +333,7 @@ fun GenealogyTreeScreen(
                 selectedPersonForAddingRelation?.let { listOf(it) } ?: emptyList()
             } else emptyList(),
             allPersons = allPersons,
-            onConfirm = { firstName, lastName, parentIds ->
+            onConfirm = { firstName, lastName, parentIds, existingPersonId ->
                 if (selectedPersonForAddingRelation == null && selectedPersonForDetails != null) {
                     viewModel.updatePersonIdentity(selectedPersonForDetails!!.id, firstName, lastName, parentIds)
                 } else {
@@ -345,11 +345,12 @@ fun GenealogyTreeScreen(
                         emptyList()
                     }
 
-                    viewModel.createAndLinkPerson(
+                    viewModel.createOrLinkPerson(
                         firstName = firstName, 
                         lastName = lastName, 
                         parentIds = parentIds,
-                        childrenIdsToLink = childrenToLink
+                        childrenIdsToLink = childrenToLink,
+                        existingPersonId = existingPersonId
                     )
                 }
                 showCreateDialog = false

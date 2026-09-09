@@ -402,32 +402,48 @@ class GenealogyTreeViewModel @Inject constructor(
         }
     }
 
-    fun createAndLinkPerson(firstName: String, lastName: String?, parentIds: List<String>, childrenIdsToLink: List<String> = emptyList()) {
+    fun createOrLinkPerson(firstName: String, lastName: String?, parentIds: List<String>, childrenIdsToLink: List<String> = emptyList(), existingPersonId: String? = null) {
         viewModelScope.launch {
-            val newPerson = PersonEntity(
-                firstName = firstName.trim(),
-                lastName = lastName?.trim(),
-                parentIds = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ",",
-                categories = ",FAMILY,",
-                syncStatus = "pending"
-            )
-            offlineEntryDao.upsertPerson(newPerson)
+            val targetPerson = if (existingPersonId != null) {
+                // Mode LIEN : On récupère et on met à jour la personne existante
+                val existing = offlineEntryDao.getPersonsByIds(listOf(existingPersonId)).firstOrNull()
+                if (existing != null) {
+                    val updated = existing.copy(
+                        firstName = firstName.trim(),
+                        lastName = lastName?.trim(),
+                        parentIds = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ",",
+                        syncStatus = "pending"
+                    )
+                    offlineEntryDao.upsertPerson(updated)
+                    updated
+                } else null
+            } else {
+                // Mode CRÉATION : Nouvelle fiche
+                val newPerson = PersonEntity(
+                    firstName = firstName.trim(),
+                    lastName = lastName?.trim(),
+                    parentIds = if (parentIds.isEmpty()) "" else "," + parentIds.joinToString(",") + ",",
+                    categories = ",FAMILY,",
+                    syncStatus = "pending"
+                )
+                offlineEntryDao.upsertPerson(newPerson)
+                newPerson
+            }
             
             // Lier aux enfants existants (v12.3: Robustesse accrue)
-            if (childrenIdsToLink.isNotEmpty()) {
+            if (targetPerson != null && childrenIdsToLink.isNotEmpty()) {
                 val children = offlineEntryDao.getPersonsByIds(childrenIdsToLink)
-                android.util.Log.d("GenealogyLink", "Liaison de ${newPerson.firstName} à ${children.size} enfants: $childrenIdsToLink")
+                android.util.Log.d("GenealogyLink", "Liaison de ${targetPerson.firstName} à ${children.size} enfants: $childrenIdsToLink")
                 
                 children.forEach { child ->
                     val currentParents = child.parentIds.split(",").filter { it.isNotBlank() }
-                    if (!currentParents.contains(newPerson.id)) {
-                        val newList = (currentParents + newPerson.id).distinct()
+                    if (!currentParents.contains(targetPerson.id)) {
+                        val newList = (currentParents + targetPerson.id).distinct()
                         val updatedChild = child.copy(
                             parentIds = "," + newList.joinToString(",") + ",",
                             syncStatus = "pending"
                         )
                         offlineEntryDao.upsertPerson(updatedChild)
-                        android.util.Log.d("GenealogyLink", "Enfant mis à jour: ${child.firstName}, nouveaux parents: ${updatedChild.parentIds}")
                     }
                 }
             }
