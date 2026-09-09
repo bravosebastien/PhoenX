@@ -252,31 +252,19 @@ fun PersonNodeCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Box(contentAlignment = Alignment.TopCenter) {
-            val borderColor = if (person.isDeceased) Color.Gray.copy(alpha = 0.5f) else accent
+            // v12.3 : Distinction par couleur plutôt que pointillés (isDotted)
+            val borderColor = when {
+                person.isDeceased -> Color(0xFF9E9E9E) // prend le pas sur tout le reste, y compris "sans ascendance" — gris plein, opaque
+                isDotted -> theme.contentColor.copy(alpha = 0.35f) // sans ascendance connue
+                else -> accent // ascendance connue
+            }
             
             Box(
                 modifier = Modifier
                     .size(70.dp)
                     .clip(CircleShape)
                     .background(theme.contentColor.copy(alpha = 0.05f))
-                    .then(
-                        if (isDotted) {
-                            Modifier.drawWithCache {
-                                onDrawBehind {
-                                    drawCircle(
-                                        color = borderColor,
-                                        radius = size.minDimension / 2,
-                                        style = Stroke(
-                                            width = 2.dp.toPx(),
-                                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f)
-                                        )
-                                    )
-                                }
-                            }
-                        } else {
-                            Modifier.border(2.dp, borderColor, CircleShape)
-                        }
-                    )
+                    .border(3.dp, borderColor, CircleShape)
                     .clickable { onClick() },
                 contentAlignment = Alignment.Center
             ) {

@@ -195,7 +195,7 @@ fun PersonDetailsDialog(
                                         onCheckedChange = { isDeceased = it },
                                         colors = CheckboxDefaults.colors(checkedColor = accent)
                                     )
-                                    Text("Décédé(e)", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                                    Text("Parti(e)", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
                                 }
                                 
                                 // Bouton de liens (Style bouton d'action Rencontres)
@@ -225,7 +225,7 @@ fun PersonDetailsDialog(
                                     border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                                 ) {
                                     Text(
-                                        "Décédé(e)", 
+                                        "Ailleurs, mais toujours dans nos cœurs",
                                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                                         color = theme.contentColor.copy(alpha = 0.5f),
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)

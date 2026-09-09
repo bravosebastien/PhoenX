@@ -71,7 +71,7 @@ fun GroupTreeNode(
                                     color = if (resolved.isDeceased) theme.contentColor.copy(alpha = 0.5f) else theme.contentColor
                                 )
                                 if (resolved.isDeceased) {
-                                    Text("Décédé(e)", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.3f))
+                                    Text("Parti(e)", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.3f))
                                 }
                             }
                             if (enabled) {
