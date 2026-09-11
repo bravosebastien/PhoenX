@@ -138,7 +138,8 @@ fun GenealogyTreeRenderer(
                             // DÉTECTION D'OBSTACLES (v12.3)
                             val hasObstacle = layout.nodes.any { 
                                 it.person.id != id1 && it.person.id != id2 &&
-                                it.y == n1.y && 
+
+                                it.y == n1.y &&
                                 it.x > minOf(n1.x, n2.x) && it.x < maxOf(n1.x, n2.x)
                             }
 
