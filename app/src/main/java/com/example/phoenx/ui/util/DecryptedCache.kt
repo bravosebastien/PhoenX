@@ -7,8 +7,8 @@ import android.util.LruCache
  * Évite de redéchiffrer les mêmes médias lors du scroll dans une LazyColumn.
  */
 object DecryptedCache {
-    // Cache de 20 Mo pour les octets déchiffrés
-    private val cache = LruCache<String, ByteArray>(20 * 1024 * 1024)
+    // Cache augmenté à 150 Mo pour fluidité maximale après réinstallation (v12.3)
+    private val cache = LruCache<String, ByteArray>(150 * 1024 * 1024)
 
     fun get(key: String): ByteArray? = cache.get(key)
 

@@ -110,7 +110,10 @@ fun DirectPhotoDialog(
                     selectedUri?.let { uri ->
                         // v9.4.27 : Conversion DocIDs -> UIDs avant retour
                         val uids = selectedIds.map { docId ->
-                            recipients.find { it.id == docId }?.linkedUid ?: docId
+                            val rec = recipients.find { it.id == docId }
+                            val finalId = rec?.linkedUid ?: docId
+                            android.util.Log.d("PHOENX_SHARE_DIAG", "Mapping recipient (Photo): name=${rec?.name}, docId=$docId, linkedUid=${rec?.linkedUid} -> finalId=$finalId")
+                            finalId
                         }
                         onSave(title, userComment.ifBlank { null }, uri, uids) 
                     }

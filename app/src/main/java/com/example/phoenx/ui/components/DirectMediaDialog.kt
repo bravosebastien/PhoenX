@@ -53,6 +53,7 @@ fun DirectMediaDialog(
     }
     
     // v9.4.27 : Normalisation interne UIDs -> DocIDs pour le sélecteur
+    // v12.3 : Clé de mémorisation étendue à la liste entière pour réagir au chargement asynchrone
     val selectedIds = remember(initialRecipientIds, recipients) {
         val docIds = initialRecipientIds.map { uidOrId ->
             recipients.find { it.linkedUid == uidOrId }?.id ?: uidOrId
@@ -199,7 +200,10 @@ fun DirectMediaDialog(
                 onClick = { 
                     // v9.4.27 : Conversion DocIDs -> UIDs avant retour à l'appelant
                     val uids = selectedIds.map { docId ->
-                        recipients.find { it.id == docId }?.linkedUid ?: docId
+                        val rec = recipients.find { it.id == docId }
+                        val finalId = rec?.linkedUid ?: docId
+                        android.util.Log.d("PHOENX_SHARE_DIAG", "Mapping recipient: name=${rec?.name}, docId=$docId, linkedUid=${rec?.linkedUid} -> finalId=$finalId")
+                        finalId
                     }
                     val finalIncludedInBook = if (type == "PHOTO") includedInBook else false
                     onSave(title, userComment.ifBlank { null }, url, uids, visibility, autoThumbnailUrl, finalIncludedInBook)

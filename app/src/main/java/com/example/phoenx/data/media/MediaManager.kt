@@ -210,9 +210,14 @@ class MediaManager @Inject constructor(
         android.util.Log.d("PHOENX_SYNC_PERF", "   [${System.currentTimeMillis() - downloadStart} ms] Download bytes (${encryptedBytes.size} bytes)")
 
         val decryptStart = System.currentTimeMillis()
-        val decrypted = encryptionManager.decryptBytes(encryptedBytes, explicitKey)
-        android.util.Log.d("PHOENX_SYNC_PERF", "   [${System.currentTimeMillis() - decryptStart} ms] Decrypt bytes")
-        return decrypted
+        return try {
+            val decrypted = encryptionManager.decryptBytes(encryptedBytes, explicitKey)
+            android.util.Log.d("PHOENX_SYNC_PERF", "   [${System.currentTimeMillis() - decryptStart} ms] Decrypt bytes (docId=$docId)")
+            decrypted
+        } catch (e: Exception) {
+            android.util.Log.e("PHOENX_SECURE_IMG", "DÉCHIFFREMENT ÉCHOUÉ (docId=$docId, size=${encryptedBytes.size}). Clé session présente? ${encryptionManager.getSessionKey() != null}. Erreur: ${e.message}")
+            throw e
+        }
     }
 
     /**

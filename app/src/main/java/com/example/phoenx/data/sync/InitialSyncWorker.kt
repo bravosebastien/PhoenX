@@ -305,14 +305,39 @@ class InitialSyncWorker @AssistedInject constructor(
                 }
             }
 
-            // ═══ 5. RÉCUPÉRATION DES MÉDIAS STANDALONE (v9.4.27) ═══
+            // ═══ 5. RÉCUPÉRATION DES MÉDIAS STANDALONE (v9.4.27 + Restauration Physique v12.3) ═══
             val standaloneSnapshot = db.collection("users").document(userId)
                 .collection("standaloneMedia")
                 .get()
                 .await()
             
-            standaloneSnapshot.documents.forEach { doc ->
-                standaloneMediaDao.insertMedia(doc.toStandaloneMediaEntity())
+            if (standaloneSnapshot != null) {
+                standaloneSnapshot.documents.forEach { doc ->
+                    val entity = doc.toStandaloneMediaEntity()
+                    var finalLocalPath: String? = null
+                    
+                    // Restauration physique de la couverture si présente
+                    if (!entity.coverUrl.isNullOrBlank() && !entity.coverUrl.startsWith("http")) {
+                        try {
+                            val discoDir = File(appContext.filesDir, "standalone_covers")
+                            if (!discoDir.exists()) discoDir.mkdirs()
+                            val destFile = File(discoDir, "cover_${entity.id}.jpg")
+                            
+                            // Téléchargement et déchiffrement immédiat
+                            val decryptedBytes = mediaManager.downloadAndDecrypt(entity.coverUrl)
+                            destFile.writeBytes(decryptedBytes)
+                            finalLocalPath = destFile.absolutePath
+                            android.util.Log.d("InitialSync", "Couverture standalone restaurée: ${entity.title}")
+                        } catch (e: Exception) {
+                            android.util.Log.e("InitialSync", "Erreur restauration couverture standalone: ${entity.id}")
+                        }
+                    }
+                    
+                    standaloneMediaDao.insertMedia(entity.copy(
+                        localCoverPath = finalLocalPath,
+                        syncStatus = "synced"
+                    ))
+                }
             }
 
             // ═══ 6. RÉCUPÉRATION DES PERSONNALITÉS (v9.7.0 + Mirroring) ═══

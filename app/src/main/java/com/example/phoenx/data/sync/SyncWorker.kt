@@ -32,6 +32,18 @@ class SyncWorker @AssistedInject constructor(
     private val encryptionManager: EncryptionManager
 ) : CoroutineWorker(appContext, workerParams) {
 
+    /**
+     * Répare les recipientIds en remplaçant les Room IDs par les vrais UIDs Firebase (v12.3)
+     */
+    private suspend fun repairRecipientIds(idsCsv: String): String {
+        val recipients = offlineEntryDao.getAllRecipients().first()
+        val ids = idsCsv.split(",").filter { it.isNotBlank() }
+        val repaired = ids.map { id ->
+            recipients.find { it.id == id }?.linkedUid ?: id
+        }.distinct()
+        return repaired.joinToString(",")
+    }
+
     companion object {
         /**
          * Déclenche une synchronisation immédiate (v9.4.24)
@@ -90,6 +102,34 @@ class SyncWorker @AssistedInject constructor(
         val db = FirebaseFirestore.getInstance()
         var hasError = false
         val ensuredPersonIds = mutableSetOf<String>()
+
+        try {
+            // v12.3 : RÉPARATION CRITIQUE - Sync des destinataires avant upload
+            // Garantit que les linkedUid sont à jour pour les mappings de partage
+            android.util.Log.d("PHOENX_SHARE_DIAG", "SyncWorker: Refreshing recipients list...")
+            val recipientsSnapshot = db.collection("users").document(userId)
+                .collection("recipients").get().await()
+            
+            recipientsSnapshot.documents.forEach { doc ->
+                val linkedUid = doc.getString("linkedUid")
+                if (linkedUid != null) {
+                    val recipient = com.example.phoenx.data.local.RecipientEntity(
+                        id = doc.id,
+                        name = doc.getString("name") ?: "",
+                        email = doc.getString("email") ?: "",
+                        relationship = doc.getString("relationship") ?: "",
+                        canAskQuestions = doc.getBoolean("canAskQuestions") ?: false,
+                        maxQuestionsAllowed = doc.getLong("maxQuestionsAllowed")?.toInt(),
+                        linkedUid = linkedUid,
+                        photoUrl = doc.getString("photoUrl")
+                    )
+                    offlineEntryDao.insertRecipient(recipient)
+                }
+            }
+            android.util.Log.d("PHOENX_SHARE_DIAG", "SyncWorker: Recipients list refreshed.")
+        } catch (e: Exception) {
+            android.util.Log.e("PHOENX_SHARE_DIAG", "SyncWorker: Failed to refresh recipients", e)
+        }
 
         return try {
             // 1. Synchronisation des Personnes (v8.8 + v8.9.9 Cameo Sync)
@@ -175,9 +215,17 @@ class SyncWorker @AssistedInject constructor(
 
                     // 2. PRÉPARATION DU MAP FIRESTORE (Incluant potentiellement la nouvelle URL)
                     // On recharge l'entrée depuis la DB si on a mis à jour l'URL
-                    val entryToSync = if (currentMediaUrl != entry.mediaUrl || currentCoverUrl != entry.coverUrl) {
+                    var entryToSync = if (currentMediaUrl != entry.mediaUrl || currentCoverUrl != entry.coverUrl) {
                         entry.copy(mediaUrl = currentMediaUrl, coverUrl = currentCoverUrl)
                     } else entry
+                    
+                    // 2bis. RÉPARATION DES LIENS (v12.3)
+                    val repairedIds = repairRecipientIds(entryToSync.recipientIds)
+                    if (repairedIds != entryToSync.recipientIds) {
+                        android.util.Log.d("PHOENX_SHARE_DIAG", "Repairing recipients for entry ${entry.id}: ${entry.recipientIds} -> $repairedIds")
+                        entryToSync = entryToSync.copy(recipientIds = repairedIds)
+                        offlineEntryDao.updateEntryRecipients(repairedIds, entry.id)
+                    }
 
                     val firestoreMap = entryToSync.toFirestoreMap(encryptionManager)
 
@@ -196,8 +244,33 @@ class SyncWorker @AssistedInject constructor(
             }
 
             // 3. Synchronisation Standalone Media (v9.3.2)
-            pendingStandalone.forEach { media ->
+            pendingStandalone.forEach { originalMedia ->
                 try {
+                    var media = originalMedia
+                    
+                    // v12.3 : RÉPARATION - Gestion de l'upload de la couverture si elle est locale (cas échec initial ou auto-thumb)
+                    var currentCoverUrl = media.coverUrl
+                    if ((currentCoverUrl == null || !currentCoverUrl.startsWith("users/")) && !media.localCoverPath.isNullOrEmpty()) {
+                        val coverFile = File(media.localCoverPath!!)
+                        if (coverFile.exists()) {
+                            android.util.Log.d("SyncWorker", "Tentative (re)upload couverture standalone pour ${media.id}")
+                            currentCoverUrl = mediaManager.encryptAndUpload(userId, "cover_" + media.id, coverFile)
+                            
+                            // Mise à jour locale du chemin Storage
+                            standaloneMediaDao.updateMediaCover(media.id, currentCoverUrl, media.localCoverPath)
+                            media = media.copy(coverUrl = currentCoverUrl)
+                            android.util.Log.d("SyncWorker", "Couverture standalone uploadée : $currentCoverUrl")
+                        }
+                    }
+
+                    // RÉPARATION DES LIENS (v12.3)
+                    val repairedIds = repairRecipientIds(media.recipientIds)
+                    if (repairedIds != media.recipientIds) {
+                        android.util.Log.d("PHOENX_SHARE_DIAG", "Repairing recipients for standalone ${media.id}: ${media.recipientIds} -> $repairedIds")
+                        media = media.copy(recipientIds = repairedIds)
+                        standaloneMediaDao.updateMedia(media.id, media.title, media.userComment, media.content, repairedIds, media.visibility)
+                    }
+
                     val firestoreMap = media.toFirestoreMap()
                     db.collection("users").document(userId)
                         .collection("standaloneMedia").document(media.id)
@@ -206,7 +279,7 @@ class SyncWorker @AssistedInject constructor(
 
                     standaloneMediaDao.updateSyncStatus(media.id, "synced")
                 } catch (e: Exception) {
-                    android.util.Log.e("SyncWorker", "Erreur upload standalone ${media.id}: ${e.message}")
+                    android.util.Log.e("SyncWorker", "Erreur upload standalone ${originalMedia.id}: ${e.message}")
                     hasError = true
                 }
             }

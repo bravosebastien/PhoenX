@@ -24,10 +24,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.tasks.await
-import com.google.firebase.firestore.DocumentSnapshot
 import com.example.phoenx.ui.theme.AppThemeState
 import com.google.firebase.firestore.Blob
 import kotlinx.coroutines.channels.awaitClose
+import com.example.phoenx.data.sync.SyncWorker
 import org.json.JSONObject
 import java.time.Instant
 import javax.inject.Inject
@@ -159,7 +159,8 @@ class RecipientMediaViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
-    val mediaManager: com.example.phoenx.data.media.MediaManager
+    val mediaManager: com.example.phoenx.data.media.MediaManager,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _viewMode = MutableStateFlow(MediaViewMode.DEFAULT)
@@ -273,6 +274,77 @@ class RecipientMediaViewModel @Inject constructor(
     init {
         loadAllMedia()
         loadParentTitles() // v9.4.27
+        syncRecipients() // v12.3 : Correction bug partage (linkedUid stale)
+    }
+
+    private fun syncRecipients() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                android.util.Log.d("PHOENX_SHARE_DIAG", "Syncing recipients to get latest linkedUids...")
+                val snapshot = db.collection("users").document(userId)
+                    .collection("recipients").get().await()
+                
+                val currentRecipients = snapshot.documents.map { doc ->
+                    val recipient = com.example.phoenx.data.local.RecipientEntity(
+                        id = doc.id,
+                        name = doc.getString("name") ?: "",
+                        email = doc.getString("email") ?: "",
+                        relationship = doc.getString("relationship") ?: "",
+                        canAskQuestions = doc.getBoolean("canAskQuestions") ?: false,
+                        maxQuestionsAllowed = doc.getLong("maxQuestionsAllowed")?.toInt(),
+                        linkedUid = doc.getString("linkedUid"),
+                        photoUrl = doc.getString("photoUrl")
+                    )
+                    offlineEntryDao.insertRecipient(recipient)
+                    recipient
+                }
+
+                // v12.3 : RATTRAPAGE (Backfill) - Réparation des partages existants
+                var hasChanges = false
+                
+                // 1. Scan Standalone Media
+                val allStandalone = standaloneMediaDao.getAllStandaloneMedia().first()
+                allStandalone.forEach { media ->
+                    val repaired = repairIds(media.recipientIds, currentRecipients)
+                    if (repaired != media.recipientIds) {
+                        android.util.Log.d("PHOENX_SHARE_DIAG", "[BACKFILL] Réparation détectée pour standalone ${media.id}: ${media.recipientIds} -> $repaired")
+                        standaloneMediaDao.updateMedia(media.id, media.title, media.userComment, media.content, repaired, media.visibility)
+                        standaloneMediaDao.updateSyncStatus(media.id, "pending")
+                        hasChanges = true
+                    }
+                }
+
+                // 2. Scan Souvenirs (Entries)
+                val allEntries = offlineEntryDao.getAllEntriesSync()
+                allEntries.forEach { entry ->
+                    val repaired = repairIds(entry.recipientIds, currentRecipients)
+                    if (repaired != entry.recipientIds) {
+                        android.util.Log.d("PHOENX_SHARE_DIAG", "[BACKFILL] Réparation détectée pour entry ${entry.id}: ${entry.recipientIds} -> $repaired")
+                        offlineEntryDao.updateEntryRecipients(repaired, entry.id)
+                        offlineEntryDao.updateSyncStatus(entry.id, "pending")
+                        hasChanges = true
+                    }
+                }
+
+                if (hasChanges) {
+                    android.util.Log.d("PHOENX_SHARE_DIAG", "[BACKFILL] Des corrections ont été appliquées. Déclenchement SyncWorker...")
+                    SyncWorker.trigger(context)
+                }
+
+                android.util.Log.d("PHOENX_SHARE_DIAG", "Recipients sync & backfill complete.")
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_SHARE_DIAG", "Error during recipients sync/backfill", e)
+            }
+        }
+    }
+
+    private fun repairIds(idsCsv: String, recipients: List<com.example.phoenx.data.local.RecipientEntity>): String {
+        val ids = idsCsv.split(",").filter { it.isNotBlank() }
+        val repaired = ids.map { id ->
+            recipients.find { it.id == id }?.linkedUid ?: id
+        }.distinct()
+        return repaired.joinToString(",")
     }
 
     private fun loadParentTitles() {
@@ -444,13 +516,16 @@ class RecipientMediaViewModel @Inject constructor(
                 }
 
                 // Chiffrement et Upload (Comme une couverture manuelle)
+                android.util.Log.d("ExternalThumb", "Début upload miniature pour $mediaId vers Storage...")
                 val storagePath = mediaManager.encryptAndUpload(uid, mediaId, tempFile)
+                android.util.Log.d("ExternalThumb", "Upload réussi. Chemin Storage : $storagePath")
+                
                 standaloneMediaDao.updateMediaCover(mediaId, storagePath, tempFile.absolutePath)
                 standaloneMediaDao.updateSyncStatus(mediaId, "pending")
                 
-                android.util.Log.d("ExternalThumb", "Miniature externe auto-récupérée pour $mediaId")
+                android.util.Log.d("ExternalThumb", "Miniature externe auto-récupérée et enregistrée en Room pour $mediaId")
             } catch (e: Exception) {
-                android.util.Log.e("ExternalThumb", "Échec récupération miniature externe", e)
+                android.util.Log.e("ExternalThumb", "ÉCHEC CRITIQUE récupération miniature externe pour $mediaId. Type: ${e.javaClass.simpleName}, Message: ${e.message}", e)
             }
         }
     }
