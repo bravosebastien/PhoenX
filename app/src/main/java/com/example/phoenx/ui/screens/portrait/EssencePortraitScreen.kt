@@ -16,12 +16,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +40,7 @@ fun EssencePortraitScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Portrait d'Essence", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(stringResource(R.string.portrait_essence_title), style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -66,12 +68,12 @@ fun EssencePortraitScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 100.dp)) {
                             CircularProgressIndicator(color = accent)
                             Spacer(modifier = Modifier.height(24.dp))
-                            Text("L'IA dessine ton essence à travers tes mots...", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.7f))
+                            Text(stringResource(R.string.portrait_essence_loading), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.7f))
                         }
                     }
                     is PortraitUiState.Empty -> {
                         Text(
-                            "Pas assez de pensées pour dessiner ton portrait.\nContinue de capturer tes souvenirs.",
+                            stringResource(R.string.portrait_essence_empty),
                             style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                             color = theme.contentColor.copy(alpha = 0.4f),
                             textAlign = TextAlign.Center,
@@ -82,7 +84,7 @@ fun EssencePortraitScreen(
                         PortraitContent(state.content, theme)
                     }
                     is PortraitUiState.Error -> {
-                        Text("Erreur : ${state.message}", color = Error, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.portrait_essence_error_prefix, state.message), color = Error, fontWeight = FontWeight.Bold)
                     }
                     else -> {}
                 }
@@ -98,14 +100,14 @@ fun PortraitIntro(onGenerate: () -> Unit, theme: AppThemeState) {
         Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(64.dp))
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            "Ton héritage prend forme",
+            stringResource(R.string.portrait_essence_intro_title),
             style = MaterialTheme.typography.displayMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
             color = theme.contentColor,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            "L'IA de PHOEN-X analyse la trajectoire de tes pensées pour rédiger une synthèse de qui tu sembles être.",
+            stringResource(R.string.portrait_essence_intro_desc),
             style = MaterialTheme.typography.bodyLarge,
             color = theme.contentColor.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
@@ -117,7 +119,7 @@ fun PortraitIntro(onGenerate: () -> Unit, theme: AppThemeState) {
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Générer mon Portrait", color = theme.backgroundColor, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+            Text(stringResource(R.string.portrait_essence_button_generate), color = theme.backgroundColor, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
         }
     }
 }
@@ -138,7 +140,7 @@ fun PortraitContent(content: String, theme: AppThemeState) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.HistoryEdu, null, tint = accent, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("VOTRE ESSENCE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, letterSpacing = 2.sp)
+                Text(stringResource(R.string.portrait_essence_card_title), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, letterSpacing = 2.sp)
             }
             
             Spacer(modifier = Modifier.height(32.dp))
@@ -158,7 +160,7 @@ fun PortraitContent(content: String, theme: AppThemeState) {
             
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
                 Text(
-                    "Synthèse IA PHOEN-X v8.9.7",
+                    stringResource(R.string.portrait_essence_footer_ai_version),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor.copy(alpha = 0.3f)
                 )

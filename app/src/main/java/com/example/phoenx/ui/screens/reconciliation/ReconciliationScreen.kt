@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.R
 import com.example.phoenx.ui.components.InfoButton
@@ -90,15 +91,15 @@ fun ReconciliationScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Protocole de Réconciliation", style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.reconciliation_title), style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
                         InfoButton(
-                            title = "Protocole de Réconciliation",
+                            title = stringResource(R.string.reconciliation_info_title),
                             points = listOf(
-                                "Écris un message à quelqu'un à qui tu n'as jamais dit ce que tu aurais dû dire.",
-                                "Ce message sera délivré après ton départ, avec un délai que tu choisis.",
-                                "Le délai permet au deuil de s'apaiser avant que la personne lise ton message.",
-                                "La personne n'a pas besoin d'avoir un compte PHOEN-X pour recevoir ce message.",
-                                "Tu peux choisir un délai entre 30 jours et 1 an après ton départ."
+                                stringResource(R.string.reconciliation_info_p1),
+                                stringResource(R.string.reconciliation_info_p2),
+                                stringResource(R.string.reconciliation_info_p3),
+                                stringResource(R.string.reconciliation_info_p4),
+                                stringResource(R.string.reconciliation_info_p5)
                             )
                         )
                     }
@@ -121,7 +122,7 @@ fun ReconciliationScreen(
                     .padding(24.dp)
             ) {
                 Text(
-                    "Y a-t-il quelqu'un à qui tu n'as jamais dit ce que tu aurais dû dire ?",
+                    stringResource(R.string.reconciliation_main_question),
                     style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                     color = theme.contentColor,
                     lineHeight = 34.sp
@@ -132,7 +133,7 @@ fun ReconciliationScreen(
                 OutlinedTextField(
                     value = recipientName,
                     onValueChange = { recipientName = it },
-                    label = { Text("Prénom du destinataire") },
+                    label = { Text(stringResource(R.string.reconciliation_label_recipient)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = accent,
@@ -147,7 +148,7 @@ fun ReconciliationScreen(
                 OutlinedTextField(
                     value = intent,
                     onValueChange = { intent = it },
-                    label = { Text("Ton intention (ex: demander pardon, dire merci...)") },
+                    label = { Text(stringResource(R.string.reconciliation_label_intent)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = accent,
@@ -167,7 +168,7 @@ fun ReconciliationScreen(
                         } else {
                             Icon(Icons.Default.AutoAwesome, null, modifier = Modifier.size(16.dp), tint = accent)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Demander l'aide de l'IA pour formuler", color = accent, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.reconciliation_button_ai_help), color = accent, fontWeight = FontWeight.Bold)
                         }
                     }
                 } else {
@@ -181,7 +182,7 @@ fun ReconciliationScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("SUGGESTIONS DE L'IA", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+                                Text(stringResource(R.string.reconciliation_ai_suggestions_title), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                             }
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(uiState.aiHelp!!, style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
@@ -204,7 +205,7 @@ fun ReconciliationScreen(
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("✍️ Texte", color = if (contentType == "TEXT") theme.backgroundColor else theme.contentColor.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.reconciliation_mode_text), color = if (contentType == "TEXT") theme.backgroundColor else theme.contentColor.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
                     }
                     Button(
                         onClick = {
@@ -220,7 +221,7 @@ fun ReconciliationScreen(
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("🎙️ Audio", color = if (contentType == "AUDIO") theme.backgroundColor else theme.contentColor.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.reconciliation_mode_audio), color = if (contentType == "AUDIO") theme.backgroundColor else theme.contentColor.copy(alpha = 0.6f), fontWeight = FontWeight.Bold)
                     }
                 }
 
@@ -243,7 +244,7 @@ fun ReconciliationScreen(
                         decorationBox = { innerTextField ->
                             if (text.isEmpty()) {
                                 Text(
-                                    "Écris ton message ici...",
+                                    stringResource(R.string.reconciliation_placeholder_message),
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         fontFamily = theme.fontFamily,
                                         color = theme.contentColor.copy(alpha = 0.3f)
@@ -270,7 +271,7 @@ fun ReconciliationScreen(
                                     Icon(Icons.Default.Mic, null, tint = accent, modifier = Modifier.size(32.dp))
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text("Appuie pour enregistrer", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                                Text(stringResource(R.string.reconciliation_audio_tap_to_record), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                             }
                         }
                     }
@@ -287,7 +288,7 @@ fun ReconciliationScreen(
                         Icon(Icons.Default.LockClock, null, tint = Warning, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            "RÈGLE D'OR : Ce message sera verrouillé pendant 30 jours après l'activation de ton héritage. Pour laisser le temps au deuil de s'apaiser.",
+                            stringResource(R.string.reconciliation_golden_rule),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = Warning,
                             lineHeight = 16.sp
@@ -314,7 +315,7 @@ fun ReconciliationScreen(
                     if (uiState.isSaving) {
                         CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
                     } else {
-                        Text("Confier au secret", color = theme.backgroundColor, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
+                        Text(stringResource(R.string.reconciliation_button_seal), color = theme.backgroundColor, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
                     }
                 }
             }
@@ -344,7 +345,7 @@ fun ReconciliationScreen(
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            "Message scellé pour 30 jours.",
+                            stringResource(R.string.reconciliation_success_sealed),
                             style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                             color = accent,
                             textAlign = TextAlign.Center

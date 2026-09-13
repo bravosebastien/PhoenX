@@ -10,11 +10,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,7 +43,7 @@ fun RecoveryScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Récupération de compte", style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.recovery_screen_title), style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -59,14 +61,14 @@ fun RecoveryScreen(
                 Icon(Icons.Default.VpnKey, null, tint = accent, modifier = Modifier.size(64.dp))
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    "Retrouvez votre héritage",
+                    stringResource(R.string.recovery_main_title),
                     style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                     color = theme.contentColor,
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    "Saisissez votre phrase de 12 mots pour déchiffrer vos souvenirs et définir un nouveau mot de passe.",
+                    stringResource(R.string.recovery_main_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = theme.contentColor.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
@@ -77,7 +79,7 @@ fun RecoveryScreen(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Ton adresse email") },
+                    label = { Text(stringResource(R.string.recovery_label_email)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = accent,
@@ -92,7 +94,7 @@ fun RecoveryScreen(
                 OutlinedTextField(
                     value = phrase,
                     onValueChange = { phrase = it },
-                    label = { Text("Phrase de récupération (12 mots)") },
+                    label = { Text(stringResource(R.string.recovery_label_phrase)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -108,7 +110,7 @@ fun RecoveryScreen(
                 OutlinedTextField(
                     value = newPassword,
                     onValueChange = { newPassword = it },
-                    label = { Text("Nouveau mot de passe") },
+                    label = { Text(stringResource(R.string.recovery_label_new_password)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = accent,
@@ -138,7 +140,7 @@ fun RecoveryScreen(
                     if (uiState is RecoveryUiState.Loading) {
                         CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
                     } else {
-                        Text("Restaurer mon accès", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.recovery_button_restore), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                     }
                 }
             }

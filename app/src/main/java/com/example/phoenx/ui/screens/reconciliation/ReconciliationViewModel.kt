@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
+import com.example.phoenx.R
 import com.example.phoenx.data.ai.AIManager
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
@@ -69,7 +70,7 @@ class ReconciliationViewModel @Inject constructor(
                     emotionalCategory = "Amour",
                     visibility = "specific",
                     createdAt = System.currentTimeMillis(),
-                    aiSummary = "Message de réconciliation pour $recipientName"
+                    aiSummary = context.getString(R.string.reconciliation_vm_summary, recipientName)
                 )
                 offlineEntryDao.insertEntry(entry)
 

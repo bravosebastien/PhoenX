@@ -1,12 +1,15 @@
 package com.example.phoenx.ui.screens.portrait
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.ai.AIManager
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.sync.toFirestoreMap
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -16,7 +19,8 @@ import javax.inject.Inject
 class EssencePortraitViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val aiManager: AIManager,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<PortraitUiState>(PortraitUiState.Idle)
@@ -40,7 +44,7 @@ class EssencePortraitViewModel @Inject constructor(
                 val portraitText = aiManager.generateEssencePortrait(summaries, authorProfileMap)
                 _uiState.value = PortraitUiState.Success(portraitText)
             } catch (e: Exception) {
-                _uiState.value = PortraitUiState.Error(e.message ?: "Erreur de génération")
+                _uiState.value = PortraitUiState.Error(e.message ?: context.getString(R.string.portrait_essence_vm_error_gen))
             }
         }
     }

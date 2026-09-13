@@ -1592,4 +1592,50 @@
         <item>Bande dessinée</item>
         <item>Autre</item>
     </string-array>
+
+    <!-- Reconciliation Batch -->
+    <string name="reconciliation_title">Protocole de Réconciliation</string>
+    <string name="reconciliation_info_title">Protocole de Réconciliation</string>
+    <string name="reconciliation_info_p1">Écris un message à quelqu\'un à qui tu n\'as jamais dit ce que tu aurais dû dire.</string>
+    <string name="reconciliation_info_p2">Ce message sera délivré après ton départ, avec un délai que tu choisis.</string>
+    <string name="reconciliation_info_p3">Le délai permet au deuil de s\'apaiser avant que la personne lise ton message.</string>
+    <string name="reconciliation_info_p4">La personne n\'a pas besoin d\'avoir un compte PHOEN-X pour recevoir ce message.</string>
+    <string name="reconciliation_info_p5">Tu peux choisir un délai entre 30 jours et 1 an après ton départ.</string>
+    <string name="reconciliation_main_question">Y a-t-il quelqu\'un à qui tu n\'as jamais dit ce que tu aurais dû dire ?</string>
+    <string name="reconciliation_label_recipient">Prénom du destinataire</string>
+    <string name="reconciliation_label_intent">Ton intention (ex: demander pardon, dire merci...)</string>
+    <string name="reconciliation_button_ai_help">Demander l\'aide de l\'IA pour formuler</string>
+    <string name="reconciliation_ai_suggestions_title">SUGGESTIONS DE L\'IA</string>
+    <string name="reconciliation_mode_text">✍️ Texte</string>
+    <string name="reconciliation_mode_audio">🎙️ Audio</string>
+    <string name="reconciliation_placeholder_message">Écris ton message ici...</string>
+    <string name="reconciliation_audio_tap_to_record">Appuie pour enregistrer</string>
+    <string name="reconciliation_golden_rule">RÈGLE D\'OR : Ce message sera verrouillé pendant 30 jours après l\'activation de ton héritage. Pour laisser le temps au deuil de s\'apaiser.</string>
+    <string name="reconciliation_button_seal">Confier au secret</string>
+    <string name="reconciliation_success_sealed">Message scellé pour 30 jours.</string>
+    <string name="reconciliation_vm_summary">Message de réconciliation pour %1$s</string>
+
+    <!-- Recovery Batch -->
+    <string name="recovery_screen_title">Récupération de compte</string>
+    <string name="recovery_main_title">Retrouvez votre héritage</string>
+    <string name="recovery_main_desc">Saisissez votre phrase de 12 mots pour déchiffrer vos souvenirs et définir un nouveau mot de passe.</string>
+    <string name="recovery_label_email">Ton adresse email</string>
+    <string name="recovery_label_phrase">Phrase de récupération (12 mots)</string>
+    <string name="recovery_label_new_password">Nouveau mot de passe</string>
+    <string name="recovery_button_restore">Restaurer mon accès</string>
+    <string name="recovery_error_email_required">L\'adresse email est requise.</string>
+    <string name="recovery_error_12_words">La phrase doit contenir exactement 12 mots.</string>
+    <string name="recovery_error_generic">Erreur de récupération</string>
+
+    <!-- Portrait Batch -->
+    <string name="portrait_essence_title">Portrait d\'Essence</string>
+    <string name="portrait_essence_loading">L\'IA dessine ton essence à travers tes mots...</string>
+    <string name="portrait_essence_empty">Pas assez de pensées pour dessiner ton portrait.\nContinue de capturer tes souvenirs.</string>
+    <string name="portrait_essence_error_prefix">Erreur : %1$s</string>
+    <string name="portrait_essence_intro_title">Ton héritage prend forme</string>
+    <string name="portrait_essence_intro_desc">L\'IA de PHOEN-X analyse la trajectoire de tes pensées pour rédiger une synthèse de qui tu sembles être.</string>
+    <string name="portrait_essence_button_generate">Générer mon Portrait</string>
+    <string name="portrait_essence_card_title">VOTRE ESSENCE</string>
+    <string name="portrait_essence_footer_ai_version">Synthèse IA PHOEN-X v8.9.7</string>
+    <string name="portrait_essence_vm_error_gen">Erreur de génération</string>
 </resources>
