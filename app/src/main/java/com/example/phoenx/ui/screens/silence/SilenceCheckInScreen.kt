@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 
@@ -66,19 +68,19 @@ fun SilenceCheckInScreen(
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = "Tu es toujours là.",
+                    text = stringResource(R.string.silence_checkin_title),
                     style = MaterialTheme.typography.displaySmall.copy(fontFamily = FontFamily.Serif),
                     color = Color(0xFFF2EDE8),
                     textAlign = TextAlign.Center
                 )
                 InfoButton(
-                    title = "La Preuve de Vie",
+                    title = stringResource(R.string.silence_checkin_info_title),
                     points = listOf(
-                        "Un simple tap sur 'Je suis là' confirme ta présence.",
-                        "Si tu traverses quelque chose de difficile, tu peux le signaler sans expliquer.",
-                        "Même 'passer pour l'instant' compte — tu restes présent(e).",
-                        "Si tu ne réponds pas plusieurs fois, ta personne de confiance sera prévenue.",
-                        "Tu choisis la fréquence de ces vérifications dans tes réglages."
+                        stringResource(R.string.silence_checkin_info_p1),
+                        stringResource(R.string.silence_checkin_info_p2),
+                        stringResource(R.string.silence_checkin_info_p3),
+                        stringResource(R.string.silence_checkin_info_p4),
+                        stringResource(R.string.silence_checkin_info_p5)
                     )
                 )
             }
@@ -88,12 +90,12 @@ fun SilenceCheckInScreen(
             Button(
                 onClick = {
                     onImHere()
-                    Toast.makeText(context, "Noté. À bientôt.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.silence_checkin_toast_noted), Toast.LENGTH_SHORT).show()
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC97B3A))
             ) {
-                Text("Je suis là", color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.silence_button_im_here), color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -104,7 +106,7 @@ fun SilenceCheckInScreen(
                 border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFC97B3A)),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFC97B3A))
             ) {
-                Text("Je traverse quelque chose")
+                Text(stringResource(R.string.silence_button_traversing))
             }
         }
 
@@ -122,13 +124,13 @@ fun SilenceCheckInScreen(
                         .padding(bottom = 32.dp)
                 ) {
                     Text(
-                        text = "On est là.",
+                        text = stringResource(R.string.silence_traversing_title),
                         style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
                         color = Color(0xFFF2EDE8)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Tu n'as rien à expliquer. On te relance chaque semaine pour s'assurer que tu vas bien. Au bout de 3 semaines sans réponse, ta personne de confiance sera prévenue pour prendre de tes nouvelles.",
+                        text = stringResource(R.string.silence_traversing_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFF9B9590),
                         lineHeight = 22.sp
@@ -138,7 +140,7 @@ fun SilenceCheckInScreen(
 
                     TraversingOptionCard(
                         icon = "🎙️",
-                        title = "Enregistrer une pensée maintenant",
+                        title = stringResource(R.string.silence_traversing_option_record),
                         onClick = {
                             onTraversingSomething("record")
                             showBottomSheet = false
@@ -149,7 +151,7 @@ fun SilenceCheckInScreen(
 
                     TraversingOptionCard(
                         icon = "💭",
-                        title = "Juste passer pour l'instant",
+                        title = stringResource(R.string.silence_traversing_option_pass),
                         onClick = {
                             onTraversingSomething("pass")
                             showBottomSheet = false
@@ -162,7 +164,7 @@ fun SilenceCheckInScreen(
                         onClick = { showBottomSheet = false },
                         modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
-                        Text("Fermer", color = Color(0xFF9B9590))
+                        Text(stringResource(R.string.silence_button_close), color = Color(0xFF9B9590))
                     }
                 }
             }

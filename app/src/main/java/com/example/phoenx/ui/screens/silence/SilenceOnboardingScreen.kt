@@ -15,6 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 
 @Composable
@@ -54,7 +56,7 @@ fun SilenceOnboardingScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Une présence, même dans le silence",
+            text = stringResource(R.string.silence_onboarding_title),
             style = MaterialTheme.typography.headlineMedium.copy(
                 fontFamily = FontFamily.Serif,
                 color = Color(0xFFF2EDE8)
@@ -65,7 +67,7 @@ fun SilenceOnboardingScreen(
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            text = "De temps en temps, PHOEN-X te demandera juste de confirmer que tu es là. Un simple tap suffit. Si tu ne réponds pas pendant un moment, ta personne de confiance sera doucement prévenue pour prendre de tes nouvelles.",
+            text = stringResource(R.string.silence_onboarding_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF9B9590),
             lineHeight = 26.sp,
@@ -75,7 +77,7 @@ fun SilenceOnboardingScreen(
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = "À quelle fréquence veux-tu qu'on te contacte ?",
+            text = stringResource(R.string.silence_onboarding_question),
             style = MaterialTheme.typography.bodyLarge,
             color = Color(0xFFF2EDE8),
             fontWeight = FontWeight.Bold
@@ -83,14 +85,14 @@ fun SilenceOnboardingScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        RythmRadioOption(14, "Toutes les 2 semaines", selectedRythm == 14) { selectedRythm = 14 }
-        RythmRadioOption(30, "Une fois par mois", selectedRythm == 30) { selectedRythm = 30 }
-        RythmRadioOption(60, "Tous les 2 mois", selectedRythm == 60) { selectedRythm = 60 }
+        RythmRadioOption(14, stringResource(R.string.silence_onboarding_option_2_weeks), selectedRythm == 14) { selectedRythm = 14 }
+        RythmRadioOption(30, stringResource(R.string.silence_onboarding_option_1_month), selectedRythm == 30) { selectedRythm = 30 }
+        RythmRadioOption(60, stringResource(R.string.silence_onboarding_option_2_months), selectedRythm == 60) { selectedRythm = 60 }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Si tu ne confirmes pas ta présence, on te relancera chaque semaine. Au bout de 3 semaines sans réponse, ta personne de confiance sera prévenue pour s'assurer que tu vas bien.",
+            text = stringResource(R.string.silence_onboarding_footer),
             style = MaterialTheme.typography.labelSmall,
             color = Color(0xFF5C5855),
             textAlign = TextAlign.Center
@@ -105,7 +107,7 @@ fun SilenceOnboardingScreen(
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC97B3A))
         ) {
-            Text("Je choisis ce rythme", color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.silence_onboarding_button_confirm), color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold)
         }
         
         Spacer(modifier = Modifier.height(24.dp))

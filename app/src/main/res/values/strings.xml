@@ -1773,4 +1773,31 @@
     <string name="witness_vm_error_update_status">Erreur lors de la mise à jour du statut.</string>
     <string name="witness_vm_error_public_key">Clé publique du Créateur manquante</string>
     <string name="witness_vm_error_submit">Échec de l\'envoi du témoignage. Réessaie plus tard.</string>
+
+    <!-- Silence Batch -->
+    <string name="silence_block_days_count">Ça fait %1$d jours qu\'on ne t\'a pas eu.</string>
+    <string name="silence_block_subtitle">Dis-nous juste que tu es là.</string>
+    <string name="silence_button_im_here">Je suis là</string>
+    <string name="silence_checkin_title">Tu es toujours là.</string>
+    <string name="silence_checkin_info_title">La Preuve de Vie</string>
+    <string name="silence_checkin_info_p1">Un simple tap sur \'Je suis là\' confirme ta présence.</string>
+    <string name="silence_checkin_info_p2">Si tu traverses quelque chose de difficile, tu peux le signaler sans expliquer.</string>
+    <string name="silence_checkin_info_p3">Même \'passer pour l\'instant\' compte — tu restes présent(e).</string>
+    <string name="silence_checkin_info_p4">Si tu ne réponds pas plusieurs fois, ta personne de confiance sera prévenue.</string>
+    <string name="silence_checkin_info_p5">Tu choisis la fréquence de ces vérifications dans tes réglages.</string>
+    <string name="silence_checkin_toast_noted">Noté. À bientôt.</string>
+    <string name="silence_button_traversing">Je traverse quelque chose</string>
+    <string name="silence_traversing_title">On est là.</string>
+    <string name="silence_traversing_desc">Tu n\'as rien à expliquer. On te relance chaque semaine pour s\'assurer que tu vas bien. Au bout de 3 semaines sans réponse, ta personne de confiance sera prévenue pour prendre de tes nouvelles.</string>
+    <string name="silence_traversing_option_record">Enregistrer une pensée maintenant</string>
+    <string name="silence_traversing_option_pass">Juste passer pour l\'instant</string>
+    <string name="silence_button_close">Fermer</string>
+    <string name="silence_onboarding_title">Une présence, même dans le silence</string>
+    <string name="silence_onboarding_desc">De temps en temps, PHOEN-X te demandera juste de confirmer que tu es là. Un simple tap suffit. Si tu ne réponds pas pendant un moment, ta personne de confiance sera doucement prévenue pour prendre de tes nouvelles.</string>
+    <string name="silence_onboarding_question">À quelle fréquence veux-tu qu\'on te contacte ?</string>
+    <string name="silence_onboarding_option_2_weeks">Toutes les 2 semaines</string>
+    <string name="silence_onboarding_option_1_month">Une fois par mois</string>
+    <string name="silence_onboarding_option_2_months">Tous les 2 mois</string>
+    <string name="silence_onboarding_footer">Si tu ne confirmes pas ta présence, on te relancera chaque semaine. Au bout de 3 semaines sans réponse, ta personne de confiance sera prévenue pour s\'assurer que tu vas bien.</string>
+    <string name="silence_onboarding_button_confirm">Je choisis ce rythme</string>
 </resources>

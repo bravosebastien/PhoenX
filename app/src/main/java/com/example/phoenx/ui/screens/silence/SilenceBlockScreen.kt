@@ -13,6 +13,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 
 @Composable
@@ -32,7 +34,7 @@ fun SilenceBlockScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Ça fait $daysSinceLastCheckIn jours qu'on ne t'a pas eu.",
+            text = stringResource(R.string.silence_block_days_count, daysSinceLastCheckIn),
             style = MaterialTheme.typography.headlineSmall.copy(fontFamily = FontFamily.Serif),
             color = Color(0xFFF2EDE8),
             textAlign = TextAlign.Center
@@ -41,7 +43,7 @@ fun SilenceBlockScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Dis-nous juste que tu es là.",
+            text = stringResource(R.string.silence_block_subtitle),
             style = MaterialTheme.typography.bodyLarge,
             color = Color(0xFF9B9590),
             textAlign = TextAlign.Center
@@ -54,7 +56,7 @@ fun SilenceBlockScreen(
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC97B3A))
         ) {
-            Text("Je suis là", color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.silence_button_im_here), color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold)
         }
     }
 }
