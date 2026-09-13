@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.ui.res.stringResource
 import com.example.phoenx.R
 import com.example.phoenx.ui.theme.LocalAppTheme
 import androidx.compose.ui.text.font.FontWeight
@@ -224,7 +225,7 @@ fun SplashScreen(
 
             Image(
                 painter            = painterResource(id = R.drawable.ic_launcher_foreground),
-                contentDescription = "Logo Phoen-X",
+                contentDescription = stringResource(R.string.splash_logo_description),
                 modifier           = Modifier
                     .size(128.dp)
                     .graphicsLayer {
@@ -263,7 +264,7 @@ fun SplashScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text      = "Ce n'est pas une archive. C'est une présence.",
+                text      = stringResource(R.string.splash_phrase),
                 style     = TextStyle(
                     fontFamily = theme.fontFamily,
                     fontSize   = 13.sp,

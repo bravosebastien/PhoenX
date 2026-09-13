@@ -20,7 +20,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.theme.*
 
@@ -40,12 +43,8 @@ fun CercleConfianceScreen(
 
     OnboardingPopup(
         pageKey = "trust_circle",
-        title = "Cercle de Confiance",
-        contentPoints = listOf(
-            "Ceux qui t'entourent et qui porteront ton héritage. Gère ici tes liens de confiance.",
-            "Personne dans ton cercle n'a accès à tes contenus aujourd'hui.",
-            "Ton héritage reste scellé jusqu'à l'activation du protocole par tes dépositaires."
-        ),
+        title = stringResource(R.string.trust_circle_onboarding_title),
+        contentPoints = stringArrayResource(R.array.trust_circle_onboarding_points).toList(),
         preferenceManager = themeViewModel.preferenceManager
     )
 
@@ -55,7 +54,7 @@ fun CercleConfianceScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Cercle de Confiance", 
+                        stringResource(R.string.trust_circle_title), 
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontFamily = theme.fontFamily, 
                             fontStyle = FontStyle.Italic,
@@ -81,7 +80,7 @@ fun CercleConfianceScreen(
                 .padding(24.dp)
         ) {
             Text(
-                "Ceux qui t'entourent et qui porteront ton héritage. Gère ici tes liens de confiance.",
+                stringResource(R.string.trust_circle_description),
                 style = MaterialTheme.typography.bodyMedium,
                 color = theme.contentColor.copy(alpha = 0.7f),
                 lineHeight = 22.sp
@@ -91,8 +90,8 @@ fun CercleConfianceScreen(
 
             // 1. DÉPOSITAIRES
             TrustHubItem(
-                title = "Mes Dépositaires",
-                subtitle = "Le protocole de transmission",
+                title = stringResource(R.string.trust_circle_item_depositaries_title),
+                subtitle = stringResource(R.string.trust_circle_item_depositaries_subtitle),
                 icon = Icons.Default.Lock,
                 accent = accent,
                 onClick = onNavigateToProtocol
@@ -102,8 +101,8 @@ fun CercleConfianceScreen(
 
             // 2. TÉMOINS
             TrustHubItem(
-                title = "Mes Témoins",
-                subtitle = "Leurs regards sur ton histoire",
+                title = stringResource(R.string.trust_circle_item_witnesses_title),
+                subtitle = stringResource(R.string.trust_circle_item_witnesses_subtitle),
                 icon = Icons.Default.People,
                 accent = accent,
                 onClick = onNavigateToWitnesses
@@ -113,8 +112,8 @@ fun CercleConfianceScreen(
 
             // 3. DESTINATAIRES
             TrustHubItem(
-                title = "Mes Destinataires",
-                subtitle = "Ceux qui recevront tes souvenirs",
+                title = stringResource(R.string.trust_circle_item_recipients_title),
+                subtitle = stringResource(R.string.trust_circle_item_recipients_subtitle),
                 icon = Icons.Default.Person,
                 accent = accent,
                 onClick = onNavigateToRecipients
@@ -124,8 +123,8 @@ fun CercleConfianceScreen(
 
             // 4. NOTIFICATIONS
             TrustHubItem(
-                title = "Contacts à prévenir",
-                subtitle = "Informer de ton départ",
+                title = stringResource(R.string.trust_circle_item_notifications_title),
+                subtitle = stringResource(R.string.trust_circle_item_notifications_subtitle),
                 icon = Icons.Default.NotificationsNone,
                 accent = accent,
                 onClick = onNavigateToNotifications
@@ -135,8 +134,8 @@ fun CercleConfianceScreen(
 
             // 5. PERSONNAGES (v9.0)
             TrustHubItem(
-                title = "Mes Personnages",
-                subtitle = "Ceux qui peuplent tes souvenirs",
+                title = stringResource(R.string.trust_circle_item_characters_title),
+                subtitle = stringResource(R.string.trust_circle_item_characters_subtitle),
                 icon = Icons.Default.People,
                 accent = accent,
                 onClick = onNavigateToCharacters
@@ -152,13 +151,13 @@ fun CercleConfianceScreen(
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        "Confidentialité",
+                        stringResource(R.string.trust_circle_privacy_title),
                         style = MaterialTheme.typography.labelSmall,
                         color = accent
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Personne dans ton cercle n'a accès à tes contenus aujourd'hui. Ton héritage reste scellé jusqu'à l'activation du protocole par tes dépositaires.",
+                        stringResource(R.string.trust_circle_privacy_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = theme.contentColor.copy(alpha = 0.7f),
                         lineHeight = 18.sp

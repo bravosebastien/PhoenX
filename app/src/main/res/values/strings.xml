@@ -1047,6 +1047,47 @@
         <item>Restreindre les destinataires d\'un extrait ne concerne QUE cet extrait précis. Cela n\'a aucun effet sur le souvenir auquel il est rattaché dans L\'Étincelle &amp; son Récit — les deux visibilités sont indépendantes.</item>
     </string-array>
 
+    <!-- Splash Screen -->
+    <string name="splash_logo_description">Logo Phoen-X</string>
+    <string name="splash_phrase">Ce n\'est pas une archive. C\'est une présence.</string>
+
+    <!-- Trust Circle Hub -->
+    <string name="trust_circle_title">Cercle de Confiance</string>
+    <string name="trust_circle_description">Ceux qui t\'entourent et qui porteront ton héritage. Gère ici tes liens de confiance.</string>
+    <string name="trust_circle_onboarding_title">Cercle de Confiance</string>
+    <string-array name="trust_circle_onboarding_points">
+        <item>Ceux qui t\'entourent et qui porteront ton héritage. Gère ici tes liens de confiance.</item>
+        <item>Personne dans ton cercle n\'a accès à tes contenus aujourd\'hui.</item>
+        <item>Ton héritage reste scellé jusqu\'à l\'activation du protocole par tes dépositaires.</item>
+    </string-array>
+    <string name="trust_circle_item_depositaries_title">Mes Dépositaires</string>
+    <string name="trust_circle_item_depositaries_subtitle">Le protocole de transmission</string>
+    <string name="trust_circle_item_witnesses_title">Mes Témoins</string>
+    <string name="trust_circle_item_witnesses_subtitle">Leurs regards sur ton histoire</string>
+    <string name="trust_circle_item_recipients_title">Mes Destinataires</string>
+    <string name="trust_circle_item_recipients_subtitle">Ceux qui recevront tes souvenirs</string>
+    <string name="trust_circle_item_notifications_title">Contacts à prévenir</string>
+    <string name="trust_circle_item_notifications_subtitle">Informer de ton départ</string>
+    <string name="trust_circle_item_characters_title">Mes Personnages</string>
+    <string name="trust_circle_item_characters_subtitle">Ceux qui peuplent tes souvenirs</string>
+    <string name="trust_circle_privacy_title">Confidentialité</string>
+    <string name="trust_circle_privacy_desc">Personne dans ton cercle n\'a accès à tes contenus aujourd\'hui. Ton héritage reste scellé jusqu\'à l\'activation du protocole par tes dépositaires.</string>
+
+    <!-- Welcome Guide -->
+    <string name="guide_step1_title">Bienvenue dans PHOEN-X</string>
+    <string name="guide_step1_desc">Votre espace intime pour capturer et transmettre ce qui compte vraiment. Apprenons ensemble comment ça fonctionne.</string>
+    <string name="guide_step2_title">Capturer vos souvenirs</string>
+    <string name="guide_step2_desc">Texte, voix ou photo. Tout est chiffré immédiatement. L\'IA range tout seule vos souvenirs dans les bons tiroirs émotionnels.</string>
+    <string name="guide_step3_title">Le Fil de Pensée</string>
+    <string name="guide_step3_desc">C\'est votre signature. Chaque pensée est marquée par votre âge exact. Vos proches verront votre évolution à travers le temps.</string>
+    <string name="guide_step4_title">Transmettre à vos proches</string>
+    <string name="guide_step4_desc">Choisissez qui recevra vos messages. Vous pouvez même programmer des envois pour le futur (ex: les 18 ans d\'un enfant).</string>
+    <string name="guide_step5_title">Sécurité Totale</string>
+    <string name="guide_step5_desc">Tes souvenirs sont protégés par un chiffrement de pointe (E2EE). Ils ne pourront être ouverts que par toi et tes proches désignés.</string>
+    <string name="guide_never_show_again">Ne plus afficher ce guide</string>
+    <string name="guide_start_adventure">Commencer l\'aventure</string>
+    <string name="guide_swipe_to_continue">Faites glisser pour continuer →</string>
+
     <!-- Pact / Miroir à Deux Batch -->
     <string name="pact_screen_title">Le Miroir à Deux</string>
     <string name="pact_info_title">Le Pacte</string>

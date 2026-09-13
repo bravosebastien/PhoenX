@@ -18,6 +18,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 
 data class GuideStep(
@@ -35,28 +37,28 @@ fun WelcomeGuideScreen(
     val accent = theme.accentColor
     val steps = listOf(
         GuideStep(
-            "Bienvenue dans PHOEN-X",
-            "Votre espace intime pour capturer et transmettre ce qui compte vraiment. Apprenons ensemble comment ça fonctionne.",
+            stringResource(R.string.guide_step1_title),
+            stringResource(R.string.guide_step1_desc),
             Icons.Default.AutoAwesome
         ),
         GuideStep(
-            "Capturer vos souvenirs",
-            "Texte, voix ou photo. Tout est chiffré immédiatement. L'IA range tout seule vos souvenirs dans les bons tiroirs émotionnels.",
+            stringResource(R.string.guide_step2_title),
+            stringResource(R.string.guide_step2_desc),
             Icons.Default.AddCircleOutline
         ),
         GuideStep(
-            "Le Fil de Pensée",
-            "C'est votre signature. Chaque pensée est marquée par votre âge exact. Vos proches verront votre évolution à travers le temps.",
+            stringResource(R.string.guide_step3_title),
+            stringResource(R.string.guide_step3_desc),
             Icons.Default.Timeline
         ),
         GuideStep(
-            "Transmettre à vos proches",
-            "Choisissez qui recevra vos messages. Vous pouvez même programmer des envois pour le futur (ex: les 18 ans d'un enfant).",
+            stringResource(R.string.guide_step4_title),
+            stringResource(R.string.guide_step4_desc),
             Icons.AutoMirrored.Filled.Send
         ),
         GuideStep(
-            "Sécurité Totale",
-            "Tes souvenirs sont protégés par un chiffrement de pointe (E2EE). Ils ne pourront être ouverts que par toi et tes proches désignés.",
+            stringResource(R.string.guide_step5_title),
+            stringResource(R.string.guide_step5_desc),
             Icons.Default.Lock
         )
     )
@@ -100,7 +102,7 @@ fun WelcomeGuideScreen(
                         onCheckedChange = { neverShowAgain = it },
                         colors = CheckboxDefaults.colors(checkedColor = accent)
                     )
-                    Text("Ne plus afficher ce guide", color = theme.contentColor.copy(alpha = 0.7f), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.guide_never_show_again), color = theme.contentColor.copy(alpha = 0.7f), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                 }
                 
                 Button(
@@ -108,11 +110,11 @@ fun WelcomeGuideScreen(
                     modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                     colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Commencer l'aventure", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.guide_start_adventure), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             } else {
                 Text(
-                    "Faites glisser pour continuer →",
+                    stringResource(R.string.guide_swipe_to_continue),
                     color = theme.contentColor.copy(alpha = 0.4f),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold
