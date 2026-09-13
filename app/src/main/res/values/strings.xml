@@ -1800,4 +1800,103 @@
     <string name="silence_onboarding_option_2_months">Tous les 2 mois</string>
     <string name="silence_onboarding_footer">Si tu ne confirmes pas ta présence, on te relancera chaque semaine. Au bout de 3 semaines sans réponse, ta personne de confiance sera prévenue pour s\'assurer que tu vas bien.</string>
     <string name="silence_onboarding_button_confirm">Je choisis ce rythme</string>
+
+    <!-- Rankings Batch -->
+    <string name="rankings_title">Mes Classements</string>
+    <string name="rankings_info_title">Mes Classements</string>
+    <string name="rankings_info_point1">Créez vos tops personnels par thématique.</string>
+    <string name="rankings_info_point2">C\'est un espace de pur plaisir pour partager vos goûts et vos coups de cœur.</string>
+    <string name="rankings_info_point3">Choisissez une catégorie ou créez la vôtre, puis remplissez vos rangs préférés.</string>
+    <string name="rankings_empty_state">Aucun classement pour le moment.</string>
+    <string name="rankings_add_cover_readonly">Pas d\'image d\'ambiance</string>
+    <string name="rankings_add_cover_prompt">Ajouter une image d\'ambiance</string>
+    <string name="rankings_item_add_image">Insérez une image</string>
+    <string name="rankings_item_filled_count">%1$d / %2$d éléments remplis</string>
+    <string name="rankings_suggestions_header">IDÉES POUR COMMENCER</string>
+
+    <string name="rankings_dialog_create_title">Nouveau classement</string>
+    <string name="rankings_dialog_create_label_theme">Thématique</string>
+    <string name="rankings_dialog_create_placeholder_theme">Ex: Mes films cultes</string>
+    <string name="rankings_dialog_create_count_label">Nombre d\'éléments : %1$d</string>
+    <string name="rankings_dialog_create_button_confirm">Créer</string>
+    <string name="rankings_dialog_create_button_cancel">Annuler</string>
+
+    <string name="ranking_detail_menu_rename">Renommer</string>
+    <string name="ranking_detail_menu_delete">Supprimer ce classement</string>
+    <string name="ranking_detail_bottom_count">%1$d rangs remplis sur %2$d</string>
+    <string name="ranking_detail_no_image">Pas d\'image</string>
+    <string name="ranking_detail_add_image">Ajouter une image</string>
+    <string name="ranking_detail_dialog_rename_title">Renommer le classement</string>
+    <string name="ranking_detail_dialog_rename_label">Titre</string>
+    <string name="ranking_detail_dialog_rename_button_save">Enregistrer</string>
+    <string name="ranking_detail_dialog_rename_button_cancel">Annuler</string>
+    <string name="ranking_detail_dialog_delete_title">Supprimer ce classement ?</string>
+    <string name="ranking_detail_dialog_delete_text">Cette action est irréversible. Supprimer définitivement ce classement ?</string>
+    <string name="ranking_detail_dialog_delete_button_confirm">Supprimer</string>
+    <string name="ranking_detail_dialog_delete_button_cancel">Annuler</string>
+    <string name="ranking_detail_dialog_item_title">Rang #%1$d</string>
+    <string name="ranking_detail_dialog_item_placeholder">Entrez votre choix</string>
+    <string name="ranking_detail_dialog_item_button_clear">Vider</string>
+    <string name="ranking_detail_dialog_item_button_save">Enregistrer</string>
+    <string name="ranking_detail_dialog_item_button_cancel">Annuler</string>
+    <string name="ranking_detail_row_empty">Rang libre — appuyez pour remplir</string>
+
+    <!-- Suggestions Categories -->
+    <string name="rankings_cat_music">Musique</string>
+    <string name="rankings_cat_cinema">Cinéma et séries</string>
+    <string name="rankings_cat_literature">Littérature</string>
+    <string name="rankings_cat_art">Art visuel</string>
+    <string name="rankings_cat_travel">Lieux et voyages</string>
+    <string name="rankings_cat_personal">Vie personnelle</string>
+    <string name="rankings_cat_sport">Sport</string>
+
+    <string-array name="rankings_items_music">
+        <item>Musiciens préférés</item>
+        <item>Chanteuses préférées</item>
+        <item>Albums préférés</item>
+        <item>Chansons préférées</item>
+        <item>Plus belles paroles</item>
+        <item>Plus beaux solos de guitare</item>
+        <item>Concerts inoubliables</item>
+    </string-array>
+    <string-array name="rankings_items_cinema">
+        <item>Films préférés</item>
+        <item>Acteurs préférés</item>
+        <item>Actrices préférées</item>
+        <item>Réalisateurs préférés</item>
+        <item>Scènes cultes</item>
+        <item>Répliques cultes</item>
+        <item>Séries préférées</item>
+    </string-array>
+    <string-array name="rankings_items_literature">
+        <item>Livres préférés</item>
+        <item>Auteurs préférés</item>
+        <item>Citations préférées</item>
+        <item>Personnages de roman marquants</item>
+    </string-array>
+    <string-array name="rankings_items_art">
+        <item>Peintures préférées</item>
+        <item>Peintres préférés</item>
+        <item>Sculptures préférées</item>
+        <item>Photographies préférées</item>
+    </string-array>
+    <string-array name="rankings_items_travel">
+        <item>Plus beaux voyages</item>
+        <item>Plus beaux paysages</item>
+        <item>Villes préférées</item>
+        <item>Souvenirs de vacances</item>
+    </string-array>
+    <string-array name="rankings_items_personal">
+        <item>Souvenirs de vie</item>
+        <item>Personnes qui ont le plus compté</item>
+        <item>Plus grandes fiertés</item>
+        <item>Plats préférés</item>
+        <item>Recettes de famille</item>
+        <item>Moments en famille</item>
+    </string-array>
+    <string-array name="rankings_items_sport">
+        <item>Sportifs préférés</item>
+        <item>Matchs inoubliables</item>
+        <item>Moments sportifs préférés</item>
+    </string-array>
 </resources>

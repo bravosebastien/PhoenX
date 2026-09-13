@@ -27,8 +27,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.domain.model.CompartmentIds
 import com.example.phoenx.domain.model.Ranking
@@ -72,7 +75,7 @@ fun RankingListScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Mes Classements", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(stringResource(R.string.rankings_title), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -80,11 +83,11 @@ fun RankingListScreen(
                 },
                 actions = {
                     InfoButton(
-                        title = "Mes Classements",
+                        title = stringResource(R.string.rankings_info_title),
                         points = listOf(
-                            "Créez vos tops personnels par thématique.",
-                            "C'est un espace de pur plaisir pour partager vos goûts et vos coups de cœur.",
-                            "Choisissez une catégorie ou créez la vôtre, puis remplissez vos rangs préférés."
+                            stringResource(R.string.rankings_info_point1),
+                            stringResource(R.string.rankings_info_point2),
+                            stringResource(R.string.rankings_info_point3)
                         )
                     )
                 },
@@ -139,7 +142,7 @@ fun RankingListScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.Image, null, tint = theme.contentColor.copy(alpha = 0.2f), modifier = Modifier.size(48.dp))
                             Spacer(Modifier.height(8.dp))
-                            Text(if (isReadOnly) "Pas d'image d'ambiance" else "Ajouter une image d'ambiance", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.labelSmall)
+                            Text(if (isReadOnly) stringResource(R.string.rankings_add_cover_readonly) else stringResource(R.string.rankings_add_cover_prompt), color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.labelSmall)
                         }
                     }
                 }
@@ -160,7 +163,7 @@ fun RankingListScreen(
             if (rankings.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().padding(48.dp), contentAlignment = Alignment.Center) {
-                        Text("Aucun classement pour le moment.", color = theme.contentColor.copy(alpha = 0.4f))
+                        Text(stringResource(R.string.rankings_empty_state), color = theme.contentColor.copy(alpha = 0.4f))
                     }
                 }
             } else {
@@ -240,7 +243,7 @@ fun RankingItem(
                     )
                 } else {
                     Text(
-                        "Insérez une image",
+                        stringResource(R.string.rankings_item_add_image),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
                         textAlign = TextAlign.Center,
                         color = accent.copy(alpha = 0.6f),
@@ -261,7 +264,7 @@ fun RankingItem(
                 )
                 val filledCount = ranking.items.count { it.isNotBlank() }
                 Text(
-                    text = "$filledCount / ${ranking.itemCount} éléments remplis",
+                    text = stringResource(R.string.rankings_item_filled_count, filledCount, ranking.itemCount),
                     style = MaterialTheme.typography.labelSmall,
                     color = theme.contentColor.copy(alpha = 0.5f)
                 )
@@ -279,18 +282,18 @@ fun RankingSuggestionsSection(
     theme: com.example.phoenx.ui.theme.AppThemeState
 ) {
     val suggestions = mapOf(
-        "Musique" to listOf("Musiciens préférés", "Chanteuses préférées", "Albums préférés", "Chansons préférées", "Plus belles paroles", "Plus beaux solos de guitare", "Concerts inoubliables"),
-        "Cinéma et séries" to listOf("Films préférés", "Acteurs préférés", "Actrices préférées", "Réalisateurs préférés", "Scènes cultes", "Répliques cultes", "Séries préférées"),
-        "Littérature" to listOf("Livres préférés", "Auteurs préférés", "Citations préférées", "Personnages de roman marquants"),
-        "Art visuel" to listOf("Peintures préférées", "Peintres préférés", "Sculptures préférées", "Photographies préférées"),
-        "Lieux et voyages" to listOf("Plus beaux voyages", "Plus beaux paysages", "Villes préférées", "Souvenirs de vacances"),
-        "Vie personnelle" to listOf("Souvenirs de vie", "Personnes qui ont le plus compté", "Plus grandes fiertés", "Plats préférés", "Recettes de famille", "Moments en famille"),
-        "Sport" to listOf("Sportifs préférés", "Matchs inoubliables", "Moments sportifs préférés")
+        stringResource(R.string.rankings_cat_music) to stringArrayResource(R.array.rankings_items_music).toList(),
+        stringResource(R.string.rankings_cat_cinema) to stringArrayResource(R.array.rankings_items_cinema).toList(),
+        stringResource(R.string.rankings_cat_literature) to stringArrayResource(R.array.rankings_items_literature).toList(),
+        stringResource(R.string.rankings_cat_art) to stringArrayResource(R.array.rankings_items_art).toList(),
+        stringResource(R.string.rankings_cat_travel) to stringArrayResource(R.array.rankings_items_travel).toList(),
+        stringResource(R.string.rankings_cat_personal) to stringArrayResource(R.array.rankings_items_personal).toList(),
+        stringResource(R.string.rankings_cat_sport) to stringArrayResource(R.array.rankings_items_sport).toList()
     )
 
     Column(modifier = Modifier.padding(top = 24.dp)) {
         Text(
-            "IDÉES POUR COMMENCER",
+            stringResource(R.string.rankings_suggestions_header),
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
             color = theme.contentColor.copy(alpha = 0.4f),
             modifier = Modifier.padding(start = 24.dp, bottom = 16.dp)
@@ -368,20 +371,20 @@ fun CreateRankingDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = theme.backgroundColor,
-        title = { Text("Nouveau classement", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.rankings_dialog_create_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it.replace("|", "") },
-                    label = { Text("Thématique") },
-                    placeholder = { Text("Ex: Mes films cultes") },
+                    label = { Text(stringResource(R.string.rankings_dialog_create_label_theme)) },
+                    placeholder = { Text(stringResource(R.string.rankings_dialog_create_placeholder_theme)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
                 )
                 
                 Column {
-                    Text("Nombre d'éléments : $count", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
+                    Text(stringResource(R.string.rankings_dialog_create_count_label, count), style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
                     Slider(
                         value = count.toFloat(),
                         onValueChange = { count = it.toInt() },
@@ -398,12 +401,12 @@ fun CreateRankingDialog(
                 enabled = title.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Créer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.rankings_dialog_create_button_confirm), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+                Text(stringResource(R.string.rankings_dialog_create_button_cancel), color = theme.contentColor.copy(alpha = 0.6f))
             }
         }
     )

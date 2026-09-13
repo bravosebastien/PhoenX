@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.rankings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.local.RankingDao
 import com.example.phoenx.data.local.RankingEntity
 import com.example.phoenx.domain.model.Ranking
@@ -61,7 +62,7 @@ class RankingViewModel @Inject constructor(
                 val list = snapshot.documents.map { it.toRankingEntity().toDomain() }
                 _remoteRankings.value = list
             } catch (e: Exception) {
-                android.util.Log.e("RankingVM", "Erreur chargement remote: ${e.message}")
+                android.util.Log.e("RankingVM", "Error loading remote: ${e.message}")
             }
         }
     }
@@ -144,7 +145,7 @@ class RankingViewModel @Inject constructor(
                     val storageRef = com.google.firebase.storage.FirebaseStorage.getInstance().reference.child(existing.coverImageUrl)
                     storageRef.delete().await()
                 } catch (e: Exception) {
-                    android.util.Log.e("RankingVM", "Erreur suppression Storage: ${e.message}")
+                    android.util.Log.e("RankingVM", "Error deleting from Storage: ${e.message}")
                 }
             }
 
@@ -154,7 +155,7 @@ class RankingViewModel @Inject constructor(
                     .collection("rankings").document(id)
                     .delete().await()
             } catch (e: Exception) {
-                android.util.Log.e("RankingVM", "Erreur suppression Firestore: ${e.message}")
+                android.util.Log.e("RankingVM", "Error deleting from Firestore: ${e.message}")
             }
 
             // 3. Suppression Room

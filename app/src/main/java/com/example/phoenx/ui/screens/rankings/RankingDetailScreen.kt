@@ -26,8 +26,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.LocalAppTheme
@@ -119,7 +121,7 @@ fun RankingDetailScreen(
                                 containerColor = theme.backgroundColor
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Renommer", color = theme.contentColor) },
+                                    text = { Text(stringResource(R.string.ranking_detail_menu_rename), color = theme.contentColor) },
                                     leadingIcon = { Icon(Icons.Default.Edit, null, tint = accent) },
                                     onClick = {
                                         expanded = false
@@ -127,7 +129,7 @@ fun RankingDetailScreen(
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Supprimer ce classement", color = com.example.phoenx.ui.theme.Error) },
+                                    text = { Text(stringResource(R.string.ranking_detail_menu_delete), color = com.example.phoenx.ui.theme.Error) },
                                     leadingIcon = { Icon(Icons.Default.Delete, null, tint = com.example.phoenx.ui.theme.Error) },
                                     onClick = {
                                         expanded = false
@@ -150,7 +152,7 @@ fun RankingDetailScreen(
             ) {
                 val filledCount = currentRanking.items.count { it.isNotBlank() }
                 Text(
-                    text = "$filledCount rangs remplis sur ${currentRanking.itemCount}",
+                    text = stringResource(R.string.ranking_detail_bottom_count, filledCount, currentRanking.itemCount),
                     modifier = Modifier.padding(16.dp).fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium,
@@ -191,7 +193,7 @@ fun RankingDetailScreen(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.AddPhotoAlternate, null, tint = accent.copy(alpha = 0.4f), modifier = Modifier.size(48.dp))
                             Spacer(Modifier.height(8.dp))
-                            Text(if (isReadOnly) "Pas d'image" else "Ajouter une image", color = accent.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
+                            Text(if (isReadOnly) stringResource(R.string.ranking_detail_no_image) else stringResource(R.string.ranking_detail_add_image), color = accent.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
                         }
                     }
                     
@@ -226,12 +228,12 @@ fun RankingDetailScreen(
         var newTitle by remember { mutableStateOf(currentRanking.title) }
         AlertDialog(
             onDismissRequest = { showEditTitleDialog = false },
-            title = { Text("Renommer le classement", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.ranking_detail_dialog_rename_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
             text = {
                 OutlinedTextField(
                     value = newTitle,
                     onValueChange = { newTitle = it.replace("|", "") },
-                    label = { Text("Titre") },
+                    label = { Text(stringResource(R.string.ranking_detail_dialog_rename_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
                 )
@@ -244,10 +246,10 @@ fun RankingDetailScreen(
                     },
                     enabled = newTitle.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = accent)
-                ) { Text("Enregistrer", color = theme.backgroundColor) }
+                ) { Text(stringResource(R.string.ranking_detail_dialog_rename_button_save), color = theme.backgroundColor) }
             },
             dismissButton = {
-                TextButton(onClick = { showEditTitleDialog = false }) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f)) }
+                TextButton(onClick = { showEditTitleDialog = false }) { Text(stringResource(R.string.ranking_detail_dialog_rename_button_cancel), color = theme.contentColor.copy(alpha = 0.6f)) }
             },
             containerColor = theme.backgroundColor
         )
@@ -256,8 +258,8 @@ fun RankingDetailScreen(
     if (showDeleteConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
-            title = { Text("Supprimer ce classement ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = { Text("Cette action est irréversible. Supprimer définitivement ce classement ?", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.ranking_detail_dialog_delete_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.ranking_detail_dialog_delete_text), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -266,10 +268,10 @@ fun RankingDetailScreen(
                         navController.popBackStack()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)
-                ) { Text("Supprimer", color = Color.White) }
+                ) { Text(stringResource(R.string.ranking_detail_dialog_delete_button_confirm), color = Color.White) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirmDialog = false }) { Text("Annuler", color = theme.contentColor) }
+                TextButton(onClick = { showDeleteConfirmDialog = false }) { Text(stringResource(R.string.ranking_detail_dialog_delete_button_cancel), color = theme.contentColor) }
             },
             containerColor = theme.backgroundColor
         )
@@ -280,12 +282,12 @@ fun RankingDetailScreen(
         var text by remember { mutableStateOf(currentRanking.items[index]) }
         AlertDialog(
             onDismissRequest = { editingItemIndex = null },
-            title = { Text("Rang #${index + 1}", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.ranking_detail_dialog_item_title, index + 1), color = theme.contentColor, fontWeight = FontWeight.Bold) },
             text = {
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it.replace("|", "") },
-                    placeholder = { Text("Entrez votre choix") },
+                    placeholder = { Text(stringResource(R.string.ranking_detail_dialog_item_placeholder)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
                 )
@@ -298,7 +300,7 @@ fun RankingDetailScreen(
                                 viewModel.clearRankItem(rankingId, index)
                                 editingItemIndex = null
                             }
-                        ) { Text("Vider", color = com.example.phoenx.ui.theme.Error) }
+                        ) { Text(stringResource(R.string.ranking_detail_dialog_item_button_clear), color = com.example.phoenx.ui.theme.Error) }
                         Spacer(Modifier.width(8.dp))
                     }
                     Button(
@@ -308,11 +310,11 @@ fun RankingDetailScreen(
                         },
                         enabled = text.isNotBlank(),
                         colors = ButtonDefaults.buttonColors(containerColor = accent)
-                    ) { Text("Enregistrer", color = theme.backgroundColor) }
+                    ) { Text(stringResource(R.string.ranking_detail_dialog_item_button_save), color = theme.backgroundColor) }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { editingItemIndex = null }) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f)) }
+                TextButton(onClick = { editingItemIndex = null }) { Text(stringResource(R.string.ranking_detail_dialog_item_button_cancel), color = theme.contentColor.copy(alpha = 0.6f)) }
             },
             containerColor = theme.backgroundColor
         )
@@ -360,7 +362,7 @@ fun RankItemRow(
             )
         } else {
             Text(
-                text = "Rang libre — appuyez pour remplir",
+                text = stringResource(R.string.ranking_detail_row_empty),
                 style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic),
                 color = theme.contentColor.copy(alpha = 0.3f),
                 modifier = Modifier.weight(1f)
