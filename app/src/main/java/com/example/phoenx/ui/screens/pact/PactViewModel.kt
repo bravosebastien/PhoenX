@@ -2,6 +2,8 @@ package com.example.phoenx.ui.screens.pact
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.PactEntity
@@ -9,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -19,7 +22,8 @@ class PactViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val functions: FirebaseFunctions
+    private val functions: FirebaseFunctions,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PactUiState())
@@ -63,7 +67,7 @@ class PactViewModel @Inject constructor(
                     val pact = PactEntity(
                         id = doc.id,
                         partnerId = partnerId,
-                        partnerName = partnerName ?: "Partenaire",
+                        partnerName = partnerName ?: context.getString(R.string.pact_viewmodel_fallback_partner_name),
                         partnerEmail = partnerEmail ?: "",
                         status = doc.getString("status") ?: "pending",
                         myStatus = myStatus ?: "writing",
@@ -82,7 +86,7 @@ class PactViewModel @Inject constructor(
 
     fun invitePartner(name: String, email: String) {
         val userId = auth.currentUser?.uid ?: return
-        val userName = auth.currentUser?.displayName ?: "Un proche"
+        val userName = auth.currentUser?.displayName ?: context.getString(R.string.pact_viewmodel_fallback_user_name)
         
         viewModelScope.launch {
             try {
@@ -111,7 +115,7 @@ class PactViewModel @Inject constructor(
                     "email" to email.lowercase(),
                     "role" to "mirror_partner",
                     "sourceId" to mirrorId,
-                    "label" to "Partenaire de Miroir",
+                    "label" to context.getString(R.string.pact_viewmodel_invite_label),
                     "expiresHours" to 168
                 )
                 
@@ -134,7 +138,7 @@ class PactViewModel @Inject constructor(
                 
             } catch (e: Exception) {
                 android.util.Log.e("PactVM", "Error creating mirror", e)
-                _uiState.update { it.copy(isLoading = false, error = "Échec de l'invitation.") }
+                _uiState.update { it.copy(isLoading = false, error = context.getString(R.string.pact_viewmodel_error_invite)) }
             }
         }
     }

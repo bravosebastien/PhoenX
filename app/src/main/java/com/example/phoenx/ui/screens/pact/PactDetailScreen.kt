@@ -19,7 +19,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.theme.*
 
@@ -42,7 +44,7 @@ fun PactDetailScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text(pact?.partnerName?.let { "Miroir avec $it" } ?: "Détails du Miroir", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(pact?.partnerName?.let { stringResource(R.string.pact_detail_title_with_partner, it) } ?: stringResource(R.string.pact_detail_title_fallback), style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -67,17 +69,17 @@ fun PactDetailScreen(
                         border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                     ) {
                         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text("ÉTAT DU MIROIR", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                            Text(stringResource(R.string.pact_detail_status_header), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
                             
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                StatusIndicator(isDone = pact.myStatus == "completed", label = "Ta version", accent = accent, theme = theme)
+                                StatusIndicator(isDone = pact.myStatus == "completed", label = stringResource(R.string.pact_detail_label_my_version), accent = accent, theme = theme)
                                 Spacer(Modifier.width(16.dp))
-                                StatusIndicator(isDone = pact.partnerStatus == "completed", label = "Version de ${pact.partnerName}", accent = accent, theme = theme)
+                                StatusIndicator(isDone = pact.partnerStatus == "completed", label = stringResource(R.string.pact_detail_label_partner_version, pact.partnerName), accent = accent, theme = theme)
                             }
 
                             if (!isRevealed) {
                                 Text(
-                                    "Le reflet reste scellé tant que vous n'avez pas tous les deux terminé.",
+                                    stringResource(R.string.pact_detail_sealed_hint),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = accent.copy(alpha = 0.7f)
                                 )
@@ -85,7 +87,7 @@ fun PactDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(16.dp))
                                     Spacer(Modifier.width(8.dp))
-                                    Text("Le Miroir est révélé !", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+                                    Text(stringResource(R.string.pact_detail_revealed_hint), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                                 }
                             }
                         }
@@ -102,8 +104,8 @@ fun PactDetailScreen(
                             Icon(Icons.Default.AutoStories, null, tint = if (pact.myConsentToBook) accent else theme.contentColor.copy(alpha = 0.3f))
                             Spacer(Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text("Nourrir mon Livre de Vie", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                                Text("Requiert l'accord des deux voix.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                                Text(stringResource(R.string.pact_detail_book_consent_title), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                Text(stringResource(R.string.pact_detail_book_consent_desc), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                             }
                             Switch(
                                 checked = pact.myConsentToBook,
@@ -113,7 +115,7 @@ fun PactDetailScreen(
                         }
                     }
 
-                    Text("REFLETS PARTAGÉS", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, letterSpacing = 2.sp)
+                    Text(stringResource(R.string.pact_detail_reflections_header), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, letterSpacing = 2.sp)
                     Spacer(modifier = Modifier.height(16.dp))
 
                     if (entries.isEmpty()) {
@@ -132,7 +134,7 @@ fun PactDetailScreen(
                                         modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                                         colors = ButtonDefaults.buttonColors(containerColor = accent)
                                     ) {
-                                        Text("Ajouter une vérité", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                                        Text(stringResource(R.string.pact_detail_btn_add), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                                     }
                                 }
                                 
@@ -141,7 +143,7 @@ fun PactDetailScreen(
                                         onClick = { viewModel.completeVersion(pact.id) },
                                         modifier = Modifier.fillMaxWidth().padding(top = 8.dp)
                                     ) {
-                                        Text("J'ai terminé ma version", color = theme.contentColor.copy(alpha = 0.6f))
+                                        Text(stringResource(R.string.pact_detail_btn_complete), color = theme.contentColor.copy(alpha = 0.6f))
                                     }
                                 }
                             }
@@ -176,14 +178,14 @@ fun EmptyMirrorContent(accent: Color, theme: AppThemeState, onAction: () -> Unit
         border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Aucun reflet encore déposé.", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(R.string.pact_detail_empty_state), color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall)
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = onAction,
                 colors = ButtonDefaults.buttonColors(containerColor = accent),
                 modifier = Modifier.phoenXMatiere()
             ) {
-                Text("Déposer ton premier reflet", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.pact_detail_btn_add_first), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -201,9 +203,9 @@ fun PactEntryCard(entry: OfflineEntry, partnerName: String, theme: AppThemeState
             Icon(Icons.Default.HistoryEdu, null, tint = theme.accentColor)
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(entry.aiSummary.ifEmpty { "Événement sans titre" }, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                Text(entry.aiSummary.ifEmpty { stringResource(R.string.pact_detail_item_fallback_title) }, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val statusText = if (isRevealed) "Versions croisées révélées" else "Ta version scellée"
+                    val statusText = if (isRevealed) stringResource(R.string.pact_detail_item_status_revealed) else stringResource(R.string.pact_detail_item_status_sealed)
                     val statusIcon = if (isRevealed) Icons.Default.AutoAwesome else Icons.Default.CheckCircle
                     val color = if (isRevealed) theme.accentColor else Success
                     

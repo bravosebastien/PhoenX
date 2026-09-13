@@ -1047,6 +1047,44 @@
         <item>Restreindre les destinataires d\'un extrait ne concerne QUE cet extrait précis. Cela n\'a aucun effet sur le souvenir auquel il est rattaché dans L\'Étincelle &amp; son Récit — les deux visibilités sont indépendantes.</item>
     </string-array>
 
+    <!-- Pact / Miroir à Deux Batch -->
+    <string name="pact_screen_title">Le Miroir à Deux</string>
+    <string name="pact_info_title">Le Pacte</string>
+    <string name="pact_info_content">Le Pacte, c\'est un message à deux voix que vous composez avec une personne choisie — chacun écrit sa version de son côté, en toute confidentialité. Le contenu ne se révèle à personne, pas même à vous deux, tant que chacun n\'a pas cliqué sur \'J\'ai terminé ma version\'. Vous pouvez aussi choisir, chacun de votre côté, si ce Pacte doit nourrir votre Livre de Ma Vie ou rester un échange privé entre vous deux.</string>
+    <string name="pact_list_header">Tes reflets croisés</string>
+    <string name="pact_card_subtitle">Miroir avec %1$s</string>
+    <string name="pact_empty_state_title">Aucun Miroir à Deux en cours.</string>
+    <string name="pact_empty_state_desc">Invite un proche à raconter votre histoire commune.</string>
+    <string name="pact_invite_dialog_title">Lancer un Miroir à Deux</string>
+    <string name="pact_invite_dialog_desc">Deux points de vue pour une même histoire. Chacun écrit de son côté, et les versions seront révélées ensemble une fois que les deux seront prêtes.</string>
+    <string name="pact_invite_label_name">Nom du partenaire</string>
+    <string name="pact_invite_label_email">Email du partenaire</string>
+    <string name="pact_invite_btn_confirm">Inviter à se refléter</string>
+    <string name="pact_share_subject">Se refléter dans PHOEN-X</string>
+    <string name="pact_share_text">Je t\'invite à créer un Miroir à Deux avec moi sur PHOEN-X pour partager nos souvenirs communs : %1$s</string>
+    <string name="pact_share_chooser_title">Partager l\'invitation</string>
+    <string name="pact_viewmodel_fallback_partner_name">Partenaire</string>
+    <string name="pact_viewmodel_fallback_user_name">Un proche</string>
+    <string name="pact_viewmodel_invite_label">Partenaire de Miroir</string>
+    <string name="pact_viewmodel_error_invite">Échec de l\'invitation.</string>
+    <string name="pact_detail_title_with_partner">Miroir avec %1$s</string>
+    <string name="pact_detail_title_fallback">Détails du Miroir</string>
+    <string name="pact_detail_status_header">ÉTAT DU MIROIR</string>
+    <string name="pact_detail_label_my_version">Ta version</string>
+    <string name="pact_detail_label_partner_version">Version de %1$s</string>
+    <string name="pact_detail_sealed_hint">Le reflet reste scellé tant que vous n\'avez pas tous les deux terminé.</string>
+    <string name="pact_detail_revealed_hint">Le Miroir est révélé !</string>
+    <string name="pact_detail_book_consent_title">Nourrir mon Livre de Vie</string>
+    <string name="pact_detail_book_consent_desc">Requiert l\'accord des deux voix.</string>
+    <string name="pact_detail_reflections_header">REFLETS PARTAGÉS</string>
+    <string name="pact_detail_btn_add">Ajouter une vérité</string>
+    <string name="pact_detail_btn_complete">J\'ai terminé ma version</string>
+    <string name="pact_detail_empty_state">Aucun reflet encore déposé.</string>
+    <string name="pact_detail_btn_add_first">Déposer ton premier reflet</string>
+    <string name="pact_detail_item_fallback_title">Événement sans titre</string>
+    <string name="pact_detail_item_status_revealed">Versions croisées révélées</string>
+    <string name="pact_detail_item_status_sealed">Ta version scellée</string>
+
     <!-- Dialog Media Components -->
     <string name="dialog_media_label_spotify">un morceau Spotify</string>
     <string name="dialog_media_label_deezer">un morceau Deezer</string>
