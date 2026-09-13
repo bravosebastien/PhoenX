@@ -33,9 +33,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 
@@ -63,7 +66,7 @@ fun DetectiveCreateScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        if (uiState.isUltimateSecret) "Le Secret Ultime" else "Le Coffre-Fort", 
+                        if (uiState.isUltimateSecret) stringResource(R.string.detective_create_type_ultimate) else stringResource(R.string.detective_screen_title), 
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                         fontFamily = theme.fontFamily
                     ) 
@@ -99,7 +102,7 @@ fun DetectiveCreateScreen(
             ) {
                 TypeSelectorButton(
                     selected = !uiState.isUltimateSecret,
-                    label = "Énigme Classique",
+                    label = stringResource(R.string.detective_create_type_classic),
                     icon = Icons.Default.Extension,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.toggleUltimateSecret(false) },
@@ -107,7 +110,7 @@ fun DetectiveCreateScreen(
                 )
                 TypeSelectorButton(
                     selected = uiState.isUltimateSecret,
-                    label = "Secret Ultime",
+                    label = stringResource(R.string.detective_create_type_ultimate),
                     icon = Icons.Default.Key,
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.toggleUltimateSecret(true) },
@@ -123,7 +126,7 @@ fun DetectiveCreateScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (uiState.isUltimateSecret) "Le Trésor de ton Héritage" else "Un secret protégé par une question",
+                    text = if (uiState.isUltimateSecret) stringResource(R.string.detective_create_ultimate_title) else stringResource(R.string.detective_create_classic_title),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontFamily = theme.fontFamily,
                         fontWeight = FontWeight.Bold
@@ -131,29 +134,18 @@ fun DetectiveCreateScreen(
                     color = theme.contentColor
                 )
                 InfoButton(
-                    title = if (uiState.isUltimateSecret) "Le Secret Ultime" else "Le Coffre-Fort",
+                    title = if (uiState.isUltimateSecret) stringResource(R.string.detective_ultimate_secret) else stringResource(R.string.detective_screen_title),
                     points = if (uiState.isUltimateSecret) {
-                        listOf(
-                            "La pièce maîtresse de ton héritage : le secret le plus précieux et le plus intime.",
-                            "Protection inviolable : aucun déblocage automatique n'est possible avec le temps.",
-                            "Un moment solennel : sa lecture est présentée avec un habillage visuel unique pour tes proches.",
-                            "L'unique clé : seul celui qui connaît la réponse pourra un jour briser ce dernier sceau."
-                        )
+                        stringArrayResource(R.array.detective_create_ultimate_points).toList()
                     } else {
-                        listOf(
-                            "Protège un souvenir par une énigme personnelle : une question dont seul ton proche possède la clé.",
-                            "Sécurité absolue : la réponse est hachée sur ton appareil. Personne ne peut la déchiffrer.",
-                            "Un jeu de piste intime : une fois la bonne réponse saisie, le souvenir est révélé pour toujours.",
-                            "Un secret à l'épreuve du temps : contrairement à un simple message, ce contenu reste scellé tant que l'énigme n'est pas résolue.",
-                            "Tape sur 'Besoin d'inspiration ?' pour voir des exemples de questions."
-                        )
+                        stringArrayResource(R.array.detective_create_classic_points).toList()
                     }
                 )
             }
             Text(
                 text = if (uiState.isUltimateSecret) 
-                    "Une confidence unique, scellée au cœur de votre mémoire." 
-                    else "Seul celui qui connaît la réponse pourra accéder à ce que tu déposes ici.",
+                    stringResource(R.string.detective_create_ultimate_subtitle)
+                    else stringResource(R.string.detective_create_classic_subtitle),
                 style = MaterialTheme.typography.bodySmall,
                 color = theme.contentColor.copy(alpha = 0.6f),
                 modifier = Modifier.padding(top = 8.dp)
@@ -172,7 +164,7 @@ fun DetectiveCreateScreen(
                         Icon(Icons.Default.Verified, null, tint = accent, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "Traitement Solennel Activé",
+                            stringResource(R.string.detective_create_solemn_active),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = accent
                         )
@@ -183,12 +175,12 @@ fun DetectiveCreateScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             // ÉTAPE 1 — L'ÉNIGME
-            Text("LA QUESTION", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+            Text(stringResource(R.string.detective_create_label_question), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = uiState.enigmaText,
                 onValueChange = { viewModel.updateEnigma(it) },
-                placeholder = { Text("Ex : Quel était le nom de notre premier chien ?", color = theme.contentColor.copy(alpha = 0.3f)) },
+                placeholder = { Text(stringResource(R.string.detective_create_placeholder_question), color = theme.contentColor.copy(alpha = 0.3f)) },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = TextStyle(fontFamily = theme.fontFamily, fontSize = 17.sp, color = theme.contentColor),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -218,7 +210,7 @@ fun DetectiveCreateScreen(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Besoin d'inspiration ?",
+                        text = stringResource(R.string.detective_create_btn_inspiration),
                         color = accent,
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)
                     )
@@ -238,7 +230,7 @@ fun DetectiveCreateScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // ÉTAPE 2 — LA RÉPONSE
-            Text("LA RÉPONSE (invisible après saisie)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+            Text(stringResource(R.string.detective_create_label_answer), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = uiState.secretAnswer,
@@ -254,7 +246,7 @@ fun DetectiveCreateScreen(
                 )
             )
             Text(
-                "La réponse est protégée localement par une empreinte numérique SHA-256. Personne ne peut la lire, même nos serveurs.",
+                stringResource(R.string.detective_create_answer_security_desc),
                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                 color = theme.contentColor.copy(alpha = 0.4f),
                 modifier = Modifier.padding(top = 4.dp)
@@ -263,12 +255,12 @@ fun DetectiveCreateScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // ÉTAPE 2 bis — L'INDICE
-            Text("INDICE (Affiché après 3 échecs)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+            Text(stringResource(R.string.detective_create_label_hint), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = uiState.enigmaHint,
                 onValueChange = { viewModel.updateEnigmaHint(it) },
-                placeholder = { Text("Ex : C'est le nom d'un animal...", color = theme.contentColor.copy(alpha = 0.3f)) },
+                placeholder = { Text(stringResource(R.string.detective_create_placeholder_hint), color = theme.contentColor.copy(alpha = 0.3f)) },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = TextStyle(fontSize = 15.sp, color = theme.contentColor),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -288,7 +280,7 @@ fun DetectiveCreateScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("DÉBLOCAGE AUTOMATIQUE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                    Text(stringResource(R.string.detective_create_label_auto_unlock), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
                     var autoUnlockEnabled by remember { mutableStateOf(uiState.autoUnlockDays.isNotEmpty()) }
                     Switch(
                         checked = autoUnlockEnabled,
@@ -322,19 +314,19 @@ fun DetectiveCreateScreen(
                     )
                     
                     Text(
-                        text = "Ouvrir après ${uiState.autoUnlockDays} jours",
+                        text = stringResource(R.string.detective_create_auto_unlock_timer, uiState.autoUnlockDays),
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         color = theme.contentColor
                     )
                     Text(
-                        text = "Ton proche pourra voir le contenu automatiquement après ce délai s'il ne trouve pas la réponse.",
+                        text = stringResource(R.string.detective_create_auto_unlock_desc),
                         style = MaterialTheme.typography.labelSmall,
                         color = theme.contentColor.copy(alpha = 0.5f),
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 } else {
                     Text(
-                        text = "Verrouillage permanent tant que la réponse n'est pas trouvée.",
+                        text = stringResource(R.string.detective_create_permanent_lock),
                         style = MaterialTheme.typography.bodySmall,
                         color = theme.contentColor.copy(alpha = 0.4f)
                     )
@@ -350,7 +342,7 @@ fun DetectiveCreateScreen(
                         Icon(Icons.Default.LockPerson, null, tint = accent, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "Le Secret Ultime est scellé sans limite de temps. Il ne pourra être ouvert que par la connaissance de la réponse.",
+                            stringResource(R.string.detective_create_ultimate_lock_desc),
                             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                             color = theme.contentColor
                         )
@@ -360,12 +352,12 @@ fun DetectiveCreateScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text("MESSAGE DE RÉVÉLATION (FACULTATIF)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+            Text(stringResource(R.string.detective_create_label_fallback), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(8.dp))
             OutlinedTextField(
                 value = uiState.fallbackMessage,
                 onValueChange = { viewModel.updateFallbackMessage(it) },
-                placeholder = { Text("Ex: La réponse était [ville]. J'espère que tu t'en souviendras un jour...", color = theme.contentColor.copy(alpha = 0.3f)) },
+                placeholder = { Text(stringResource(R.string.detective_create_placeholder_fallback), color = theme.contentColor.copy(alpha = 0.3f)) },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = TextStyle(fontFamily = theme.fontFamily, fontSize = 15.sp, fontStyle = FontStyle.Italic, color = theme.contentColor),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -380,9 +372,9 @@ fun DetectiveCreateScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             // ÉTAPE 3 — LE CONTENU
-            Text("LE CONTENU SECRET", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+            Text(stringResource(R.string.detective_create_label_secret_content), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Text(
-                "Ce contenu ne sera accessible qu'après avoir répondu correctement à ta question.",
+                stringResource(R.string.detective_create_content_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = theme.contentColor.copy(alpha = 0.5f),
                 modifier = Modifier.padding(top = 4.dp)
@@ -393,21 +385,21 @@ fun DetectiveCreateScreen(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ContentTypeButton(
                     selected = uiState.contentType == ContentType.TEXT,
-                    label = "✍️ Texte",
+                    label = stringResource(R.string.detective_create_type_text),
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.selectContentType(ContentType.TEXT) },
                     theme = theme
                 )
                 ContentTypeButton(
                     selected = uiState.contentType == ContentType.PHOTO,
-                    label = "📷 Photo",
+                    label = stringResource(R.string.detective_create_type_photo),
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.selectContentType(ContentType.PHOTO) },
                     theme = theme
                 )
                 ContentTypeButton(
                     selected = uiState.contentType == ContentType.AUDIO,
-                    label = "🎙️ Audio",
+                    label = stringResource(R.string.detective_create_type_audio),
                     modifier = Modifier.weight(1f),
                     onClick = { viewModel.selectContentType(ContentType.AUDIO) },
                     theme = theme
@@ -441,7 +433,7 @@ fun DetectiveCreateScreen(
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.05f))
                         ) {
-                            Text("Choisir une photo", color = accent)
+                            Text(stringResource(R.string.detective_create_btn_choose_photo), color = accent)
                         }
                     } else {
                         Box(modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp))) {
@@ -485,7 +477,7 @@ fun DetectiveCreateScreen(
             Button(
                 onClick = { 
                     viewModel.saveDetectiveEntry {
-                        Toast.makeText(context, "Confidence scellée.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.detective_create_toast_sealed), Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     }
                 },
@@ -496,7 +488,7 @@ fun DetectiveCreateScreen(
                 if (uiState.isSaving) {
                     CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
                 } else {
-                    Text(if (uiState.isUltimateSecret) "Sceller le Secret Ultime" else "Sceller l'énigme", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                    Text(if (uiState.isUltimateSecret) stringResource(R.string.detective_create_btn_seal_ultimate) else stringResource(R.string.detective_create_btn_seal_enigma), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -544,9 +536,11 @@ fun InspirationBottomSheet(
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit
 ) {
+    val context = LocalContext.current
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     var expandedCategory by remember { mutableStateOf<String?>(null) }
+    val categories = remember(context) { InspirationData.getCategories(context) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -560,12 +554,12 @@ fun InspirationBottomSheet(
                 .padding(bottom = 32.dp)
         ) {
             Text(
-                "Des idées de questions",
+                stringResource(R.string.detective_create_inspiration_title),
                 style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                 color = theme.contentColor
             )
             Text(
-                "Ces exemples sont là pour t'inspirer. La vraie question, c'est toi qui la connais.",
+                stringResource(R.string.detective_create_inspiration_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = theme.contentColor.copy(alpha = 0.6f),
                 modifier = Modifier.padding(vertical = 8.dp)
@@ -577,7 +571,7 @@ fun InspirationBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(InspirationData.categories) { category ->
+                items(categories) { category ->
                     val isExpanded = expandedCategory == category.title
                     
                     Card(

@@ -20,7 +20,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.*
@@ -61,7 +63,7 @@ fun DetectivePlayerScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Le Coffre-Fort",
+                        stringResource(R.string.detective_screen_title),
                         style = MaterialTheme.typography.displaySmall.copy(
                             fontFamily = theme.fontFamily,
                             fontWeight = FontWeight.Bold,
@@ -94,7 +96,7 @@ fun DetectivePlayerScreen(
                 ) {
                     item {
                         Text(
-                            "Déchiffre les énigmes pour accéder aux souvenirs.",
+                            stringResource(R.string.detective_player_instructions),
                             style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily),
                             color = theme.contentColor.copy(alpha = 0.7f)
                         )
@@ -141,7 +143,7 @@ fun DetectivePlayerScreen(
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = if (selectedEntry!!.isUltimateSecret) "Le Secret Ultime" else "Énigme Personnelle", 
+                            text = if (selectedEntry!!.isUltimateSecret) stringResource(R.string.detective_ultimate_secret) else stringResource(R.string.detective_personal_enigma), 
                             color = theme.contentColor,
                             fontFamily = theme.fontFamily,
                             fontWeight = FontWeight.Bold
@@ -152,7 +154,7 @@ fun DetectivePlayerScreen(
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         if (selectedEntry!!.isUltimateSecret) {
                             Text(
-                                "Cette confidence a été marquée comme capitale. Aucune ouverture automatique n'est possible. Seule la réponse exacte lèvera le sceau.",
+                                stringResource(R.string.detective_ultimate_secret_desc),
                                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                                 color = accent
                             )
@@ -194,7 +196,7 @@ fun DetectivePlayerScreen(
                                     Icon(Icons.Default.HelpOutline, null, tint = accent, modifier = Modifier.size(16.dp))
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        text = "Indice : ${selectedEntry!!.enigmaHint}",
+                                        text = stringResource(R.string.detective_hint_label, selectedEntry!!.enigmaHint ?: ""),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = theme.contentColor
                                     )
@@ -214,13 +216,13 @@ fun DetectivePlayerScreen(
                                 ) {
                                     Column(modifier = Modifier.padding(12.dp)) {
                                         Text(
-                                            text = "Si tu ne connais pas la réponse, cette énigme s'ouvrira automatiquement dans $daysLeft jours.",
+                                            text = stringResource(R.string.detective_auto_unlock_hint, daysLeft),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = theme.contentColor.copy(alpha = 0.7f)
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            text = "${uiState.creatorName} a prévu cette option pour que tu puisses accéder à son message quoi qu'il arrive.",
+                                            text = stringResource(R.string.detective_creator_option_desc, uiState.creatorName),
                                             style = MaterialTheme.typography.labelSmall,
                                             color = theme.contentColor.copy(alpha = 0.4f)
                                         )
@@ -232,7 +234,7 @@ fun DetectivePlayerScreen(
                         OutlinedTextField(
                             value = answer,
                             onValueChange = { answer = it },
-                            label = { Text("Ta réponse") },
+                            label = { Text(stringResource(R.string.detective_answer_label)) },
                             modifier = Modifier.fillMaxWidth(),
                             isError = uiState.error != null,
                             colors = OutlinedTextFieldDefaults.colors(
@@ -252,7 +254,7 @@ fun DetectivePlayerScreen(
                         onClick = { viewModel.attemptUnlock(selectedEntry!!, answer, creatorId) },
                         colors = ButtonDefaults.buttonColors(containerColor = accent)
                     ) {
-                        Text("Vérifier", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.detective_verify_button), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                     }
                 }
             )
@@ -301,7 +303,7 @@ fun LockedEntryCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "S'ouvrira automatiquement dans $daysRemaining jours",
+                        text = stringResource(R.string.detective_auto_unlock_timer, daysRemaining),
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = accent
@@ -316,7 +318,7 @@ fun LockedEntryCard(
                         Icon(Icons.Default.Key, null, tint = accent, modifier = Modifier.size(12.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            text = "SECRET ULTIME SCELLÉ",
+                            text = stringResource(R.string.detective_secret_ultime_sealed),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = accent
                         )
@@ -335,27 +337,27 @@ fun LockedEntryCard(
                 Spacer(modifier = Modifier.width(20.dp))
                 Column {
                     Text(
-                        text = if (isUnlocked) "SOUVENIR RÉVÉLÉ" else if (isUltimate) "CONFIDENCE SACRÉE" else "CONTENU SCELLÉ",
+                        text = if (isUnlocked) stringResource(R.string.detective_memory_revealed) else if (isUltimate) stringResource(R.string.detective_sacred_confidence) else stringResource(R.string.detective_content_sealed),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = if (isUnlocked) Success else accent,
                         letterSpacing = 1.sp
                     )
                     Text(
-                        text = if (isUnlocked) entry.aiSummary else if (isUltimate) "Réponds à l'unique question..." else "Résous l'énigme pour lire...",
+                        text = if (isUnlocked) entry.aiSummary else if (isUltimate) stringResource(R.string.detective_ultimate_prompt) else stringResource(R.string.detective_enigma_prompt),
                         style = MaterialTheme.typography.bodyMedium.copy(fontFamily = theme.fontFamily),
                         color = theme.contentColor
                     )
                     
                     if (isUnlocked && isAutoUnlocked) {
                         Text(
-                            text = "Cette énigme s'est ouverte avec le temps.",
+                            text = stringResource(R.string.detective_auto_unlocked_desc),
                             style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),
                             color = theme.contentColor.copy(alpha = 0.6f),
                             modifier = Modifier.padding(top = 4.dp)
                         )
                         if (!entry.fallbackAnswer.isNullOrEmpty()) {
                             Text(
-                                text = "Note de $creatorName : \"${entry.fallbackAnswer}\"",
+                                text = stringResource(R.string.detective_creator_note, creatorName, entry.fallbackAnswer ?: ""),
                                 style = MaterialTheme.typography.bodySmall.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic),
                                 color = theme.contentColor,
                                 modifier = Modifier.padding(top = 8.dp)
@@ -377,6 +379,6 @@ fun EmptyDetectiveContent(theme: AppThemeState) {
     ) {
         Icon(Icons.Default.Fingerprint, null, modifier = Modifier.size(64.dp), tint = theme.contentColor.copy(alpha = 0.2f))
         Spacer(modifier = Modifier.height(24.dp))
-        Text("Aucun mystère à résoudre.", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor.copy(alpha = 0.4f))
+        Text(stringResource(R.string.detective_empty_mysteries), style = MaterialTheme.typography.bodyLarge, color = theme.contentColor.copy(alpha = 0.4f))
     }
 }

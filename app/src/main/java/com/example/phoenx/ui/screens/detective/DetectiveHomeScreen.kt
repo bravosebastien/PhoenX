@@ -20,8 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.OnboardingPopup
@@ -41,14 +44,8 @@ fun DetectiveHomeScreen(
 
     OnboardingPopup(
         pageKey = "detective_home",
-        title = "Le Coffre-Fort",
-        contentPoints = listOf(
-            "Cache un contenu derrière une question secrète.",
-            "La réponse est protégée localement par SHA-256.",
-            "Ton proche a plusieurs tentatives pour trouver.",
-            "Tape sur 'Besoin d'inspiration' pour des exemples.",
-            "Différent du Tiroir à Clé — pas de limite d'ouvertures."
-        ),
+        title = stringResource(R.string.detective_onboarding_title),
+        contentPoints = stringArrayResource(R.array.detective_onboarding_points).toList(),
         preferenceManager = themeViewModel.preferenceManager
     )
 
@@ -65,25 +62,19 @@ fun DetectiveHomeScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Le Coffre-Fort",
+                                text = stringResource(R.string.detective_screen_title),
                                 style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                                 color = theme.contentColor
                             )
                             Text(
-                                text = "Cache un souvenir derrière une question",
+                                text = stringResource(R.string.detective_subtitle),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = theme.contentColor.copy(alpha = 0.6f)
                             )
                         }
                         InfoButton(
-                            title = "Le Coffre-Fort",
-                            points = listOf(
-                                "Cache un contenu derrière une question secrète.",
-                                "La réponse est protégée localement par SHA-256.",
-                                "Ton proche a plusieurs tentatives pour trouver.",
-                                "Tape sur 'Besoin d'inspiration' pour des exemples.",
-                                "Différent du Tiroir à Clé — pas de limite d'ouvertures."
-                            )
+                            title = stringResource(R.string.detective_onboarding_title),
+                            points = stringArrayResource(R.array.detective_onboarding_points).toList()
                         )
                     }
                 },
@@ -134,7 +125,7 @@ fun EmptyDetectiveState(theme: AppThemeState) {
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "Aucune énigme créée pour l'instant.",
+            text = stringResource(R.string.detective_empty_state_title),
             style = MaterialTheme.typography.bodyLarge.copy(
                 fontFamily = theme.fontFamily,
                 fontStyle = FontStyle.Italic,
@@ -144,7 +135,7 @@ fun EmptyDetectiveState(theme: AppThemeState) {
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Vos souvenirs verrouillés apparaîtront ici.",
+            text = stringResource(R.string.detective_empty_state_desc),
             style = MaterialTheme.typography.bodySmall,
             color = theme.contentColor.copy(alpha = 0.4f),
             textAlign = TextAlign.Center
@@ -166,12 +157,12 @@ fun DetectiveEnigmaCard(entry: OfflineEntry, theme: AppThemeState) {
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = entry.enigmaQuestion ?: "Énigme sans question",
+                    text = entry.enigmaQuestion ?: stringResource(R.string.detective_enigma_no_question),
                     style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                     color = theme.contentColor
                 )
                 Text(
-                    text = "Pour : ${entry.recipientIds.ifEmpty { "Tes proches" }}",
+                    text = stringResource(R.string.detective_recipient_label, entry.recipientIds.ifEmpty { stringResource(R.string.detective_recipient_fallback) }),
                     style = MaterialTheme.typography.bodySmall,
                     color = theme.contentColor.copy(alpha = 0.6f)
                 )

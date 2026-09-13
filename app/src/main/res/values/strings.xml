@@ -1131,6 +1131,334 @@
     <string name="library_archive_locked_default">Ce compartiment n\'est pas encore accessible.</string>
     <string name="library_archive_btn_close">Fermer</string>
 
+    <!-- Detective / Coffre-Fort Batch -->
+    <string name="detective_screen_title">Le Coffre-Fort</string>
+    <string name="detective_onboarding_title">Le Coffre-Fort</string>
+    <string-array name="detective_onboarding_points">
+        <item>Cache un contenu derrière une question secrète.</item>
+        <item>La réponse est protégée localement par SHA-256.</item>
+        <item>Ton proche a plusieurs tentatives pour trouver.</item>
+        <item>Tape sur \'Besoin d\'inspiration\' pour des exemples.</item>
+        <item>Différent du Tiroir à Clé — pas de limite d\'ouvertures.</item>
+    </string-array>
+    <string name="detective_subtitle">Cache un souvenir derrière une question</string>
+    <string name="detective_empty_state_title">Aucune énigme créée pour l\'instant.</string>
+    <string name="detective_empty_state_desc">Vos souvenirs verrouillés apparaîtront ici.</string>
+    <string name="detective_enigma_no_question">Énigme sans question</string>
+    <string name="detective_recipient_label">Pour : %1$s</string>
+    <string name="detective_recipient_fallback">Tes proches</string>
+
+    <string name="detective_player_instructions">Déchiffre les énigmes pour accéder aux souvenirs.</string>
+    <string name="detective_ultimate_secret">Le Secret Ultime</string>
+    <string name="detective_personal_enigma">Énigme Personnelle</string>
+    <string name="detective_ultimate_secret_desc">Cette confidence a été marquée comme capitale. Aucune ouverture automatique n\'est possible. Seule la réponse exacte lèvera le sceau.</string>
+    <string name="detective_hint_label">Indice : %1$s</string>
+    <string name="detective_auto_unlock_hint">Si tu ne connais pas la réponse, cette énigme s\'ouvrira automatiquement dans %1$d jours.</string>
+    <string name="detective_creator_option_desc">%1$s a prévu cette option pour que tu puisses accéder à son message quoi qu\'il arrive.</string>
+    <string name="detective_answer_label">Ta réponse</string>
+    <string name="detective_verify_button">Vérifier</string>
+    <string name="detective_auto_unlock_timer">S\'ouvrira automatiquement dans %1$d jours</string>
+    <string name="detective_secret_ultime_sealed">SECRET ULTIME SCELLÉ</string>
+    <string name="detective_memory_revealed">SOUVENIR RÉVÉLÉ</string>
+    <string name="detective_sacred_confidence">CONFIDENCE SACRÉE</string>
+    <string name="detective_content_sealed">CONTENU SCELLÉ</string>
+    <string name="detective_ultimate_prompt">Réponds à l\'unique question...</string>
+    <string name="detective_enigma_prompt">Résous l\'énigme pour lire...</string>
+    <string name="detective_auto_unlocked_desc">Cette énigme s\'est ouverte avec le temps.</string>
+    <string name="detective_creator_note">Note de %1$s : \"%2$s\"</string>
+    <string name="detective_empty_mysteries">Aucun mystère à résoudre.</string>
+
+    <string name="detective_create_type_classic">Énigme Classique</string>
+    <string name="detective_create_type_ultimate">Secret Ultime</string>
+    <string name="detective_create_ultimate_title">Le Trésor de ton Héritage</string>
+    <string name="detective_create_classic_title">Un secret protégé par une question</string>
+    <string-array name="detective_create_ultimate_points">
+        <item>La pièce maîtresse de ton héritage : le secret le plus précieux et le plus intime.</item>
+        <item>Protection inviolable : aucun déblocage automatique n\'est possible avec le temps.</item>
+        <item>Un moment solennel : sa lecture est présentée avec un habillage visuel unique pour tes proches.</item>
+        <item>L\'unique clé : seul celui qui connaît la réponse pourra un jour briser ce dernier sceau.</item>
+    </string-array>
+    <string-array name="detective_create_classic_points">
+        <item>Protège un souvenir par une énigme personnelle : une question dont seul ton proche possède la clé.</item>
+        <item>Sécurité absolue : la réponse est hachée sur ton appareil. Personne ne peut la déchiffrer.</item>
+        <item>Un jeu de piste intime : une fois la bonne réponse saisie, le souvenir est révélé pour toujours.</item>
+        <item>Un secret à l\'épreuve du temps : contrairement à un simple message, ce contenu reste scellé tant que l\'énigme n\'est pas résolue.</item>
+        <item>Tape sur \'Besoin d\'inspiration ?\' pour voir des exemples de questions.</item>
+    </string-array>
+    <string name="detective_create_ultimate_subtitle">Une confidence unique, scellée au cœur de votre mémoire.</string>
+    <string name="detective_create_classic_subtitle">Seul celui qui connaît la réponse pourra accéder à ce que tu déposes ici.</string>
+    <string name="detective_create_solemn_active">Traitement Solennel Activé</string>
+    <string name="detective_create_label_question">LA QUESTION</string>
+    <string name="detective_create_placeholder_question">Ex : Quel était le nom de notre premier chien ?</string>
+    <string name="detective_create_btn_inspiration">Besoin d\'inspiration ?</string>
+    <string name="detective_create_label_answer">LA RÉPONSE (invisible après saisie)</string>
+    <string name="detective_create_answer_security_desc">La réponse est protégée localement par une empreinte numérique SHA-256. Personne ne peut la lire, même nos serveurs.</string>
+    <string name="detective_create_label_hint">INDICE (Affiché après 3 échecs)</string>
+    <string name="detective_create_placeholder_hint">Ex : C\'est le nom d\'un animal...</string>
+    <string name="detective_create_label_auto_unlock">DÉBLOCAGE AUTOMATIQUE</string>
+    <string name="detective_create_auto_unlock_timer">Ouvrir après %1$s jours</string>
+    <string name="detective_create_auto_unlock_desc">Ton proche pourra voir le contenu automatiquement après ce délai s\'il ne trouve pas la réponse.</string>
+    <string name="detective_create_permanent_lock">Verrouillage permanent tant que la réponse n\'est pas trouvée.</string>
+    <string name="detective_create_ultimate_lock_desc">Le Secret Ultime est scellé sans limite de temps. Il ne pourra être ouvert que par la connaissance de la réponse.</string>
+    <string name="detective_create_label_fallback">MESSAGE DE RÉVÉLATION (FACULTATIF)</string>
+    <string name="detective_create_placeholder_fallback">Ex: La réponse était [ville]. J\'espère que tu t\'en souviendras un jour...</string>
+    <string name="detective_create_label_secret_content">LE CONTENU SECRET</string>
+    <string name="detective_create_content_desc">Ce contenu ne sera accessible qu\'après avoir répondu correctement à ta question.</string>
+    <string name="detective_create_type_text">✍️ Texte</string>
+    <string name="detective_create_type_photo">📷 Photo</string>
+    <string name="detective_create_type_audio">🎙️ Audio</string>
+    <string name="detective_create_btn_choose_photo">Choisir une photo</string>
+    <string name="detective_create_toast_sealed">Confidence scellée.</string>
+    <string name="detective_create_btn_seal_ultimate">Sceller le Secret Ultime</string>
+    <string name="detective_create_btn_seal_enigma">Sceller l\'énigme</string>
+    <string name="detective_create_inspiration_title">Des idées de questions</string>
+    <string name="detective_create_inspiration_desc">Ces exemples sont là pour t\'inspirer. La vraie question, c\'est toi qui la connais.</string>
+
+    <string name="detective_viewmodel_fallback_creator">Ton proche</string>
+    <string name="detective_viewmodel_error_connection">Erreur de connexion</string>
+    <string name="detective_viewmodel_error_wrong_answer">Mauvaise réponse. Cherche encore...</string>
+
+    <!-- Inspiration Categories -->
+    <string name="inspiration_cat_childhood">Souvenirs d\'Enfance</string>
+    <string-array name="inspiration_questions_childhood">
+        <item>Comment s\'appelait mon école primaire ?</item>
+        <item>Quel était le prénom de mon instituteur(trice) préféré(e) ?</item>
+        <item>Dans quelle rue ai-je grandi ?</item>
+        <item>Quel était le nom de mon meilleur ami d\'enfance ?</item>
+        <item>Quelle était ma couleur préférée à 10 ans ?</item>
+        <item>Quel jouet ne voulais-je jamais prêter ?</item>
+        <item>Quel était mon dessin animé préféré ?</item>
+        <item>Comment s\'appelait mon animal de compagnie d\'enfance ?</item>
+        <item>Quelle était ma matière scolaire préférée ?</item>
+        <item>Quel sport pratiquais-je à l\'école ?</item>
+        <item>Quelle était la punition que je redoutais le plus ?</item>
+        <item>Quel était mon plat préféré que ma mère cuisinait ?</item>
+        <item>Quel était le prénom de mon voisin(e) d\'enfance ?</item>
+        <item>Quelle était la marque de mon premier vélo ?</item>
+        <item>Quel était le surnom que mes parents me donnaient ?</item>
+        <item>Dans quelle ville passais-je mes vacances d\'été ?</item>
+        <item>Quel était mon livre préféré avant 12 ans ?</item>
+        <item>Quelle bêtise ai-je faite dont je ne t\'ai jamais parlé ?</item>
+        <item>Quel était le jeu de société que j\'adorais ?</item>
+        <item>Quelle chanson me faisait toujours danser enfant ?</item>
+    </string-array>
+
+    <string name="inspiration_cat_our_story">Notre Histoire</string>
+    <string-array name="inspiration_questions_our_story">
+        <item>Dans quelle ville nous sommes-nous rencontrés ?</item>
+        <item>Quelle était la première chose que tu m\'as dite ?</item>
+        <item>Quel était le nom de l\'endroit de notre première sortie ?</item>
+        <item>Quelle chanson était devenue \'notre\' chanson ?</item>
+        <item>Quel était le premier cadeau que je t\'ai offert ?</item>
+        <item>Dans quel restaurant avons-nous dîné pour la première fois ?</item>
+        <item>Quelle était ma phrase favorite quand j\'étais de bonne humeur ?</item>
+        <item>Quel surnom t\'avais-je donné que personne d\'autre ne connaît ?</item>
+        <item>Quelle bêtise avons-nous faite ensemble sans jamais le dire ?</item>
+        <item>Quel était notre film qu\'on regardait en boucle ?</item>
+        <item>Quelle expression secrète nous seuls comprenions ?</item>
+        <item>Dans quelle ville avons-nous passé notre premier voyage ?</item>
+        <item>Quel était le premier plat que j\'ai cuisiné pour toi ?</item>
+        <item>Quelle dispute avons-nous eue dont tu te souviens encore ?</item>
+        <item>Quel était mon rituel du matin que tu trouvais bizarre ?</item>
+        <item>Quelle promesse t\'avais-je faite en premier ?</item>
+        <item>Quel moment t\'a montré que tu pouvais me faire confiance ?</item>
+        <item>Quelle était ma façon unique de te dire que je t\'aimais ?</item>
+        <item>Quel objet m\'avais-tu offert que j\'ai gardé précieusement ?</item>
+        <item>Quelle est la chose la plus folle qu\'on ait faite ensemble ?</item>
+    </string-array>
+
+    <string name="inspiration_cat_places">Lieux et Voyages</string>
+    <string-array name="inspiration_questions_places">
+        <item>Quel est le premier pays étranger que j\'ai visité ?</item>
+        <item>Dans quelle ville me suis-je senti(e) le plus chez moi ?</item>
+        <item>Quel était le nom de l\'hôtel de notre voyage mémorable ?</item>
+        <item>Quelle ville aurais-je voulu habiter toute ma vie ?</item>
+        <item>Dans quel pays ai-je mangé le meilleur repas de ma vie ?</item>
+        <item>Quelle montagne ou quel sommet ai-je gravi ?</item>
+        <item>Quel était le nom de la plage où j\'allais chaque été ?</item>
+        <item>Dans quelle ville ai-je vécu le plus longtemps ?</item>
+        <item>Quel pays m\'a le plus transformé(e) ?</item>
+        <item>Quel endroit m\'a rendu(e) vraiment heureux/heureuse ?</item>
+        <item>Quelle ville européenne ai-je visitée avec toi ?</item>
+        <item>Dans quel quartier aimais-je me perdre ?</item>
+        <item>Quel voyage ai-je fait seul(e) dont je t\'ai peu parlé ?</item>
+        <item>Quel était le nom du camping où j\'allais enfant ?</item>
+        <item>Quelle capitale mondiale n\'avais-je jamais visitée ?</item>
+        <item>Où me serais-je installé(e) si j\'avais pu ?</item>
+        <item>Quel chemin prenais-je pour me ressourcer ?</item>
+        <item>Quel musée m\'a profondément marqué(e) ?</item>
+        <item>Quelle île aurais-je voulu habiter ?</item>
+        <item>Dans quelle ville ai-je pleuré de bonheur en arrivant ?</item>
+    </string-array>
+
+    <string name="inspiration_cat_tastes">Goûts et Passions</string>
+    <string-array name="inspiration_questions_tastes">
+        <item>Quel plat mangeais-je en secret ?</item>
+        <item>Quelle musique écoutais-je quand j\'étais seul(e) ?</item>
+        <item>Quel film regardais-je sans jamais l\'assumer ?</item>
+        <item>Quelle activité pratiquais-je sans en parler ?</item>
+        <item>Quel livre avais-je lu plus de trois fois ?</item>
+        <item>Quel artiste admirais-je en secret ?</item>
+        <item>Quelle émission ne ratais-je jamais ?</item>
+        <item>Quel sport regardais-je avec passion ?</item>
+        <item>Quel aliment n\'aimais-je absolument pas ?</item>
+        <item>Quelle couleur ne portais-je jamais ?</item>
+        <item>Quel instrument aurais-je voulu jouer ?</item>
+        <item>Quelle cuisine étrangère était ma préférée ?</item>
+        <item>Quel hobby avais-je abandonné et regrettais ?</item>
+        <item>Quelle chanson me faisait pleurer sans raison ?</item>
+        <item>Quel parfum me rendait nostalgique ?</item>
+        <item>Quel genre de films me faisait toujours pleurer ?</item>
+        <item>Quelle boisson prenais-je le matin ?</item>
+        <item>Quel était mon péché mignon culinaire ?</item>
+        <item>Quelle saison préférais-je et pourquoi ?</item>
+        <item>Quel paysage me coupait le souffle ?</item>
+    </string-array>
+
+    <string name="inspiration_cat_habits">Habitudes et Détails</string>
+    <string-array name="inspiration_questions_habits">
+        <item>Quelle phrase répétais-je sans m\'en rendre compte ?</item>
+        <item>Quel était mon tic gestuel le plus reconnaissable ?</item>
+        <item>À quelle heure me levais-je le weekend ?</item>
+        <item>Quel était mon rituel avant de dormir ?</item>
+        <item>Comment savais-tu que j\'étais de mauvaise humeur ?</item>
+        <item>Quelle était ma façon unique de rire ?</item>
+        <item>Quel objet cherchais-je toujours et ne trouvais pas ?</item>
+        <item>Comment rangeais-je (ou ne rangeais-je pas) mes affaires ?</item>
+        <item>Quelle était ma position préférée pour lire ?</item>
+        <item>Quel était mon côté du lit ?</item>
+        <item>Quelle était la première chose que je faisais en rentrant ?</item>
+        <item>Quelle était la dernière chose avant de sortir ?</item>
+        <item>Comment prenais-je mon café ou mon thé ?</item>
+        <item>Comment me consolais-je quand j\'étais triste ?</item>
+        <item>Quel était mon mot favori trop souvent utilisé ?</item>
+        <item>Comment montrais-je ma fierté sans le dire ?</item>
+        <item>Comment t\'appelais-je quand j\'étais en colère ?</item>
+        <item>Quel était mon geste affectueux le plus reconnaissable ?</item>
+        <item>Quelle application utilisais-je le plus ?</item>
+        <item>Quel était mon moyen de transport préféré ?</item>
+    </string-array>
+
+    <string name="inspiration_cat_hard_times">Moments Difficiles</string>
+    <string-array name="inspiration_questions_hard_times">
+        <item>Quel moment difficile avons-nous traversé ensemble ?</item>
+        <item>Comment t\'ai-je soutenu(e) pendant ta pire période ?</item>
+        <item>Quelle dispute n\'avons-nous jamais vraiment réglée ?</item>
+        <item>Quel secret as-tu gardé pour moi ?</item>
+        <item>Quelle décision difficile ai-je prise dont tu savais ?</item>
+        <item>Comment m\'appelais-tu quand tu voulais que je me calme ?</item>
+        <item>Quelle peur avons-nous surmontée ensemble ?</item>
+        <item>Quel moment de ma vie t\'a demandé le plus de patience ?</item>
+        <item>Quelle mauvaise nouvelle avons-nous apprise ensemble ?</item>
+        <item>Comment montrais-je que j\'avais besoin d\'aide ?</item>
+        <item>Quel surnom me donnais-tu quand j\'étais vulnérable ?</item>
+        <item>Quelle épreuve m\'a rendu(e) plus fort(e) ?</item>
+        <item>Quel était le signe que quelque chose n\'allait pas ?</item>
+        <item>Quelle nuit difficile avons-nous passée ensemble ?</item>
+        <item>Comment te remerciais-je sans vraiment le dire ?</item>
+        <item>Quel moment de crise as-tu géré pour moi ?</item>
+        <item>Quelle erreur ai-je faite que tu m\'as aidé(e) à surmonter ?</item>
+        <item>Quel était notre code secret quand ça n\'allait pas ?</item>
+        <item>Quelle période t\'a le plus inquiété(e) pour moi ?</item>
+        <item>Comment t\'exprimais-je ma gratitude sans mots ?</item>
+    </string-array>
+
+    <string name="inspiration_cat_dreams">Rêves et Projets</string>
+    <string-array name="inspiration_questions_dreams">
+        <item>Quel métier aurais-je voulu exercer si j\'avais osé ?</item>
+        <item>Quel pays aurais-je voulu habiter un an ?</item>
+        <item>Quel instrument aurais-je voulu apprendre ?</item>
+        <item>Quel projet avions-nous évoqué et jamais réalisé ?</item>
+        <item>Quelle langue aurais-je voulu parler couramment ?</item>
+        <item>Quel sport extrême aurais-je voulu pratiquer ?</item>
+        <item>Quel livre aurais-je voulu écrire ?</item>
+        <item>Quelle invention aurais-je voulu créer ?</item>
+        <item>Quelle cause aurais-je voulu défendre ?</item>
+        <item>Quel voyage de rêve n\'ai-je jamais pu faire ?</item>
+        <item>Quelle maison aurais-je voulu construire ?</item>
+        <item>Quel animal aurais-je voulu adopter ?</item>
+        <item>Quelle formation aurais-je voulu suivre plus tôt ?</item>
+        <item>Quel défi personnel aurais-je voulu accomplir ?</item>
+        <item>Quelle rencontre aurais-je voulu avoir ?</item>
+        <item>Quel restaurant aurais-je voulu ouvrir ?</item>
+        <item>Quel film aurais-je voulu créer ?</item>
+        <item>Quelle association aurais-je voulu fonder ?</item>
+        <item>Quel endroit aurais-je voulu transformer en résidence ?</item>
+        <item>Quel rêve d\'enfant n\'ai-je jamais abandonné ?</item>
+    </string-array>
+
+    <string name="inspiration_cat_quotes">Ce Que Je Disais Toujours</string>
+    <string-array name="inspiration_questions_quotes">
+        <item>Quelle citation répétais-je souvent ?</item>
+        <item>Quel conseil donnais-je systématiquement ?</item>
+        <item>Quelle leçon de vie revenait dans mes conversations ?</item>
+        <item>Quelle blague faisais-je tout le temps ?</item>
+        <item>Quelle expression utilisais-je pour encourager ?</item>
+        <item>Que disais-je avant une décision importante ?</item>
+        <item>Quelle était ma façon de commencer une histoire ?</item>
+        <item>Que disais-je quand quelque chose m\'énervait ?</item>
+        <item>Quelle phrase prononçais-je quand j\'étais heureux/heureuse ?</item>
+        <item>Que répétais-je sur l\'amour ou l\'amitié ?</item>
+        <item>Comment concluais-je une conversation importante ?</item>
+        <item>Que disais-je avant de partir en voyage ?</item>
+        <item>Quelle mise en garde donnais-je aux gens que j\'aimais ?</item>
+        <item>Que disais-je quand quelqu\'un me remerciait ?</item>
+        <item>Quelle phrase utilisais-je pour clore un désaccord ?</item>
+        <item>Que disais-je en regardant le ciel ou la nature ?</item>
+        <item>Quelle expression t\'agaçait parce que je la répétais ?</item>
+        <item>Que disais-je en regardant des photos de ma jeunesse ?</item>
+        <item>Quelle phrase prononçais-je quand quelque chose me touchait ?</item>
+        <item>Que disais-je le soir avant de dormir ?</item>
+    </string-array>
+
+    <string name="inspiration_cat_people">Personnes Importantes</string>
+    <string-array name="inspiration_questions_people">
+        <item>Comment sappelait mon meilleur(e) ami(e) d\'adolescence ?</item>
+        <item>Quel était le prénom de mon mentor professionnel ?</item>
+        <item>Comment s\'appelait la personne qui m\'a donné ma première chance ?</item>
+        <item>Quel était le prénom de mon voisin(e) le plus proche ?</item>
+        <item>Comment s\'appelait le médecin qui m\'a suivi des années ?</item>
+        <item>Quel était le prénom de la personne aimée avant toi ?</item>
+        <item>Comment s\'appelait mon professeur le plus influent ?</item>
+        <item>Quel était le prénom de mon collègue le plus fidèle ?</item>
+        <item>Comment s\'appelait la personne à qui je dois le plus ?</item>
+        <item>Quel était le prénom de l\'ami(e) perdu(e) de vue ?</item>
+        <item>Comment s\'appelait la personne qui m\'a le plus blessé(e) ?</item>
+        <item>Quel était le prénom de celui/celle qui m\'a appris à conduire ?</item>
+        <item>Comment s\'appelait mon entraîneur sportif ?</item>
+        <item>Quel était le prénom de mon associé principal ?</item>
+        <item>Comment s\'appelait la personne qui m\'a appris à cuisiner ?</item>
+        <item>Quel était le prénom de mon confident(e) absolu(e) ?</item>
+        <item>Comment s\'appelait la personne dont j\'admirais le courage ?</item>
+        <item>Quel était le prénom de celui/celle qui m\'a aidé dans ma pire période ?</item>
+        <item>Comment s\'appelait la personne à qui je n\'ai jamais dit merci ?</item>
+        <item>Quel était le prénom de la personne qui me connaissait mieux que quiconque ?</item>
+    </string-array>
+
+    <string name="inspiration_cat_deep">Questions Profondes</string>
+    <string-array name="inspiration_questions_deep">
+        <item>Quelle chose me faisait le plus peur et que peu savaient ?</item>
+        <item>Quel secret ai-je gardé toute ma vie ?</item>
+        <item>Quelle décision regrettais-je sans jamais l\'avouer ?</item>
+        <item>Quel talent cachais-je dont tu étais l\'un des rares à savoir ?</item>
+        <item>Quelle vérité sur moi-même ai-je mis des années à accepter ?</item>
+        <item>Quel était mon plus grand complexe jamais montré ?</item>
+        <item>Quelle croyance guidait toutes mes décisions ?</item>
+        <item>Quel moment m\'a donné le plus de doutes ?</item>
+        <item>Quelle erreur de jeunesse m\'a suivi longtemps ?</item>
+        <item>Quelle conversation aurais-je voulu avoir ?</item>
+        <item>Quel acte de générosité ai-je fait sans en parler ?</item>
+        <item>Quelle injustice m\'a marqué(e) à jamais ?</item>
+        <item>Quel était mon rêve le plus intime ?</item>
+        <item>Quelle partie de moi ai-je sacrifiée pour les autres ?</item>
+        <item>Quel moment m\'a rendu(e) le plus vulnérable ?</item>
+        <item>Quelle rencontre a tout changé dans ma façon de voir ?</item>
+        <item>Quel poids portais-je seul(e) depuis des années ?</item>
+        <item>Quelle vérité ai-je comprise trop tard ?</item>
+        <item>Qu\'aurais-je voulu que les gens sachent de moi ?</item>
+        <item>Si tu ne devais garder qu\'un souvenir de moi, lequel ?</item>
+    </string-array>
+
     <string-array name="personality_categories">
         <item>Sport</item>
         <item>Cinéma et Télévision</item>

@@ -2,11 +2,14 @@ package com.example.phoenx.ui.screens.detective
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
+import com.example.phoenx.R
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.domain.util.EnigmaUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +27,7 @@ data class DetectiveUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val daysSinceActivation: Int = 0,
-    val creatorName: String = "Ton proche",
+    val creatorName: String = "",
     val attempts: Map<String, Int> = emptyMap() // entryId -> count
 )
 
@@ -33,7 +36,8 @@ class DetectiveViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val offlineEntryDao: OfflineEntryDao,
-    private val encryptionManager: EncryptionManager
+    private val encryptionManager: EncryptionManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DetectiveUiState())
@@ -51,7 +55,7 @@ class DetectiveViewModel @Inject constructor(
                 // 1. Charger le nom du créateur et l'activation
                 if (targetCreatorId.isNotEmpty() && targetCreatorId != currentUserId) {
                     val creatorDoc = db.collection("users").document(targetCreatorId).get().await()
-                    val name = creatorDoc.getString("displayName") ?: "Ton proche"
+                    val name = creatorDoc.getString("displayName") ?: context.getString(R.string.detective_viewmodel_fallback_creator)
                     
                     // Trouver le protocole activé pour ce créateur
                     val protocolSnap = db.collection("activationProtocols")
@@ -97,7 +101,7 @@ class DetectiveViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = "Erreur de connexion") }
+                _uiState.update { it.copy(isLoading = false, error = context.getString(R.string.detective_viewmodel_error_connection)) }
             }
         }
     }
@@ -113,7 +117,7 @@ class DetectiveViewModel @Inject constructor(
         if (isCorrect) {
             _uiState.update { it.copy(unlockedEntryId = entry.id, attempts = newAttempts) }
         } else {
-            _uiState.update { it.copy(error = "Mauvaise réponse. Cherche encore...", attempts = newAttempts) }
+            _uiState.update { it.copy(error = context.getString(R.string.detective_viewmodel_error_wrong_answer), attempts = newAttempts) }
         }
 
         // v12.3 : Envoi de la réponse au serveur pour vérification et stat
