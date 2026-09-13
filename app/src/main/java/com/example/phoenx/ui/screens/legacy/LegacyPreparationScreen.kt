@@ -17,7 +17,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.domain.util.AgeUtils
@@ -40,7 +42,7 @@ fun LegacyPreparationScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Préparer un Legs", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(stringResource(R.string.legacy_prep_title), style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -97,7 +99,7 @@ fun RecipientSelectionList(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Text("Choisissez à qui vous voulez transmettre des souvenirs.", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor.copy(alpha = 0.7f))
+            Text(stringResource(R.string.legacy_prep_recipient_selection_desc), style = MaterialTheme.typography.bodyLarge, color = theme.contentColor.copy(alpha = 0.7f))
         }
         
         if (recipients.isEmpty()) {
@@ -109,7 +111,7 @@ fun RecipientSelectionList(
                 ) {
                     Icon(Icons.Default.Add, null, tint = accent)
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("Ajouter une personne au cercle", color = theme.contentColor, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.legacy_prep_button_add_recipient), color = theme.contentColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -144,8 +146,8 @@ fun EntrySelectionList(
     val accent = theme.accentColor
     Column(modifier = Modifier.fillMaxSize().padding(padding)) {
         Column(modifier = Modifier.padding(24.dp)) {
-            Text("Pour ${recipient.name}", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
-            Text("Sélectionnez les fragments à transmettre", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+            Text(stringResource(R.string.legacy_prep_for_recipient, recipient.name), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+            Text(stringResource(R.string.legacy_prep_selection_title), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
         }
         
         LazyColumn(
@@ -164,8 +166,8 @@ fun EntrySelectionList(
                 ) {
                     Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("À ${age.years} ans", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
-                            Text(entry.aiSummary.ifEmpty { "Fragment de vie" }, style = MaterialTheme.typography.bodySmall, color = theme.contentColor)
+                            Text(stringResource(R.string.legacy_prep_entry_age, age.years), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+                            Text(entry.aiSummary.ifEmpty { stringResource(R.string.legacy_prep_entry_fallback) }, style = MaterialTheme.typography.bodySmall, color = theme.contentColor)
                         }
                         if (isSelected) Icon(Icons.Default.Check, null, tint = accent)
                     }
@@ -177,14 +179,14 @@ fun EntrySelectionList(
             modifier = Modifier.fillMaxWidth().padding(24.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            TextButton(onClick = onCancel) { Text("Changer de proche", color = theme.contentColor.copy(alpha = 0.6f)) }
+            TextButton(onClick = onCancel) { Text(stringResource(R.string.legacy_prep_button_change_recipient), color = theme.contentColor.copy(alpha = 0.6f)) }
             Button(
                 onClick = onConfirm,
                 enabled = selectedIds.isNotEmpty(),
                 modifier = Modifier.phoenXMatiere(),
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Valider ce Legs", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.legacy_prep_button_validate), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     }

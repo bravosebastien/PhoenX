@@ -1,7 +1,9 @@
 package com.example.phoenx.ui.screens.legacy
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.LegacyEntity
 import com.example.phoenx.data.local.OfflineEntryDao
@@ -10,7 +12,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -86,7 +87,7 @@ class UniqueKeyViewModel @Inject constructor(
                 offlineEntryDao.insertLegacy(legacy)
                 _uiState.value = UniqueKeyState.Success(phraseString)
             } catch (e: Exception) {
-                _uiState.value = UniqueKeyState.Error(e.message ?: "Erreur")
+                _uiState.value = UniqueKeyState.Error(e.message ?: context.getString(R.string.legacy_unique_key_error_generic))
             }
         }
     }

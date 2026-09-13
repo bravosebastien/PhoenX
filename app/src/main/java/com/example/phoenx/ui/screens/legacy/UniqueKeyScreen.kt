@@ -20,7 +20,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,7 +42,7 @@ fun UniqueKeyScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Clé Unique", style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.legacy_unique_key_title), style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -97,14 +99,14 @@ fun UniqueKeyCreationContent(
     Icon(Icons.Default.Lock, null, tint = accent, modifier = Modifier.size(64.dp))
     Spacer(modifier = Modifier.height(24.dp))
     Text(
-        "L'Unique Secret",
+        stringResource(R.string.legacy_unique_key_creation_title),
         style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
         color = theme.contentColor,
         textAlign = TextAlign.Center
     )
     Spacer(modifier = Modifier.height(16.dp))
     Text(
-        "Ce contenu est unique. Une seule fois par compte. Il sera chiffré avec une clé physique que vous devrez remettre en main propre.",
+        stringResource(R.string.legacy_unique_key_creation_desc),
         style = MaterialTheme.typography.bodyMedium,
         color = theme.contentColor.copy(alpha = 0.7f),
         textAlign = TextAlign.Center
@@ -121,7 +123,7 @@ fun UniqueKeyCreationContent(
         TextField(
             value = content,
             onValueChange = onContentChange,
-            placeholder = { Text("Écris ici ce que tu n'as jamais dit à personne d'autre...", color = theme.contentColor.copy(alpha = 0.3f)) },
+            placeholder = { Text(stringResource(R.string.legacy_unique_key_placeholder), color = theme.contentColor.copy(alpha = 0.3f)) },
             modifier = Modifier.fillMaxSize(),
             textStyle = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic, fontFamily = theme.fontFamily, color = theme.contentColor),
             colors = TextFieldDefaults.colors(
@@ -143,7 +145,7 @@ fun UniqueKeyCreationContent(
         colors = ButtonDefaults.buttonColors(containerColor = accent)
     ) {
         if (isSaving) CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
-        else Text("Sceller et Générer la Clé", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+        else Text(stringResource(R.string.legacy_unique_key_button_seal), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -153,10 +155,10 @@ fun UniqueKeySuccessContent(phrase: String, theme: AppThemeState) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(Icons.Default.Key, null, tint = Success, modifier = Modifier.size(64.dp))
         Spacer(modifier = Modifier.height(24.dp))
-        Text("Secret Scellé", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = Success)
+        Text(stringResource(R.string.legacy_unique_key_success_title), style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = Success)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            "Voici votre Clé Unique. Notez-la. Elle ne sera plus jamais affichée.",
+            stringResource(R.string.legacy_unique_key_success_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = theme.contentColor,
             textAlign = TextAlign.Center
@@ -185,9 +187,9 @@ fun UniqueKeyAlreadyExistsContent(theme: AppThemeState) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 100.dp)) {
         Icon(Icons.Default.Lock, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(64.dp))
         Spacer(modifier = Modifier.height(24.dp))
-        Text("Clé déjà utilisée", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+        Text(stringResource(R.string.legacy_unique_key_exists_title), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
         Text(
-            "Le Tiroir à Clé Unique a déjà été scellé. Conformément à l'ADN de PHOEN-X, ce tiroir est définitif.",
+            stringResource(R.string.legacy_unique_key_exists_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = theme.contentColor.copy(alpha = 0.7f),
             textAlign = TextAlign.Center,

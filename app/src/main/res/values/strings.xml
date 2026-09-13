@@ -1691,4 +1691,26 @@
     <string name="character_delete_dialog_text">Ce personnage apparaît dans %1$d souvenirs — le supprimer le retirera de ces récits, sans supprimer les souvenirs eux-mêmes.</string>
     <string name="character_delete_confirm">Supprimer définitivement</string>
     <string name="character_delete_cancel">Annuler</string>
+
+    <!-- Legacy Batch -->
+    <string name="legacy_prep_title">Préparer un Legs</string>
+    <string name="legacy_prep_recipient_selection_desc">Choisissez à qui vous voulez transmettre des souvenirs.</string>
+    <string name="legacy_prep_button_add_recipient">Ajouter une personne au cercle</string>
+    <string name="legacy_prep_for_recipient">Pour %1$s</string>
+    <string name="legacy_prep_selection_title">Sélectionnez les fragments à transmettre</string>
+    <string name="legacy_prep_entry_age">À %1$d ans</string>
+    <string name="legacy_prep_entry_fallback">Fragment de vie</string>
+    <string name="legacy_prep_button_change_recipient">Changer de proche</string>
+    <string name="legacy_prep_button_validate">Valider ce Legs</string>
+
+    <string name="legacy_unique_key_title">Clé Unique</string>
+    <string name="legacy_unique_key_creation_title">L\'Unique Secret</string>
+    <string name="legacy_unique_key_creation_desc">Ce contenu est unique. Une seule fois par compte. Il sera chiffré avec une clé physique que vous devrez remettre en main propre.</string>
+    <string name="legacy_unique_key_placeholder">Écris ici ce que tu n\'as jamais dit à personne d\'autre...</string>
+    <string name="legacy_unique_key_button_seal">Sceller et Générer la Clé</string>
+    <string name="legacy_unique_key_success_title">Secret Scellé</string>
+    <string name="legacy_unique_key_success_desc">Voici votre Clé Unique. Notez-la. Elle ne sera plus jamais affichée.</string>
+    <string name="legacy_unique_key_exists_title">Clé déjà utilisée</string>
+    <string name="legacy_unique_key_exists_desc">Le Tiroir à Clé Unique a déjà été scellé. Conformément à l\'ADN de PHOEN-X, ce tiroir est définitif.</string>
+    <string name="legacy_unique_key_error_generic">Erreur</string>
 </resources>
