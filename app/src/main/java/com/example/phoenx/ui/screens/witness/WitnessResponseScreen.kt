@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.phoenx.R
@@ -58,6 +59,7 @@ fun WitnessResponseScreen(
     val error by viewModel.error.collectAsState()
     val creatorName by viewModel.creatorName.collectAsState()
     val witnessConfig by viewModel.witnessConfig.collectAsState()
+    val creatorFallback = stringResource(R.string.witness_response_creator_fallback)
 
     LaunchedEffect(Unit) {
         viewModel.verifyToken(creatorId, witnessId, token)
@@ -76,16 +78,16 @@ fun WitnessResponseScreen(
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(24.dp)) {
                 Icon(Icons.Default.CheckCircle, null, tint = Success, modifier = Modifier.size(64.dp))
                 Spacer(modifier = Modifier.height(24.dp))
-                Text("Témoignage déjà scellé", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                Text(stringResource(R.string.witness_response_sealed_title), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "Vous avez déjà envoyé votre témoignage pour $creatorName. Il est maintenant en sécurité.",
+                    stringResource(R.string.witness_response_sealed_text, creatorName ?: ""),
                     color = theme.contentColor.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 Button(onClick = { navController.popBackStack() }, colors = ButtonDefaults.buttonColors(containerColor = accent), modifier = Modifier.phoenXMatiere()) {
-                    Text("Retour", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.witness_response_button_back), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -113,13 +115,13 @@ fun WitnessResponseScreen(
                     tint = accent
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                Text("Témoignage scellé.\nMerci pour ce souvenir.", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = accent, textAlign = TextAlign.Center)
+                Text(stringResource(R.string.witness_response_ritual_success), style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = accent, textAlign = TextAlign.Center)
             }
         }
         LaunchedEffect(Unit) {
             delay(4000)
             if (isCreator == false && !hasSeenPrompt) {
-                navController.navigate(Screen.BecomeCreatorPrompt.createRoute("witness", creatorName ?: "Votre proche")) {
+                navController.navigate(Screen.BecomeCreatorPrompt.createRoute("witness", creatorName ?: creatorFallback)) {
                     popUpTo(Screen.WitnessResponse.route) { inclusive = true }
                 }
             } else {
@@ -153,7 +155,7 @@ fun WitnessResponseScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    "Un témoignage pour ${creatorName ?: "ton proche"}",
+                    stringResource(R.string.witness_response_title, creatorName ?: stringResource(R.string.witness_response_creator_fallback)),
                     style = MaterialTheme.typography.headlineMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                     color = theme.contentColor,
                     textAlign = TextAlign.Center,
@@ -165,7 +167,7 @@ fun WitnessResponseScreen(
                 val instructionText = if (!witnessConfig?.requestPrompt.isNullOrBlank()) {
                     witnessConfig!!.requestPrompt!!
                 } else {
-                    "Raconte un moment où ${creatorName ?: "ton proche"} t'a surpris. Ce souvenir sera gardé précieusement et transmis à ses destinataires choisis."
+                    stringResource(R.string.witness_response_default_instruction, creatorName ?: stringResource(R.string.witness_response_creator_fallback))
                 }
 
                 Text(
@@ -189,7 +191,7 @@ fun WitnessResponseScreen(
                     Box(modifier = Modifier.padding(24.dp)) {
                         if (testimonyText.isEmpty()) {
                             Text(
-                                "Écris ton histoire ici...",
+                                stringResource(R.string.witness_response_placeholder),
                                 style = TextStyle(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontSize = 18.sp, color = theme.contentColor.copy(alpha = 0.3f))
                             )
                         }
@@ -221,18 +223,18 @@ fun WitnessResponseScreen(
                     } else {
                         Icon(Icons.AutoMirrored.Filled.Send, null, tint = theme.backgroundColor)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Sceller mon témoignage", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.witness_response_button_seal), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                     }
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 val (transparencyTitle, transparencyDesc) = if (witnessConfig?.allowReject == true) {
-                    "Validation préalable" to "Ton proche pourra lire ce témoignage avant de le transmettre, et pourra choisir de ne pas le transmettre s'il le juge inapproprié."
+                    stringResource(R.string.witness_response_transparency_reject_title) to stringResource(R.string.witness_response_transparency_reject_desc)
                 } else if (witnessConfig?.allowRead == true) {
-                    "Témoignage ouvert" to "Ton proche a demandé à pouvoir lire ce témoignage de son vivant. Il sera également transmis à ses destinataires."
+                    stringResource(R.string.witness_response_transparency_read_title) to stringResource(R.string.witness_response_transparency_read_desc)
                 } else {
-                    "Confidentialité totale" to "Ton témoignage est chiffré. Seul ton proche et ses destinataires pourront le lire après l'activation du protocole."
+                    stringResource(R.string.witness_response_transparency_standard_title) to stringResource(R.string.witness_response_transparency_standard_desc)
                 }
 
                 Text(

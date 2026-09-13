@@ -30,8 +30,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.data.local.WitnessEntity
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.InvitationConfirmDialog
@@ -80,7 +82,7 @@ fun WitnessInviteScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Les Témoins", 
+                            stringResource(R.string.witness_title), 
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontFamily = theme.fontFamily, 
                                 fontStyle = FontStyle.Italic,
@@ -88,13 +90,13 @@ fun WitnessInviteScreen(
                             )
                         )
                         InfoButton(
-                            title = "Les Témoins",
+                            title = stringResource(R.string.witness_info_title),
                             points = listOf(
-                                "Invite des proches à témoigner sur toi — tu ne verras jamais ce qu'ils écrivent.",
-                                "Leurs témoignages sont chiffrés et scellés jusqu'à l'activation du protocole.",
-                                "C'est une mémoire à 360° : ton histoire vue par les yeux de ceux qui t'aiment.",
-                                "Chaque témoin reçoit un lien unique par email.",
-                                "Tu peux choisir d'autoriser la lecture de ton vivant pour certains témoins."
+                                stringResource(R.string.witness_info_p1),
+                                stringResource(R.string.witness_info_p2),
+                                stringResource(R.string.witness_info_p3),
+                                stringResource(R.string.witness_info_p4),
+                                stringResource(R.string.witness_info_p5)
                             )
                         )
                     }
@@ -128,7 +130,7 @@ fun WitnessInviteScreen(
                 .padding(24.dp)
         ) {
             Text(
-                "Invite des proches à raconter un souvenir sur toi. Leurs mots enrichiront ton héritage.",
+                stringResource(R.string.witness_invite_description),
                 style = MaterialTheme.typography.bodyMedium,
                 color = theme.contentColor.copy(alpha = 0.7f),
                 lineHeight = 22.sp
@@ -141,7 +143,7 @@ fun WitnessInviteScreen(
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accent)
                 } else if (witnesses.isEmpty()) {
                     Text(
-                        "Aucun témoin pour l'instant.",
+                        stringResource(R.string.witness_empty_list),
                         style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic, fontFamily = theme.fontFamily),
                         color = theme.contentColor.copy(alpha = 0.4f),
                         modifier = Modifier.align(Alignment.Center)
@@ -176,7 +178,7 @@ fun WitnessInviteScreen(
                     reviewText = null
                 },
                 containerColor = theme.backgroundColor,
-                title = { Text("Témoignage de ${witnessToReview?.name}", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.witness_review_dialog_title, witnessToReview?.name ?: ""), color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
                 text = {
                     Box(modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp), contentAlignment = Alignment.Center) {
                         if (isReading) {
@@ -184,7 +186,7 @@ fun WitnessInviteScreen(
                         } else if (reviewText != null) {
                             Text(reviewText!!, color = theme.contentColor, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = theme.fontFamily))
                         } else {
-                            Text("Impossible de lire le témoignage.", color = Error)
+                            Text(stringResource(R.string.witness_review_error), color = Error)
                         }
                     }
                 },
@@ -196,7 +198,7 @@ fun WitnessInviteScreen(
                                 witnessToReview = null
                                 reviewText = null
                             }) {
-                                Text("Refuser", color = Error)
+                                Text(stringResource(R.string.witness_review_button_reject), color = Error)
                             }
                             Button(
                                 onClick = {
@@ -206,7 +208,7 @@ fun WitnessInviteScreen(
                                 },
                                 colors = ButtonDefaults.buttonColors(containerColor = Success)
                             ) {
-                                Text("Valider", color = Color.White)
+                                Text(stringResource(R.string.witness_review_button_validate), color = Color.White)
                             }
                         }
                     } else {
@@ -214,7 +216,7 @@ fun WitnessInviteScreen(
                             witnessToReview = null
                             reviewText = null
                         }) {
-                            Text("Fermer", color = theme.contentColor)
+                            Text(stringResource(R.string.witness_review_button_close), color = theme.contentColor)
                         }
                     }
                 }
@@ -235,19 +237,19 @@ fun WitnessInviteScreen(
             AlertDialog(
                 onDismissRequest = { witnessToDelete = null },
                 containerColor = theme.backgroundColor,
-                title = { Text("Supprimer ce témoin ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-                text = { Text("Veux-tu vraiment annuler l'invitation de ${witnessToDelete?.name} ?", color = theme.contentColor.copy(alpha = 0.7f)) },
+                title = { Text(stringResource(R.string.witness_delete_dialog_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                text = { Text(stringResource(R.string.witness_delete_dialog_text, witnessToDelete?.name ?: ""), color = theme.contentColor.copy(alpha = 0.7f)) },
                 confirmButton = {
                     TextButton(onClick = {
                         witnessToDelete?.let { viewModel.deleteWitness(it.id) }
                         witnessToDelete = null
                     }) {
-                        Text("Supprimer", color = Error, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.witness_delete_button_confirm), color = Error, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { witnessToDelete = null }) {
-                        Text("Annuler", color = theme.contentColor)
+                        Text(stringResource(R.string.witness_delete_button_cancel), color = theme.contentColor)
                     }
                 }
             )
@@ -300,10 +302,10 @@ fun WitnessCard(witness: WitnessEntity, onDelete: () -> Unit, onReview: () -> Un
             }
 
             val (statusColor, statusText) = when (witness.status) {
-                "submitted" -> Warning to "À vérifier"
-                "validated" -> Success to "Validé"
-                "rejected" -> Error to "Refusé"
-                else -> AccentPrimary to "Invité"
+                "submitted" -> Warning to stringResource(R.string.witness_status_to_verify)
+                "validated" -> Success to stringResource(R.string.witness_status_validated)
+                "rejected" -> Error to stringResource(R.string.witness_status_rejected)
+                else -> AccentPrimary to stringResource(R.string.witness_status_invited)
             }
 
             Column(horizontalAlignment = Alignment.End) {
@@ -372,7 +374,7 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
             containerColor = theme.backgroundColor,
             title = { 
                 Text(
-                    "Inviter un témoin", 
+                    stringResource(R.string.witness_dialog_title), 
                     color = theme.contentColor, 
                     style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold)
                 ) 
@@ -386,8 +388,8 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                     // SÉLECTEUR DE PHOTO (v9.2.2)
                     Box(
                         modifier = Modifier
-                            .clickable { photoPickerLauncher.launch("image/*") }
-                            .padding(bottom = 8.dp),
+                            .padding(bottom = 8.dp)
+                            .clickable { photoPickerLauncher.launch("image/*") },
                         contentAlignment = Alignment.BottomEnd
                     ) {
                         PhoenXAvatar(
@@ -410,7 +412,7 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Nom complet") },
+                        label = { Text(stringResource(R.string.witness_dialog_label_name)) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = accent,
@@ -424,7 +426,7 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email") },
+                        label = { Text(stringResource(R.string.witness_dialog_label_email)) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = accent,
@@ -438,18 +440,18 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
 
                     Column {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("ORIENTATION DU TÉMOIGNAGE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+                            Text(stringResource(R.string.witness_dialog_section_orientation), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                             Spacer(modifier = Modifier.width(8.dp))
                             com.example.phoenx.ui.components.InfoPoint(
-                                title = "Guider le témoin",
-                                content = "Tu peux poser une question précise ou suggérer un thème (ex: 'Raconte notre voyage en Italie', 'Qu'est-ce qui t'a le plus marqué dans mon caractère ?'). Cela aide le témoin à savoir par où commencer."
+                                title = stringResource(R.string.witness_dialog_info_title),
+                                content = stringResource(R.string.witness_dialog_info_content)
                             )
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = requestPrompt,
                             onValueChange = { requestPrompt = it },
-                            placeholder = { Text("Ex: Quel est ton souvenir le plus drôle avec moi ?", fontSize = 14.sp) },
+                            placeholder = { Text(stringResource(R.string.witness_dialog_placeholder_prompt), fontSize = 14.sp) },
                             modifier = Modifier.fillMaxWidth(),
                             maxLines = 3,
                             colors = OutlinedTextFieldDefaults.colors(
@@ -468,7 +470,7 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                                 onCheckedChange = { allowRead = it },
                                 colors = CheckboxDefaults.colors(checkedColor = accent)
                             )
-                            Text("M'autoriser à lire ce témoignage de mon vivant", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
+                            Text(stringResource(R.string.witness_dialog_check_allow_read), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
                         }
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -477,7 +479,7 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                                 onCheckedChange = { allowReject = it },
                                 colors = CheckboxDefaults.colors(checkedColor = accent)
                             )
-                            Text("Droit de regard : pouvoir refuser le témoignage si inapproprié", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
+                            Text(stringResource(R.string.witness_dialog_check_allow_reject), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
                         }
                     }
                 }
@@ -488,12 +490,12 @@ fun InviteWitnessDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boole
                     enabled = name.isNotBlank() && email.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Suivant", color = theme.backgroundColor)
+                    Text(stringResource(R.string.witness_dialog_button_next), color = theme.backgroundColor)
                 }
             },
             dismissButton = {
                 TextButton(onClick = onDismiss) {
-                    Text("Annuler", color = theme.contentColor)
+                    Text(stringResource(R.string.witness_dialog_button_cancel), color = theme.contentColor)
                 }
             }
         )

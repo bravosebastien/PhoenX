@@ -1713,4 +1713,64 @@
     <string name="legacy_unique_key_exists_title">Clé déjà utilisée</string>
     <string name="legacy_unique_key_exists_desc">Le Tiroir à Clé Unique a déjà été scellé. Conformément à l\'ADN de PHOEN-X, ce tiroir est définitif.</string>
     <string name="legacy_unique_key_error_generic">Erreur</string>
+
+    <!-- Witness Batch -->
+    <string name="witness_title">Les Témoins</string>
+    <string name="witness_info_title">Les Témoins</string>
+    <string name="witness_info_p1">Invite des proches à témoigner sur toi — tu ne verras jamais ce qu\'ils écrivent.</string>
+    <string name="witness_info_p2">Leurs témoignages sont chiffrés et scellés jusqu\'à l\'activation du protocole.</string>
+    <string name="witness_info_p3">C\'est une mémoire à 360° : ton histoire vue par les yeux de ceux qui t\'aiment.</string>
+    <string name="witness_info_p4">Chaque témoin reçoit un lien unique par email.</string>
+    <string name="witness_info_p5">Tu peux choisir d\'autoriser la lecture de ton vivant pour certains témoins.</string>
+    <string name="witness_invite_description">Invite des proches à raconter un souvenir sur toi. Leurs mots enrichiront ton héritage.</string>
+    <string name="witness_empty_list">Aucun témoin pour l\'instant.</string>
+    <string name="witness_review_dialog_title">Témoignage de %1$s</string>
+    <string name="witness_review_error">Impossible de lire le témoignage.</string>
+    <string name="witness_review_button_reject">Refuser</string>
+    <string name="witness_review_button_validate">Valider</string>
+    <string name="witness_review_button_close">Fermer</string>
+    <string name="witness_delete_dialog_title">Supprimer ce témoin ?</string>
+    <string name="witness_delete_dialog_text">Veux-tu vraiment annuler l\'invitation de %1$s ?</string>
+    <string name="witness_delete_button_confirm">Supprimer</string>
+    <string name="witness_delete_button_cancel">Annuler</string>
+    <string name="witness_status_to_verify">À vérifier</string>
+    <string name="witness_status_validated">Validé</string>
+    <string name="witness_status_rejected">Refusé</string>
+    <string name="witness_status_invited">Invité</string>
+    <string name="witness_dialog_title">Inviter un témoin</string>
+    <string name="witness_dialog_label_name">Nom complet</string>
+    <string name="witness_dialog_label_email">Email</string>
+    <string name="witness_dialog_section_orientation">ORIENTATION DU TÉMOIGNAGE</string>
+    <string name="witness_dialog_info_title">Guider le témoin</string>
+    <string name="witness_dialog_info_content">Tu peux poser une question précise ou suggérer un thème (ex: \'Raconte notre voyage en Italie\', \'Qu\'est-ce qui t\'a le plus marqué dans mon caractère ?\'). Cela aide le témoin à savoir par où commencer.</string>
+    <string name="witness_dialog_placeholder_prompt">Ex: Quel est ton souvenir le plus drôle avec moi ?</string>
+    <string name="witness_dialog_check_allow_read">M\'autoriser à lire ce témoignage de mon vivant</string>
+    <string name="witness_dialog_check_allow_reject">Droit de regard : pouvoir refuser le témoignage si inapproprié</string>
+    <string name="witness_dialog_button_next">Suivant</string>
+    <string name="witness_dialog_button_cancel">Annuler</string>
+
+    <string name="witness_response_sealed_title">Témoignage déjà scellé</string>
+    <string name="witness_response_sealed_text">Vous avez déjà envoyé votre témoignage pour %1$s. Il est maintenant en sécurité.</string>
+    <string name="witness_response_button_back">Retour</string>
+    <string name="witness_response_ritual_success">Témoignage scellé.\nMerci pour ce souvenir.</string>
+    <string name="witness_response_title">Un témoignage pour %1$s</string>
+    <string name="witness_response_default_instruction">Raconte un moment où %1$s t\'a surpris. Ce souvenir sera gardé précieusement et transmis à ses destinataires choisis.</string>
+    <string name="witness_response_placeholder">Écris ton histoire ici...</string>
+    <string name="witness_response_button_seal">Sceller mon témoignage</string>
+    <string name="witness_response_transparency_reject_title">Validation préalable</string>
+    <string name="witness_response_transparency_reject_desc">Ton proche pourra lire ce témoignage avant de le transmettre, et pourra choisir de ne pas le transmettre s\'il le juge inapproprié.</string>
+    <string name="witness_response_transparency_read_title">Témoignage ouvert</string>
+    <string name="witness_response_transparency_read_desc">Ton proche a demandé à pouvoir lire ce témoignage de son vivant. Il sera également transmis à ses destinataires.</string>
+    <string name="witness_response_transparency_standard_title">Confidentialité totale</string>
+    <string name="witness_response_transparency_standard_desc">Ton témoignage est chiffré. Seul ton proche et ses destinataires pourront le lire après l\'activation du protocole.</string>
+    <string name="witness_response_creator_fallback">ton proche</string>
+
+    <string name="witness_vm_error_invalid_token">Lien invalide ou accès refusé.</string>
+    <string name="witness_vm_invite_label">Témoin</string>
+    <string name="witness_vm_email_subject">%1$s demande ton témoignage</string>
+    <string name="witness_vm_email_text">Bonjour %1$s,\n\n%2$s prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous demandant de témoigner sur un souvenir partagé.\n\nLien pour rejoindre son cercle : https://phoenx.app/join/%3$s</string>
+    <string name="witness_vm_error_invite">Impossible d\'envoyer l\'invitation. Vérifie ta connexion.</string>
+    <string name="witness_vm_error_update_status">Erreur lors de la mise à jour du statut.</string>
+    <string name="witness_vm_error_public_key">Clé publique du Créateur manquante</string>
+    <string name="witness_vm_error_submit">Échec de l\'envoi du témoignage. Réessaie plus tard.</string>
 </resources>

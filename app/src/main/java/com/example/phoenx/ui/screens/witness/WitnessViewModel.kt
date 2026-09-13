@@ -1,7 +1,9 @@
 package com.example.phoenx.ui.screens.witness
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.WitnessEntity
@@ -10,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -23,7 +26,8 @@ class WitnessViewModel @Inject constructor(
     private val functions: FirebaseFunctions,
     private val encryptionManager: EncryptionManager,
     private val offlineEntryDao: OfflineEntryDao,
-    private val mediaManager: MediaManager
+    private val mediaManager: MediaManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _witnesses = MutableStateFlow<List<WitnessEntity>>(emptyList())
@@ -81,7 +85,7 @@ class WitnessViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 android.util.Log.e("WitnessVM", "Error verifying token/UID", e)
-                _error.value = "Lien invalide ou accès refusé."
+                _error.value = context.getString(R.string.witness_vm_error_invalid_token)
             } finally {
                 _isLoading.value = false
             }
@@ -190,7 +194,7 @@ class WitnessViewModel @Inject constructor(
                     "email" to email,
                     "role" to "witness",
                     "sourceId" to docRef.id,
-                    "label" to "Témoin"
+                    "label" to context.getString(R.string.witness_vm_invite_label)
                 )
                 val result = functions.getHttpsCallable("generateUniversalInvitation").call(inviteData).await()
                 val tokenId = (result.data as Map<*, *>)["tokenId"] as String
@@ -198,15 +202,15 @@ class WitnessViewModel @Inject constructor(
                 // 4. Envoi de l'email via Cloud Function (v9.4.10)
                 val emailData = hashMapOf(
                     "to" to email,
-                    "subject" to "$creatorName demande ton témoignage",
-                    "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous demandant de témoigner sur un souvenir partagé.\n\nLien pour rejoindre son cercle : https://phoenx.app/join/$tokenId"
+                    "subject" to context.getString(R.string.witness_vm_email_subject, creatorName),
+                    "text" to context.getString(R.string.witness_vm_email_text, name, creatorName, tokenId)
                 )
                 functions.getHttpsCallable("sendMail").call(emailData).await()
                 
                 _inviteSuccess.emit(true)
             } catch (e: Exception) {
                 android.util.Log.e("WitnessVM", "Error inviting witness", e)
-                _error.value = "Impossible d'envoyer l'invitation. Vérifie ta connexion."
+                _error.value = context.getString(R.string.witness_vm_error_invite)
             } finally {
                 _isLoading.value = false
             }
@@ -303,7 +307,7 @@ class WitnessViewModel @Inject constructor(
                     offlineEntryDao.insertWitness(it.copy(status = newStatus))
                 }
             } catch (e: Exception) {
-                _error.value = "Erreur lors de la mise à jour du statut."
+                _error.value = context.getString(R.string.witness_vm_error_update_status)
             }
         }
     }
@@ -324,7 +328,7 @@ class WitnessViewModel @Inject constructor(
                 // 1. Chiffrement conditionnel (RSA si droit de regard ou de lecture)
                 val encryptedBytes = if (config?.allowRead == true || config?.allowReject == true) {
                     val pubKeyBase64 = config.publicKey 
-                        ?: throw Exception("Clé publique du Créateur manquante")
+                        ?: throw Exception(context.getString(R.string.witness_vm_error_public_key))
                     val pubKeyBytes = android.util.Base64.decode(pubKeyBase64, android.util.Base64.NO_WRAP)
                     encryptionManager.encryptWithPublicKey(testimonyText, pubKeyBytes)
                 } else {
@@ -349,7 +353,7 @@ class WitnessViewModel @Inject constructor(
                 onSuccess()
             } catch (e: Exception) {
                 android.util.Log.e("WitnessVM", "Error submitting testimony", e)
-                _error.value = "Échec de l'envoi du témoignage. Réessaie plus tard."
+                _error.value = context.getString(R.string.witness_vm_error_submit)
             } finally {
                 _isLoading.value = false
             }
