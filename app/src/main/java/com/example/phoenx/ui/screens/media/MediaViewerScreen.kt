@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,6 +33,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.AccentPrimary
 import com.example.phoenx.ui.theme.BackgroundPrimary
@@ -128,7 +130,7 @@ fun MediaViewerScreen(
                 else -> {
                     android.util.Log.e("MediaSupportDiag", "Branche ELSE atteinte. Type inconnu: ${entry!!.type}")
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Média non supporté (${entry!!.type})", color = Color.White)
+                        Text(stringResource(R.string.media_viewer_unsupported, entry!!.type), color = Color.White)
                     }
                 }
             }
@@ -154,7 +156,7 @@ fun MediaViewerScreen(
             )
             Icon(
                 imageVector = Icons.Default.Close, 
-                contentDescription = "Fermer", 
+                contentDescription = stringResource(R.string.media_viewer_close),
                 tint = Color.White.copy(alpha = 0.9f),
                 modifier = Modifier.size(16.dp)
             )

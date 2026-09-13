@@ -29,8 +29,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
@@ -58,7 +60,7 @@ fun YoungSelfLetterScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Lettre à mon Jeune Moi", style = MaterialTheme.typography.labelLarge, fontFamily = theme.fontFamily, color = theme.contentColor) },
+                title = { Text(stringResource(R.string.young_self_title), style = MaterialTheme.typography.labelLarge, fontFamily = theme.fontFamily, color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
@@ -78,7 +80,7 @@ fun YoungSelfLetterScreen(
             // ── HISTORIQUE (v8.6.2) ──────────────────
             if (existingLetters.isNotEmpty()) {
                 Text(
-                    "VOS LETTRES SCELLÉES", 
+                    stringResource(R.string.young_self_history_header), 
                     style = MaterialTheme.typography.labelSmall, 
                     color = accent, 
                     letterSpacing = 2.sp
@@ -98,9 +100,9 @@ fun YoungSelfLetterScreen(
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Icon(Icons.Default.HistoryEdu, null, tint = accent, modifier = Modifier.size(16.dp))
                                 Spacer(modifier = Modifier.height(8.dp))
-                                Text("À mes ${letter.targetAge} ans", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
+                                Text(stringResource(R.string.young_self_card_age, letter.targetAge ?: 0), style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
                                 val year = uiState.birthYear + (letter.targetAge ?: 0)
-                                Text("Écrit pour $year", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                                Text(stringResource(R.string.young_self_card_year, year), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                             }
                         }
                     }
@@ -114,7 +116,7 @@ fun YoungSelfLetterScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Qu'aurais-tu voulu entendre, à l'âge où tout semblait encore incertain ?",
+                    text = stringResource(R.string.young_self_main_question),
                     style = TextStyle(
                         fontFamily = theme.fontFamily,
                         fontSize = 24.sp,
@@ -125,13 +127,13 @@ fun YoungSelfLetterScreen(
                     modifier = Modifier.weight(1f)
                 )
                 InfoButton(
-                    title = "Lettre à Mon Jeune Moi",
+                    title = stringResource(R.string.young_self_info_title),
                     points = listOf(
-                        "Choisis un âge dans ton passé et écris une lettre à toi-même.",
-                        "L'application calcule l'année correspondante depuis ta date de naissance.",
-                        "Si tu manques d'inspiration, tape sur l'ampoule pour des suggestions.",
-                        "Cette lettre sera conservée comme un souvenir normal dans ton Fil de Pensée.",
-                        "C'est l'une des fonctionnalités les plus touchantes pour tes proches."
+                        stringResource(R.string.young_self_info_point1),
+                        stringResource(R.string.young_self_info_point2),
+                        stringResource(R.string.young_self_info_point3),
+                        stringResource(R.string.young_self_info_point4),
+                        stringResource(R.string.young_self_info_point5)
                     )
                 )
             }
@@ -147,7 +149,7 @@ fun YoungSelfLetterScreen(
                 ) {
                     Column {
                         Text(
-                            text = "À mes ${uiState.targetAge} ans",
+                            text = stringResource(R.string.young_self_label_at_age, uiState.targetAge),
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 fontFamily = theme.fontFamily,
                                 fontWeight = FontWeight.Bold
@@ -155,7 +157,7 @@ fun YoungSelfLetterScreen(
                             color = theme.contentColor
                         )
                         Text(
-                            text = "C'était en ${uiState.calculatedYear}",
+                            text = stringResource(R.string.young_self_label_was_in, uiState.calculatedYear),
                             style = MaterialTheme.typography.bodySmall,
                             color = theme.contentColor.copy(alpha = 0.6f)
                         )
@@ -230,12 +232,12 @@ fun YoungSelfLetterScreen(
                 AlertDialog(
                     onDismissRequest = { showCustomAgeDialog = false },
                     containerColor = theme.backgroundColor,
-                    title = { Text("Quel âge avais-tu ?", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
+                    title = { Text(stringResource(R.string.young_self_dialog_age_title), color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
                     text = {
                         OutlinedTextField(
                             value = customAgeInput,
                             onValueChange = { if (it.length <= 2 && it.all { c -> c.isDigit() }) customAgeInput = it },
-                            label = { Text("Âge exact") },
+                            label = { Text(stringResource(R.string.young_self_dialog_age_label)) },
                             modifier = Modifier.fillMaxWidth(),
                             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f))
@@ -246,10 +248,10 @@ fun YoungSelfLetterScreen(
                             val age = customAgeInput.toIntOrNull() ?: uiState.targetAge
                             viewModel.updateTargetAge(age)
                             showCustomAgeDialog = false
-                        }) { Text("Valider", color = accent, fontWeight = FontWeight.Bold) }
+                        }) { Text(stringResource(R.string.young_self_dialog_button_validate), color = accent, fontWeight = FontWeight.Bold) }
                     },
                     dismissButton = {
-                        TextButton(onClick = { showCustomAgeDialog = false }) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f)) }
+                        TextButton(onClick = { showCustomAgeDialog = false }) { Text(stringResource(R.string.young_self_dialog_button_cancel), color = theme.contentColor.copy(alpha = 0.6f)) }
                     }
                 )
             }
@@ -267,7 +269,7 @@ fun YoungSelfLetterScreen(
             ) {
                 if (uiState.letterContent.isEmpty()) {
                     Text(
-                        text = "Cher moi de ${uiState.targetAge} ans...",
+                        text = stringResource(R.string.young_self_placeholder, uiState.targetAge),
                         style = TextStyle(
                             fontFamily = theme.fontFamily,
                             fontSize = 18.sp,
@@ -303,7 +305,7 @@ fun YoungSelfLetterScreen(
             ) {
                 Icon(Icons.Default.Lightbulb, null, tint = theme.contentColor.copy(alpha = 0.5f), modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Voir des pistes d'inspiration", color = theme.contentColor.copy(alpha = 0.5f), style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(R.string.young_self_button_inspiration), color = theme.contentColor.copy(alpha = 0.5f), style = MaterialTheme.typography.bodySmall)
             }
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -324,7 +326,7 @@ fun YoungSelfLetterScreen(
                 if (uiState.isSaving) {
                     CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
                 } else {
-                    Text("Sceller cette lettre", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.young_self_button_seal), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -337,13 +339,13 @@ fun YoungSelfLetterScreen(
                 contentColor = theme.contentColor
             ) {
                 Column(modifier = Modifier.padding(24.dp).fillMaxWidth().padding(bottom = 32.dp)) {
-                    Text("PISTES D'INSPIRATION", style = MaterialTheme.typography.labelSmall, color = accent)
+                    Text(stringResource(R.string.young_self_bottom_sheet_title), style = MaterialTheme.typography.labelSmall, color = accent)
                     Spacer(modifier = Modifier.height(24.dp))
                     
                     if (uiState.isLoadingSuggestions) {
                         CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally), color = accent)
                     } else if (uiState.suggestions.isEmpty()) {
-                        Text("Aucune suggestion pour le moment. Continue à remplir ton héritage !", color = theme.contentColor.copy(alpha = 0.6f))
+                        Text(stringResource(R.string.young_self_no_suggestions), color = theme.contentColor.copy(alpha = 0.6f))
                     } else {
                         uiState.suggestions.forEach { suggestion ->
                             Card(

@@ -1088,6 +1088,67 @@
     <string name="guide_start_adventure">Commencer l\'aventure</string>
     <string name="guide_swipe_to_continue">Faites glisser pour continuer →</string>
 
+    <!-- Favorites Batch -->
+    <string name="favorites_title">Mes Meilleurs</string>
+    <string name="favorites_taste_map_title">TA CARTE DES GOÛTS</string>
+    <string name="favorites_empty_title">Ta bibliothèque est vide.</string>
+    <string name="favorites_empty_subtitle">Ajoute tes livres, films et musiques essentiels.</string>
+    <string name="favorites_dialog_add_title">Ajouter un incontournable</string>
+    <string name="favorites_label_title">Titre / Nom</string>
+    <string name="favorites_label_why">Pourquoi est-ce important ?</string>
+    <string name="favorites_button_add">Ajouter</string>
+    <string name="favorites_button_cancel">Annuler</string>
+    <string name="favorites_cat_books">Livres</string>
+    <string name="favorites_cat_movies">Films</string>
+    <string name="favorites_cat_music">Musiques</string>
+    <string name="favorites_cat_travels">Voyages</string>
+    <string name="favorites_taste_map_fallback">Ta bibliothèque révèle un attachement profond pour les récits d\'aventure et la musique mélancolique. Tes choix tournent souvent autour du thème de la découverte.</string>
+
+    <!-- Mailbox Batch -->
+    <string name="mailbox_title">Capsules Temporelles</string>
+    <string name="mailbox_info_title">Capsules Temporelles</string>
+    <string name="mailbox_info_content">Une Capsule Temporelle est un souvenir que vous programmez pour s\'ouvrir à une date précise, choisie à l\'avance — un anniversaire, un mariage à venir, une date qui compte pour vous. Le destinataire ne peut pas l\'ouvrir avant cette date : elle apparaît dans sa Boîte aux Lettres avec la date d\'ouverture affichée, en attendant. Une fois programmée, la date ne peut plus être modifiée directement — il faut supprimer la capsule et la recréer si vous voulez changer la date.</string>
+    <string name="mailbox_list_header">Tes capsules temporelles</string>
+    <string name="mailbox_date_unknown">Date inconnue</string>
+    <string name="mailbox_opening_on">OUVERTURE LE %1$s</string>
+    <string name="mailbox_default_summary">Message programmé</string>
+    <string name="mailbox_empty_title">Aucune capsule temporelle.</string>
+    <string name="mailbox_empty_subtitle">Programme des souvenirs pour des dates futures.</string>
+
+    <!-- Media Viewer -->
+    <string name="media_viewer_unsupported">Média non supporté (%1$s)</string>
+    <string name="media_viewer_close">Fermer</string>
+
+    <!-- Worlds Batch -->
+    <string name="worlds_title">Les Tiroirs de ma Vie</string>
+    <string name="worlds_subtitle">Rangement assisté par IA</string>
+    <string name="worlds_empty_title">La commode est vide.</string>
+    <string name="worlds_empty_subtitle">Capture des souvenirs pour les voir se ranger ici.</string>
+
+    <!-- Young Self Letter Batch -->
+    <string name="young_self_title">Lettre à mon Jeune Moi</string>
+    <string name="young_self_history_header">VOS LETTRES SCELLÉES</string>
+    <string name="young_self_card_age">À mes %1$d ans</string>
+    <string name="young_self_card_year">Écrit pour %1$d</string>
+    <string name="young_self_main_question">Qu\'aurais-tu voulu entendre, à l\'âge où tout semblait encore incertain ?</string>
+    <string name="young_self_info_title">Lettre à Mon Jeune Moi</string>
+    <string name="young_self_info_point1">Choisis un âge dans ton passé et écris une lettre à toi-même.</string>
+    <string name="young_self_info_point2">L\'application calcule l\'année correspondante depuis ta date de naissance.</string>
+    <string name="young_self_info_point3">Si tu manques d\'inspiration, tape sur l\'ampoule pour des suggestions.</string>
+    <string name="young_self_info_point4">Cette lettre sera conservée comme un souvenir normal dans ton Fil de Pensée.</string>
+    <string name="young_self_info_point5">C\'est l\'une des fonctionnalités les plus touchantes pour tes proches.</string>
+    <string name="young_self_label_at_age">À mes %1$d ans</string>
+    <string name="young_self_label_was_in">C\'était en %1$d</string>
+    <string name="young_self_dialog_age_title">Quel âge avais-tu ?</string>
+    <string name="young_self_dialog_age_label">Âge exact</string>
+    <string name="young_self_dialog_button_validate">Valider</string>
+    <string name="young_self_dialog_button_cancel">Annuler</string>
+    <string name="young_self_placeholder">Cher moi de %1$d ans...</string>
+    <string name="young_self_button_inspiration">Voir des pistes d\'inspiration</string>
+    <string name="young_self_button_seal">Sceller cette lettre</string>
+    <string name="young_self_bottom_sheet_title">PISTES D\'INSPIRATION</string>
+    <string name="young_self_no_suggestions">Aucune suggestion pour le moment. Continue à remplir ton héritage !</string>
+
     <!-- Pact / Miroir à Deux Batch -->
     <string name="pact_screen_title">Le Miroir à Deux</string>
     <string name="pact_info_title">Le Pacte</string>

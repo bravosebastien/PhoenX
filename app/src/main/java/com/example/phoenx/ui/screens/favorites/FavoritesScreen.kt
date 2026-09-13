@@ -22,7 +22,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,7 +43,7 @@ fun FavoritesScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Mes Meilleurs", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(stringResource(R.string.favorites_title), style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -113,7 +115,7 @@ fun TasteMapCard(content: String, theme: AppThemeState) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("TA CARTE DES GOÛTS", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, letterSpacing = 2.sp)
+                Text(stringResource(R.string.favorites_taste_map_title), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, letterSpacing = 2.sp)
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(content, style = MaterialTheme.typography.bodySmall.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold), color = theme.contentColor)
@@ -125,9 +127,9 @@ fun TasteMapCard(content: String, theme: AppThemeState) {
 fun FavoriteCard(item: FavoriteItem, theme: AppThemeState) {
     val accent = theme.accentColor
     val icon = when(item.category) {
-        "Livres" -> Icons.Default.AutoStories
-        "Films" -> Icons.Default.Theaters
-        "Musiques" -> Icons.Default.MusicNote
+        stringResource(R.string.favorites_cat_books) -> Icons.Default.AutoStories
+        stringResource(R.string.favorites_cat_movies) -> Icons.Default.Theaters
+        stringResource(R.string.favorites_cat_music) -> Icons.Default.MusicNote
         else -> Icons.Default.Public
     }
 
@@ -165,8 +167,8 @@ fun EmptyFavorites(modifier: Modifier = Modifier, theme: AppThemeState) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Ta bibliothèque est vide.", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
-        Text("Ajoute tes livres, films et musiques essentiels.", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.favorites_empty_title), color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
+        Text(stringResource(R.string.favorites_empty_subtitle), color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -176,13 +178,17 @@ fun AddFavoriteDialog(onDismiss: () -> Unit, theme: AppThemeState, onConfirm: (S
     val accent = theme.accentColor
     var title by remember { mutableStateOf("") }
     var why by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("Livres") }
-    val categories = listOf("Livres", "Films", "Musiques", "Voyages")
+    val catBooks = stringResource(R.string.favorites_cat_books)
+    val catMovies = stringResource(R.string.favorites_cat_movies)
+    val catMusic = stringResource(R.string.favorites_cat_music)
+    val catTravels = stringResource(R.string.favorites_cat_travels)
+    var category by remember { mutableStateOf(catBooks) }
+    val categories = listOf(catBooks, catMovies, catMusic, catTravels)
 
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = theme.backgroundColor,
-        title = { Text("Ajouter un incontournable", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+        title = { Text(stringResource(R.string.favorites_dialog_add_title), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 // Catégorie
@@ -205,7 +211,7 @@ fun AddFavoriteDialog(onDismiss: () -> Unit, theme: AppThemeState, onConfirm: (S
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Titre / Nom") },
+                    label = { Text(stringResource(R.string.favorites_label_title)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = accent,
@@ -218,7 +224,7 @@ fun AddFavoriteDialog(onDismiss: () -> Unit, theme: AppThemeState, onConfirm: (S
                 OutlinedTextField(
                     value = why,
                     onValueChange = { why = it },
-                    label = { Text("Pourquoi est-ce important ?") },
+                    label = { Text(stringResource(R.string.favorites_label_why)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 3,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -237,12 +243,12 @@ fun AddFavoriteDialog(onDismiss: () -> Unit, theme: AppThemeState, onConfirm: (S
                 colors = ButtonDefaults.buttonColors(containerColor = accent),
                 modifier = Modifier.phoenXMatiere()
             ) {
-                Text("Ajouter", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.favorites_button_add), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler", color = theme.contentColor)
+                Text(stringResource(R.string.favorites_button_cancel), color = theme.contentColor)
             }
         }
     )

@@ -22,7 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,8 +44,8 @@ fun WorldsScreen(
             TopAppBar(
                 title = { 
                     Column {
-                        Text("Les Tiroirs de ma Vie", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
-                        Text("Rangement assisté par IA", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+                        Text(stringResource(R.string.worlds_title), style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                        Text(stringResource(R.string.worlds_subtitle), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                     }
                 },
                 navigationIcon = {
@@ -68,8 +70,8 @@ fun WorldsScreen(
                     ) {
                         Icon(Icons.Default.Inbox, null, modifier = Modifier.size(64.dp), tint = theme.contentColor.copy(alpha = 0.2f))
                         Spacer(modifier = Modifier.height(24.dp))
-                        Text("La commode est vide.", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
-                        Text("Capture des souvenirs pour les voir se ranger ici.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.4f))
+                        Text(stringResource(R.string.worlds_empty_title), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                        Text(stringResource(R.string.worlds_empty_subtitle), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.4f))
                     }
                 }
                 is WorldsUiState.Success -> {

@@ -20,7 +20,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
@@ -44,7 +46,7 @@ fun MailboxScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Capsules Temporelles", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(stringResource(R.string.mailbox_title), style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -52,8 +54,8 @@ fun MailboxScreen(
                 },
                 actions = {
                     InfoButton(
-                        title = "Capsules Temporelles",
-                        points = listOf("Une Capsule Temporelle est un souvenir que vous programmez pour s'ouvrir à une date précise, choisie à l'avance — un anniversaire, un mariage à venir, une date qui compte pour vous. Le destinataire ne peut pas l'ouvrir avant cette date : elle apparaît dans sa Boîte aux Lettres avec la date d'ouverture affichée, en attendant. Une fois programmée, la date ne peut plus être modifiée directement — il faut supprimer la capsule et la recréer si vous voulez changer la date.")
+                        title = stringResource(R.string.mailbox_info_title),
+                        points = listOf(stringResource(R.string.mailbox_info_content))
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -73,7 +75,7 @@ fun MailboxScreen(
                 ) {
                     item {
                         Text(
-                            "Tes capsules temporelles",
+                            stringResource(R.string.mailbox_list_header),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = accent,
                             letterSpacing = 2.sp
@@ -95,11 +97,12 @@ fun MailboxScreen(
 
 @Composable
 fun ScheduledItemCard(item: OfflineEntry, theme: AppThemeState, onDelete: () -> Unit) {
+    val locale = java.util.Locale.getDefault()
     val dateText = item.scheduledTimestamp?.let {
-        DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.FRENCH)
+        DateTimeFormatter.ofPattern("dd MMMM yyyy", locale)
             .withZone(ZoneId.systemDefault())
             .format(Instant.ofEpochMilli(it))
-    } ?: "Date inconnue"
+    } ?: stringResource(R.string.mailbox_date_unknown)
 
     Card(
         modifier = Modifier.fillMaxWidth().phoenXMatiere(),
@@ -118,13 +121,13 @@ fun ScheduledItemCard(item: OfflineEntry, theme: AppThemeState, onDelete: () -> 
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "OUVERTURE LE $dateText",
+                    text = stringResource(R.string.mailbox_opening_on, dateText),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = Success
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = item.aiSummary.ifEmpty { "Message programmé" },
+                    text = item.aiSummary.ifEmpty { stringResource(R.string.mailbox_default_summary) },
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor
                 )
@@ -145,7 +148,7 @@ fun EmptyMailboxContent(modifier: Modifier = Modifier, theme: AppThemeState) {
     ) {
         Icon(Icons.Default.CalendarToday, null, modifier = Modifier.size(64.dp), tint = theme.contentColor.copy(alpha = 0.2f))
         Spacer(modifier = Modifier.height(24.dp))
-        Text("Aucune capsule temporelle.", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
-        Text("Programme des souvenirs pour des dates futures.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.4f))
+        Text(stringResource(R.string.mailbox_empty_title), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+        Text(stringResource(R.string.mailbox_empty_subtitle), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.4f))
     }
 }

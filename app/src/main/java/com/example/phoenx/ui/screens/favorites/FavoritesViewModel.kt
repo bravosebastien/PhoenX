@@ -1,11 +1,14 @@
 package com.example.phoenx.ui.screens.favorites
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.FavoriteEntity
 import com.example.phoenx.data.local.OfflineEntryDao
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -15,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
-    private val encryptionManager: EncryptionManager
+    private val encryptionManager: EncryptionManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<FavoritesUiState>(FavoritesUiState.Loading)
@@ -32,7 +36,7 @@ class FavoritesViewModel @Inject constructor(
                 
                 // Simulation de génération de Carte des Goûts par l'IA
                 val tasteMap = if (decoded.isNotEmpty()) {
-                    "Ta bibliothèque révèle un attachement profond pour les récits d'aventure et la musique mélancolique. Tes choix tournent souvent autour du thème de la découverte."
+                    context.getString(R.string.favorites_taste_map_fallback)
                 } else ""
 
                 _uiState.value = FavoritesUiState.Success(decoded, tasteMap)
