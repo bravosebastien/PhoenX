@@ -18,11 +18,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.phoenx.R
 import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.theme.*
@@ -89,7 +92,7 @@ fun AudioCaptureContent(
         verticalArrangement = Arrangement.Center
     ) {
         if (!isRecording && transcript.isNotEmpty()) {
-            Text("Donne une âme à cet enregistrement :", style = MaterialTheme.typography.labelSmall, color = theme.accentColor)
+            Text(stringResource(R.string.capture_audio_soul), style = MaterialTheme.typography.labelSmall, color = theme.accentColor)
             Spacer(modifier = Modifier.height(16.dp))
             OutlinedTextField(
                 value = transcript,
@@ -108,7 +111,7 @@ fun AudioCaptureContent(
         }
 
         Text(
-            text = if (isRecording) "On t'écoute..." else if (transcript.isEmpty()) "Parle, nous écrivons pour toi" else "Continuer l'enregistrement ?",
+            text = if (isRecording) stringResource(R.string.capture_audio_listening) else if (transcript.isEmpty()) stringResource(R.string.capture_audio_instructions) else stringResource(R.string.capture_audio_continue),
             style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily),
             color = theme.contentColor,
             textAlign = TextAlign.Center
@@ -148,7 +151,7 @@ fun AudioCaptureContent(
         
         if (isRecording) {
             Spacer(modifier = Modifier.height(32.dp))
-            Text("Appuie pour arrêter", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+            Text(stringResource(R.string.capture_audio_stop_hint), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
         } else if (transcript.isNotEmpty()) {
             Spacer(modifier = Modifier.height(24.dp))
             
@@ -168,7 +171,7 @@ fun AudioCaptureContent(
             } else {
                 // ÉTAPE 2 : HABILLAGE & DESTINATION (Audio)
                 Text(
-                    "HABILLAGE & DESTINATION", 
+                    stringResource(R.string.capture_habillage_destination), 
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                     color = theme.contentColor.copy(alpha = 0.4f)
                 )
@@ -189,12 +192,12 @@ fun AudioCaptureContent(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            "DANS QUELS TIROIRS ?", 
+                            stringResource(R.string.capture_compartments_label), 
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                             color = theme.contentColor.copy(alpha = 0.4f)
                         )
                         val count = selectedRecipientIds.size
-                        val label = if (visibility == "EVERYONE") "Tout le monde" else if (count == 0) "Privé" else "$count choisi(s)"
+                        val label = if (visibility == "EVERYONE") stringResource(R.string.capture_visibility_everyone) else if (count == 0) stringResource(R.string.capture_visibility_private) else stringResource(R.string.capture_recipients_count, count)
                         Text(text = label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                     }
                 }
@@ -233,7 +236,7 @@ fun AudioCaptureContent(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "QUELLE TONALITÉ ?", 
+                            text = stringResource(R.string.capture_tonality_label), 
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                             color = theme.contentColor.copy(alpha = 0.4f)
                         )
@@ -244,7 +247,7 @@ fun AudioCaptureContent(
                 AnimatedVisibility(visible = isTonaliteExpanded) {
                     Column {
                         Spacer(modifier = Modifier.height(12.dp))
-                        val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour", "Nostalgie", "Humour", "Leçon", "Voyage", "Quotidien", "Épreuve")
+                        val categories = stringArrayResource(R.array.tonality_categories)
                         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             categories.forEach { cat ->
                                 FilterChip(
@@ -262,8 +265,8 @@ fun AudioCaptureContent(
                             value = tonalNuance,
                             onValueChange = { if (it.length <= 100) onTonalNuanceChange(it) },
                             modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Précisez la nuance (facultatif)", fontSize = 11.sp) },
-                            placeholder = { Text("Ex : un peu amer mais je souris en l'écrivant...", fontSize = 11.sp) },
+                            label = { Text(stringResource(R.string.capture_tonality_nuance_label), fontSize = 11.sp) },
+                            placeholder = { Text(stringResource(R.string.capture_tonality_nuance_placeholder), fontSize = 11.sp) },
                             maxLines = 3,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
@@ -285,17 +288,18 @@ fun AudioCaptureContent(
 
                 // CAPSULE TEMPORELLE (Ouverture programmée)
                 Text(
-                    "CAPSULE TEMPORELLE", 
+                    stringResource(R.string.capture_capsule_title), 
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                     color = theme.contentColor.copy(alpha = 0.4f)
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 
+                val dateFormat = stringResource(R.string.capture_date_format)
                 val dateText = scheduledTimestamp?.let {
-                    java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy", java.util.Locale.FRENCH)
+                    java.time.format.DateTimeFormatter.ofPattern(dateFormat, java.util.Locale.FRENCH)
                         .withZone(java.time.ZoneId.systemDefault())
                         .format(java.time.Instant.ofEpochMilli(it))
-                } ?: "Dès maintenant"
+                } ?: stringResource(R.string.capture_capsule_now)
                 
                 var showDatePicker by remember { mutableStateOf(false) }
                 val datePickerState = rememberDatePickerState()
@@ -322,7 +326,7 @@ fun AudioCaptureContent(
                             TextButton(onClick = {
                                 onScheduledTimestampChange(datePickerState.selectedDateMillis)
                                 showDatePicker = false
-                            }) { Text("Confirmer", color = accent) }
+                            }) { Text(stringResource(R.string.capture_button_confirm), color = accent) }
                         }
                     ) { DatePicker(state = datePickerState) }
                 }
@@ -333,7 +337,7 @@ fun AudioCaptureContent(
 
                 // VERROU
                 Text(
-                    "PROTECTION SECRÈTE", 
+                    stringResource(R.string.capture_enigma_protection), 
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                     color = theme.contentColor.copy(alpha = 0.4f)
                 )
@@ -341,7 +345,7 @@ fun AudioCaptureContent(
                 OutlinedTextField(
                     value = enigmaQuestion,
                     onValueChange = onEnigmaQuestionChange,
-                    label = { Text("Question secrète") },
+                    label = { Text(stringResource(R.string.capture_enigma_label_question_alt)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor)
                 )
@@ -349,7 +353,7 @@ fun AudioCaptureContent(
                 OutlinedTextField(
                     value = enigmaAnswer,
                     onValueChange = onEnigmaAnswerChange,
-                    label = { Text("Réponse attendue") },
+                    label = { Text(stringResource(R.string.capture_enigma_label_answer_alt)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor)
                 )
@@ -361,7 +365,7 @@ fun AudioCaptureContent(
                     modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                     colors = ButtonDefaults.buttonColors(containerColor = theme.accentColor, contentColor = theme.backgroundColor)
                 ) {
-                    Text("Sceller ce souvenir", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.capture_audio_button_save), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
         }

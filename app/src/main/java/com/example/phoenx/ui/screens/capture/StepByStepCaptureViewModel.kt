@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.capture
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +37,8 @@ data class StepByStepUiState(
 @HiltViewModel
 class StepByStepCaptureViewModel @Inject constructor(
     private val db: com.google.firebase.firestore.FirebaseFirestore,
-    private val auth: com.google.firebase.auth.FirebaseAuth
+    private val auth: com.google.firebase.auth.FirebaseAuth,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StepByStepUiState())
@@ -87,7 +89,7 @@ class StepByStepCaptureViewModel @Inject constructor(
                 if (doc.exists()) {
                     _uiState.update { it.copy(
                         locationId = locationId,
-                        locationName = doc.getString("placeName") ?: "Lieu inconnu"
+                        locationName = doc.getString("placeName") ?: context.getString(R.string.step_capture_viewmodel_location_unknown)
                     ) }
                 }
             } catch (e: Exception) {

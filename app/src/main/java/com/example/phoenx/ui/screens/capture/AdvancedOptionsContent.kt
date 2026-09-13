@@ -11,9 +11,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.theme.*
 import java.time.Instant
@@ -62,21 +64,21 @@ fun AdvancedOptionsContent(
     )
 
     Column(modifier = Modifier.padding(24.dp).fillMaxWidth().padding(bottom = 32.dp)) {
-        Text("OPTIONS AVANCÉES", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
+        Text(stringResource(R.string.capture_advanced_options), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), letterSpacing = 2.sp)
         Spacer(modifier = Modifier.height(32.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Fingerprint, null, tint = accent, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
-            Text("Le Coffre-Fort", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
+            Text(stringResource(R.string.capture_advanced_vault_title), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
             Spacer(modifier = Modifier.weight(1f))
             InfoPoint(
-                title = "Le Secret Scellé",
-                content = "Ce fragment ne sera révélé qu'après réponse à votre énigme. Vous pouvez fixer un délai de déblocage automatique en cas d'oubli — sauf si vous en faites un Secret Ultime, qui reste scellé sans limite de temps."
+                title = stringResource(R.string.capture_advanced_vault_info_title),
+                content = stringResource(R.string.capture_advanced_vault_info_content)
             )
         }
         Text(
-            "Verrouille ce souvenir derrière une énigme personnelle.",
+            stringResource(R.string.capture_advanced_vault_desc),
             style = MaterialTheme.typography.bodySmall,
             color = theme.contentColor.copy(alpha = 0.6f),
             modifier = Modifier.padding(start = 32.dp)
@@ -86,16 +88,16 @@ fun AdvancedOptionsContent(
         OutlinedTextField(
             value = enigmaQuestion,
             onValueChange = onEnigmaQuestionChange,
-            label = { Text("Ta question secrète") },
+            label = { Text(stringResource(R.string.capture_enigma_label_question)) },
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
-            placeholder = { Text("Ex: Quel était le nom de notre premier chien ?") },
+            placeholder = { Text(stringResource(R.string.capture_enigma_placeholder_question_dog)) },
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
         )
         Spacer(modifier = Modifier.height(8.dp))
         OutlinedTextField(
             value = enigmaAnswer,
             onValueChange = onEnigmaAnswerChange,
-            label = { Text("La réponse attendue") },
+            label = { Text(stringResource(R.string.capture_enigma_label_answer)) },
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
         )
@@ -103,9 +105,9 @@ fun AdvancedOptionsContent(
         OutlinedTextField(
             value = enigmaHint,
             onValueChange = onEnigmaHintChange,
-            label = { Text("Indice (optionnel, après 3 échecs)") },
+            label = { Text(stringResource(R.string.capture_enigma_label_hint)) },
             modifier = Modifier.fillMaxWidth().padding(start = 32.dp),
-            placeholder = { Text("Ex: C'est un animal à poils...") },
+            placeholder = { Text(stringResource(R.string.capture_enigma_placeholder_hint)) },
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
         )
 
@@ -117,7 +119,7 @@ fun AdvancedOptionsContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Auto-déblocage", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
+            Text(stringResource(R.string.capture_enigma_auto_unlock), style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
             Switch(
                 checked = enigmaAutoUnlockDays != null,
                 onCheckedChange = { 
@@ -144,7 +146,7 @@ fun AdvancedOptionsContent(
                 colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent)
             )
             Text(
-                "Ouvrir après $enigmaAutoUnlockDays jours", 
+                stringResource(R.string.capture_enigma_unlock_after, enigmaAutoUnlockDays), 
                 style = MaterialTheme.typography.labelSmall, 
                 color = accent,
                 modifier = Modifier.padding(start = 32.dp)
@@ -156,10 +158,10 @@ fun AdvancedOptionsContent(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Default.Event, null, tint = accent, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
-            Text("Ouverture Programmée", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
+            Text(stringResource(R.string.capture_scheduled_title), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
         }
         Text(
-            "Ce souvenir ne sera visible qu'à partir d'une date précise.",
+            stringResource(R.string.capture_scheduled_desc),
             style = MaterialTheme.typography.bodySmall,
             color = theme.contentColor.copy(alpha = 0.6f),
             modifier = Modifier.padding(start = 32.dp)
@@ -167,11 +169,12 @@ fun AdvancedOptionsContent(
         
         Spacer(modifier = Modifier.height(16.dp))
         
+        val dateFormat = stringResource(R.string.capture_date_format)
         val dateText = scheduledTimestamp?.let {
-            DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.FRENCH)
+            DateTimeFormatter.ofPattern(dateFormat, Locale.FRENCH)
                 .withZone(ZoneId.systemDefault())
                 .format(Instant.ofEpochMilli(it))
-        } ?: "Choisir une date"
+        } ?: stringResource(R.string.capture_scheduled_placeholder)
         
         var showDatePicker by remember { mutableStateOf(false) }
         val datePickerState = rememberDatePickerState()
@@ -205,7 +208,7 @@ fun AdvancedOptionsContent(
                     TextButton(onClick = {
                         onScheduledTimestampChange(datePickerState.selectedDateMillis)
                         showDatePicker = false
-                    }) { Text("Confirmer", color = accent) }
+                    }) { Text(stringResource(R.string.capture_button_confirm), color = accent) }
                 },
                 colors = datePickerColors
             ) {
@@ -220,7 +223,7 @@ fun AdvancedOptionsContent(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.AutoStories, null, tint = accent, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Livre de Vie", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
+                Text(stringResource(R.string.capture_book_title), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
                 Spacer(modifier = Modifier.weight(1f))
                 Switch(
                     checked = includeInBook,
@@ -229,7 +232,7 @@ fun AdvancedOptionsContent(
                 )
             }
             Text(
-                "Inclure ce fragment dans ton Livre de Vie global (Générateur IA).",
+                stringResource(R.string.capture_book_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = theme.contentColor.copy(alpha = 0.6f),
                 modifier = Modifier.padding(start = 32.dp)
@@ -240,10 +243,10 @@ fun AdvancedOptionsContent(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(20.dp))
                 Spacer(modifier = Modifier.width(12.dp))
-                Text("Ton de l'Âme", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
+                Text(stringResource(R.string.capture_soul_tone_title), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
             }
             Text(
-                "Influence le style du récit généré par l'IA.",
+                stringResource(R.string.capture_soul_tone_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = theme.contentColor.copy(alpha = 0.6f),
                 modifier = Modifier.padding(start = 32.dp)

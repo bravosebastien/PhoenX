@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.LocalAppTheme
 
 /**
@@ -61,7 +63,7 @@ fun CaptureScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("L'Âme du Souvenir", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)) },
+                title = { Text(stringResource(R.string.capture_soul_title), style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) { Icon(Icons.Default.Close, null, tint = theme.contentColor) }
                 },
@@ -76,7 +78,7 @@ fun CaptureScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     TextButton(onClick = onNavigateBack) {
-                        Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+                        Text(stringResource(R.string.capture_cancel), color = theme.contentColor.copy(alpha = 0.6f))
                     }
                     Button(
                         onClick = {
@@ -97,7 +99,7 @@ fun CaptureScreen(
                         if (uiState is CaptureUiState.Loading) {
                             CircularProgressIndicator(modifier = Modifier.size(20.dp), color = theme.backgroundColor, strokeWidth = 2.dp)
                         } else {
-                            Text("Suivant", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.capture_next), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -112,7 +114,7 @@ fun CaptureScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Donne un nom ou un sujet à ce souvenir. Tu l'enrichiras à l'étape suivante.",
+                text = stringResource(R.string.capture_header_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = theme.contentColor.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center,
@@ -124,7 +126,7 @@ fun CaptureScreen(
                     value = title,
                     onValueChange = { title = it },
                     placeholder = { 
-                        Text("Quel est le sujet de ce souvenir ?", color = theme.contentColor.copy(alpha = 0.3f)) 
+                        Text(stringResource(R.string.capture_placeholder_subject), color = theme.contentColor.copy(alpha = 0.3f))
                     },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 150.dp),
                     textStyle = MaterialTheme.typography.headlineSmall.copy(color = theme.contentColor, fontWeight = FontWeight.Bold),

@@ -29,9 +29,11 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.theme.*
@@ -120,7 +122,7 @@ fun PhotoCaptureContent(
                         .background(Color.White, CircleShape)
                         .border(4.dp, Color.White.copy(alpha = 0.5f), CircleShape)
                 ) {
-                    Icon(Icons.Default.CameraAlt, contentDescription = "Prendre une photo", tint = Color.Black)
+                    Icon(Icons.Default.CameraAlt, contentDescription = stringResource(R.string.capture_photo_label_camera), tint = Color.Black)
                 }
             }
         } else {
@@ -128,7 +130,7 @@ fun PhotoCaptureContent(
                 Box(modifier = Modifier.weight(1f).fillMaxWidth().background(Color.DarkGray)) {
                     AsyncImage(
                         model = capturedPhoto,
-                        contentDescription = "Photo capturée",
+                        contentDescription = stringResource(R.string.capture_photo_desc_captured),
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Fit
                     )
@@ -140,7 +142,7 @@ fun PhotoCaptureContent(
                             .padding(16.dp)
                             .background(Color.Black.copy(alpha = 0.5f), CircleShape)
                     ) {
-                        Icon(Icons.Default.Close, contentDescription = "Supprimer la photo", tint = Color.White)
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.capture_photo_desc_delete), tint = Color.White)
                     }
 
                     if (preselectedName != null) {
@@ -152,7 +154,7 @@ fun PhotoCaptureContent(
                             Row(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.LocationOn, null, tint = accent, modifier = Modifier.size(14.dp))
                                 Spacer(Modifier.width(6.dp))
-                                Text("Enregistré pour : $preselectedName", style = MaterialTheme.typography.labelSmall, color = accent)
+                                Text(stringResource(R.string.capture_photo_location_preselected, preselectedName), style = MaterialTheme.typography.labelSmall, color = accent)
                             }
                         }
                     }
@@ -162,7 +164,7 @@ fun PhotoCaptureContent(
                         onValueChange = onCaptionChange,
                         placeholder = { 
                             Text(
-                                "Donne une âme à cette photo...", 
+                                stringResource(R.string.capture_photo_placeholder_caption), 
                                 style = MaterialTheme.typography.bodyLarge, 
                                 color = Color.White.copy(alpha = 0.6f)
                             ) 
@@ -197,7 +199,7 @@ fun PhotoCaptureContent(
                     } else {
                         // ÉTAPE 2 : HABILLAGE PHOTO
                         Text(
-                            "HABILLAGE & DESTINATION", 
+                            stringResource(R.string.capture_habillage_destination), 
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                             color = theme.contentColor.copy(alpha = 0.4f)
                         )
@@ -218,12 +220,12 @@ fun PhotoCaptureContent(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    "DANS QUELS TIROIRS ?", 
+                                    stringResource(R.string.capture_compartments_label), 
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                                     color = theme.contentColor.copy(alpha = 0.4f)
                                 )
                                 val count = selectedRecipientIds.size
-                                val label = if (visibility == "EVERYONE") "Tout le monde" else if (count == 0) "Privé" else "$count choisi(s)"
+                                val label = if (visibility == "EVERYONE") stringResource(R.string.capture_visibility_everyone) else if (count == 0) stringResource(R.string.capture_visibility_private) else stringResource(R.string.capture_recipients_count, count)
                                 Text(text = label, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
                             }
                         }
@@ -262,7 +264,7 @@ fun PhotoCaptureContent(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    text = "QUELLE TONALITÉ ?", 
+                                    text = stringResource(R.string.capture_tonality_label), 
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                                     color = theme.contentColor.copy(alpha = 0.4f)
                                 )
@@ -273,7 +275,7 @@ fun PhotoCaptureContent(
                         AnimatedVisibility(visible = isTonaliteExpanded) {
                             Column {
                                 Spacer(modifier = Modifier.height(12.dp))
-                                val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour", "Nostalgie", "Humour", "Leçon", "Voyage", "Quotidien", "Épreuve")
+                                val categories = androidx.compose.ui.res.stringArrayResource(R.array.tonality_categories)
                                 FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     categories.forEach { cat ->
                                         FilterChip(
@@ -293,8 +295,8 @@ fun PhotoCaptureContent(
                             value = tonalNuance,
                             onValueChange = { if (it.length <= 100) onTonalNuanceChange(it) },
                             modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Précisez la nuance (facultatif)", fontSize = 11.sp) },
-                            placeholder = { Text("Ex : un peu amer mais je souris en l'écrivant...", fontSize = 11.sp) },
+                            label = { Text(stringResource(R.string.capture_tonality_nuance_label), fontSize = 11.sp) },
+                            placeholder = { Text(stringResource(R.string.capture_tonality_nuance_placeholder), fontSize = 11.sp) },
                             maxLines = 3,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
@@ -314,17 +316,18 @@ fun PhotoCaptureContent(
 
                         // CAPSULE TEMPORELLE (Ouverture programmée)
                         Text(
-                            "CAPSULE TEMPORELLE", 
+                            stringResource(R.string.capture_capsule_title), 
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                             color = theme.contentColor.copy(alpha = 0.4f)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         
+                        val dateFormat = stringResource(R.string.capture_date_format)
                         val dateText = scheduledTimestamp?.let {
-                            java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy", java.util.Locale.FRENCH)
+                            java.time.format.DateTimeFormatter.ofPattern(dateFormat, java.util.Locale.FRENCH)
                                 .withZone(java.time.ZoneId.systemDefault())
                                 .format(java.time.Instant.ofEpochMilli(it))
-                        } ?: "Dès maintenant"
+                        } ?: stringResource(R.string.capture_capsule_now)
                         
                         var showDatePicker by remember { mutableStateOf(false) }
                         val datePickerState = rememberDatePickerState()
@@ -351,7 +354,7 @@ fun PhotoCaptureContent(
                                     TextButton(onClick = {
                                         onScheduledTimestampChange(datePickerState.selectedDateMillis)
                                         showDatePicker = false
-                                    }) { Text("Confirmer", color = accent) }
+                                    }) { Text(stringResource(R.string.capture_button_confirm), color = accent) }
                                 }
                             ) { DatePicker(state = datePickerState) }
                         }
@@ -362,7 +365,7 @@ fun PhotoCaptureContent(
 
                         // VERROU
                         Text(
-                            "PROTECTION SECRÈTE", 
+                            stringResource(R.string.capture_enigma_protection), 
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                             color = theme.contentColor.copy(alpha = 0.4f)
                         )
@@ -370,7 +373,7 @@ fun PhotoCaptureContent(
                         OutlinedTextField(
                             value = enigmaQuestion,
                             onValueChange = onEnigmaQuestionChange,
-                            label = { Text("Question secrète") },
+                            label = { Text(stringResource(R.string.capture_enigma_label_question_alt)) },
                             modifier = Modifier.fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor)
                         )
@@ -378,7 +381,7 @@ fun PhotoCaptureContent(
                         OutlinedTextField(
                             value = enigmaAnswer,
                             onValueChange = onEnigmaAnswerChange,
-                            label = { Text("Réponse attendue") },
+                            label = { Text(stringResource(R.string.capture_enigma_label_answer_alt)) },
                             modifier = Modifier.fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor)
                         )

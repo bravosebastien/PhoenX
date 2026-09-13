@@ -22,9 +22,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.components.RecipientSelector
@@ -89,9 +92,9 @@ fun TextCaptureContent(
             .verticalScroll(rememberScrollState())
     ) {
         if (currentStep == 1) {
-            val label = if (isComplement && initialType == "TEXT") "RÉDIGER TON RÉCIT"
-                       else if (isComplement) "AJOUTE UN MÉDIA"
-                       else "L'ÂME DU SOUVENIR"
+            val label = if (isComplement && initialType == "TEXT") stringResource(R.string.capture_text_label_write)
+                       else if (isComplement) stringResource(R.string.capture_text_label_add_media)
+                       else stringResource(R.string.capture_soul_title)
             
             Text(
                 text = label,
@@ -101,7 +104,7 @@ fun TextCaptureContent(
             
             if (!isComplement) {
                 Text(
-                    text = "Donne un nom ou un sujet à ce souvenir. Tu l'enrichiras à l'étape suivante.",
+                    text = stringResource(R.string.capture_header_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = theme.contentColor.copy(alpha = 0.5f),
                     modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
@@ -116,7 +119,7 @@ fun TextCaptureContent(
                     onValueChange = onTextChange,
                     placeholder = { 
                         Text(
-                            text = if (isComplement) "Écris tes mots ici..." else "Quel est le sujet de ce souvenir ?", 
+                            text = if (isComplement) stringResource(R.string.capture_text_placeholder_write) else stringResource(R.string.capture_placeholder_subject), 
                             style = MaterialTheme.typography.headlineSmall, 
                             color = theme.contentColor.copy(alpha = 0.3f)
                         ) 
@@ -175,7 +178,7 @@ fun TextCaptureContent(
         } else {
             // ÉTAPE 2 : HABILLAGE
             Text(
-                text = "HABILLAGE & DESTINATION",
+                text = stringResource(R.string.capture_habillage_destination),
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, letterSpacing = 1.5.sp),
                 color = accent.copy(alpha = 0.7f),
                 modifier = Modifier.padding(bottom = 24.dp)
@@ -201,7 +204,7 @@ fun TextCaptureContent(
                     ) {
                         Icon(Icons.Default.AddPhotoAlternate, null, tint = accent.copy(alpha = 0.5f))
                         Spacer(Modifier.width(12.dp))
-                        Text("Ajouter une photo ou vidéo", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.capture_add_photo_video), color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.labelMedium)
                     }
                 }
             }
@@ -223,14 +226,14 @@ fun TextCaptureContent(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = "QUELLE TONALITÉ ?", 
+                                text = stringResource(R.string.capture_tonality_label), 
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                                 color = theme.contentColor.copy(alpha = 0.4f)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             InfoPoint(
-                                title = "L'Esprit du Souvenir",
-                                content = "Cette catégorie aide l'IA à comprendre le sens profond de ton récit."
+                                title = stringResource(R.string.capture_tonality_info_title),
+                                content = stringResource(R.string.capture_tonality_info_content)
                             )
                         }
                         Text(
@@ -244,7 +247,7 @@ fun TextCaptureContent(
                 AnimatedVisibility(visible = isTonaliteExpanded) {
                     Column {
                         Spacer(modifier = Modifier.height(12.dp))
-                        val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour", "Nostalgie", "Humour", "Leçon", "Voyage", "Quotidien", "Épreuve")
+                        val categories = stringArrayResource(R.array.tonality_categories)
                         FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             categories.forEach { cat ->
                                 FilterChip(
@@ -264,8 +267,8 @@ fun TextCaptureContent(
                             value = tonalNuance,
                             onValueChange = { if (it.length <= 100) onTonalNuanceChange(it) },
                             modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Précisez la nuance (facultatif)", fontSize = 11.sp) },
-                            placeholder = { Text("Ex : un peu amer mais je souris en l'écrivant...", fontSize = 11.sp) },
+                            label = { Text(stringResource(R.string.capture_tonality_nuance_label), fontSize = 11.sp) },
+                            placeholder = { Text(stringResource(R.string.capture_tonality_nuance_placeholder), fontSize = 11.sp) },
                             maxLines = 3,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
@@ -301,12 +304,12 @@ fun TextCaptureContent(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            "DANS QUELS TIROIRS ?", 
+                            stringResource(R.string.capture_compartments_label), 
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                             color = theme.contentColor.copy(alpha = 0.4f)
                         )
                         val count = selectedRecipientIds.size
-                        val label = if (visibility == "EVERYONE") "Tout le monde" else if (count == 0) "Privé" else "$count choisi(s)"
+                        val label = if (visibility == "EVERYONE") stringResource(R.string.capture_visibility_everyone) else if (count == 0) stringResource(R.string.capture_visibility_private) else stringResource(R.string.capture_recipients_count, count)
                         Text(
                             text = label,
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
@@ -339,17 +342,18 @@ fun TextCaptureContent(
 
             // SECTION 4 : CAPSULE TEMPORELLE (Ouverture programmée)
             Text(
-                "CAPSULE TEMPORELLE", 
+                stringResource(R.string.capture_capsule_title), 
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                 color = theme.contentColor.copy(alpha = 0.4f)
             )
             Spacer(modifier = Modifier.height(12.dp))
             
+            val dateFormat = stringResource(R.string.capture_date_format)
             val dateText = scheduledTimestamp?.let {
-                java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy", java.util.Locale.FRENCH)
+                java.time.format.DateTimeFormatter.ofPattern(dateFormat, java.util.Locale.FRENCH)
                     .withZone(java.time.ZoneId.systemDefault())
                     .format(java.time.Instant.ofEpochMilli(it))
-            } ?: "Pas de date (visible dès le départ)"
+            } ?: stringResource(R.string.capture_capsule_none)
             
             var showDatePicker by remember { mutableStateOf(false) }
             val datePickerState = rememberDatePickerState()
@@ -376,13 +380,13 @@ fun TextCaptureContent(
                         TextButton(onClick = {
                             onScheduledTimestampChange(datePickerState.selectedDateMillis)
                             showDatePicker = false
-                        }) { Text("Confirmer", color = accent) }
+                        }) { Text(stringResource(R.string.capture_button_confirm), color = accent) }
                     },
                     dismissButton = {
                         TextButton(onClick = { 
                             onScheduledTimestampChange(null)
                             showDatePicker = false 
-                        }) { Text("Effacer", color = theme.contentColor.copy(alpha = 0.6f)) }
+                        }) { Text(stringResource(R.string.capture_button_clear), color = theme.contentColor.copy(alpha = 0.6f)) }
                     }
                 ) {
                     DatePicker(state = datePickerState)
@@ -395,7 +399,7 @@ fun TextCaptureContent(
 
             // SECTION 5 : LE VERROU (Mode Détective)
             Text(
-                "VERROUILLAGE PAR ÉNIGME", 
+                stringResource(R.string.capture_enigma_section), 
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                 color = theme.contentColor.copy(alpha = 0.4f)
             )
@@ -404,8 +408,8 @@ fun TextCaptureContent(
             OutlinedTextField(
                 value = enigmaQuestion,
                 onValueChange = onEnigmaQuestionChange,
-                label = { Text("Ta question secrète") },
-                placeholder = { Text("Ex: Quel est le nom de notre premier chat ?") },
+                label = { Text(stringResource(R.string.capture_enigma_label_question)) },
+                placeholder = { Text(stringResource(R.string.capture_enigma_placeholder_question)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
             )
@@ -413,7 +417,7 @@ fun TextCaptureContent(
             OutlinedTextField(
                 value = enigmaAnswer,
                 onValueChange = onEnigmaAnswerChange,
-                label = { Text("La réponse attendue") },
+                label = { Text(stringResource(R.string.capture_enigma_label_answer)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f), focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
             )

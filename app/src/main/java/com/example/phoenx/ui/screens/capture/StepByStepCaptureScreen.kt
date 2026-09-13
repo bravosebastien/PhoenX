@@ -22,7 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.EnigmaForm
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.theme.*
@@ -46,7 +48,7 @@ fun StepByStepCaptureScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Étape ${uiState.currentStep} sur 8",
+                        stringResource(R.string.step_capture_title, uiState.currentStep),
                         style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
                         fontFamily = theme.fontFamily
                     )
@@ -75,7 +77,7 @@ fun StepByStepCaptureScreen(
                 ) {
                     if (uiState.currentStep > 1) {
                         TextButton(onClick = { viewModel.nextStep() }) {
-                            Text("Passer", color = theme.contentColor.copy(alpha = 0.6f))
+                            Text(stringResource(R.string.step_capture_skip), color = theme.contentColor.copy(alpha = 0.6f))
                         }
                     } else {
                         Spacer(Modifier.width(1.dp))
@@ -90,7 +92,7 @@ fun StepByStepCaptureScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = accent),
                         shape = MaterialTheme.shapes.medium
                     ) {
-                        Text("Suivant", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.step_capture_next), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -176,7 +178,7 @@ fun StepEnigma(
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            text = "LE COFFRE-FORT",
+            text = stringResource(R.string.step_capture_vault_title),
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
             color = accent
         )
@@ -221,12 +223,12 @@ fun StepEnigma(
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    "Inclure dans mon Livre de Vie", 
+                    stringResource(R.string.step_capture_book_label), 
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor
                 )
                 Text(
-                    "Permettre à l'IA de s'appuyer sur ce souvenir pour rédiger votre récit.",
+                    stringResource(R.string.step_capture_book_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = theme.contentColor.copy(alpha = 0.4f)
                 )
@@ -244,12 +246,12 @@ fun StepLieu(
     accent: Color
 ) {
     Text(
-        text = "LE LIEU",
+        text = stringResource(R.string.step_capture_location_title),
         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
         color = accent
     )
     Text(
-        text = "Où ce souvenir s'est-il déroulé ? Tu peux l'épingler sur ta Mappemonde.",
+        text = stringResource(R.string.step_capture_location_desc),
         style = MaterialTheme.typography.bodySmall,
         color = theme.contentColor.copy(alpha = 0.5f),
         textAlign = TextAlign.Center,
@@ -277,7 +279,7 @@ fun StepLieu(
             )
             Spacer(Modifier.width(12.dp))
             Text(
-                text = locationName ?: "Choisir un lieu sur la carte",
+                text = locationName ?: stringResource(R.string.step_capture_location_choose),
                 color = if (locationName != null) theme.contentColor else theme.contentColor.copy(alpha = 0.5f),
                 fontWeight = if (locationName != null) FontWeight.Bold else FontWeight.Normal,
                 style = MaterialTheme.typography.bodyLarge
@@ -290,7 +292,7 @@ fun StepLieu(
             onClick = onClearLocation,
             modifier = Modifier.padding(top = 16.dp)
         ) {
-            Text("Retirer le lieu", color = Error.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall)
+            Text(stringResource(R.string.step_capture_location_remove), color = Error.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall)
         }
     }
 }
@@ -298,12 +300,12 @@ fun StepLieu(
 @Composable
 fun StepEtincelle(title: String, onTitleChange: (String) -> Unit, theme: AppThemeState, accent: Color) {
     Text(
-        text = "L'ÉTINCELLE",
+        text = stringResource(R.string.step_capture_spark_title),
         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
         color = accent
     )
     Text(
-        text = "Donne un nom ou un sujet court à ce souvenir pour capturer l'instant.",
+        text = stringResource(R.string.step_capture_spark_desc),
         style = MaterialTheme.typography.bodySmall,
         color = theme.contentColor.copy(alpha = 0.5f),
         textAlign = TextAlign.Center,
@@ -315,7 +317,7 @@ fun StepEtincelle(title: String, onTitleChange: (String) -> Unit, theme: AppThem
         onValueChange = onTitleChange,
         placeholder = {
             Text(
-                "Quel est le sujet ?",
+                stringResource(R.string.step_capture_spark_placeholder),
                 style = MaterialTheme.typography.headlineSmall,
                 color = theme.contentColor.copy(alpha = 0.3f),
                 textAlign = TextAlign.Center,
@@ -350,19 +352,19 @@ fun StepTonalite(
     accent: Color
 ) {
     Text(
-        text = "LA TONALITÉ",
+        text = stringResource(R.string.step_capture_tonality_title),
         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
         color = accent
     )
     Text(
-        text = "L'esprit du souvenir. Cela aide l'IA à comprendre le sens profond de ton récit.",
+        text = stringResource(R.string.step_capture_tonality_desc),
         style = MaterialTheme.typography.bodySmall,
         color = theme.contentColor.copy(alpha = 0.5f),
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
     )
 
-    val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour", "Nostalgie", "Humour", "Leçon", "Voyage", "Quotidien", "Épreuve")
+    val categories = androidx.compose.ui.res.stringArrayResource(R.array.tonality_categories)
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
@@ -387,8 +389,8 @@ fun StepTonalite(
         value = tonalNuance,
         onValueChange = { if (it.length <= 100) onNuanceChange(it) },
         modifier = Modifier.fillMaxWidth(),
-        label = { Text("Précisez la nuance (facultatif)", fontSize = 11.sp) },
-        placeholder = { Text("Ex : un peu amer mais je souris en l'écrivant...", fontSize = 11.sp) },
+        label = { Text(stringResource(R.string.capture_tonality_nuance_label), fontSize = 11.sp) },
+        placeholder = { Text(stringResource(R.string.capture_tonality_nuance_placeholder), fontSize = 11.sp) },
         maxLines = 3,
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
@@ -417,12 +419,12 @@ fun StepDate(
     accent: Color
 ) {
     Text(
-        text = "LE MOMENT",
+        text = stringResource(R.string.step_capture_moment_title),
         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
         color = accent
     )
     Text(
-        text = "Quand cela s'est-il passé ?",
+        text = stringResource(R.string.step_capture_moment_desc),
         style = MaterialTheme.typography.bodySmall,
         color = theme.contentColor.copy(alpha = 0.5f),
         textAlign = TextAlign.Center,
@@ -434,14 +436,14 @@ fun StepDate(
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
     ) {
-        Text("Date précise", style = MaterialTheme.typography.labelSmall, color = if (!isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
+        Text(stringResource(R.string.step_capture_date_precise), style = MaterialTheme.typography.labelSmall, color = if (!isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
         Switch(
             checked = isPeriodMode,
             onCheckedChange = onTogglePeriod,
             modifier = Modifier.scale(0.7f).padding(horizontal = 8.dp),
             colors = SwitchDefaults.colors(checkedThumbColor = accent)
         )
-        Text("Période", style = MaterialTheme.typography.labelSmall, color = if (isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
+        Text(stringResource(R.string.step_capture_date_period), style = MaterialTheme.typography.labelSmall, color = if (isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
     }
 
     if (!isPeriodMode) {
@@ -463,9 +465,10 @@ fun StepDate(
             ) {
                 Icon(Icons.Default.CalendarToday, null, tint = accent, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(12.dp))
+                val dateFormat = stringResource(R.string.capture_date_format)
                 val dateText = memoryDate?.let {
-                    SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(it))
-                } ?: "Choisir une date"
+                    SimpleDateFormat(dateFormat, Locale.FRENCH).format(Date(it))
+                } ?: stringResource(R.string.step_capture_date_placeholder)
                 Text(dateText, color = theme.contentColor, fontWeight = FontWeight.Bold)
             }
         }
@@ -477,7 +480,7 @@ fun StepDate(
                     TextButton(onClick = {
                         onDateChange(datePickerState.selectedDateMillis)
                         showDatePicker = false
-                    }) { Text("Confirmer", color = accent) }
+                    }) { Text(stringResource(R.string.step_capture_date_confirm), color = accent) }
                 }
             ) {
                 DatePicker(
@@ -501,6 +504,8 @@ fun StepDate(
         val startState = rememberDatePickerState(initialSelectedDateMillis = memoryDateStart ?: System.currentTimeMillis())
         val endState = rememberDatePickerState(initialSelectedDateMillis = memoryDateEnd ?: System.currentTimeMillis())
 
+        val dateFormat = stringResource(R.string.capture_date_format)
+
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             OutlinedButton(
                 onClick = { showStartPicker = true },
@@ -510,7 +515,7 @@ fun StepDate(
             ) {
                 Icon(Icons.Default.CalendarToday, null, tint = accent, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(12.dp))
-                val txt = memoryDateStart?.let { SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(it)) } ?: "Date de début"
+                val txt = memoryDateStart?.let { SimpleDateFormat(dateFormat, Locale.FRENCH).format(Date(it)) } ?: stringResource(R.string.step_capture_date_start)
                 Text(txt, color = theme.contentColor)
             }
 
@@ -522,7 +527,7 @@ fun StepDate(
             ) {
                 Icon(Icons.Default.CalendarToday, null, tint = accent, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(12.dp))
-                val txt = memoryDateEnd?.let { SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(it)) } ?: "Date de fin"
+                val txt = memoryDateEnd?.let { SimpleDateFormat(dateFormat, Locale.FRENCH).format(Date(it)) } ?: stringResource(R.string.step_capture_date_end)
                 Text(txt, color = theme.contentColor)
             }
         }
@@ -534,7 +539,7 @@ fun StepDate(
                     TextButton(onClick = {
                         onPeriodChange(startState.selectedDateMillis, memoryDateEnd)
                         showStartPicker = false
-                    }) { Text("Confirmer", color = accent) }
+                    }) { Text(stringResource(R.string.step_capture_date_confirm), color = accent) }
                 }
             ) { DatePicker(state = startState) }
         }
@@ -545,7 +550,7 @@ fun StepDate(
                     TextButton(onClick = {
                         onPeriodChange(memoryDateStart, endState.selectedDateMillis)
                         showEndPicker = false
-                    }) { Text("Confirmer", color = accent) }
+                    }) { Text(stringResource(R.string.step_capture_date_confirm), color = accent) }
                 }
             ) { DatePicker(state = endState) }
         }

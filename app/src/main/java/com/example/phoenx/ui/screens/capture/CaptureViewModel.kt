@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.capture
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.ai.LocalAnalysis
 import com.example.phoenx.data.ai.OnDeviceAIManager
 import com.example.phoenx.data.audio.PhoenXAudioRecorder
@@ -225,13 +226,13 @@ class CaptureViewModel @Inject constructor(
 
     fun selectMe() {
         val user = auth.currentUser ?: return
-        val displayName = if (user.displayName.isNullOrBlank()) "Moi" else user.displayName!!
+        val displayName = if (user.displayName.isNullOrBlank()) context.getString(R.string.capture_viewmodel_me) else user.displayName!!
         val me = SimplifiedPerson(
             id = "ME_${user.uid}",
             name = displayName,
             photoUrl = user.photoUrl?.toString(),
             sourceType = "auteur",
-            relationship = "Auteur",
+            relationship = context.getString(R.string.capture_viewmodel_author),
             isMe = true
         )
         _selectedPersons.update { current ->
@@ -387,7 +388,7 @@ class CaptureViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val rawText = content ?: "Nouveau souvenir"
+                val rawText = content ?: context.getString(R.string.capture_viewmodel_new_memory)
                 
                 // 1. ANALYSE IA LOCALE SIMPLIFIÉE POUR LE SQUELETTE
                 val analysis = LocalAnalysis(
@@ -480,7 +481,7 @@ class CaptureViewModel @Inject constructor(
                 onSuccess(entryId)
             } catch (e: Exception) {
                 Log.e("CaptureVM", "Error saving skeleton", e)
-                _uiState.value = CaptureUiState.Error(e.message ?: "Erreur")
+                _uiState.value = CaptureUiState.Error(e.message ?: context.getString(R.string.capture_viewmodel_error))
             }
         }
     }
