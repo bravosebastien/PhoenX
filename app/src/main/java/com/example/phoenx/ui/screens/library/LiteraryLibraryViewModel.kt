@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.library
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.model.StandaloneMedia
 import com.example.phoenx.data.repository.StandaloneMediaRepository
 import com.example.phoenx.data.local.OfflineEntryDao
@@ -25,7 +26,8 @@ class LiteraryLibraryViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
     private val encryptionManager: com.example.phoenx.data.encryption.EncryptionManager,
-    private val mediaManager: com.example.phoenx.data.media.MediaManager // v9.4.27
+    private val mediaManager: com.example.phoenx.data.media.MediaManager, // v9.4.27
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _targetCreatorId = MutableStateFlow<String?>(null)
@@ -76,8 +78,8 @@ class LiteraryLibraryViewModel @Inject constructor(
                         if (activated) {
                             try {
                                 encryptionManager.decryptText(contentBlob.toBytes(), key)
-                            } catch (e: Exception) { "Erreur déchiffrement" }
-                        } else "Contenu scellé"
+                            } catch (e: Exception) { context.getString(R.string.library_viewmodel_decrypt_error) }
+                        } else context.getString(R.string.library_viewmodel_sealed_content)
                     } else doc.getString("content") ?: ""
 
                     StandaloneMedia(

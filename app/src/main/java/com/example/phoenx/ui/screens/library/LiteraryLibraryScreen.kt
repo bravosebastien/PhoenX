@@ -33,11 +33,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.components.RecipientSelector
-import com.example.phoenx.ui.screens.library.components.LibraryOnboardingData
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.ThemeViewModel
 import com.example.phoenx.data.model.StandaloneMedia
@@ -86,8 +88,8 @@ fun LiteraryLibraryScreen(
     if (isCreatorMode) {
         OnboardingPopup(
             pageKey = "literary_library",
-            title = LibraryOnboardingData.getTitle("LITERARY"),
-            contentPoints = LibraryOnboardingData.getContent("LITERARY"),
+            title = stringResource(R.string.onboarding_literary_title),
+            contentPoints = stringArrayResource(R.array.onboarding_literary_content).toList(),
             preferenceManager = themeViewModel.preferenceManager
         )
     }
@@ -108,7 +110,7 @@ fun LiteraryLibraryScreen(
         topBar = {
             Column {
                 TopAppBar(
-                    title = { Text("Bibliothèque Littéraire", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
+                    title = { Text(stringResource(R.string.library_literary_title), style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -117,8 +119,8 @@ fun LiteraryLibraryScreen(
                     actions = {
                         if (isCreatorMode) {
                             InfoButton(
-                                title = LibraryOnboardingData.getTitle("LITERARY"),
-                                points = LibraryOnboardingData.getContent("LITERARY")
+                                title = stringResource(R.string.onboarding_literary_title),
+                                points = stringArrayResource(R.array.onboarding_literary_content).toList()
                             )
                             IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
                         }
@@ -144,7 +146,7 @@ fun LiteraryLibraryScreen(
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (filteredExcerpts.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(if (filterRecipientId != null) "Aucun extrait pour ce destinataire." else "Les rayons sont vides...", color = theme.contentColor.copy(alpha = 0.4f))
+                    Text(if (filterRecipientId != null) stringResource(R.string.library_no_excerpts_filter) else stringResource(R.string.library_empty_shelves), color = theme.contentColor.copy(alpha = 0.4f))
                 }
             } else {
                 LazyVerticalGrid(
@@ -163,7 +165,7 @@ fun LiteraryLibraryScreen(
                                 shape = RoundedCornerShape(8.dp)
                             ) {
                                 Text(
-                                    "Extraits isolés",
+                                    stringResource(R.string.library_isolated_excerpts),
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                     color = accent,
                                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -246,14 +248,14 @@ fun LiteraryLibraryScreen(
         AlertDialog(
             onDismissRequest = { excerptToDelete = null },
             containerColor = theme.backgroundColor,
-            title = { Text("Supprimer l'extrait ?", color = theme.contentColor) },
-            text = { Text("Cette action est irréversible.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.library_delete_excerpt_title), color = theme.contentColor) },
+            text = { Text(stringResource(R.string.library_delete_excerpt_message), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 Button(onClick = { viewModel.deleteExcerpt(excerptToDelete!!); excerptToDelete = null }, colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)) {
-                    Text("Supprimer", color = Color.White)
+                    Text(stringResource(R.string.library_delete_confirm), color = Color.White)
                 }
             },
-            dismissButton = { TextButton(onClick = { excerptToDelete = null }) { Text("Annuler", color = theme.contentColor) } }
+            dismissButton = { TextButton(onClick = { excerptToDelete = null }) { Text(stringResource(R.string.library_delete_cancel), color = theme.contentColor) } }
         )
     }
 
@@ -273,7 +275,7 @@ fun LiteraryLibraryScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.DarkGray)
                     }
                     Text(
-                        "LECTURE", 
+                        stringResource(R.string.library_reading_header), 
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
                         color = Color.DarkGray.copy(alpha = 0.5f)
                     )
@@ -286,8 +288,9 @@ fun LiteraryLibraryScreen(
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
+                    val fallbackTitle = stringResource(R.string.library_reading_fallback_title)
                     Text(
-                        text = readingExcerpt!!.title.ifEmpty { "Extrait Littéraire" },
+                        text = readingExcerpt!!.title.ifEmpty { fallbackTitle },
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontFamily = FontFamily.Serif,
                             fontWeight = FontWeight.Bold
@@ -371,8 +374,9 @@ fun ManuscriptItem(
             }
 
             // TITRE CENTRAL (v9.4.27 : Toujours visible, gros et lisible)
+            val msFallback = stringResource(R.string.library_manuscript_fallback)
             Text(
-                text = excerpt.title.ifEmpty { "Manuscrit" },
+                text = excerpt.title.ifEmpty { msFallback },
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontFamily = FontFamily.Serif,
                     fontWeight = FontWeight.Bold,
@@ -420,8 +424,9 @@ fun ManuscriptItem(
         Spacer(modifier = Modifier.height(8.dp))
         
         // TITRE SOUS LE BLOC
+        val exFallback = stringResource(R.string.library_excerpt_fallback)
         Text(
-            text = excerpt.title.ifEmpty { "Extrait" },
+            text = excerpt.title.ifEmpty { exFallback },
             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
             color = theme.contentColor,
             maxLines = 1,
@@ -471,7 +476,7 @@ fun AddExcerptDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = theme.backgroundColor,
-        title = { Text(if (initialExcerpt == null) "Déposer un extrait" else "Modifier l'extrait", color = theme.contentColor) },
+        title = { Text(if (initialExcerpt == null) stringResource(R.string.library_add_excerpt) else stringResource(R.string.library_edit_excerpt), color = theme.contentColor) },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -480,7 +485,7 @@ fun AddExcerptDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Titre de l'ouvrage") },
+                    label = { Text(stringResource(R.string.library_book_title_label)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 
@@ -493,15 +498,15 @@ fun AddExcerptDialog(
                     ) {
                         Icon(Icons.Default.AddPhotoAlternate, null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Changer la photo de couverture")
+                        Text(stringResource(R.string.library_change_cover))
                     }
                 }
 
                 OutlinedTextField(
                     value = userComment,
                     onValueChange = { userComment = it },
-                    label = { Text("Commentaire personnel (optionnel)") },
-                    placeholder = { Text("Ex : Nom de l'auteur, genre de la citation, pensée personnelle...", style = MaterialTheme.typography.bodySmall.copy(color = theme.contentColor.copy(alpha = 0.4f))) },
+                    label = { Text(stringResource(R.string.library_personal_comment)) },
+                    placeholder = { Text(stringResource(R.string.library_personal_comment_placeholder), style = MaterialTheme.typography.bodySmall.copy(color = theme.contentColor.copy(alpha = 0.4f))) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -510,7 +515,7 @@ fun AddExcerptDialog(
                     OutlinedTextField(
                         value = content,
                         onValueChange = { },
-                        label = { Text("Texte de l'extrait") },
+                        label = { Text(stringResource(R.string.library_excerpt_text_label)) },
                         modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
                         readOnly = true,
                         enabled = false, // Désactivé pour le texte mais le Box capte le clic
@@ -523,7 +528,7 @@ fun AddExcerptDialog(
                     )
                 }
                 
-                Text("Visibilité & Destinataires", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.library_visibility_destinataires), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                 RecipientSelector(
                     recipients = recipients,
                     selectedIds = selectedIds.toList(),
@@ -548,12 +553,12 @@ fun AddExcerptDialog(
                 },
                 enabled = content.isNotBlank() && title.isNotBlank()
             ) {
-                Text("Enregistrer")
+                Text(stringResource(R.string.library_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler")
+                Text(stringResource(R.string.library_cancel))
             }
         }
     )
@@ -575,7 +580,7 @@ fun AddExcerptDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "ÉDITION DE L'EXTRAIT", 
+                            stringResource(R.string.library_edit_header), 
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
                             color = accent
                         )
@@ -591,7 +596,7 @@ fun AddExcerptDialog(
                             .fillMaxWidth()
                             .weight(1f)
                             .padding(horizontal = 24.dp),
-                        placeholder = { Text("Saisis ou colle ton extrait ici...", color = theme.contentColor.copy(alpha = 0.3f)) },
+                        placeholder = { Text(stringResource(R.string.library_editor_placeholder), color = theme.contentColor.copy(alpha = 0.3f)) },
                         textStyle = MaterialTheme.typography.bodyLarge.copy(
                             fontFamily = FontFamily.Serif,
                             lineHeight = 28.sp, 

@@ -19,7 +19,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 import com.example.phoenx.ui.screens.library.*
 
@@ -62,13 +64,13 @@ fun OldWoodenLibraryScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "👁 Aperçu — Ce que verront tes proches",
+                            text = stringResource(R.string.library_archive_preview_label),
                             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
                             color = accent,
                             modifier = Modifier.weight(1f)
                         )
                         TextButton(onClick = { navController.popBackStack() }) {
-                            Text("← Mon espace", color = accent, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.library_archive_btn_back_space), color = accent, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -80,8 +82,9 @@ fun OldWoodenLibraryScreen(
                         .padding(horizontal = 24.dp, vertical = 16.dp)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        val libTitle = if (viewerMode == ViewerMode.CREATOR_PREVIEW) stringResource(R.string.library_archive_my_library) else stringResource(R.string.library_archive_creator_library, uiState.creatorName)
                         Text(
-                            text = if (viewerMode == ViewerMode.CREATOR_PREVIEW) "Ta Bibliothèque" else "La bibliothèque de ${uiState.creatorName}",
+                            text = libTitle,
                             style = MaterialTheme.typography.headlineMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                             color = theme.contentColor,
                             modifier = Modifier.weight(1f)
@@ -183,7 +186,7 @@ fun CompartmentCell(compartment: LibraryCompartment, glowIntensity: Float, theme
 
         Column(modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.8f)))).padding(8.dp)) {
             Text(compartment.title, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = if (isLocked) theme.contentColor.copy(alpha = 0.4f) else theme.contentColor)
-            Text(if (isLocked) "Contenu Scellé" else compartment.subtitle, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+            Text(if (isLocked) stringResource(R.string.library_archive_sealed_content) else compartment.subtitle, style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
         }
     }
 }
@@ -216,18 +219,18 @@ fun LockedCompartmentPanel(compartment: LibraryCompartment, theme: AppThemeState
         border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("Compartiment Scellé", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+            Text(stringResource(R.string.library_archive_sealed_compartment), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
             Spacer(modifier = Modifier.height(8.dp))
             val message = when(compartment.access) {
-                CompartmentAccess.LOCKED_DATE -> "Ce tiroir s'ouvrira à une date choisie par le Créateur."
-                CompartmentAccess.LOCKED_ENIGMA -> "Vous devez résoudre une énigme pour ouvrir ce secret."
-                CompartmentAccess.LOCKED_KEY -> "Une clé physique est nécessaire pour déverrouiller ce tiroir."
-                else -> "Ce compartiment n'est pas encore accessible."
+                CompartmentAccess.LOCKED_DATE -> stringResource(R.string.library_archive_locked_date)
+                CompartmentAccess.LOCKED_ENIGMA -> stringResource(R.string.library_archive_locked_enigma)
+                CompartmentAccess.LOCKED_KEY -> stringResource(R.string.library_archive_locked_key)
+                else -> stringResource(R.string.library_archive_locked_default)
             }
             Text(message, color = theme.contentColor.copy(alpha = 0.7f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = accent), modifier = Modifier.phoenXMatiere()) {
-                Text("Fermer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.library_archive_btn_close), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     }

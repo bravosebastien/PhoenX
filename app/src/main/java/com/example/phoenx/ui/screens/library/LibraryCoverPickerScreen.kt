@@ -27,8 +27,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import coil3.compose.AsyncImage
 import com.example.phoenx.ui.theme.*
 
@@ -86,7 +88,7 @@ fun LibraryCoverPickerScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Personnaliser $compartmentName", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(stringResource(R.string.library_customize_title, compartmentName), style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -104,7 +106,7 @@ fun LibraryCoverPickerScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "Choisis une photo qui représente cet espace pour toi.",
+                stringResource(R.string.library_choose_photo_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = theme.contentColor.copy(alpha = 0.7f),
                 modifier = Modifier.fillMaxWidth()
@@ -120,7 +122,7 @@ fun LibraryCoverPickerScreen(
             ) {
                 Icon(Icons.Default.AddAPhoto, null, tint = theme.backgroundColor)
                 Spacer(Modifier.width(12.dp))
-                Text("Choisir une photo", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.library_btn_choose_photo), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -159,14 +161,14 @@ fun LibraryCoverPickerScreen(
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Text("Aucune photo sélectionnée", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.library_no_photo_selected), color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
                 }
             }
 
             if (selectedUri != null || resolvedUrl != null) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Cette image s'affichera sur la carte. Pince pour zoomer, glisse pour cadrer.",
+                    text = stringResource(R.string.library_image_usage_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = theme.contentColor.copy(alpha = 0.5f),
                     fontStyle = FontStyle.Italic,
@@ -185,19 +187,19 @@ fun LibraryCoverPickerScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     val percent = (uploadProgress * 100).toInt().coerceIn(0, 100)
-                    Text("Envoi en cours... $percent%", color = theme.contentColor.copy(alpha = 0.6f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.library_uploading, percent), color = theme.contentColor.copy(alpha = 0.6f), fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             } else {
                 Button(
                     onClick = { 
                         if (selectedUri != null) {
                             viewModel.uploadCover(compartmentId, selectedUri!!, "photo", scale, offsetX, offsetY)
-                            Toast.makeText(context, "Couverture mise à jour.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.library_cover_updated_toast), Toast.LENGTH_SHORT).show()
                             navController.popBackStack()
                         } else if (resolvedUrl != null) {
                             // Cas particulier : l'utilisateur a modifié le cadrage d'une image déjà uploadée (v9.4.19)
                             viewModel.updateCoverMetadata(compartmentId, scale, offsetX, offsetY)
-                            Toast.makeText(context, "Cadrage mis à jour.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, context.getString(R.string.library_framing_updated_toast), Toast.LENGTH_SHORT).show()
                             navController.popBackStack()
                         }
                     },
@@ -205,17 +207,17 @@ fun LibraryCoverPickerScreen(
                     modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                     colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Enregistrer cette couverture", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.library_btn_save_cover), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 TextButton(onClick = { 
                     viewModel.deleteCover(compartmentId)
-                    Toast.makeText(context, "Illustration par défaut restaurée.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.library_default_illustration_restored_toast), Toast.LENGTH_SHORT).show()
                     navController.popBackStack()
                 }) {
-                    Text("Supprimer la personnalisation", color = Error.copy(alpha = 0.8f), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.library_btn_delete_customization), color = Error.copy(alpha = 0.8f), fontWeight = FontWeight.Bold)
                 }
             }
         }

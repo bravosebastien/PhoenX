@@ -36,7 +36,6 @@ import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.SecureAsyncImage
-import com.example.phoenx.ui.screens.library.components.LibraryOnboardingData
 import com.example.phoenx.ui.theme.*
 import dagger.hilt.android.EntryPointAccessors
 
@@ -99,8 +98,8 @@ fun RecipientVideothequeScreen(
     if (isCreatorMode) {
         com.example.phoenx.ui.components.OnboardingPopup(
             pageKey = "videotheque",
-            title = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("VIDEO"),
-            contentPoints = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("VIDEO"),
+            title = stringResource(R.string.onboarding_video_title),
+            contentPoints = androidx.compose.ui.res.stringArrayResource(R.array.onboarding_video_content).toList(),
             preferenceManager = themeViewModel.preferenceManager
         )
     }
@@ -136,8 +135,8 @@ fun RecipientVideothequeScreen(
                     actions = {
                         if (isCreatorMode) {
                             InfoButton(
-                                title = LibraryOnboardingData.getTitle("VIDEO"),
-                                points = LibraryOnboardingData.getContent("VIDEO")
+                                title = stringResource(R.string.onboarding_video_title),
+                                points = androidx.compose.ui.res.stringArrayResource(R.array.onboarding_video_content).toList()
                             )
                             IconButton(onClick = { showHowToPopup = true }) { Icon(Icons.Default.Add, null, tint = accent) }
                         }

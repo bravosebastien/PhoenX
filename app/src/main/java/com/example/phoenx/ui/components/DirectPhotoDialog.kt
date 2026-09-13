@@ -16,8 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.ui.theme.LocalAppTheme
 
@@ -48,7 +50,7 @@ fun DirectPhotoDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = theme.backgroundColor,
-        title = { Text("Déposer une photo", color = theme.contentColor) },
+        title = { Text(stringResource(R.string.dialog_photo_title), color = theme.contentColor) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 // SÉLECTEUR D'IMAGE
@@ -72,7 +74,7 @@ fun DirectPhotoDialog(
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(Icons.Default.AddPhotoAlternate, null, tint = theme.accentColor, modifier = Modifier.size(40.dp))
-                            Text("Choisir une photo", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.5f))
+                            Text(stringResource(R.string.dialog_photo_btn_choose), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.5f))
                         }
                     }
                 }
@@ -80,17 +82,17 @@ fun DirectPhotoDialog(
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Titre") },
+                    label = { Text(stringResource(R.string.dialog_photo_label_title)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = userComment,
                     onValueChange = { userComment = it },
-                    label = { Text("Description (optionnelle)") },
+                    label = { Text(stringResource(R.string.dialog_photo_label_description)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 
-                Text("Visibilité", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.dialog_photo_label_visibility), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                 RecipientSelector(
                     recipients = recipients,
                     selectedIds = selectedIds.toList(),
@@ -120,12 +122,12 @@ fun DirectPhotoDialog(
                 },
                 enabled = selectedUri != null
             ) {
-                Text("Sauvegarder")
+                Text(stringResource(R.string.dialog_photo_btn_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler")
+                Text(stringResource(R.string.dialog_photo_btn_cancel))
             }
         }
     )

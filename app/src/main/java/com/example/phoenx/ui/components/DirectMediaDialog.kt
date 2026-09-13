@@ -9,6 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.ui.theme.LocalAppTheme
 
@@ -64,13 +66,13 @@ fun DirectMediaDialog(
     var visibility by remember { mutableStateOf(initialVisibility) }
 
     val label = when {
-        type == "SPOTIFY" || url.contains("spotify") -> "un morceau Spotify"
-        type == "DEEZER" || url.contains("deezer") -> "un morceau Deezer"
-        type == "YOUTUBE" || url.contains("youtube") || url.contains("youtu.be") -> "une vidéo YouTube"
-        type == "AUDIO" -> "ma Note Vocale"
-        type == "VIDEO" -> "ma Vidéo"
-        type == "PHOTO" -> "ma Photo"
-        else -> "un média"
+        type == "SPOTIFY" || url.contains("spotify") -> stringResource(R.string.dialog_media_label_spotify)
+        type == "DEEZER" || url.contains("deezer") -> stringResource(R.string.dialog_media_label_deezer)
+        type == "YOUTUBE" || url.contains("youtube") || url.contains("youtu.be") -> stringResource(R.string.dialog_media_label_youtube)
+        type == "AUDIO" -> stringResource(R.string.dialog_media_label_audio)
+        type == "VIDEO" -> stringResource(R.string.dialog_media_label_video)
+        type == "PHOTO" -> stringResource(R.string.dialog_media_label_photo)
+        else -> stringResource(R.string.dialog_media_label_default)
     }
     
     val placeholder = when {
@@ -82,7 +84,7 @@ fun DirectMediaDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = theme.backgroundColor,
-        title = { Text(if (initialUrl.isEmpty() && initialTitle.isEmpty()) "Déposer $label" else "Personnaliser", color = theme.contentColor) },
+        title = { Text(if (initialUrl.isEmpty() && initialTitle.isEmpty()) stringResource(R.string.dialog_media_title_deposit, label) else stringResource(R.string.dialog_media_title_customize), color = theme.contentColor) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 // INSTRUCTIONS (v9.4.27 : Uniquement à l'ajout d'un lien externe)
@@ -93,10 +95,10 @@ fun DirectMediaDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            Text("Comment récupérer le lien ?", style = MaterialTheme.typography.labelSmall, color = accent, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.dialog_media_howto_title), style = MaterialTheme.typography.labelSmall, color = accent, fontWeight = FontWeight.Bold)
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                "1. Ouvre l'app (Spotify, Deezer ou YouTube).\n2. Trouve ton contenu.\n3. Partager > Copier le lien.\n4. Reviens ici et colle-le.",
+                                stringResource(R.string.dialog_media_howto_steps),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = theme.contentColor.copy(alpha = 0.7f)
                             )
@@ -110,16 +112,16 @@ fun DirectMediaDialog(
                     onValueChange = { title = it },
                     label = { 
                         Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                            Text("Titre")
+                            Text(stringResource(R.string.dialog_media_label_title))
                             if (isFetchingMetadata) {
                                 Spacer(Modifier.width(8.dp))
                                 CircularProgressIndicator(modifier = Modifier.size(12.dp), strokeWidth = 1.5.dp, color = accent)
                                 Spacer(Modifier.width(4.dp))
-                                Text("Récupération...", style = MaterialTheme.typography.labelSmall, color = accent)
+                                Text(stringResource(R.string.dialog_media_fetching), style = MaterialTheme.typography.labelSmall, color = accent)
                             }
                         }
                     },
-                    placeholder = { Text("Donnez un nom à ce média") },
+                    placeholder = { Text(stringResource(R.string.dialog_media_placeholder_title)) },
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -128,7 +130,7 @@ fun DirectMediaDialog(
                     OutlinedTextField(
                         value = userComment,
                         onValueChange = { userComment = it },
-                        label = { Text("Pourquoi ce média est important ?") },
+                        label = { Text(stringResource(R.string.dialog_media_label_importance)) },
                         modifier = Modifier.fillMaxWidth(),
                         minLines = 3
                     )
@@ -139,7 +141,7 @@ fun DirectMediaDialog(
                     OutlinedTextField(
                         value = url,
                         onValueChange = { url = it },
-                        label = { Text("Lien (URL)") },
+                        label = { Text(stringResource(R.string.dialog_media_label_url)) },
                         placeholder = { Text(placeholder, style = MaterialTheme.typography.bodySmall.copy(color = theme.contentColor.copy(alpha = 0.4f))) },
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -154,7 +156,7 @@ fun DirectMediaDialog(
                     ) {
                         Icon(androidx.compose.material.icons.Icons.Default.AddPhotoAlternate, null)
                         Spacer(Modifier.width(8.dp))
-                        Text(if (type == "PHOTO" || type == "VIDEO") "Changer la miniature" else "Changer la photo de couverture")
+                        Text(if (type == "PHOTO" || type == "VIDEO") stringResource(R.string.dialog_media_btn_change_thumb) else stringResource(R.string.dialog_media_btn_change_cover))
                     }
                 }
                 
@@ -168,8 +170,8 @@ fun DirectMediaDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Inclure dans mon Livre", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
-                            Text("Si décochée, cette photo restera dans vos souvenirs mais ne sera jamais insérée dans le manuscrit. Si cochée, elle pourra être choisie par l'intelligence artificielle en écrivant votre récit, sans que ce soit garanti.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                            Text(stringResource(R.string.dialog_media_label_include_book), style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.dialog_media_desc_include_book), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
                         }
                         Switch(
                             checked = includedInBook,
@@ -181,7 +183,7 @@ fun DirectMediaDialog(
                     HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
                 }
 
-                Text("Visibilité & Destinataires", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.dialog_media_visibility_destinataires), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                 RecipientSelector(
                     recipients = recipients,
                     selectedIds = selectedIds.toList(),
@@ -210,12 +212,12 @@ fun DirectMediaDialog(
                 },
                 enabled = if (type == "AUDIO" || type == "PHOTO" || type == "VIDEO") title.isNotBlank() else url.isNotBlank()
             ) {
-                Text("Enregistrer")
+                Text(stringResource(R.string.dialog_media_btn_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler")
+                Text(stringResource(R.string.dialog_media_btn_cancel))
             }
         }
     )

@@ -936,6 +936,163 @@
     <string name="step_capture_date_end">Date de fin</string>
     <string name="step_capture_viewmodel_location_unknown">Lieu inconnu</string>
 
+    <!-- Library Batch -->
+    <string name="library_literary_title">Bibliothèque Littéraire</string>
+    <string name="library_no_excerpts_filter">Aucun extrait pour ce destinataire.</string>
+    <string name="library_empty_shelves">Les rayons sont vides...</string>
+    <string name="library_isolated_excerpts">Extraits isolés</string>
+    <string name="library_delete_excerpt_title">Supprimer l\'extrait ?</string>
+    <string name="library_delete_excerpt_message">Cette action est irréversible.</string>
+    <string name="library_delete_confirm">Supprimer</string>
+    <string name="library_delete_cancel">Annuler</string>
+    <string name="library_reading_header">LECTURE</string>
+    <string name="library_reading_fallback_title">Extrait Littéraire</string>
+    <string name="library_manuscript_fallback">Manuscrit</string>
+    <string name="library_excerpt_fallback">Extrait</string>
+    <string name="library_add_excerpt">Déposer un extrait</string>
+    <string name="library_edit_excerpt">Modifier l\'extrait</string>
+    <string name="library_book_title_label">Titre de l\'ouvrage</string>
+    <string name="library_change_cover">Changer la photo de couverture</string>
+    <string name="library_personal_comment">Commentaire personnel (optionnel)</string>
+    <string name="library_personal_comment_placeholder">Ex : Nom de l\'auteur, genre de la citation, pensée personnelle...</string>
+    <string name="library_excerpt_text_label">Texte de l\'extrait</string>
+    <string name="library_visibility_destinataires">Visibilité &amp; Destinataires</string>
+    <string name="library_save">Enregistrer</string>
+    <string name="library_cancel">Annuler</string>
+    <string name="library_edit_header">ÉDITION DE L\'EXTRAIT</string>
+    <string name="library_editor_placeholder">Saisis ou colle ton extrait ici...</string>
+    <string name="library_my_library">Ma Bibliothèque</string>
+    <string name="library_onboarding_point_1">Accède à tous tes compartiments : Photos, Vidéos, Secrets, etc.</string>
+    <string name="library_onboarding_point_2">C\'est ici que sont centralisés tous tes souvenirs déposés.</string>
+    <string name="library_stats_label">%1$d compartiments · %2$d souvenirs déposés</string>
+    <string name="library_essentials">ESSENTIELS</string>
+    <string name="library_fil_pensee_title">Fil de Pensée</string>
+    <string name="library_fil_pensee_info">%1$d souvenirs classés par âge</string>
+    <string name="library_book_ma_vie_title">Livre de Ma Vie</string>
+    <string name="library_book_info_creator">Co-écrit avec l\'IA narrative</string>
+    <string name="library_book_info_heir">Consultation du manuscrit</string>
+    <string name="library_compartments">COMPARTIMENTS</string>
+    <string name="library_videotheque">Vidéothèque</string>
+    <string name="library_phototheque">Photothèque</string>
+    <string name="library_discotheque">Discothèque</string>
+    <string name="library_mappemonde">Mappemonde</string>
+    <string name="library_le_litteraire">Le Littéraire</string>
+    <string name="library_reduce">Réduire</string>
+    <string name="library_others">Autres</string>
+    <string name="library_other_compartments">AUTRES COMPARTIMENTS</string>
+    <string name="library_personalities">Personnalités</string>
+    <string name="library_capsule_temporelle">Capsule temporelle</string>
+    <string name="library_reconciliation">Réconciliation</string>
+    <string name="library_miroir_deux">Le Miroir à Deux</string>
+    <string name="library_mes_classements">Mes Classements</string>
+    <string name="library_coffre_fort">Le Coffre-Fort</string>
+    <string name="library_100_questions">100 Questions</string>
+    <string name="library_portraits">Portraits</string>
+    <string name="library_lettre_a_moi">Lettre à Moi</string>
+    <string name="library_customize_title">Personnaliser %1$s</string>
+    <string name="library_choose_photo_desc">Choisis une photo qui représente cet espace pour toi.</string>
+    <string name="library_btn_choose_photo">Choisir une photo</string>
+    <string name="library_no_photo_selected">Aucune photo sélectionnée</string>
+    <string name="library_image_usage_hint">Cette image s\'affichera sur la carte. Pince pour zoomer, glisse pour cadrer.</string>
+    <string name="library_uploading">Envoi en cours... %1$d%%</string>
+    <string name="library_cover_updated_toast">Couverture mise à jour.</string>
+    <string name="library_framing_updated_toast">Cadrage mis à jour.</string>
+    <string name="library_btn_save_cover">Enregistrer cette couverture</string>
+    <string name="library_btn_delete_customization">Supprimer la personnalisation</string>
+    <string name="library_default_illustration_restored_toast">Illustration par défaut restaurée.</string>
+    <string name="library_viewmodel_decrypt_error">Erreur déchiffrement</string>
+    <string name="library_viewmodel_sealed_content">Contenu scellé</string>
+
+    <!-- Onboarding Library -->
+    <string name="onboarding_photo_title">La Grande Photothèque</string>
+    <string-array name="onboarding_photo_content">
+        <item>Toutes les photos de tes souvenirs se rangent ici automatiquement, sans rien faire de plus.</item>
+        <item>Donne un titre à chaque photo pour la retrouver facilement.</item>
+        <item>Un commentaire personnel (optionnel) t\'aide à te souvenir du contexte.</item>
+        <item>Clique sur une vignette pour l\'ouvrir en grand. Utilise le crayon pour la modifier.</item>
+        <item>Choisis qui pourra voir cette photo parmi tes destinataires, ou laisse-la visible par tous.</item>
+        <item>Restreindre les destinataires d\'une photo ne concerne QUE cette photo précise. Cela n\'a aucun effet sur le souvenir auquel elle est rattachée dans L\'Étincelle &amp; son Récit — les deux visibilités sont indépendantes.</item>
+    </string-array>
+
+    <string name="onboarding_disco_title">La Discothèque</string>
+    <string-array name="onboarding_disco_content">
+        <item>Dépose ici tes notes vocales, ou des liens vers tes musiques préférées sur Spotify ou Deezer.</item>
+        <item>Une note vocale porte déjà son propre message — donne-lui simplement un titre pour la retrouver.</item>
+        <item>Pour un lien musical, ajoute un commentaire pour expliquer pourquoi ce morceau compte pour toi.</item>
+        <item>Clique sur un élément pour l\'écouter. Utilise le crayon pour le modifier.</item>
+        <item>Choisis qui pourra écouter cet élément parmi tes destinataires, ou laisse-le accessible à tous.</item>
+        <item>Comment récupérer un lien ? 1. Ouvre Spotify ou Deezer. 2. Trouve ta chanson. 3. Appuie sur \'Partager\' puis \'Copier le lien\'. 4. Reviens ici et colle le lien.</item>
+        <item>Restreindre les destinataires d\'une note vocale ou d\'un lien musical ne concerne QUE cet élément précis. Cela n\'a aucun effet sur le souvenir auquel il est rattaché dans L\'Étincelle &amp; son Récit — les deux visibilités sont indépendantes.</item>
+    </string-array>
+
+    <string name="onboarding_video_title">La Vidéothèque</string>
+    <string-array name="onboarding_video_content">
+        <item>Toutes tes vidéos personnelles et tes liens YouTube se retrouvent ici.</item>
+        <item>Une miniature de la vidéo s\'affiche automatiquement dès son ajout.</item>
+        <item>Donne un titre et, si tu le souhaites, un commentaire pour expliquer ce moment.</item>
+        <item>Clique sur une vignette pour lancer la lecture. Utilise le crayon pour le modifier.</item>
+        <item>Choisis qui pourra voir cette vidéo parmi tes destinataires, ou laisse-la visible par tous.</item>
+        <item>Comment récupérer un lien YouTube ? 1. Ouvre l\'app YouTube. 2. Trouve ta vidéo. 3. Appuie sur \'Partager\' puis \'Copier le lien\'. 4. Reviens ici et colle le lien.</item>
+        <item>Restreindre les destinataires d\'une vidéo ne concerne QUE cette vidéo précise. Cela n\'a aucun effet sur le souvenir auquel elle est rattachée dans L\'Étincelle &amp; son Récit — les deux visibilités sont indépendantes.</item>
+    </string-array>
+
+    <string name="onboarding_literary_title">La Bibliothèque Littéraire</string>
+    <string-array name="onboarding_literary_content">
+        <item>Dépose ici tes textes, citations ou passages qui comptent pour toi — un souvenir d\'enfance, une lettre, un poème que tu as écrit.</item>
+        <item>Donne un titre à chaque extrait pour le retrouver facilement dans la liste.</item>
+        <item>Ajoute une photo de couverture personnelle : elle remplacera le fond parchemin par défaut sur la vignette.</item>
+        <item>Un commentaire personnel (optionnel) t\'aide à te souvenir du contexte — pourquoi ce texte compte pour toi.</item>
+        <item>Clique sur une vignette pour lire l\'extrait en plein écran. Utilise le crayon pour la modifier.</item>
+        <item>Choisis qui pourra lire cet extrait parmi tes destinataires, ou laisse-le visible par tous.</item>
+        <item>Restreindre les destinataires d\'un extrait ne concerne QUE cet extrait précis. Cela n\'a aucun effet sur le souvenir auquel il est rattaché dans L\'Étincelle &amp; son Récit — les deux visibilités sont indépendantes.</item>
+    </string-array>
+
+    <!-- Dialog Media Components -->
+    <string name="dialog_media_label_spotify">un morceau Spotify</string>
+    <string name="dialog_media_label_deezer">un morceau Deezer</string>
+    <string name="dialog_media_label_youtube">une vidéo YouTube</string>
+    <string name="dialog_media_label_audio">ma Note Vocale</string>
+    <string name="dialog_media_label_video">ma Vidéo</string>
+    <string name="dialog_media_label_photo">ma Photo</string>
+    <string name="dialog_media_label_default">un média</string>
+    <string name="dialog_media_title_deposit">Déposer %1$s</string>
+    <string name="dialog_media_title_customize">Personnaliser</string>
+    <string name="dialog_media_howto_title">Comment récupérer le lien ?</string>
+    <string name="dialog_media_howto_steps">1. Ouvre l\'app (Spotify, Deezer ou YouTube).\n2. Trouve ton contenu.\n3. Partager &gt; Copier le lien.\n4. Reviens ici et colle-le.</string>
+    <string name="dialog_media_label_title">Titre</string>
+    <string name="dialog_media_fetching">Récupération...</string>
+    <string name="dialog_media_placeholder_title">Donnez un nom à ce média</string>
+    <string name="dialog_media_label_importance">Pourquoi ce média est important ?</string>
+    <string name="dialog_media_label_url">Lien (URL)</string>
+    <string name="dialog_media_btn_change_thumb">Changer la miniature</string>
+    <string name="dialog_media_btn_change_cover">Changer la photo de couverture</string>
+    <string name="dialog_media_label_include_book">Inclure dans mon Livre</string>
+    <string name="dialog_media_desc_include_book">Si décochée, cette photo restera dans vos souvenirs mais ne sera jamais insérée dans le manuscrit. Si cochée, elle pourra être choisie par l\'intelligence artificielle en écrivant votre récit, sans que ce soit garanti.</string>
+    <string name="dialog_media_visibility_destinataires">Visibilité &amp; Destinataires</string>
+    <string name="dialog_media_btn_save">Enregistrer</string>
+    <string name="dialog_media_btn_cancel">Annuler</string>
+
+    <string name="dialog_photo_title">Déposer une photo</string>
+    <string name="dialog_photo_btn_choose">Choisir une photo</string>
+    <string name="dialog_photo_label_title">Titre</string>
+    <string name="dialog_photo_label_description">Description (optionnelle)</string>
+    <string name="dialog_photo_label_visibility">Visibilité</string>
+    <string name="dialog_photo_btn_save">Sauvegarder</string>
+    <string name="dialog_photo_btn_cancel">Annuler</string>
+
+    <!-- Library Archive -->
+    <string name="library_archive_preview_label">👁 Aperçu — Ce que verront tes proches</string>
+    <string name="library_archive_btn_back_space">← Mon espace</string>
+    <string name="library_archive_my_library">Ta Bibliothèque</string>
+    <string name="library_archive_creator_library">La bibliothèque de %1$s</string>
+    <string name="library_archive_sealed_content">Contenu Scellé</string>
+    <string name="library_archive_sealed_compartment">Compartiment Scellé</string>
+    <string name="library_archive_locked_date">Ce tiroir s\'ouvrira à une date choisie par le Créateur.</string>
+    <string name="library_archive_locked_enigma">Vous devez résoudre une énigme pour ouvrir ce secret.</string>
+    <string name="library_archive_locked_key">Une clé physique est nécessaire pour déverrouiller ce tiroir.</string>
+    <string name="library_archive_locked_default">Ce compartiment n\'est pas encore accessible.</string>
+    <string name="library_archive_btn_close">Fermer</string>
+
     <string-array name="personality_categories">
         <item>Sport</item>
         <item>Cinéma et Télévision</item>

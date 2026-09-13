@@ -35,7 +35,6 @@ import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.SecureAsyncImage
-import com.example.phoenx.ui.screens.library.components.LibraryOnboardingData
 import com.example.phoenx.ui.theme.*
 import dagger.hilt.android.EntryPointAccessors
 
@@ -88,8 +87,8 @@ fun RecipientPhotosScreen(
     if (isCreatorMode) {
         com.example.phoenx.ui.components.OnboardingPopup(
             pageKey = "phototheque",
-            title = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("PHOTO"),
-            contentPoints = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("PHOTO"),
+            title = stringResource(R.string.onboarding_photo_title),
+            contentPoints = androidx.compose.ui.res.stringArrayResource(R.array.onboarding_photo_content).toList(),
             preferenceManager = themeViewModel.preferenceManager
         )
     }
@@ -125,8 +124,8 @@ fun RecipientPhotosScreen(
                     actions = {
                         if (isCreatorMode) {
                             InfoButton(
-                                title = LibraryOnboardingData.getTitle("PHOTO"),
-                                points = LibraryOnboardingData.getContent("PHOTO")
+                                title = stringResource(R.string.onboarding_photo_title),
+                                points = androidx.compose.ui.res.stringArrayResource(R.array.onboarding_photo_content).toList()
                             )
                             IconButton(onClick = { showAddDialog = true }) { Icon(Icons.Default.Add, null, tint = accent) }
                         }

@@ -31,7 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.compose.ui.res.stringResource
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel
@@ -53,10 +55,10 @@ fun RecipientLibraryScreen(
 
     OnboardingPopup(
         pageKey = "library",
-        title = "Ma Bibliothèque",
+        title = stringResource(R.string.library_my_library),
         contentPoints = listOf(
-            "Accède à tous tes compartiments : Photos, Vidéos, Secrets, etc.",
-            "C'est ici que sont centralisés tous tes souvenirs déposés."
+            stringResource(R.string.library_onboarding_point_1),
+            stringResource(R.string.library_onboarding_point_2)
         ),
         preferenceManager = themeViewModel.preferenceManager
     )
@@ -106,7 +108,7 @@ fun RecipientLibraryScreen(
                 Icon(Icons.Outlined.ArrowBack, null, tint = theme.contentColor)
             }
             Text(
-                text = "Ma Bibliothèque",
+                text = stringResource(R.string.library_my_library),
                 style = TextStyle(
                     fontFamily = theme.fontFamily, 
                     fontStyle = FontStyle.Italic, 
@@ -119,7 +121,7 @@ fun RecipientLibraryScreen(
         }
 
         Text(
-            text = "14 compartiments · $totalSouvenirs souvenirs déposés",
+            text = stringResource(R.string.library_stats_label, 14, totalSouvenirs),
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
             color = theme.contentColor.copy(alpha = 0.5f),
             modifier = Modifier.padding(start = 16.dp, bottom = 14.dp)
@@ -127,15 +129,15 @@ fun RecipientLibraryScreen(
 
         // ── 1. ESSENTIELS (Lignes fines - AGRANDIES v8.9.6) ──────────────────
         Text(
-            "ESSENTIELS",
+            stringResource(R.string.library_essentials),
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp),
             color = theme.contentColor.copy(alpha = 0.4f),
             modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 16.dp)
         )
 
         CompactEssentialRow(
-            title = "Fil de Pensée",
-            info = "$totalSouvenirs souvenirs classés par âge",
+            title = stringResource(R.string.library_fil_pensee_title),
+            info = stringResource(R.string.library_fil_pensee_info, totalSouvenirs),
             icon = Icons.Outlined.Timeline,
             onClick = { 
                 val route = if (isCreatorMode) "fil_pensee" else "fil_pensee?creatorId=$targetCreatorId"
@@ -145,8 +147,8 @@ fun RecipientLibraryScreen(
         )
 
         CompactEssentialRow(
-            title = bookTitle ?: "Livre de Ma Vie",
-            info = if (isCreatorMode) "Co-écrit avec l'IA narrative" else "Consultation du manuscrit",
+            title = bookTitle ?: stringResource(R.string.library_book_ma_vie_title),
+            info = if (isCreatorMode) stringResource(R.string.library_book_info_creator) else stringResource(R.string.library_book_info_heir),
             icon = Icons.Outlined.MenuBook,
             onClick = { 
                 if (isCreatorMode) {
@@ -162,7 +164,7 @@ fun RecipientLibraryScreen(
 
         // ── 2. GRILLE DE 6 BLOCS VISIBLES (AGRANDIS v8.9.6) ──────────────────
         Text(
-            "COMPARTIMENTS",
+            stringResource(R.string.library_compartments),
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 13.sp, fontWeight = FontWeight.Black, letterSpacing = 1.5.sp),
             color = theme.contentColor.copy(alpha = 0.4f),
             modifier = Modifier.padding(start = 16.dp, bottom = 16.dp)
@@ -176,35 +178,35 @@ fun RecipientLibraryScreen(
             val itemModifier = Modifier.weight(1f)
             
             CompactGridItem(
-                label = "Vidéothèque",
+                label = stringResource(R.string.library_videotheque),
                 icon = Icons.Outlined.Movie,
                 onClick = { navController.navigate(Screen.RecipientVideotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) },
                 theme = theme,
                 modifier = itemModifier
             )
             CompactGridItem(
-                label = "Photothèque",
+                label = stringResource(R.string.library_phototheque),
                 icon = Icons.Outlined.PhotoCamera,
                 onClick = { navController.navigate(Screen.RecipientPhotos.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) },
                 theme = theme,
                 modifier = itemModifier
             )
             CompactGridItem(
-                label = "Discothèque",
+                label = stringResource(R.string.library_discotheque),
                 icon = Icons.Outlined.Album,
                 onClick = { navController.navigate(Screen.RecipientDiscotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) },
                 theme = theme,
                 modifier = itemModifier
             )
             CompactGridItem(
-                label = "Mappemonde",
+                label = stringResource(R.string.library_mappemonde),
                 icon = Icons.Outlined.Public,
                 onClick = { navController.navigate("mappemonde") },
                 theme = theme,
                 modifier = itemModifier
             )
             CompactGridItem(
-                label = "Le Littéraire",
+                label = stringResource(R.string.library_le_litteraire),
                 icon = Icons.Outlined.AutoStories,
                 onClick = { navController.navigate("literary_library") },
                 theme = theme,
@@ -237,7 +239,7 @@ fun RecipientLibraryScreen(
                 }
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = if (isExpanded) "Réduire" else "Autres",
+                    text = if (isExpanded) stringResource(R.string.library_reduce) else stringResource(R.string.library_others),
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 12.sp, fontWeight = FontWeight.Bold),
                     color = accent,
                     textAlign = TextAlign.Center
@@ -250,7 +252,7 @@ fun RecipientLibraryScreen(
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                 
                 Text(
-                    "AUTRES COMPARTIMENTS",
+                    stringResource(R.string.library_other_compartments),
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Black, letterSpacing = 1.2.sp),
                     color = theme.contentColor.copy(alpha = 0.3f),
                     modifier = Modifier.padding(start = 8.dp, top = 32.dp, bottom = 12.dp)
@@ -263,7 +265,7 @@ fun RecipientLibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     maxItemsInEachRow = 3
                 ) {
-                    CompactGridItem("Personnalités", Icons.Outlined.Star, { 
+                    CompactGridItem(stringResource(R.string.library_personalities), Icons.Outlined.Star, { 
                         val route = if (isCreatorMode) "personalities" else "personalities?creatorId=$targetCreatorId"
                         navController.navigate(route) 
                     }, theme, itemModifier)
@@ -274,7 +276,7 @@ fun RecipientLibraryScreen(
                     }, theme, itemModifier)
                     */
 
-                    CompactGridItem("Capsule temporelle", Icons.Outlined.MailOutline, { 
+                    CompactGridItem(stringResource(R.string.library_capsule_temporelle), Icons.Outlined.MailOutline, { 
                         navController.navigate("lettres") 
                     }, theme, itemModifier)
                 }
@@ -284,15 +286,15 @@ fun RecipientLibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     maxItemsInEachRow = 3
                 ) {
-                    CompactGridItem("Réconciliation", Icons.Outlined.Mail, { 
+                    CompactGridItem(stringResource(R.string.library_reconciliation), Icons.Outlined.Mail, { 
                         navController.navigate("reconciliation") 
                     }, theme, itemModifier)
 
-                    CompactGridItem("Le Miroir à Deux", Icons.Outlined.Handshake, { 
+                    CompactGridItem(stringResource(R.string.library_miroir_deux), Icons.Outlined.Handshake, { 
                         navController.navigate("le_pacte") 
                     }, theme, itemModifier)
 
-                    CompactGridItem("Mes Classements", Icons.Outlined.FormatListNumbered, { 
+                    CompactGridItem(stringResource(R.string.library_mes_classements), Icons.Outlined.FormatListNumbered, { 
                         navController.navigate(Screen.Rankings.createRoute(targetCreatorId))
                     }, theme, itemModifier)
                 }
@@ -302,16 +304,16 @@ fun RecipientLibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     maxItemsInEachRow = 3
                 ) {
-                    CompactGridItem("Le Coffre-Fort", Icons.Outlined.Lock, { 
+                    CompactGridItem(stringResource(R.string.library_coffre_fort), Icons.Outlined.Lock, { 
                         if (isCreatorMode) navController.navigate("coffre_fort")
                         else navController.navigate(Screen.RecipientDetective.createRoute(targetCreatorId))
                     }, theme, itemModifier)
 
-                    CompactGridItem("100 Questions", Icons.Outlined.HelpOutline, { 
+                    CompactGridItem(stringResource(R.string.library_100_questions), Icons.Outlined.HelpOutline, { 
                         navController.navigate("cent_questions") 
                     }, theme, itemModifier)
 
-                    CompactGridItem("Portraits", Icons.Outlined.AccountCircle, { 
+                    CompactGridItem(stringResource(R.string.library_portraits), Icons.Outlined.AccountCircle, { 
                         navController.navigate("portrait_proche") 
                     }, theme, itemModifier)
                 }
@@ -321,7 +323,7 @@ fun RecipientLibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     maxItemsInEachRow = 3
                 ) {
-                    CompactGridItem("Lettre à Moi", Icons.Outlined.HistoryEdu, { 
+                    CompactGridItem(stringResource(R.string.library_lettre_a_moi), Icons.Outlined.HistoryEdu, {
                         navController.navigate("youngselfletters") 
                     }, theme, itemModifier)
                     

@@ -37,7 +37,6 @@ import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.SecureAsyncImage
-import com.example.phoenx.ui.screens.library.components.LibraryOnboardingData
 import com.example.phoenx.ui.theme.*
 import dagger.hilt.android.EntryPointAccessors
 
@@ -101,8 +100,8 @@ fun RecipientDiscothequeScreen(
     if (isCreatorMode) {
         com.example.phoenx.ui.components.OnboardingPopup(
             pageKey = "discotheque",
-            title = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getTitle("DISCO"),
-            contentPoints = com.example.phoenx.ui.screens.library.components.LibraryOnboardingData.getContent("DISCO"),
+            title = stringResource(R.string.onboarding_disco_title),
+            contentPoints = androidx.compose.ui.res.stringArrayResource(R.array.onboarding_disco_content).toList(),
             preferenceManager = themeViewModel.preferenceManager
         )
     }
@@ -144,8 +143,8 @@ fun RecipientDiscothequeScreen(
                     actions = {
                         if (isCreatorMode) {
                             InfoButton(
-                                title = LibraryOnboardingData.getTitle("DISCO"),
-                                points = LibraryOnboardingData.getContent("DISCO")
+                                title = stringResource(R.string.onboarding_disco_title),
+                                points = androidx.compose.ui.res.stringArrayResource(R.array.onboarding_disco_content).toList()
                             )
                             IconButton(onClick = { showHowToPopup = true }) { Icon(Icons.Default.Add, null, tint = accent) }
                         }
