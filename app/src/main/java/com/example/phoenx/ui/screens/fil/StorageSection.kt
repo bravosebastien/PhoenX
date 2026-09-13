@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.components.CompartmentSelector
 import com.example.phoenx.ui.components.InfoPoint
@@ -39,7 +41,7 @@ fun StorageSection(
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
-            text = "RANGEMENT", 
+            text = stringResource(R.string.storage_section_title), 
             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 13.sp), 
             color = Color.Black, 
             letterSpacing = 2.sp
@@ -62,14 +64,14 @@ fun StorageSection(
                         Icon(Icons.Default.Inventory, null, tint = accent, modifier = Modifier.size(20.dp))
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            "DANS QUELS TIROIRS ?", 
+                            stringResource(R.string.storage_section_label), 
                             style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), 
                             color = theme.contentColor
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         InfoPoint(
-                            title = "Le rangement par Tiroirs",
-                            content = "Votre souvenir est automatiquement rangé selon les médias qu'il contient (Photos, Vidéothèque ou Discothèque).\n\nVous pouvez toujours ajuster ce rangement manuellement pour faire apparaître ce souvenir dans d'autres salles de votre Bibliothèque. Note : ce classement n'influence pas l'écriture de votre Livre de Vie, qui reste gérée par l'option dédiée."
+                            title = stringResource(R.string.storage_section_info_title),
+                            content = stringResource(R.string.storage_section_info_content)
                         )
                     }
                     if (!isReadOnly) {

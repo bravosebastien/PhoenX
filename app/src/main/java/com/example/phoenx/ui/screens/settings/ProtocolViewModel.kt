@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.local.DepositaryEntity
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.media.MediaManager
@@ -21,7 +22,8 @@ class ProtocolViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
-    private val mediaManager: MediaManager
+    private val mediaManager: MediaManager,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProtocolUiState())
@@ -83,7 +85,7 @@ class ProtocolViewModel @Inject constructor(
                     .set(mapOf("silenceConfig" to mapOf("thresholdHours" to hours)), SetOptions.merge())
                     .await()
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Erreur mise à jour délai") }
+                _uiState.update { it.copy(error = context.getString(R.string.protocol_error_update_threshold)) }
             }
         }
     }
@@ -127,7 +129,7 @@ class ProtocolViewModel @Inject constructor(
                     "email" to email,
                     "role" to "depositary",
                     "sourceId" to depositaryId,
-                    "label" to if (role == "primary") "Gardien Principal" else "Gardien Secondaire"
+                    "label" to if (role == "primary") context.getString(R.string.protocol_invitation_label_primary) else context.getString(R.string.protocol_invitation_label_secondary)
                 )
                 val result = functions.getHttpsCallable("generateUniversalInvitation").call(inviteData).await()
                 val tokenId = (result.data as Map<*, *>)["tokenId"] as String
@@ -135,11 +137,11 @@ class ProtocolViewModel @Inject constructor(
                 _inviteToken.value = tokenId
 
                 // Email via Cloud Function (v9.4.10)
-                val creatorName = db.collection("users").document(userId).get().await().getString("displayName") ?: "Un proche"
+                val creatorName = db.collection("users").document(userId).get().await().getString("displayName") ?: context.getString(R.string.recipient_viewmodel_creator_fallback)
                 val emailData = hashMapOf(
                     "to" to email,
-                    "subject" to "$creatorName vous a choisi comme Gardien de confiance",
-                    "text" to "Bonjour $name,\n\n$creatorName souhaite vous confier le rôle de Gardien (Dépositaire) de son récit de vie sur PHOEN-X.\n\nRejoindre son cercle : https://phoenx.app/join/$tokenId"
+                    "subject" to context.getString(R.string.protocol_email_subject, creatorName),
+                    "text" to context.getString(R.string.protocol_email_text, name, creatorName, tokenId)
                 )
                 functions.getHttpsCallable("sendMail").call(emailData).await()
 
@@ -169,7 +171,7 @@ class ProtocolViewModel @Inject constructor(
                     .delete().await()
                 offlineEntryDao.deleteDepositary(id)
             } catch (e: Exception) {
-                _uiState.update { it.copy(error = "Erreur suppression") }
+                _uiState.update { it.copy(error = context.getString(R.string.protocol_error_remove)) }
             }
         }
     }

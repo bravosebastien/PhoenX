@@ -29,6 +29,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.components.InfoButton
@@ -114,7 +116,7 @@ fun RecipientPhotosScreen(
         topBar = {
             Column {
                 TopAppBar(
-                    title = { Text("Grande Photothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
+                    title = { Text(stringResource(R.string.recipient_photos_screen_title), style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -150,7 +152,7 @@ fun RecipientPhotosScreen(
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("L'album est encore vide.", color = theme.contentColor.copy(alpha = 0.4f))
+                    Text(stringResource(R.string.recipient_photos_empty_state), color = theme.contentColor.copy(alpha = 0.4f))
                 }
             } else {
                 LazyVerticalGrid(
@@ -163,7 +165,7 @@ fun RecipientPhotosScreen(
                     if (viewMode == MediaViewMode.BY_MEMORY) {
                         groupedEntries.forEach { (parentId, group) ->
                             item(span = { GridItemSpan(2) }) {
-                                val title = if (parentId == "standalone") "Photos isolées" else parentTitles[parentId] ?: "Souvenir"
+                                val title = if (parentId == "standalone") stringResource(R.string.recipient_photos_group_standalone) else parentTitles[parentId] ?: stringResource(R.string.recipient_photos_group_memory_fallback)
                                 Surface(
                                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 8.dp),
                                     color = accent.copy(alpha = 0.1f),
@@ -222,14 +224,14 @@ fun RecipientPhotosScreen(
         AlertDialog(
             onDismissRequest = { mediaToDelete = null },
             containerColor = theme.backgroundColor,
-            title = { Text("Supprimer cette photo ?", color = theme.contentColor) },
-            text = { Text("Cette action est irréversible.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.recipient_photos_dialog_delete_title), color = theme.contentColor) },
+            text = { Text(stringResource(R.string.recipient_photos_dialog_delete_text), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 Button(onClick = { viewModel.deleteMediaEntry(mediaToDelete!!); mediaToDelete = null }, colors = ButtonDefaults.buttonColors(containerColor = Error)) {
-                    Text("Supprimer", color = Color.White)
+                    Text(stringResource(R.string.recipient_photos_dialog_delete_confirm), color = Color.White)
                 }
             },
-            dismissButton = { TextButton(onClick = { mediaToDelete = null }) { Text("Annuler", color = theme.contentColor) } }
+            dismissButton = { TextButton(onClick = { mediaToDelete = null }) { Text(stringResource(R.string.recipient_photos_dialog_delete_cancel), color = theme.contentColor) } }
         )
     }
 
@@ -386,7 +388,7 @@ fun PhotoItem(
         // TITRE SOUS LE BLOC (aiSummary)
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = entry.aiSummary.ifEmpty { "Photo" },
+            text = entry.aiSummary.ifEmpty { stringResource(R.string.recipient_photos_item_fallback_title) },
             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
             color = theme.contentColor,
             maxLines = 1,

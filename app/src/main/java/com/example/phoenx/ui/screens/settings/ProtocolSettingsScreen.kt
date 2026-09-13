@@ -23,9 +23,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.local.DepositaryEntity
 import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.components.PhoenXAvatar
@@ -40,6 +42,7 @@ fun ProtocolSettingsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val context = LocalContext.current
     val snackbarHostState = remember { SnackbarHostState() }
     
     var showInviteDialog by remember { mutableStateOf<String?>(null) } // role: primary | secondary
@@ -47,7 +50,7 @@ fun ProtocolSettingsScreen(
     // Gestion du succès
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
-            snackbarHostState.showSnackbar("Invitation envoyée avec succès.")
+            snackbarHostState.showSnackbar(context.getString(R.string.protocol_toast_success))
             viewModel.clearSuccess()
         }
     }
@@ -67,7 +70,7 @@ fun ProtocolSettingsScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Transmission & Protocole", 
+                        stringResource(R.string.protocol_screen_title), 
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontFamily = theme.fontFamily,
                             fontWeight = FontWeight.Bold
@@ -81,8 +84,8 @@ fun ProtocolSettingsScreen(
                 },
                 actions = {
                     InfoPoint(
-                        title = "La Transmission",
-                        content = "Les Gardiens (Dépositaires) sont les seules personnes qui pourront confirmer votre départ pour ouvrir l'accès à vos souvenirs. Le délai de contestation est votre sécurité pour annuler une fausse alerte."
+                        title = stringResource(R.string.protocol_info_title),
+                        content = stringResource(R.string.protocol_info_content)
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -100,7 +103,7 @@ fun ProtocolSettingsScreen(
                 .padding(24.dp)
         ) {
             Text(
-                "Gère ton héritage",
+                stringResource(R.string.protocol_header_title),
                 style = MaterialTheme.typography.headlineMedium.copy(
                     fontFamily = theme.fontFamily,
                     fontWeight = FontWeight.Bold
@@ -112,7 +115,7 @@ fun ProtocolSettingsScreen(
 
             // SECTION 1 : LES GARDIENS
             Text(
-                "MES GARDIENS DE CONFIANCE", 
+                stringResource(R.string.protocol_section_guardians), 
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                 color = theme.contentColor.copy(alpha = 0.4f)
             )
@@ -120,7 +123,7 @@ fun ProtocolSettingsScreen(
 
             // Gardien Principal
             DepositaryCard(
-                title = "Gardien Principal",
+                title = stringResource(R.string.protocol_guardian_primary),
                 role = "primary",
                 depositary = uiState.depositaries.find { it.role == "primary" },
                 onInvite = { showInviteDialog = "primary" },
@@ -132,7 +135,7 @@ fun ProtocolSettingsScreen(
 
             // Gardien Secondaire
             DepositaryCard(
-                title = "Gardien Secondaire",
+                title = stringResource(R.string.protocol_guardian_secondary),
                 role = "secondary",
                 depositary = uiState.depositaries.find { it.role == "secondary" },
                 onInvite = { showInviteDialog = "secondary" },
@@ -144,13 +147,13 @@ fun ProtocolSettingsScreen(
 
             // SECTION 2 : DÉLAI DE CONTESTATION
             Text(
-                "SÉCURITÉ ANTI-ERREUR", 
+                stringResource(R.string.protocol_section_security), 
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                 color = theme.contentColor.copy(alpha = 0.4f)
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                "Temps dont tu disposeras pour annuler une activation par erreur avant que tes souvenirs ne soient transmis.",
+                stringResource(R.string.protocol_security_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = theme.contentColor.copy(alpha = 0.6f)
             )
@@ -164,12 +167,12 @@ fun ProtocolSettingsScreen(
                 steps = 2,
                 colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent)
             )
-            Text("${uiState.thresholdHours} heures", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.protocol_threshold_format, uiState.thresholdHours), style = MaterialTheme.typography.bodyLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
 
             Spacer(modifier = Modifier.height(48.dp))
 
             Text(
-                "Note : Ce protocole est moral et privé. Il ne remplace pas les dispositions légales de succession.",
+                stringResource(R.string.protocol_legal_note),
                 style = MaterialTheme.typography.labelSmall,
                 color = theme.contentColor.copy(alpha = 0.4f),
                 textAlign = TextAlign.Center,
@@ -235,7 +238,7 @@ fun DepositaryCard(
                 ) {
                     Icon(Icons.Default.Add, null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Désigner un Gardien", style = MaterialTheme.typography.labelLarge)
+                    Text(stringResource(R.string.protocol_button_add_guardian), style = MaterialTheme.typography.labelLarge)
                 }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -269,7 +272,7 @@ fun DepositaryCard(
                     Surface(modifier = Modifier.size(6.dp), shape = RoundedCornerShape(3.dp), color = statusColor) {}
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        if (isActive) "Liaison active" else "Invitation en attente",
+                        if (isActive) stringResource(R.string.protocol_status_active) else stringResource(R.string.protocol_status_pending),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = statusColor
                     )
@@ -321,7 +324,7 @@ fun InviteDepositaryDialog(
         containerColor = theme.backgroundColor,
         title = { 
             Text(
-                if (role == "primary") "Désigner le Gardien Principal" else "Désigner le Gardien Secondaire", 
+                if (role == "primary") stringResource(R.string.protocol_dialog_add_primary) else stringResource(R.string.protocol_dialog_add_secondary), 
                 color = theme.contentColor,
                 style = MaterialTheme.typography.titleMedium
             ) 
@@ -353,7 +356,7 @@ fun InviteDepositaryDialog(
                 }
 
                 Text(
-                    "Cette personne recevra une invitation par email pour confirmer son rôle.",
+                    stringResource(R.string.protocol_dialog_add_info),
                     style = MaterialTheme.typography.bodySmall,
                     color = theme.contentColor.copy(alpha = 0.6f)
                 )
@@ -361,7 +364,7 @@ fun InviteDepositaryDialog(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nom complet") },
+                    label = { Text(stringResource(R.string.protocol_dialog_add_name_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
@@ -369,7 +372,7 @@ fun InviteDepositaryDialog(
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Adresse email") },
+                    label = { Text(stringResource(R.string.protocol_dialog_add_email_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
@@ -381,12 +384,12 @@ fun InviteDepositaryDialog(
                 enabled = name.isNotBlank() && email.contains("@"),
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Inviter", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.protocol_dialog_add_button_invite), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+                Text(stringResource(R.string.protocol_dialog_add_button_cancel), color = theme.contentColor.copy(alpha = 0.6f))
             }
         }
     )

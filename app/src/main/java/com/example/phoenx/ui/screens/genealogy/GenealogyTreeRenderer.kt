@@ -31,10 +31,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.domain.model.ResolvedPerson
 import com.example.phoenx.domain.model.TreeLayout
 import com.example.phoenx.ui.theme.LocalAppTheme
@@ -213,7 +215,7 @@ fun GenealogyTreeRenderer(
             containerColor = theme.backgroundColor,
             contentColor = accent
         ) {
-            Icon(Icons.Default.MyLocation, "Recentrer")
+            Icon(Icons.Default.MyLocation, stringResource(R.string.genealogy_recentrer_button))
         }
     }
 }
@@ -241,9 +243,9 @@ fun PersonNodeCard(
     if (showReparentInfo) {
         AlertDialog(
             onDismissRequest = { showReparentInfo = false },
-            confirmButton = { TextButton(onClick = { showReparentInfo = false }) { Text("Compris", color = accent) } },
-            title = { Text("Lien automatique", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = { Text("Cette personne a été automatiquement repositionnée après la suppression d'un intermédiaire dans la lignée.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            confirmButton = { TextButton(onClick = { showReparentInfo = false }) { Text(stringResource(R.string.genealogy_button_compris), color = accent) } },
+            title = { Text(stringResource(R.string.genealogy_dialog_reparent_info_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.genealogy_dialog_reparent_info_content), color = theme.contentColor.copy(alpha = 0.7f)) },
             containerColor = theme.backgroundColor
         )
     }

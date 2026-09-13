@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.components.CameoCropDialog
 import com.example.phoenx.ui.components.PhoenXAvatar
@@ -71,7 +73,8 @@ fun ProfileScreen(
     var showSuspendDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var deleteConfirmText by remember { mutableStateOf("") }
-    val isDeleteButtonEnabled = deleteConfirmText == "SUPPRIMER"
+    val deleteKeyword = stringResource(R.string.profile_dialog_delete_placeholder)
+    val isDeleteButtonEnabled = deleteConfirmText == deleteKeyword
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -107,18 +110,18 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { showSuspendDialog = false },
             containerColor = theme.backgroundColor,
-            title = { Text("Suspendre mon compte ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = { Text("Votre compte deviendra inactif et vous serez déconnecté. Vos proches ne recevront plus de notifications de votre part.\n\nRien ne sera supprimé. Vous pourrez réactiver votre compte à tout moment en vous reconnectant.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.profile_dialog_suspend_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.profile_dialog_suspend_text), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.suspendAccount {
                         mainViewModel.logout()
                         onLogoutSuccess()
                     }
-                }) { Text("Confirmer la suspension", color = Error, fontWeight = FontWeight.Bold) }
+                }) { Text(stringResource(R.string.profile_dialog_suspend_confirm), color = Error, fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
-                TextButton(onClick = { showSuspendDialog = false }) { Text("Annuler", color = theme.contentColor) }
+                TextButton(onClick = { showSuspendDialog = false }) { Text(stringResource(R.string.profile_dialog_suspend_cancel), color = theme.contentColor) }
             }
         )
     }
@@ -127,15 +130,15 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             containerColor = theme.backgroundColor,
-            title = { Text("SUPPRESSION DÉFINITIVE", color = Error, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.profile_dialog_delete_title), color = Error, fontWeight = FontWeight.Bold) },
             text = {
                 Column {
-                    Text("Cette action est IRREVERSIBLE. Toutes vos données (souvenirs, photos, voix, cercle) seront définitivement effacées conformément au RGPD.\n\nPour confirmer, tapez SUPPRIMER ci-dessous :", color = theme.contentColor.copy(alpha = 0.7f))
+                    Text(stringResource(R.string.profile_dialog_delete_text), color = theme.contentColor.copy(alpha = 0.7f))
                     Spacer(Modifier.height(16.dp))
                     OutlinedTextField(
                         value = deleteConfirmText,
                         onValueChange = { deleteConfirmText = it.uppercase() },
-                        placeholder = { Text("SUPPRIMER") },
+                        placeholder = { Text(stringResource(R.string.profile_dialog_delete_placeholder)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -154,7 +157,7 @@ fun ProfileScreen(
                             when(result) {
                                 is DeleteResult.Success -> { onLogoutSuccess() }
                                 is DeleteResult.RequiresReauth -> {
-                                    Toast.makeText(context, "Sécurité : Reconnectez-vous avant de supprimer votre compte.", Toast.LENGTH_LONG).show()
+                                    Toast.makeText(context, context.getString(R.string.profile_toast_delete_reauth), Toast.LENGTH_LONG).show()
                                     mainViewModel.logout()
                                     onLogoutSuccess()
                                 }
@@ -166,10 +169,10 @@ fun ProfileScreen(
                     },
                     enabled = isDeleteButtonEnabled,
                     colors = ButtonDefaults.buttonColors(containerColor = Error)
-                ) { Text("Supprimer définitivement", color = Color.White, fontWeight = FontWeight.Bold) }
+                ) { Text(stringResource(R.string.profile_dialog_delete_confirm), color = Color.White, fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) { Text("Annuler", color = theme.contentColor) }
+                TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.profile_dialog_delete_cancel), color = theme.contentColor) }
             }
         )
     }
@@ -180,11 +183,11 @@ fun ProfileScreen(
             containerColor = theme.backgroundColor
         ) {
             Column(modifier = Modifier.padding(24.dp).padding(bottom = 32.dp)) {
-                Text("Ma photo de profil", style = MaterialTheme.typography.titleLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.profile_bottomsheet_photo_title), style = MaterialTheme.typography.titleLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(24.dp))
                 
                 ListItem(
-                    headlineContent = { Text("Prendre une photo", color = theme.contentColor) },
+                    headlineContent = { Text(stringResource(R.string.profile_option_take_photo), color = theme.contentColor) },
                     leadingContent = { Icon(Icons.Default.PhotoCamera, null, tint = accent) },
                     modifier = Modifier.clickable {
                         showPhotoOptions = false
@@ -194,7 +197,7 @@ fun ProfileScreen(
                     }
                 )
                 ListItem(
-                    headlineContent = { Text("Choisir dans la galerie", color = theme.contentColor) },
+                    headlineContent = { Text(stringResource(R.string.profile_option_gallery), color = theme.contentColor) },
                     leadingContent = { Icon(Icons.Default.PhotoLibrary, null, tint = accent) },
                     modifier = Modifier.clickable {
                         showPhotoOptions = false
@@ -217,7 +220,7 @@ fun ProfileScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Mon Profil", color = theme.contentColor, fontFamily = theme.fontFamily) },
+                title = { Text(stringResource(R.string.profile_screen_title), color = theme.contentColor, fontFamily = theme.fontFamily) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -284,7 +287,7 @@ fun ProfileScreen(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = uiState.displayName.ifEmpty { "Utilisateur" },
+                        text = uiState.displayName.ifEmpty { stringResource(R.string.profile_display_name_fallback) },
                         style = MaterialTheme.typography.headlineMedium,
                         color = theme.contentColor,
                         fontWeight = FontWeight.Bold
@@ -295,7 +298,7 @@ fun ProfileScreen(
                     }) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = "Modifier le nom",
+                            contentDescription = stringResource(R.string.profile_edit_name_desc),
                             tint = accent,
                             modifier = Modifier.size(20.dp)
                         )
@@ -311,7 +314,7 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
-                    text = "Ce nom sera visible par les personnes que vous invitez (Dépositaires, Témoins, Destinataires).",
+                    text = stringResource(R.string.profile_info_visibility),
                     style = MaterialTheme.typography.labelSmall,
                     color = theme.contentColor.copy(alpha = 0.4f),
                     textAlign = TextAlign.Center,
@@ -335,8 +338,8 @@ fun ProfileScreen(
                         Icon(Icons.Default.AutoAwesome, null, tint = accent)
                         Spacer(modifier = Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Mon Portrait de Vie", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                            Text("Enrichis ton histoire pour l'IA Biographe", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                            Text(stringResource(R.string.profile_item_rich_profile_title), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                            Text(stringResource(R.string.profile_item_rich_profile_subtitle), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
                         }
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.4f))
                     }
@@ -362,7 +365,7 @@ fun ProfileScreen(
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Palette, null, tint = accent)
                                 Spacer(modifier = Modifier.width(12.dp))
-                                Text("Apparence & Style", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor)
+                                Text(stringResource(R.string.profile_section_appearance), style = MaterialTheme.typography.bodyLarge, color = theme.contentColor)
                             }
                             Icon(
                                 if (isAppearingExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -387,7 +390,7 @@ fun ProfileScreen(
                             ) {
                                 Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(8.dp))
-                                Text("Réinitialiser les réglages par défaut")
+                                Text(stringResource(R.string.profile_button_reset_defaults))
                             }
                         }
                     }
@@ -396,7 +399,7 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(48.dp))
 
                 // --- ZONE DE DANGER ---
-                Text("ZONE DE DANGER", style = MaterialTheme.typography.labelSmall, color = Error.copy(alpha = 0.7f), modifier = Modifier.align(Alignment.Start))
+                Text(stringResource(R.string.profile_section_danger_zone), style = MaterialTheme.typography.labelSmall, color = Error.copy(alpha = 0.7f), modifier = Modifier.align(Alignment.Start))
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 OutlinedButton(
@@ -407,7 +410,7 @@ fun ProfileScreen(
                 ) {
                     Icon(Icons.Default.Block, null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("Suspendre mon compte")
+                    Text(stringResource(R.string.profile_button_suspend))
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -419,7 +422,7 @@ fun ProfileScreen(
                 ) {
                     Icon(Icons.Default.DeleteForever, null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(12.dp))
-                    Text("Supprimer définitivement mon compte", color = Color.White)
+                    Text(stringResource(R.string.profile_button_delete), color = Color.White)
                 }
 
                 Spacer(modifier = Modifier.height(48.dp))
@@ -433,7 +436,7 @@ fun ProfileScreen(
                         contentColor = theme.contentColor
                     )
                 ) {
-                    Text("Retour aux réglages", color = theme.contentColor)
+                    Text(stringResource(R.string.profile_button_back), color = theme.contentColor)
                 }
             }
         }
@@ -443,12 +446,12 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { showEditDialog = false },
             containerColor = theme.backgroundColor,
-            title = { Text("Modifier mon nom", color = theme.contentColor) },
+            title = { Text(stringResource(R.string.profile_dialog_edit_name_title), color = theme.contentColor) },
             text = {
                 OutlinedTextField(
                     value = newName,
                     onValueChange = { newName = it },
-                    label = { Text("Nom d'usage") },
+                    label = { Text(stringResource(R.string.profile_dialog_edit_name_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -469,12 +472,12 @@ fun ProfileScreen(
                         showEditDialog = false
                     }
                 }) {
-                    Text("Enregistrer", color = accent)
+                    Text(stringResource(R.string.profile_dialog_edit_name_confirm), color = accent)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditDialog = false }) {
-                    Text("Annuler", color = theme.contentColor)
+                    Text(stringResource(R.string.profile_dialog_edit_name_cancel), color = theme.contentColor)
                 }
             }
         )

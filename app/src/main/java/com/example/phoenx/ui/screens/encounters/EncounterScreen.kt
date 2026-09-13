@@ -29,10 +29,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.data.local.PersonEntity
@@ -91,12 +93,12 @@ fun EncounterScreen(
                     title = {
                         Column {
                             Text(
-                                "Les Rencontres",
+                                stringResource(R.string.encounter_screen_title),
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                 color = theme.contentColor
                             )
                             Text(
-                                "Ceux qui ont compté",
+                                stringResource(R.string.encounter_screen_subtitle),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = theme.contentColor.copy(alpha = 0.5f)
                             )
@@ -112,11 +114,11 @@ fun EncounterScreen(
                             Icon(Icons.Default.Search, null, tint = theme.contentColor)
                         }
                         InfoButton(
-                            title = "Les Rencontres",
+                            title = stringResource(R.string.encounter_info_title),
                             points = listOf(
-                                "Les Rencontres, c'est l'endroit pour raconter les personnes qui ont marqué ta vie en dehors de ta famille — un ami, un mentor, une rencontre décisive.",
-                                "Classe-les par âge ou découvre qui t'a présenté qui grâce au badge cliquable sur chaque fiche.",
-                                "Par défaut, une rencontre est visible par tes Destinataires une fois ton héritage activé — mais tu peux la marquer 'Gardée pour moi' pour qu'elle reste ton jardin secret, invisible pour tout le monde."
+                                stringResource(R.string.encounter_info_p1),
+                                stringResource(R.string.encounter_info_p2),
+                                stringResource(R.string.encounter_info_p3)
                             )
                         )
                     },
@@ -130,7 +132,7 @@ fun EncounterScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp, vertical = 8.dp),
-                        placeholder = { Text("Rechercher un nom...") },
+                        placeholder = { Text(stringResource(R.string.encounter_search_placeholder)) },
                         leadingIcon = { Icon(Icons.Default.Search, null, tint = accent) },
                         trailingIcon = {
                             IconButton(onClick = { 
@@ -146,12 +148,13 @@ fun EncounterScreen(
                     )
                 }
 
-                // Stats discrètes
                 Text(
                     text = buildString {
-                        append("${stats.total} personne${if (stats.total > 1) "s" else ""}")
+                        val countLabel = if (stats.total > 1) context.getString(R.string.encounter_stats_person_plural, stats.total) 
+                                        else context.getString(R.string.encounter_stats_person_singular, stats.total)
+                        append(countLabel)
                         if (stats.minAge != null && stats.maxAge != null) {
-                            append(" · de ${stats.minAge} à ${stats.maxAge} ans")
+                            append(context.getString(R.string.encounter_stats_age_range, stats.minAge, stats.maxAge))
                         }
                     },
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
@@ -159,13 +162,15 @@ fun EncounterScreen(
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
                 )
 
-                // Sélecteur de regroupement (Âge / Présenté par)
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     val terracotta = Color(0xFFBF6338)
-                    listOf("Âge", "Présenté par").forEach { mode ->
+                    val ageMode = stringResource(R.string.encounter_grouping_age)
+                    val introducerMode = stringResource(R.string.encounter_grouping_introducer)
+                    
+                    listOf(ageMode, introducerMode).forEach { mode ->
                         val isSelected = groupingMode == mode
                         FilterChip(
                             selected = isSelected,
@@ -245,7 +250,8 @@ fun EncounterScreen(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(bottom = 100.dp)
                 ) {
-                    if (groupingMode == "Âge") {
+                    val ageMode = context.getString(R.string.encounter_grouping_age)
+                    if (groupingMode == ageMode) {
                         val grouped = filteredEncounters.groupBy { it.encounterAge }
                         val sortedAges = grouped.keys.sortedBy { it ?: Int.MAX_VALUE }
 
@@ -301,7 +307,8 @@ fun EncounterScreen(
 
                         sortedKeys.forEach { introducerId ->
                             val persons = grouped[introducerId] ?: emptyList()
-                            val introducerName = if (introducerId.isNullOrBlank()) "Non renseigné" else introducerMap[introducerId] ?: "Personne inconnue"
+                            val introducerName = if (introducerId.isNullOrBlank()) context.getString(R.string.encounter_header_introducer_none) 
+                                                else introducerMap[introducerId] ?: context.getString(R.string.encounter_header_introducer_unknown)
                             
                             item {
                                 IntroducerHeader(name = introducerName)
@@ -409,7 +416,7 @@ fun AgeHeader(age: Int?) {
         )
         
         Text(
-            text = if (age == null) "Sans date" else "À $age ans",
+            text = if (age == null) stringResource(R.string.encounter_header_no_date) else stringResource(R.string.encounter_header_age_format, age),
             style = MaterialTheme.typography.titleMedium.copy(
                 fontSize = 17.sp,
                 fontWeight = FontWeight.Bold
@@ -432,9 +439,19 @@ fun EncounterCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val theme = LocalAppTheme.current
-    val nature = displayLinkNature(person.linkNature)
-    val isPartner = nature == "Partenaire"
+    val natureRaw = displayLinkNature(person.linkNature)
+    val nature = when(natureRaw) {
+        "Partenaire" -> stringResource(R.string.encounter_nature_partner)
+        "Ami" -> stringResource(R.string.encounter_nature_ami)
+        "Mentor" -> stringResource(R.string.encounter_nature_mentor)
+        "Collègue" -> stringResource(R.string.encounter_nature_collegue)
+        "Voisin" -> stringResource(R.string.encounter_nature_voisin)
+        "non renseigné" -> stringResource(R.string.encounter_nature_not_set)
+        else -> natureRaw
+    }
+    val isPartner = natureRaw == "Partenaire"
     val isLost = person.linkStatus == "LOST"
     val isPassed = person.linkStatus == "PASSED"
     
@@ -521,8 +538,8 @@ fun EncounterCard(
             
             val natureText = buildString {
                 append(nature)
-                if (isPartner && person.relationEndAge != null) {
-                    append(" · de ${person.encounterAge} à ${person.relationEndAge} ans")
+                if (isPartner && person.encounterAge != null && person.relationEndAge != null) {
+                    append(context.getString(R.string.encounter_stats_age_range, person.encounterAge, person.relationEndAge))
                 }
             }
             
@@ -535,12 +552,12 @@ fun EncounterCard(
 
         // Contexte et infos
         val contextLabel = when(person.encounterContext) {
-            "SCHOOL" -> "École"
-            "WORK" -> "Travail"
-            "SPORT" -> "Sport"
-            "PASSION" -> "Passion"
-            "TRAVEL" -> "Voyage"
-            "OTHER" -> "Autre"
+            "SCHOOL" -> stringResource(R.string.encounter_context_school)
+            "WORK" -> stringResource(R.string.encounter_context_work)
+            "SPORT" -> stringResource(R.string.encounter_context_sport)
+            "PASSION" -> stringResource(R.string.encounter_context_passion)
+            "TRAVEL" -> stringResource(R.string.encounter_context_travel)
+            "OTHER" -> stringResource(R.string.encounter_context_other)
             else -> null
         }
         
@@ -549,11 +566,11 @@ fun EncounterCard(
         } else null
 
         val footerText = buildList {
-            if (isLost) add("perdu de vue")
-            if (isPassed) add("n'est plus là")
+            if (isLost) add(context.getString(R.string.encounter_footer_lost))
+            if (isPassed) add(context.getString(R.string.encounter_footer_passed))
             contextLabel?.let { add(it) }
             person.encounterContextLabel?.takeIf { it.isNotBlank() }?.let { add(it) }
-            introducerName?.let { add("présentée par $it") }
+            introducerName?.let { add(context.getString(R.string.encounter_footer_introduced_by, it)) }
         }.joinToString(" · ")
 
         if (footerText.isNotBlank()) {
@@ -586,7 +603,7 @@ fun EmptyEncounters(modifier: Modifier = Modifier) {
         )
         Spacer(Modifier.height(16.dp))
         Text(
-            "Aucune rencontre enregistrée.",
+            stringResource(R.string.encounter_empty_state),
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             color = theme.contentColor.copy(alpha = 0.4f)
         )

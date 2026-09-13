@@ -18,10 +18,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.example.phoenx.R
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.ui.theme.LocalAppTheme
 
@@ -79,9 +81,9 @@ fun CreateOrEditPersonInTreeDialog(
             ) {
                 Text(
                     text = when {
-                        initialPerson != null -> "Modifier les liens"
-                        selectedExistingPersonId != null -> "Lier une personne"
-                        else -> "Nouvelle Personne"
+                        initialPerson != null -> stringResource(R.string.genealogy_edit_person_title)
+                        selectedExistingPersonId != null -> stringResource(R.string.genealogy_link_person_title)
+                        else -> stringResource(R.string.genealogy_new_person_title)
                     },
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor
@@ -100,7 +102,7 @@ fun CreateOrEditPersonInTreeDialog(
                         ) {
                             Icon(Icons.Default.Link, null, tint = accent, modifier = Modifier.size(14.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text("Profil existant sélectionné", style = MaterialTheme.typography.labelSmall, color = accent)
+                            Text(stringResource(R.string.genealogy_existing_profile_selected), style = MaterialTheme.typography.labelSmall, color = accent)
                             Spacer(Modifier.width(8.dp))
                             Icon(
                                 Icons.Default.Close, 
@@ -124,7 +126,7 @@ fun CreateOrEditPersonInTreeDialog(
                         firstName = it
                         if (selectedExistingPersonId != null) selectedExistingPersonId = null
                     },
-                    label = { Text("Prénom") },
+                    label = { Text(stringResource(R.string.genealogy_first_name_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor),
                     enabled = selectedExistingPersonId == null
@@ -132,7 +134,7 @@ fun CreateOrEditPersonInTreeDialog(
                 
                 if (matchingExistingPersons.isNotEmpty()) {
                     Text(
-                        "CETTE PERSONNE EXISTE-T-ELLE DÉJÀ ?",
+                        stringResource(R.string.genealogy_already_exists_question),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp),
                         color = accent,
                         modifier = Modifier.align(Alignment.Start).padding(top = 12.dp, bottom = 4.dp)
@@ -140,7 +142,7 @@ fun CreateOrEditPersonInTreeDialog(
                     matchingExistingPersons.forEach { p ->
                         ListItem(
                             headlineContent = { Text(p.firstName + (p.lastName?.let { " $it" } ?: ""), fontWeight = FontWeight.Bold, color = theme.contentColor) },
-                            supportingContent = { Text(p.relationship ?: "Déjà dans l'arbre", color = theme.contentColor.copy(alpha = 0.6f)) },
+                            supportingContent = { Text(p.relationship ?: stringResource(R.string.genealogy_already_in_tree_fallback), color = theme.contentColor.copy(alpha = 0.6f)) },
                             leadingContent = { 
                                 Icon(Icons.Default.Link, null, tint = accent)
                             },
@@ -166,7 +168,7 @@ fun CreateOrEditPersonInTreeDialog(
                         lastName = it
                         if (selectedExistingPersonId != null) selectedExistingPersonId = null
                     },
-                    label = { Text("Nom (optionnel)") },
+                    label = { Text(stringResource(R.string.genealogy_last_name_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor),
                     enabled = selectedExistingPersonId == null
@@ -175,7 +177,7 @@ fun CreateOrEditPersonInTreeDialog(
                 Spacer(Modifier.height(32.dp))
 
                 Text(
-                    "PARENT(S) DE CETTE PERSONNE",
+                    stringResource(R.string.genealogy_parents_section_title),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor.copy(alpha = 0.4f),
                     modifier = Modifier.align(Alignment.Start)
@@ -206,7 +208,7 @@ fun CreateOrEditPersonInTreeDialog(
                     OutlinedTextField(
                         value = parentQuery,
                         onValueChange = { parentQuery = it },
-                        placeholder = { Text("Rechercher un parent...", fontSize = 14.sp) },
+                        placeholder = { Text(stringResource(R.string.genealogy_search_parent_placeholder), fontSize = 14.sp) },
                         modifier = Modifier.fillMaxWidth(),
                         leadingIcon = { Icon(Icons.Default.Search, null, tint = accent) },
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
@@ -223,7 +225,7 @@ fun CreateOrEditPersonInTreeDialog(
                                 suggestedParents.forEach { p ->
                                     ListItem(
                                         headlineContent = { Text(p.firstName, fontWeight = FontWeight.Bold, color = theme.contentColor) },
-                                        supportingContent = { Text(p.relationship ?: "Proche", color = theme.contentColor.copy(alpha = 0.6f)) },
+                                        supportingContent = { Text(p.relationship ?: stringResource(R.string.genealogy_relationship_fallback_proche), color = theme.contentColor.copy(alpha = 0.6f)) },
                                         modifier = Modifier.clickable {
                                             selectedParentIds.add(p.id)
                                             parentQuery = ""
@@ -239,7 +241,7 @@ fun CreateOrEditPersonInTreeDialog(
                 Spacer(Modifier.height(40.dp))
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onDismiss) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f)) }
+                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.genealogy_button_annuler), color = theme.contentColor.copy(alpha = 0.6f)) }
                     Button(
                         onClick = { onConfirm(firstName, lastName.ifBlank { null }, selectedParentIds.toList(), selectedExistingPersonId) },
                         colors = ButtonDefaults.buttonColors(containerColor = accent),
@@ -247,9 +249,9 @@ fun CreateOrEditPersonInTreeDialog(
                     ) { 
                         Text(
                             text = when {
-                                initialPerson != null -> "Enregistrer"
-                                selectedExistingPersonId != null -> "Confirmer le lien"
-                                else -> "Créer"
+                                initialPerson != null -> stringResource(R.string.genealogy_button_save)
+                                selectedExistingPersonId != null -> stringResource(R.string.genealogy_button_confirm_link)
+                                else -> stringResource(R.string.genealogy_button_create)
                             }, 
                             color = theme.backgroundColor, 
                             fontWeight = FontWeight.Bold

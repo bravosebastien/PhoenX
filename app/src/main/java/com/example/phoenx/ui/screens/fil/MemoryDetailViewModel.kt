@@ -33,6 +33,7 @@ import javax.inject.Inject
 
 import org.json.JSONArray
 import com.example.phoenx.data.audio.PhoenXAudioRecorder
+import com.example.phoenx.R
 import org.json.JSONObject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -81,7 +82,7 @@ class MemoryDetailViewModel @Inject constructor(
     fun stopAudioRecording(parentId: String) {
         val file = audioRecorderController.stopAudioRecording()
         file?.let {
-            addMediaComplement(parentId, it, "AUDIO", "Note vocale")
+            addMediaComplement(parentId, it, "AUDIO", context.getString(R.string.memory_detail_voice_note_default_title))
         }
     }
 
@@ -238,7 +239,7 @@ class MemoryDetailViewModel @Inject constructor(
         when (status) {
             ProtocolStatus.VERIFYING -> emptyList()
             ProtocolStatus.LOCKED -> list.filter { it.entryType == "TEXT" || it.entryType == "THOUGHT" }
-                .map { it.id to "Souvenir scellé" }
+                .map { it.id to context.getString(R.string.fil_sealed_memory) }
             ProtocolStatus.ACTIVATED -> list.filter { (it.entryType == "TEXT") || (it.entryType == "THOUGHT") }
                 .map { it.id to encryptionManager.decryptText(it.encryptedPayload, key) }
         }
@@ -249,8 +250,8 @@ class MemoryDetailViewModel @Inject constructor(
         android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", "--- RECALCUL CONTENT --- id=$eid, Status: $status, Key: ${key != null}")
 
         when (status) {
-            ProtocolStatus.VERIFYING -> "Vérification de l'accès..."
-            ProtocolStatus.LOCKED -> "Souvenir scellé"
+            ProtocolStatus.VERIFYING -> context.getString(R.string.memory_detail_access_verifying)
+            ProtocolStatus.LOCKED -> context.getString(R.string.fil_sealed_memory)
             ProtocolStatus.ACTIVATED -> {
                 if (ent == null) {
                     android.util.Log.w("PHOENX_MEMORY_OPEN_TRACE", "Entry is NULL for id=$eid")
@@ -262,7 +263,7 @@ class MemoryDetailViewModel @Inject constructor(
                     res
                 } catch(e: Exception) {
                     android.util.Log.e("PHOENX_MEMORY_OPEN_TRACE", "ÉCHEC DECHIFFREMENT id=${ent.id}: ${e.message}", e)
-                    "Contenu chiffré"
+                    context.getString(R.string.memory_detail_content_encrypted)
                 }
             }
         }
@@ -283,7 +284,7 @@ class MemoryDetailViewModel @Inject constructor(
         if (status == ProtocolStatus.LOCKED && key != null) {
             // Uniquement les compléments atomiques pour les titres, mais contenu scellé
             compList.filter { it.parentEntryId == _entryId.value && it.entryType == "TEXT" }.forEach { comp ->
-                list.add(PortraitItem(comp.id, comp.aiSummary, "Souvenir scellé"))
+                list.add(PortraitItem(comp.id, comp.aiSummary, context.getString(R.string.fil_sealed_memory)))
             }
             return@combine list
         }
@@ -535,10 +536,10 @@ class MemoryDetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 livingLinkService.sendLivingLink(entryId, recipientUid, scheduledAt)
-                _error.value = "Souvenir transmis avec succès !"
+                _error.value = context.getString(R.string.memory_detail_living_link_success)
             } catch (e: Exception) {
                 android.util.Log.e("LivingLink", "Erreur transmission", e)
-                _error.value = "Échec de la transmission : ${e.message}"
+                _error.value = context.getString(R.string.memory_detail_living_link_error, e.message ?: "")
             }
         }
     }
@@ -646,7 +647,7 @@ class MemoryDetailViewModel @Inject constructor(
                 mediaComplementManager.addMediaComplement(parentId, file, type, transcription)
             } catch (e: Exception) {
                 android.util.Log.e("MemoryDetailVM", "Erreur ajout média", e)
-                _error.value = "Erreur lors de l'ajout du média"
+                _error.value = context.getString(R.string.memory_detail_error_add_media)
             }
         }
     }

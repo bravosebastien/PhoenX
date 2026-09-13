@@ -26,6 +26,8 @@ import kotlinx.coroutines.channels.awaitClose
 import java.time.Instant
 import java.util.*
 import javax.inject.Inject
+import android.content.Context
+import com.example.phoenx.R
 import org.json.JSONObject
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -38,6 +40,7 @@ class FilViewModel @Inject constructor(
     private val encryptionManager: EncryptionManager,
     private val aiManager: AIManager,
     val mediaManager: com.example.phoenx.data.media.MediaManager,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _targetCreatorId = MutableStateFlow<String?>(null)
@@ -250,7 +253,7 @@ class FilViewModel @Inject constructor(
             id = id,
             creatorUid = creatorUid,
             ageAtCreation = age,
-            encryptedContent = "Souvenir scellé".toByteArray(),
+            encryptedContent = context.getString(R.string.fil_sealed_memory).toByteArray(),
             type = when(entryType) {
                 "PORTRAIT" -> EntryType.PORTRAIT
                 "QUESTION_ANSWER" -> EntryType.QUESTION_ANSWER
@@ -290,7 +293,7 @@ class FilViewModel @Inject constructor(
             temporalEvolution = if (amendments.isNotEmpty()) {
                 // On récupère l'évolution depuis Room si disponible
                 // (Ici on utilise une logique simplifiée pour le lien)
-                "Évolution stylistique détectée par l'IA"
+                context.getString(R.string.fil_evolution_ai)
             } else null,
             hasEnigma = enigmaQuestion != null,
             scheduledDate = scheduledTimestamp?.let { Instant.ofEpochMilli(it) },

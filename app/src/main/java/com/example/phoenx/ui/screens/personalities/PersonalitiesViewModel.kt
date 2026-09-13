@@ -13,6 +13,8 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import android.content.Context
+import com.example.phoenx.R
 import java.util.UUID
 import javax.inject.Inject
 
@@ -22,7 +24,8 @@ class PersonalitiesViewModel @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
     private val functions: FirebaseFunctions,
-    private val mediaManager: com.example.phoenx.data.media.MediaManager // v9.7.5
+    private val mediaManager: com.example.phoenx.data.media.MediaManager, // v9.7.5
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _targetCreatorId = MutableStateFlow<String?>(null)
@@ -74,7 +77,7 @@ class PersonalitiesViewModel @Inject constructor(
                     PersonalityEntity(
                         id = doc.id,
                         name = doc.getString("name") ?: "",
-                        category = doc.getString("category") ?: "Autre",
+                        category = doc.getString("category") ?: context.getString(R.string.personalities_category_other),
                         customCategoryLabel = doc.getString("customCategoryLabel"),
                         mainPhotoPath = doc.getString("mainPhotoPath") ?: "",
                         biography = doc.getString("biography") ?: "",

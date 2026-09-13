@@ -24,10 +24,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.data.local.PersonalityEntity
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.SecureAsyncImage
@@ -59,8 +62,10 @@ fun PersonalityEditScreen(
         else kotlinx.coroutines.flow.flowOf(emptyList()) 
     }.collectAsState(initial = emptyList())
 
+    val categories = stringArrayResource(R.array.personality_categories).toList()
+    
     var name by remember { mutableStateOf(existing?.name ?: "") }
-    var category by remember { mutableStateOf(existing?.category ?: "Sport") }
+    var category by remember { mutableStateOf(existing?.category ?: categories.first()) }
     var customCategoryLabel by remember { mutableStateOf(existing?.customCategoryLabel ?: "") }
     var mainPhotoPath by remember { mutableStateOf(existing?.mainPhotoPath ?: "") }
     var biography by remember { mutableStateOf(existing?.biography ?: "") }
@@ -70,7 +75,7 @@ fun PersonalityEditScreen(
     LaunchedEffect(existing) {
         existing?.let {
             if (name.isEmpty()) name = it.name
-            if (category == "Sport" && it.category != "Sport") category = it.category
+            if (category == categories.first() && it.category != categories.first()) category = it.category
             if (customCategoryLabel.isEmpty()) customCategoryLabel = it.customCategoryLabel ?: ""
             if (mainPhotoPath.isEmpty()) mainPhotoPath = it.mainPhotoPath
             if (biography.isEmpty()) biography = it.biography
@@ -82,8 +87,6 @@ fun PersonalityEditScreen(
     var showWarningDialog by remember { mutableStateOf<String?>(null) }
     var showDeleteConfirm by remember { mutableStateOf(false) } // v9.7.5
     
-    val categories = PersonalityEntity.CATEGORIES
-
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             val fileName = "personality_main_${UUID.randomUUID()}.jpg"
@@ -116,7 +119,7 @@ fun PersonalityEditScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text(if (existing == null) "Nouvelle Personnalité" else "Modifier la fiche", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(if (existing == null) stringResource(R.string.personality_edit_new_title) else stringResource(R.string.personality_edit_edit_title), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -192,7 +195,7 @@ fun PersonalityEditScreen(
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = { Text("Nom complet") },
+                label = { Text(stringResource(R.string.personality_edit_name_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
@@ -204,7 +207,7 @@ fun PersonalityEditScreen(
                 OutlinedTextField(
                     value = category,
                     onValueChange = { },
-                    label = { Text("Catégorie") },
+                    label = { Text(stringResource(R.string.personality_edit_category_label)) },
                     readOnly = true,
                     modifier = Modifier.fillMaxWidth(),
                     trailingIcon = {
@@ -236,7 +239,7 @@ fun PersonalityEditScreen(
                 OutlinedTextField(
                     value = customCategoryLabel,
                     onValueChange = { customCategoryLabel = it },
-                    label = { Text("Précisez la catégorie") },
+                    label = { Text(stringResource(R.string.personality_edit_custom_category_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
@@ -253,7 +256,7 @@ fun PersonalityEditScreen(
                     Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(12.dp))
                     Text(
-                        "Cette partie n'accueille que des photos — il n'est pas possible d'y ajouter une vidéo ou un son. Pour illustrer une personnalité en vidéo, retrouvez-la dans la Vidéothèque.",
+                        stringResource(R.string.personality_edit_photo_info),
                         style = MaterialTheme.typography.labelSmall,
                         color = theme.contentColor.copy(alpha = 0.7f)
                     )
@@ -264,9 +267,9 @@ fun PersonalityEditScreen(
             OutlinedTextField(
                 value = biography,
                 onValueChange = { biography = it },
-                label = { Text("Biographie") },
+                label = { Text(stringResource(R.string.personality_edit_bio_label)) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 150.dp),
-                placeholder = { Text("Copiez-collez ici un texte descriptif (ex: Wikipédia)...") },
+                placeholder = { Text(stringResource(R.string.personality_edit_bio_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
             )
 
@@ -274,15 +277,15 @@ fun PersonalityEditScreen(
             OutlinedTextField(
                 value = personalComment,
                 onValueChange = { personalComment = it },
-                label = { Text("En quoi cette personne a compté pour vous ?") },
+                label = { Text(stringResource(R.string.personality_edit_why_label)) },
                 modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                placeholder = { Text("Partagez votre lien personnel ou son influence sur votre vie...") },
+                placeholder = { Text(stringResource(R.string.personality_edit_why_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
             )
 
             // GALERIE PHOTOS (Uniquement si déjà créé)
             if (existing != null) {
-                SectionHeader(title = "GALERIE PHOTOS")
+                SectionHeader(title = stringResource(R.string.personality_detail_gallery_title))
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -375,7 +378,7 @@ fun PersonalityEditScreen(
                 if (isCheckingContent) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp), color = theme.backgroundColor, strokeWidth = 2.dp)
                 } else {
-                    Text("Enregistrer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.personality_edit_save_button), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
             
@@ -386,7 +389,7 @@ fun PersonalityEditScreen(
     if (showWarningDialog != null) {
         AlertDialog(
             onDismissRequest = { },
-            title = { Text("Vigilance Contenu", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.personality_edit_warning_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
             text = { Text(showWarningDialog!!, color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 TextButton(onClick = { 
@@ -405,12 +408,12 @@ fun PersonalityEditScreen(
                     showWarningDialog = null
                     navController.popBackStack()
                 }) {
-                    Text("Enregistrer quand même", color = accent)
+                    Text(stringResource(R.string.personality_edit_warning_button_force), color = accent)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showWarningDialog = null }) {
-                    Text("Modifier le texte", color = theme.contentColor)
+                    Text(stringResource(R.string.personality_edit_warning_button_edit), color = theme.contentColor)
                 }
             }
         )
@@ -420,8 +423,8 @@ fun PersonalityEditScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             containerColor = theme.backgroundColor,
-            title = { Text("Supprimer ${existing.name} ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = { Text("Cette action est irréversible. Toutes les informations et photos associées seront définitivement supprimées.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.personality_detail_delete_confirm_title, existing.name), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.personality_detail_delete_confirm_text), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -431,12 +434,12 @@ fun PersonalityEditScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)
                 ) {
-                    Text("Supprimer définitivement", color = Color.White)
+                    Text(stringResource(R.string.personality_detail_delete_button_confirm), color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Annuler", color = theme.contentColor)
+                    Text(stringResource(R.string.personality_detail_delete_button_cancel), color = theme.contentColor)
                 }
             }
         )

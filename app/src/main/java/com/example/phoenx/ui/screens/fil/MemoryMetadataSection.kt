@@ -16,10 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.domain.model.CompartmentIds
@@ -115,7 +117,7 @@ fun MemoryMetadataSection(
         // ── SECTION 2 : QUAND ET OÙ ────────────────
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
-                text = "QUAND ET OÙ", 
+                text = stringResource(R.string.memory_metadata_when_where_section), 
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 13.sp), 
                 color = Color.Black, 
                 letterSpacing = 2.sp
@@ -134,9 +136,9 @@ fun MemoryMetadataSection(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text("LE MOMENT", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                            Text(stringResource(R.string.memory_metadata_moment_label), style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Date", style = MaterialTheme.typography.labelSmall, color = if (!isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
+                                Text(stringResource(R.string.memory_metadata_date_precise), style = MaterialTheme.typography.labelSmall, color = if (!isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
                                 Switch(
                                     checked = isPeriodMode,
                                     onCheckedChange = { isPeriodMode = it },
@@ -144,7 +146,7 @@ fun MemoryMetadataSection(
                                     colors = SwitchDefaults.colors(checkedThumbColor = accent),
                                     enabled = !isReadOnly
                                 )
-                                Text("Période", style = MaterialTheme.typography.labelSmall, color = if (isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
+                                Text(stringResource(R.string.memory_metadata_date_period), style = MaterialTheme.typography.labelSmall, color = if (isPeriodMode) accent else theme.contentColor.copy(alpha = 0.4f))
                             }
                         }
                         Spacer(modifier = Modifier.height(12.dp))
@@ -166,13 +168,13 @@ fun MemoryMetadataSection(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Text("DATE PRÉCISE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                                    Text(stringResource(R.string.memory_metadata_date_precise_label), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.CalendarToday, null, tint = accent, modifier = Modifier.size(16.dp))
                                         Spacer(Modifier.width(8.dp))
                                         val dateText = entry.memoryDate?.let { 
-                                            SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(it))
-                                        } ?: "Ajouter une date"
+                                            SimpleDateFormat(stringResource(R.string.memory_metadata_date_format), Locale.FRENCH).format(Date(it))
+                                        } ?: stringResource(R.string.memory_metadata_date_add)
                                         Text(dateText, color = theme.contentColor, fontWeight = FontWeight.Bold)
                                     }
                                 }
@@ -185,7 +187,7 @@ fun MemoryMetadataSection(
                                         TextButton(onClick = {
                                             viewModel.updateMemoryDate(datePickerState.selectedDateMillis)
                                             showDatePicker = false
-                                        }) { Text("Confirmer", color = accent) }
+                                        }) { Text(stringResource(R.string.memory_metadata_date_confirm), color = accent) }
                                     },
                                     colors = datePickerColors
                                 ) { DatePicker(state = datePickerState, colors = datePickerColors) }
@@ -209,7 +211,7 @@ fun MemoryMetadataSection(
                                 ) {
                                     Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
                                     Spacer(Modifier.width(8.dp))
-                                    val txt = entry.memoryDateStart?.let { SimpleDateFormat("dd/MM/yy").format(Date(it)) } ?: "Début"
+                                    val txt = entry.memoryDateStart?.let { SimpleDateFormat(stringResource(R.string.memory_metadata_date_format_short)).format(Date(it)) } ?: stringResource(R.string.memory_metadata_date_start)
                                     Text(txt, color = theme.contentColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                                 OutlinedButton(
@@ -222,7 +224,7 @@ fun MemoryMetadataSection(
                                 ) {
                                     Icon(Icons.Default.CalendarToday, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(14.dp))
                                     Spacer(Modifier.width(8.dp))
-                                    val txt = entry.memoryDateEnd?.let { SimpleDateFormat("dd/MM/yy").format(Date(it)) } ?: "Fin"
+                                    val txt = entry.memoryDateEnd?.let { SimpleDateFormat(stringResource(R.string.memory_metadata_date_format_short)).format(Date(it)) } ?: stringResource(R.string.memory_metadata_date_end)
                                     Text(txt, color = theme.contentColor, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
@@ -234,7 +236,7 @@ fun MemoryMetadataSection(
                                         TextButton(onClick = {
                                             viewModel.updateMemoryPeriod(startState.selectedDateMillis, entry.memoryDateEnd)
                                             showStartPicker = false
-                                        }) { Text("Confirmer", color = accent) }
+                                        }) { Text(stringResource(R.string.memory_metadata_date_confirm), color = accent) }
                                     },
                                     colors = datePickerColors
                                 ) { DatePicker(state = startState, colors = datePickerColors) }
@@ -246,7 +248,7 @@ fun MemoryMetadataSection(
                                         TextButton(onClick = {
                                             viewModel.updateMemoryPeriod(entry.memoryDateStart, endState.selectedDateMillis)
                                             showEndPicker = false
-                                        }) { Text("Confirmer", color = accent) }
+                                        }) { Text(stringResource(R.string.memory_metadata_date_confirm), color = accent) }
                                     },
                                     colors = datePickerColors
                                 ) { DatePicker(state = endState, colors = datePickerColors) }
@@ -256,7 +258,7 @@ fun MemoryMetadataSection(
 
                     // LIEU
                     Column {
-                        Text("LE LIEU", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                        Text(stringResource(R.string.memory_metadata_location_label), style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
                         Spacer(modifier = Modifier.height(12.dp))
                         android.util.Log.d("PHOENX_LOCATION_TRACE", "Lecture lieu pour affichage: entryId=${entry.id}, locationId=${entry.locationId}, name=${entry.locationName}")
                         Surface(
@@ -279,7 +281,7 @@ fun MemoryMetadataSection(
                                 Icon(Icons.Default.LocationOn, null, tint = accent, modifier = Modifier.size(20.dp))
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
-                                    text = entry.locationName ?: "Lieu non défini",
+                                    text = entry.locationName ?: stringResource(R.string.memory_metadata_location_none),
                                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                                     color = if (entry.locationName != null) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
                                 )
@@ -293,7 +295,7 @@ fun MemoryMetadataSection(
                                         containerColor = theme.backgroundColor
                                     ) {
                                         DropdownMenuItem(
-                                            text = { Text("Changer de lieu", color = theme.contentColor) },
+                                            text = { Text(stringResource(R.string.memory_metadata_location_change), color = theme.contentColor) },
                                             leadingIcon = { Icon(Icons.Default.EditLocation, null, tint = accent) },
                                             onClick = {
                                                 showLocationMenu = false
@@ -301,7 +303,7 @@ fun MemoryMetadataSection(
                                             }
                                         )
                                         DropdownMenuItem(
-                                            text = { Text("Voir sur la carte", color = theme.contentColor) },
+                                            text = { Text(stringResource(R.string.memory_metadata_location_view_on_map), color = theme.contentColor) },
                                             leadingIcon = { Icon(Icons.Default.Map, null, tint = accent) },
                                             onClick = {
                                                 showLocationMenu = false
@@ -320,7 +322,7 @@ fun MemoryMetadataSection(
         // ── SECTION 3 : POUR QUI ──────────────────
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
-                text = "POUR QUI", 
+                text = stringResource(R.string.memory_metadata_who_section), 
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 13.sp), 
                 color = Color.Black, 
                 letterSpacing = 2.sp
@@ -334,7 +336,7 @@ fun MemoryMetadataSection(
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                     // DESTINATAIRES
                     Column {
-                        Text("DESTINATAIRES", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                        Text(stringResource(R.string.memory_metadata_recipients_label), style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
                         Spacer(modifier = Modifier.height(12.dp))
                         RecipientSelector(
                             recipients = recipients,
@@ -377,8 +379,8 @@ fun MemoryMetadataSection(
                                     }
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text("Transmettre un Lien Vivant", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                                        Text("Envoyer ce souvenir maintenant ou plus tard.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                                        Text(stringResource(R.string.memory_metadata_living_link_title), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                        Text(stringResource(R.string.memory_metadata_living_link_subtitle), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                                     }
                                     Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.2f))
                                 }
@@ -419,14 +421,14 @@ fun MemoryMetadataSection(
                                     Spacer(modifier = Modifier.width(16.dp))
                                     Column(modifier = Modifier.weight(1f)) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Text("Inclure dans mon Livre", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                            Text(stringResource(R.string.memory_metadata_include_in_book_title), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
                                             Spacer(Modifier.width(8.dp))
                                             InfoPoint(
-                                                title = "Aide au Livre de Vie",
-                                                content = "En incluant ce souvenir, il sera repris et reformulé par l'IA pour nourrir votre Livre de Vie. L'IA n'utilise que vos résumés pour rédiger un récit fluide avec ses propres mots : votre texte original reste strictement privé.\n\nAttention : Le chapitre créé sera visible par tous les destinataires de votre Livre, même si ce souvenir était initialement réservé à certains d'entre eux seulement."
+                                                title = stringResource(R.string.memory_metadata_include_in_book_info_title),
+                                                content = stringResource(R.string.memory_metadata_include_in_book_info_content)
                                             )
                                         }
-                                        Text("Nourrir le récit IA par ce souvenir.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                                        Text(stringResource(R.string.memory_metadata_include_in_book_subtitle), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                                     }
                                     Switch(
                                         checked = entry.includeInBook,
@@ -456,11 +458,11 @@ fun MemoryMetadataSection(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.Group, null, tint = accent, modifier = Modifier.size(20.dp))
                                         Spacer(Modifier.width(12.dp))
-                                        Text("Personnes mentionnées", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                        Text(stringResource(R.string.memory_metadata_mentioned_persons_title), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
                                         Spacer(Modifier.width(8.dp))
                                         InfoPoint(
-                                            title = "Qui apparaît dans ce récit ?",
-                                            content = "Identifiez les proches présents dans ce souvenir. L'IA Biographe les utilisera pour clarifier la narration dans votre Livre de Vie (ex: 'Ton cousin Thomas était là').\n\nNote : Mentionner une personne ne lui donne pas accès au souvenir, cela permet juste de mieux structurer votre histoire.\n\nVos Destinataires, Témoins et Dépositaires vous sont proposés ici pour vous éviter de les recréer — mais ce sont deux choses différentes : c'est uniquement leur statut de Destinataire, dans votre Cercle de Confiance, qui leur donnera un jour accès à vos souvenirs."
+                                            title = stringResource(R.string.memory_metadata_mentioned_persons_info_title),
+                                            content = stringResource(R.string.memory_metadata_mentioned_persons_info_content)
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(16.dp))
@@ -498,7 +500,7 @@ fun MemoryMetadataSection(
         // ── SECTION 5 : PROTECTION ──────────────────
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text(
-                text = "PROTECTION", 
+                text = stringResource(R.string.memory_metadata_protection_section), 
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 13.sp), 
                 color = Color.Black, 
                 letterSpacing = 2.sp
@@ -528,10 +530,10 @@ fun MemoryMetadataSection(
         AlertDialog(
             onDismissRequest = { showIncludeInBookNudge = false },
             containerColor = theme.backgroundColor,
-            title = { Text("Livre de Vie", color = theme.contentColor, style = MaterialTheme.typography.titleLarge) },
+            title = { Text(stringResource(R.string.home_book_default_name), color = theme.contentColor, style = MaterialTheme.typography.titleLarge) },
             text = {
                 Text(
-                    "En incluant ce souvenir, il sera repris et reformulé par l'IA pour nourrir votre Livre de Vie. L'IA n'utilise que vos résumés pour rédiger un récit fluide avec ses propres mots : votre texte original reste strictement privé.\n\nAttention : Le chapitre créé sera visible par tous les destinataires de votre Livre, même si ce souvenir était initialement réservé à certains d'entre eux seulement.",
+                    stringResource(R.string.memory_metadata_include_in_book_info_content),
                     color = theme.contentColor.copy(alpha = 0.8f),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -540,11 +542,11 @@ fun MemoryMetadataSection(
                 Button(
                     onClick = { viewModel.markIncludeInBookNudgeSeen(); showIncludeInBookNudge = false },
                     colors = ButtonDefaults.buttonColors(containerColor = accent)
-                ) { Text("Ne plus afficher", color = theme.backgroundColor) }
+                ) { Text(stringResource(R.string.memory_metadata_nudge_include_in_book_button_dismiss), color = theme.backgroundColor) }
             },
             dismissButton = {
                 TextButton(onClick = { showIncludeInBookNudge = false }) {
-                    Text("Fermer", color = theme.contentColor)
+                    Text(stringResource(R.string.memory_metadata_nudge_include_in_book_button_close), color = theme.contentColor)
                 }
             }
         )

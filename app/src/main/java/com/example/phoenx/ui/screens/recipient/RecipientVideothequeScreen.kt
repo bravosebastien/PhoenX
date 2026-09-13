@@ -30,6 +30,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.components.InfoButton
@@ -125,7 +127,7 @@ fun RecipientVideothequeScreen(
         topBar = {
             Column {
                 TopAppBar(
-                    title = { Text("Grande Vidéothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
+                    title = { Text(stringResource(R.string.recipient_videotheque_screen_title), style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -161,7 +163,7 @@ fun RecipientVideothequeScreen(
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Le projecteur est éteint...", color = theme.contentColor.copy(alpha = 0.4f))
+                    Text(stringResource(R.string.recipient_videotheque_empty_state), color = theme.contentColor.copy(alpha = 0.4f))
                 }
             } else {
                 LazyVerticalGrid(
@@ -174,7 +176,7 @@ fun RecipientVideothequeScreen(
                     if (viewMode == MediaViewMode.BY_MEMORY) {
                         groupedEntries.forEach { (parentId, group) ->
                             item(span = { GridItemSpan(2) }) {
-                                val title = if (parentId == "standalone") "Vidéos isolées" else parentTitles[parentId] ?: "Souvenir"
+                                val title = if (parentId == "standalone") stringResource(R.string.recipient_videotheque_group_standalone) else parentTitles[parentId] ?: stringResource(R.string.recipient_videotheque_group_memory_fallback)
                                 Surface(
                                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 8.dp),
                                     color = accent.copy(alpha = 0.1f),
@@ -248,14 +250,14 @@ fun RecipientVideothequeScreen(
         AlertDialog(
             onDismissRequest = { mediaToDelete = null },
             containerColor = theme.backgroundColor,
-            title = { Text("Supprimer cette vidéo ?", color = theme.contentColor) },
-            text = { Text("Cette action est irréversible.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.recipient_videotheque_dialog_delete_title), color = theme.contentColor) },
+            text = { Text(stringResource(R.string.recipient_videotheque_dialog_delete_text), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 Button(onClick = { viewModel.deleteMediaEntry(mediaToDelete!!); mediaToDelete = null }, colors = ButtonDefaults.buttonColors(containerColor = Error)) {
-                    Text("Supprimer", color = Color.White)
+                    Text(stringResource(R.string.recipient_videotheque_dialog_delete_confirm), color = Color.White)
                 }
             },
-            dismissButton = { TextButton(onClick = { mediaToDelete = null }) { Text("Annuler", color = theme.contentColor) } }
+            dismissButton = { TextButton(onClick = { mediaToDelete = null }) { Text(stringResource(R.string.recipient_videotheque_dialog_delete_cancel), color = theme.contentColor) } }
         )
     }
 
@@ -263,13 +265,13 @@ fun RecipientVideothequeScreen(
         AlertDialog(
             onDismissRequest = { showHowToPopup = false },
             containerColor = theme.backgroundColor,
-            title = { Text("Comment récupérer un lien ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.recipient_videotheque_dialog_howto_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("1. Ouvre l'app YouTube.", color = theme.contentColor.copy(alpha = 0.8f))
-                    Text("2. Trouve la vidéo que tu veux.", color = theme.contentColor.copy(alpha = 0.8f))
-                    Text("3. Appuie sur 'Partager' puis 'Copier le lien'.", color = theme.contentColor.copy(alpha = 0.8f))
-                    Text("4. Reviens ici et colle-le.", color = theme.contentColor.copy(alpha = 0.8f))
+                    Text(stringResource(R.string.recipient_videotheque_dialog_howto_step1), color = theme.contentColor.copy(alpha = 0.8f))
+                    Text(stringResource(R.string.recipient_videotheque_dialog_howto_step2), color = theme.contentColor.copy(alpha = 0.8f))
+                    Text(stringResource(R.string.recipient_videotheque_dialog_howto_step3), color = theme.contentColor.copy(alpha = 0.8f))
+                    Text(stringResource(R.string.recipient_videotheque_dialog_howto_step4), color = theme.contentColor.copy(alpha = 0.8f))
                 }
             },
             confirmButton = {
@@ -277,12 +279,12 @@ fun RecipientVideothequeScreen(
                     showHowToPopup = false
                     showAddDialog = true 
                 }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
-                    Text("Continuer", color = theme.backgroundColor)
+                    Text(stringResource(R.string.recipient_videotheque_dialog_howto_button_continue), color = theme.backgroundColor)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showHowToPopup = false }) {
-                    Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+                    Text(stringResource(R.string.recipient_videotheque_dialog_howto_button_cancel), color = theme.contentColor.copy(alpha = 0.6f))
                 }
             }
         )
@@ -387,7 +389,7 @@ fun VHSCard(
             ) {
                 Row(modifier = Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        entry.aiSummary.ifEmpty { "Vidéo" }, 
+                        entry.aiSummary.ifEmpty { stringResource(R.string.recipient_videotheque_item_fallback_title) }, 
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp), 
                         color = Color.Black, 
                         maxLines = 1, 
@@ -527,7 +529,7 @@ fun VHSCard(
         
         // TITRE SOUS LE BLOC
         Text(
-            text = entry.aiSummary.ifEmpty { "Vidéo" },
+            text = entry.aiSummary.ifEmpty { stringResource(R.string.recipient_videotheque_item_fallback_title) },
             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
             color = theme.contentColor,
             maxLines = 1,

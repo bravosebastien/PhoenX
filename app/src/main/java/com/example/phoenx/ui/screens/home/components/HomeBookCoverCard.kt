@@ -20,6 +20,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.theme.AppThemeState
 import dagger.hilt.android.EntryPointAccessors
@@ -84,7 +86,7 @@ fun BookCoverCard(
             .fillMaxWidth()
     ) {
         Text(
-            "MON LIVRE",
+            stringResource(R.string.home_book_title),
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
             color = theme.contentColor.copy(alpha = 0.4f),
             modifier = Modifier.padding(start = 2.dp, bottom = 8.dp)

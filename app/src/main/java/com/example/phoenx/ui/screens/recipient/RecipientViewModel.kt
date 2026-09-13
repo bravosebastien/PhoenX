@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.recipient
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.RecipientEntity
@@ -32,7 +33,8 @@ class RecipientViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
-    private val mediaManager: MediaManager
+    private val mediaManager: MediaManager,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _transmissionAmbiance = MutableStateFlow(AmbianceState())
@@ -243,12 +245,12 @@ class RecipientViewModel @Inject constructor(
 
                 // 4. Envoi Email via Cloud Function (v9.4.10)
                 val userDoc = db.collection("users").document(userId).get().await()
-                val creatorName = userDoc.getString("displayName") ?: "Ton proche"
+                val creatorName = userDoc.getString("displayName") ?: context.getString(R.string.recipient_viewmodel_creator_fallback)
                 
                 val emailData = hashMapOf(
                     "to" to email,
-                    "subject" to "$creatorName souhaite vous partager son histoire",
-                    "text" to "Bonjour $name,\n\n$creatorName prépare son espace de souvenirs sur PHOEN-X et souhaite vous accorder sa confiance en vous choisissant comme destinataire de son récit de vie.\n\nLien pour rejoindre son cercle de confiance : https://phoenx.app/join/$tokenId"
+                    "subject" to context.getString(R.string.recipient_viewmodel_email_subject, creatorName),
+                    "text" to context.getString(R.string.recipient_viewmodel_email_text, name, creatorName, tokenId)
                 )
                 functions.getHttpsCallable("sendMail").call(emailData).await()
 
@@ -302,7 +304,7 @@ class RecipientViewModel @Inject constructor(
                 // Trigger email if activated for the first time
                 if (canAsk && !recipient.canAskQuestions) {
                     val userDoc = db.collection("users").document(currentUserId).get().await()
-                    val creatorName = userDoc.getString("displayName") ?: "Ton proche"
+                    val creatorName = userDoc.getString("displayName") ?: context.getString(R.string.recipient_viewmodel_creator_fallback)
                     
                     val inviteLink = "https://phoenx.app/ask?creator=$currentUserId&recipient=$recipientId"
                     

@@ -31,7 +31,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.data.media.MediaManager
@@ -82,7 +84,7 @@ fun HeirHeritageScreen(
                 title = {
                     Column {
                         Text(
-                            "Mon Héritage",
+                            stringResource(R.string.heir_heritage_screen_title),
                             style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
                             color = theme.contentColor
                         )
@@ -105,12 +107,12 @@ fun HeirHeritageScreen(
                                 onClick = { navController.navigate(Screen.AskQuestion.createRoute(creatorId, recipientId!!)) },
                                 modifier = Modifier.size(32.dp)
                             ) {
-                                Icon(Icons.Default.HelpOutline, contentDescription = "Poser une question", tint = accent)
+                                Icon(Icons.Default.HelpOutline, contentDescription = stringResource(R.string.heir_heritage_ask_question_desc), tint = accent)
                             }
                             if (maxQuestions != null) {
                                 val remaining = (maxQuestions!! - questionsAsked).coerceAtLeast(0)
                                 Text(
-                                    text = "$remaining rest.",
+                                    text = stringResource(R.string.heir_heritage_remaining_questions, remaining),
                                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp, fontWeight = FontWeight.Bold),
                                     color = accent.copy(alpha = 0.8f)
                                 )
@@ -130,7 +132,7 @@ fun HeirHeritageScreen(
         ) {
             item {
                 Text(
-                    text = "${heritageEntries.size} souvenirs vous ont été destinés",
+                    text = stringResource(R.string.heir_heritage_souvenirs_destined, heritageEntries.size),
                     style = MaterialTheme.typography.labelSmall,
                     color = theme.contentColor.copy(alpha = 0.4f),
                     modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
@@ -146,20 +148,20 @@ fun HeirHeritageScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SpecialAccessCard(
-                        title = bookTitle ?: "Livre",
-                        subtitle = if (protocolStatus != RecipientMediaViewModel.ProtocolStatus.ACTIVATED) bookMessage ?: "$creatorName a décidé de vous partager le livre de sa vie. Visible le moment venu." else "Récit de vie",
+                        title = bookTitle ?: stringResource(R.string.heir_heritage_special_book_fallback),
+                        subtitle = if (protocolStatus != RecipientMediaViewModel.ProtocolStatus.ACTIVATED) bookMessage ?: stringResource(R.string.heir_heritage_special_book_subtitle_sealed, creatorName) else stringResource(R.string.heir_heritage_special_book_subtitle_activated),
                         icon = Icons.Outlined.MenuBook,
                         modifier = Modifier.weight(1.3f),
                         theme = theme
                     ) { navController.navigate("book_viewer_recipient?creatorId=$creatorId") }
                     SpecialAccessCard(
-                        title = "Coffre",
+                        title = stringResource(R.string.heir_heritage_special_vault_title),
                         icon = Icons.Outlined.Lock,
                         modifier = Modifier.weight(1f),
                         theme = theme
                     ) { navController.navigate(Screen.RecipientDetective.createRoute(creatorId)) }
                     SpecialAccessCard(
-                        title = "Arbre", // v9.4.27 : Accès à l'Arbre Généalogique
+                        title = stringResource(R.string.heir_heritage_special_tree_title), // v9.4.27 : Accès à l'Arbre Généalogique
                         icon = Icons.Default.AccountTree,
                         modifier = Modifier.weight(1f),
                         theme = theme
@@ -172,19 +174,19 @@ fun HeirHeritageScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SpecialAccessCard(
-                        title = "Mappemonde", // v9.4.27 : Accès à la Mappemonde
+                        title = stringResource(R.string.heir_heritage_special_map_title), // v9.4.27 : Accès à la Mappemonde
                         icon = Icons.Default.Public,
                         modifier = Modifier.weight(1f),
                         theme = theme
                     ) { navController.navigate(Screen.Map.createRoute(targetCreatorId = creatorId)) }
                     SpecialAccessCard(
-                        title = "Persos",
+                        title = stringResource(R.string.heir_heritage_special_personalities_title),
                         icon = Icons.Default.Star,
                         modifier = Modifier.weight(1f),
                         theme = theme
                     ) { navController.navigate(Screen.Personalities.createRoute(creatorId)) }
                     SpecialAccessCard(
-                        title = "Rencontres",
+                        title = stringResource(R.string.heir_heritage_special_encounters_title),
                         icon = Icons.Default.Groups,
                         modifier = Modifier.weight(1f),
                         theme = theme
@@ -197,19 +199,19 @@ fun HeirHeritageScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     SpecialAccessCard(
-                        title = "Photos",
+                        title = stringResource(R.string.heir_heritage_special_photos_title),
                         icon = Icons.Default.PhotoLibrary,
                         modifier = Modifier.weight(1f),
                         theme = theme
                     ) { navController.navigate(Screen.RecipientPhotos.createRoute(creatorId)) }
                     SpecialAccessCard(
-                        title = "Vidéos",
+                        title = stringResource(R.string.heir_heritage_special_videos_title),
                         icon = Icons.Default.Videocam,
                         modifier = Modifier.weight(1f),
                         theme = theme
                     ) { navController.navigate(Screen.RecipientVideotheque.createRoute(creatorId)) }
                     SpecialAccessCard(
-                        title = "Audios",
+                        title = stringResource(R.string.heir_heritage_special_audios_title),
                         icon = Icons.Default.MusicNote,
                         modifier = Modifier.weight(1f),
                         theme = theme
@@ -305,7 +307,8 @@ fun HeritageEntryRow(
     onClick: () -> Unit
 ) {
     val accent = theme.accentColor
-    val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.FRENCH).withZone(ZoneId.systemDefault()) }
+    val dateFormat = stringResource(R.string.heir_heritage_date_format)
+    val dateFormatter = remember(dateFormat) { DateTimeFormatter.ofPattern(dateFormat, Locale.FRENCH).withZone(ZoneId.systemDefault()) }
     val formattedDate = dateFormatter.format(entry.timestamp)
 
     Surface(
@@ -350,7 +353,7 @@ fun HeritageEntryRow(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = entry.aiSummary.ifEmpty { "Souvenir" },
+                    text = entry.aiSummary.ifEmpty { stringResource(R.string.heir_heritage_entry_fallback_title) },
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor,
                     maxLines = 1,

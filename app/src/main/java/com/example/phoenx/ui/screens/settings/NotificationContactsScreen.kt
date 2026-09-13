@@ -19,9 +19,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.local.NotificationContactEntity
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
@@ -50,7 +52,7 @@ fun NotificationContactsScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Contacts à prévenir",
+                            stringResource(R.string.notification_contacts_screen_title),
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 fontFamily = theme.fontFamily,
                                 fontSize = 22.sp,
@@ -59,13 +61,13 @@ fun NotificationContactsScreen(
                             color = theme.contentColor
                         )
                         InfoButton(
-                            title = "Contacts à prévenir",
+                            title = stringResource(R.string.notification_contacts_info_title),
                             points = listOf(
-                                "Ces personnes seront informées de ton départ par email.",
-                                "Elles n'auront aucun accès à ton héritage PHOEN-X.",
-                                "Maximum 2 contacts — nom et email suffisent.",
-                                "Un email sobre : '[Prénom] nous a quittés.'",
-                                "Aucun lien, aucune invitation — juste l'information."
+                                stringResource(R.string.notification_contacts_info_point1),
+                                stringResource(R.string.notification_contacts_info_point2),
+                                stringResource(R.string.notification_contacts_info_point3),
+                                stringResource(R.string.notification_contacts_info_point4),
+                                stringResource(R.string.notification_contacts_info_point5)
                             )
                         )
                     }
@@ -89,7 +91,7 @@ fun NotificationContactsScreen(
                 .padding(24.dp)
         ) {
             Text(
-                text = "Ces personnes recevront un email sobre au moment de ton départ. Elles n'auront pas accès à ton héritage — juste une information, avec dignité.",
+                text = stringResource(R.string.notification_contacts_header_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = theme.contentColor.copy(alpha = 0.7f),
                 modifier = Modifier.padding(bottom = 32.dp)
@@ -98,7 +100,7 @@ fun NotificationContactsScreen(
             Box(modifier = Modifier.weight(1f)) {
                 if (contacts.isEmpty() && !isLoading) {
                     Text(
-                        "Aucun contact ajouté pour l'instant.",
+                        stringResource(R.string.notification_contacts_empty_state),
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontFamily = theme.fontFamily,
                             fontStyle = FontStyle.Italic
@@ -142,9 +144,9 @@ fun NotificationContactsScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 if (contacts.size >= 2) {
-                    Text("Maximum 2 contacts atteint.", color = theme.backgroundColor)
+                    Text(stringResource(R.string.notification_contacts_button_max_reached), color = theme.backgroundColor)
                 } else {
-                    Text("+ Ajouter un contact", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.notification_contacts_button_add), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -163,8 +165,8 @@ fun NotificationContactsScreen(
             AlertDialog(
                 onDismissRequest = { contactToDelete = null },
                 containerColor = theme.backgroundColor,
-                title = { Text("Supprimer ce contact ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-                text = { Text("Veux-tu vraiment retirer ${contactToDelete?.name} de tes contacts à prévenir ?", color = theme.contentColor.copy(alpha = 0.7f)) },
+                title = { Text(stringResource(R.string.notification_contacts_dialog_delete_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                text = { Text(stringResource(R.string.notification_contacts_dialog_delete_text, contactToDelete?.name ?: ""), color = theme.contentColor.copy(alpha = 0.7f)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -172,12 +174,12 @@ fun NotificationContactsScreen(
                             contactToDelete = null
                         }
                     ) {
-                        Text("Supprimer", color = Error, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.notification_contacts_dialog_delete_confirm), color = Error, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { contactToDelete = null }) {
-                        Text("Annuler", color = theme.contentColor)
+                        Text(stringResource(R.string.notification_contacts_dialog_delete_cancel), color = theme.contentColor)
                     }
                 }
             )
@@ -240,7 +242,7 @@ fun AddContactDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) 
         containerColor = theme.backgroundColor,
         title = {
             Text(
-                "Nouveau contact",
+                stringResource(R.string.notification_contacts_dialog_add_title),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontFamily = theme.fontFamily, 
                     fontSize = 20.sp,
@@ -254,7 +256,7 @@ fun AddContactDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) 
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Nom complet") },
+                    label = { Text(stringResource(R.string.notification_contacts_dialog_add_name_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = accent,
@@ -268,7 +270,7 @@ fun AddContactDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) 
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text(stringResource(R.string.notification_contacts_dialog_add_email_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     isError = email.isNotBlank() && !isEmailValid,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -283,7 +285,7 @@ fun AddContactDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) 
                 OutlinedTextField(
                     value = relationship,
                     onValueChange = { relationship = it },
-                    label = { Text("Lien (ex: Fils, Ami...)") },
+                    label = { Text(stringResource(R.string.notification_contacts_dialog_add_relationship_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = accent,
@@ -302,12 +304,12 @@ fun AddContactDialog(onDismiss: () -> Unit, onConfirm: (String, String, String) 
                 enabled = canAdd,
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Ajouter", color = theme.backgroundColor)
+                Text(stringResource(R.string.notification_contacts_dialog_add_button_confirm), color = theme.backgroundColor)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler", color = theme.contentColor)
+                Text(stringResource(R.string.notification_contacts_dialog_add_button_cancel), color = theme.contentColor)
             }
         }
     )

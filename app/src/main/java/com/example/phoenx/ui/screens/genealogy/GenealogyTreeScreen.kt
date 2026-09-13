@@ -29,10 +29,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.PersonMediaEntity
 import com.example.phoenx.domain.model.VisualGroup
@@ -86,7 +88,7 @@ fun GenealogyTreeScreen(
         topBar = {
             TopAppBar(
                 title = { 
-                    val title = if (isReadOnly) "L'Arbre de votre proche" else "Mon Arbre Généalogique"
+                    val title = if (isReadOnly) stringResource(R.string.genealogy_tree_heir_title) else stringResource(R.string.genealogy_tree_creator_title)
                     Text(title, style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor) 
                 },
                 navigationIcon = {
@@ -96,14 +98,14 @@ fun GenealogyTreeScreen(
                 },
                 actions = {
                     InfoButton(
-                        title = "Confidentialité de l'Arbre",
-                        points = listOf("Cet arbre sera visible dans son intégralité par tous vos Destinataires une fois votre héritage activé, sans restriction personne par personne — contrairement au reste de l'application.")
+                        title = stringResource(R.string.genealogy_confidentiality_info_title),
+                        points = listOf(stringResource(R.string.genealogy_confidentiality_info_content))
                     )
                     if (targetCreatorId == null || targetCreatorId == myUid) {
                         IconButton(onClick = { isPreviewMode = !isPreviewMode }) {
                             Icon(
                                 if (isPreviewMode) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = "Aperçu Destinataire",
+                                contentDescription = stringResource(R.string.genealogy_preview_mode_description),
                                 tint = if (isPreviewMode) accent else theme.contentColor.copy(alpha = 0.6f)
                             )
                         }
@@ -124,7 +126,7 @@ fun GenealogyTreeScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Icon(Icons.Default.AccountTree, null, modifier = Modifier.size(64.dp), tint = theme.contentColor.copy(alpha = 0.2f))
                         Spacer(Modifier.height(16.dp))
-                        Text("Ton arbre est encore vide.", color = theme.contentColor.copy(alpha = 0.4f))
+                        Text(stringResource(R.string.genealogy_empty_state_text), color = theme.contentColor.copy(alpha = 0.4f))
                         Button(
                             onClick = { 
                                 selectedPersonForAddingRelation = null
@@ -134,7 +136,7 @@ fun GenealogyTreeScreen(
                             modifier = Modifier.padding(top = 24.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = accent)
                         ) {
-                            Text("Ajouter la première personne", color = theme.backgroundColor)
+                            Text(stringResource(R.string.genealogy_add_first_person_button), color = theme.backgroundColor)
                         }
                     }
                 }
@@ -186,26 +188,26 @@ fun GenealogyTreeScreen(
             Column(modifier = Modifier.padding(24.dp).padding(bottom = 32.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "Nouvelle relation pour ${selectedPersonForAddingRelation!!.firstName}",
+                        stringResource(R.string.genealogy_new_relation_title, selectedPersonForAddingRelation!!.firstName),
                         style = MaterialTheme.typography.titleLarge,
                         color = theme.contentColor,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.weight(1f)
                     )
                     InfoButton(
-                        title = "Types de liens",
+                        title = stringResource(R.string.genealogy_relation_types_info_title),
                         points = listOf(
-                            "Parent : Cette personne apparaîtra au-dessus, reliée par un lien de filiation directe.",
-                            "Enfant : Cette personne apparaîtra en dessous.",
-                            "Co-parent : Pour lier une personne qui partage un enfant déjà existant avec celle-ci."
+                            stringResource(R.string.genealogy_relation_types_info_content1),
+                            stringResource(R.string.genealogy_relation_types_info_content2),
+                            stringResource(R.string.genealogy_relation_types_info_content3)
                         )
                     )
                 }
                 Spacer(Modifier.height(24.dp))
                 
                 RelationOption(
-                    title = "Ajouter un parent",
-                    description = "Cette personne apparaîtra au-dessus, reliée par un lien de filiation directe.",
+                    title = stringResource(R.string.genealogy_add_parent_title),
+                    description = stringResource(R.string.genealogy_add_parent_description),
                     icon = Icons.Default.ArrowUpward,
                     accent = accent,
                     contentColor = theme.contentColor,
@@ -219,8 +221,8 @@ fun GenealogyTreeScreen(
                 Spacer(Modifier.height(16.dp))
                 
                 RelationOption(
-                    title = "Ajouter un enfant",
-                    description = "Cette personne apparaîtra en dessous.",
+                    title = stringResource(R.string.genealogy_add_child_title),
+                    description = stringResource(R.string.genealogy_add_child_description),
                     icon = Icons.Default.ArrowDownward,
                     accent = accent,
                     contentColor = theme.contentColor,
@@ -234,8 +236,8 @@ fun GenealogyTreeScreen(
                 Spacer(Modifier.height(16.dp))
                 
                 RelationOption(
-                    title = "Ajouter un co-parent",
-                    description = "Pour lier une personne qui partage un enfant déjà existant avec celle-ci.",
+                    title = stringResource(R.string.genealogy_add_coparent_title),
+                    description = stringResource(R.string.genealogy_add_coparent_description),
                     icon = Icons.Default.Group,
                     accent = accent,
                     contentColor = theme.contentColor,
@@ -254,13 +256,13 @@ fun GenealogyTreeScreen(
         AlertDialog(
             onDismissRequest = { showChildSelectionForCoParent = false },
             containerColor = theme.backgroundColor,
-            title = { Text("Sélectionner l'enfant concerné", color = theme.contentColor) },
+            title = { Text(stringResource(R.string.genealogy_select_child_dialog_title), color = theme.contentColor) },
             text = {
                 if (children.isEmpty()) {
-                    Text("Cette personne n'a pas encore d'enfant dans l'arbre — ajoutez d'abord un enfant avant de pouvoir lui associer un co-parent.", color = theme.contentColor.copy(alpha = 0.7f))
+                    Text(stringResource(R.string.genealogy_select_child_empty_state), color = theme.contentColor.copy(alpha = 0.7f))
                 } else {
                     Column {
-                        Text("À quel(s) enfant(s) de ${selectedPersonForAddingRelation!!.firstName} souhaitez-vous lier ce nouveau parent ?", 
+                        Text(stringResource(R.string.genealogy_select_child_question, selectedPersonForAddingRelation!!.firstName), 
                             style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
                         Spacer(Modifier.height(16.dp))
                         LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
@@ -294,9 +296,9 @@ fun GenealogyTreeScreen(
                         },
                         enabled = selectedChildrenIds.isNotEmpty(),
                         colors = ButtonDefaults.buttonColors(containerColor = accent)
-                    ) { Text("Suivant", color = theme.backgroundColor) }
+                    ) { Text(stringResource(R.string.genealogy_button_next), color = theme.backgroundColor) }
                 } else {
-                    TextButton(onClick = { showChildSelectionForCoParent = false }) { Text("Compris", color = accent) }
+                    TextButton(onClick = { showChildSelectionForCoParent = false }) { Text(stringResource(R.string.genealogy_button_compris), color = accent) }
                 }
             },
             dismissButton = {
@@ -304,7 +306,7 @@ fun GenealogyTreeScreen(
                     TextButton(onClick = { 
                         showChildSelectionForCoParent = false
                         selectedChildrenIds.clear()
-                    }) { Text("Annuler", color = theme.contentColor) }
+                    }) { Text(stringResource(R.string.genealogy_button_annuler), color = theme.contentColor) }
                 }
             }
         )

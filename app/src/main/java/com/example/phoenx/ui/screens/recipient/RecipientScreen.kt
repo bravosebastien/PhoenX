@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.ui.components.InvitationConfirmDialog
 import com.example.phoenx.ui.components.PhoenXAvatar
@@ -49,7 +51,7 @@ fun RecipientScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        "Mes Destinataires",
+                        stringResource(R.string.recipient_screen_title),
                         style = MaterialTheme.typography.displaySmall.copy(
                             fontFamily = theme.fontFamily,
                             fontWeight = FontWeight.Bold,
@@ -107,8 +109,8 @@ fun RecipientScreen(
             AlertDialog(
                 onDismissRequest = { recipientToDelete = null },
                 containerColor = theme.backgroundColor,
-                title = { Text("Supprimer ce proche ?", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
-                text = { Text("Veux-tu vraiment retirer ${recipientToDelete?.name} de ton Cercle de Confiance ? Cette personne n'aura plus accès à ton héritage.", color = theme.contentColor.copy(alpha = 0.7f)) },
+                title = { Text(stringResource(R.string.recipient_dialog_delete_title), color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
+                text = { Text(stringResource(R.string.recipient_dialog_delete_text, recipientToDelete?.name ?: ""), color = theme.contentColor.copy(alpha = 0.7f)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -116,12 +118,12 @@ fun RecipientScreen(
                             recipientToDelete = null
                         }
                     ) {
-                        Text("Supprimer", color = Error)
+                        Text(stringResource(R.string.recipient_dialog_delete_confirm), color = Error)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { recipientToDelete = null }) {
-                        Text("Annuler", color = theme.contentColor)
+                        Text(stringResource(R.string.recipient_dialog_delete_cancel), color = theme.contentColor)
                     }
                 }
             )
@@ -194,8 +196,8 @@ fun EmptyRecipients(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Ton cercle est vide.", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
-        Text("Ajoute les personnes qui recevront ton héritage.", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.recipient_empty_state_title), color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold))
+        Text(stringResource(R.string.recipient_empty_state_subtitle), color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -239,7 +241,7 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
         AlertDialog(
             onDismissRequest = onDismiss,
             containerColor = theme.backgroundColor,
-            title = { Text("Ajouter un proche", color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.recipient_dialog_add_title), color = theme.contentColor, fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold) },
             text = {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -272,7 +274,7 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
-                        label = { Text("Nom complet") },
+                        label = { Text(stringResource(R.string.recipient_dialog_add_name_label)) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = accent,
@@ -286,7 +288,7 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
-                        label = { Text("Email") },
+                        label = { Text(stringResource(R.string.recipient_dialog_add_email_label)) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = accent,
@@ -300,7 +302,7 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
                     OutlinedTextField(
                         value = phone,
                         onValueChange = { phone = it },
-                        label = { Text("Téléphone (Optionnel)") },
+                        label = { Text(stringResource(R.string.recipient_dialog_add_phone_label)) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = accent,
@@ -314,7 +316,7 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
                     OutlinedTextField(
                         value = relationship,
                         onValueChange = { relationship = it },
-                        label = { Text("Lien (ex: Fils, Épouse...)") },
+                        label = { Text(stringResource(R.string.recipient_dialog_add_relationship_label)) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = accent,
@@ -333,12 +335,12 @@ fun AddRecipientDialog(onDismiss: () -> Unit, onConfirm: (String, String, String
                     enabled = name.isNotEmpty() && email.isNotEmpty(),
                     colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Suivant", color = theme.backgroundColor)
+                    Text(stringResource(R.string.recipient_dialog_add_button_next), color = theme.backgroundColor)
                 }
             },
             dismissButton = {
                 TextButton(onClick = onDismiss) {
-                    Text("Annuler", color = theme.contentColor)
+                    Text(stringResource(R.string.recipient_dialog_add_button_cancel), color = theme.contentColor)
                 }
             }
         )

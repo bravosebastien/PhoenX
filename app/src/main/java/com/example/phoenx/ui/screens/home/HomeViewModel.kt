@@ -30,6 +30,8 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.inject.Inject
+import android.content.Context
+import com.example.phoenx.R
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -38,7 +40,8 @@ class HomeViewModel @Inject constructor(
     private val aiManager: AIManager,
     private val protocolManager: ActivationProtocolManager,
     private val offlineEntryDao: OfflineEntryDao,
-    private val preferenceManager: PreferenceManager
+    private val preferenceManager: PreferenceManager,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState())
@@ -242,7 +245,7 @@ class HomeViewModel @Inject constructor(
         val user = auth.currentUser ?: return
         db.collection("users").document(user.uid).get()
             .addOnSuccessListener { doc ->
-                val name = doc.getString("displayName") ?: user.email?.substringBefore("@") ?: "Ami"
+                val name = doc.getString("displayName") ?: user.email?.substringBefore("@") ?: context.getString(R.string.home_user_name_fallback)
                 val birthTimestamp = doc.getTimestamp("dateOfBirth")
                 val lastAlive = doc.getTimestamp("lastAliveConfirmedAt")
                 
@@ -262,7 +265,7 @@ class HomeViewModel @Inject constructor(
                     userEmail = user.email ?: "",
                     photoUrl = doc.getString("photoUrl"),
                     currentAge = currentAge,
-                    currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE d MMMM", Locale.FRENCH))
+                    currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern(context.getString(R.string.home_header_date_format), Locale.FRENCH))
                         .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
                 )
             }
@@ -287,7 +290,9 @@ class HomeViewModel @Inject constructor(
             try {
                 val question = aiManager.getBiographerQuestion()
                 _uiState.value = _uiState.value.copy(biographerQuestion = question)
-            } catch (e: Exception) { }
+            } catch (e: Exception) { 
+                _uiState.value = _uiState.value.copy(biographerQuestion = context.getString(R.string.home_biographer_question_default))
+            }
         }
     }
 
@@ -342,7 +347,7 @@ data class HomeUiState(
     val entryCount: Int = 0,
     val minAge: Int = 0,
     val currentAge: Int = 0,
-    val biographerQuestion: String = "Quelle décision as-tu prise dont tu es le plus fier ?",
+    val biographerQuestion: String = "",
     val pendingQuestionsCount: Int = 0,
     val answeredQuestionsCount: Int = 0,
     val validatedChaptersCount: Int = 0,

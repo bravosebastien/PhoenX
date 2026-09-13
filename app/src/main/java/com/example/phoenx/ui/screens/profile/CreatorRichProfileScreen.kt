@@ -20,7 +20,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.local.CreatorProfileEntity
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.OnboardingPopup
@@ -40,10 +42,10 @@ fun CreatorRichProfileScreen(
 
     OnboardingPopup(
         pageKey = "rich_profile",
-        title = "Mon Portrait de Vie",
+        title = stringResource(R.string.rich_profile_onboarding_title),
         contentPoints = listOf(
-            "Enrichis ton histoire pour l'IA Biographe.",
-            "Ces informations aideront l'IA à mieux comprendre qui tu es pour rédiger ton livre."
+            stringResource(R.string.rich_profile_onboarding_point1),
+            stringResource(R.string.rich_profile_onboarding_point2)
         ),
         preferenceManager = themeViewModel.preferenceManager
     )
@@ -58,7 +60,7 @@ fun CreatorRichProfileScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Mon Portrait de Vie", color = theme.contentColor, fontFamily = theme.fontFamily) },
+                title = { Text(stringResource(R.string.rich_profile_screen_title), color = theme.contentColor, fontFamily = theme.fontFamily) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -69,12 +71,12 @@ fun CreatorRichProfileScreen(
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = accent, strokeWidth = 2.dp)
                     } else {
                         TextButton(onClick = { viewModel.updateProfile(currentProfile) }) {
-                            Text("Enregistrer", color = accent, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.rich_profile_button_save), color = accent, fontWeight = FontWeight.Bold)
                         }
                     }
                     InfoButton(
-                        title = "Le Portrait de Vie",
-                        points = listOf("Le Portrait de Vie rassemble, en quelques champs simples, les informations factuelles qui vous décrivent — description physique, famille, parcours. Contrairement au Livre de Ma Vie qui raconte une histoire, ce portrait sert de fiche de référence : il aide l'intelligence artificielle à ne jamais se tromper sur les faits vous concernant quand elle rédige votre Livre.")
+                        title = stringResource(R.string.rich_profile_info_title),
+                        points = listOf(stringResource(R.string.rich_profile_info_content))
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -89,7 +91,7 @@ fun CreatorRichProfileScreen(
                 .padding(24.dp)
         ) {
             Text(
-                "Ces informations aideront l'IA Biographe à mieux comprendre qui tu es pour rédiger ton livre.",
+                stringResource(R.string.rich_profile_header_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = theme.contentColor.copy(alpha = 0.6f)
             )
@@ -98,7 +100,7 @@ fun CreatorRichProfileScreen(
 
             // SECTION 1 : QUI JE SUIS
             ProfileAccordionSection(
-                title = "Qui je suis",
+                title = stringResource(R.string.rich_profile_section_who_am_i),
                 icon = Icons.Default.Face,
                 isExpanded = expandedSection == "identity",
                 onToggle = { expandedSection = if (expandedSection == "identity") null else "identity" },
@@ -107,7 +109,7 @@ fun CreatorRichProfileScreen(
                 OutlinedTextField(
                     value = currentProfile.bio ?: "",
                     onValueChange = { currentProfile = currentProfile.copy(bio = it) },
-                    label = { Text("Bio / Description libre") },
+                    label = { Text(stringResource(R.string.rich_profile_label_bio)) },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
                     colors = richProfileTextFieldColors(accent, theme)
                 )
@@ -115,7 +117,7 @@ fun CreatorRichProfileScreen(
                 OutlinedTextField(
                     value = currentProfile.profession ?: "",
                     onValueChange = { currentProfile = currentProfile.copy(profession = it) },
-                    label = { Text("Métier / Occupation") },
+                    label = { Text(stringResource(R.string.rich_profile_label_profession)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = richProfileTextFieldColors(accent, theme)
                 )
@@ -125,14 +127,14 @@ fun CreatorRichProfileScreen(
 
             // SECTION 2 : FAMILLE
             ProfileAccordionSection(
-                title = "Famille & Proches",
+                title = stringResource(R.string.rich_profile_section_family),
                 icon = Icons.Default.FamilyRestroom,
                 isExpanded = expandedSection == "family",
                 onToggle = { expandedSection = if (expandedSection == "family") null else "family" },
                 accent = accent
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("As-tu des frères/sœurs ?", color = theme.contentColor, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.rich_profile_question_siblings), color = theme.contentColor, modifier = Modifier.weight(1f))
                     BooleanSelector(
                         value = currentProfile.hasSiblings,
                         onValueChange = { currentProfile = currentProfile.copy(hasSiblings = it) },
@@ -144,7 +146,7 @@ fun CreatorRichProfileScreen(
                     OutlinedTextField(
                         value = currentProfile.siblingsDetail ?: "",
                         onValueChange = { currentProfile = currentProfile.copy(siblingsDetail = it) },
-                        label = { Text("Précisions (ex: 2 frères aînés)") },
+                        label = { Text(stringResource(R.string.rich_profile_label_siblings_detail)) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = richProfileTextFieldColors(accent, theme)
                     )
@@ -153,7 +155,7 @@ fun CreatorRichProfileScreen(
                 Spacer(Modifier.height(24.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("As-tu des enfants ?", color = theme.contentColor, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.rich_profile_question_children), color = theme.contentColor, modifier = Modifier.weight(1f))
                     BooleanSelector(
                         value = currentProfile.hasChildren,
                         onValueChange = { currentProfile = currentProfile.copy(hasChildren = it) },
@@ -165,7 +167,7 @@ fun CreatorRichProfileScreen(
                     OutlinedTextField(
                         value = currentProfile.childrenDetail ?: "",
                         onValueChange = { currentProfile = currentProfile.copy(childrenDetail = it) },
-                        label = { Text("Précisions (ex: une fille de 10 ans)") },
+                        label = { Text(stringResource(R.string.rich_profile_label_children_detail)) },
                         modifier = Modifier.fillMaxWidth(),
                         colors = richProfileTextFieldColors(accent, theme)
                     )
@@ -176,7 +178,7 @@ fun CreatorRichProfileScreen(
 
             // SECTION 3 : PORTRAIT PHYSIQUE
             ProfileAccordionSection(
-                title = "Portrait Physique",
+                title = stringResource(R.string.rich_profile_section_physical),
                 icon = Icons.Default.AccessibilityNew,
                 isExpanded = expandedSection == "physical",
                 onToggle = { expandedSection = if (expandedSection == "physical") null else "physical" },
@@ -186,7 +188,7 @@ fun CreatorRichProfileScreen(
                     OutlinedTextField(
                         value = currentProfile.height?.toString() ?: "",
                         onValueChange = { currentProfile = currentProfile.copy(height = it.toIntOrNull()) },
-                        label = { Text("Taille (cm)") },
+                        label = { Text(stringResource(R.string.rich_profile_label_height)) },
                         modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = richProfileTextFieldColors(accent, theme)
@@ -194,7 +196,7 @@ fun CreatorRichProfileScreen(
                     OutlinedTextField(
                         value = currentProfile.weight?.toString() ?: "",
                         onValueChange = { currentProfile = currentProfile.copy(weight = it.toIntOrNull()) },
-                        label = { Text("Poids (kg)") },
+                        label = { Text(stringResource(R.string.rich_profile_label_weight)) },
                         modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         colors = richProfileTextFieldColors(accent, theme)
@@ -205,14 +207,14 @@ fun CreatorRichProfileScreen(
                     OutlinedTextField(
                         value = currentProfile.eyeColor ?: "",
                         onValueChange = { currentProfile = currentProfile.copy(eyeColor = it) },
-                        label = { Text("Couleur des yeux") },
+                        label = { Text(stringResource(R.string.rich_profile_label_eye_color)) },
                         modifier = Modifier.weight(1f),
                         colors = richProfileTextFieldColors(accent, theme)
                     )
                     OutlinedTextField(
                         value = currentProfile.hairColor ?: "",
                         onValueChange = { currentProfile = currentProfile.copy(hairColor = it) },
-                        label = { Text("Couleur cheveux") },
+                        label = { Text(stringResource(R.string.rich_profile_label_hair_color)) },
                         modifier = Modifier.weight(1f),
                         colors = richProfileTextFieldColors(accent, theme)
                     )
@@ -223,7 +225,7 @@ fun CreatorRichProfileScreen(
 
             // SECTION 4 : PASSIONS
             ProfileAccordionSection(
-                title = "Passions & Hobbies",
+                title = stringResource(R.string.rich_profile_section_hobbies),
                 icon = Icons.Default.Favorite,
                 isExpanded = expandedSection == "hobbies",
                 onToggle = { expandedSection = if (expandedSection == "hobbies") null else "hobbies" },
@@ -232,7 +234,7 @@ fun CreatorRichProfileScreen(
                 OutlinedTextField(
                     value = currentProfile.hobbies ?: "",
                     onValueChange = { currentProfile = currentProfile.copy(hobbies = it) },
-                    label = { Text("Tes passions, ce que tu aimes faire") },
+                    label = { Text(stringResource(R.string.rich_profile_label_hobbies_desc)) },
                     modifier = Modifier.fillMaxWidth().heightIn(min = 100.dp),
                     colors = richProfileTextFieldColors(accent, theme)
                 )
@@ -292,14 +294,14 @@ fun BooleanSelector(value: Boolean?, onValueChange: (Boolean?) -> Unit, accent: 
         FilterChip(
             selected = value == true,
             onClick = { onValueChange(if (value == true) null else true) },
-            label = { Text("Oui") },
+            label = { Text(stringResource(R.string.rich_profile_boolean_yes)) },
             colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
         )
         Spacer(Modifier.width(8.dp))
         FilterChip(
             selected = value == false,
             onClick = { onValueChange(if (value == false) null else false) },
-            label = { Text("Non") },
+            label = { Text(stringResource(R.string.rich_profile_boolean_no)) },
             colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
         )
     }

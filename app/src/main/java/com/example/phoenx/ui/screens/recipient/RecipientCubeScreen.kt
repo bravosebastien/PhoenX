@@ -21,7 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.SealedHeritageBanner
 import com.example.phoenx.ui.theme.*
 
@@ -64,12 +66,12 @@ fun RecipientCubeScreen(
             TopAppBar(
                 title = { 
                     val title = when (val state = uiState) {
-                        is RecipientCubeUiState.Success -> "L'Armoire de ${state.creatorName}"
-                        else -> "L'Armoire de..."
+                        is RecipientCubeUiState.Success -> stringResource(R.string.recipient_cube_armoire_title, state.creatorName)
+                        else -> stringResource(R.string.recipient_cube_armoire_fallback)
                     }
                     Column {
                         Text(title, color = theme.contentColor, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold))
-                        Text("Explore son héritage", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(R.string.recipient_cube_explore_subtitle), color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
                     }
                 },
                 navigationIcon = {
@@ -130,7 +132,7 @@ fun RecipientCubeScreen(
                             Spacer(modifier = Modifier.height(32.dp))
                             
                             Text(
-                                text = if (state.isActivated) "L'Héritage est Ouvert" else "L'Héritage Intime",
+                                text = if (state.isActivated) stringResource(R.string.recipient_cube_heritage_opened_title) else stringResource(R.string.recipient_cube_heritage_intimate_title),
                                 style = MaterialTheme.typography.headlineMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                                 color = theme.contentColor,
                                 textAlign = TextAlign.Center
@@ -138,9 +140,9 @@ fun RecipientCubeScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = if (state.isActivated) 
-                                    "Tu peux désormais explorer tous les souvenirs de ${state.creatorName}." 
+                                    stringResource(R.string.recipient_cube_heritage_opened_desc, state.creatorName) 
                                 else 
-                                    "Les objets de cette armoire s'ouvriront à toi au fil de ton exploration.",
+                                    stringResource(R.string.recipient_cube_heritage_intimate_desc),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = theme.contentColor.copy(alpha = 0.7f),
                                 textAlign = TextAlign.Center,
@@ -166,7 +168,7 @@ fun RecipientCubeScreen(
                         }
 
                         Text(
-                            "ACCÉDER À L'HÉRITAGE",
+                            stringResource(R.string.recipient_cube_access_label),
                             style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 2.sp, fontWeight = FontWeight.Bold),
                             color = theme.contentColor.copy(alpha = 0.4f),
                             textAlign = TextAlign.Center
@@ -181,7 +183,7 @@ fun RecipientCubeScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Text(
-                                    "ENTRER DANS SES SOUVENIRS", 
+                                    stringResource(R.string.recipient_cube_enter_button), 
                                     color = if (state.isActivated) theme.backgroundColor else theme.backgroundColor.copy(alpha = 0.5f), 
                                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
                                 )
@@ -203,11 +205,11 @@ fun RecipientCubeScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
-                                        Text("Commencez à sceller vos souvenirs.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                                        Text(stringResource(R.string.recipient_cube_become_creator_title), style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                                        Text(stringResource(R.string.recipient_cube_become_creator_subtitle), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
                                     }
                                     TextButton(onClick = onBecomeCreator) {
-                                        Text("DEVENIR CRÉATEUR", color = accent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        Text(stringResource(R.string.recipient_cube_become_creator_button), color = accent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                     }
                                 }
                             }

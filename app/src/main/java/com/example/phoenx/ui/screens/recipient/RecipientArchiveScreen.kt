@@ -20,7 +20,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.theme.*
 
@@ -48,7 +50,7 @@ fun RecipientArchiveScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Grande Archive", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(stringResource(R.string.recipient_archive_screen_title), style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -65,7 +67,7 @@ fun RecipientArchiveScreen(
         ) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("L'album photo est encore vide.", color = theme.contentColor.copy(alpha = 0.4f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.recipient_archive_empty_state), color = theme.contentColor.copy(alpha = 0.4f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, fontWeight = FontWeight.Bold)
                 }
             } else {
                 LazyVerticalGrid(
@@ -101,7 +103,7 @@ fun ArchiveItem(entry: PhoenXEntry, theme: AppThemeState) {
             Icon(Icons.Default.PhotoLibrary, null, tint = accent.copy(alpha = 0.5f), modifier = Modifier.size(32.dp))
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "${entry.ageAtCreation.years} ans",
+                text = stringResource(R.string.recipient_archive_item_age, entry.ageAtCreation.years),
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                 color = theme.contentColor.copy(alpha = 0.6f),
                 fontSize = 10.sp

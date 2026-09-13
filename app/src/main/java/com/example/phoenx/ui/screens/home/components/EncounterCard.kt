@@ -20,6 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import coil3.compose.AsyncImage
 import com.example.phoenx.ui.theme.AppThemeState
 
@@ -38,7 +40,7 @@ fun EncounterCard(
             .fillMaxWidth()
     ) {
         Text(
-            "LES RENCONTRES",
+            stringResource(R.string.home_encounters_title),
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
             color = theme.contentColor.copy(alpha = 0.4f),
             modifier = Modifier.padding(start = 2.dp, bottom = 8.dp)
@@ -92,7 +94,7 @@ fun EncounterCard(
                     contentAlignment = Alignment.BottomCenter
                 ) {
                     Text(
-                        text = "Les\nRencontres",
+                        text = stringResource(R.string.home_encounters_overlay),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontFamily = theme.fontFamily,
                             fontWeight = FontWeight.Bold,

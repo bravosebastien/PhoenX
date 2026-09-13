@@ -21,6 +21,7 @@ import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import java.io.FileOutputStream
 import javax.inject.Inject
+import com.example.phoenx.R
 
 @HiltViewModel
 class EncounterViewModel @Inject constructor(
@@ -38,10 +39,10 @@ class EncounterViewModel @Inject constructor(
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
-    private val _contextFilter = MutableStateFlow("Tous")
+    private val _contextFilter = MutableStateFlow(context.getString(R.string.encounter_context_all))
     val contextFilter: StateFlow<String> = _contextFilter.asStateFlow()
 
-    private val _groupingMode = MutableStateFlow("Âge")
+    private val _groupingMode = MutableStateFlow(context.getString(R.string.encounter_grouping_age))
     val groupingMode: StateFlow<String> = _groupingMode.asStateFlow()
 
     // Liste des rencontres (Filtre Room v9.5.0)
@@ -96,13 +97,13 @@ class EncounterViewModel @Inject constructor(
                              (person.lastName?.contains(query, ignoreCase = true) == true)
             
             val matchesFilter = when(filter) {
-                "Tous" -> true
-                "École" -> person.encounterContext == "SCHOOL"
-                "Travail" -> person.encounterContext == "WORK"
-                "Sport" -> person.encounterContext == "SPORT"
-                "Passion" -> person.encounterContext == "PASSION"
-                "Voyage" -> person.encounterContext == "TRAVEL"
-                "Autre" -> person.encounterContext == "OTHER"
+                context.getString(R.string.encounter_context_all) -> true
+                context.getString(R.string.encounter_context_school) -> person.encounterContext == "SCHOOL"
+                context.getString(R.string.encounter_context_work) -> person.encounterContext == "WORK"
+                context.getString(R.string.encounter_context_sport) -> person.encounterContext == "SPORT"
+                context.getString(R.string.encounter_context_passion) -> person.encounterContext == "PASSION"
+                context.getString(R.string.encounter_context_travel) -> person.encounterContext == "TRAVEL"
+                context.getString(R.string.encounter_context_other) -> person.encounterContext == "OTHER"
                 else -> true
             }
             
@@ -124,15 +125,15 @@ class EncounterViewModel @Inject constructor(
     // Liste des contextes disponibles (pour les puces de filtre)
     val availableContexts: StateFlow<List<String>> = encounterPersons.map { list ->
         val contexts = list.mapNotNull { it.encounterContext }.distinct()
-        val labels = mutableListOf("Tous")
-        if (contexts.contains("SCHOOL")) labels.add("École")
-        if (contexts.contains("WORK")) labels.add("Travail")
-        if (contexts.contains("SPORT")) labels.add("Sport")
-        if (contexts.contains("PASSION")) labels.add("Passion")
-        if (contexts.contains("TRAVEL")) labels.add("Voyage")
-        if (contexts.contains("OTHER")) labels.add("Autre")
+        val labels = mutableListOf(context.getString(R.string.encounter_context_all))
+        if (contexts.contains("SCHOOL")) labels.add(context.getString(R.string.encounter_context_school))
+        if (contexts.contains("WORK")) labels.add(context.getString(R.string.encounter_context_work))
+        if (contexts.contains("SPORT")) labels.add(context.getString(R.string.encounter_context_sport))
+        if (contexts.contains("PASSION")) labels.add(context.getString(R.string.encounter_context_passion))
+        if (contexts.contains("TRAVEL")) labels.add(context.getString(R.string.encounter_context_travel))
+        if (contexts.contains("OTHER")) labels.add(context.getString(R.string.encounter_context_other))
         labels
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), listOf("Tous"))
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), listOf(context.getString(R.string.encounter_context_all)))
 
     // Toutes les personnes pour le sélecteur "Présenté par"
     val allSelectablePersons: StateFlow<List<PersonEntity>> = offlineEntryDao.getAllPersons()

@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import coil3.compose.AsyncImage
@@ -48,6 +49,7 @@ import coil3.imageLoader
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import android.graphics.drawable.BitmapDrawable
+import com.example.phoenx.R
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.components.ProfileDrawer
 import com.example.phoenx.ui.components.VideoPlayerBanner
@@ -131,20 +133,20 @@ fun HomeScreen(
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
             containerColor = theme.backgroundColor,
-            title = { Text("Se déconnecter ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = { Text("Es-tu sûr de vouloir fermer ta session ?", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.home_dialog_logout_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.home_dialog_logout_text), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 TextButton(onClick = {
                     mainViewModel.logout()
                     onLogoutSuccess()
                     showLogoutDialog = false
                 }) {
-                    Text("Déconnexion", color = Error, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.home_dialog_logout_confirm), color = Error, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) {
-                    Text("Annuler", color = theme.contentColor)
+                    Text(stringResource(R.string.home_dialog_logout_cancel), color = theme.contentColor)
                 }
             }
         )
@@ -157,15 +159,15 @@ fun HomeScreen(
                 viewModel.markStepByStepNudgeSeen()
             },
             containerColor = theme.backgroundColor,
-            title = { Text("Nouvel outil", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = { Text("Vous pouvez aussi créer votre souvenir étape par étape — appuyez sur la petite flèche pour choisir.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.home_dialog_step_nudge_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.home_dialog_step_nudge_text), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 TextButton(onClick = {
                     showStepByStepNudge = false
                     viewModel.markStepByStepNudgeSeen()
                     onNavigateToCapture(Screen.Capture.TYPE_TEXT, null)
                 }) {
-                    Text("Compris", color = accent, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.home_dialog_step_nudge_confirm), color = accent, fontWeight = FontWeight.Bold)
                 }
             }
         )
@@ -234,7 +236,7 @@ fun HomeScreen(
                         )
                     }
 
-                    val welcomeNudge = remember { com.example.phoenx.ui.components.NudgePhrases.getRandomPhrase() }
+                    val welcomeNudge = remember { com.example.phoenx.ui.components.NudgePhrases.getRandomPhrase(context) }
                     Text(
                         text = welcomeNudge,
                         style = MaterialTheme.typography.bodySmall.copy(
@@ -264,7 +266,7 @@ fun HomeScreen(
                 if (currentPerspective == MainViewModel.Perspective.MY_MEMORY) {
                     // --- MON LIVRE (Positionné en haut v9.2.3) ---
                     BookCoverCard(
-                        title = uiState.bookTitle ?: "Livre de Vie",
+                        title = uiState.bookTitle ?: stringResource(R.string.home_book_default_name),
                         chaptersCount = uiState.validatedChaptersCount,
                         coverImageUrl = uiState.coverImageUrl,
                         defaultCoverUrl = uiState.defaultCoverUrl,
@@ -290,7 +292,7 @@ fun HomeScreen(
                                 Icon(Icons.Outlined.People, null, tint = accent, modifier = Modifier.size(20.dp))
                                 Spacer(Modifier.width(12.dp))
                                 Text(
-                                    "Tu as ${pendingInvites.size} invitation(s) en attente.",
+                                    stringResource(R.string.home_invitations_pending, pendingInvites.size),
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                     color = theme.contentColor,
                                     modifier = Modifier.weight(1f)
@@ -306,14 +308,14 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         StatusBadge(
-                            title = "Sécurité",
-                            subtitle = "Active",
+                            title = stringResource(R.string.home_status_security_title),
+                            subtitle = stringResource(R.string.home_status_security_subtitle),
                             dotColor = Color(0xFF4CAF50),
                             modifier = Modifier.weight(1f)
                         )
                         StatusBadge(
-                            title = "Présence",
-                            subtitle = "il y a $daysSincePresence jours",
+                            title = stringResource(R.string.home_status_presence_title),
+                            subtitle = stringResource(R.string.home_status_presence_subtitle, daysSincePresence),
                             dotColor = accent,
                             modifier = Modifier.weight(1f)
                         )
@@ -351,7 +353,7 @@ fun HomeScreen(
                                         }
                                     }
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("Déposer", color = theme.backgroundColor, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold))
+                                    Text(stringResource(R.string.home_button_deposit), color = theme.backgroundColor, style = MaterialTheme.typography.labelLarge.copy(fontSize = 14.sp, fontWeight = FontWeight.Bold))
                                     
                                     // Petit bouton pour menu (v9.4.26)
                                     IconButton(
@@ -363,13 +365,13 @@ fun HomeScreen(
                                 }
                             }
 
-                            DropdownMenu(
+                                DropdownMenu(
                                 expanded = showModeMenu,
                                 onDismissRequest = { showModeMenu = false },
                                 containerColor = theme.backgroundColor
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("L'Atelier (Rapide)", color = theme.contentColor) },
+                                    text = { Text(stringResource(R.string.home_menu_atelier), color = theme.contentColor) },
                                     leadingIcon = { Icon(Icons.Outlined.FlashOn, null, tint = accent) },
                                     onClick = {
                                         showModeMenu = false
@@ -378,7 +380,7 @@ fun HomeScreen(
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Étape par étape", color = theme.contentColor) },
+                                    text = { Text(stringResource(R.string.home_menu_step_by_step), color = theme.contentColor) },
                                     leadingIcon = { Icon(Icons.Outlined.List, null, tint = accent) },
                                     onClick = {
                                         showModeMenu = false
@@ -387,7 +389,7 @@ fun HomeScreen(
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Appareil Photo", color = theme.contentColor) },
+                                    text = { Text(stringResource(R.string.home_menu_camera_photo), color = theme.contentColor) },
                                     leadingIcon = { Icon(Icons.Outlined.CameraAlt, null, tint = accent) },
                                     onClick = {
                                         showModeMenu = false
@@ -395,7 +397,7 @@ fun HomeScreen(
                                     }
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Caméra Vidéo", color = theme.contentColor) },
+                                    text = { Text(stringResource(R.string.home_menu_camera_video), color = theme.contentColor) },
                                     leadingIcon = { Icon(Icons.Outlined.Videocam, null, tint = accent) },
                                     onClick = {
                                         showModeMenu = false
@@ -419,7 +421,7 @@ fun HomeScreen(
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(Icons.Outlined.AutoStories, null, tint = accent, modifier = Modifier.size(18.dp))
-                                Text("Ma Bibliothèque", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                Text(stringResource(R.string.home_button_library), color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Medium))
                             }
                         }
 
@@ -437,7 +439,7 @@ fun HomeScreen(
                                 verticalArrangement = Arrangement.Center
                             ) {
                                 Icon(Icons.Outlined.HistoryEdu, null, tint = accent, modifier = Modifier.size(18.dp))
-                                Text("Mon Fil de Pensée", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Medium))
+                                Text(stringResource(R.string.home_button_fil), color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.Medium))
                             }
                         }
                     }
@@ -488,7 +490,7 @@ fun HomeScreen(
 
                     // ACTIONS RAPIDES
                     Text(
-                        "ACTIONS RAPIDES",
+                        stringResource(R.string.home_section_quick_actions),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
                         color = theme.contentColor.copy(alpha = 0.4f),
                         modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 6.dp)
@@ -526,7 +528,7 @@ fun HomeScreen(
                             Box(modifier = Modifier.size(6.dp).background(Success, CircleShape))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                "Ma présence · confirmée il y a $daysSincePresence jours",
+                                stringResource(R.string.home_presence_confirmed, daysSincePresence),
                                 color = Success,
                                 style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Medium)
                             )
@@ -543,12 +545,12 @@ fun HomeScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Communauté PHOEN-X",
+                                text = stringResource(R.string.home_stats_community),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                                 color = theme.contentColor.copy(alpha = 0.3f)
                             )
                             Text(
-                                text = "${uiState.globalUserCount} membres",
+                                text = stringResource(R.string.home_stats_members, uiState.globalUserCount),
                                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
                                 color = theme.contentColor.copy(alpha = 0.5f)
                             )
@@ -556,13 +558,13 @@ fun HomeScreen(
                         
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                text = "Cercle de Confiance",
+                                text = stringResource(R.string.home_stats_trust_circle),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                                 color = theme.contentColor.copy(alpha = 0.3f)
                             )
-                            val procheLabel = if (uiState.localRecipientCount <= 1) "proche" else "proches"
+                            val procheLabel = if (uiState.localRecipientCount <= 1) stringResource(R.string.home_stats_proche_single, uiState.localRecipientCount) else stringResource(R.string.home_stats_proche_plural, uiState.localRecipientCount)
                             Text(
-                                text = "${uiState.localRecipientCount} $procheLabel",
+                                text = procheLabel,
                                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold, fontSize = 11.sp),
                                 color = theme.contentColor.copy(alpha = 0.5f)
                             )

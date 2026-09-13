@@ -27,6 +27,7 @@ import kotlinx.coroutines.tasks.await
 import com.example.phoenx.ui.theme.AppThemeState
 import com.google.firebase.firestore.Blob
 import kotlinx.coroutines.channels.awaitClose
+import com.example.phoenx.R
 import com.example.phoenx.data.sync.SyncWorker
 import org.json.JSONObject
 import java.time.Instant
@@ -53,7 +54,7 @@ fun MediaViewModeSelector(
                 FilterChip(
                     selected = currentMode == MediaViewMode.DEFAULT,
                     onClick = { onModeChange(MediaViewMode.DEFAULT) },
-                    label = { Text("Standard", style = MaterialTheme.typography.labelSmall) },
+                    label = { Text(androidx.compose.ui.res.stringResource(R.string.recipient_media_filter_standard), style = MaterialTheme.typography.labelSmall) },
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
                 )
             }
@@ -61,7 +62,7 @@ fun MediaViewModeSelector(
                 FilterChip(
                     selected = currentMode == MediaViewMode.BY_MEMORY,
                     onClick = { onModeChange(MediaViewMode.BY_MEMORY) },
-                    label = { Text("Par Souvenir", style = MaterialTheme.typography.labelSmall) },
+                    label = { Text(androidx.compose.ui.res.stringResource(R.string.recipient_media_filter_by_memory), style = MaterialTheme.typography.labelSmall) },
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
                 )
             }
@@ -69,7 +70,7 @@ fun MediaViewModeSelector(
                 FilterChip(
                     selected = currentMode == MediaViewMode.BY_RECIPIENT,
                     onClick = { onModeChange(MediaViewMode.BY_RECIPIENT) },
-                    label = { Text("Par Destinataire", style = MaterialTheme.typography.labelSmall) },
+                    label = { Text(androidx.compose.ui.res.stringResource(R.string.recipient_media_filter_by_recipient), style = MaterialTheme.typography.labelSmall) },
                     colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
                 )
             }
@@ -85,7 +86,7 @@ fun MediaViewModeSelector(
                     FilterChip(
                         selected = currentContentFilter == DiscothequeFilter.ALL,
                         onClick = { onContentFilterChange(DiscothequeFilter.ALL) },
-                        label = { Text("Tous les audios", style = MaterialTheme.typography.labelSmall) },
+                        label = { Text(androidx.compose.ui.res.stringResource(R.string.recipient_media_filter_all_audios), style = MaterialTheme.typography.labelSmall) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
                     )
                 }
@@ -93,7 +94,7 @@ fun MediaViewModeSelector(
                     FilterChip(
                         selected = currentContentFilter == DiscothequeFilter.VOCALS,
                         onClick = { onContentFilterChange(DiscothequeFilter.VOCALS) },
-                        label = { Text("Vocaux uniquement", style = MaterialTheme.typography.labelSmall) },
+                        label = { Text(androidx.compose.ui.res.stringResource(R.string.recipient_media_filter_vocals_only), style = MaterialTheme.typography.labelSmall) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
                     )
                 }
@@ -101,7 +102,7 @@ fun MediaViewModeSelector(
                     FilterChip(
                         selected = currentContentFilter == DiscothequeFilter.MUSIC,
                         onClick = { onContentFilterChange(DiscothequeFilter.MUSIC) },
-                        label = { Text("Musiques uniquement", style = MaterialTheme.typography.labelSmall) },
+                        label = { Text(androidx.compose.ui.res.stringResource(R.string.recipient_media_filter_music_only), style = MaterialTheme.typography.labelSmall) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
                     )
                 }
@@ -117,7 +118,7 @@ fun MediaViewModeSelector(
                     FilterChip(
                         selected = filterRecipientId == null,
                         onClick = { onRecipientChange(null) },
-                        label = { Text("Tous", style = MaterialTheme.typography.labelSmall) },
+                        label = { Text(androidx.compose.ui.res.stringResource(R.string.recipient_media_filter_all), style = MaterialTheme.typography.labelSmall) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = Color.Black)
                     )
                 }
@@ -261,7 +262,7 @@ class RecipientMediaViewModel @Inject constructor(
     private val _bookTitle = MutableStateFlow<String?>(null)
     val bookTitle: StateFlow<String?> = _bookTitle.asStateFlow()
 
-    private val _creatorName = MutableStateFlow("Votre proche")
+    private val _creatorName = MutableStateFlow(context.getString(R.string.recipient_media_creator_name_fallback))
     val creatorName: StateFlow<String> = _creatorName.asStateFlow()
 
     private val _ambiance = MutableStateFlow(AmbianceState())
@@ -366,7 +367,7 @@ class RecipientMediaViewModel @Inject constructor(
                 // 1. Fetch Creator Name (v8.6.2)
                 try {
                     val creatorDoc = db.collection("users").document(cleanCreatorId).get().await()
-                    _creatorName.value = creatorDoc.getString("displayName") ?: "Votre proche"
+                    _creatorName.value = creatorDoc.getString("displayName") ?: context.getString(R.string.recipient_media_creator_name_fallback)
 
                     // Charger l'ambiance (v9.4.27)
                     if (creatorDoc.exists()) {
@@ -812,7 +813,7 @@ class RecipientMediaViewModel @Inject constructor(
                     else {
                         val result = it.toDomain(encryptionManager, key)
                         val contentStr = String(result.encryptedContent)
-                        if (contentStr == "Contenu chiffré") {
+                        if (contentStr == context.getString(R.string.recipient_media_status_encrypted)) {
                            android.util.Log.e("PHOENX_HEIR_TRACE", "ERREUR DECHIFFREMENT id=${it.id}")
                         } else {
                            android.util.Log.d("PHOENX_HEIR_TRACE", "SUCCÈS id=${it.id}, title=${result.aiSummary}")
@@ -860,19 +861,19 @@ class RecipientMediaViewModel @Inject constructor(
         )
         
         val typeLabel = when(entryType) {
-            "PHOTO" -> "Photo scellée"
-            "VIDEO" -> "Vidéo scellée"
-            "AUDIO" -> "Souvenir vocal scellé"
-            "PORTRAIT" -> "Portrait scellé"
-            "QUESTION_ANSWER" -> "Réponse scellée"
-            else -> "Pensée scellée"
+            "PHOTO" -> context.getString(R.string.recipient_media_sealed_photo)
+            "VIDEO" -> context.getString(R.string.recipient_media_sealed_video)
+            "AUDIO" -> context.getString(R.string.recipient_media_sealed_audio)
+            "PORTRAIT" -> context.getString(R.string.recipient_media_sealed_portrait)
+            "QUESTION_ANSWER" -> context.getString(R.string.recipient_media_sealed_answer)
+            else -> context.getString(R.string.recipient_media_sealed_thought)
         }
 
         return PhoenXEntry(
             id = id,
             creatorUid = creatorUid,
             ageAtCreation = age,
-            encryptedContent = "Ce contenu sera déchiffré lors de l'activation du protocole.".toByteArray(),
+            encryptedContent = context.getString(R.string.recipient_media_sealed_content_warning).toByteArray(),
             type = when(entryType) {
                 "PORTRAIT" -> EntryType.PORTRAIT
                 "QUESTION_ANSWER" -> EntryType.QUESTION_ANSWER
@@ -891,7 +892,7 @@ class RecipientMediaViewModel @Inject constructor(
                 encryptionManager.decryptText(encryptedPayload, explicitKey)
             } catch(e: Exception) { 
                 android.util.Log.e("PHOENX_HEIR_TRACE", "Exception decrypt id=$id: ${e.message}", e)
-                "Contenu chiffré" 
+                context.getString(R.string.recipient_media_status_encrypted) 
             }
         }
         
@@ -944,17 +945,17 @@ class RecipientMediaViewModel @Inject constructor(
         
         val displayTitle = if (isHeirMode && !activated) {
             when(type) {
-                "SPOTIFY", "DEEZER" -> "Musique scellée"
-                "YOUTUBE" -> "Vidéo scellée"
-                "PHOTO" -> "Photo scellée"
-                "TEXT_EXCERPT" -> "Écrit scellé"
-                else -> "Média scellé"
+                "SPOTIFY", "DEEZER" -> context.getString(R.string.recipient_media_sealed_music)
+                "YOUTUBE" -> context.getString(R.string.recipient_media_sealed_video)
+                "PHOTO" -> context.getString(R.string.recipient_media_sealed_photo)
+                "TEXT_EXCERPT" -> context.getString(R.string.recipient_media_sealed_writing)
+                else -> context.getString(R.string.recipient_media_sealed_generic)
             }
         } else title.ifEmpty { 
             when(type) {
-                "SPOTIFY", "DEEZER" -> "Morceau partagé"
-                "YOUTUBE" -> "Vidéo partagée"
-                else -> "Média"
+                "SPOTIFY", "DEEZER" -> context.getString(R.string.recipient_media_fallback_music)
+                "YOUTUBE" -> context.getString(R.string.recipient_media_fallback_video)
+                else -> context.getString(R.string.recipient_media_fallback_generic)
             }
         }
 
@@ -968,13 +969,13 @@ class RecipientMediaViewModel @Inject constructor(
 
         // Déchiffrement du contenu si nécessaire
         val finalContent = if (isHeirMode && !activated) {
-            "Scellé"
+            context.getString(R.string.recipient_media_status_sealed)
         } else if (needsEncryption) {
             try {
                 val bytes = android.util.Base64.decode(content, android.util.Base64.DEFAULT)
                 encryptionManager.decryptText(bytes, if (isHeirMode) explicitKey else null)
             } catch (e: Exception) {
-                "Contenu chiffré"
+                context.getString(R.string.recipient_media_status_encrypted)
             }
         } else {
             content

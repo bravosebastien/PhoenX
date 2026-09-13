@@ -24,8 +24,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.SecureAsyncImage
@@ -85,8 +87,8 @@ fun RecipientMemoryDetailScreen(
             TopAppBar(
                 title = { 
                     val titleText = when(entry?.entryType) {
-                        "QUESTION_ANSWER" -> "Question de vie"
-                        else -> "Souvenir de votre proche"
+                        "QUESTION_ANSWER" -> stringResource(R.string.recipient_memory_detail_topbar_question)
+                        else -> stringResource(R.string.recipient_memory_detail_topbar_memory)
                     }
                     Text(titleText, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) 
                 },
@@ -108,8 +110,8 @@ fun RecipientMemoryDetailScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.Lock, null, modifier = Modifier.size(64.dp), tint = theme.contentColor.copy(alpha = 0.2f))
                     Spacer(Modifier.height(16.dp))
-                    Text("Ce souvenir est scellé.", color = theme.contentColor.copy(alpha = 0.5f), fontWeight = FontWeight.Bold)
-                    Text("Il sera déchiffré lors de l'activation de la transmission.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.4f))
+                    Text(stringResource(R.string.recipient_memory_detail_sealed_title), color = theme.contentColor.copy(alpha = 0.5f), fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.recipient_memory_detail_sealed_subtitle), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.4f))
                 }
             }
         } else {
@@ -123,7 +125,7 @@ fun RecipientMemoryDetailScreen(
             ) {
                 // TITRE
                 Text(
-                    text = entry!!.userTitle.ifBlank { entry!!.aiSummary }.ifBlank { "Souvenir" },
+                    text = entry!!.userTitle.ifBlank { entry!!.aiSummary }.ifBlank { stringResource(R.string.recipient_memory_detail_entry_fallback_title) },
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor
                 )
@@ -188,7 +190,7 @@ fun RecipientMemoryDetailScreen(
 
                 // RÉCIT (Tronqué v9.4.27)
                 Column {
-                    val récitLabel = if (entry!!.entryType == "QUESTION_ANSWER") "MA RÉPONSE" else "LE RÉCIT"
+                    val récitLabel = if (entry!!.entryType == "QUESTION_ANSWER") stringResource(R.string.recipient_memory_detail_label_response) else stringResource(R.string.recipient_memory_detail_label_story)
                     Text(récitLabel, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
                     Spacer(Modifier.height(8.dp))
                     Surface(
@@ -197,7 +199,7 @@ fun RecipientMemoryDetailScreen(
                         modifier = Modifier.fillMaxWidth().clickable { showFullStory = true }
                     ) {
                         Text(
-                            text = content.ifBlank { "Pas de contenu écrit." },
+                            text = content.ifBlank { stringResource(R.string.recipient_memory_detail_empty_content) },
                             modifier = Modifier.padding(20.dp),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 fontStyle = if (entry!!.entryType == "QUESTION_ANSWER") FontStyle.Italic else null,
@@ -214,7 +216,7 @@ fun RecipientMemoryDetailScreen(
                 if (!entry!!.userComment.isNullOrBlank()) {
                     Column {
                         Text(
-                            "COMMENTAIRE DE VOTRE PROCHE",
+                            stringResource(R.string.recipient_memory_detail_comment_label),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = accent
                         )
@@ -230,7 +232,7 @@ fun RecipientMemoryDetailScreen(
                 // COMPLÉMENTS (Grille unifiée v9.4.27)
                 if (complements.isNotEmpty()) {
                     Text(
-                        "COMPLÉMENTS MÉDIA",
+                        stringResource(R.string.recipient_memory_detail_complements_label),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, letterSpacing = 2.sp),
                         color = theme.contentColor.copy(alpha = 0.4f)
                     )
@@ -298,7 +300,7 @@ fun RecipientMemoryDetailScreen(
             ) {
                 Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text("LE RÉCIT", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, modifier = Modifier.weight(1f))
+                        Text(stringResource(R.string.recipient_memory_detail_label_story), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, modifier = Modifier.weight(1f))
                         IconButton(onClick = { showFullStory = false }) { Icon(Icons.Default.Close, null, tint = theme.contentColor.copy(alpha = 0.3f)) }
                     }
                     Spacer(Modifier.height(16.dp))
@@ -397,7 +399,7 @@ fun RecipientComplementItem(
                 color = Color.Black.copy(alpha = 0.6f)
             ) {
                 Text(
-                    text = complement.aiSummary.ifBlank { "Média" },
+                    text = complement.aiSummary.ifBlank { stringResource(R.string.recipient_memory_detail_complement_fallback) },
                     modifier = Modifier.padding(4.dp),
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
                     color = Color.White,

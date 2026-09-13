@@ -11,8 +11,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.phoenx.R
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.domain.model.VisualGroup
 import com.example.phoenx.ui.components.CameoPortrait
@@ -71,7 +73,7 @@ fun GroupTreeNode(
                                     color = if (resolved.isDeceased) theme.contentColor.copy(alpha = 0.5f) else theme.contentColor
                                 )
                                 if (resolved.isDeceased) {
-                                    Text("Parti(e)", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.3f))
+                                    Text(stringResource(R.string.genealogy_person_deceased_label), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.3f))
                                 }
                             }
                             if (enabled) {

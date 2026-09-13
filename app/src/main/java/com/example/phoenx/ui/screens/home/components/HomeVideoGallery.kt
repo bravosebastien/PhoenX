@@ -20,8 +20,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.media3.common.util.UnstableApi
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.data.model.PresentationVideo
 import com.example.phoenx.ui.components.VideoPlayerBanner
 import com.example.phoenx.ui.theme.AppThemeState
@@ -39,7 +41,7 @@ fun PresentationVideoGallery(
             .padding(vertical = 24.dp)
     ) {
         Text(
-            "VOTRE GUIDE VIDÉO",
+            stringResource(R.string.home_video_guide_title),
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.Black),
             color = theme.contentColor.copy(alpha = 0.4f),
             modifier = Modifier.padding(start = 14.dp, end = 14.dp, bottom = 16.dp)

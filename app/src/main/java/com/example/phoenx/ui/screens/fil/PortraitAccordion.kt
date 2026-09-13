@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.LocalAppTheme
 
 /**
@@ -46,7 +48,7 @@ fun PortraitAccordion(
                 Icon(Icons.Default.AutoStories, null, tint = accent)
                 Spacer(Modifier.width(16.dp))
                 Text(
-                    text = "LES RÉPONSES AU PORTRAIT (${items.size})",
+                    text = stringResource(R.string.memory_portrait_responses_label, items.size),
                     style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Black),
                     color = accent,
                     modifier = Modifier.weight(1f)
@@ -89,7 +91,7 @@ fun PortraitAccordion(
                                 }
                                 Spacer(Modifier.width(12.dp))
                                 Text(
-                                    text = item.question.ifBlank { "Pensée libre" },
+                                    text = item.question.ifBlank { stringResource(R.string.memory_portrait_thought_free) },
                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                     color = if (expanded) accent else theme.contentColor,
                                     modifier = Modifier.weight(1f)

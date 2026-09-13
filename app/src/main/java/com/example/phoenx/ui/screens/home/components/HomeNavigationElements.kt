@@ -17,6 +17,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.PhoenXAvatar
@@ -47,7 +49,7 @@ fun PerspectiveSwitcher(
                 android.util.Log.d("PerspectiveDebug", "HomeScreen: Tab MY_MEMORY clicked")
                 onSwitch(MainViewModel.Perspective.MY_MEMORY) 
             },
-            text = { Text("MA MÉMOIRE", style = MaterialTheme.typography.labelSmall) }
+            text = { Text(stringResource(R.string.home_perspective_memory), style = MaterialTheme.typography.labelSmall) }
         )
         Tab(
             selected = current == MainViewModel.Perspective.HERITAGE,
@@ -55,7 +57,7 @@ fun PerspectiveSwitcher(
                 android.util.Log.d("PerspectiveDebug", "HomeScreen: Tab HERITAGE clicked")
                 onSwitch(MainViewModel.Perspective.HERITAGE) 
             },
-            text = { Text("PROCHES", style = MaterialTheme.typography.labelSmall) }
+            text = { Text(stringResource(R.string.home_perspective_heritage), style = MaterialTheme.typography.labelSmall) }
         )
     }
 }
@@ -70,7 +72,7 @@ fun HomeHeader(name: String, photoUrl: String?, date: String, onProfileClick: ()
     ) {
         Column {
             Text(
-                text = "Bonsoir, $name",
+                text = stringResource(R.string.home_header_greeting, name),
                 style = MaterialTheme.typography.headlineSmall.copy(
                     fontFamily = theme.fontFamily, 
                     fontStyle = FontStyle.Italic, 
@@ -87,12 +89,12 @@ fun HomeHeader(name: String, photoUrl: String?, date: String, onProfileClick: ()
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             InfoButton(
-                title = "Votre Centre de Pilotage",
+                title = stringResource(R.string.home_nav_info_title),
                 points = listOf(
-                    "VOTRE LÉGENDE : C'est ici que vous gérez votre héritage émotionnel et numérique.",
-                    "LE SILENCE : Votre état de présence est surveillé pour garantir que vos secrets ne seront libérés qu'au bon moment.",
-                    "LA BIBLIOTHÈQUE : Accédez à tous vos compartiments (Photos, Vidéos, Secrets, etc.).",
-                    "CERCLE DE CONFIANCE : Gérez qui sont vos destinataires et vos témoins."
+                    stringResource(R.string.home_nav_info_point1),
+                    stringResource(R.string.home_nav_info_point2),
+                    stringResource(R.string.home_nav_info_point3),
+                    stringResource(R.string.home_nav_info_point4)
                 )
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -124,10 +126,10 @@ fun HomeNavigationBar(
             modifier = Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 14.dp),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            NavItem(Icons.Outlined.Home, "Accueil", true, onNavigateToHome)
-            NavItem(Icons.Outlined.People, "Mon Cercle", false, onNavigateToTrustCircle)
-            NavItem(Icons.Outlined.AutoStories, "Bibliothèque", false, onNavigateToLibrary)
-            NavItem(Icons.Outlined.AccountCircle, "Profil", false, onOpenProfile)
+            NavItem(Icons.Outlined.Home, stringResource(R.string.home_nav_home), true, onNavigateToHome)
+            NavItem(Icons.Outlined.People, stringResource(R.string.home_nav_circle), false, onNavigateToTrustCircle)
+            NavItem(Icons.Outlined.AutoStories, stringResource(R.string.home_nav_library), false, onNavigateToLibrary)
+            NavItem(Icons.Outlined.AccountCircle, stringResource(R.string.home_nav_profile), false, onOpenProfile)
         }
     }
 }

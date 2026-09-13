@@ -149,7 +149,8 @@ fun TextCaptureContent(
                 }
             }
 
-            val nudgePhrase = remember { com.example.phoenx.ui.components.NudgePhrases.getRandomPhrase() }
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val nudgePhrase = remember { com.example.phoenx.ui.components.NudgePhrases.getRandomPhrase(context) }
             Text(
                 text = nudgePhrase,
                 style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic),

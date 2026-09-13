@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.media.MediaManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthRecentLoginRequiredException
@@ -37,7 +38,8 @@ class ProfileViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
     private val storage: FirebaseStorage,
-    private val mediaManager: MediaManager
+    private val mediaManager: MediaManager,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -150,7 +152,7 @@ class ProfileViewModel @Inject constructor(
     fun deleteAccount(onResult: (DeleteResult) -> Unit) {
         val user = auth.currentUser
         if (user == null) {
-            onResult(DeleteResult.Error("Aucun utilisateur connecté"))
+            onResult(DeleteResult.Error(context.getString(R.string.profile_error_no_user)))
             return
         }
         user.delete()
@@ -159,7 +161,7 @@ class ProfileViewModel @Inject constructor(
                 if (e is FirebaseAuthRecentLoginRequiredException) {
                     onResult(DeleteResult.RequiresReauth)
                 } else {
-                    onResult(DeleteResult.Error(e.message ?: "Erreur inconnue"))
+                    onResult(DeleteResult.Error(e.message ?: context.getString(R.string.profile_error_unknown)))
                 }
             }
     }

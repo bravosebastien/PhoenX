@@ -23,8 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
@@ -57,8 +59,8 @@ fun HeirAllocationScreen(
                     val theme = LocalAppTheme.current
                     val accent = theme.accentColor
                     Column {
-                        Text("Fiche Destinataire", style = MaterialTheme.typography.labelSmall, color = accent)
-                        Text(recipient?.name ?: "Détails", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                        Text(stringResource(R.string.recipient_allocation_fiche_title), style = MaterialTheme.typography.labelSmall, color = accent)
+                        Text(recipient?.name ?: stringResource(R.string.recipient_allocation_details_fallback), style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                     }
                 },
                 navigationIcon = {
@@ -76,7 +78,7 @@ fun HeirAllocationScreen(
                 .padding(padding)
         ) {
             Text(
-                text = "${entries.size} souvenirs sont destinés à ${recipient?.name ?: "ce proche"}.",
+                text = stringResource(R.string.recipient_allocation_souvenirs_count, entries.size, recipient?.name ?: stringResource(R.string.recipient_allocation_proche_fallback)),
                 style = MaterialTheme.typography.bodyMedium,
                 color = theme.contentColor.copy(alpha = 0.7f),
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
@@ -112,7 +114,8 @@ fun AllocationEntryRow(
     onClick: () -> Unit
 ) {
     val accent = theme.accentColor
-    val sdf = SimpleDateFormat("dd MMM yyyy", Locale.FRENCH)
+    val dateFormat = stringResource(R.string.recipient_allocation_date_format)
+    val sdf = SimpleDateFormat(dateFormat, Locale.FRENCH)
     val formattedDate = sdf.format(Date(entry.createdAt))
 
     Surface(
@@ -149,8 +152,8 @@ fun AllocationEntryRow(
             Column(modifier = Modifier.weight(1f)) {
                 val title = when(entry.entryType) {
                     "PORTRAIT" -> entry.aiSummary
-                    "QUESTION_ANSWER" -> "Ma réponse à : ${entry.aiSummary}"
-                    else -> entry.aiSummary.ifEmpty { "Souvenir sans titre" }
+                    "QUESTION_ANSWER" -> stringResource(R.string.recipient_allocation_answer_prefix, entry.aiSummary)
+                    else -> entry.aiSummary.ifEmpty { stringResource(R.string.recipient_allocation_no_title) }
                 }
                 Text(
                     text = title,
@@ -173,7 +176,7 @@ fun AllocationEntryRow(
                     modifier = Modifier.padding(start = 8.dp)
                 ) {
                     Text(
-                        "PUBLIC", 
+                        stringResource(R.string.recipient_allocation_public_badge),
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
                         color = accent

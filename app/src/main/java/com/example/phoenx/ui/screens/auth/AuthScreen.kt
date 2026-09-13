@@ -23,8 +23,10 @@ import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
 import java.time.LocalDate
@@ -69,7 +71,7 @@ fun AuthScreen(
         } else if (uiState is AuthState.AccountSuspended) {
             showReactivateDialog = true
         } else if (uiState is AuthState.PasswordResetSent) {
-            android.widget.Toast.makeText(context, "Un email de réinitialisation a été envoyé.", android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(context, context.getString(R.string.auth_toast_password_reset_sent), android.widget.Toast.LENGTH_SHORT).show()
         } else if (uiState is AuthState.EmailVerificationSent) {
             isVerifying = false
         }
@@ -82,8 +84,8 @@ fun AuthScreen(
                 viewModel.logout()
             },
             containerColor = theme.backgroundColor,
-            title = { Text("Compte en pause", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = { Text("Ton compte est actuellement suspendu. Veux-tu le réactiver pour accéder à tes souvenirs ?", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.auth_dialog_reactivate_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.auth_dialog_reactivate_text), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -92,7 +94,7 @@ fun AuthScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Réactiver mon compte", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.auth_dialog_reactivate_confirm), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
@@ -100,7 +102,7 @@ fun AuthScreen(
                     showReactivateDialog = false
                     viewModel.logout()
                 }) {
-                    Text("Annuler", color = theme.contentColor)
+                    Text(stringResource(R.string.auth_dialog_reactivate_cancel), color = theme.contentColor)
                 }
             }
         )
@@ -124,14 +126,14 @@ fun AuthScreen(
                         if (com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.isEmailVerified == true) {
                             onAuthSuccess()
                         } else {
-                            android.widget.Toast.makeText(context, "Email pas encore vérifié, vérifie ta boîte mail.", android.widget.Toast.LENGTH_LONG).show()
+                            android.widget.Toast.makeText(context, context.getString(R.string.auth_email_verification_toast_not_verified), android.widget.Toast.LENGTH_LONG).show()
                         }
                     }
                 },
                 onResendClick = { 
                     isVerifying = true
                     viewModel.resendVerificationEmail() 
-                    android.widget.Toast.makeText(context, "Email renvoyé !", android.widget.Toast.LENGTH_SHORT).show()
+                    android.widget.Toast.makeText(context, context.getString(R.string.auth_email_verification_toast_resent), android.widget.Toast.LENGTH_SHORT).show()
                 }
             )
         } else {
@@ -180,7 +182,7 @@ fun AuthScreen(
                                 viewModel.signUp(email, password, birthDate)
                             }
                         }
-                        SignupStep.StepB -> Text("Système avancé en veille", color = theme.contentColor)
+                        SignupStep.StepB -> Text(stringResource(R.string.auth_step_b_placeholder), color = theme.contentColor)
                         SignupStep.StepC -> SignupStepC(
                             depositaryName = depositaryName,
                             onDepositaryNameChange = { depositaryName = it },
@@ -227,7 +229,7 @@ fun EmailVerificationContent(
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "Vérifie ta boîte mail",
+            text = stringResource(R.string.auth_email_verification_title),
             style = androidx.compose.ui.text.TextStyle(
                 fontFamily = theme.fontFamily,
                 fontSize = 22.sp,
@@ -238,9 +240,9 @@ fun EmailVerificationContent(
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = if (isNotVerifiedError) 
-                "Tu dois d'abord confirmer ton adresse email avant de pouvoir te connecter."
+                stringResource(R.string.auth_email_verification_text_not_verified)
             else 
-                "Un email de confirmation a été envoyé à $email. Clique sur le lien pour activer ton compte.",
+                stringResource(R.string.auth_email_verification_text_sent, email),
             style = androidx.compose.ui.text.TextStyle(fontSize = 15.sp),
             color = theme.contentColor.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
@@ -255,7 +257,7 @@ fun EmailVerificationContent(
             if (isLoading) {
                 CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
             } else {
-                Text("J'ai confirmé mon email", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.auth_email_verification_button_confirmed), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -263,7 +265,7 @@ fun EmailVerificationContent(
             onClick = onResendClick,
             enabled = !isLoading
         ) {
-            Text("Renvoyer l'email", color = theme.contentColor.copy(alpha = 0.6f))
+            Text(stringResource(R.string.auth_email_verification_button_resend), color = theme.contentColor.copy(alpha = 0.6f))
         }
     }
 }
@@ -280,12 +282,12 @@ fun LoginContent(
     theme: AppThemeState
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Content de te revoir", style = MaterialTheme.typography.displayMedium, color = theme.contentColor)
+        Text(stringResource(R.string.auth_login_title), style = MaterialTheme.typography.displayMedium, color = theme.contentColor)
         Spacer(modifier = Modifier.height(32.dp))
         
         OutlinedTextField(
             value = email, onValueChange = onEmailChange,
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.auth_login_email_label)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics { contentType = ContentType.EmailAddress },
@@ -299,7 +301,7 @@ fun LoginContent(
         var passwordVisible by remember { mutableStateOf(false) }
         OutlinedTextField(
             value = password, onValueChange = onPasswordChange,
-            label = { Text("Mot de passe") },
+            label = { Text(stringResource(R.string.auth_login_password_label)) },
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 val icon = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff
@@ -321,7 +323,7 @@ fun LoginContent(
             onClick = onResetPasswordClick,
             modifier = Modifier.align(Alignment.End)
         ) {
-            Text("Mot de passe oublié ?", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.labelSmall)
+            Text(stringResource(R.string.auth_login_forgot_password), color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.labelSmall)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -332,15 +334,15 @@ fun LoginContent(
             enabled = !isLoading && email.isNotEmpty() && password.isNotEmpty()
         ) {
             if (isLoading) CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
-            else Text("Se connecter", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+            else Text(stringResource(R.string.auth_login_button_login), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
         TextButton(onClick = onNavigateToSignup) {
-            Text("Créer un compte", color = theme.accentColor)
+            Text(stringResource(R.string.auth_login_button_signup), color = theme.accentColor)
         }
         
         // Système avancé en veille
         TextButton(onClick = onNavigateToRecovery) {
-            Text("Restaurer via mes 12 mots (Legacy)", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.labelSmall)
+            Text(stringResource(R.string.auth_login_button_recovery_legacy), color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.labelSmall)
         }
     }
 }
@@ -358,13 +360,13 @@ fun SignupStepA(
 ) {
     val accent = theme.accentColor
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        val title = if (isGuestFlow) "Votre espace commence ici" else "Ton espace commence ici"
+        val title = if (isGuestFlow) stringResource(R.string.auth_signup_title_guest) else stringResource(R.string.auth_signup_title_standard)
         Text(title, style = MaterialTheme.typography.displayMedium, color = theme.contentColor, textAlign = TextAlign.Center)
         Spacer(modifier = Modifier.height(32.dp))
 
         OutlinedTextField(
             value = email, onValueChange = onEmailChange,
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.auth_signup_email_label)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics { contentType = ContentType.EmailAddress },
@@ -375,7 +377,7 @@ fun SignupStepA(
         if (!isGuestFlow) {
             // Date de naissance (Masquée pour le flux Invité)
             Text(
-                "POUR TON FIL DE PENSÉE", 
+                stringResource(R.string.auth_signup_birthdate_section_title), 
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                 color = accent,
                 modifier = Modifier.align(Alignment.Start)
@@ -392,7 +394,7 @@ fun SignupStepA(
                 border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Text(
-                    birthDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy", java.util.Locale.FRENCH)),
+                    birthDate.format(DateTimeFormatter.ofPattern(stringResource(R.string.auth_signup_birthdate_format), java.util.Locale.FRENCH)),
                     modifier = Modifier.padding(16.dp),
                     color = theme.contentColor,
                     fontWeight = FontWeight.Bold
@@ -410,7 +412,7 @@ fun SignupStepA(
                                 )
                             }
                             showDatePicker = false
-                        }) { Text("OK", color = accent) }
+                        }) { Text(stringResource(R.string.auth_signup_datepicker_ok), color = accent) }
                     }
                 ) {
                     DatePicker(state = datePickerState)
@@ -426,7 +428,7 @@ fun SignupStepA(
         
         OutlinedTextField(
             value = password, onValueChange = onPasswordChange,
-            label = { Text("Mot de passe (12+ caractères)") },
+            label = { Text(stringResource(R.string.auth_signup_password_label)) },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth()
@@ -441,7 +443,7 @@ fun SignupStepA(
         )
         
         Text(
-            "Tes souvenirs sont chiffrés. En cas d'oubli, utilise la procédure de récupération par email.",
+            stringResource(R.string.auth_signup_e2ee_warning),
             style = MaterialTheme.typography.labelSmall,
             color = Warning,
             textAlign = TextAlign.Center
@@ -461,20 +463,20 @@ fun SignupStepA(
             )
             Column {
                 Text(
-                    text = "J'accepte les Conditions Générales d'Utilisation et la Politique de Confidentialité",
+                    text = stringResource(R.string.auth_signup_terms_text),
                     style = MaterialTheme.typography.labelSmall,
                     color = theme.contentColor
                 )
                 Row {
                     Text(
-                        "Lire les CGU",
+                        stringResource(R.string.auth_signup_terms_link_cgu),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = accent,
                         modifier = Modifier.clickable { /* Navigation placeholder */ }
                     )
                     Spacer(Modifier.width(12.dp))
                     Text(
-                        "Politique de Confidentialité",
+                        stringResource(R.string.auth_signup_terms_link_privacy),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = accent,
                         modifier = Modifier.clickable { /* Navigation placeholder */ }
@@ -490,11 +492,11 @@ fun SignupStepA(
             modifier = Modifier.fillMaxWidth().height(56.dp),
             colors = ButtonDefaults.buttonColors(containerColor = accent)
         ) {
-            Text("Continuer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.auth_signup_button_continue), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
 
         TextButton(onClick = onNavigateToLogin) {
-            Text("J'ai déjà un compte ? Se connecter", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
+            Text(stringResource(R.string.auth_signup_link_login), color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
         }
     }
 }
@@ -509,11 +511,11 @@ fun SignupStepC(
 ) {
     val accent = theme.accentColor
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Une dernière chose...", style = MaterialTheme.typography.displaySmall, color = theme.contentColor)
+        Text(stringResource(R.string.auth_signup_step_c_title), style = MaterialTheme.typography.displaySmall, color = theme.contentColor)
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            "Qui est la personne à qui tu souhaites un jour transmettre ton héritage ?",
+            stringResource(R.string.auth_signup_step_c_question),
             style = MaterialTheme.typography.bodyLarge,
             color = theme.contentColor.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
@@ -522,7 +524,7 @@ fun SignupStepC(
         Spacer(modifier = Modifier.height(24.dp))
         OutlinedTextField(
             value = depositaryName, onValueChange = onDepositaryNameChange,
-            label = { Text("Prénom ou Surnom") },
+            label = { Text(stringResource(R.string.auth_signup_step_c_depositary_label)) },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
         )
@@ -537,11 +539,11 @@ fun SignupStepC(
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("Créer mon espace", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.auth_signup_step_c_button_finish), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
             
             TextButton(onClick = onFinish, modifier = Modifier.padding(top = 16.dp)) {
-                Text("Je préfère découvrir d'abord", color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.auth_signup_step_c_button_discover), color = theme.contentColor.copy(alpha = 0.4f))
             }
         }
     }

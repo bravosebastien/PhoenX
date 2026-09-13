@@ -27,7 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.ui.components.InfoButton
@@ -78,23 +80,23 @@ fun FilScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Mon Fil de Pensée", 
+                                text = stringResource(R.string.fil_title), 
                                 style = MaterialTheme.typography.displaySmall.copy(
                                     fontWeight = FontWeight.Bold
                                 ), 
                                 color = theme.contentColor, 
                                 fontFamily = theme.fontFamily
                             )
-                            Text(text = "${uiState.totalCount} fragments de vie", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                            Text(text = stringResource(R.string.fil_fragments_count, uiState.totalCount), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
                         }
                         InfoButton(
-                            title = "Le Fil de Pensée",
+                            title = stringResource(R.string.fil_info_title),
                             points = listOf(
-                                "Chaque souvenir est classé par l'âge que tu avais quand tu l'as déposé.",
-                                "Pas par date — par âge. C'est la fonctionnalité unique de PHOEN-X.",
-                                "Tes proches pourront naviguer et voir comment tu as évolué au fil des années.",
-                                "Utilise le slider pour naviguer dans ta propre trajectoire de pensée.",
-                                "Chaque entrée porte un Sceau de l'Âge — ton âge exact au moment du dépôt."
+                                stringResource(R.string.fil_info_p1),
+                                stringResource(R.string.fil_info_p2),
+                                stringResource(R.string.fil_info_p3),
+                                stringResource(R.string.fil_info_p4),
+                                stringResource(R.string.fil_info_p5)
                             )
                         )
                     }
@@ -119,7 +121,7 @@ fun FilScreen(
             } else if (uiState.entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                     Text(
-                        text = "Aucun souvenir pour le moment.\nCapture ta première pensée.",
+                        text = stringResource(R.string.fil_empty_state),
                         style = MaterialTheme.typography.bodyLarge,
                         color = theme.contentColor.copy(alpha = 0.4f),
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center
@@ -147,7 +149,7 @@ fun FilScreen(
                             YearSeparator(
                                 year = 0, // Code pour "Non attribué"
                                 count = notAttributed.size,
-                                labelOverride = "À ATTRIBUER"
+                                labelOverride = stringResource(R.string.fil_unattributed_label)
                             )
                         }
                         items(notAttributed) { entry ->
@@ -186,24 +188,24 @@ fun FilScreen(
                 contentColor = theme.contentColor
             ) {
                 Column(modifier = Modifier.padding(24.dp).fillMaxWidth().padding(bottom = 32.dp)) {
-                    Text("FILTRER LE FIL", style = MaterialTheme.typography.labelSmall, color = accent, letterSpacing = 2.sp)
+                    Text(stringResource(R.string.fil_filter_title), style = MaterialTheme.typography.labelSmall, color = accent, letterSpacing = 2.sp)
                     Spacer(modifier = Modifier.height(24.dp))
                     
-                    Text("Ordre d'affichage", style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.fil_filter_order_label), style = MaterialTheme.typography.bodyLarge)
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
                             selected = !sortByCreationDate,
                             onClick = { if (sortByCreationDate) viewModel.toggleSortOrder() },
-                            label = { Text("Par âge") },
+                            label = { Text(stringResource(R.string.fil_filter_order_age)) },
                             leadingIcon = { if (!sortByCreationDate) Icon(Icons.Default.Psychology, null, modifier = Modifier.size(16.dp)) },
                             colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
                         )
                         FilterChip(
                             selected = sortByCreationDate,
                             onClick = { if (!sortByCreationDate) viewModel.toggleSortOrder() },
-                            label = { Text("Par date de création") },
+                            label = { Text(stringResource(R.string.fil_filter_order_date)) },
                             leadingIcon = { if (sortByCreationDate) Icon(Icons.Default.Event, null, modifier = Modifier.size(16.dp)) },
                             colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
                         )
@@ -211,14 +213,14 @@ fun FilScreen(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    Text("Filtrer par destinataire", style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.fil_filter_recipient_label), style = MaterialTheme.typography.bodyLarge)
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(
                             selected = selectedRecipientId == null,
                             onClick = { viewModel.setRecipientFilter(null) },
-                            label = { Text("Tous") },
+                            label = { Text(stringResource(R.string.fil_filter_recipient_all)) },
                             colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
                         )
                         recipients.forEach { recipient ->
@@ -233,13 +235,13 @@ fun FilScreen(
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    Text("Mes coups de cœur", style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.fil_filter_favorites_label), style = MaterialTheme.typography.bodyLarge)
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     FilterChip(
                         selected = filterFavoritesOnly,
                         onClick = { filterFavoritesOnly = !filterFavoritesOnly },
-                        label = { Text("Voir mes coups de cœur uniquement") },
+                        label = { Text(stringResource(R.string.fil_filter_favorites_only)) },
                         leadingIcon = { if (filterFavoritesOnly) Icon(Icons.Default.Star, null, modifier = Modifier.size(16.dp)) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
                     )
@@ -273,14 +275,14 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
                     Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        "DIALOGUE TEMPOREL", 
+                        stringResource(R.string.fil_dialogue_temporel_title), 
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                         color = accent, 
                         letterSpacing = 2.sp
                     )
                 }
                 Surface(color = theme.backgroundColor, shape = CircleShape, border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))) {
-                    Text(text = "${latestAmendment.ageAtAmendment.years}a ${latestAmendment.ageAtAmendment.months}m ${latestAmendment.ageAtAmendment.days}j", modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = accent, fontSize = 9.sp)
+                    Text(text = stringResource(R.string.fil_entry_age_format_full, latestAmendment.ageAtAmendment.years, latestAmendment.ageAtAmendment.months, latestAmendment.ageAtAmendment.days), modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp), style = MaterialTheme.typography.labelSmall, color = accent, fontSize = 9.sp)
                 }
             }
             
@@ -289,7 +291,7 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
             Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "À ${entry.ageAtCreation.years} ans", 
+                        text = stringResource(R.string.fil_age_label, entry.ageAtCreation.years), 
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                         color = theme.contentColor.copy(alpha = 0.4f)
                     )
@@ -306,7 +308,7 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
                 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "À ${latestAmendment.ageAtAmendment.years} ans", 
+                        text = stringResource(R.string.fil_age_label, latestAmendment.ageAtAmendment.years), 
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                         color = AccentSecondary
                     )
@@ -331,7 +333,7 @@ fun DialogueTemporelItem(entry: PhoenXEntry, onClick: () -> Unit) {
                     Icon(Icons.Default.Psychology, null, tint = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = entry.temporalEvolution ?: "Évolution : Ton apaisement est visible à ${latestAmendment.ageAtAmendment.years - entry.ageAtCreation.years} ans d'intervalle.",
+                        text = entry.temporalEvolution ?: stringResource(R.string.fil_dialogue_temporel_evolution, latestAmendment.ageAtAmendment.years - entry.ageAtCreation.years),
                         style = MaterialTheme.typography.labelSmall,
                         color = theme.contentColor.copy(alpha = 0.7f),
                         fontSize = 10.sp
@@ -354,7 +356,7 @@ fun YearSeparator(year: Int, count: Int, labelOverride: String? = null) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = labelOverride ?: "$year ANS", 
+                text = labelOverride ?: stringResource(R.string.fil_years_suffix, year), 
                 style = MaterialTheme.typography.labelMedium.copy(
                     fontWeight = FontWeight.Black, 
                     letterSpacing = 2.sp,
@@ -366,7 +368,7 @@ fun YearSeparator(year: Int, count: Int, labelOverride: String? = null) {
             Box(modifier = Modifier.weight(1f).height(1.dp).background(if (labelOverride != null) accent.copy(alpha = 0.5f) else accent.copy(alpha = 0.15f)))
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = "$count ${if (count > 1) "pensées" else "pensée"}", 
+                text = "$count ${if (count > 1) stringResource(R.string.fil_pensees_plural) else stringResource(R.string.fil_pensee_singulier)}",
                 style = MaterialTheme.typography.labelSmall, 
                 color = theme.contentColor.copy(alpha = 0.4f)
             )
@@ -384,7 +386,8 @@ fun TimelineEntryItem(
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
-    val dateFormatter = remember { DateTimeFormatter.ofPattern("dd MMM", Locale.FRENCH).withZone(ZoneId.systemDefault()) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val dateFormatter = remember { DateTimeFormatter.ofPattern(context.getString(R.string.fil_entry_date_format), Locale.FRENCH).withZone(ZoneId.systemDefault()) }
     val formattedDate = dateFormatter.format(entry.timestamp)
 
     Surface(
@@ -423,7 +426,7 @@ fun TimelineEntryItem(
                     val displayText = when(entry.type) {
                         EntryType.PORTRAIT -> entry.aiSummary
                         EntryType.QUESTION_ANSWER -> entry.aiSummary
-                        else -> entry.userTitle.ifBlank { entry.aiSummary }.ifBlank { "Souvenir sans titre" }
+                        else -> entry.userTitle.ifBlank { entry.aiSummary }.ifBlank { stringResource(R.string.fil_entry_no_title) }
                     }
 
                     Text(
@@ -454,7 +457,7 @@ fun TimelineEntryItem(
                 // Date / Âge compact
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = if (isNonAttributed) "À attribuer" else "${entry.ageAtCreation.years}a ${entry.ageAtCreation.months}m",
+                        text = if (isNonAttributed) stringResource(R.string.fil_entry_to_attribute) else stringResource(R.string.fil_entry_age_format, entry.ageAtCreation.years, entry.ageAtCreation.months),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = if (isNonAttributed) accent else accent.copy(alpha = 0.7f)
                     )

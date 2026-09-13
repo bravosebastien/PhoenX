@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,6 +32,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.activity.result.PickVisualMediaRequest
 import coil3.compose.AsyncImage
 import dagger.hilt.android.EntryPointAccessors
+import com.example.phoenx.R
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.PersonMediaEntity
@@ -86,7 +88,7 @@ fun PersonDetailsDialog(
                         videoErrorMessage = null
                     }
                 } else {
-                    videoErrorMessage = "Cette vidéo dépasse la durée maximale de 90 secondes autorisée. Merci de choisir une vidéo plus courte."
+                    videoErrorMessage = context.getString(R.string.genealogy_video_error_duration)
                 }
             } else {
                 val file = viewModel.uriToFile(uri)
@@ -195,7 +197,7 @@ fun PersonDetailsDialog(
                                         onCheckedChange = { isDeceased = it },
                                         colors = CheckboxDefaults.colors(checkedColor = accent)
                                     )
-                                    Text("Parti(e)", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                                    Text(stringResource(R.string.genealogy_person_deceased_label), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
                                 }
                                 
                                 // Bouton de liens (Style bouton d'action Rencontres)
@@ -210,7 +212,7 @@ fun PersonDetailsDialog(
                                     Icon(Icons.Default.Link, null, modifier = Modifier.size(14.dp))
                                     Spacer(Modifier.width(6.dp))
                                     Text(
-                                        "Identité & Liens",
+                                        stringResource(R.string.genealogy_person_identity_links_button),
                                         style = MaterialTheme.typography.labelSmall,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis
@@ -225,7 +227,7 @@ fun PersonDetailsDialog(
                                     border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                                 ) {
                                     Text(
-                                        "Ailleurs, mais toujours dans nos cœurs",
+                                        stringResource(R.string.genealogy_person_deceased_status_badge),
                                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                                         color = theme.contentColor.copy(alpha = 0.5f),
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -239,7 +241,7 @@ fun PersonDetailsDialog(
                     if (!isReadOnly && person.parentIds.trim(',').isBlank()) {
                         Spacer(Modifier.height(24.dp))
                         Text(
-                            "ALIGNEMENT VERTICAL", 
+                            stringResource(R.string.genealogy_vertical_alignment_section_title), 
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                             color = theme.contentColor.copy(alpha = 0.4f)
                         )
@@ -248,7 +250,7 @@ fun PersonDetailsDialog(
                             modifier = Modifier.padding(top = 8.dp)
                         ) {
                             Text(
-                                "Cette personne n'a pas d'ascendance. Vous pouvez ajuster sa position verticale pour l'aligner avec ses beaux-parents.",
+                                stringResource(R.string.genealogy_vertical_alignment_description),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = theme.contentColor.copy(alpha = 0.6f),
                                 modifier = Modifier.weight(1f)
@@ -258,14 +260,14 @@ fun PersonDetailsDialog(
                                 FilledTonalIconButton(
                                     onClick = { viewModel.updateGenerationOffset(person.id, -1) },
                                     colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = theme.contentColor.copy(alpha = 0.05f))
-                                ) { Icon(Icons.Default.ArrowUpward, "Remonter", modifier = Modifier.size(18.dp)) }
+                                ) { Icon(Icons.Default.ArrowUpward, stringResource(R.string.genealogy_remonter_tooltip), modifier = Modifier.size(18.dp)) }
                                 
                                 Spacer(Modifier.width(8.dp))
                                 
                                 FilledTonalIconButton(
                                     onClick = { viewModel.updateGenerationOffset(person.id, 1) },
                                     colors = IconButtonDefaults.filledTonalIconButtonColors(containerColor = theme.contentColor.copy(alpha = 0.05f))
-                                ) { Icon(Icons.Default.ArrowDownward, "Descendre", modifier = Modifier.size(18.dp)) }
+                                ) { Icon(Icons.Default.ArrowDownward, stringResource(R.string.genealogy_descendre_tooltip), modifier = Modifier.size(18.dp)) }
                             }
                         }
                     }
@@ -275,7 +277,7 @@ fun PersonDetailsDialog(
                         OutlinedTextField(
                             value = relationLabel,
                             onValueChange = { relationLabel = it },
-                            label = { Text("Nature du lien (ex: Petit-fils)") },
+                            label = { Text(stringResource(R.string.genealogy_relation_nature_label)) },
                             modifier = Modifier.fillMaxWidth(),
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                         )
@@ -283,13 +285,13 @@ fun PersonDetailsDialog(
 
                     Spacer(Modifier.height(24.dp))
                     
-                    Text("BIOGRAPHIE", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                    Text(stringResource(R.string.genealogy_biography_section_title), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                     if (!isReadOnly) {
                         OutlinedTextField(
                             value = biography,
                             onValueChange = { biography = it },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
-                            placeholder = { Text("Quelques mots sur sa vie...", fontStyle = FontStyle.Italic) },
+                            placeholder = { Text(stringResource(R.string.genealogy_biography_placeholder), fontStyle = FontStyle.Italic) },
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                         )
                     } else {
@@ -299,7 +301,7 @@ fun PersonDetailsDialog(
                             border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.05f))
                         ) {
                             Text(
-                                text = biography.ifBlank { "Aucune biographie renseignée." },
+                                text = biography.ifBlank { stringResource(R.string.genealogy_biography_empty) },
                                 style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 24.sp),
                                 color = theme.contentColor.copy(alpha = 0.8f),
                                 modifier = Modifier.padding(16.dp)
@@ -311,10 +313,10 @@ fun PersonDetailsDialog(
 
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("GALERIE MÉDIA", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                            Text(stringResource(R.string.genealogy_gallery_section_title), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                             InfoButton(
-                                title = "Photo de profil vs Galerie",
-                                points = listOf("La photo de profil est celle affichée dans l'arbre. La galerie peut contenir d'autres photos et vidéos, visibles uniquement en ouvrant le détail de cette personne.")
+                                title = stringResource(R.string.genealogy_gallery_info_title),
+                                points = listOf(stringResource(R.string.genealogy_gallery_info_content))
                             )
                         }
                         if (!isReadOnly) {
@@ -346,7 +348,7 @@ fun PersonDetailsDialog(
                                 Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(16.dp))
                                 Spacer(Modifier.width(12.dp))
                                 Text(
-                                    "Ce média sera visible par TOUS vos Destinataires une fois l'héritage activé, sans restriction possible.",
+                                    stringResource(R.string.genealogy_visibility_warning_content),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = theme.contentColor.copy(alpha = 0.7f)
                                 )
@@ -355,7 +357,7 @@ fun PersonDetailsDialog(
                     }
 
                     if (mediaList.isEmpty()) {
-                        Text("Aucun média ajouté.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 16.dp))
+                        Text(stringResource(R.string.genealogy_gallery_empty), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 16.dp))
                     } else {
                         mediaList.chunked(3).forEach { row ->
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -380,7 +382,7 @@ fun PersonDetailsDialog(
                                                         creatorId = null,
                                                         mediaUrl = media.mediaPath,
                                                         entryType = media.mediaType,
-                                                        aiSummary = "Média de ${person.firstName}",
+                                                        aiSummary = context.getString(R.string.genealogy_media_summary_fallback, person.firstName),
                                                         sourceDocType = "personMedia",
                                                         personId = person.id,
                                                         isEncrypted = media.mediaPath.endsWith(".enc")
@@ -447,7 +449,7 @@ fun PersonDetailsDialog(
                                 modifier = Modifier.fillMaxWidth().height(54.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = accent)
                             ) {
-                                Text("Enregistrer les modifications", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.genealogy_save_details_button), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                             }
 
                             Spacer(Modifier.height(12.dp))
@@ -458,14 +460,14 @@ fun PersonDetailsDialog(
                             ) {
                                 Icon(Icons.Default.DeleteForever, null, modifier = Modifier.size(16.dp), tint = Error)
                                 Spacer(Modifier.width(8.dp))
-                                Text("Supprimer de l'arbre", color = Error, style = MaterialTheme.typography.labelSmall)
+                                Text(stringResource(R.string.genealogy_delete_from_tree_button), color = Error, style = MaterialTheme.typography.labelSmall)
                             }
                         } else {
                             Button(
                                 onClick = onDismiss,
                                 modifier = Modifier.fillMaxWidth().height(54.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.05f), contentColor = theme.contentColor)
-                            ) { Text("Fermer") }
+                            ) { Text(stringResource(R.string.genealogy_button_close)) }
                         }
                     }
                 }
@@ -479,28 +481,28 @@ fun PersonDetailsDialog(
             containerColor = theme.backgroundColor,
             title = { 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Supprimer cette personne ?", color = theme.contentColor, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.genealogy_delete_dialog_title), color = theme.contentColor, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                     InfoButton(
-                        title = "Continuité des liens",
-                        points = listOf("Si cette personne a des parents renseignés, ses enfants seront automatiquement rattachés à eux plutôt que de perdre tout lien. Vous pourrez préciser vous-même la nature de ce nouveau lien juste après.")
+                        title = stringResource(R.string.genealogy_delete_continuity_info_title),
+                        points = listOf(stringResource(R.string.genealogy_delete_continuity_info_content))
                     )
                 }
             },
             text = {
                 Column {
-                    Text("Cette action est irréversible. Elle sera retirée de votre répertoire, de l'arbre généalogique et tous ses médias seront effacés.", color = theme.contentColor.copy(alpha = 0.7f))
+                    Text(stringResource(R.string.genealogy_delete_warning_content), color = theme.contentColor.copy(alpha = 0.7f))
                     
                     if (children.isNotEmpty() && !person.parentIds.isNullOrBlank()) {
                         Spacer(Modifier.height(16.dp))
-                        Text("Les enfants suivants seront rattachés directement à leurs grands-parents. Comment décrire ce nouveau lien ?", style = MaterialTheme.typography.labelSmall, color = accent)
+                        Text(stringResource(R.string.genealogy_delete_reparent_question), style = MaterialTheme.typography.labelSmall, color = accent)
                         
                         children.forEach { child ->
                             Spacer(Modifier.height(8.dp))
                             OutlinedTextField(
                                 value = deleteRelationLabels[child.id] ?: "",
                                 onValueChange = { deleteRelationLabels[child.id] = it },
-                                label = { Text("Lien pour ${child.firstName}") },
-                                placeholder = { Text("ex: Petit-fils") },
+                                label = { Text(stringResource(R.string.genealogy_delete_reparent_child_label, child.firstName)) },
+                                placeholder = { Text(stringResource(R.string.genealogy_delete_reparent_child_placeholder)) },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                             )
@@ -513,10 +515,10 @@ fun PersonDetailsDialog(
                     viewModel.deletePerson(person.id, deleteRelationLabels.toMap())
                     showDeleteConfirm = false
                     onDismiss()
-                }) { Text("Supprimer définitivement", color = Error, fontWeight = FontWeight.Bold) }
+                }) { Text(stringResource(R.string.genealogy_delete_confirm_button), color = Error, fontWeight = FontWeight.Bold) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirm = false }) { Text("Annuler", color = theme.contentColor) }
+                TextButton(onClick = { showDeleteConfirm = false }) { Text(stringResource(R.string.genealogy_button_annuler), color = theme.contentColor) }
             }
         )
     }

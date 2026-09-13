@@ -30,6 +30,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
@@ -133,7 +135,7 @@ fun RecipientDiscothequeScreen(
         topBar = {
             Column {
                 TopAppBar(
-                    title = { Text("Grande Discothèque", style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
+                    title = { Text(stringResource(R.string.recipient_discotheque_screen_title), style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, fontSize = 24.sp), color = theme.contentColor) },
                     navigationIcon = {
                         IconButton(onClick = onNavigateBack) {
                             Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -171,7 +173,7 @@ fun RecipientDiscothequeScreen(
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (entries.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Le tourne-disque est silencieux...", color = theme.contentColor.copy(alpha = 0.4f))
+                    Text(stringResource(R.string.recipient_discotheque_empty_state), color = theme.contentColor.copy(alpha = 0.4f))
                 }
             } else {
                 LazyVerticalGrid(
@@ -184,7 +186,7 @@ fun RecipientDiscothequeScreen(
                     if (viewMode == MediaViewMode.BY_MEMORY) {
                         groupedEntries.forEach { (parentId, group) ->
                             item(span = { GridItemSpan(2) }) {
-                                val title = if (parentId == "standalone") "Médias isolés" else parentTitles[parentId] ?: "Souvenir"
+                                val title = if (parentId == "standalone") stringResource(R.string.recipient_discotheque_group_standalone) else parentTitles[parentId] ?: stringResource(R.string.recipient_discotheque_group_memory_fallback)
                                 Surface(
                                     modifier = Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 8.dp),
                                     color = accent.copy(alpha = 0.1f),
@@ -257,14 +259,14 @@ fun RecipientDiscothequeScreen(
         AlertDialog(
             onDismissRequest = { mediaToDelete = null },
             containerColor = theme.backgroundColor,
-            title = { Text("Supprimer ce morceau ?", color = theme.contentColor) },
-            text = { Text("Cette action est irréversible.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.recipient_discotheque_dialog_delete_title), color = theme.contentColor) },
+            text = { Text(stringResource(R.string.recipient_discotheque_dialog_delete_text), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 Button(onClick = { viewModel.deleteMediaEntry(mediaToDelete!!); mediaToDelete = null }, colors = ButtonDefaults.buttonColors(containerColor = Error)) {
-                    Text("Supprimer", color = Color.White)
+                    Text(stringResource(R.string.recipient_discotheque_dialog_delete_confirm), color = Color.White)
                 }
             },
-            dismissButton = { TextButton(onClick = { mediaToDelete = null }) { Text("Annuler", color = theme.contentColor) } }
+            dismissButton = { TextButton(onClick = { mediaToDelete = null }) { Text(stringResource(R.string.recipient_discotheque_dialog_delete_cancel), color = theme.contentColor) } }
         )
     }
 
@@ -272,13 +274,13 @@ fun RecipientDiscothequeScreen(
         AlertDialog(
             onDismissRequest = { showHowToPopup = false },
             containerColor = theme.backgroundColor,
-            title = { Text("Comment récupérer un lien ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.recipient_discotheque_dialog_howto_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text("1. Ouvre l'app Spotify ou Deezer.", color = theme.contentColor.copy(alpha = 0.8f))
-                    Text("2. Trouve la chanson que tu veux.", color = theme.contentColor.copy(alpha = 0.8f))
-                    Text("3. Appuie sur 'Partager' puis 'Copier le lien'.", color = theme.contentColor.copy(alpha = 0.8f))
-                    Text("4. Reviens ici et colle-le.", color = theme.contentColor.copy(alpha = 0.8f))
+                    Text(stringResource(R.string.recipient_discotheque_dialog_howto_step1), color = theme.contentColor.copy(alpha = 0.8f))
+                    Text(stringResource(R.string.recipient_discotheque_dialog_howto_step2), color = theme.contentColor.copy(alpha = 0.8f))
+                    Text(stringResource(R.string.recipient_discotheque_dialog_howto_step3), color = theme.contentColor.copy(alpha = 0.8f))
+                    Text(stringResource(R.string.recipient_discotheque_dialog_howto_step4), color = theme.contentColor.copy(alpha = 0.8f))
                 }
             },
             confirmButton = {
@@ -286,12 +288,12 @@ fun RecipientDiscothequeScreen(
                     showHowToPopup = false
                     showAddDialog = true 
                 }, colors = ButtonDefaults.buttonColors(containerColor = accent)) {
-                    Text("Continuer", color = theme.backgroundColor)
+                    Text(stringResource(R.string.recipient_discotheque_dialog_howto_button_continue), color = theme.backgroundColor)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showHowToPopup = false }) {
-                    Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+                    Text(stringResource(R.string.recipient_discotheque_dialog_howto_button_cancel), color = theme.contentColor.copy(alpha = 0.6f))
                 }
             }
         )
@@ -477,7 +479,7 @@ fun VinylItem(
         
         // TITRE SOUS LE BLOC
         Text(
-            text = entry.aiSummary.ifEmpty { "Souvenir vocal" },
+            text = entry.aiSummary.ifEmpty { stringResource(R.string.recipient_discotheque_item_fallback_title) },
             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
             color = theme.contentColor,
             maxLines = 1,

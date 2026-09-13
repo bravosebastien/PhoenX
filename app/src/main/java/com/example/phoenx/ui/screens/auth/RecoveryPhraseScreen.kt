@@ -22,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 import kotlin.random.Random
 
@@ -60,7 +62,7 @@ fun RecoveryPhraseScreen(
                 indices = verificationIndices,
                 theme = theme,
                 onSuccess = {
-                    Toast.makeText(context, "Parfait. Ta phrase est en sécurité.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.recovery_toast_success), Toast.LENGTH_SHORT).show()
                     onConfirmed()
                 }
             )
@@ -84,14 +86,14 @@ fun WarningStep(theme: AppThemeState, onNext: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(32.dp))
         Text(
-            text = "Avant de continuer",
+            text = stringResource(R.string.recovery_warning_title),
             style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
             color = theme.contentColor,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "PHOEN-X va générer ta phrase de récupération. Ce sont 12 mots qui protègent l'ensemble de tes souvenirs.\n\n⚠️ Si tu perds ces 12 mots ET ton téléphone, tes données seront perdues pour toujours. Même nous ne pourrons pas les récupérer. Personne. Jamais.\n\nSi tu changes de téléphone un jour, ces 12 mots seront le seul moyen de retrouver tes souvenirs.\n\nPrends un stylo et du papier maintenant.",
+            text = stringResource(R.string.recovery_warning_text),
             style = MaterialTheme.typography.bodyLarge,
             color = theme.contentColor.copy(alpha = 0.7f),
             lineHeight = 26.sp,
@@ -103,7 +105,7 @@ fun WarningStep(theme: AppThemeState, onNext: () -> Unit) {
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
             colors = ButtonDefaults.buttonColors(containerColor = accent)
         ) {
-            Text("J'ai un stylo et du papier, je suis prêt(e)", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.recovery_warning_button_ready), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -117,13 +119,13 @@ fun DisplayStep(phrase: List<String>, theme: AppThemeState, onNext: () -> Unit) 
     ) {
         Spacer(modifier = Modifier.height(40.dp))
         Text(
-            text = "Ta phrase de récupération",
+            text = stringResource(R.string.recovery_display_title),
             style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
             color = theme.contentColor
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Note ces 12 mots dans l'ordre exact, sur papier. Pas de capture d'écran.",
+            text = stringResource(R.string.recovery_display_subtitle),
             style = MaterialTheme.typography.bodySmall,
             color = theme.contentColor.copy(alpha = 0.6f),
             textAlign = TextAlign.Center
@@ -170,7 +172,7 @@ fun DisplayStep(phrase: List<String>, theme: AppThemeState, onNext: () -> Unit) 
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
             colors = ButtonDefaults.buttonColors(containerColor = accent)
         ) {
-            Text("J'ai noté tous les mots", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.recovery_display_button_noted), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(24.dp))
     }
@@ -184,6 +186,7 @@ fun VerificationStep(
     onSuccess: () -> Unit
 ) {
     val accent = theme.accentColor
+    val context = LocalContext.current
     var inputs by remember { mutableStateOf(List(3) { "" }) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -193,13 +196,13 @@ fun VerificationStep(
     ) {
         Spacer(modifier = Modifier.height(40.dp))
         Text(
-            text = "Vérifions ensemble",
+            text = stringResource(R.string.recovery_verification_title),
             style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
             color = theme.contentColor
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Pour confirmer que tu as bien noté ta phrase, entre les mots numéros ${indices[0] + 1}, ${indices[1] + 1} et ${indices[2] + 1}",
+            text = stringResource(R.string.recovery_verification_subtitle, indices[0] + 1, indices[1] + 1, indices[2] + 1),
             style = MaterialTheme.typography.bodyMedium,
             color = theme.contentColor.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
@@ -213,7 +216,7 @@ fun VerificationStep(
                     inputs = inputs.toMutableList().apply { this[i] = newValue }
                     errorMessage = null
                 },
-                label = { Text("Mot n°${index + 1}") },
+                label = { Text(stringResource(R.string.recovery_verification_word_label, index + 1)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = accent,
@@ -240,13 +243,13 @@ fun VerificationStep(
                 if (correct) {
                     onSuccess()
                 } else {
-                    errorMessage = "Ce n'est pas tout à fait ça. Vérifie ce que tu as noté et réessaie."
+                    errorMessage = context.getString(R.string.recovery_verification_error)
                 }
             },
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
             colors = ButtonDefaults.buttonColors(containerColor = accent)
         ) {
-            Text("Vérifier et terminer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.recovery_verification_button_finish), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
         Spacer(modifier = Modifier.height(24.dp))
     }

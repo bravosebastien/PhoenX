@@ -24,6 +24,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.data.local.PersonalityEntity
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.InfoButton
@@ -52,7 +55,7 @@ fun PersonalitiesScreen(
     val activeFilter by viewModel.categoryFilter.collectAsState()
     val context = LocalContext.current
 
-    val categories = PersonalityEntity.CATEGORIES
+    val categories = stringArrayResource(R.array.personality_categories).toList()
 
     val isReadOnly = targetCreatorId != null
 
@@ -72,12 +75,12 @@ fun PersonalitiesScreen(
                     title = {
                         Column {
                             Text(
-                                "Personnalités",
+                                stringResource(R.string.personalities_title),
                                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                                 color = theme.contentColor
                             )
                             Text(
-                                "Figures inspirantes ou marquantes",
+                                stringResource(R.string.personalities_subtitle),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = theme.contentColor.copy(alpha = 0.5f)
                             )
@@ -90,11 +93,11 @@ fun PersonalitiesScreen(
                     },
                     actions = {
                         InfoButton(
-                            title = "Personnalités",
+                            title = stringResource(R.string.personalities_info_title),
                             points = listOf(
-                                "Cet espace est dédié aux figures publiques (artistes, sportifs, scientifiques, chefs d'état...) qui ont compté dans votre vie.",
-                                "Contrairement aux Souvenirs, ces fiches sont visibles par TOUS vos Destinataires sans exception une fois votre héritage activé.",
-                                "Vous pouvez y partager votre biographie préférée de ces personnes et surtout expliquer en quoi elles vous ont influencé."
+                                stringResource(R.string.personalities_info_p1),
+                                stringResource(R.string.personalities_info_p2),
+                                stringResource(R.string.personalities_info_p3)
                             )
                         )
                     },
@@ -115,7 +118,7 @@ fun PersonalitiesScreen(
                     FilterChip(
                         selected = activeFilter == null,
                         onClick = { viewModel.updateCategoryFilter(null) },
-                        label = { Text("Tous", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)) },
+                        label = { Text(stringResource(R.string.personalities_filter_all), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold)) },
                         modifier = tabModifier,
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = accent.copy(alpha = 0.15f), 
@@ -173,7 +176,7 @@ fun PersonalitiesScreen(
         if (personalities.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Text(
-                    "Aucune personnalité ajoutée.",
+                    stringResource(R.string.personalities_empty_state),
                     style = MaterialTheme.typography.bodyLarge,
                     color = theme.contentColor.copy(alpha = 0.4f)
                 )
@@ -271,7 +274,7 @@ fun PersonalityCard(
             border = BorderStroke(0.5.dp, theme.contentColor.copy(alpha = 0.1f))
         ) {
             Text(
-                text = if (personality.category == "Autre") personality.customCategoryLabel ?: "Autre" else personality.category,
+                text = if (personality.category == "Autre") personality.customCategoryLabel ?: stringResource(R.string.personalities_category_other) else personality.category,
                 style = MaterialTheme.typography.labelSmall.copy(
                     fontSize = 9.sp,
                     fontWeight = FontWeight.Bold,

@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.data.local.PersonalityEntity
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.SecureAsyncImage
@@ -160,7 +162,7 @@ fun PersonalityDetailScreen(
                             )
                             Icon(
                                 imageVector = Icons.Default.Edit, 
-                                contentDescription = "Modifier", 
+                                contentDescription = stringResource(R.string.personality_detail_edit_desc), 
                                 tint = theme.contentColor.copy(alpha = 0.7f),
                                 modifier = Modifier.size(15.dp)
                             )
@@ -183,7 +185,7 @@ fun PersonalityDetailScreen(
                             )
                             Icon(
                                 imageVector = Icons.Default.Delete, 
-                                contentDescription = "Supprimer", 
+                                contentDescription = stringResource(R.string.personality_detail_delete_desc), 
                                 tint = theme.contentColor.copy(alpha = 0.7f),
                                 modifier = Modifier.size(15.dp)
                             )
@@ -207,7 +209,7 @@ fun PersonalityDetailScreen(
                         modifier = Modifier.padding(top = 8.dp).alpha(0.7f)
                     ) {
                         Text(
-                            text = if (item.category == "Autre") item.customCategoryLabel ?: "Autre" else item.category,
+                            text = if (item.category == "Autre") item.customCategoryLabel ?: stringResource(R.string.personalities_category_other) else item.category,
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Medium,
                                 letterSpacing = 0.5.sp
@@ -220,7 +222,7 @@ fun PersonalityDetailScreen(
                     Spacer(Modifier.height(32.dp))
 
                     // Biographie (Cliquable)
-                    SectionHeader(title = "BIOGRAPHIE")
+                    SectionHeader(title = stringResource(R.string.personality_detail_bio_title))
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -231,7 +233,7 @@ fun PersonalityDetailScreen(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            text = item.biography.ifBlank { "Aucune biographie renseignée." },
+                            text = item.biography.ifBlank { stringResource(R.string.personality_detail_bio_empty) },
                             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 24.sp),
                             color = theme.contentColor.copy(alpha = 0.8f),
                             modifier = Modifier.padding(16.dp),
@@ -243,7 +245,7 @@ fun PersonalityDetailScreen(
                     Spacer(Modifier.height(32.dp))
 
                     // Commentaire Personnel (Cliquable)
-                    SectionHeader(title = "POURQUOI CETTE PERSONNE ?")
+                    SectionHeader(title = stringResource(R.string.personality_detail_why_title))
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -254,7 +256,7 @@ fun PersonalityDetailScreen(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Text(
-                            text = item.personalComment.ifBlank { "Aucun commentaire personnel." },
+                            text = item.personalComment.ifBlank { stringResource(R.string.personality_detail_why_empty) },
                             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 24.sp, fontStyle = FontStyle.Italic),
                             color = theme.contentColor.copy(alpha = 0.9f),
                             modifier = Modifier.padding(16.dp),
@@ -268,7 +270,7 @@ fun PersonalityDetailScreen(
                     
                     if (mediaList.isNotEmpty()) {
                         Spacer(Modifier.height(32.dp))
-                        SectionHeader(title = "GALERIE PHOTOS")
+                        SectionHeader(title = stringResource(R.string.personality_detail_gallery_title))
                         Spacer(Modifier.height(16.dp))
                         
                         androidx.compose.foundation.lazy.LazyRow(
@@ -295,7 +297,7 @@ fun PersonalityDetailScreen(
                                                     creatorId = targetCreatorId,
                                                     mediaUrl = media.mediaPath,
                                                     entryType = "PHOTO",
-                                                    aiSummary = "Photo de ${item.name}",
+                                                    aiSummary = context.getString(R.string.personality_detail_media_summary, item.name),
                                                     sourceDocType = "personalityMedia",
                                                     personId = personalityId, // Correction: on passe l'ID de la personnalité parente
                                                     isEncrypted = false
@@ -330,7 +332,7 @@ fun PersonalityDetailScreen(
                 enter = fadeIn() + expandIn(),
                 exit = fadeOut() + shrinkOut()
             ) {
-                val title = if (readingMode == "BIO") "BIOGRAPHIE" else "COMMENTAIRE"
+                val title = if (readingMode == "BIO") stringResource(R.string.personality_detail_bio_title) else stringResource(R.string.personality_detail_comment_title)
                 val content = if (readingMode == "BIO") item.biography else item.personalComment
                 val isItalic = readingMode == "COMMENT"
 
@@ -387,8 +389,8 @@ fun PersonalityDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             containerColor = theme.backgroundColor,
-            title = { Text("Supprimer ${item.name} ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = { Text("Cette action est irréversible. Toutes les informations et photos associées seront définitivement supprimées.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.personality_detail_delete_confirm_title, item.name), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.personality_detail_delete_confirm_text), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -398,12 +400,12 @@ fun PersonalityDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = com.example.phoenx.ui.theme.Error)
                 ) {
-                    Text("Supprimer définitivement", color = Color.White)
+                    Text(stringResource(R.string.personality_detail_delete_button_confirm), color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Annuler", color = theme.contentColor)
+                    Text(stringResource(R.string.personality_detail_delete_button_cancel), color = theme.contentColor)
                 }
             }
         )

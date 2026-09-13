@@ -12,6 +12,7 @@ import com.example.phoenx.data.local.PhoenXDatabase
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.phoenx.data.sync.InitialSyncWorker
+import com.example.phoenx.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -66,7 +67,7 @@ class AuthViewModel @Inject constructor(
                 }
 
                 val result = auth.signInWithEmailAndPassword(email, password).await()
-                val user = result.user ?: throw Exception("Utilisateur introuvable")
+                val user = result.user ?: throw Exception(context.getString(R.string.auth_error_user_not_found))
 
                 // Vérifier que l'email est confirmé
                 if (!user.isEmailVerified) {
@@ -106,7 +107,7 @@ class AuthViewModel @Inject constructor(
                 
                 _uiState.value = AuthState.Success
             } catch (e: Exception) {
-                _uiState.value = AuthState.Error(e.message ?: "Erreur de connexion")
+                _uiState.value = AuthState.Error(e.message ?: context.getString(R.string.auth_error_login_failed))
             }
         }
     }
@@ -160,7 +161,7 @@ class AuthViewModel @Inject constructor(
 
                 _uiState.value = AuthState.EmailVerificationSent
             } catch (e: Exception) {
-                _uiState.value = AuthState.Error(e.message ?: "Erreur d'inscription")
+                _uiState.value = AuthState.Error(e.message ?: context.getString(R.string.auth_error_signup_failed))
             }
         }
     }
@@ -206,7 +207,7 @@ class AuthViewModel @Inject constructor(
 
                 _uiState.value = AuthState.EmailVerificationSent
             } catch (e: Exception) {
-                _uiState.value = AuthState.Error(e.message ?: "Erreur d'inscription")
+                _uiState.value = AuthState.Error(e.message ?: context.getString(R.string.auth_error_signup_failed))
             }
         }
     }
@@ -217,7 +218,7 @@ class AuthViewModel @Inject constructor(
                 auth.sendPasswordResetEmail(email).await()
                 _uiState.value = AuthState.PasswordResetSent
             } catch (e: Exception) {
-                _uiState.value = AuthState.Error(e.message ?: "Erreur")
+                _uiState.value = AuthState.Error(e.message ?: context.getString(R.string.auth_error_generic))
             }
         }
     }
@@ -228,7 +229,7 @@ class AuthViewModel @Inject constructor(
                 auth.currentUser?.sendEmailVerification()?.await()
                 _uiState.value = AuthState.EmailVerificationSent
             } catch (e: Exception) {
-                _uiState.value = AuthState.Error(e.message ?: "Erreur")
+                _uiState.value = AuthState.Error(e.message ?: context.getString(R.string.auth_error_generic))
             }
         }
     }
@@ -246,7 +247,7 @@ class AuthViewModel @Inject constructor(
                 
                 // Une fois réactivé, on relance la fin du processus de login
                 val userDoc = db.collection("users").document(user.uid).get().await()
-                val key = userDoc.getString("encryptionKey") ?: throw Exception("Clé manquante")
+                val key = userDoc.getString("encryptionKey") ?: throw Exception(context.getString(R.string.auth_error_key_missing))
                 val decodedKey = android.util.Base64.decode(key, android.util.Base64.NO_WRAP)
                 encryptionManager.setSessionKey(decodedKey)
 
@@ -255,7 +256,7 @@ class AuthViewModel @Inject constructor(
 
                 _uiState.value = AuthState.Success
             } catch (e: Exception) {
-                _uiState.value = AuthState.Error(e.message ?: "Erreur de réactivation")
+                _uiState.value = AuthState.Error(e.message ?: context.getString(R.string.auth_error_reactivation_failed))
             }
         }
     }

@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.recipient
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,8 @@ import javax.inject.Inject
 @HiltViewModel
 class RecipientCubeViewModel @Inject constructor(
     private val functions: FirebaseFunctions,
-    private val db: com.google.firebase.firestore.FirebaseFirestore
+    private val db: com.google.firebase.firestore.FirebaseFirestore,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<RecipientCubeUiState>(RecipientCubeUiState.Loading)
@@ -31,7 +33,7 @@ class RecipientCubeViewModel @Inject constructor(
                 val result = functions.getHttpsCallable("getCreatorBookStatus").call(data).await()
                 val response = result.data as Map<*, *>
                 
-                val name = response["displayName"] as? String ?: "Ton proche"
+                val name = response["displayName"] as? String ?: context.getString(R.string.recipient_cube_viewmodel_creator_fallback)
                 val isBookOpen = response["isBookOpen"] as? Boolean ?: false
                 
                 _uiState.value = RecipientCubeUiState.Success(
@@ -51,7 +53,7 @@ class RecipientCubeViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 android.util.Log.e("RecipientCube", "Erreur chargement infos : ${e.message}")
-                _uiState.value = RecipientCubeUiState.Error(e.message ?: "Erreur de connexion")
+                _uiState.value = RecipientCubeUiState.Error(e.message ?: context.getString(R.string.recipient_cube_viewmodel_error_fallback))
             }
         }
     }

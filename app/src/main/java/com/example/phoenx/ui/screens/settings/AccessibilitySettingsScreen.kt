@@ -10,10 +10,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.phoenx.R
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.theme.*
 
@@ -31,7 +33,7 @@ fun AccessibilitySettingsScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Accessibilité", style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                title = { Text(stringResource(R.string.accessibility_screen_title), style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -49,7 +51,7 @@ fun AccessibilitySettingsScreen(
                     .padding(24.dp)
             ) {
                 Text(
-                    "Mode Vocal Total",
+                    stringResource(R.string.accessibility_voice_mode_title),
                     style = MaterialTheme.typography.displaySmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                     color = theme.contentColor
                 )
@@ -57,7 +59,7 @@ fun AccessibilitySettingsScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
-                    "Conçu pour naviguer, écouter et capturer vos souvenirs sans utiliser le clavier. Idéal pour un usage mains-libres ou pour faciliter l'utilisation par nos aînés.",
+                    stringResource(R.string.accessibility_voice_mode_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = theme.contentColor.copy(alpha = 0.7f),
                     lineHeight = 22.sp
@@ -82,9 +84,9 @@ fun AccessibilitySettingsScreen(
                         )
                         Spacer(modifier = Modifier.width(20.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Activer la voix", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
+                            Text(stringResource(R.string.accessibility_activate_voice_label), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = theme.contentColor)
                             Text(
-                                if (isVoiceActive) "L'application vous écoute" else "Désactivé",
+                                if (isVoiceActive) stringResource(R.string.accessibility_status_listening) else stringResource(R.string.accessibility_status_disabled),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = if (isVoiceActive) accent else theme.contentColor.copy(alpha = 0.4f)
                             )
@@ -104,7 +106,7 @@ fun AccessibilitySettingsScreen(
 
                 if (isVoiceActive) {
                     Text(
-                        "Commandes disponibles :",
+                        stringResource(R.string.accessibility_commands_title),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = accent,
                         letterSpacing = 1.sp
@@ -112,11 +114,11 @@ fun AccessibilitySettingsScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     val commands = listOf(
-                        "'Dépose une pensée'",
-                        "'Ouvre mon Fil de Pensée'",
-                        "'Mode Nuit'",
-                        "'Retour à l'accueil'",
-                        "'Aide'"
+                        stringResource(R.string.accessibility_command_deposit),
+                        stringResource(R.string.accessibility_command_timeline),
+                        stringResource(R.string.accessibility_command_night_mode),
+                        stringResource(R.string.accessibility_command_home),
+                        stringResource(R.string.accessibility_command_help)
                     )
                     
                     commands.forEach { cmd ->

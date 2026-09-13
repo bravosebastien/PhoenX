@@ -23,6 +23,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.RecoveryPhraseBottomSheet
@@ -82,15 +84,15 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Réglages", style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.settings_screen_title), style = MaterialTheme.typography.labelLarge, color = theme.contentColor, fontWeight = FontWeight.Bold)
                         InfoButton(
-                            title = "Réglages",
+                            title = stringResource(R.string.settings_info_title),
                             points = listOf(
-                                "Active la biométrie pour protéger l'accès à l'application.",
-                                "Choisis la fréquence des vérifications de présence.",
-                                "Tes données ne sont jamais vendues ni utilisées commercialement.",
-                                "PHOEN-X ne contient aucune publicité.",
-                                "Tu peux gérer tes Destinataires et ton Dépositaire depuis ici."
+                                stringResource(R.string.settings_info_point1),
+                                stringResource(R.string.settings_info_point2),
+                                stringResource(R.string.settings_info_point3),
+                                stringResource(R.string.settings_info_point4),
+                                stringResource(R.string.settings_info_point5)
                             )
                         )
                     }
@@ -111,12 +113,12 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
-            Text("MON COMPTE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+            Text(stringResource(R.string.settings_section_account), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Mon Profil",
-                subtitle = "Gère ton nom d'usage et tes infos",
+                title = stringResource(R.string.settings_item_profile_title),
+                subtitle = stringResource(R.string.settings_item_profile_subtitle),
                 icon = Icons.Default.AccountCircle,
                 theme = theme,
                 onClick = onNavigateToProfile
@@ -124,12 +126,12 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text("SÉCURITÉ ET TRANSMISSION", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+            Text(stringResource(R.string.settings_section_security), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
             Spacer(modifier = Modifier.height(16.dp))
             
             SettingsItem(
-                title = "Transmission & Protocole",
-                subtitle = "Gère ton dépositaire et tes délais",
+                title = stringResource(R.string.settings_item_protocol_title),
+                subtitle = stringResource(R.string.settings_item_protocol_subtitle),
                 icon = Icons.Default.Lock,
                 theme = theme,
                 onClick = onNavigateToProtocol
@@ -138,8 +140,8 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Mes Destinataires",
-                subtitle = "Gère ton cercle de confiance",
+                title = stringResource(R.string.settings_item_recipients_title),
+                subtitle = stringResource(R.string.settings_item_recipients_subtitle),
                 icon = Icons.Default.Person,
                 theme = theme,
                 onClick = onNavigateToRecipients
@@ -148,8 +150,8 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Contacts à prévenir",
-                subtitle = "Personnes informées de ton départ",
+                title = stringResource(R.string.settings_item_notification_contacts_title),
+                subtitle = stringResource(R.string.settings_item_notification_contacts_subtitle),
                 icon = Icons.Default.NotificationsNone,
                 theme = theme,
                 onClick = onNavigateToNotificationContacts
@@ -161,8 +163,8 @@ fun SettingsScreen(
             val currentRhythm by mainViewModel.silenceRhythmDays.collectAsState()
 
             SettingsItem(
-                title = "Fréquence de présence",
-                subtitle = "Vérification tous les $currentRhythm jours",
+                title = stringResource(R.string.settings_item_presence_title),
+                subtitle = stringResource(R.string.settings_item_presence_subtitle, currentRhythm),
                 icon = Icons.Default.Timer,
                 theme = theme,
                 onClick = { showRhythmDialog = true }
@@ -196,8 +198,8 @@ fun SettingsScreen(
                     Icon(Icons.Default.Fingerprint, null, tint = accent)
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Empreinte Digitale", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                        Text("Ouverture sécurisée de l'application", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                        Text(stringResource(R.string.settings_biometric_title), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                        Text(stringResource(R.string.settings_biometric_subtitle), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
                     }
                     Switch(
                         checked = isBiometricEnabled,
@@ -210,8 +212,8 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Le Tiroir à Clé Unique",
-                subtitle = "Ton secret le plus précieux",
+                title = stringResource(R.string.settings_item_unique_key_title),
+                subtitle = stringResource(R.string.settings_item_unique_key_subtitle),
                 icon = Icons.Default.Key,
                 theme = theme,
                 onClick = onNavigateToUniqueKey
@@ -220,8 +222,8 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Protocole de Réconciliation",
-                subtitle = "Mots secrets à ouverture différée",
+                title = stringResource(R.string.settings_item_reconciliation_title),
+                subtitle = stringResource(R.string.settings_item_reconciliation_subtitle),
                 icon = Icons.Default.Mail,
                 theme = theme,
                 onClick = onNavigateToReconciliation
@@ -230,8 +232,8 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Tester le Coffre-Fort",
-                subtitle = "Déchiffre tes propres énigmes",
+                title = stringResource(R.string.settings_item_detective_title),
+                subtitle = stringResource(R.string.settings_item_detective_subtitle),
                 icon = Icons.Default.Fingerprint,
                 theme = theme,
                 onClick = onNavigateToDetective
@@ -261,12 +263,12 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(32.dp))
             */
 
-            Text("ACCESSIBILITÉ", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+            Text(stringResource(R.string.settings_section_accessibility), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Mode Vocal Total",
-                subtitle = "Navigation par la voix",
+                title = stringResource(R.string.settings_item_accessibility_title),
+                subtitle = stringResource(R.string.settings_item_accessibility_subtitle),
                 icon = Icons.Default.RecordVoiceOver,
                 theme = theme,
                 onClick = onNavigateToAccessibility
@@ -275,8 +277,8 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Réafficher la vidéo d'accueil",
-                subtitle = "Réinitialiser la bannière vidéo",
+                title = stringResource(R.string.settings_item_reset_video_title),
+                subtitle = stringResource(R.string.settings_item_reset_video_subtitle),
                 icon = Icons.Default.VideoLibrary,
                 theme = theme,
                 onClick = { mainViewModel.resetVideoBanner() }
@@ -284,7 +286,7 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text("PERSONNALISATION", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
+            Text(stringResource(R.string.settings_section_personalization), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
             Spacer(modifier = Modifier.height(16.dp))
 
             Surface(
@@ -293,7 +295,7 @@ fun SettingsScreen(
                 border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Couleur d'accentuation", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                    Text(stringResource(R.string.settings_accent_color_label), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     val colors = listOf(
@@ -337,13 +339,13 @@ fun SettingsScreen(
                 border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Style de fond", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                    Text(stringResource(R.string.settings_background_style_label), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
                     Spacer(modifier = Modifier.height(12.dp))
                     
                     val styles = listOf(
-                        "RADIAL" to "Radial (Défaut)",
-                        "LINEAR" to "Linéaire",
-                        "SOLID" to "Uni"
+                        "RADIAL" to stringResource(R.string.settings_background_style_radial),
+                        "LINEAR" to stringResource(R.string.settings_background_style_linear),
+                        "SOLID" to stringResource(R.string.settings_background_style_solid)
                     )
                     
                     val currentStyle by mainViewModel.backgroundStyle.collectAsState()
@@ -394,16 +396,16 @@ fun RhythmSelectionDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = theme.backgroundColor,
-        title = { Text("Fréquence de présence", color = theme.contentColor, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold)) },
+        title = { Text(stringResource(R.string.settings_rhythm_dialog_title), color = theme.contentColor, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold)) },
         text = {
             Column(Modifier.selectableGroup()) {
-                RhythmOptionItem(14, "Toutes les 2 semaines", selectedRythm == 14, theme) { selectedRythm = 14 }
-                RhythmOptionItem(30, "Une fois par mois", selectedRythm == 30, theme) { selectedRythm = 30 }
-                RhythmOptionItem(60, "Tous les 2 mois", selectedRythm == 60, theme) { selectedRythm = 60 }
+                RhythmOptionItem(14, stringResource(R.string.settings_rhythm_option_2_weeks), selectedRythm == 14, theme) { selectedRythm = 14 }
+                RhythmOptionItem(30, stringResource(R.string.settings_rhythm_option_1_month), selectedRythm == 30, theme) { selectedRythm = 30 }
+                RhythmOptionItem(60, stringResource(R.string.settings_rhythm_option_2_months), selectedRythm == 60, theme) { selectedRythm = 60 }
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    "Si tu ne confirmes pas ta présence, on te relancera chaque semaine. Au bout de 3 semaines sans réponse, ta personne de confiance sera prévenue pour prendre de tes nouvelles.",
+                    stringResource(R.string.settings_rhythm_info),
                     style = MaterialTheme.typography.bodySmall,
                     color = theme.contentColor.copy(alpha = 0.6f)
                 )
@@ -415,12 +417,12 @@ fun RhythmSelectionDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = accent),
                 modifier = Modifier.phoenXMatiere()
             ) {
-                Text("Enregistrer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.settings_button_save), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler", color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.settings_button_cancel), color = theme.contentColor.copy(alpha = 0.4f))
             }
         }
     )

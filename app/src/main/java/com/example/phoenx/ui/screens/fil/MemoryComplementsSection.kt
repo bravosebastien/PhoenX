@@ -21,8 +21,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.SecureAsyncImage
@@ -87,7 +89,7 @@ fun MemoryComplementsSection(
                         if (file != null) viewModel.addMediaComplement(entryId, file, "VIDEO")
                     } else {
                         // v9.6.6 : Notification d'erreur pour vidéo trop longue
-                        android.widget.Toast.makeText(context, "Cette vidéo dépasse 90 secondes.", android.widget.Toast.LENGTH_LONG).show()
+                        android.widget.Toast.makeText(context, context.getString(R.string.memory_complements_error_video_too_long_toast), android.widget.Toast.LENGTH_LONG).show()
                     }
                 } else {
                     val file = viewModel.uriToFile(uri)
@@ -114,7 +116,7 @@ fun MemoryComplementsSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "COMPLÉMENTS MÉDIA", 
+                stringResource(R.string.memory_detail_complements_section), 
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                 color = theme.contentColor.copy(alpha = 0.4f), 
                 letterSpacing = 2.sp
@@ -134,7 +136,7 @@ fun MemoryComplementsSection(
                         containerColor = theme.backgroundColor
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Photos / Vidéos", color = theme.contentColor) },
+                            text = { Text(stringResource(R.string.memory_complements_add_photos_videos), color = theme.contentColor) },
                             leadingIcon = { Icon(Icons.Default.Collections, null, tint = accent) },
                             onClick = {
                                 showAddMediaMenu = false
@@ -143,7 +145,7 @@ fun MemoryComplementsSection(
                         )
                         
                         DropdownMenuItem(
-                            text = { Text("Note Vocale", color = theme.contentColor) },
+                            text = { Text(stringResource(R.string.memory_complements_add_voice_note), color = theme.contentColor) },
                             leadingIcon = { Icon(Icons.Default.Mic, null, tint = accent) },
                             onClick = {
                                 showAddMediaMenu = false
@@ -152,7 +154,7 @@ fun MemoryComplementsSection(
                         )
 
                         DropdownMenuItem(
-                            text = { Text("Appareil Photo", color = theme.contentColor) },
+                            text = { Text(stringResource(R.string.memory_complements_add_camera), color = theme.contentColor) },
                             leadingIcon = { Icon(Icons.Default.CameraAlt, null, tint = accent) },
                             onClick = {
                                 showAddMediaMenu = false
@@ -161,7 +163,7 @@ fun MemoryComplementsSection(
                         )
 
                         DropdownMenuItem(
-                            text = { Text("Enregistrer Vidéo", color = theme.contentColor) },
+                            text = { Text(stringResource(R.string.memory_complements_add_record_video), color = theme.contentColor) },
                             leadingIcon = { Icon(Icons.Default.Videocam, null, tint = accent) },
                             onClick = {
                                 showAddMediaMenu = false
@@ -177,7 +179,7 @@ fun MemoryComplementsSection(
         
         if (complements.isEmpty()) {
             Text(
-                "Aucun média complémentaire rattaché.", 
+                stringResource(R.string.memory_complements_empty_state), 
                 style = MaterialTheme.typography.bodySmall, 
                 color = theme.contentColor.copy(alpha = 0.4f)
             )
@@ -246,7 +248,7 @@ fun MemoryComplementsSection(
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
-                                        text = complement.aiSummary.ifEmpty { "Média ${complement.entryType.lowercase()}" },
+                                        text = complement.aiSummary.ifEmpty { stringResource(R.string.memory_complements_media_fallback, complement.entryType.lowercase()) },
                                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                         color = theme.contentColor,
                                         maxLines = 1,
@@ -275,7 +277,7 @@ fun MemoryComplementsSection(
                                     )
                                     Spacer(Modifier.width(4.dp))
                                     Text(
-                                        text = if (complement.visibility == "EVERYONE") "Public" else "Restreint",
+                                        text = if (complement.visibility == "EVERYONE") stringResource(R.string.memory_complements_visibility_public) else stringResource(R.string.memory_complements_visibility_restricted),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = theme.contentColor.copy(alpha = 0.4f)
                                     )

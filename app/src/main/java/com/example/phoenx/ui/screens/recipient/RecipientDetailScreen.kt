@@ -24,7 +24,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.ui.components.PhoenXAvatar
@@ -64,7 +66,7 @@ fun RecipientDetailScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        recipient?.name ?: "Détails", 
+                        recipient?.name ?: stringResource(R.string.recipient_detail_details_fallback), 
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontFamily = theme.fontFamily,
                             fontWeight = FontWeight.Bold
@@ -144,12 +146,12 @@ fun RecipientDetailScreen(
                             Spacer(Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    "Voir son espace (Aperçu)", 
+                                    stringResource(R.string.recipient_detail_preview_button), 
                                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), 
                                     color = theme.contentColor
                                 )
                                 Text(
-                                    "Vérifiez ce que ${recipient.name.split(" ").first()} verra réellement.", 
+                                    stringResource(R.string.recipient_detail_preview_subtitle, recipient.name.split(" ").first()), 
                                     style = MaterialTheme.typography.labelSmall, 
                                     color = theme.contentColor.copy(alpha = 0.6f)
                                 )
@@ -162,7 +164,7 @@ fun RecipientDetailScreen(
 
                 // ÉTAT DU PORTRAIT
                 Text(
-                    "SON PORTRAIT (LE MIROIR)", 
+                    stringResource(R.string.recipient_detail_portrait_section), 
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                     color = theme.contentColor.copy(alpha = 0.4f), 
                     letterSpacing = 2.sp
@@ -194,7 +196,7 @@ fun RecipientDetailScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
-                                text = if (isPortraitCompleted) "Portrait complété" else "Portrait non commencé",
+                                text = if (isPortraitCompleted) stringResource(R.string.recipient_detail_portrait_completed) else stringResource(R.string.recipient_detail_portrait_not_started),
                                 style = MaterialTheme.typography.bodyLarge.copy(
                                     fontFamily = theme.fontFamily,
                                     fontWeight = FontWeight.Bold
@@ -203,7 +205,7 @@ fun RecipientDetailScreen(
                             )
                             if (!isPortraitCompleted) {
                                 Text(
-                                    text = "Dis-lui ce que tu vois en lui/elle.",
+                                    text = stringResource(R.string.recipient_detail_portrait_subtitle),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = theme.contentColor.copy(alpha = 0.6f)
                                 )
@@ -216,7 +218,7 @@ fun RecipientDetailScreen(
 
                 // TABLEAU DE BORD DU CONTENU (v9.4.27)
                 Text(
-                    "CONTENUS ATTRIBUÉS", 
+                    stringResource(R.string.recipient_detail_assigned_content_section), 
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                     color = theme.contentColor.copy(alpha = 0.4f), 
                     letterSpacing = 2.sp
@@ -225,7 +227,7 @@ fun RecipientDetailScreen(
 
                 // 1. SOUVENIRS
                 ContentSection(
-                    title = "SOUVENIRS",
+                    title = stringResource(R.string.recipient_detail_section_souvenirs),
                     count = dashboard.souvenirs.size,
                     icon = Icons.Default.HistoryEdu,
                     accent = accent,
@@ -237,7 +239,7 @@ fun RecipientDetailScreen(
 
                 // 2. PHOTOS
                 ContentSection(
-                    title = "PHOTOS",
+                    title = stringResource(R.string.recipient_detail_section_photos),
                     count = dashboard.photos.size,
                     icon = Icons.Default.PhotoLibrary,
                     accent = accent,
@@ -252,7 +254,7 @@ fun RecipientDetailScreen(
 
                 // 3. VIDÉOS
                 ContentSection(
-                    title = "VIDÉOS",
+                    title = stringResource(R.string.recipient_detail_section_videos),
                     count = dashboard.videos.size,
                     icon = Icons.Default.VideoLibrary,
                     accent = accent,
@@ -281,7 +283,7 @@ fun RecipientDetailScreen(
 
                 // 4. AUDIOS
                 ContentSection(
-                    title = "AUDIOS",
+                    title = stringResource(R.string.recipient_detail_section_audios),
                     count = dashboard.audios.size,
                     icon = Icons.Default.MusicNote,
                     accent = accent,
@@ -316,7 +318,7 @@ fun RecipientDetailScreen(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                         Icon(Icons.Default.Security, null, tint = accent)
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Gérer les droits d'accès", color = theme.contentColor, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.recipient_detail_permissions_button), color = theme.contentColor, fontWeight = FontWeight.Bold)
                         
                         if (pendingCount > 0) {
                             Spacer(modifier = Modifier.width(12.dp))
@@ -408,7 +410,7 @@ fun ContentSection(
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                             Text(
-                                text = itemTitle.ifBlank { "Sans titre" },
+                                text = itemTitle.ifBlank { stringResource(R.string.recipient_detail_no_title) },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = theme.contentColor.copy(alpha = 0.8f),
                                 maxLines = 1,
@@ -421,7 +423,7 @@ fun ContentSection(
                 }
                 if (count > 5) {
                     TextButton(onClick = onSeeAll, modifier = Modifier.align(Alignment.End)) {
-                        Text("Voir tout ($count) →", style = MaterialTheme.typography.labelSmall, color = accent)
+                        Text(stringResource(R.string.recipient_detail_see_all, count), style = MaterialTheme.typography.labelSmall, color = accent)
                     }
                 }
             }

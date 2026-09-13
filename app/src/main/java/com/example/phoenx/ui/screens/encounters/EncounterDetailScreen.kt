@@ -19,6 +19,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -29,6 +30,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.data.local.PersonMediaEntity
@@ -109,9 +111,9 @@ fun EncounterDetailScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(Icons.Default.ErrorOutline, null, tint = theme.contentColor.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
                     Spacer(Modifier.height(16.dp))
-                    Text("Impossible de charger la fiche.", color = theme.contentColor.copy(alpha = 0.5f))
+                    Text(stringResource(R.string.encounter_detail_load_error), color = theme.contentColor.copy(alpha = 0.5f))
                     TextButton(onClick = { navController.popBackStack() }) {
-                        Text("Retour", color = accent)
+                        Text(stringResource(R.string.encounter_detail_back_button), color = accent)
                     }
                 }
             } else {
@@ -144,8 +146,8 @@ fun EncounterDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteConfirm = false },
             containerColor = theme.backgroundColor,
-            title = { Text("Retirer cette rencontre ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-            text = { Text("Cette personne ne figurera plus dans vos rencontres. Ses souvenirs associés resteront intacts.", color = theme.contentColor.copy(alpha = 0.7f)) },
+            title = { Text(stringResource(R.string.encounter_detail_remove_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.encounter_detail_remove_text), color = theme.contentColor.copy(alpha = 0.7f)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -155,12 +157,12 @@ fun EncounterDetailScreen(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = Error)
                 ) {
-                    Text("Retirer", color = Color.White)
+                    Text(stringResource(R.string.encounter_detail_remove_confirm), color = Color.White)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {
-                    Text("Annuler", color = theme.contentColor)
+                    Text(stringResource(R.string.encounter_detail_cancel), color = theme.contentColor)
                 }
             }
         )
@@ -175,7 +177,7 @@ fun EncounterDetailScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = "Retour", 
+                            contentDescription = stringResource(R.string.encounter_detail_desc_back), 
                             tint = theme.contentColor
                         )
                     }
@@ -185,14 +187,14 @@ fun EncounterDetailScreen(
                         IconButton(onClick = { showEditDialog = true }) {
                             Icon(
                                 imageVector = Icons.Default.Edit, 
-                                contentDescription = "Modifier", 
+                                contentDescription = stringResource(R.string.encounter_detail_desc_edit), 
                                 tint = theme.contentColor
                             )
                         }
                         IconButton(onClick = { showDeleteConfirm = true }) {
                             Icon(
                                 imageVector = Icons.Default.Delete, 
-                                contentDescription = "Supprimer", 
+                                contentDescription = stringResource(R.string.encounter_detail_desc_delete), 
                                 tint = Error
                             )
                         }
@@ -212,7 +214,17 @@ fun EncounterDetailScreen(
             // 1. HEADER : PORTRAIT ET IDENTITÉ
             Row(modifier = Modifier.fillMaxWidth()) {
                 // Portrait
-                val isPartner = displayLinkNature(currentPerson.linkNature) == "Partenaire"
+                val natureRaw = displayLinkNature(currentPerson.linkNature)
+                val natureLabel = when(natureRaw) {
+                    "Partenaire" -> stringResource(R.string.encounter_nature_partner)
+                    "Ami" -> stringResource(R.string.encounter_nature_ami)
+                    "Mentor" -> stringResource(R.string.encounter_nature_mentor)
+                    "Collègue" -> stringResource(R.string.encounter_nature_collegue)
+                    "Voisin" -> stringResource(R.string.encounter_nature_voisin)
+                    "non renseigné" -> stringResource(R.string.encounter_nature_not_set)
+                    else -> natureRaw
+                }
+                val isPartner = natureRaw == "Partenaire"
                 val activePath = currentPerson.encounterImagePath ?: currentPerson.imagePath
                 val isPathEncrypted = activePath?.endsWith(".enc") == true
 
@@ -271,7 +283,7 @@ fun EncounterDetailScreen(
                             Box(Modifier.size(8.dp).clip(CircleShape).background(getNatureColor(currentPerson.linkNature)))
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                text = displayLinkNature(currentPerson.linkNature).uppercase(),
+                                text = natureLabel.uppercase(),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
                                 color = theme.contentColor.copy(alpha = 0.8f)
                             )
@@ -280,20 +292,20 @@ fun EncounterDetailScreen(
                         Spacer(Modifier.height(24.dp))
 
                         // Intertitre Rencontre
-                        Text("NOTRE RENCONTRE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = accent)
+                        Text(stringResource(R.string.encounter_detail_header_encounter), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = accent)
                         Text(
-                            text = "J'avais ${currentPerson.encounterAge ?: "?"} ans",
+                            text = stringResource(R.string.encounter_detail_age_at_encounter, currentPerson.encounterAge ?: "?"),
                             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                             color = theme.contentColor
                         )
                         
                         val contextLabel = when(currentPerson.encounterContext) {
-                            "SCHOOL" -> "École"
-                            "WORK" -> "Travail"
-                            "SPORT" -> "Sport"
-                            "PASSION" -> "Passion"
-                            "TRAVEL" -> "Voyage"
-                            "OTHER" -> "Autre"
+                            "SCHOOL" -> stringResource(R.string.encounter_context_school)
+                            "WORK" -> stringResource(R.string.encounter_context_work)
+                            "SPORT" -> stringResource(R.string.encounter_context_sport)
+                            "PASSION" -> stringResource(R.string.encounter_context_passion)
+                            "TRAVEL" -> stringResource(R.string.encounter_context_travel)
+                            "OTHER" -> stringResource(R.string.encounter_context_other)
                             else -> null
                         }
                         val details = listOfNotNull(contextLabel, currentPerson.encounterLocationLabel).joinToString(" · ")
@@ -342,7 +354,7 @@ fun EncounterDetailScreen(
                             )
                             Spacer(Modifier.width(16.dp))
                             Text(
-                                text = "Présenté(e) par ${introducer.firstName}",
+                                text = stringResource(R.string.encounter_detail_introduced_by, introducer.firstName),
                                 modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                                 color = theme.contentColor
@@ -356,7 +368,7 @@ fun EncounterDetailScreen(
 
             // 3. CE QU'ELLE M'A APPORTÉ
             if (currentPerson.encounterBiography.isNotBlank()) {
-                Text("CE QU'IL/ELLE M'A APPORTÉ", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.encounter_detail_legacy_title), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = theme.contentColor.copy(alpha = 0.4f))
                 Spacer(Modifier.height(12.dp))
                 Text(
                     text = currentPerson.encounterBiography,
@@ -368,7 +380,7 @@ fun EncounterDetailScreen(
 
             // 4. PHOTOS & VIDÉOS
             if (personMedia.isNotEmpty()) {
-                Text("PHOTOS & VIDÉOS", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.encounter_detail_media_title), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp), color = theme.contentColor.copy(alpha = 0.4f))
                 Spacer(Modifier.height(16.dp))
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(personMedia) { media ->
@@ -384,7 +396,7 @@ fun EncounterDetailScreen(
                                             creatorId = targetCreatorId,
                                             mediaUrl = media.mediaPath,
                                             entryType = media.mediaType,
-                                            aiSummary = "Média de Rencontre",
+                                            aiSummary = context.getString(R.string.encounter_detail_media_title),
                                             sourceDocType = "personMedia",
                                             personId = personId,
                                             isEncrypted = media.mediaPath.endsWith(".enc")
@@ -424,7 +436,6 @@ fun EncounterDetailScreen(
                 Spacer(Modifier.height(40.dp))
             }
 
-            // 5. APPARAÎT DANS N SOUVENIRS
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = accent.copy(alpha = 0.05f),
@@ -432,8 +443,10 @@ fun EncounterDetailScreen(
                 border = BorderStroke(1.dp, accent.copy(alpha = 0.1f))
             ) {
                 Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    val label = if (memoriesCount > 1) stringResource(R.string.encounter_detail_memories_count_plural, memoriesCount) 
+                                else stringResource(R.string.encounter_detail_memories_count_singular, memoriesCount)
                     Text(
-                        text = "Apparaît dans $memoriesCount souvenir${if (memoriesCount > 1) "s" else ""}",
+                        text = label,
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         color = theme.contentColor,
                         modifier = Modifier.weight(1f)
@@ -447,7 +460,7 @@ fun EncounterDetailScreen(
             val linkStatus = currentPerson.linkStatus ?: "PRESENT"
             if (currentPerson.relationEndAge != null) {
                 StatusBadge(
-                    label = "Nos chemins se sont séparés · j'avais ${currentPerson.relationEndAge} ans",
+                    label = stringResource(R.string.encounter_detail_status_separated, currentPerson.relationEndAge),
                     color = Color.Gray
                 )
                 if (!currentPerson.relationEndReason.isNullOrBlank()) {
@@ -460,9 +473,9 @@ fun EncounterDetailScreen(
                 }
             } else {
                 when(linkStatus) {
-                    "PRESENT" -> StatusBadge("Toujours dans ma vie", accent)
-                    "LOST" -> StatusBadge("Perdu de vue", Color.Gray)
-                    "PASSED" -> StatusBadge("N'est plus là", Color.Gray)
+                    "PRESENT" -> StatusBadge(stringResource(R.string.encounter_detail_status_present), accent)
+                    "LOST" -> StatusBadge(stringResource(R.string.encounter_detail_status_lost), Color.Gray)
+                    "PASSED" -> StatusBadge(stringResource(R.string.encounter_detail_status_passed), Color.Gray)
                 }
             }
             

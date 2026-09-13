@@ -33,9 +33,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.stringArrayResource
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.delay
@@ -98,7 +101,7 @@ fun MemoryDetailScreen(
                 if (file != null) viewModel.addMediaComplement(entryId, file, "VIDEO")
             } else {
                 scope.launch {
-                    snackbarHostState.showSnackbar("Cette vidéo dépasse la durée maximale de 90 secondes autorisée.")
+                    snackbarHostState.showSnackbar(context.getString(R.string.memory_detail_error_video_too_long_snackbar))
                 }
             }
         }
@@ -177,7 +180,7 @@ fun MemoryDetailScreen(
                         if (file != null) viewModel.addMediaComplement(entryId, file, "VIDEO")
                     } else {
                         scope.launch {
-                            snackbarHostState.showSnackbar("Cette vidéo dépasse la durée maximale de 90 secondes autorisée.")
+                            snackbarHostState.showSnackbar(context.getString(R.string.memory_detail_error_video_too_long_snackbar))
                         }
                     }
                 } else {
@@ -264,14 +267,14 @@ fun MemoryDetailScreen(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false; deleteConfirmStep = 1 },
             containerColor = theme.backgroundColor,
-            title = { Text(if (deleteConfirmStep == 1) "Supprimer ce souvenir ?" else "Confirmer la suppression ?", color = theme.contentColor) },
+            title = { Text(if (deleteConfirmStep == 1) stringResource(R.string.memory_detail_delete_dialog_title) else stringResource(R.string.memory_detail_delete_confirm_title), color = theme.contentColor) },
             text = {
                 if (deleteConfirmStep == 1) {
                     val mediaCount = complements.count { it.entryType != "TEXT" }
-                    val message = if (mediaCount > 0) "Ce souvenir contient $mediaCount média(s). Tout sera supprimé définitivement." else "Cette action supprimera le souvenir de votre fil ainsi que du Cloud."
+                    val message = if (mediaCount > 0) stringResource(R.string.memory_detail_delete_has_media, mediaCount) else stringResource(R.string.memory_detail_delete_no_media)
                     Text(message, color = theme.contentColor.copy(alpha = 0.7f))
                 } else {
-                    Text("Cette action est définitive et ne peut pas être annulée. Confirmer la suppression ?", color = Error)
+                    Text(stringResource(R.string.memory_detail_delete_warning_permanent), color = Error)
                 }
             },
             confirmButton = {
@@ -281,10 +284,10 @@ fun MemoryDetailScreen(
                         else { viewModel.deleteMemory(); showDeleteDialog = false }
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = if (deleteConfirmStep == 1) accent else Error)
-                ) { Text(if (deleteConfirmStep == 1) "Continuer" else "Supprimer définitivement", color = theme.backgroundColor) }
+                ) { Text(if (deleteConfirmStep == 1) stringResource(R.string.memory_detail_delete_button_continue) else stringResource(R.string.memory_detail_delete_button_permanent), color = theme.backgroundColor) }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false; deleteConfirmStep = 1 }) { Text("Annuler", color = theme.contentColor) }
+                TextButton(onClick = { showDeleteDialog = false; deleteConfirmStep = 1 }) { Text(stringResource(R.string.memory_detail_delete_button_cancel), color = theme.contentColor) }
             }
         )
     }
@@ -298,9 +301,9 @@ fun MemoryDetailScreen(
                 TopAppBar(
                     title = { 
                         val titleText = when(entry?.entryType) {
-                            "PORTRAIT" -> entry?.aiSummary ?: "Portrait"
-                            "QUESTION_ANSWER" -> "Question : ${entry?.aiSummary}"
-                            else -> if (entry?.parentEntryId != null) "Réponse au Portrait" else "L'Étincelle & son Récit"
+                            "PORTRAIT" -> entry?.aiSummary ?: stringResource(R.string.memory_detail_topbar_portrait)
+                            "QUESTION_ANSWER" -> stringResource(R.string.memory_detail_topbar_question, entry?.aiSummary ?: "")
+                            else -> if (entry?.parentEntryId != null) stringResource(R.string.memory_detail_topbar_portrait_response) else stringResource(R.string.memory_detail_topbar_spark_story)
                         }
                         Text(titleText, style = MaterialTheme.typography.labelLarge, color = theme.contentColor) 
                     },
@@ -309,7 +312,7 @@ fun MemoryDetailScreen(
                     },
                     actions = {
                         if (!isReadOnly) {
-                            IconButton(onClick = { showDeleteDialog = true }) { Icon(Icons.Default.Delete, contentDescription = "Supprimer", tint = Error) }
+                            IconButton(onClick = { showDeleteDialog = true }) { Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.memory_detail_delete_button_delete), tint = Error) }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -334,7 +337,7 @@ fun MemoryDetailScreen(
                     // ── SECTION 1 : L'ESSENTIEL ────────────────
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
-                            text = "L'ESSENTIEL", 
+                            text = stringResource(R.string.memory_detail_essential_section), 
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 13.sp), 
                             color = Color.Black, 
                             letterSpacing = 2.sp
@@ -347,7 +350,7 @@ fun MemoryDetailScreen(
                         ) {
                             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(24.dp)) {
                                 if (entry!!.entryType != "PORTRAIT") {
-                                    val subjectLabel = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") "LA QUESTION" else "LE SUJET"
+                                    val subjectLabel = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") stringResource(R.string.memory_detail_question_label) else stringResource(R.string.memory_detail_subject_label)
                                     Column {
                                         Text(subjectLabel, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
                                         Spacer(modifier = Modifier.height(8.dp))
@@ -378,7 +381,7 @@ fun MemoryDetailScreen(
                                                         value = editableTitle,
                                                         onValueChange = { editableTitle = it },
                                                         modifier = Modifier.fillMaxWidth(),
-                                                        placeholder = { Text("Quel est le sujet ?", color = theme.contentColor.copy(alpha = 0.3f)) },
+                                                        placeholder = { Text(stringResource(R.string.memory_detail_subject_placeholder), color = theme.contentColor.copy(alpha = 0.3f)) },
                                                         textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold, color = theme.contentColor),
                                                         colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent)
                                                     )
@@ -410,7 +413,7 @@ fun MemoryDetailScreen(
                                 }
 
                                 Column {
-                                    val récitLabel = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") "MA RÉPONSE" else "LE RÉCIT"
+                                    val récitLabel = if (isChildEntry || entry!!.entryType == "QUESTION_ANSWER") stringResource(R.string.memory_detail_response_label) else stringResource(R.string.memory_detail_story_label)
                                     Text(récitLabel, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Card(
@@ -420,7 +423,7 @@ fun MemoryDetailScreen(
                                         border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                                     ) {
                                         Text(
-                                            text = editableText.ifEmpty { "Appuyer pour écrire..." },
+                                            text = editableText.ifEmpty { stringResource(R.string.memory_detail_story_placeholder) },
                                             modifier = Modifier.padding(16.dp),
                                             maxLines = 4, // v9.4.27 : Troncature stricte 3-5 lignes
                                             overflow = TextOverflow.Ellipsis,
@@ -432,11 +435,11 @@ fun MemoryDetailScreen(
                                 // TONALITÉ (v9.4.27 : Déplacé dans L'ESSENTIEL)
                                 Column {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Text("QUELLE TONALITÉ ?", style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                                        Text(stringResource(R.string.memory_detail_tonality_label), style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
                                         Spacer(Modifier.width(8.dp))
                                         com.example.phoenx.ui.components.InfoPoint(
-                                            title = "La Tonalité du souvenir",
-                                            content = "La tonalité définit l'émotion dominante de ce moment (Joie, Nostalgie, Sagesse...). L'IA Biographe s'en servira pour adapter son style d'écriture lors de la rédaction de votre Livre de Vie, afin de respecter l'intention originale de votre récit."
+                                            title = stringResource(R.string.memory_detail_tonality_info_title),
+                                            content = stringResource(R.string.memory_detail_tonality_info_content)
                                         )
                                     }
                                     Spacer(modifier = Modifier.height(12.dp))
@@ -456,7 +459,7 @@ fun MemoryDetailScreen(
                                     AnimatedVisibility(visible = isTonaliteExpanded) {
                                         Column {
                                             Spacer(modifier = Modifier.height(12.dp))
-                                            val categories = listOf("Sagesse", "Aventure", "Secret", "Famille", "Amour", "Nostalgie", "Humour", "Leçon", "Voyage", "Quotidien", "Épreuve")
+                                            val categories = stringArrayResource(R.array.tonality_categories)
                                             FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                                 categories.forEach { cat ->
                                                     val isSelected = entry!!.emotionalCategory == cat
@@ -486,8 +489,8 @@ fun MemoryDetailScreen(
                                                 value = nuanceText,
                                                 onValueChange = { if (it.length <= 100) { nuanceText = it; viewModel.updateTonalNuance(it) } },
                                                 modifier = Modifier.fillMaxWidth(),
-                                                label = { Text("Précisez la nuance (facultatif)", fontSize = 11.sp) },
-                                                placeholder = { Text("Ex : un peu amer mais je souris en l'écrivant...", fontSize = 11.sp) },
+                                                label = { Text(stringResource(R.string.memory_detail_tonality_nuance_label), fontSize = 11.sp) },
+                                                placeholder = { Text(stringResource(R.string.memory_detail_tonality_nuance_placeholder), fontSize = 11.sp) },
                                                 maxLines = 3,
                                                 enabled = !isReadOnly,
                                                 shape = RoundedCornerShape(12.dp),
@@ -522,7 +525,7 @@ fun MemoryDetailScreen(
                         // ── SECTION 5 : COMPLÉMENTS MÉDIA ────────────────
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(
-                            text = "COMPLÉMENTS MÉDIA", 
+                            text = stringResource(R.string.memory_detail_complements_section),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, fontSize = 13.sp), 
                             color = Color.Black, 
                             letterSpacing = 2.sp
@@ -566,15 +569,15 @@ fun MemoryDetailScreen(
                                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                                     Icon(Icons.Default.Mic, null, tint = accent.copy(alpha = 0.4f))
                                     Spacer(Modifier.width(12.dp))
-                                    Text("Prêt à enregistrer", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
+                                    Text(stringResource(R.string.memory_detail_voice_note_ready), color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
                                 }
                                 Row {
-                                    TextButton(onClick = { viewModel.closeVoiceNoteOverlay() }) { Text("Annuler", color = theme.contentColor.copy(alpha = 0.4f)) }
+                                    TextButton(onClick = { viewModel.closeVoiceNoteOverlay() }) { Text(stringResource(R.string.memory_detail_delete_button_cancel), color = theme.contentColor.copy(alpha = 0.4f)) }
                                     Spacer(Modifier.width(8.dp))
                                     Button(onClick = { viewModel.startAudioRecording() }, colors = ButtonDefaults.buttonColors(containerColor = accent), shape = RoundedCornerShape(12.dp)) {
                                         Icon(Icons.Default.PlayArrow, null, tint = theme.backgroundColor)
                                         Spacer(Modifier.width(8.dp))
-                                        Text("Démarrer", color = theme.backgroundColor)
+                                        Text(stringResource(R.string.memory_detail_voice_note_button_start), color = theme.backgroundColor)
                                     }
                                 }
                             } else {
@@ -582,7 +585,7 @@ fun MemoryDetailScreen(
                                     Box(modifier = Modifier.size(12.dp).background(Color.Red, CircleShape))
                                     Spacer(Modifier.width(12.dp))
                                     Column {
-                                        Text("Enregistrement...", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
+                                        Text(stringResource(R.string.memory_detail_voice_note_recording), color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelSmall)
                                         if (sttPartialText.isNotEmpty()) {
                                             Text(text = sttPartialText, color = theme.contentColor, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                                         }
@@ -591,7 +594,7 @@ fun MemoryDetailScreen(
                                 Button(onClick = { viewModel.stopAudioRecording(entryId) }, colors = ButtonDefaults.buttonColors(containerColor = accent), shape = RoundedCornerShape(12.dp)) {
                                     Icon(Icons.Default.Stop, null, tint = theme.backgroundColor)
                                     Spacer(Modifier.width(8.dp))
-                                    Text("Terminer", color = theme.backgroundColor)
+                                    Text(stringResource(R.string.memory_detail_voice_note_button_finish), color = theme.backgroundColor)
                                 }
                             }
                         }
@@ -613,7 +616,7 @@ fun MemoryDetailScreen(
                             ) {
                                 // GAUCHE : Libellé de contexte
                                 Text(
-                                    text = "TON RÉCIT", 
+                                    text = stringResource(R.string.memory_detail_story_editor_title), 
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                                     color = accent
                                 )
@@ -624,7 +627,7 @@ fun MemoryDetailScreen(
                                         onClick = { viewModel.updateContent(editableText); isStoryEditorOpen = false },
                                         modifier = Modifier.size(40.dp)
                                     ) { 
-                                        Icon(Icons.Default.Check, "Valider", tint = accent) 
+                                        Icon(Icons.Default.Check, stringResource(R.string.memory_metadata_date_confirm), tint = accent) 
                                     }
                                 }
                             }
@@ -633,7 +636,7 @@ fun MemoryDetailScreen(
                                 value = editableText,
                                 onValueChange = { editableText = it },
                                 modifier = Modifier.fillMaxWidth().weight(1f).padding(horizontal = 24.dp),
-                                placeholder = { Text("Écris ton récit ici...", color = theme.contentColor.copy(alpha = 0.3f)) },
+                                placeholder = { Text(stringResource(R.string.memory_detail_story_editor_placeholder), color = theme.contentColor.copy(alpha = 0.3f)) },
                                 textStyle = MaterialTheme.typography.bodyLarge.copy(lineHeight = 28.sp, color = theme.contentColor),
                                 colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent, focusedIndicatorColor = Color.Transparent, unfocusedIndicatorColor = Color.Transparent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                             )

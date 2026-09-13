@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.AppThemeState
 import com.example.phoenx.ui.theme.LocalAppTheme
 
@@ -70,14 +72,14 @@ fun LastMemoryCard(entry: com.example.phoenx.data.local.OfflineEntry?) {
             Box(modifier = Modifier.width(3.dp).fillMaxHeight().background(Brush.verticalGradient(listOf(accent, Color.Transparent))))
             Column(modifier = Modifier.padding(13.dp, 14.dp)) {
                 Text(
-                    "DERNIER SOUVENIR", 
+                    stringResource(R.string.home_last_memory_title), 
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold), 
                     color = theme.contentColor.copy(alpha = 0.4f)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 if (entry == null) {
                     Text(
-                        "Aucun souvenir déposé pour l'instant.", 
+                        stringResource(R.string.home_last_memory_empty), 
                         style = MaterialTheme.typography.bodySmall.copy(
                             fontStyle = FontStyle.Italic, 
                             fontFamily = theme.fontFamily,
@@ -85,7 +87,7 @@ fun LastMemoryCard(entry: com.example.phoenx.data.local.OfflineEntry?) {
                         ), 
                         color = theme.contentColor.copy(alpha = 0.7f)
                     )
-                    Text("— Commence dès maintenant", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold))
+                    Text(stringResource(R.string.home_last_memory_cta), color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold))
                 } else {
                     Text(
                         entry.aiSummary,
@@ -99,7 +101,7 @@ fun LastMemoryCard(entry: com.example.phoenx.data.local.OfflineEntry?) {
                         overflow = TextOverflow.Ellipsis
                     )
                     val age = com.example.phoenx.domain.util.AgeUtils.parseAgeJson(entry.ageAtCreation)
-                    Text("— À ${age.years} ans", color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold))
+                    Text(stringResource(R.string.home_last_memory_age, age.years), color = accent, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold))
                 }
             }
         }
@@ -118,11 +120,11 @@ fun ProgressionCard(memoriesCount: Int, questionsCount: Int, chaptersCount: Int)
         border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
     ) {
         Row(modifier = Modifier.padding(12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-            StatItem(count = memoriesCount, label = "SOUVENIRS", modifier = Modifier.weight(1f))
+            StatItem(count = memoriesCount, label = stringResource(R.string.home_stats_memories), modifier = Modifier.weight(1f))
             Box(modifier = Modifier.width(1.dp).height(40.dp).background(theme.contentColor.copy(alpha = 0.1f)).align(Alignment.CenterVertically))
-            StatItem(count = questionsCount, label = "QUESTIONS", modifier = Modifier.weight(1f))
+            StatItem(count = questionsCount, label = stringResource(R.string.home_stats_questions), modifier = Modifier.weight(1f))
             Box(modifier = Modifier.width(1.dp).height(40.dp).background(theme.contentColor.copy(alpha = 0.1f)).align(Alignment.CenterVertically))
-            StatItem(count = chaptersCount, label = "CHAPITRES", modifier = Modifier.weight(1f))
+            StatItem(count = chaptersCount, label = stringResource(R.string.home_stats_chapters), modifier = Modifier.weight(1f))
         }
     }
 }
@@ -243,7 +245,7 @@ fun TrustCircleCard(
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Mon Cercle de Confiance",
+                    stringResource(R.string.home_trust_circle_title),
                     style = TextStyle(
                         fontFamily = theme.fontFamily,
                         fontWeight = FontWeight.Bold,
@@ -252,7 +254,7 @@ fun TrustCircleCard(
                     color = theme.contentColor
                 )
                 Text(
-                    "Gérer mes destinataires et dépositaires",
+                    stringResource(R.string.home_trust_circle_subtitle),
                     style = MaterialTheme.typography.bodySmall,
                     color = theme.contentColor.copy(alpha = 0.6f)
                 )
