@@ -1,17 +1,21 @@
 package com.example.phoenx.ui.screens.characters
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.PersonEntity
 import com.example.phoenx.domain.model.SimplifiedPerson
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 @HiltViewModel
 class CharactersViewModel @Inject constructor(
-    private val offlineEntryDao: OfflineEntryDao
+    private val offlineEntryDao: OfflineEntryDao,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<CharactersUiState>(CharactersUiState.Loading)
@@ -71,7 +75,7 @@ class CharactersViewModel @Inject constructor(
                     name = it.name,
                     photoUrl = it.photoUrl,
                     sourceType = "depositaire",
-                    relationship = if (it.role == "primary") "Gardien Principal" else "Gardien Secondaire"
+                    relationship = if (it.role == "primary") context.getString(R.string.characters_role_guardian_primary) else context.getString(R.string.characters_role_guardian_secondary)
                 ))
             }
 

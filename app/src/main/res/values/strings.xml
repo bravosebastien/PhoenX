@@ -1638,4 +1638,57 @@
     <string name="portrait_essence_card_title">VOTRE ESSENCE</string>
     <string name="portrait_essence_footer_ai_version">Synthèse IA PHOEN-X v8.9.7</string>
     <string name="portrait_essence_vm_error_gen">Erreur de génération</string>
+
+    <!-- Characters Batch -->
+    <string name="characters_onboarding_title">Les Personnages</string>
+    <string-array name="characters_onboarding_points">
+        <item>Gère ici la liste des personnes qui peuplent ton histoire.</item>
+        <item>Ajoute les personnes qui te sont chères pour enrichir ton récit.</item>
+    </string-array>
+    <string name="characters_title_selection">Choisir un personnage</string>
+    <string name="characters_title_list">Mes Personnages</string>
+    <string name="characters_relationship_fallback">Proche</string>
+    <string name="characters_count_singular">souvenir</string>
+    <string name="characters_count_plural">souvenirs</string>
+    <string name="characters_edit_icon_desc">Éditer</string>
+    <string name="characters_empty_title">Aucun personnage encore cité.</string>
+    <string name="characters_empty_subtitle">Ajoute les personnes qui peuplent ton histoire.</string>
+    <string name="characters_role_guardian_primary">Gardien Principal</string>
+    <string name="characters_role_guardian_secondary">Gardien Secondaire</string>
+
+    <string name="character_edit_title">Modifier le Personnage</string>
+    <string name="character_edit_button_save">Enregistrer</string>
+    <string name="character_type_human">Humain</string>
+    <string name="character_type_animal">Animal</string>
+    <string name="character_section_identity">Identité</string>
+    <string name="character_label_first_name">Prénom</string>
+    <string name="character_label_pet_name">Petit nom</string>
+    <string name="character_label_last_name">Nom (facultatif)</string>
+    <string name="character_section_relationship">Relation</string>
+    <string name="character_label_relationship_human">Lien de parenté / Relation</string>
+    <string name="character_label_relationship_animal">C\'est qui pour toi ?</string>
+    <string name="character_placeholder_relationship_human">Ex: Mon cousin</string>
+    <string name="character_placeholder_relationship_animal">Ex: Mon fidèle compagnon</string>
+    <string name="character_label_history_details">Précisions sur votre histoire</string>
+    <string name="character_section_physical_human">Portrait Physique (v9.0)</string>
+    <string name="character_section_physical_animal">Description Physique</string>
+    <string name="character_label_height">Taille (cm)</string>
+    <string name="character_label_weight">Poids (kg)</string>
+    <string name="character_label_eyes">Yeux</string>
+    <string name="character_label_hair_human">Cheveux</string>
+    <string name="character_label_hair_animal">Couleur du pelage</string>
+    <string name="character_section_social">Vie Sociale (v9.0)</string>
+    <string name="character_label_profession">Métier / Occupation</string>
+    <string name="character_label_clothing">Style vestimentaire</string>
+    <string name="character_label_has_children">A des enfants ?</string>
+    <string name="character_label_yes">Oui</string>
+    <string name="character_label_no">Non</string>
+    <string name="character_section_species">Espèce</string>
+    <string name="character_label_species">Race / Espèce</string>
+    <string name="character_placeholder_species">Ex: Golden Retriever, Chat de gouttière</string>
+    <string name="character_button_delete">Supprimer ce personnage</string>
+    <string name="character_delete_dialog_title">Supprimer %1$s ?</string>
+    <string name="character_delete_dialog_text">Ce personnage apparaît dans %1$d souvenirs — le supprimer le retirera de ces récits, sans supprimer les souvenirs eux-mêmes.</string>
+    <string name="character_delete_confirm">Supprimer définitivement</string>
+    <string name="character_delete_cancel">Annuler</string>
 </resources>

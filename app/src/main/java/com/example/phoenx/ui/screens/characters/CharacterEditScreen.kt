@@ -22,7 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.CameoCropDialog
 import com.example.phoenx.ui.components.CameoPortrait
 import com.example.phoenx.ui.theme.*
@@ -105,7 +107,7 @@ fun CharacterEditScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Modifier le Personnage", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(stringResource(R.string.character_edit_title), style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor) }
                 },
@@ -125,7 +127,7 @@ fun CharacterEditScreen(
                         },
                         enabled = firstName.isNotBlank()
                     ) {
-                        Text("Enregistrer", color = accent, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.character_edit_button_save), color = accent, fontWeight = FontWeight.Bold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -148,7 +150,7 @@ fun CharacterEditScreen(
                 FilterChip(
                     selected = characterType == "HUMAN",
                     onClick = { characterType = "HUMAN" },
-                    label = { Text("Humain") },
+                    label = { Text(stringResource(R.string.character_type_human)) },
                     leadingIcon = if (characterType == "HUMAN") {
                         { Icon(Icons.Default.Person, null, modifier = Modifier.size(16.dp)) }
                     } else null,
@@ -158,7 +160,7 @@ fun CharacterEditScreen(
                 FilterChip(
                     selected = characterType == "ANIMAL",
                     onClick = { characterType = "ANIMAL" },
-                    label = { Text("Animal") },
+                    label = { Text(stringResource(R.string.character_type_animal)) },
                     leadingIcon = if (characterType == "ANIMAL") {
                         { Icon(Icons.Default.Pets, null, modifier = Modifier.size(16.dp)) }
                     } else null,
@@ -189,12 +191,12 @@ fun CharacterEditScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // IDENTITÉ DE BASE
-            SectionTitle("Identité", accent)
+            SectionTitle(stringResource(R.string.character_section_identity), accent)
             
             OutlinedTextField(
                 value = firstName,
                 onValueChange = { firstName = it },
-                label = { Text(if (characterType == "HUMAN") "Prénom" else "Petit nom") },
+                label = { Text(if (characterType == "HUMAN") stringResource(R.string.character_label_first_name) else stringResource(R.string.character_label_pet_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
             )
@@ -205,20 +207,20 @@ fun CharacterEditScreen(
                 OutlinedTextField(
                     value = lastName,
                     onValueChange = { lastName = it },
-                    label = { Text("Nom (facultatif)") },
+                    label = { Text(stringResource(R.string.character_label_last_name)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
-            SectionTitle("Relation", accent)
+            SectionTitle(stringResource(R.string.character_section_relationship), accent)
 
             OutlinedTextField(
                 value = relationship,
                 onValueChange = { relationship = it },
-                label = { Text(if (characterType == "HUMAN") "Lien de parenté / Relation" else "C'est qui pour toi ?") },
-                placeholder = { Text(if (characterType == "HUMAN") "Ex: Mon cousin" else "Ex: Mon fidèle compagnon") },
+                label = { Text(if (characterType == "HUMAN") stringResource(R.string.character_label_relationship_human) else stringResource(R.string.character_label_relationship_animal)) },
+                placeholder = { Text(if (characterType == "HUMAN") stringResource(R.string.character_placeholder_relationship_human) else stringResource(R.string.character_placeholder_relationship_animal)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
             )
@@ -228,19 +230,19 @@ fun CharacterEditScreen(
             OutlinedTextField(
                 value = relationshipDetail,
                 onValueChange = { relationshipDetail = it },
-                label = { Text("Précisions sur votre histoire") },
+                label = { Text(stringResource(R.string.character_label_history_details)) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            SectionTitle(if (characterType == "HUMAN") "Portrait Physique (v9.0)" else "Description Physique", accent)
+            SectionTitle(if (characterType == "HUMAN") stringResource(R.string.character_section_physical_human) else stringResource(R.string.character_section_physical_animal), accent)
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = height,
                     onValueChange = { height = it },
-                    label = { Text("Taille (cm)") },
+                    label = { Text(stringResource(R.string.character_label_height)) },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
@@ -248,7 +250,7 @@ fun CharacterEditScreen(
                 OutlinedTextField(
                     value = weight,
                     onValueChange = { weight = it },
-                    label = { Text("Poids (kg)") },
+                    label = { Text(stringResource(R.string.character_label_weight)) },
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
@@ -261,14 +263,14 @@ fun CharacterEditScreen(
                 OutlinedTextField(
                     value = eyeColor,
                     onValueChange = { eyeColor = it },
-                    label = { Text("Yeux") },
+                    label = { Text(stringResource(R.string.character_label_eyes)) },
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
                 OutlinedTextField(
                     value = hairColor,
                     onValueChange = { hairColor = it },
-                    label = { Text(if (characterType == "HUMAN") "Cheveux" else "Couleur du pelage") },
+                    label = { Text(if (characterType == "HUMAN") stringResource(R.string.character_label_hair_human) else stringResource(R.string.character_label_hair_animal)) },
                     modifier = Modifier.weight(1f),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
@@ -276,12 +278,12 @@ fun CharacterEditScreen(
 
             if (characterType == "HUMAN") {
                 Spacer(modifier = Modifier.height(24.dp))
-                SectionTitle("Vie Sociale (v9.0)", accent)
+                SectionTitle(stringResource(R.string.character_section_social), accent)
 
                 OutlinedTextField(
                     value = profession,
                     onValueChange = { profession = it },
-                    label = { Text("Métier / Occupation") },
+                    label = { Text(stringResource(R.string.character_label_profession)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
@@ -291,7 +293,7 @@ fun CharacterEditScreen(
                 OutlinedTextField(
                     value = clothingStyle,
                     onValueChange = { clothingStyle = it },
-                    label = { Text("Style vestimentaire") },
+                    label = { Text(stringResource(R.string.character_label_clothing)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
@@ -299,30 +301,30 @@ fun CharacterEditScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                    Text("A des enfants ?", color = theme.contentColor, modifier = Modifier.weight(1f))
+                    Text(stringResource(R.string.character_label_has_children), color = theme.contentColor, modifier = Modifier.weight(1f))
                     FilterChip(
                         selected = hasChildren == true,
                         onClick = { hasChildren = if (hasChildren == true) null else true },
-                        label = { Text("Oui") },
+                        label = { Text(stringResource(R.string.character_label_yes)) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
                     )
                     Spacer(Modifier.width(8.dp))
                     FilterChip(
                         selected = hasChildren == false,
                         onClick = { hasChildren = if (hasChildren == false) null else false },
-                        label = { Text("Non") },
+                        label = { Text(stringResource(R.string.character_label_no)) },
                         colors = FilterChipDefaults.filterChipColors(selectedContainerColor = accent, selectedLabelColor = theme.backgroundColor)
                     )
                 }
             } else {
                 // ANIMAL - On réutilise le champ profession pour la Race/Espèce
                 Spacer(modifier = Modifier.height(24.dp))
-                SectionTitle("Espèce", accent)
+                SectionTitle(stringResource(R.string.character_section_species), accent)
                 OutlinedTextField(
                     value = profession,
                     onValueChange = { profession = it },
-                    label = { Text("Race / Espèce") },
-                    placeholder = { Text("Ex: Golden Retriever, Chat de gouttière") },
+                    label = { Text(stringResource(R.string.character_label_species)) },
+                    placeholder = { Text(stringResource(R.string.character_placeholder_species)) },
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, focusedTextColor = theme.contentColor, unfocusedTextColor = theme.contentColor)
                 )
@@ -341,7 +343,7 @@ fun CharacterEditScreen(
             ) {
                 Icon(Icons.Default.DeleteOutline, null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
-                Text("Supprimer ce personnage")
+                Text(stringResource(R.string.character_button_delete))
             }
 
             Spacer(modifier = Modifier.height(48.dp))
@@ -350,9 +352,9 @@ fun CharacterEditScreen(
         if (showDeleteConfirm) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirm = false },
-                title = { Text("Supprimer ${character?.firstName} ?") },
+                title = { Text(stringResource(R.string.character_delete_dialog_title, character?.firstName ?: "")) },
                 text = { 
-                    Text("Ce personnage apparaît dans $appearanceCount souvenirs — le supprimer le retirera de ces récits, sans supprimer les souvenirs eux-mêmes.") 
+                    Text(stringResource(R.string.character_delete_dialog_text, appearanceCount)) 
                 },
                 confirmButton = {
                     Button(
@@ -362,12 +364,12 @@ fun CharacterEditScreen(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
                     ) {
-                        Text("Supprimer définitivement", color = Color.White)
+                        Text(stringResource(R.string.character_delete_confirm), color = Color.White)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteConfirm = false }) {
-                        Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+                        Text(stringResource(R.string.character_delete_cancel), color = theme.contentColor.copy(alpha = 0.6f))
                     }
                 },
                 containerColor = theme.backgroundColor,

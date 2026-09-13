@@ -21,7 +21,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.domain.model.SimplifiedPerson
 import com.example.phoenx.ui.components.CameoPortrait
 import com.example.phoenx.ui.components.OnboardingPopup
@@ -44,11 +47,8 @@ fun CharactersScreen(
 
     OnboardingPopup(
         pageKey = "characters",
-        title = "Les Personnages",
-        contentPoints = listOf(
-            "Gère ici la liste des personnes qui peuplent ton histoire.",
-            "Ajoute les personnes qui te sont chères pour enrichir ton récit."
-        ),
+        title = stringResource(R.string.characters_onboarding_title),
+        contentPoints = stringArrayResource(R.array.characters_onboarding_points).toList(),
         preferenceManager = themeViewModel.preferenceManager
     )
 
@@ -58,7 +58,7 @@ fun CharactersScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        if (selectionMode) "Choisir un personnage" else "Mes Personnages",
+                        if (selectionMode) stringResource(R.string.characters_title_selection) else stringResource(R.string.characters_title_list),
                         style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                         color = theme.contentColor
                     ) 
@@ -153,7 +153,7 @@ fun CharacterItem(
                     color = theme.contentColor
                 )
                 Text(
-                    text = character.person.relationship ?: "Proche",
+                    text = character.person.relationship ?: stringResource(R.string.characters_relationship_fallback),
                     style = MaterialTheme.typography.labelSmall,
                     color = accent
                 )
@@ -167,7 +167,7 @@ fun CharacterItem(
                         color = theme.contentColor
                     )
                     Text(
-                        text = if (character.appearanceCount > 1) "souvenirs" else "souvenir",
+                        text = if (character.appearanceCount > 1) stringResource(R.string.characters_count_plural) else stringResource(R.string.characters_count_singular),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                         color = theme.contentColor.copy(alpha = 0.4f)
                     )
@@ -185,7 +185,7 @@ fun CharacterItem(
                 IconButton(onClick = onEditClick) {
                     Icon(
                         imageVector = Icons.Default.Edit,
-                        contentDescription = "Éditer",
+                        contentDescription = stringResource(R.string.characters_edit_icon_desc),
                         tint = theme.contentColor.copy(alpha = 0.4f),
                         modifier = Modifier.size(20.dp)
                     )
@@ -203,12 +203,12 @@ fun EmptyCharacters(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Aucun personnage encore cité.",
+            stringResource(R.string.characters_empty_title),
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             color = theme.contentColor.copy(alpha = 0.4f)
         )
         Text(
-            "Ajoute les personnes qui peuplent ton histoire.",
+            stringResource(R.string.characters_empty_subtitle),
             style = MaterialTheme.typography.bodySmall,
             color = theme.contentColor.copy(alpha = 0.3f)
         )
