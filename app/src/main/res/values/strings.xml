@@ -1850,6 +1850,66 @@
     <string name="rankings_cat_personal">Vie personnelle</string>
     <string name="rankings_cat_sport">Sport</string>
 
+    <!-- Portraits Batch -->
+    <string name="portrait_proche_title">Miroir du proche</string>
+    <string name="portrait_proche_info_title">Portrait Proche</string>
+    <string name="portrait_proche_info_content">Le Portrait Proche vous propose 20 questions pour dresser le portrait d\'une personne qui compte pour vous — un proche déjà présent dans votre Cercle de Confiance. Vos réponses sont rassemblées en un seul souvenir, marqué d\'un badge \'Portrait\' dans votre Fil de Pensée. Vous pouvez recommencer un Portrait Proche pour la même personne autant de fois que vous le souhaitez : chaque version reste distincte, avec sa propre date.</string>
+    <string name="portrait_proche_intro">Voici comment je t\'ai vu. Voici ce que j\’ai vu en toi que tu n\'as peut-être jamais su.</string>
+    <string name="portrait_proche_label_who">POUR QUI EST CE PORTRAIT ?</string>
+    <string name="portrait_proche_button_add_recipient">Ajouter d\'abord un proche</string>
+    <string name="portrait_proche_placeholder_recipient">Choisir un proche</string>
+    <string name="portrait_proche_placeholder_writing">Écris librement ce que tu as vu en %1$s...</string>
+    <string name="portrait_proche_fallback_recipient">ton proche</string>
+    <string name="portrait_proche_button_guidance">Voir des questions de guidage</string>
+    <string name="portrait_proche_button_seal">Sceller ce portrait</string>
+    <string name="portrait_proche_toast_success">Portrait scellé et synchronisé.</string>
+    <string name="portrait_proche_guidance_q1">Quel souvenir revient en premier ?</string>
+    <string name="portrait_proche_guidance_q2">Quelle qualité unique possède-t-il/elle ?</string>
+    <string name="portrait_proche_guidance_q3">Qu\'est-ce qu\'il/elle t\'a appris ?</string>
+    <string name="portrait_proche_guidance_q4">Que veux-tu qu\'il/elle sache sur ce qu\'il/elle représente ?</string>
+
+    <string name="portrait_selection_title">Pour qui écris-tu ce portrait ?</string>
+    <string name="portrait_selection_empty">Ton cercle est vide. Ajoute tes proches sur l\'accueil d\'abord.</string>
+    <string name="portrait_title_with_name">Portrait de %1$s</string>
+    <string name="portrait_title_fallback">Portrait d\'un proche</string>
+    <string name="portrait_progress_label">QUESTION %1$d SUR %2$d</string>
+    <string name="portrait_button_finish_now">Terminer maintenant</string>
+    <string name="portrait_placeholder_thoughts">Écris tes pensées ici... (Optionnel)</string>
+    <string name="portrait_button_previous">Précédent</string>
+    <string name="portrait_button_change_recipient">Changer de proche</string>
+    <string name="portrait_button_skip">Passer</string>
+    <string name="portrait_button_next">Suivant</string>
+    <string name="portrait_button_finalize">Finaliser</string>
+
+    <string name="portrait_vm_error_empty">Le portrait est vide. Écris au moins une pensée.</string>
+    <string name="portrait_vm_recipient_fallback">un proche</string>
+    <string name="portrait_vm_summary_prefix">Portrait de %1$s</string>
+    <string name="portrait_vm_free_thought_label">Pensée libre</string>
+    <string name="portrait_vm_error_save">Erreur de sauvegarde</string>
+
+    <string-array name="portrait_questions">
+        <item>Quel trait de caractère admires-tu le plus chez cette personne ?</item>
+        <item>Quel souvenir vous lie le plus fortement ?</item>
+        <item>Qu\'est-ce qu\'elle ne sait peut-être pas sur elle-même ?</item>
+        <item>Comment a-t-elle changé depuis que tu la connais ?</item>
+        <item>Qu\'est-ce que tu veux qu\'elle sache de la façon dont tu le/la vois ?</item>
+        <item>Quelle est la première chose qui te vient à l\'esprit quand tu penses à elle ?</item>
+        <item>Quel défi majeur avez-vous surmonté ensemble ?</item>
+        <item>Quelle est la qualité que tu aimerais lui emprunter ?</item>
+        <item>Quel lieu symbolise le mieux votre relation ?</item>
+        <item>Quelle chanson ou quel film te fait instantanément penser à elle ?</item>
+        <item>Quel conseil de sa part a marqué ta trajectoire ?</item>
+        <item>Comment décrirais-tu son rire ou sa joie ?</item>
+        <item>Quelle est la plus grande preuve d\'attachement qu\'elle t\'ait donnée ?</item>
+        <item>S\'il ne devait rester qu\'une image d\'elle, laquelle serait-ce ?</item>
+        <item>Qu\'est-ce qui la rend unique au milieu de mille personnes ?</item>
+        <item>Quel est son talent caché que peu de gens voient ?</item>
+        <item>Comment a-t-elle influencé ta vision de la vie ?</item>
+        <item>Quel secret ou quelle confidence partagée vous a rapprochés ?</item>
+        <item>Qu\'est-ce que tu aimerais lui dire si vous aviez 100 ans tous les deux ?</item>
+        <item>Quelle trace penses-tu qu\'elle laissera dans le cœur des gens ?</item>
+    </string-array>
+
     <string-array name="rankings_items_music">
         <item>Musiciens préférés</item>
         <item>Chanteuses préférées</item>

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.*
+import com.example.phoenx.R
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.OfflineEntryDao
@@ -48,7 +49,8 @@ class PortraitViewModel @Inject constructor(
             else {
                 // v9.2.6 : Si le parent est vide (cas standard), on cherche le texte libre dans les enfants
                 offlineEntryDao.getComplements(parentEntry.id).map { children ->
-                    val freeTextEntry = children.find { it.aiSummary == "Pensée libre" }
+                    val freeThoughtLabel = context.getString(R.string.portrait_vm_free_thought_label)
+                    val freeTextEntry = children.find { it.aiSummary == freeThoughtLabel }
                     if (freeTextEntry != null) {
                         encryptionManager.decryptText(freeTextEntry.encryptedPayload)
                     } else if (children.isNotEmpty()) {
@@ -82,7 +84,7 @@ class PortraitViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 if (answers.all { it.isBlank() } && (questions != null)) {
-                    _uiState.value = PortraitUiState.Error("Le portrait est vide. Écris au moins une pensée.")
+                    _uiState.value = PortraitUiState.Error(context.getString(R.string.portrait_vm_error_empty))
                     return@launch
                 }
 
@@ -97,7 +99,7 @@ class PortraitViewModel @Inject constructor(
                 // 1. GESTION DE L'ENTRÉE PARENTE (Le Sceau du Portrait)
                 val recipientsList = _recipients.value
                 val recipient = recipientsList.find { it.id == recipientId }
-                val recipientName = recipient?.name ?: "un proche"
+                val recipientName = recipient?.name ?: context.getString(R.string.portrait_vm_recipient_fallback)
                 
                 // v9.2 : On stocke l'UID pour la sécurité, ou le DocID en fallback
                 val persistentRecipientId = recipient?.linkedUid ?: recipientId
@@ -117,7 +119,7 @@ class PortraitViewModel @Inject constructor(
                     visibility = "specific",
                     recipientIds = persistentRecipientId,
                     createdAt = existingParent?.createdAt ?: System.currentTimeMillis(),
-                    aiSummary = "Portrait de $recipientName",
+                    aiSummary = context.getString(R.string.portrait_vm_summary_prefix, recipientName),
                     syncStatus = "pending"
                 )
                 offlineEntryDao.insertEntry(parentEntry)
@@ -154,7 +156,8 @@ class PortraitViewModel @Inject constructor(
                     val existingAnswers = withContext(Dispatchers.IO) {
                         offlineEntryDao.getComplements(parentId).first()
                     }
-                    val existingAnswer = existingAnswers.find { it.aiSummary == "Pensée libre" }
+                    val freeThoughtLabel = context.getString(R.string.portrait_vm_free_thought_label)
+                    val existingAnswer = existingAnswers.find { it.aiSummary == freeThoughtLabel }
 
                     val answerEntry = OfflineEntry(
                         id = existingAnswer?.id ?: UUID.randomUUID().toString(),
@@ -166,7 +169,7 @@ class PortraitViewModel @Inject constructor(
                         emotionalCategory = "Amour",
                         visibility = "specific",
                         recipientIds = existingParent?.recipientIds ?: persistentRecipientId, // v9.4.27 : Héritage explicite
-                        aiSummary = "Pensée libre",
+                        aiSummary = freeThoughtLabel,
                         syncStatus = "pending"
                     )
                     offlineEntryDao.insertEntry(answerEntry)
@@ -177,7 +180,7 @@ class PortraitViewModel @Inject constructor(
                 _uiState.value = PortraitUiState.Success
             } catch (e: Exception) {
                 android.util.Log.e("PortraitVM", "Erreur sauvegarde: ${e.message}")
-                _uiState.value = PortraitUiState.Error(e.message ?: "Erreur de sauvegarde")
+                _uiState.value = PortraitUiState.Error(e.message ?: context.getString(R.string.portrait_vm_error_save))
             }
         }
     }

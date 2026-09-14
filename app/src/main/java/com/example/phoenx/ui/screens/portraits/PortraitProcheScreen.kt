@@ -25,8 +25,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.domain.util.AgeUtils
@@ -85,7 +87,7 @@ fun PortraitProcheScreen(
         modifier = Modifier.background(LocalBackgroundBrush.current),
         topBar = {
             TopAppBar(
-                title = { Text("Miroir du proche", style = MaterialTheme.typography.labelLarge, color = theme.contentColor) },
+                title = { Text(stringResource(R.string.portrait_proche_title), style = MaterialTheme.typography.labelLarge, color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -93,8 +95,8 @@ fun PortraitProcheScreen(
                 },
                 actions = {
                     InfoButton(
-                        title = "Portrait Proche",
-                        points = listOf("Le Portrait Proche vous propose 20 questions pour dresser le portrait d'une personne qui compte pour vous — un proche déjà présent dans votre Cercle de Confiance. Vos réponses sont rassemblées en un seul souvenir, marqué d'un badge 'Portrait' dans votre Fil de Pensée. Vous pouvez recommencer un Portrait Proche pour la même personne autant de fois que vous le souhaitez : chaque version reste distincte, avec sa propre date.")
+                        title = stringResource(R.string.portrait_proche_info_title),
+                        points = listOf(stringResource(R.string.portrait_proche_info_content))
                     )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -109,7 +111,7 @@ fun PortraitProcheScreen(
                 .padding(24.dp)
         ) {
             Text(
-                text = "Voici comment je t'ai vu. Voici ce que j'ai vu en toi que tu n'as peut-être jamais su.",
+                text = stringResource(R.string.portrait_proche_intro),
                 style = TextStyle(
                     fontFamily = theme.fontFamily,
                     fontSize = 22.sp,
@@ -122,7 +124,7 @@ fun PortraitProcheScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // SÉLECTION DU PROCHE
-            Text("POUR QUI EST CE PORTRAIT ?", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+            Text(stringResource(R.string.portrait_proche_label_who), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
             Spacer(modifier = Modifier.height(8.dp))
             
             if (recipients.isEmpty()) {
@@ -131,7 +133,7 @@ fun PortraitProcheScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.05f))
                 ) {
-                    Text("Ajouter d'abord un proche", color = accent)
+                    Text(stringResource(R.string.portrait_proche_button_add_recipient), color = accent)
                 }
             } else {
                 Box {
@@ -143,7 +145,7 @@ fun PortraitProcheScreen(
                     ) {
                         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = selectedRecipient?.name ?: "Choisir un proche",
+                                text = selectedRecipient?.name ?: stringResource(R.string.portrait_proche_placeholder_recipient),
                                 color = if (selectedRecipient == null) theme.contentColor.copy(alpha = 0.4f) else theme.contentColor,
                                 modifier = Modifier.weight(1f)
                             )
@@ -183,7 +185,7 @@ fun PortraitProcheScreen(
             ) {
                 if (text.isEmpty()) {
                     Text(
-                        text = "Écris librement ce que tu as vu en ${selectedRecipient?.name ?: "ton proche"}...",
+                        text = stringResource(R.string.portrait_proche_placeholder_writing, selectedRecipient?.name ?: stringResource(R.string.portrait_proche_fallback_recipient)),
                         style = TextStyle(
                             fontFamily = theme.fontFamily,
                             fontSize = 17.sp,
@@ -212,14 +214,14 @@ fun PortraitProcheScreen(
             var showGuidance by remember { mutableStateOf(false) }
             if (!showGuidance) {
                 TextButton(onClick = { showGuidance = true }) {
-                    Text("Voir des questions de guidage", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.portrait_proche_button_guidance), color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall)
                 }
             } else {
                 val guidance = listOf(
-                    "Quel souvenir revient en premier ?",
-                    "Quelle qualité unique possède-t-il/elle ?",
-                    "Qu'est-ce qu'il/elle t'a appris ?",
-                    "Que veux-tu qu'il/elle sache sur ce qu'il/elle représente ?"
+                    stringResource(R.string.portrait_proche_guidance_q1),
+                    stringResource(R.string.portrait_proche_guidance_q2),
+                    stringResource(R.string.portrait_proche_guidance_q3),
+                    stringResource(R.string.portrait_proche_guidance_q4)
                 )
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
@@ -246,12 +248,12 @@ fun PortraitProcheScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
                 if (uiState is PortraitUiState.Loading) CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
-                else Text("Sceller ce portrait", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                else Text(stringResource(R.string.portrait_proche_button_seal), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
 
             if (uiState is PortraitUiState.Success) {
                 LaunchedEffect(Unit) {
-                    Toast.makeText(context, "Portrait scellé et synchronisé.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.portrait_proche_toast_success), Toast.LENGTH_SHORT).show()
                     navController.popBackStack()
                 }
             }

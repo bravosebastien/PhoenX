@@ -19,7 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,30 +36,7 @@ fun PortraitScreen(
     var selectedRecipientId by remember { mutableStateOf(initialRecipientId) }
     val recipients by viewModel.recipients.collectAsState()
 
-    val questions = remember {
-        listOf(
-            "Quel trait de caractère admires-tu le plus chez cette personne ?",
-            "Quel souvenir vous lie le plus fortement ?",
-            "Qu'est-ce qu'elle ne sait peut-être pas sur elle-même ?",
-            "Comment a-t-elle changé depuis que tu la connais ?",
-            "Qu'est-ce que tu veux qu'elle sache de la façon dont tu le/la vois ?",
-            "Quelle est la première chose qui te vient à l'esprit quand tu penses à elle ?",
-            "Quel défi majeur avez-vous surmonté ensemble ?",
-            "Quelle est la qualité que tu aimerais lui emprunter ?",
-            "Quel lieu symbolise le mieux votre relation ?",
-            "Quelle chanson ou quel film te fait instantanément penser à elle ?",
-            "Quel conseil de sa part a marqué ta trajectoire ?",
-            "Comment décrirais-tu son rire ou sa joie ?",
-            "Quelle est la plus grande preuve d'attachement qu'elle t'ait donnée ?",
-            "S'il ne devait rester qu'une image d'elle, laquelle serait-ce ?",
-            "Qu'est-ce qui la rend unique au milieu de mille personnes ?",
-            "Quel est son talent caché que peu de gens voient ?",
-            "Comment a-t-elle influencé ta vision de la vie ?",
-            "Quel secret ou quelle confidence partagée vous a rapprochés ?",
-            "Qu'est-ce que tu aimerais lui dire si vous aviez 100 ans tous les deux ?",
-            "Quelle trace penses-tu qu'elle laissera dans le cœur des gens ?"
-        )
-    }
+    val questions = stringArrayResource(R.array.portrait_questions).toList()
     val answers = remember { mutableStateListOf(*Array(questions.size) { "" }) }
     
     val uiState by viewModel.uiState.collectAsState()
@@ -75,7 +55,8 @@ fun PortraitScreen(
             TopAppBar(
                 title = { 
                     val recipientName = recipients.find { it.id == selectedRecipientId }?.name
-                    Text(recipientName?.let { "Portrait de $it" } ?: "Portrait d'un proche", style = MaterialTheme.typography.displaySmall, color = theme.contentColor) 
+                    val title = if (recipientName != null) stringResource(R.string.portrait_title_with_name, recipientName) else stringResource(R.string.portrait_title_fallback)
+                    Text(title, style = MaterialTheme.typography.displaySmall, color = theme.contentColor) 
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -90,11 +71,11 @@ fun PortraitScreen(
             if (selectedRecipientId == null) {
                 // Écran de sélection du destinataire
                 Column(modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp)) {
-                    Text("Pour qui écris-tu ce portrait ?", style = MaterialTheme.typography.headlineSmall, color = theme.contentColor)
+                    Text(stringResource(R.string.portrait_selection_title), style = MaterialTheme.typography.headlineSmall, color = theme.contentColor)
                     Spacer(modifier = Modifier.height(24.dp))
                     
                     if (recipients.isEmpty()) {
-                        Text("Ton cercle est vide. Ajoute tes proches sur l'accueil d'abord.", color = theme.contentColor.copy(alpha = 0.6f))
+                        Text(stringResource(R.string.portrait_selection_empty), color = theme.contentColor.copy(alpha = 0.6f))
                     } else {
                         recipients.forEach { recipient ->
                             Surface(
@@ -132,7 +113,7 @@ fun PortraitScreen(
                     
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "QUESTION ${step + 1} SUR ${questions.size}",
+                            text = stringResource(R.string.portrait_progress_label, step + 1, questions.size),
                             style = MaterialTheme.typography.labelSmall,
                             color = accent,
                             letterSpacing = 2.sp
@@ -142,7 +123,7 @@ fun PortraitScreen(
                             TextButton(onClick = { 
                                 viewModel.savePortrait(selectedRecipientId!!, questions, answers.toList()) 
                             }) {
-                                Text("Terminer maintenant", color = accent.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall)
+                                Text(stringResource(R.string.portrait_button_finish_now), color = accent.copy(alpha = 0.7f), style = MaterialTheme.typography.labelSmall)
                             }
                         }
                     }
@@ -167,7 +148,7 @@ fun PortraitScreen(
                             value = answers[step],
                             onValueChange = { answers[step] = it },
                             modifier = Modifier.fillMaxSize().padding(8.dp),
-                            placeholder = { Text("Écris tes pensées ici... (Optionnel)", style = MaterialTheme.typography.bodyLarge, color = theme.contentColor.copy(alpha = 0.3f)) },
+                            placeholder = { Text(stringResource(R.string.portrait_placeholder_thoughts), style = MaterialTheme.typography.bodyLarge, color = theme.contentColor.copy(alpha = 0.3f)) },
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = Color.Transparent,
                                 unfocusedContainerColor = Color.Transparent,
@@ -189,11 +170,11 @@ fun PortraitScreen(
                     ) {
                         if (step > 0) {
                             TextButton(onClick = { step-- }) {
-                                Text("Précédent", color = theme.contentColor.copy(alpha = 0.6f))
+                                Text(stringResource(R.string.portrait_button_previous), color = theme.contentColor.copy(alpha = 0.6f))
                             }
                         } else {
                             TextButton(onClick = { selectedRecipientId = null }) {
-                                Text("Changer de proche", color = theme.contentColor.copy(alpha = 0.4f))
+                                Text(stringResource(R.string.portrait_button_change_recipient), color = theme.contentColor.copy(alpha = 0.4f))
                             }
                         }
 
@@ -216,8 +197,8 @@ fun PortraitScreen(
                                 )
                             } else {
                                 val buttonText = if (step < questions.size - 1) {
-                                    if (answers[step].isEmpty()) "Passer" else "Suivant"
-                                } else "Finaliser"
+                                    if (answers[step].isEmpty()) stringResource(R.string.portrait_button_skip) else stringResource(R.string.portrait_button_next)
+                                } else stringResource(R.string.portrait_button_finalize)
                                 Text(buttonText, color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                             }
                         }
