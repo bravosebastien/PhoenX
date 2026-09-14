@@ -18,7 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
 
@@ -110,7 +112,7 @@ fun EmailMismatchView(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Mauvais compte détecté",
+            text = stringResource(R.string.universal_join_mismatch_title),
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             color = theme.contentColor,
             textAlign = TextAlign.Center
@@ -119,7 +121,7 @@ fun EmailMismatchView(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "Cette invitation est destinée à :\n",
+            text = stringResource(R.string.universal_join_mismatch_destined) + "\n",
             style = MaterialTheme.typography.bodyMedium,
             color = theme.contentColor.copy(alpha = 0.6f),
             textAlign = TextAlign.Center
@@ -135,7 +137,7 @@ fun EmailMismatchView(
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "\nMais vous êtes actuellement connecté avec :\n",
+            text = "\n" + stringResource(R.string.universal_join_mismatch_currently) + "\n",
             style = MaterialTheme.typography.bodyMedium,
             color = theme.contentColor.copy(alpha = 0.6f),
             textAlign = TextAlign.Center
@@ -156,7 +158,7 @@ fun EmailMismatchView(
             colors = ButtonDefaults.buttonColors(containerColor = accent),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Se déconnecter et continuer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.universal_join_mismatch_button_logout), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -187,13 +189,13 @@ fun InvitationView(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Bonjour,",
+            text = stringResource(R.string.universal_join_greeting),
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
             color = theme.contentColor
         )
         
         Text(
-            text = "${invitation.creatorName} vous invite",
+            text = stringResource(R.string.universal_join_invitation_title, invitation.creatorName),
             style = MaterialTheme.typography.headlineMedium.copy(
                 fontFamily = theme.fontFamily,
                 fontWeight = FontWeight.Bold
@@ -205,11 +207,11 @@ fun InvitationView(
         Spacer(modifier = Modifier.height(16.dp))
 
         val roleText = when(invitation.role) {
-            "depositary" -> "à être son Gardien de Confiance"
-            "witness" -> "à porter témoignage sur son histoire"
-            "recipient" -> "à être l'un de ses destinataires"
-            "mirror_partner" -> "à un Miroir à Deux"
-            else -> "à rejoindre son cercle"
+            "depositary" -> stringResource(R.string.universal_join_role_depositary)
+            "witness" -> stringResource(R.string.universal_join_role_witness)
+            "recipient" -> stringResource(R.string.universal_join_role_recipient)
+            "mirror_partner" -> stringResource(R.string.universal_join_role_mirror)
+            else -> stringResource(R.string.universal_join_role_fallback)
         }
 
         Text(
@@ -221,10 +223,10 @@ fun InvitationView(
         Spacer(modifier = Modifier.height(32.dp))
 
         val pedagogie = when(invitation.role) {
-            "depositary" -> "En tant que Gardien, vous serez la clé qui déverrouille sa mémoire le moment venu. Votre rôle est de confirmer son absence définitive."
-            "witness" -> "Votre témoignage enrichira son héritage. Ce que vous écrirez restera scellé et ne sera transmis qu'après son départ."
-            "recipient" -> "Vous avez été choisi pour recevoir une partie de sa mémoire et de ses souvenirs les plus précieux."
-            "mirror_partner" -> "Deux points de vue pour une même histoire. Chacun écrit sa version de son côté, et le Miroir ne se révélera que lorsque vous aurez tous les deux terminé."
+            "depositary" -> stringResource(R.string.universal_join_pedagogy_depositary)
+            "witness" -> stringResource(R.string.universal_join_pedagogy_witness)
+            "recipient" -> stringResource(R.string.universal_join_pedagogy_recipient)
+            "mirror_partner" -> stringResource(R.string.universal_join_pedagogy_mirror)
             else -> ""
         }
 
@@ -253,7 +255,7 @@ fun InvitationView(
                 colors = ButtonDefaults.buttonColors(containerColor = accent),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Accepter ce rôle", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.universal_join_button_accept), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         } else {
             Button(
@@ -262,13 +264,13 @@ fun InvitationView(
                 colors = ButtonDefaults.buttonColors(containerColor = accent),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Se connecter pour accepter", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.universal_join_button_login), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
             Text(
-                text = "L'accès est réservé à l'adresse : ${invitation.targetEmail}",
+                text = stringResource(R.string.universal_join_restricted_to, invitation.targetEmail),
                 style = MaterialTheme.typography.labelSmall,
                 color = theme.contentColor.copy(alpha = 0.4f)
             )

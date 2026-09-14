@@ -15,6 +15,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.phoenXMatiere
 
@@ -29,10 +31,10 @@ fun BecomeCreatorPromptScreen(
     val accent = theme.accentColor
 
     val message = when (role) {
-        "witness" -> "$creatorName a choisi de vous confier un témoignage précieux sur son histoire."
-        "depositary" -> "$creatorName a fait de vous le Gardien de sa mémoire."
-        "recipient" -> "$creatorName a choisi de vous transmettre une part de son histoire."
-        else -> "$creatorName vous a invité dans son cercle de confiance."
+        "witness" -> stringResource(R.string.become_creator_witness_msg, creatorName)
+        "depositary" -> stringResource(R.string.become_creator_depositary_msg, creatorName)
+        "recipient" -> stringResource(R.string.become_creator_recipient_msg, creatorName)
+        else -> stringResource(R.string.become_creator_fallback_msg, creatorName)
     }
 
     Box(
@@ -68,7 +70,7 @@ fun BecomeCreatorPromptScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Vivez-vous aussi l'expérience PHOEN-X.\nCommencez à sceller vos propres souvenirs pour ceux que vous aimez.",
+                text = stringResource(R.string.become_creator_invite_desc),
                 style = MaterialTheme.typography.bodyLarge,
                 color = theme.contentColor.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
@@ -86,13 +88,13 @@ fun BecomeCreatorPromptScreen(
                 colors = ButtonDefaults.buttonColors(containerColor = accent),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("Devenir Créateur", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.become_creator_button), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             TextButton(onClick = onLater) {
-                Text("Plus tard", color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.become_creator_later), color = theme.contentColor.copy(alpha = 0.4f))
             }
         }
     }

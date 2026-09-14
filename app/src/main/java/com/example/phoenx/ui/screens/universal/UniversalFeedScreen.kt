@@ -21,8 +21,10 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -30,7 +32,7 @@ import kotlinx.coroutines.tasks.await
 
 data class UniversalMessage(
     val id: String = "",
-    val creatorFirstName: String = "Un proche",
+    val creatorFirstName: String = "",
     val creatorAge: Int = 0,
     val creatorCountry: String = "",
     val creatorProfession: String? = null,
@@ -50,9 +52,22 @@ fun UniversalFeedScreen(navController: NavController) {
     val accent = theme.accentColor
     var messages by remember { mutableStateOf<List<UniversalMessage>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
-    var selectedCategory by remember { mutableStateOf("Toutes") }
 
-    val categories = listOf("Toutes", "Amour", "Espoir", "Sagesse", "Regret", "Transmission", "Foi", "Réconciliation", "Humanité", "Gratitude")
+    val catAll = stringResource(R.string.question_cat_all)
+    var selectedCategory by remember { mutableStateOf(catAll) }
+
+    val categories = listOf(
+        catAll,
+        stringResource(R.string.question_cat_love),
+        stringResource(R.string.question_cat_hope),
+        stringResource(R.string.question_cat_wisdom),
+        stringResource(R.string.question_cat_regrets),
+        stringResource(R.string.question_cat_transmission),
+        stringResource(R.string.question_cat_faith),
+        stringResource(R.string.question_cat_reconciliation),
+        stringResource(R.string.question_cat_humanity),
+        stringResource(R.string.question_cat_gratitude)
+    )
 
     LaunchedEffect(selectedCategory) {
         isLoading = true
@@ -62,7 +77,7 @@ fun UniversalFeedScreen(navController: NavController) {
                 .whereEqualTo("isModerated", true)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
 
-            if (selectedCategory != "Toutes") {
+            if (selectedCategory != catAll) {
                 query = query.whereEqualTo("category", selectedCategory)
             }
 
@@ -84,8 +99,8 @@ fun UniversalFeedScreen(navController: NavController) {
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Lettres à l'Humanité", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
-                            Text("Des mots laissés pour toi par ceux qui sont partis.", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                            Text(stringResource(R.string.universal_feed_title), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                            Text(stringResource(R.string.universal_feed_subtitle), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
                         }
                     },
                     navigationIcon = {
@@ -123,7 +138,7 @@ fun UniversalFeedScreen(navController: NavController) {
             }
         } else if (messages.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Aucune lettre pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.universal_feed_empty), color = theme.contentColor.copy(alpha = 0.4f), fontWeight = FontWeight.Bold)
             }
         } else {
             LazyColumn(
@@ -163,8 +178,9 @@ fun UniversalMessageCard(message: UniversalMessage, theme: AppThemeState) {
                     )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
+                val creatorName = if (message.creatorFirstName.isBlank()) stringResource(R.string.universal_feed_creator_fallback) else message.creatorFirstName
                 Text(
-                    text = "${message.creatorFirstName}, ${message.creatorAge} ans • ${message.creatorCountry}",
+                    text = stringResource(R.string.universal_feed_card_header, creatorName, message.creatorAge, message.creatorCountry),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor.copy(alpha = 0.4f)
                 )

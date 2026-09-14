@@ -25,7 +25,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.domain.model.UserRole
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.components.PhoenXAvatar
@@ -56,14 +58,14 @@ fun GuestDashboardScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        if (currentTab == "circle") "Espace Proches" else "Les Attentions", 
+                        if (currentTab == "circle") stringResource(R.string.guest_dashboard_title_circle) else stringResource(R.string.guest_dashboard_title_attentions), 
                         style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
                         color = theme.contentColor
                     ) 
                 },
                 actions = {
                     TextButton(onClick = onLogout) {
-                        Text("Déconnexion", color = Error, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.guest_dashboard_button_logout), color = Error, fontWeight = FontWeight.Bold)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
@@ -78,7 +80,7 @@ fun GuestDashboardScreen(
                     selected = currentTab == "circle",
                     onClick = { currentTab = "circle" },
                     icon = { Icon(Icons.Default.People, null) },
-                    label = { Text("Le Cercle", style = MaterialTheme.typography.labelSmall) },
+                    label = { Text(stringResource(R.string.guest_dashboard_tab_circle), style = MaterialTheme.typography.labelSmall) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = accent,
                         selectedTextColor = accent,
@@ -91,7 +93,7 @@ fun GuestDashboardScreen(
                     selected = currentTab == "attentions",
                     onClick = { currentTab = "attentions" },
                     icon = { Icon(Icons.Default.VolunteerActivism, null) },
-                    label = { Text("Les Attentions", style = MaterialTheme.typography.labelSmall) },
+                    label = { Text(stringResource(R.string.guest_dashboard_tab_attentions), style = MaterialTheme.typography.labelSmall) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = accent,
                         selectedTextColor = accent,
@@ -117,7 +119,7 @@ fun GuestDashboardScreen(
                     item {
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
+                            stringResource(R.string.guest_dashboard_welcome),
                             style = MaterialTheme.typography.bodyMedium,
                             color = theme.contentColor.copy(alpha = 0.7f),
                             lineHeight = 22.sp
@@ -137,7 +139,7 @@ fun GuestDashboardScreen(
                     if (pendingByEmail.isNotEmpty()) {
                         item {
                             Text(
-                                "INVITATIONS EN ATTENTE",
+                                stringResource(R.string.guest_dashboard_pending_header),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                                 color = accent,
                                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -153,7 +155,7 @@ fun GuestDashboardScreen(
                     if (myRoles.isEmpty() && pendingByEmail.isEmpty()) {
                         item {
                             Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                                Text("Aucun rôle actif pour le moment.", color = theme.contentColor.copy(alpha = 0.4f), fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.guest_dashboard_empty), color = theme.contentColor.copy(alpha = 0.4f), fontWeight = FontWeight.Bold)
                             }
                         }
                     } else {
@@ -202,16 +204,16 @@ fun BecomeCreatorCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.AutoAwesome, null, tint = accent, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(12.dp))
-                Text("Et vous ?", style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.guest_dashboard_become_creator_title), style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                "Commencez à sceller vos propres souvenirs pour ceux que vous aimez.",
+                stringResource(R.string.guest_dashboard_become_creator_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = theme.contentColor.copy(alpha = 0.7f)
             )
             Text(
-                "Devenir Créateur →",
+                stringResource(R.string.guest_dashboard_become_creator_button),
                 modifier = Modifier.padding(top = 12.dp),
                 style = MaterialTheme.typography.labelMedium,
                 color = accent,
@@ -247,9 +249,9 @@ fun PendingInviteCard(
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(invite.creatorName, style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                Text("Vous invite à être : ${invite.label}", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                Text(stringResource(R.string.guest_dashboard_invite_label, invite.label), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
             }
-            Text("Accepter", style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.guest_dashboard_invite_accept), style = MaterialTheme.typography.labelMedium, color = accent, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -262,10 +264,10 @@ fun RoleCard(
     onClick: () -> Unit
 ) {
     val (icon, label, color) = when(role.role) {
-        "depositary" -> Triple(Icons.Default.Lock, "Je suis son Gardien de Confiance", Success)
-        "witness" -> Triple(Icons.Default.People, "Je porte témoignage", Warning)
-        "recipient" -> Triple(Icons.Default.Person, "Je suis l'un de ses destinataires", accent)
-        else -> Triple(Icons.Default.People, "Lien de confiance", accent)
+        "depositary" -> Triple(Icons.Default.Lock, stringResource(R.string.guest_dashboard_role_depositary), Success)
+        "witness" -> Triple(Icons.Default.People, stringResource(R.string.guest_dashboard_role_witness), Warning)
+        "recipient" -> Triple(Icons.Default.Person, stringResource(R.string.guest_dashboard_role_recipient), accent)
+        else -> Triple(Icons.Default.People, stringResource(R.string.guest_dashboard_role_fallback), accent)
     }
 
     Card(
@@ -325,7 +327,7 @@ fun GuestPerspectiveContent(
     ) {
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            "Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.",
+            stringResource(R.string.guest_dashboard_welcome),
             style = MaterialTheme.typography.bodyMedium,
             color = theme.contentColor.copy(alpha = 0.7f),
             lineHeight = 22.sp
@@ -338,7 +340,7 @@ fun GuestPerspectiveContent(
         if (pendingInvites.isNotEmpty()) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Text(
-                    "INVITATIONS EN ATTENTE",
+                    stringResource(R.string.guest_dashboard_pending_header),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = accent,
                     modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)

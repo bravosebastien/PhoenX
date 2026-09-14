@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
@@ -79,7 +81,7 @@ fun UniversalMessageScreen(
                 context, uri, com.example.phoenx.ui.util.VideoUtils.MAX_VIDEO_DURATION_SECONDS_PACTE
             )
             if (!isValid) {
-                errorMessage = "Cette vidéo dépasse 30 secondes. Choisis un extrait plus court."
+                errorMessage = context.getString(R.string.universal_message_error_video_duration)
                 videoUri = null
             } else {
                 videoUri = uri
@@ -131,22 +133,22 @@ fun UniversalMessageScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                "Ma Lettre à l'Humanité",
+                                stringResource(R.string.universal_message_title),
                                 style = TextStyle(fontFamily = theme.fontFamily, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = theme.contentColor)
                             )
                             InfoButton(
-                                title = "Ma Lettre à l'Humanité",
+                                title = stringResource(R.string.universal_message_info_title),
                                 points = listOf(
-                                    "Un seul message, pour tout le monde — rendu public après ton départ.",
-                                    "Tu peux ajouter jusqu'à 3 photos et une vidéo de 30 secondes maximum.",
-                                    "L'IA classe automatiquement ton message dans une catégorie (Amour, Espoir, Sagesse...).",
-                                    "Notre équipe valide chaque message avant publication.",
-                                    "Les lecteurs n'ont besoin que d'un compte gratuit pour lire les lettres."
+                                    stringResource(R.string.universal_message_info_p1),
+                                    stringResource(R.string.universal_message_info_p2),
+                                    stringResource(R.string.universal_message_info_p3),
+                                    stringResource(R.string.universal_message_info_p4),
+                                    stringResource(R.string.universal_message_info_p5)
                                 )
                             )
                         }
                         Text(
-                            "Un seul message. Pour tout le monde. Il sera lu après ton départ.",
+                            stringResource(R.string.universal_message_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = theme.contentColor.copy(alpha = 0.6f),
                             modifier = Modifier.padding(top = 8.dp)
@@ -165,7 +167,7 @@ fun UniversalMessageScreen(
                                 .padding(20.dp)
                         ) {
                             if (messageText.isEmpty()) {
-                                Text("Écris ici ton message universel...", color = theme.contentColor.copy(alpha = 0.3f), style = TextStyle(fontFamily = theme.fontFamily, fontSize = 17.sp, fontStyle = FontStyle.Italic))
+                                Text(stringResource(R.string.universal_message_placeholder), color = theme.contentColor.copy(alpha = 0.3f), style = TextStyle(fontFamily = theme.fontFamily, fontSize = 17.sp, fontStyle = FontStyle.Italic))
                             }
                             BasicTextField(
                                 value = messageText,
@@ -179,7 +181,7 @@ fun UniversalMessageScreen(
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // PHOTOS
-                        Text("PHOTOS (MAX 3)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
+                        Text(stringResource(R.string.universal_message_section_photos), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
                         Spacer(modifier = Modifier.height(12.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             photoUris.forEach { uri ->
@@ -202,17 +204,17 @@ fun UniversalMessageScreen(
                         Spacer(modifier = Modifier.height(24.dp))
 
                         // VIDÉO
-                        Text("VIDÉO (MAX 30 SEC)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
+                        Text(stringResource(R.string.universal_message_section_video), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
                         Spacer(modifier = Modifier.height(8.dp))
                         if (videoUri == null) {
                             OutlinedButton(
                                 onClick = { videoLauncher.launch("video/*") },
                                 border = BorderStroke(1.dp, accent),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = accent)
-                            ) { Text("Ajouter une vidéo") }
+                            ) { Text(stringResource(R.string.universal_message_button_add_video)) }
                         } else {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Vidéo sélectionnée", color = Success, style = MaterialTheme.typography.bodySmall)
+                                Text(stringResource(R.string.universal_message_video_selected), color = Success, style = MaterialTheme.typography.bodySmall)
                                 IconButton(onClick = { videoUri = null }) { Icon(Icons.Default.Close, null, tint = Error) }
                             }
                         }
@@ -224,16 +226,16 @@ fun UniversalMessageScreen(
                         Spacer(modifier = Modifier.height(32.dp))
 
                         // PROFIL PUBLIC
-                        Text("INFORMATIONS VISIBLES PAR LES LECTEURS :", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
+                        Text(stringResource(R.string.universal_message_section_profile), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
                         Spacer(modifier = Modifier.height(8.dp))
-                        ProfileToggle("Mon nom de famille", showLastName, theme) { showLastName = it }
-                        ProfileToggle("Ma profession", showProfession, theme) { showProfession = it }
-                        ProfileToggle("Ma ville", showCity, theme) { showCity = it }
+                        ProfileToggle(stringResource(R.string.universal_message_profile_last_name), showLastName, theme) { showLastName = it }
+                        ProfileToggle(stringResource(R.string.universal_message_profile_profession), showProfession, theme) { showProfession = it }
+                        ProfileToggle(stringResource(R.string.universal_message_profile_city), showCity, theme) { showCity = it }
                         
                         OutlinedTextField(
                             value = bioLine,
                             onValueChange = { bioLine = it },
-                            label = { Text("Une phrase de présentation") },
+                            label = { Text(stringResource(R.string.universal_message_profile_bio_label)) },
                             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                             textStyle = MaterialTheme.typography.bodySmall,
                             colors = OutlinedTextFieldDefaults.colors(
@@ -250,7 +252,7 @@ fun UniversalMessageScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(checked = charteAccepted, onCheckedChange = { charteAccepted = it }, colors = CheckboxDefaults.colors(checkedColor = accent))
                             Text(
-                                "J'accepte que ce message soit relu par l'équipe PHOEN-X avant publication, et publié après mon départ.",
+                                stringResource(R.string.universal_message_charte),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = theme.contentColor.copy(alpha = 0.6f),
                                 modifier = Modifier.clickable { charteAccepted = !charteAccepted }
@@ -293,10 +295,10 @@ fun UniversalMessageScreen(
                                         )
                                         db.collection("universalMessages").document(userId).set(messageData).await()
                                         
-                                        Toast.makeText(context, "Ta lettre est scellée. Elle sera publiée après ton départ.", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, context.getString(R.string.universal_message_toast_success), Toast.LENGTH_LONG).show()
                                         navController.popBackStack()
                                     } catch (e: Exception) {
-                                        Toast.makeText(context, "Erreur : ${e.message}", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, context.getString(R.string.universal_message_toast_error, e.message ?: ""), Toast.LENGTH_SHORT).show()
                                     } finally {
                                         isSaving = false
                                     }
@@ -307,7 +309,7 @@ fun UniversalMessageScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = accent)
                         ) {
                             if (isSaving) CircularProgressIndicator(color = theme.backgroundColor, modifier = Modifier.size(24.dp))
-                            else Text("Sceller cette lettre", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                            else Text(stringResource(R.string.universal_message_button_seal), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                         }
                         
                         Spacer(modifier = Modifier.height(40.dp))
@@ -352,13 +354,13 @@ fun SealedMessageState(onViewMessage: () -> Unit, theme: AppThemeState) {
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = "Ta lettre est scellée.",
+                    text = stringResource(R.string.universal_message_sealed_title),
                     style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                     color = theme.contentColor
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Tu as déjà déposé ta lettre à l'humanité. Elle sera publiée après ton départ, une fois validée par notre équipe.",
+                    text = stringResource(R.string.universal_message_sealed_desc),
                     style = MaterialTheme.typography.bodyMedium,
                     color = theme.contentColor.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center,
@@ -366,7 +368,7 @@ fun SealedMessageState(onViewMessage: () -> Unit, theme: AppThemeState) {
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 TextButton(onClick = onViewMessage) {
-                    Text("Voir ma lettre", color = accent, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.universal_message_button_view), color = accent, fontWeight = FontWeight.Bold)
                 }
             }
         }

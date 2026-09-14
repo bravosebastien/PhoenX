@@ -1,10 +1,13 @@
 package com.example.phoenx.ui.screens.universal
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.functions.FirebaseFunctions
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +38,8 @@ data class InvitationDetails(
 @HiltViewModel
 class UniversalJoinViewModel @Inject constructor(
     private val auth: FirebaseAuth,
-    private val functions: FirebaseFunctions
+    private val functions: FirebaseFunctions,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UniversalJoinUiState())
@@ -64,7 +68,7 @@ class UniversalJoinViewModel @Inject constructor(
             } catch (e: Exception) {
                 _uiState.update { it.copy(
                     isLoading = false,
-                    error = "Cette invitation est introuvable ou a expiré."
+                    error = context.getString(R.string.universal_join_error_not_found)
                 ) }
             }
         }
@@ -91,9 +95,9 @@ class UniversalJoinViewModel @Inject constructor(
                 ) }
             } catch (e: Exception) {
                 val message = when {
-                    e.message?.contains("already-exists") == true -> "Cette invitation a déjà été utilisée."
-                    e.message?.contains("permission-denied") == true -> "Désolé, cette invitation n'est pas destinée à ce compte."
-                    else -> "Une erreur est survenue lors de la liaison."
+                    e.message?.contains("already-exists") == true -> context.getString(R.string.universal_join_error_already_used)
+                    e.message?.contains("permission-denied") == true -> context.getString(R.string.universal_join_error_wrong_account)
+                    else -> context.getString(R.string.universal_join_error_generic)
                 }
                 _uiState.update { it.copy(isLoading = false, error = message) }
             }

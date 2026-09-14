@@ -2013,6 +2013,13 @@
     <string name="question_cat_wisdom">Sagesse</string>
     <string name="question_cat_my_questions">Mes Questions</string>
 
+    <!-- Additional Feed Categories -->
+    <string name="question_cat_hope">Espoir</string>
+    <string name="question_cat_transmission">Transmission</string>
+    <string name="question_cat_reconciliation">Réconciliation</string>
+    <string name="question_cat_humanity">Humanité</string>
+    <string name="question_cat_gratitude">Gratitude</string>
+
     <!-- Preview Batch -->
     <string name="preview_dashboard_title">Aperçu Vision Destinataire</string>
     <string name="preview_dashboard_warning">Ce que vous voyez ici reflète fidèlement le contenu et l\'ambiance de l\'espace de %1$s</string>
@@ -2074,4 +2081,96 @@
 
     <string name="preview_vm_recipient_fallback">Ce proche</string>
     <string name="preview_vm_decrypt_error">Erreur déchiffrement</string>
+
+    <!-- Universal Batch -->
+    <string name="universal_message_title">Ma Lettre à l\'Humanité</string>
+    <string name="universal_message_info_title">Ma Lettre à l\'Humanité</string>
+    <string name="universal_message_info_p1">Un seul message, pour tout le monde — rendu public après ton départ.</string>
+    <string name="universal_message_info_p2">Tu peux ajouter jusqu\'à 3 photos et une vidéo de 30 secondes maximum.</string>
+    <string name="universal_message_info_p3">L\'IA classe automatiquement ton message dans une catégorie (Amour, Espoir, Sagesse...).</string>
+    <string name="universal_message_info_p4">Notre équipe valide chaque message avant publication.</string>
+    <string name="universal_message_info_p5">Les lecteurs n\'ont besoin que d\'un compte gratuit pour lire les lettres.</string>
+    <string name="universal_message_subtitle">Un seul message. Pour tout le monde. Il sera lu après ton départ.</string>
+    <string name="universal_message_placeholder">Écris ici ton message universel...</string>
+    <string name="universal_message_section_photos">PHOTOS (MAX 3)</string>
+    <string name="universal_message_section_video">VIDÉO (MAX 30 SEC)</string>
+    <string name="universal_message_button_add_video">Ajouter une vidéo</string>
+    <string name="universal_message_video_selected">Vidéo sélectionnée</string>
+    <string name="universal_message_error_video_duration">Cette vidéo dépasse 30 secondes. Choisis un extrait plus court.</string>
+    <string name="universal_message_section_profile">INFORMATIONS VISIBLES PAR LES LECTEURS :</string>
+    <string name="universal_message_profile_last_name">Mon nom de famille</string>
+    <string name="universal_message_profile_profession">Ma profession</string>
+    <string name="universal_message_profile_city">Ma ville</string>
+    <string name="universal_message_profile_bio_label">Une phrase de présentation</string>
+    <string name="universal_message_charte">J\'accepte que ce message soit relu par l\'équipe PHOEN-X avant publication, et publié après mon départ.</string>
+    <string name="universal_message_toast_success">Ta lettre est scellée. Elle sera publiée après ton départ.</string>
+    <string name="universal_message_toast_error">Erreur : %1$s</string>
+    <string name="universal_message_button_seal">Sceller cette lettre</string>
+    <string name="universal_message_sealed_title">Ta lettre est scellée.</string>
+    <string name="universal_message_sealed_desc">Tu as déjà déposé ta lettre à l\'humanité. Elle sera publiée après ton départ, une fois validée par notre équipe.</string>
+    <string name="universal_message_button_view">Voir ma lettre</string>
+    <string name="universal_message_vm_error_check">Erreur de vérification</string>
+
+    <string name="universal_feed_title">Lettres à l\'Humanité</string>
+    <string name="universal_feed_subtitle">Des mots laissés pour toi par ceux qui sont partis.</string>
+    <string name="universal_feed_empty">Aucune lettre pour le moment.</string>
+    <string name="universal_feed_card_header">%1$s, %2$d ans • %3$s</string>
+    <string name="universal_feed_creator_fallback">Un proche</string>
+
+    <string name="universal_join_mismatch_title">Mauvais compte détecté</string>
+    <string name="universal_join_mismatch_destined">Cette invitation est destinée à :</string>
+    <string name="universal_join_mismatch_currently">Mais vous êtes actuellement connecté avec :</string>
+    <string name="universal_join_mismatch_button_logout">Se déconnecter et continuer</string>
+    <string name="universal_join_greeting">Bonjour,</string>
+    <string name="universal_join_invitation_title">%1$s vous invite</string>
+    <string name="universal_join_role_depositary">à être son Gardien de Confiance</string>
+    <string name="universal_join_role_witness">à porter témoignage sur son histoire</string>
+    <string name="universal_join_role_recipient">à être l\'un de ses destinataires</string>
+    <string name="universal_join_role_mirror">à un Miroir à Deux</string>
+    <string name="universal_join_role_fallback">à rejoindre son cercle</string>
+    <string name="universal_join_pedagogy_depositary">En tant que Gardien, vous serez la clé qui déverrouille sa mémoire le moment venu. Votre rôle est de confirmer son absence définitive.</string>
+    <string name="universal_join_pedagogy_witness">Votre témoignage enrichira son héritage. Ce que vous écrirez restera scellé et ne sera transmis qu\'après son départ.</string>
+    <string name="universal_join_pedagogy_recipient">Vous avez été choisi pour recevoir une partie de sa mémoire et de ses souvenirs les plus précieux.</string>
+    <string name="universal_join_pedagogy_mirror">Deux points de vue pour une même histoire. Chacun écrit sa version de son côté, et le Miroir ne se révélera que lorsque vous aurez tous les deux terminé.</string>
+    <string name="universal_join_button_accept">Accepter ce rôle</string>
+    <string name="universal_join_button_login">Se connecter pour accepter</string>
+    <string name="universal_join_restricted_to">L\'accès est réservé à l\'adresse : %1$s</string>
+    <string name="universal_join_error_not_found">Cette invitation est introuvable ou a expiré.</string>
+    <string name="universal_join_error_already_used">Cette invitation a déjà été utilisée.</string>
+    <string name="universal_join_error_wrong_account">Désolé, cette invitation n\'est pas destinée à ce compte.</string>
+    <string name="universal_join_error_generic">Une erreur est survenue lors de la liaison.</string>
+
+    <string name="guest_dashboard_tab_circle">Le Cercle</string>
+    <string name="guest_dashboard_tab_attentions">Les Attentions</string>
+    <string name="guest_dashboard_title_circle">Espace Proches</string>
+    <string name="guest_dashboard_title_attentions">Les Attentions</string>
+    <string name="guest_dashboard_button_logout">Déconnexion</string>
+    <string name="guest_dashboard_welcome">Bienvenue dans votre espace dédié. Voici les personnes qui comptent sur vous.</string>
+    <string name="guest_dashboard_pending_header">INVITATIONS EN ATTENTE</string>
+    <string name="guest_dashboard_empty">Aucun rôle actif pour le moment.</string>
+    <string name="guest_dashboard_become_creator_title">Et vous ?</string>
+    <string name="guest_dashboard_become_creator_desc">Commencez à sceller vos propres souvenirs pour ceux que vous aimez.</string>
+    <string name="guest_dashboard_become_creator_button">Devenir Créateur →</string>
+    <string name="guest_dashboard_invite_label">Vous invite à être : %1$s</string>
+    <string name="guest_dashboard_invite_accept">Accepter</string>
+    <string name="guest_dashboard_role_depositary">Je suis son Gardien de Confiance</string>
+    <string name="guest_dashboard_role_witness">Je porte témoignage</string>
+    <string name="guest_dashboard_role_recipient">Je suis l\'un de ses destinataires</string>
+    <string name="guest_dashboard_role_fallback">Lien de confiance</string>
+
+    <string name="become_creator_witness_msg">%1$s a choisi de vous confier un témoignage précieux sur son histoire.</string>
+    <string name="become_creator_depositary_msg">%1$s a fait de vous le Gardien de sa mémoire.</string>
+    <string name="become_creator_recipient_msg">%1$s a choisi de vous transmettre une part de son histoire.</string>
+    <string name="become_creator_fallback_msg">%1$s vous a invité dans son cercle de confiance.</string>
+    <string name="become_creator_invite_desc">Vivez-vous aussi l\'expérience PHOEN-X.\nCommencez à sceller vos propres souvenirs pour ceux que vous aimez.</string>
+    <string name="become_creator_button">Devenir Créateur</string>
+    <string name="become_creator_later">Plus tard</string>
+
+    <string name="attentions_title">Dernières attentions reçues</string>
+    <string name="attentions_card_header">%1$s vous a écrit</string>
+    <string name="attentions_card_received_at">Reçu le %1$s</string>
+    <string name="attentions_card_encrypted">Contenu chiffré</string>
+    <string name="attentions_empty_title">Aucune attention pour le moment.</string>
+    <string name="attentions_empty_desc">C\'est ici que vous recevrez les souvenirs que vos proches choisissent de vous transmettre de leur vivant.</string>
+    <string name="attentions_error_load">Impossible de charger les attentions.</string>
 </resources>

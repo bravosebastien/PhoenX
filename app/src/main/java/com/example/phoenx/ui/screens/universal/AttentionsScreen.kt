@@ -19,7 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.phoenXMatiere
 import java.text.SimpleDateFormat
@@ -48,7 +50,7 @@ fun AttentionsScreen(
             ) {
                 item {
                     Text(
-                        "Dernières attentions reçues",
+                        stringResource(R.string.attentions_title),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = accent,
                         letterSpacing = 2.sp
@@ -83,19 +85,19 @@ fun AttentionCard(link: LivingLinkUiModel, accent: Color, theme: com.example.pho
                 Spacer(Modifier.width(16.dp))
                 Column {
                     Text(
-                        text = "${link.creatorName} vous a écrit",
+                        text = stringResource(R.string.attentions_card_header, link.creatorName),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = theme.contentColor
                     )
-                    val dateStr = SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH).format(Date(link.sentAt))
-                    Text(text = "Reçu le $dateStr", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.5f))
+                    val dateStr = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault()).format(Date(link.sentAt))
+                    Text(text = stringResource(R.string.attentions_card_received_at, dateStr), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.5f))
                 }
             }
             
             Spacer(Modifier.height(16.dp))
             
             Text(
-                text = link.decryptedText ?: "Contenu chiffré",
+                text = link.decryptedText ?: stringResource(R.string.attentions_card_encrypted),
                 style = MaterialTheme.typography.bodyMedium,
                 color = theme.contentColor.copy(alpha = 0.8f),
                 lineHeight = 22.sp
@@ -121,14 +123,14 @@ fun EmptyAttentionsContent(accent: Color, theme: com.example.phoenx.ui.theme.App
         )
         Spacer(Modifier.height(24.dp))
         Text(
-            "Aucune attention pour le moment.",
+            stringResource(R.string.attentions_empty_title),
             style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
             color = theme.contentColor.copy(alpha = 0.4f),
             textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "C'est ici que vous recevrez les souvenirs que vos proches choisissent de vous transmettre de leur vivant.",
+            stringResource(R.string.attentions_empty_desc),
             style = MaterialTheme.typography.bodySmall,
             color = theme.contentColor.copy(alpha = 0.4f),
             textAlign = TextAlign.Center,

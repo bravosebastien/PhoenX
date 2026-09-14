@@ -1,11 +1,14 @@
 package com.example.phoenx.ui.screens.universal
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.encryption.EncryptionManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +37,8 @@ data class AttentionsUiState(
 class AttentionsViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val auth: FirebaseAuth,
-    private val encryptionManager: EncryptionManager
+    private val encryptionManager: EncryptionManager,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AttentionsUiState())
@@ -61,7 +65,7 @@ class AttentionsViewModel @Inject constructor(
                         
                         // Récupération du nom du créateur (Dénormalisation ou requête)
                         val creatorDoc = db.collection("users").document(creatorId).get().await()
-                        val creatorName = creatorDoc.getString("displayName") ?: "Un proche"
+                        val creatorName = creatorDoc.getString("displayName") ?: context.getString(R.string.universal_feed_creator_fallback)
 
                         // 2. Déchiffrement de la LinkKey (RSA)
                         val encryptedKeyBlob = doc.getBlob("encryptedLinkKey")?.toBytes() ?: return@mapNotNull null
@@ -90,7 +94,7 @@ class AttentionsViewModel @Inject constructor(
                 _uiState.update { it.copy(links = results, isLoading = false) }
             } catch (e: Exception) {
                 android.util.Log.e("AttentionsVM", "Erreur chargement attentions", e)
-                _uiState.update { it.copy(isLoading = false, error = "Impossible de charger les attentions.") }
+                _uiState.update { it.copy(isLoading = false, error = context.getString(R.string.attentions_error_load)) }
             }
         }
     }

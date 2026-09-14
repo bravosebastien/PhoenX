@@ -1,10 +1,13 @@
 package com.example.phoenx.ui.screens.universal
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +26,8 @@ sealed class UniversalMessageState {
 @HiltViewModel
 class UniversalMessageViewModel @Inject constructor(
     private val auth: FirebaseAuth,
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<UniversalMessageState>(UniversalMessageState.Idle)
@@ -44,7 +48,7 @@ class UniversalMessageViewModel @Inject constructor(
                     _uiState.value = UniversalMessageState.Idle
                 }
             } catch (e: Exception) {
-                _uiState.value = UniversalMessageState.Error(e.message ?: "Erreur de vérification")
+                _uiState.value = UniversalMessageState.Error(e.message ?: context.getString(R.string.universal_message_vm_error_check))
             }
         }
     }
