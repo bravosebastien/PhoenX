@@ -20,6 +20,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.data.model.BookChapter
 import com.example.phoenx.data.model.ChapterStatus
 import com.example.phoenx.ui.theme.LocalAppTheme
@@ -112,7 +114,7 @@ fun ChapterEditorSheet(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Chapitre validé",
+                            text = stringResource(R.string.chapter_editor_status_validated),
                             style = TextStyle(
                                 fontSize = 12.sp,
                                 color = Color(0xFF4CAF50),
@@ -141,7 +143,7 @@ fun ChapterEditorSheet(
                             )
                             Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "L'IA réécrit ce chapitre...",
+                                text = stringResource(R.string.chapter_editor_ai_rewriting),
                                 style = TextStyle(
                                     fontFamily = theme.fontFamily,
                                     fontSize = 14.sp,
@@ -168,12 +170,12 @@ fun ChapterEditorSheet(
                         .padding(12.dp)
                 ) {
                     val suggestions = listOf(
-                        "Reformule ce passage",
-                        "Ajoute plus d'émotion",
-                        "Raccourcis ce chapitre",
-                        "Change le ton",
-                        "Ajoute une introduction",
-                        "Termine ce chapitre"
+                        stringResource(R.string.chapter_editor_suggest_rephrase),
+                        stringResource(R.string.chapter_editor_suggest_emotion),
+                        stringResource(R.string.chapter_editor_suggest_shorten),
+                        stringResource(R.string.chapter_editor_suggest_tone),
+                        stringResource(R.string.chapter_editor_suggest_intro),
+                        stringResource(R.string.chapter_editor_suggest_finish)
                     )
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -217,7 +219,7 @@ fun ChapterEditorSheet(
                         decorationBox = { inner ->
                             if (aiInstruction.isEmpty()) {
                                 Text(
-                                    "Dis à l'IA ce que tu veux modifier...",
+                                    stringResource(R.string.chapter_editor_ai_placeholder),
                                     fontSize = 14.sp,
                                     color = theme.contentColor.copy(alpha = 0.3f)
                                 )
@@ -243,7 +245,7 @@ fun ChapterEditorSheet(
                         shape = RoundedCornerShape(8.dp)
                     ) {
                         Text(
-                            "Envoyer à l'IA",
+                            stringResource(R.string.chapter_editor_btn_send_ai),
                             color = theme.backgroundColor,
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp
@@ -265,7 +267,7 @@ fun ChapterEditorSheet(
                         onClick = { showAiPanel = !showAiPanel }
                     ) {
                         Text(
-                            "🤖 Demander à l'IA",
+                            stringResource(R.string.chapter_editor_btn_ask_ai),
                             color = accent,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
@@ -281,7 +283,7 @@ fun ChapterEditorSheet(
                         modifier = Modifier.phoenXMatiere()
                     ) {
                         Text(
-                            "✅ Valider",
+                            stringResource(R.string.chapter_editor_btn_validate),
                             color = Color(0xFFFFFFFF),
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
@@ -296,7 +298,7 @@ fun ChapterEditorSheet(
                         .padding(bottom = 16.dp)
                 ) {
                     Text(
-                        "🔓 Modifier quand même",
+                        stringResource(R.string.chapter_editor_btn_unvalidate),
                         color = theme.contentColor.copy(alpha = 0.6f),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold

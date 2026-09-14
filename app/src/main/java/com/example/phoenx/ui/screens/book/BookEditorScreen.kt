@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.core.content.edit
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.data.model.BookChapter
 import com.example.phoenx.data.model.ChapterStatus
 import com.example.phoenx.ui.components.InfoButton
@@ -46,13 +48,13 @@ fun BookEditorScreen(
 
     OnboardingPopup(
         pageKey = "book_editor",
-        title = "Le Livre de Ma Vie",
+        title = stringResource(R.string.book_editor_onboarding_title),
         contentPoints = listOf(
-            "L'IA génère un livre narratif à partir de tes souvenirs.",
-            "Chaque chapitre arrive en brouillon — tu peux le valider, le modifier, ou demander à l'IA de le réécrire.",
-            "L'IA ne lit jamais tes vrais souvenirs — uniquement les résumés anonymisés.",
-            "Un chapitre validé est verrouillé mais tu peux le déverrouiller à tout moment.",
-            "Tes proches liront ce livre comme un vrai livre, page par page."
+            stringResource(R.string.book_editor_onboarding_p1),
+            stringResource(R.string.book_editor_onboarding_p2),
+            stringResource(R.string.book_editor_onboarding_p3),
+            stringResource(R.string.book_editor_onboarding_p4),
+            stringResource(R.string.book_editor_onboarding_p5)
         ),
         preferenceManager = themeViewModel.preferenceManager
     )
@@ -144,7 +146,7 @@ fun BookEditorScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Retour",
+                            contentDescription = stringResource(R.string.book_viewer_btn_back),
                             tint = accent
                         )
                     }
@@ -154,11 +156,11 @@ fun BookEditorScreen(
                         if (isSaving) {
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), color = accent, strokeWidth = 2.dp)
                             Spacer(Modifier.width(8.dp))
-                            Text("Sauvegarde...", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                            Text(stringResource(R.string.book_editor_saving), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                         } else if (saveSuccess) {
                             Icon(Icons.Default.CloudDone, null, tint = Color(0xFF4CAF50), modifier = Modifier.size(16.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text("Enregistré", style = MaterialTheme.typography.labelSmall, color = Color(0xFF4CAF50))
+                            Text(stringResource(R.string.book_editor_saved), style = MaterialTheme.typography.labelSmall, color = Color(0xFF4CAF50))
                         }
                         
                         Spacer(Modifier.width(12.dp))
@@ -179,7 +181,7 @@ fun BookEditorScreen(
                                     containerColor = theme.backgroundColor
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Annuler la dernière régénération", color = if (hasBackup) theme.contentColor else theme.contentColor.copy(alpha = 0.3f)) },
+                                        text = { Text(stringResource(R.string.book_editor_menu_cancel_regen), color = if (hasBackup) theme.contentColor else theme.contentColor.copy(alpha = 0.3f)) },
                                         leadingIcon = { Icon(Icons.Default.History, null, tint = if (hasBackup) accent else theme.contentColor.copy(alpha = 0.3f)) },
                                         enabled = hasBackup,
                                         onClick = {
@@ -194,8 +196,8 @@ fun BookEditorScreen(
                                 AlertDialog(
                                     onDismissRequest = { showRestoreConfirm = false },
                                     containerColor = theme.backgroundColor,
-                                    title = { Text("Restaurer la version précédente ?", color = theme.contentColor, fontWeight = FontWeight.Bold) },
-                                    text = { Text("Le contenu actuel sera remplacé par celui d'avant ta dernière régénération complète. Cette action est définitive.", color = theme.contentColor.copy(alpha = 0.7f)) },
+                                    title = { Text(stringResource(R.string.book_editor_dialog_restore_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
+                                    text = { Text(stringResource(R.string.book_editor_dialog_restore_text), color = theme.contentColor.copy(alpha = 0.7f)) },
                                     confirmButton = {
                                         Button(
                                             onClick = {
@@ -203,11 +205,11 @@ fun BookEditorScreen(
                                                 viewModel.restoreBackup()
                                             },
                                             colors = ButtonDefaults.buttonColors(containerColor = accent)
-                                        ) { Text("Restaurer", color = theme.backgroundColor) }
+                                        ) { Text(stringResource(R.string.book_editor_dialog_restore_confirm), color = theme.backgroundColor) }
                                     },
                                     dismissButton = {
                                         TextButton(onClick = { showRestoreConfirm = false }) {
-                                            Text("Annuler", color = theme.contentColor)
+                                            Text(stringResource(R.string.book_editor_dialog_restore_cancel), color = theme.contentColor)
                                         }
                                     }
                                 )
@@ -215,13 +217,13 @@ fun BookEditorScreen(
                         }
 
                         InfoButton(
-                            title = "Le Livre de Ma Vie",
+                            title = stringResource(R.string.book_editor_onboarding_title),
                             points = listOf(
-                                "L'IA génère un livre narratif à partir de tes souvenirs.",
-                                "Chaque chapitre arrive en brouillon — tu peux le valider, le modifier, ou demander à l'IA de le réécrire.",
-                                "L'IA ne lit jamais tes vrais souvenirs — uniquement les résumés anonymisés.",
-                                "Un chapitre validé est verrouillé mais tu peux le déverrouiller à tout moment.",
-                                "Tes proches liront ce livre comme un vrai livre, page par page."
+                                stringResource(R.string.book_editor_onboarding_p1),
+                                stringResource(R.string.book_editor_onboarding_p2),
+                                stringResource(R.string.book_editor_onboarding_p3),
+                                stringResource(R.string.book_editor_onboarding_p4),
+                                stringResource(R.string.book_editor_onboarding_p5)
                             )
                         )
                     }
@@ -230,7 +232,7 @@ fun BookEditorScreen(
 
             item {
                 Text(
-                    text = bookDraft?.bookTitle ?: "Livre de Vie",
+                    text = bookDraft?.bookTitle ?: stringResource(R.string.book_viewer_fallback_title),
                     style = TextStyle(
                         fontFamily = theme.fontFamily,
                         fontSize = 28.sp,
@@ -250,8 +252,7 @@ fun BookEditorScreen(
                     )
                     
                     Text(
-                        text = "${bookDraft!!.chapters.size} chapitres · " +
-                               "${bookDraft!!.totalEntries} souvenirs intégrés",
+                        text = stringResource(R.string.book_editor_stats_label, bookDraft!!.chapters.size, bookDraft!!.totalEntries),
                         style = TextStyle(
                             fontSize = 13.sp,
                             color = theme.contentColor.copy(alpha = 0.6f)
@@ -277,7 +278,7 @@ fun BookEditorScreen(
                             ) {
                                 Icon(Icons.Default.AutoStories, null, modifier = Modifier.size(18.dp))
                                 Spacer(Modifier.width(10.dp))
-                                Text("LIRE MON LIVRE", fontWeight = FontWeight.Black, fontSize = 13.sp, letterSpacing = 1.sp)
+                                Text(stringResource(R.string.book_editor_btn_read), fontWeight = FontWeight.Black, fontSize = 13.sp, letterSpacing = 1.sp)
                             }
 
                             OutlinedButton(
@@ -287,7 +288,7 @@ fun BookEditorScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor.copy(alpha = 0.6f))
                             ) {
-                                Text("Régénérer", fontSize = 12.sp)
+                                Text(stringResource(R.string.book_editor_btn_regenerate), fontSize = 12.sp)
                             }
                         }
                         
@@ -311,7 +312,7 @@ fun BookEditorScreen(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(Icons.Default.HistoryEdu, null, tint = accent.copy(alpha = 0.6f), modifier = Modifier.size(18.dp))
                                         Spacer(Modifier.width(12.dp))
-                                        Text("PRÉFACE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
+                                        Text(stringResource(R.string.book_editor_section_preface), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.6f))
                                     }
                                     Icon(
                                         imageVector = if (isIntroExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -360,7 +361,7 @@ fun BookEditorScreen(
                             ) {
                                 Icon(Icons.Default.Lock, null, tint = accent, modifier = Modifier.size(18.dp))
                                 Text(
-                                    "DROITS", 
+                                    stringResource(R.string.book_editor_section_rights), 
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp), 
                                     color = theme.contentColor.copy(alpha = 0.6f)
                                 )
@@ -384,7 +385,7 @@ fun BookEditorScreen(
                             ) {
                                 Icon(Icons.Default.Palette, null, tint = accent, modifier = Modifier.size(18.dp))
                                 Text(
-                                    "AMBIANCE",
+                                    stringResource(R.string.book_editor_section_ambiance),
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp), 
                                     color = theme.contentColor.copy(alpha = 0.6f)
                                 )
@@ -408,7 +409,7 @@ fun BookEditorScreen(
                             ) {
                                 Icon(Icons.Default.AddAPhoto, null, tint = accent, modifier = Modifier.size(18.dp))
                                 Text(
-                                    "COUVERTURE", 
+                                    stringResource(R.string.book_editor_section_cover), 
                                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 9.sp), 
                                     color = theme.contentColor.copy(alpha = 0.6f)
                                 )
@@ -422,7 +423,7 @@ fun BookEditorScreen(
                     AnimatedVisibility(visible = isCoverStyleExpanded) {
                         Column(modifier = Modifier.padding(bottom = 24.dp)) {
                             Text(
-                                "PERSONNALISATION DE LA COUVERTURE",
+                                stringResource(R.string.book_editor_cover_custom_title),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
                                 color = accent
                             )
@@ -442,18 +443,18 @@ fun BookEditorScreen(
                                 ) {
                                     Icon(Icons.Default.PhotoCamera, null, modifier = Modifier.size(16.dp))
                                     Spacer(Modifier.width(8.dp))
-                                    Text("Changer photo", fontSize = 11.sp)
+                                    Text(stringResource(R.string.book_editor_cover_btn_change_photo), fontSize = 11.sp)
                                 }
 
                                 // Reset style
                                 TextButton(onClick = { viewModel.updateCoverTitleStyle("WHITE") }) {
-                                    Text("Réinitialiser", color = theme.contentColor.copy(alpha = 0.5f), fontSize = 11.sp)
+                                    Text(stringResource(R.string.book_editor_cover_btn_reset), color = theme.contentColor.copy(alpha = 0.5f), fontSize = 11.sp)
                                 }
                             }
                             
                             Spacer(Modifier.height(16.dp))
                             
-                            Text("COULEUR DU TITRE", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                            Text(stringResource(R.string.book_editor_cover_title_color), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
                             Spacer(Modifier.height(12.dp))
                             
                             CoverTitleStyleSelector(
@@ -486,7 +487,7 @@ fun BookEditorScreen(
                     AnimatedVisibility(visible = isAmbianceExpanded) {
                         Column(modifier = Modifier.padding(bottom = 24.dp)) {
                             Text(
-                                "Note : Le choix du Papier et de la Plume définit l'univers visuel GLOBAL que TOUS vos proches découvriront lors de la lecture de votre Livre de Vie.",
+                                stringResource(R.string.book_editor_ambiance_note),
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     fontWeight = FontWeight.Bold,
                                     fontFamily = theme.fontFamily
@@ -506,7 +507,7 @@ fun BookEditorScreen(
                 // ── SÉLECTEUR DE DESTINATAIRES ────────────
                 item {
                     Text(
-                        text = "DESTINATAIRES DU MANUSCRIT", 
+                        text = stringResource(R.string.book_editor_section_recipients), 
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                         color = theme.contentColor.copy(alpha = 0.4f),
                         letterSpacing = 2.sp
@@ -540,7 +541,7 @@ fun BookEditorScreen(
                             Icon(Icons.Default.Info, null, tint = accent, modifier = Modifier.size(18.dp))
                             Spacer(Modifier.width(12.dp))
                             Text(
-                                "Note : Seuls vos souvenirs déjà « Attribués » (ceux que vous avez rangés pour un proche ou dans un compartiment) sont intégrés au récit par l'IA. Les pensées encore en attente dans votre fil ne sont pas prises en compte.",
+                                stringResource(R.string.book_editor_attribution_note),
                                 style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
                                 color = theme.contentColor.copy(alpha = 0.7f)
                             )
@@ -548,7 +549,7 @@ fun BookEditorScreen(
                     }
 
                     Text(
-                        text = "SOMMAIRE DU MANUSCRIT", 
+                        text = stringResource(R.string.book_editor_section_summary),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), 
                         color = theme.contentColor.copy(alpha = 0.4f),
                         letterSpacing = 2.sp

@@ -2194,4 +2194,62 @@
 
     <string name="theme_selector_paper">Papier</string>
     <string name="theme_selector_plume">Plume</string>
+
+    <!-- Book Batch B (Viewer & Editor) -->
+    <string name="book_viewer_sealed_message">Le Livre de %1$s vous sera ouvert le moment venu.</string>
+    <string name="book_viewer_sealed_status">Ce récit est actuellement scellé.</string>
+    <string name="book_viewer_sealed_status_recipient">Ce récit est actuellement scellé. Seul le Gardien pourra lever le sceau.</string>
+    <string name="book_viewer_fallback_title">Livre de Vie</string>
+    <string name="book_viewer_btn_back">Retour</string>
+    <string name="book_viewer_empty_recipient">Le Livre de Vie n\'a pas encore été rédigé.</string>
+    <string name="book_viewer_empty_creator">Ton livre n\'est pas encore créé.</string>
+    <string name="book_viewer_btn_create">Créer mon livre</string>
+    <string name="book_viewer_chapter_label">Chapitre %1$d</string>
+    <string name="book_viewer_progress_label">Chapitre %1$d / %2$d</string>
+    <string name="book_viewer_btn_edit">Modifier ce livre</string>
+    <string name="book_viewer_audio_fragment">FRAGMENT VOCAL</string>
+    <string name="book_viewer_audio_essence">L\'essence de ce souvenir</string>
+
+    <string name="book_editor_onboarding_title">Le Livre de Ma Vie</string>
+    <string name="book_editor_onboarding_p1">L\'IA génère un livre narratif à partir de tes souvenirs.</string>
+    <string name="book_editor_onboarding_p2">Chaque chapitre arrive en brouillon — tu peux le valider, le modifier, ou demander à l\'IA de le réécrire.</string>
+    <string name="book_editor_onboarding_p3">L\'IA ne lit jamais tes vrais souvenirs — uniquement les résumés anonymisés.</string>
+    <string name="book_editor_onboarding_p4">Un chapitre validé est verrouillé mais tu peux le déverrouiller à tout moment.</string>
+    <string name="book_editor_onboarding_p5">Tes proches liront ce livre comme un vrai livre, page par page.</string>
+    <string name="book_editor_saving">Sauvegarde...</string>
+    <string name="book_editor_saved">Enregistré</string>
+    <string name="book_editor_menu_cancel_regen">Annuler la dernière régénération</string>
+    <string name="book_editor_dialog_restore_title">Restaurer la version précédente ?</string>
+    <string name="book_editor_dialog_restore_text">Le contenu actuel sera remplacé par celui d\'avant ta dernière régénération complète. Cette action est définitive.</string>
+    <string name="book_editor_dialog_restore_confirm">Restaurer</string>
+    <string name="book_editor_dialog_restore_cancel">Annuler</string>
+    <string name="book_editor_stats_label">%1$d chapitres · %2$d souvenirs intégrés</string>
+    <string name="book_editor_btn_read">LIRE MON LIVRE</string>
+    <string name="book_editor_btn_regenerate">Régénérer</string>
+    <string name="book_editor_section_preface">PRÉFACE</string>
+    <string name="book_editor_section_rights">DROITS</string>
+    <string name="book_editor_section_ambiance">AMBIANCE</string>
+    <string name="book_editor_section_cover">COUVERTURE</string>
+    <string name="book_editor_cover_custom_title">PERSONNALISATION DE LA COUVERTURE</string>
+    <string name="book_editor_cover_btn_change_photo">Changer photo</string>
+    <string name="book_editor_cover_btn_reset">Réinitialiser</string>
+    <string name="book_editor_cover_title_color">COULEUR DU TITRE</string>
+    <string name="book_editor_ambiance_note">Note : Le choix du Papier et de la Plume définit l\'univers visuel GLOBAL que TOUS vos proches découvriront lors de la lecture de votre Livre de Vie.</string>
+    <string name="book_editor_section_recipients">DESTINATAIRES DU MANUSCRIT</string>
+    <string name="book_editor_attribution_note">Note : Seuls vos souvenirs déjà « Attribués » (ceux que vous avez rangés pour un proche ou dans un compartiment) sont intégrés au récit par l\'IA. Les pensées encore en attente dans votre fil ne sont pas prises en compte.</string>
+    <string name="book_editor_section_summary">SOMMAIRE DU MANUSCRIT</string>
+
+    <string name="chapter_editor_status_validated">Chapitre validé</string>
+    <string name="chapter_editor_ai_rewriting">L\'IA réécrit ce chapitre...</string>
+    <string name="chapter_editor_suggest_rephrase">Reformule ce passage</string>
+    <string name="chapter_editor_suggest_emotion">Ajoute plus d\'émotion</string>
+    <string name="chapter_editor_suggest_shorten">Raccourcis ce chapitre</string>
+    <string name="chapter_editor_suggest_tone">Change le ton</string>
+    <string name="chapter_editor_suggest_intro">Ajoute une introduction</string>
+    <string name="chapter_editor_suggest_finish">Termine ce chapitre</string>
+    <string name="chapter_editor_ai_placeholder">Dis à l\'IA ce que tu veux modifier...</string>
+    <string name="chapter_editor_btn_send_ai">Envoyer à l\'IA</string>
+    <string name="chapter_editor_btn_ask_ai">🤖 Demander à l\'IA</string>
+    <string name="chapter_editor_btn_validate">✅ Valider</string>
+    <string name="chapter_editor_btn_unvalidate">🔓 Modifier quand même</string>
 </resources>

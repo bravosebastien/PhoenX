@@ -32,6 +32,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.SecureAsyncImage
@@ -75,7 +77,7 @@ fun BookViewerScreen(
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
-                    text = sealedMessage ?: "Le Livre de ${bookDraft?.bookTitle ?: creatorName} vous sera ouvert le moment venu.",
+                    text = sealedMessage ?: stringResource(R.string.book_viewer_sealed_message, bookDraft?.bookTitle ?: creatorName),
                     style = TextStyle(
                         fontFamily = FontFamily.Serif,
                         fontSize = 20.sp,
@@ -86,7 +88,7 @@ fun BookViewerScreen(
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = if (sealedMessage != null) "Ce récit est actuellement scellé." else "Ce récit est actuellement scellé. Seul le Gardien pourra lever le sceau.",
+                    text = if (sealedMessage != null) stringResource(R.string.book_viewer_sealed_status) else stringResource(R.string.book_viewer_sealed_status_recipient),
                     style = TextStyle(
                         fontSize = 14.sp,
                         color = Color(0xFF9B9590),
@@ -98,7 +100,7 @@ fun BookViewerScreen(
                     onClick = { navController.popBackStack() },
                     colors = ButtonDefaults.buttonColors(containerColor = AccentPrimary)
                 ) {
-                    Text("Retour", color = Color(0xFF1A1A1F))
+                    Text(stringResource(R.string.book_viewer_btn_back), color = Color(0xFF1A1A1F))
                 }
             }
         }
@@ -122,9 +124,9 @@ fun BookViewerScreen(
             ) {
                 Text(
                     text = if (isRecipientMode)
-                        "Le Livre de Vie n'a pas encore été rédigé."
+                        stringResource(R.string.book_viewer_empty_recipient)
                     else
-                        "Ton livre n'est pas encore créé.",
+                        stringResource(R.string.book_viewer_empty_creator),
                     style = TextStyle(
                         fontFamily = FontFamily.Serif,
                         fontSize = 18.sp,
@@ -144,7 +146,7 @@ fun BookViewerScreen(
                         )
                     ) {
                         Text(
-                            "Créer mon livre",
+                            stringResource(R.string.book_viewer_btn_create),
                             color = Color(0xFF1A1A1F)
                         )
                     }
@@ -177,7 +179,7 @@ fun BookViewerScreen(
                 Spacer(modifier = Modifier.height(80.dp))
 
                 Text(
-                    text = "Chapitre ${chapter.orderIndex + 1}",
+                    text = stringResource(R.string.book_viewer_chapter_label, chapter.orderIndex + 1),
                     style = TextStyle(
                         fontFamily = FontFamily.SansSerif,
                         fontSize = 12.sp,
@@ -254,7 +256,7 @@ fun BookViewerScreen(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Retour",
+                    contentDescription = stringResource(R.string.book_viewer_btn_back),
                     tint = AccentPrimary
                 )
             }
@@ -276,7 +278,7 @@ fun BookViewerScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Chapitre ${pagerState.currentPage + 1} / ${chapters.size}",
+                text = stringResource(R.string.book_viewer_progress_label, pagerState.currentPage + 1, chapters.size),
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
                     fontSize = 12.sp,
@@ -313,7 +315,7 @@ fun BookViewerScreen(
                     onClick = { navController.navigate("book_editor") }
                 ) {
                     Text(
-                        "Modifier ce livre",
+                        stringResource(R.string.book_viewer_btn_edit),
                         color = Color(0xFF9B9590),
                         fontSize = 12.sp
                     )
@@ -401,8 +403,8 @@ fun IllustrableText(
                             }
                             Spacer(Modifier.width(16.dp))
                             Column {
-                                Text("FRAGMENT VOCAL", style = MaterialTheme.typography.labelSmall, color = accent)
-                                Text("L'essence de ce souvenir", style = MaterialTheme.typography.bodySmall, color = Color(0xFF9B9590))
+                                Text(stringResource(R.string.book_viewer_audio_fragment), style = MaterialTheme.typography.labelSmall, color = accent)
+                                Text(stringResource(R.string.book_viewer_audio_essence), style = MaterialTheme.typography.bodySmall, color = Color(0xFF9B9590))
                             }
                         }
                     }
