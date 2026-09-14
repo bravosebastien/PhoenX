@@ -1,7 +1,9 @@
 package com.example.phoenx.ui.screens.preview
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.local.StandaloneMediaDao
 import com.example.phoenx.data.local.OfflineEntry
@@ -10,6 +12,7 @@ import com.example.phoenx.domain.model.AgeSnapshot
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.example.phoenx.ui.screens.recipient.AmbianceState
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -47,7 +50,8 @@ class PreviewViewModel @Inject constructor(
     private val standaloneMediaDao: StandaloneMediaDao,
     private val encryptionManager: com.example.phoenx.data.encryption.EncryptionManager,
     private val db: com.google.firebase.firestore.FirebaseFirestore,
-    private val auth: com.google.firebase.auth.FirebaseAuth
+    private val auth: com.google.firebase.auth.FirebaseAuth,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _recipientUid = MutableStateFlow<String?>(null)
@@ -65,7 +69,7 @@ class PreviewViewModel @Inject constructor(
             val extraInfoFlow = flow {
                 val recipients = offlineEntryDao.getAllRecipients().first()
                 val targetRecipient = recipients.find { it.linkedUid == uid }
-                val recipientName = targetRecipient?.name ?: "Ce proche"
+                val recipientName = targetRecipient?.name ?: context.getString(R.string.preview_vm_recipient_fallback)
                 
                 // Ambiance GLOBALE (Migration v48)
                 val profile = offlineEntryDao.getCreatorProfileSync(userId)
@@ -128,7 +132,7 @@ class PreviewViewModel @Inject constructor(
         val decrypted = try {
             encryptionManager.decryptText(encryptedPayload)
         } catch (e: Exception) {
-            "Erreur déchiffrement"
+            context.getString(R.string.preview_vm_decrypt_error)
         }
         return decrypted
     }

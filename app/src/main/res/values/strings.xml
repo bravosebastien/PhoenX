@@ -2012,4 +2012,66 @@
     <string name="question_cat_secrets">Secrets &amp; Aveux</string>
     <string name="question_cat_wisdom">Sagesse</string>
     <string name="question_cat_my_questions">Mes Questions</string>
+
+    <!-- Preview Batch -->
+    <string name="preview_dashboard_title">Aperçu Vision Destinataire</string>
+    <string name="preview_dashboard_warning">Ce que vous voyez ici reflète fidèlement le contenu et l\'ambiance de l\'espace de %1$s</string>
+    <string name="preview_dashboard_transmission_header">ESPACE DE TRANSMISSION</string>
+    <string name="preview_pillar_souvenirs">Souvenirs &amp; Récits</string>
+    <string name="preview_pillar_photos">Photos</string>
+    <string name="preview_pillar_videos">Vidéos</string>
+    <string name="preview_pillar_audios">Audios</string>
+    <string name="preview_pillar_book">Livre de Vie</string>
+    <string name="preview_pillar_vault">Coffre-Fort</string>
+    <string name="preview_pillar_genealogy">Arbre Généalogique</string>
+    <string name="preview_pillar_personalities">Personnalités</string>
+    <string name="preview_dashboard_readonly_note">Note : Cet aperçu ne permet aucune modification. C\'est une vue en lecture seule pour votre sérénité.</string>
+    <string name="preview_pillar_shared_item">élément partagé</string>
+    <string name="preview_pillar_shared_items">éléments partagés</string>
+
+    <string name="preview_fil_title">Fil de Pensée (Aperçu)</string>
+    <string name="preview_fil_empty">Aucun souvenir partagé avec %1$s</string>
+    <string name="preview_entry_no_title">Souvenir sans titre</string>
+    <string name="preview_entry_deposited_at">Déposé le %1$s</string>
+
+    <string name="preview_book_title_label">Livre de Vie (Aperçu)</string>
+    <string name="preview_book_fallback_title">Livre de Ma Vie</string>
+    <string name="preview_book_available_desc">Un manuscrit est déjà disponible pour consultation.</string>
+    <string name="preview_book_button_consult">Consulter le manuscrit</string>
+    <string name="preview_book_exists_not_shared">Un Livre existe, mais il n\'est pas partagé avec %1$s.</string>
+    <string name="preview_book_how_to_share">Pour le partager, retournez dans l\'éditeur de livre et ajoutez ce proche à la liste des destinataires.</string>
+    <string name="preview_book_none_generated">Aucun Livre n\'a encore été généré — le Destinataire ne verra rien de ce côté pour l\'instant.</string>
+    <string name="preview_book_how_to_create">Pour créer votre Livre, retournez dans votre Bibliothèque et utilisez l\'IA Co-écrivain.</string>
+
+    <string name="preview_vault_title">Coffre-Fort (Aperçu)</string>
+    <string name="preview_vault_empty">Aucune énigme scellée pour %1$s</string>
+    <string name="preview_vault_sealed_label">SOUVENIR SCELLÉ</string>
+    <string name="preview_vault_missing_question">Question manquante</string>
+    <string name="preview_vault_protected_desc">Ce contenu est protégé par une énigme. Seul le destinataire pourra le débloquer en devinant la réponse.</string>
+
+    <string name="preview_media_photos">Photothèque</string>
+    <string name="preview_media_videos">Vidéothèque</string>
+    <string name="preview_media_audios">Discothèque</string>
+    <string name="preview_media_generic">Médiathèque</string>
+    <string name="preview_media_title_format">%1$s (Aperçu)</string>
+    <string name="preview_media_empty">Aucun média partagé avec %1$s</string>
+    <string name="preview_media_fallback_label">Média</string>
+
+    <string name="preview_media_panel_unsupported">Format non supporté en aperçu</string>
+    <string name="preview_media_panel_recipient_view">Vision destinataire (Lecture seule)</string>
+
+    <string name="preview_detail_title">Détail (Aperçu)</string>
+    <string name="preview_detail_not_found">Souvenir introuvable ou non partagé</string>
+    <string name="preview_detail_no_title">Sans titre</string>
+    <string name="preview_detail_no_content">Pas de contenu écrit.</string>
+    <string name="preview_detail_creator_comment">COMMENTAIRE DU CRÉATEUR</string>
+    <string name="preview_detail_complements_header">COMPLÉMENTS MÉDIA</string>
+    <string name="preview_detail_shared_with_desc">Ce souvenir est partagé avec %1$s selon vos règles de visibilité.</string>
+
+    <string name="preview_genealogy_title">Arbre Généalogique (Aperçu)</string>
+    <string name="preview_genealogy_empty">Ton arbre est encore vide.</string>
+    <string name="preview_genealogy_readonly_badge">Mode Aperçu : Lecture Seule</string>
+
+    <string name="preview_vm_recipient_fallback">Ce proche</string>
+    <string name="preview_vm_decrypt_error">Erreur déchiffrement</string>
 </resources>

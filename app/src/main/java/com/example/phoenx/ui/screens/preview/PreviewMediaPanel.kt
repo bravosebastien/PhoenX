@@ -12,7 +12,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.media3.common.util.UnstableApi
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.screens.media.AudioPlayer
@@ -46,12 +48,12 @@ fun PreviewMediaPanel(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = entry.aiSummary.ifBlank { "Aperçu du média" },
+                    text = entry.aiSummary.ifBlank { stringResource(R.string.preview_media_fallback_label) },
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor
                 )
                 Text(
-                    text = "Vision destinataire (Lecture seule)",
+                    text = stringResource(R.string.preview_media_panel_recipient_view),
                     style = MaterialTheme.typography.labelSmall,
                     color = accent.copy(alpha = 0.7f)
                 )
@@ -98,7 +100,7 @@ fun PreviewMediaPanel(
                     )
                 }
                 else -> {
-                    Text("Format non supporté en aperçu", color = Color.White.copy(alpha = 0.4f))
+                    Text(stringResource(R.string.preview_media_panel_unsupported), color = Color.White.copy(alpha = 0.4f))
                 }
             }
         }

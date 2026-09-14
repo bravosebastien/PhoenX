@@ -13,7 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.screens.genealogy.GenealogyTreeRenderer
 import com.example.phoenx.ui.screens.genealogy.GenealogyTreeViewModel
 import com.example.phoenx.ui.theme.LocalAppTheme
@@ -48,7 +50,7 @@ fun PreviewGenealogyScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Arbre Généalogique (Aperçu)", style = MaterialTheme.typography.labelSmall, color = accent)
+                        Text(stringResource(R.string.preview_genealogy_title), style = MaterialTheme.typography.labelSmall, color = accent)
                         Text(state.recipientName, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                     }
                 },
@@ -64,7 +66,7 @@ fun PreviewGenealogyScreen(
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (state.familyCount == 0) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Ton arbre est encore vide.", color = theme.contentColor.copy(alpha = 0.4f))
+                    Text(stringResource(R.string.preview_genealogy_empty), color = theme.contentColor.copy(alpha = 0.4f))
                 }
             } else {
                 // Rendu visuel de l'arbre (Lecture seule)
@@ -83,7 +85,7 @@ fun PreviewGenealogyScreen(
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     Text(
-                        "Mode Aperçu : Lecture Seule",
+                        stringResource(R.string.preview_genealogy_readonly_badge),
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = theme.backgroundColor

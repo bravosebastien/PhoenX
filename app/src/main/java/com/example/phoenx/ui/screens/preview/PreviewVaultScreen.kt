@@ -15,7 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.LocalBackgroundBrush
@@ -43,7 +45,7 @@ fun PreviewVaultScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Coffre-Fort (Aperçu)", style = MaterialTheme.typography.labelSmall, color = accent)
+                        Text(stringResource(R.string.preview_vault_title), style = MaterialTheme.typography.labelSmall, color = accent)
                         Text(state.recipientName, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                     }
                 },
@@ -62,7 +64,7 @@ fun PreviewVaultScreen(
             }
         } else if (state.filteredEnigmas.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Aucune énigme scellée pour ${state.recipientName}", color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.preview_vault_empty, state.recipientName), color = theme.contentColor.copy(alpha = 0.4f))
             }
         } else {
             LazyColumn(
@@ -91,20 +93,20 @@ fun PreviewLockedCard(entry: OfflineEntry, theme: com.example.phoenx.ui.theme.Ap
                 Icon(Icons.Default.Lock, null, tint = theme.accentColor, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(12.dp))
                 Text(
-                    text = "SOUVENIR SCELLÉ",
+                    text = stringResource(R.string.preview_vault_sealed_label),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
                     color = theme.accentColor
                 )
             }
             Spacer(Modifier.height(16.dp))
             Text(
-                text = entry.enigmaQuestion?.takeIf { it.isNotBlank() } ?: "Question manquante",
+                text = entry.enigmaQuestion?.takeIf { it.isNotBlank() } ?: stringResource(R.string.preview_vault_missing_question),
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                 color = theme.contentColor
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = "Ce contenu est protégé par une énigme. Seul le destinataire pourra le débloquer en devinant la réponse.",
+                text = stringResource(R.string.preview_vault_protected_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = theme.contentColor.copy(alpha = 0.6f)
             )

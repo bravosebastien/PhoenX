@@ -22,7 +22,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
@@ -84,12 +86,12 @@ fun PreviewMediaScreen(
                 title = {
                     Column {
                         val titleLabel = when(type) {
-                            "PHOTO" -> "Photothèque"
-                            "VIDEO" -> "Vidéothèque"
-                            "AUDIO" -> "Discothèque"
-                            else -> "Médiathèque"
+                            "PHOTO" -> stringResource(R.string.preview_media_photos)
+                            "VIDEO" -> stringResource(R.string.preview_media_videos)
+                            "AUDIO" -> stringResource(R.string.preview_media_audios)
+                            else -> stringResource(R.string.preview_media_generic)
                         }
-                        Text("$titleLabel (Aperçu)", style = MaterialTheme.typography.labelSmall, color = accent)
+                        Text(stringResource(R.string.preview_media_title_format, titleLabel), style = MaterialTheme.typography.labelSmall, color = accent)
                         Text(state.recipientName, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                     }
                 },
@@ -108,7 +110,7 @@ fun PreviewMediaScreen(
             }
         } else if (filteredList.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Aucun média partagé avec ${state.recipientName}", color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.preview_media_empty, state.recipientName), color = theme.contentColor.copy(alpha = 0.4f))
             }
         } else {
             LazyVerticalGrid(
@@ -202,7 +204,7 @@ fun PreviewMediaCard(
                 shape = RoundedCornerShape(4.dp)
             ) {
                 Text(
-                    text = entry.aiSummary.ifBlank { "Média" },
+                    text = entry.aiSummary.ifBlank { stringResource(R.string.preview_media_fallback_label) },
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                     color = Color.White,
                     maxLines = 1,

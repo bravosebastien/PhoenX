@@ -23,7 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.SecureAsyncImage
@@ -77,7 +79,7 @@ fun PreviewMemoryDetailScreen(
         modifier = Modifier.background(backgroundBrush),
         topBar = {
             TopAppBar(
-                title = { Text("Détail (Aperçu)", style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(stringResource(R.string.preview_detail_title), style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -90,7 +92,7 @@ fun PreviewMemoryDetailScreen(
         if (entry == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 if (state.isLoading) CircularProgressIndicator(color = accent)
-                else Text("Souvenir introuvable ou non partagé", color = theme.contentColor.copy(alpha = 0.5f))
+                else Text(stringResource(R.string.preview_detail_not_found), color = theme.contentColor.copy(alpha = 0.5f))
             }
         } else {
             Column(
@@ -103,7 +105,7 @@ fun PreviewMemoryDetailScreen(
             ) {
                 // TITRE
                 Text(
-                    text = entry.aiSummary.ifBlank { "Sans titre" },
+                    text = entry.aiSummary.ifBlank { stringResource(R.string.preview_detail_no_title) },
                     style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor
                 )
@@ -112,13 +114,13 @@ fun PreviewMemoryDetailScreen(
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     val dateText = remember(entry) {
                         when {
-                            entry.memoryDate != null -> SimpleDateFormat("dd MMM yyyy", Locale.FRENCH).format(Date(entry.memoryDate))
+                            entry.memoryDate != null -> SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(entry.memoryDate))
                             entry.memoryDateStart != null && entry.memoryDateEnd != null -> {
                                 val start = SimpleDateFormat("dd/MM/yy").format(Date(entry.memoryDateStart))
                                 val end = SimpleDateFormat("dd/MM/yy").format(Date(entry.memoryDateEnd))
                                 "$start - $end"
                             }
-                            else -> SimpleDateFormat("dd MMM yyyy", Locale.FRENCH).format(Date(entry.createdAt))
+                            else -> SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(entry.createdAt))
                         }
                     }
                     PreviewInfoChip(icon = Icons.Default.Event, text = dateText, accent = accent, theme = theme)
@@ -136,7 +138,7 @@ fun PreviewMemoryDetailScreen(
                 ) {
                     val decryptedText = remember(entry) { viewModel.decryptContent(entry.encryptedPayload, entry.aiSummary) }
                     Text(
-                        text = decryptedText.ifBlank { "Pas de contenu écrit." },
+                        text = decryptedText.ifBlank { stringResource(R.string.preview_detail_no_content) },
                         modifier = Modifier.padding(20.dp),
                         style = MaterialTheme.typography.bodyMedium,
                         color = theme.contentColor.copy(alpha = 0.8f),
@@ -148,7 +150,7 @@ fun PreviewMemoryDetailScreen(
                 if (!entry.userComment.isNullOrBlank()) {
                     Column {
                         Text(
-                            "COMMENTAIRE DU CRÉATEUR",
+                            stringResource(R.string.preview_detail_creator_comment),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = accent
                         )
@@ -164,7 +166,7 @@ fun PreviewMemoryDetailScreen(
                 // COMPLÉMENTS
                 if (complements.isNotEmpty()) {
                     Text(
-                        "COMPLÉMENTS MÉDIA",
+                        stringResource(R.string.preview_detail_complements_header),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
                         color = theme.contentColor.copy(alpha = 0.4f)
                     )
@@ -203,7 +205,7 @@ fun PreviewMemoryDetailScreen(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Text(
-                        "Ce souvenir est partagé avec ${state.recipientName} selon vos règles de visibilité.",
+                        stringResource(R.string.preview_detail_shared_with_desc, state.recipientName),
                         modifier = Modifier.padding(16.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = theme.contentColor.copy(alpha = 0.5f)
@@ -294,7 +296,7 @@ fun PreviewComplementItem(
                 color = Color.Black.copy(alpha = 0.6f)
             ) {
                 Text(
-                    text = complement.aiSummary.ifBlank { "Média" },
+                    text = complement.aiSummary.ifBlank { stringResource(R.string.preview_media_fallback_label) },
                     modifier = Modifier.padding(4.dp),
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
                     color = Color.White,

@@ -15,7 +15,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.LocalBackgroundBrush
@@ -47,7 +49,7 @@ fun PreviewFilScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Fil de Pensée (Aperçu)", style = MaterialTheme.typography.labelSmall, color = accent)
+                        Text(stringResource(R.string.preview_fil_title), style = MaterialTheme.typography.labelSmall, color = accent)
                         Text(state.recipientName, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                     }
                 },
@@ -66,7 +68,7 @@ fun PreviewFilScreen(
             }
         } else if (state.filteredSouvenirs.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Aucun souvenir partagé avec ${state.recipientName}", color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.preview_fil_empty, state.recipientName), color = theme.contentColor.copy(alpha = 0.4f))
             }
         } else {
             LazyColumn(
@@ -90,7 +92,7 @@ fun PreviewEntryCard(
     theme: com.example.phoenx.ui.theme.AppThemeState,
     onClick: () -> Unit
 ) {
-    val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.FRENCH)
+    val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
     val dateStr = sdf.format(Date(entry.createdAt))
     
     Card(
@@ -103,13 +105,14 @@ fun PreviewEntryCard(
             Icon(Icons.Default.HistoryEdu, null, tint = theme.accentColor, modifier = Modifier.size(24.dp))
             Spacer(Modifier.width(16.dp))
             Column {
+                val fallbackTitle = stringResource(R.string.preview_entry_no_title)
                 Text(
-                    text = entry.aiSummary.ifBlank { "Souvenir sans titre" },
+                    text = entry.aiSummary.ifBlank { fallbackTitle },
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor
                 )
                 Text(
-                    text = "Déposé le $dateStr",
+                    text = stringResource(R.string.preview_entry_deposited_at, dateStr),
                     style = MaterialTheme.typography.labelSmall,
                     color = theme.contentColor.copy(alpha = 0.4f)
                 )

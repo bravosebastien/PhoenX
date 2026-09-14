@@ -19,7 +19,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.screens.book.BookThemeOptions
 import com.example.phoenx.ui.theme.*
 import com.example.phoenx.ui.theme.phoenXMatiere
@@ -61,7 +63,7 @@ fun PreviewDashboardScreen(
                 TopAppBar(
                     title = { 
                         Column {
-                            Text("Aperçu Vision Destinataire", style = MaterialTheme.typography.labelSmall, color = accent)
+                            Text(stringResource(R.string.preview_dashboard_title), style = MaterialTheme.typography.labelSmall, color = accent)
                             Text(state.recipientName, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                         }
                     },
@@ -97,7 +99,7 @@ fun PreviewDashboardScreen(
                             Icon(Icons.Default.Info, null, tint = accent)
                             Spacer(Modifier.width(16.dp))
                             Text(
-                                "Ce que vous voyez ici reflète fidèlement le contenu et l'ambiance de l'espace de ${state.recipientName}",
+                                stringResource(R.string.preview_dashboard_warning, state.recipientName),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = theme.contentColor.copy(alpha = 0.8f)
                             )
@@ -105,7 +107,7 @@ fun PreviewDashboardScreen(
                     }
 
                     Text(
-                        "ESPACE DE TRANSMISSION", 
+                        stringResource(R.string.preview_dashboard_transmission_header), 
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp), 
                         color = theme.contentColor.copy(alpha = 0.4f)
                     )
@@ -113,28 +115,28 @@ fun PreviewDashboardScreen(
                     // LES 4 PILIERS DE L'APERÇU
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         PreviewPillarItem(
-                            title = "Souvenirs & Récits",
+                            title = stringResource(R.string.preview_pillar_souvenirs),
                             count = state.souvenirsCount,
                             icon = Icons.Default.HistoryEdu,
                             accent = accent,
                             onClick = onNavigateToFil
                         )
                         PreviewPillarItem(
-                            title = "Photos",
+                            title = stringResource(R.string.preview_pillar_photos),
                             count = state.photosCount,
                             icon = Icons.Default.PhotoLibrary,
                             accent = accent,
                             onClick = { onNavigateToMedia("PHOTO") }
                         )
                         PreviewPillarItem(
-                            title = "Vidéos",
+                            title = stringResource(R.string.preview_pillar_videos),
                             count = state.videosCount,
                             icon = Icons.Default.VideoLibrary,
                             accent = accent,
                             onClick = { onNavigateToMedia("VIDEO") }
                         )
                         PreviewPillarItem(
-                            title = "Audios",
+                            title = stringResource(R.string.preview_pillar_audios),
                             count = state.audiosCount,
                             icon = Icons.Default.MusicNote,
                             accent = accent,
@@ -144,7 +146,7 @@ fun PreviewDashboardScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         PreviewPillarItem(
-                            title = "Livre de Vie",
+                            title = stringResource(R.string.preview_pillar_book),
                             count = if (state.hasBookDraft) 1 else 0,
                             icon = Icons.Default.AutoStories,
                             accent = accent,
@@ -152,7 +154,7 @@ fun PreviewDashboardScreen(
                         )
 
                         PreviewPillarItem(
-                            title = "Coffre-Fort",
+                            title = stringResource(R.string.preview_pillar_vault),
                             count = state.filteredEnigmas.size,
                             icon = Icons.Default.Lock,
                             accent = accent,
@@ -160,7 +162,7 @@ fun PreviewDashboardScreen(
                         )
 
                         PreviewPillarItem(
-                            title = "Arbre Généalogique",
+                            title = stringResource(R.string.preview_pillar_genealogy),
                             count = state.familyCount,
                             icon = Icons.Default.Public,
                             accent = accent,
@@ -168,7 +170,7 @@ fun PreviewDashboardScreen(
                         )
 
                         PreviewPillarItem(
-                            title = "Personnalités",
+                            title = stringResource(R.string.preview_pillar_personalities),
                             count = 0, // À brancher sur le vrai count si besoin
                             icon = Icons.Default.Star,
                             accent = accent,
@@ -179,7 +181,7 @@ fun PreviewDashboardScreen(
                     Spacer(modifier = Modifier.weight(1f))
                     
                     Text(
-                        "Note : Cet aperçu ne permet aucune modification. C'est une vue en lecture seule pour votre sérénité.",
+                        stringResource(R.string.preview_dashboard_readonly_note),
                         style = MaterialTheme.typography.labelSmall,
                         color = theme.contentColor.copy(alpha = 0.4f),
                         fontStyle = FontStyle.Italic,
@@ -224,7 +226,7 @@ fun PreviewPillarItem(
             Spacer(Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                val label = if (count <= 1) "élément partagé" else "éléments partagés"
+                val label = if (count <= 1) stringResource(R.string.preview_pillar_shared_item) else stringResource(R.string.preview_pillar_shared_items)
                 Text("$count $label", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.5f))
             }
             Icon(Icons.Default.ChevronRight, null, tint = theme.contentColor.copy(alpha = 0.2f))
