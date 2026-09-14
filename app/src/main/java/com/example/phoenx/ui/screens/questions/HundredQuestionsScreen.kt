@@ -29,7 +29,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import coil3.compose.AsyncImage
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
@@ -41,6 +43,30 @@ import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.ui.components.SecureAsyncImage
 import dagger.hilt.android.EntryPointAccessors
 import com.example.phoenx.data.media.MediaManager
+
+@Composable
+private fun getCategoryDisplayName(category: String): String {
+    return when (category) {
+        "Toutes" -> stringResource(R.string.question_cat_all)
+        "Enfance" -> stringResource(R.string.question_cat_childhood)
+        "Famille" -> stringResource(R.string.question_cat_family)
+        "Amour" -> stringResource(R.string.question_cat_love)
+        "Amitié" -> stringResource(R.string.question_cat_friendship)
+        "Travail" -> stringResource(R.string.question_cat_work)
+        "Argent & Réussite" -> stringResource(R.string.question_cat_money)
+        "Valeurs" -> stringResource(R.string.question_cat_values)
+        "Foi & Spiritualité" -> stringResource(R.string.question_cat_faith)
+        "Corps & Santé" -> stringResource(R.string.question_cat_health)
+        "Regrets" -> stringResource(R.string.question_cat_regrets)
+        "Rêves" -> stringResource(R.string.question_cat_dreams)
+        "Voyages & Lieux" -> stringResource(R.string.question_cat_travel)
+        "Créativité & Passions" -> stringResource(R.string.question_cat_creativity)
+        "Secrets & Aveux" -> stringResource(R.string.question_cat_secrets)
+        "Sagesse" -> stringResource(R.string.question_cat_wisdom)
+        "Mes Questions" -> stringResource(R.string.question_cat_my_questions)
+        else -> category
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -79,24 +105,24 @@ fun HundredQuestionsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Les 100 Questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                Text(stringResource(R.string.questions_title), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                                 Text(
                                     text = if (answeredCount == totalCount) 
-                                        "Toutes tes histoires sont racontées." 
+                                        stringResource(R.string.questions_progress_all_answered) 
                                     else 
-                                        "$answeredCount / $totalCount questions racontées",
+                                        stringResource(R.string.questions_progress_count, answeredCount, totalCount),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = if (answeredCount == totalCount) Success else theme.contentColor.copy(alpha = 0.5f)
                                 )
                             }
                             InfoButton(
-                                title = "Les 120 Questions",
+                                title = stringResource(R.string.questions_info_title),
                                 points = listOf(
-                                    "120 questions organisées en 16 catégories pour raconter ta vie en profondeur.",
-                                    "Réponds à celles qui te touchent — ignore les autres.",
-                                    "Chaque réponse est un souvenir normal, classé et sécurisé.",
-                                    "Un badge ✓ apparaît sur les questions auxquelles tu as déjà répondu.",
-                                    "Le compteur en haut montre ta progression globale."
+                                    stringResource(R.string.questions_info_p1),
+                                    stringResource(R.string.questions_info_p2),
+                                    stringResource(R.string.questions_info_p3),
+                                    stringResource(R.string.questions_info_p4),
+                                    stringResource(R.string.questions_info_p5)
                                 )
                             )
                         }
@@ -135,7 +161,7 @@ fun HundredQuestionsScreen(
                             onClick = { viewModel.filterQuestions(category) },
                             text = {
                                 Text(
-                                    text = category,
+                                    text = getCategoryDisplayName(category),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = if (uiState.selectedCategory == category) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
                                 )
@@ -174,7 +200,7 @@ fun HundredQuestionsScreen(
                     if (uiState.customQuestions.isEmpty()) {
                         item {
                             Box(modifier = Modifier.fillMaxWidth().padding(top = 80.dp), contentAlignment = Alignment.Center) {
-                                Text("Aucune question personnalisée.", color = theme.contentColor.copy(alpha = 0.4f))
+                                Text(stringResource(R.string.questions_custom_empty), color = theme.contentColor.copy(alpha = 0.4f))
                             }
                         }
                     } else {
@@ -235,7 +261,7 @@ fun QuestionCreatorCard(
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = question.category.uppercase(),
+                    text = getCategoryDisplayName(question.category).uppercase(),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = accent,
                     modifier = Modifier.weight(1f)
@@ -251,7 +277,7 @@ fun QuestionCreatorCard(
                         ) {
                             Icon(Icons.Default.CheckCircle, null, tint = Success, modifier = Modifier.size(14.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("✓ Répondu", color = Success, style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp))
+                            Text(stringResource(R.string.questions_status_answered), color = Success, style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp))
                         }
                     }
                 }
@@ -274,14 +300,14 @@ fun QuestionCreatorCard(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
                     border = androidx.compose.foundation.BorderStroke(1.dp, accent)
                 ) {
-                    Text("Répondre")
+                    Text(stringResource(R.string.questions_btn_answer))
                 }
             } else {
                 TextButton(
                     onClick = onAnswerClick,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("Modifier ma réponse", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.questions_btn_edit_answer), color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
@@ -316,7 +342,7 @@ fun CustomQuestionItem(
                 )
                 Spacer(Modifier.width(12.dp))
                 Text(
-                    text = entry.enigmaQuestion ?: "Sans question",
+                    text = entry.enigmaQuestion ?: stringResource(R.string.questions_custom_no_question),
                     style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                     color = theme.contentColor,
                     modifier = Modifier.weight(1f),
@@ -329,7 +355,7 @@ fun CustomQuestionItem(
                 Column(modifier = Modifier.padding(top = 16.dp)) {
                     if (!entry.enigmaHint.isNullOrBlank()) {
                         Text(
-                            "Indice : ${entry.enigmaHint}",
+                            stringResource(R.string.questions_custom_hint_label, entry.enigmaHint),
                             style = MaterialTheme.typography.bodySmall,
                             color = theme.contentColor.copy(alpha = 0.6f)
                         )
@@ -342,10 +368,10 @@ fun CustomQuestionItem(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = onDelete) {
-                            Icon(Icons.Default.Delete, "Supprimer", tint = Error.copy(alpha = 0.7f))
+                            Icon(Icons.Default.Delete, stringResource(R.string.questions_custom_delete_desc), tint = Error.copy(alpha = 0.7f))
                         }
                         IconButton(onClick = onEdit) {
-                            Icon(Icons.Default.Edit, "Modifier", tint = accent)
+                            Icon(Icons.Default.Edit, stringResource(R.string.questions_custom_edit_desc), tint = accent)
                         }
                     }
                 }

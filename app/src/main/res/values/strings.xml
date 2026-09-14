@@ -2314,4 +2314,31 @@
     <string name="book_tone_factual">Factuel</string>
     <string name="book_tone_warm">Chaleureux</string>
     <string name="book_tone_nostalgic">Nostalgique</string>
+
+    <!-- Questions Batch A (Navigation & Cards) -->
+    <string name="questions_title">Les 100 Questions</string>
+    <string name="questions_progress_all_answered">Toutes tes histoires sont racontées.</string>
+    <string name="questions_progress_count">%1$d / %2$d questions racontées</string>
+    <string name="questions_info_title">Les 120 Questions</string>
+    <string name="questions_info_p1">120 questions organisées en 16 catégories pour raconter ta vie en profondeur.</string>
+    <string name="questions_info_p2">Réponds à celles qui te touchent — ignore les autres.</string>
+    <string name="questions_info_p3">Chaque réponse est un souvenir normal, classé et sécurisé.</string>
+    <string name="questions_info_p4">Un badge ✓ apparaît sur les questions auxquelles tu as déjà répondu.</string>
+    <string name="questions_info_p5">Le compteur en haut montre ta progression globale.</string>
+    <string name="questions_custom_empty">Aucune question personnalisée.</string>
+    <string name="questions_status_answered">✓ Répondu</string>
+    <string name="questions_custom_no_question">Sans question</string>
+    <string name="questions_custom_hint_label">Indice : %1$s</string>
+    <string name="questions_custom_delete_desc">Supprimer</string>
+    <string name="questions_custom_edit_desc">Modifier</string>
+    <string name="questions_btn_answer">Répondre</string>
+    <string name="questions_btn_edit_answer">Modifier ma réponse</string>
+    <string name="questions_info_title_simple">Les Questions</string>
+    <string name="questions_info_p1_simple">Plus de 100 questions pour raconter ta vie en profondeur.</string>
+    <string name="questions_info_p2_simple">Chaque réponse est un souvenir scellé, prêt à être transmis.</string>
+    <string name="questions_info_p3_simple">Un badge ✓ apparaît sur les questions déjà traitées.</string>
+    <string name="questions_info_p4_simple">Réponds à ton rythme, catégorie par catégorie.</string>
+    <string name="questions_btn_illustrate">Illustrer ma réponse</string>
+    <string name="questions_answer_placeholder">Dépose tes mots ici...</string>
+    <string name="questions_btn_seal">Sceller ma réponse</string>
 </resources>

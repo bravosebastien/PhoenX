@@ -31,11 +31,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import coil3.compose.AsyncImage
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 import java.io.File
+
+@Composable
+private fun getCategoryDisplayName(category: String): String {
+    return when (category) {
+        "Toutes" -> stringResource(R.string.question_cat_all)
+        "Enfance" -> stringResource(R.string.question_cat_childhood)
+        "Famille" -> stringResource(R.string.question_cat_family)
+        "Amour" -> stringResource(R.string.question_cat_love)
+        "Amitié" -> stringResource(R.string.question_cat_friendship)
+        "Travail" -> stringResource(R.string.question_cat_work)
+        "Argent & Réussite" -> stringResource(R.string.question_cat_money)
+        "Valeurs" -> stringResource(R.string.question_cat_values)
+        "Foi & Spiritualité" -> stringResource(R.string.question_cat_faith)
+        "Corps & Santé" -> stringResource(R.string.question_cat_health)
+        "Regrets" -> stringResource(R.string.question_cat_regrets)
+        "Rêves" -> stringResource(R.string.question_cat_dreams)
+        "Voyages & Lieux" -> stringResource(R.string.question_cat_travel)
+        "Créativité & Passions" -> stringResource(R.string.question_cat_creativity)
+        "Secrets & Aveux" -> stringResource(R.string.question_cat_secrets)
+        "Sagesse" -> stringResource(R.string.question_cat_wisdom)
+        "Mes Questions" -> stringResource(R.string.question_cat_my_questions)
+        else -> category
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,20 +111,20 @@ fun QuestionsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text("Les 100 Questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                                Text(stringResource(R.string.questions_title), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                                 Text(
-                                    text = "$answeredCount / $totalCount questions racontées",
+                                    text = stringResource(R.string.questions_progress_count, answeredCount, totalCount),
                                     style = MaterialTheme.typography.labelSmall,
                                     color = if (answeredCount == totalCount) Success else theme.contentColor.copy(alpha = 0.5f)
                                 )
                             }
                             InfoButton(
-                                title = "Les Questions",
+                                title = stringResource(R.string.questions_info_title_simple),
                                 points = listOf(
-                                    "Plus de 100 questions pour raconter ta vie en profondeur.",
-                                    "Chaque réponse est un souvenir scellé, prêt à être transmis.",
-                                    "Un badge ✓ apparaît sur les questions déjà traitées.",
-                                    "Réponds à ton rythme, catégorie par catégorie."
+                                    stringResource(R.string.questions_info_p1_simple),
+                                    stringResource(R.string.questions_info_p2_simple),
+                                    stringResource(R.string.questions_info_p3_simple),
+                                    stringResource(R.string.questions_info_p4_simple)
                                 )
                             )
                         }
@@ -131,7 +157,7 @@ fun QuestionsScreen(
                                 onClick = { viewModel.filterQuestions(category) },
                                 text = {
                                     Text(
-                                        text = category,
+                                        text = getCategoryDisplayName(category),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = if (uiState.selectedCategory == category) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
                                     )
@@ -201,7 +227,7 @@ fun QuestionsScreen(
                         ) {
                             Icon(Icons.Default.PhotoCamera, null, tint = accent)
                             Spacer(Modifier.width(12.dp))
-                            Text("Illustrer ma réponse", color = theme.contentColor)
+                            Text(stringResource(R.string.questions_btn_illustrate), color = theme.contentColor)
                         }
                     }
 
@@ -211,7 +237,7 @@ fun QuestionsScreen(
                         value = answerText,
                         onValueChange = { answerText = it },
                         modifier = Modifier.fillMaxWidth().weight(1f),
-                        placeholder = { Text("Dépose tes mots ici...", color = theme.contentColor.copy(alpha = 0.3f), style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)) },
+                        placeholder = { Text(stringResource(R.string.questions_answer_placeholder), color = theme.contentColor.copy(alpha = 0.3f), style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)) },
                         textStyle = MaterialTheme.typography.bodyLarge.copy(color = theme.contentColor),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = accent,
@@ -232,7 +258,7 @@ fun QuestionsScreen(
                         if (uiState.isSaving) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp), color = theme.backgroundColor, strokeWidth = 2.dp)
                         } else {
-                            Text("Sceller ma réponse", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                            Text(stringResource(R.string.questions_btn_seal), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
@@ -266,7 +292,7 @@ fun QuestionListItem(
             Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = question.text,
-                style = MaterialTheme.typography.bodyMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                 color = theme.contentColor,
                 modifier = Modifier.weight(1f)
             )
