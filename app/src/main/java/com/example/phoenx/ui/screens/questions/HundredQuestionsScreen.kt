@@ -286,7 +286,7 @@ fun QuestionCreatorCard(
             Spacer(modifier = Modifier.height(12.dp))
             
             Text(
-                text = question.text,
+                text = if (question.textResId != 0) stringResource(question.textResId) else question.text,
                 style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                 color = theme.contentColor
             )

@@ -19,8 +19,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 import java.util.*
 
@@ -43,7 +44,7 @@ fun HundredQuestionsLeaderboardScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Classement Devinettes", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor) },
+                title = { Text(stringResource(R.string.questions_leaderboard_title), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = theme.contentColor)
@@ -59,7 +60,7 @@ fun HundredQuestionsLeaderboardScreen(
             }
         } else if (uiState.results.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Personne n'a encore deviné de questions.", color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.questions_leaderboard_empty), color = theme.contentColor.copy(alpha = 0.4f))
             }
         } else {
             LazyColumn(
@@ -114,7 +115,7 @@ fun GuessLeaderboardCard(rank: Int, result: GuessRecipientResult, theme: AppThem
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                         color = theme.contentColor
                     )
-                    Text("${result.totalCorrect} bonnes réponses", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
+                    Text(stringResource(R.string.questions_leaderboard_correct_answers, result.totalCorrect), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.4f))
                 }
 
                 Icon(

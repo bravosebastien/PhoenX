@@ -18,6 +18,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.Date
 import javax.inject.Inject
 import android.content.Context
+import com.example.phoenx.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 
 data class HundredQuestionsUiState(
@@ -145,7 +146,7 @@ class HundredQuestionsViewModel @Inject constructor(
                 // Déclenchement sync
                 SyncWorker.trigger(context)
             } catch (e: Exception) {
-                android.util.Log.e("HundredQuestionsVM", "Erreur sauvegarde question personnalisée", e)
+                android.util.Log.e("HundredQuestionsVM", context.getString(R.string.questions_error_custom_save), e)
             }
         }
     }

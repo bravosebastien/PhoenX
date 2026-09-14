@@ -10,6 +10,7 @@ import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.sync.toOfflineEntry
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.sync.SyncWorker
+import com.example.phoenx.R
 import com.example.phoenx.domain.util.AgeUtils
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -66,7 +67,7 @@ class QuestionsViewModel @Inject constructor(
                 val ids = snapshot.documents.mapNotNull { it.getString("questionId") }.toSet()
                 _uiState.update { it.copy(answeredQuestionIds = ids, isLoading = false) }
             } catch (e: Exception) {
-                android.util.Log.e("QuestionsVM", "Erreur chargement réponses: ${e.message}")
+                android.util.Log.e("QuestionsVM", context.getString(R.string.questions_error_load_answers, e.message))
                 _uiState.update { it.copy(isLoading = false) }
             }
         }
@@ -90,7 +91,7 @@ class QuestionsViewModel @Inject constructor(
                 val decodedText = try {
                     encryptionManager.decryptText(entry.encryptedPayload)
                 } catch (e: Exception) { 
-                    android.util.Log.e("QuestionsVM", "Échec déchiffrement", e)
+                    android.util.Log.e("QuestionsVM", context.getString(R.string.questions_error_decrypt), e)
                     "" 
                 }
                 
@@ -136,7 +137,7 @@ class QuestionsViewModel @Inject constructor(
                         }
                     }
                 } catch (e: Exception) {
-                    android.util.Log.e("QuestionsVM", "Erreur fallback Firestore", e)
+                    android.util.Log.e("QuestionsVM", context.getString(R.string.questions_error_firestore_fallback), e)
                 }
 
                 _uiState.update { it.copy(
@@ -210,7 +211,7 @@ class QuestionsViewModel @Inject constructor(
                 val newAnsweredIds = _uiState.value.answeredQuestionIds + questionObj.id
                 _uiState.update { it.copy(isSaving = false, isSuccess = true, answeredQuestionIds = newAnsweredIds) }
             } catch (e: Exception) {
-                android.util.Log.e("QuestionsVM", "Erreur sauvegarde: ${e.message}")
+                android.util.Log.e("QuestionsVM", context.getString(R.string.questions_error_save, e.message))
                 _uiState.update { it.copy(isSaving = false) }
             }
         }
@@ -237,7 +238,7 @@ class QuestionsViewModel @Inject constructor(
                     SyncWorker.trigger(context)
                 }
             } catch (e: Exception) {
-                android.util.Log.e("QuestionsVM", "Erreur suppression photo", e)
+                android.util.Log.e("QuestionsVM", context.getString(R.string.questions_error_delete_photo), e)
             }
         }
     }

@@ -2379,4 +2379,181 @@
     <string name="questions_pending_btn_confirm_decline">Confirmer ce choix</string>
     <string name="questions_pending_btn_back">Retour</string>
     <string name="questions_date_format">dd MMMM yyyy</string>
+
+    <!-- Questions Batch C (Data & Leaderboard) -->
+    <string name="questions_leaderboard_title">Classement Devinettes</string>
+    <string name="questions_leaderboard_empty">Personne n\'a encore deviné de questions.</string>
+    <string name="questions_leaderboard_correct_answers">%1$d bonnes réponses</string>
+    <string name="questions_error_load_answers">Erreur lors du chargement des réponses : %1$s</string>
+    <string name="questions_error_save">Erreur lors de la sauvegarde : %1$s</string>
+    <string name="questions_error_decrypt">Échec du déchiffrement</string>
+    <string name="questions_error_firestore_fallback">Erreur fallback Firestore</string>
+    <string name="questions_error_custom_save">Erreur sauvegarde question personnalisée</string>
+    <string name="questions_error_delete_photo">Erreur suppression photo</string>
+
+    <!-- 150 Questions -->
+    <string name="question_text_e1">Quel est ton plus vieux souvenir ?</string>
+    <string name="question_text_e2">Quelle odeur te rappelle ta maison d\'enfance ?</string>
+    <string name="question_text_e3">Qui était ton héros quand tu étais petit ?</string>
+    <string name="question_text_e4">Quel était ton jouet préféré ?</string>
+    <string name="question_text_e5">À quoi ressemblait ta chambre d\'enfant ?</string>
+    <string name="question_text_e6">Quelle était ta plus grande peur étant petit ?</string>
+    <string name="question_text_e7">Quel est le plus beau cadeau que tu aies reçu enfant ?</string>
+    <string name="question_text_e8">Quel genre d\'élève étais-tu à l\'école ?</string>
+    <string name="question_text_e9">Quel est le premier métier que tu as rêvé de faire ?</string>
+    <string name="question_text_e10">Quel goût a ton enfance ?</string>
+
+    <string name="question_text_f1">Que t\'a transmis ton père que tu portes encore ?</string>
+    <string name="question_text_f2">Quel est le meilleur conseil que ta mère t\'ait donné ?</string>
+    <string name="question_text_f3">Quel est ton souvenir de famille le plus joyeux ?</string>
+    <string name="question_text_f4">Y a-t-il une tradition familiale que tu chéris ?</string>
+    <string name="question_text_f5">À qui ressembles-tu le plus dans ta famille ?</string>
+    <string name="question_text_f6">Quelle a été la plus grande épreuve de ta famille ?</string>
+    <string name="question_text_f7">Que voudrais-tu dire à tes ancêtres si tu les voyais ?</string>
+    <string name="question_text_f8">Quel est le membre de ta famille qui t\'a le plus inspiré ?</string>
+    <string name="question_text_f9">Quelle histoire familiale racontes-tu toujours ?</string>
+    <string name="question_text_f10">Qu\'est-ce que \'famille\' signifie pour toi aujourd\'hui ?</string>
+
+    <string name="question_text_a1">Te souviens-tu de ton premier amour ?</string>
+    <string name="question_text_a2">Qu\'est-ce qui t\'a fait tomber amoureux la première fois ?</string>
+    <string name="question_text_a3">Quelle est la plus belle preuve d\'amour reçue ?</string>
+    <string name="question_text_a4">Crois-tu au coup de foudre ?</string>
+    <string name="question_text_a5">Quelle chanson te rappelle une personne aimée ?</string>
+    <string name="question_text_a6">Qu\'est-ce que tu as appris sur l\'amour avec le temps ?</string>
+    <string name="question_text_a7">Quel sacrifice as-tu fait par amour ?</string>
+    <string name="question_text_a8">Quelle est la définition d\'un couple réussi selon toi ?</string>
+    <string name="question_text_a9">As-tu déjà eu le cœur brisé ? Comment as-tu guéri ?</string>
+    <string name="question_text_a10">Quelle trace l\'amour a-t-il laissé sur ta vie ?</string>
+
+    <string name="question_text_am1">Qui a été ton ami(e) le plus fidèle et pourquoi ?</string>
+    <string name="question_text_am2">Y a-t-il une amitié que tu regrettes d\'avoir perdue ?</string>
+    <string name="question_text_am3">Qu\'est-ce qu\'un vrai ami selon toi ?</string>
+    <string name="question_text_am4">Quelle amitié t\'a le plus surpris(e) ?</string>
+    <string name="question_text_am5">As-tu déjà trahi un(e) ami(e) ? Comment tu vis ça ?</string>
+    <string name="question_text_am6">Qui aurait dû être dans ta vie plus longtemps ?</string>
+    <string name="question_text_am7">Qu\'est-ce que tes amis voient en toi que tu ne vois pas ?</string>
+    <string name="question_text_am8">Y a-t-il quelqu\'un à qui tu dois des excuses ?</string>
+    <string name="question_text_am9">Quelle amitié t\'a changé(e) profondément ?</string>
+    <string name="question_text_am10">Si tu pouvais retrouver quelqu\'un, qui ce serait ?</string>
+
+    <string name="question_text_t1">Quel a été ton tout premier travail ?</string>
+    <string name="question_text_t2">Quelle est ta plus grande fierté professionnelle ?</string>
+    <string name="question_text_t3">As-tu déjà eu envie de tout plaquer ?</string>
+    <string name="question_text_t4">Quel patron ou collègue t\'a le plus marqué ?</string>
+    <string name="question_text_t5">Quelle compétence as-tu mis du temps à acquérir ?</string>
+    <string name="question_text_t6">Quel échec pro t\'a finalement fait grandir ?</string>
+    <string name="question_text_t7">Travailler, c\'est pour toi un devoir ou un plaisir ?</string>
+    <string name="question_text_t8">Quelle ambiance de bureau te manque ?</string>
+    <string name="question_text_t9">Quel rêve de carrière n\'as-tu pas réalisé ?</string>
+    <string name="question_text_t10">Quel conseil donnerais-tu à un débutant aujourd\'hui ?</string>
+
+    <string name="question_text_ar1">Quelle est ta plus grande réussite financière ou pro ?</string>
+    <string name="question_text_ar2">As-tu déjà tout perdu ? Comment tu t\'en es relevé(e) ?</string>
+    <string name="question_text_ar3">L\'argent t\'a-t-il rendu(e) plus heureux/heureuse ?</string>
+    <string name="question_text_ar4">Qu\'est-ce que tu as sacrifié pour réussir ?</string>
+    <string name="question_text_ar5">Si tu pouvais tout recommencer professionnellement ?</string>
+    <string name="question_text_ar6">Qu\'est-ce que le succès signifie vraiment pour toi ?</string>
+    <string name="question_text_ar7">As-tu déjà fait quelque chose dont tu n\'es pas fier(e) pour de l\'argent ?</string>
+    <string name="question_text_ar8">Quelle leçon financière tu aurais voulu apprendre plus tôt ?</string>
+    <string name="question_text_ar9">Qu\'est-ce que tu laisses comme héritage professionnel ?</string>
+    <string name="question_text_ar10">Qu\'est-ce que tu n\'as jamais pu t\'offrir et que tu voulais ?</string>
+
+    <string name="question_text_v1">Quelle est la valeur la plus importante pour toi ?</string>
+    <string name="question_text_v2">Pour quelle cause pourrais-tu te battre ?</string>
+    <string name="question_text_v3">Qu\'est-ce qui te met le plus en colère ?</string>
+    <string name="question_text_v4">De quoi es-tu le plus fier dans ton caractère ?</string>
+    <string name="question_text_v5">Quel défaut as-tu appris à accepter chez toi ?</string>
+    <string name="question_text_v6">Quelle est ta définition de l\'intégrité ?</string>
+    <string name="question_text_v7">Quel est l\'acte de courage dont tu es le plus fier ?</string>
+    <string name="question_text_v8">À quoi ne pourrais-tu jamais renoncer ?</string>
+    <string name="question_text_v9">Que signifie \'être une bonne personne\' ?</string>
+    <string name="question_text_v10">Quelle est ta plus grande force intérieure ?</string>
+
+    <string name="question_text_fs1">Crois-tu en quelque chose de plus grand que toi ?</string>
+    <string name="question_text_fs2">Qu\'est-ce qui se passe après la mort selon toi ?</string>
+    <string name="question_text_fs3">As-tu eu un moment de doute profond dans ta foi ?</string>
+    <string name="question_text_fs4">Y a-t-il un moment où tu as senti une présence ?</string>
+    <string name="question_text_fs5">La mort d\'un proche a-t-elle changé tes croyances ?</string>
+    <string name="question_text_fs6">Qu\'est-ce qui donne du sens à ta vie ?</string>
+    <string name="question_text_fs7">As-tu prié ou médité ? Qu\'est-ce que ça t\'a apporté ?</string>
+    <string name="question_text_fs8">Qu\'est-ce que tu espères trouver après ta mort ?</string>
+    <string name="question_text_fs9">Y a-t-il des rituels qui comptent pour toi ?</string>
+    <string name="question_text_fs10">Qu\'est-ce que tu voudrais que tes proches retiennent de ta façon de voir la vie ?</string>
+
+    <string name="question_text_cs1">Quelle épreuve physique t\'a le plus marqué(e) ?</string>
+    <string name="question_text_cs2">As-tu vécu une maladie grave ? Comment tu l\'as traversée ?</string>
+    <string name="question_text_cs3">Quel rapport as-tu eu avec ton corps au fil des années ?</string>
+    <string name="question_text_cs4">Y a-t-il quelque chose que tu aurais dû faire pour prendre soin de toi plus tôt ?</string>
+    <string name="question_text_cs5">La douleur t\'a-t-elle appris quelque chose ?</string>
+    <string name="question_text_cs6">As-tu eu peur de mourir ? Quand ?</string>
+    <string name="question_text_cs7">Qu\'est-ce que ton corps a enduré que personne ne sait ?</string>
+    <string name="question_text_cs8">Comment ta santé a-t-elle changé ta façon de vivre ?</string>
+    <string name="question_text_cs9">Y a-t-il quelque chose que tu aurais voulu faire physiquement et que tu n\'as pas pu ?</string>
+    <string name="question_text_cs10">Qu\'est-ce que tu voudrais dire à ton corps ?</string>
+
+    <string name="question_text_r1">Quel est ton plus grand regret ?</string>
+    <string name="question_text_r2">Si tu pouvais revenir en arrière, que changerais-tu ?</string>
+    <string name="question_text_r3">Quelle opportunité as-tu laissé passer ?</string>
+    <string name="question_text_r4">Y a-t-il une parole que tu aurais aimé retirer ?</string>
+    <string name="question_text_r5">À qui n\'as-tu pas dit \'je t\'aime\' assez souvent ?</string>
+    <string name="question_text_r6">Quelle décision a changé le cours de ta vie ?</string>
+    <string name="question_text_r7">De quoi n\'es-tu pas fier ?</string>
+    <string name="question_text_r8">As-tu des remords envers quelqu\'un ?</string>
+    <string name="question_text_r9">Que ferais-tu différemment si tu avais su ?</string>
+    <string name="question_text_r10">Comment vis-tu avec tes regrets aujourd\'hui ?</string>
+
+    <string name="question_text_re1">Quel est ton plus grand rêve réalisé ?</string>
+    <string name="question_text_re2">Où rêverais-tu de vivre ?</string>
+    <string name="question_text_re3">Quel rêve d\'enfant as-tu abandonné ?</string>
+    <string name="question_text_re4">Qu\'est-ce qui te fait encore rêver aujourd\'hui ?</string>
+    <string name="question_text_re5">Si tu n\'avais aucune limite, que ferais-tu ?</string>
+    <string name="question_text_re6">Quel est le rêve le plus fou que tu aies fait ?</string>
+    <string name="question_text_re7">À quoi ressemblerait ta journée idéale ?</string>
+    <string name="question_text_re8">Quelle aventure aimerais-tu encore vivre ?</string>
+    <string name="question_text_re9">Qui aurais-tu aimé rencontrer ?</string>
+    <string name="question_text_re10">Quel message tes rêves t\'ont-ils laissé ?</string>
+
+    <string name="question_text_vl1">Quel voyage a changé quelque chose en toi ?</string>
+    <string name="question_text_vl2">Y a-t-il un endroit où tu te sens vraiment toi-même ?</string>
+    <string name="question_text_vl3">Quel lieu voudrais-tu avoir vu avant de mourir ?</string>
+    <string name="question_text_vl4">Un voyage que tu regrettes de ne pas avoir fait ?</string>
+    <string name="question_text_vl5">Quel endroit dans le monde te manque ?</string>
+    <string name="question_text_vl6">Y a-t-il un lieu lié à un souvenir douloureux ?</string>
+    <string name="question_text_vl7">Quel pays t\'a le plus surpris(e) ?</string>
+    <string name="question_text_vl8">Si tu pouvais vivre ailleurs, où ce serait ?</string>
+    <string name="question_text_vl9">Quel voyage as-tu fait seul(e) et qu\'est-ce que ça t\'a appris ?</string>
+    <string name="question_text_vl10">Y a-t-il un endroit de ton enfance que tu voudrais revoir ?</string>
+
+    <string name="question_text_cp1">Qu\'est-ce que tu as créé dont tu es le plus fier(e) ?</string>
+    <string name="question_text_cp2">Y a-t-il un talent que tu n\'as jamais développé ?</string>
+    <string name="question_text_cp3">Quelle passion as-tu abandonnée et pourquoi ?</string>
+    <string name="question_text_cp4">Qu\'est-ce qui te met dans un état de flow total ?</string>
+    <string name="question_text_cp5">As-tu une œuvre — livre, musique, art — qui t\'a changé(e)?</string>
+    <string name="question_text_cp6">Si tu avais été artiste, qu\'est-ce que tu aurais créé ?</string>
+    <string name="question_text_cp7">Y a-t-il quelque chose que tu fais juste pour toi, sans que personne le sache ?</string>
+    <string name="question_text_cp8">Quelle passion voudrais-tu transmettre ?</string>
+    <string name="question_text_cp9">As-tu déjà créé quelque chose et tout arrêté ?</string>
+    <string name="question_text_cp10">Qu\'est-ce que tu aurais voulu apprendre à faire ?</string>
+
+    <string name="question_text_sa1">Y a-t-il quelque chose que tu n\'as dit à personne ?</string>
+    <string name="question_text_sa2">As-tu gardé un secret toute ta vie ? Lequel ?</string>
+    <string name="question_text_sa3">Y a-t-il quelque chose que tu as fait et dont tu n\'as jamais parlé ?</string>
+    <string name="question_text_sa4">Qu\'est-ce que tu aurais voulu avouer à quelqu\'un avant qu\'il soit trop tard ?</string>
+    <string name="question_text_sa5">Y a-t-il une vérité sur toi que tes proches ne connaissent pas ?</string>
+    <string name="question_text_sa6">As-tu eu une vie secrète — même petite — que personne ne soupçonne ?</string>
+    <string name="question_text_sa7">Qu\'est-ce que tu as toujours voulu dire mais jamais osé ?</string>
+    <string name="question_text_sa8">Y a-t-il quelque chose dont tu as honte et que tu portes seul(e) ?</string>
+    <string name="question_text_sa9">Un aveu que tu ferais si tu savais que personne ne te jugerait ?</string>
+    <string name="question_text_sa10">Qu\'est-ce que tu emporterais comme secret dans ta tombe ?</string>
+
+    <string name="question_text_s1">Quelle est la leçon la plus dure que la vie t\'ait apprise ?</string>
+    <string name="question_text_s2">Comment ton regard sur le monde a-t-il changé avec l\'âge ?</string>
+    <string name="question_text_s3">Que dirais-tu au jeune homme/à la jeune femme que tu étais ?</string>
+    <string name="question_text_s4">Qu\'est-ce qui est essentiel pour être heureux, selon toi ?</string>
+    <string name="question_text_s5">Quel est le secret d\'une vie bien remplie ?</string>
+    <string name="question_text_s6">Comment aimerais-tu que l\'on se souvienne de toi ?</string>
+    <string name="question_text_s7">Qu\'est-ce que tu n\'as plus peur de perdre aujourd\'hui ?</string>
+    <string name="question_text_s8">Si tu devais résumer ta vie en une phrase ?</string>
+    <string name="question_text_s9">Quelle est ta définition de la paix ?</string>
+    <string name="question_text_s10">Que laisses-tu derrière toi de plus précieux ?</string>
 </resources>

@@ -196,7 +196,7 @@ fun QuestionsScreen(
                     modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp)
                 ) {
                     Text(
-                        text = selectedQuestion!!.text,
+                        text = if (selectedQuestion!!.textResId != 0) stringResource(selectedQuestion!!.textResId) else selectedQuestion!!.text,
                         style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                         color = theme.contentColor,
                         lineHeight = 32.sp
@@ -291,7 +291,7 @@ fun QuestionListItem(
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
-                text = question.text,
+                text = if (question.textResId != 0) stringResource(question.textResId) else question.text,
                 style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                 color = theme.contentColor,
                 modifier = Modifier.weight(1f)

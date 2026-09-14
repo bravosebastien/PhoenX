@@ -110,7 +110,7 @@ fun QuestionAnswerScreen(
                     .verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = question.text,
+                    text = if (question.textResId != 0) stringResource(question.textResId) else question.text,
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontFamily = theme.fontFamily, 
                         fontWeight = FontWeight.Bold
