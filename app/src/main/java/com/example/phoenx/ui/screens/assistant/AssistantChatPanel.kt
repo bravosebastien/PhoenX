@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.LocalAppTheme
 
 /**
@@ -40,10 +42,12 @@ fun AssistantChatPanel(
     var nicknameInput by remember { mutableStateOf("") }
 
     // v9.4.27/v9.6.7 : Injection d'un message de bienvenue si la conversation est vide
+    val welcomeAmi = stringResource(R.string.assistant_name_fallback_ami)
+    val welcomeTemplate = stringResource(R.string.assistant_welcome_message)
     LaunchedEffect(messages, nickname) {
         if (messages.isEmpty() && nickname != null) {
-            val name = nickname ?: com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.displayName ?: "ami"
-            viewModel.injectSystemMessage("Bienvenue $name ! Je suis ton assistant PHOEN-X. Mon rôle est de t'accompagner pour que tu puisses transmettre ce qui compte vraiment. Que souhaites-tu savoir pour tes premiers pas ?")
+            val name = nickname ?: com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.displayName ?: welcomeAmi
+            viewModel.injectSystemMessage(welcomeTemplate.format(name))
         }
     }
 
@@ -51,15 +55,15 @@ fun AssistantChatPanel(
         AlertDialog(
             onDismissRequest = { viewModel.dismissNicknameDialog() },
             containerColor = theme.backgroundColor,
-            title = { Text("Bienvenue", color = theme.contentColor, fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(R.string.assistant_nickname_dialog_title), color = theme.contentColor, fontWeight = FontWeight.Bold) },
             text = {
                 Column {
-                    Text("Avant de commencer, comment aimeriez-vous que je vous appelle ?", color = theme.contentColor.copy(alpha = 0.7f))
+                    Text(stringResource(R.string.assistant_nickname_dialog_desc), color = theme.contentColor.copy(alpha = 0.7f))
                     Spacer(Modifier.height(16.dp))
                     OutlinedTextField(
                         value = nicknameInput,
                         onValueChange = { nicknameInput = it },
-                        label = { Text("Votre prénom ou surnom") },
+                        label = { Text(stringResource(R.string.assistant_nickname_dialog_label)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
@@ -76,7 +80,7 @@ fun AssistantChatPanel(
                     enabled = nicknameInput.isNotBlank(),
                     colors = ButtonDefaults.buttonColors(containerColor = accent)
                 ) {
-                    Text("Confirmer", color = Color.White)
+                    Text(stringResource(R.string.assistant_nickname_dialog_confirm), color = Color.White)
                 }
             }
         )
@@ -100,13 +104,13 @@ fun AssistantChatPanel(
                 // Header
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        "Assistant PHOEN-X",
+                        stringResource(R.string.assistant_chat_title),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         color = theme.contentColor,
                         modifier = Modifier.weight(1f)
                     )
                     IconButton(onClick = { viewModel.clearChat() }) {
-                        Text("Effacer", style = MaterialTheme.typography.labelSmall, color = accent)
+                        Text(stringResource(R.string.assistant_chat_clear), style = MaterialTheme.typography.labelSmall, color = accent)
                     }
                 }
                 
@@ -164,7 +168,7 @@ fun AssistantChatPanel(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 8.dp),
-                    placeholder = { Text("Posez votre question...", fontSize = 14.sp) },
+                    placeholder = { Text(stringResource(R.string.assistant_chat_placeholder), fontSize = 14.sp) },
                     trailingIcon = {
                         IconButton(
                             onClick = { 

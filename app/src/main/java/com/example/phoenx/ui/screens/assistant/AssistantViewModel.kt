@@ -1,9 +1,12 @@
 package com.example.phoenx.ui.screens.assistant
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.preferences.PreferenceManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -18,7 +21,8 @@ data class ChatMessage(
 @HiltViewModel
 class AssistantViewModel @Inject constructor(
     private val preferenceManager: PreferenceManager,
-    private val auth: com.google.firebase.auth.FirebaseAuth // v9.4.25
+    private val auth: com.google.firebase.auth.FirebaseAuth, // v9.4.25
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     val bubbleX: StateFlow<Float?> = preferenceManager.assistantBubbleX
@@ -90,9 +94,9 @@ class AssistantViewModel @Inject constructor(
     }
 
     val suggestedQuestions = listOf(
-        "Comment déposer mon premier souvenir ?",
-        "Qui pourra voir ce que j'écris ?",
-        "Comment marche la sécurisation ?"
+        context.getString(R.string.assistant_suggested_q1),
+        context.getString(R.string.assistant_suggested_q2),
+        context.getString(R.string.assistant_suggested_q3)
     )
 
     fun injectSystemMessage(text: String) {
@@ -111,7 +115,7 @@ class AssistantViewModel @Inject constructor(
         if (question.isBlank()) return
         
         // v9.6.7 : Utilisation du surnom si disponible, repli sur displayName
-        val userName = _nickname.value ?: auth.currentUser?.displayName ?: "Utilisateur"
+        val userName = _nickname.value ?: auth.currentUser?.displayName ?: context.getString(R.string.assistant_name_fallback_user)
 
         val userMsg = ChatMessage(question, isUser = true)
         _chatMessages.update { it + userMsg }
@@ -129,11 +133,11 @@ class AssistantViewModel @Inject constructor(
                     .await()
                 
                 val data = result.data as? Map<*, *>
-                val answer = data?.get("answer") as? String ?: "Désolé, je n'ai pas pu obtenir de réponse."
+                val answer = data?.get("answer") as? String ?: context.getString(R.string.assistant_error_no_answer)
                 
                 _chatMessages.update { it + ChatMessage(answer, isUser = false) }
             } catch (e: Exception) {
-                _chatMessages.update { it + ChatMessage("Une erreur est survenue.", isUser = false) }
+                _chatMessages.update { it + ChatMessage(context.getString(R.string.assistant_error_generic), isUser = false) }
             } finally {
                 _isLoading.value = false
             }

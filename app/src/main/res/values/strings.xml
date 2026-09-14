@@ -1960,6 +1960,23 @@
         <item>Moments sportifs préférés</item>
     </string-array>
 
+    <!-- Assistant Batch -->
+    <string name="assistant_welcome_message">Bienvenue %1$s ! Je suis ton assistant PHOEN-X. Mon rôle est de t\'accompagner pour que tu puisses transmettre ce qui compte vraiment. Que souhaites-tu savoir pour tes premiers pas ?</string>
+    <string name="assistant_nickname_dialog_title">Bienvenue</string>
+    <string name="assistant_nickname_dialog_desc">Avant de commencer, comment aimeriez-vous que je vous appelle ?</string>
+    <string name="assistant_nickname_dialog_label">Votre prénom ou surnom</string>
+    <string name="assistant_nickname_dialog_confirm">Confirmer</string>
+    <string name="assistant_chat_title">Assistant PHOEN-X</string>
+    <string name="assistant_chat_clear">Effacer</string>
+    <string name="assistant_chat_placeholder">Posez votre question...</string>
+    <string name="assistant_name_fallback_ami">ami</string>
+    <string name="assistant_name_fallback_user">Utilisateur</string>
+    <string name="assistant_suggested_q1">Comment déposer mon premier souvenir ?</string>
+    <string name="assistant_suggested_q2">Qui pourra voir ce que j\'écris ?</string>
+    <string name="assistant_suggested_q3">Comment marche la sécurisation ?</string>
+    <string name="assistant_error_no_answer">Désolé, je n\'ai pas pu obtenir de réponse.</string>
+    <string name="assistant_error_generic">Une erreur est survenue.</string>
+
     <!-- Questions Room Batch -->
     <string name="questions_room_title">Les 100 Questions</string>
     <string name="questions_room_all_answered">Toutes tes histoires sont racontées.</string>
