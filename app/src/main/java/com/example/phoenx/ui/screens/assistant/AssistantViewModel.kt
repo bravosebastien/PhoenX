@@ -126,7 +126,8 @@ class AssistantViewModel @Inject constructor(
                 val functions = com.google.firebase.functions.FirebaseFunctions.getInstance()
                 val params = mapOf(
                     "question" to question,
-                    "userName" to userName
+                    "userName" to userName,
+                    "language" to java.util.Locale.getDefault().language
                 )
                 val result = functions.getHttpsCallable("askAssistant")
                     .call(params)

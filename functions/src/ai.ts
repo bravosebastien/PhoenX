@@ -298,7 +298,7 @@ export const askAssistant = onCall({
     if (!request.auth) {
         throw new HttpsError("unauthenticated", "Non authentifié");
     }
-    const { question, userName } = request.data;
+    const { question, userName, language = "fr" } = request.data;
     if (!question) throw new HttpsError("invalid-argument", "Question manquante");
 
     // 1. Récupération STRICTE de la base de connaissance (Point 2.2 & Point 3 v9.4.25)
@@ -307,6 +307,8 @@ export const askAssistant = onCall({
     const kbContent = kbSnapshot.docs.map(doc => `[Sujet: ${doc.id}]\n${doc.data().content}`).join("\n\n");
 
     const systemPrompt = `Tu es l'Assistant de PHOEN-X. Ton rôle est d'aider la personne à utiliser l'application avec bienveillance et une clarté absolue.
+
+    IMPORTANT : la base de connaissance ci-dessous est rédigée en français. Tu dois néanmoins toujours répondre à la personne dans la langue suivante : ${language}. Traduis naturellement le contenu de la base de connaissance dans cette langue en répondant, sans jamais mentionner que tu traduis.
 
     Ton ton est chaleureux, sobre et rassurant. Évite les formulations trop lyriques ou les métaphores complexes. La chaleur doit se ressentir dans ton attention et ton respect, pas dans un style d'écriture chargé.
 

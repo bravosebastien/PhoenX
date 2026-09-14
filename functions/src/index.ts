@@ -76,7 +76,6 @@ import {
     notifyNewPendingQuestion,
     sealPendingQuestion,
     onPendingQuestionUpdated,
-    submitGuessResult,
     submitGuessResult
 } from "./questions";
 
