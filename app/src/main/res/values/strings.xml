@@ -2173,4 +2173,25 @@
     <string name="attentions_empty_title">Aucune attention pour le moment.</string>
     <string name="attentions_empty_desc">C\'est ici que vous recevrez les souvenirs que vos proches choisissent de vous transmettre de leur vivant.</string>
     <string name="attentions_error_load">Impossible de charger les attentions.</string>
+
+    <!-- Book Batch A (Theme & Cover) -->
+    <string name="book_font_classic">Classique</string>
+    <string name="book_font_modern">Moderne</string>
+    <string name="book_font_cursive">Cursive (Lisible)</string>
+    <string name="book_font_elegant_plume">Plume Élégante</string>
+    <string name="book_font_royal_chronicle">Chronique Royale</string>
+    <string name="book_font_plume_script">Plume Script</string>
+    <string name="book_font_modern_book">Livre Moderne</string>
+
+    <string name="book_bg_ivory">Ivoire</string>
+    <string name="book_bg_parchment">Parchemin</string>
+    <string name="book_bg_night">Nuit</string>
+    <string name="book_bg_linen">Lin</string>
+    <string name="book_bg_mist">Brume</string>
+    <string name="book_bg_ash">Cendré</string>
+    <string name="book_bg_powder">Poudré</string>
+    <string name="book_bg_forest">Forêt</string>
+
+    <string name="theme_selector_paper">Papier</string>
+    <string name="theme_selector_plume">Plume</string>
 </resources>

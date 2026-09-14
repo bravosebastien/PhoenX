@@ -20,6 +20,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.screens.book.BookThemeOptions
 import com.example.phoenx.ui.theme.LocalAppTheme
 
@@ -34,7 +36,7 @@ fun GlobalThemeSelector(
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         // 1. SÉLECTEUR DE PAPIER (FOND)
-        Text("Papier", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+        Text(stringResource(R.string.theme_selector_paper), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(BookThemeOptions.backgrounds) { bg ->
                 val isSelected = currentBackgroundId == bg.id
@@ -52,7 +54,7 @@ fun GlobalThemeSelector(
                     }
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = bg.name.substringBefore(" "),
+                        text = stringResource(bg.nameRes).substringBefore(" "),
                         style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
                         color = if (isSelected) accent else theme.contentColor.copy(alpha = 0.4f)
                     )
@@ -61,7 +63,7 @@ fun GlobalThemeSelector(
         }
 
         // 2. SÉLECTEUR DE PLUME (POLICE)
-        Text("Plume", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+        Text(stringResource(R.string.theme_selector_plume), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(BookThemeOptions.fonts) { font ->
                 val isSelected = currentFontId == font.id

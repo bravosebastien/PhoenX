@@ -1,13 +1,16 @@
 package com.example.phoenx.ui.screens.library
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -17,7 +20,8 @@ import javax.inject.Inject
 class LibraryCoverViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val storage: FirebaseStorage,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _covers = MutableStateFlow<Map<String, LibraryCover>>(emptyMap())
