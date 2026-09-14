@@ -1959,4 +1959,40 @@
         <item>Matchs inoubliables</item>
         <item>Moments sportifs préférés</item>
     </string-array>
+
+    <!-- Questions Room Batch -->
+    <string name="questions_room_title">Les 100 Questions</string>
+    <string name="questions_room_all_answered">Toutes tes histoires sont racontées.</string>
+    <string name="questions_room_progress_label">%1$d / %2$d questions racontées</string>
+    <string name="questions_room_my_questions_header">TES QUESTIONS PERSONNELLES</string>
+    <string name="questions_room_general_questions_header">QUESTIONS GÉNÉRALES</string>
+    <string name="questions_room_status_answered">RÉPONDU</string>
+    <string name="questions_room_button_edit_answer">Modifier ma réponse</string>
+    <string name="questions_room_button_answer">Répondre</string>
+    <string name="questions_room_result_answered_header">RÉPONSE DE %1$s</string>
+    <string name="questions_room_result_declined_header">NON RÉPONDU PAR CHOIX</string>
+    <string name="questions_room_result_declined_desc">%1$s a vu cette question et a choisi de ne pas y répondre.</string>
+    <string name="questions_room_result_pending_header">SANS RÉPONSE</string>
+    <string name="questions_room_result_pending_desc">Cette question n\'a pas eu de réponse.</string>
+    <string name="questions_room_creator_fallback">Ton proche</string>
+    <string name="questions_room_category_all">Toutes</string>
+
+    <!-- Question Categories -->
+    <string name="question_cat_all">Toutes</string>
+    <string name="question_cat_childhood">Enfance</string>
+    <string name="question_cat_family">Famille</string>
+    <string name="question_cat_love">Amour</string>
+    <string name="question_cat_friendship">Amitié</string>
+    <string name="question_cat_work">Travail</string>
+    <string name="question_cat_money">Argent &amp; Réussite</string>
+    <string name="question_cat_values">Valeurs</string>
+    <string name="question_cat_faith">Foi &amp; Spiritualité</string>
+    <string name="question_cat_health">Corps &amp; Santé</string>
+    <string name="question_cat_regrets">Regrets</string>
+    <string name="question_cat_dreams">Rêves</string>
+    <string name="question_cat_travel">Voyages &amp; Lieux</string>
+    <string name="question_cat_creativity">Créativité &amp; Passions</string>
+    <string name="question_cat_secrets">Secrets &amp; Aveux</string>
+    <string name="question_cat_wisdom">Sagesse</string>
+    <string name="question_cat_my_questions">Mes Questions</string>
 </resources>

@@ -1,13 +1,16 @@
 package com.example.phoenx.ui.screens.questionsroom
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.R
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.ui.screens.questions.Question
 import com.example.phoenx.ui.screens.questions.QuestionsData
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -28,7 +31,8 @@ data class QuestionsRoomUiState(
 class QuestionsRoomViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
-    private val offlineEntryDao: OfflineEntryDao
+    private val offlineEntryDao: OfflineEntryDao,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(QuestionsRoomUiState())
@@ -49,7 +53,7 @@ class QuestionsRoomViewModel @Inject constructor(
             try {
                 // 1. Charger le nom du créateur
                 val creatorDoc = db.collection("users").document(targetCreatorId).get().await()
-                val name = creatorDoc.getString("displayName") ?: "Ton proche"
+                val name = creatorDoc.getString("displayName") ?: context.getString(R.string.questions_room_creator_fallback)
                 _uiState.update { it.copy(creatorName = name) }
 
                 // 2. Charger MES questions posées au créateur

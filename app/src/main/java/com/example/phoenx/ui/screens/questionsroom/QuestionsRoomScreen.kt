@@ -19,7 +19,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.domain.model.PendingQuestion
 import com.example.phoenx.ui.screens.questions.Question
 import com.example.phoenx.ui.screens.questions.QuestionsData
@@ -51,12 +53,12 @@ fun QuestionsRoomScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            Text("Les 100 Questions", style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
+                            Text(stringResource(R.string.questions_room_title), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                             Text(
                                 text = if (answeredCount == totalCount) 
-                                    "Toutes tes histoires sont racontées." 
+                                    stringResource(R.string.questions_room_all_answered) 
                                 else 
-                                    "$answeredCount / $totalCount questions racontées",
+                                    stringResource(R.string.questions_room_progress_label, answeredCount, totalCount),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = if (answeredCount == totalCount) Success else theme.contentColor.copy(alpha = 0.5f)
                             )
@@ -89,7 +91,7 @@ fun QuestionsRoomScreen(
                             onClick = { viewModel.filterQuestions(category) },
                             text = {
                                 Text(
-                                    text = category,
+                                    text = getCategoryDisplayName(category),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = if (uiState.selectedCategory == category) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
                                 )
@@ -115,7 +117,7 @@ fun QuestionsRoomScreen(
                 if (uiState.myPendingQuestions.isNotEmpty()) {
                     item {
                         Text(
-                            text = "TES QUESTIONS PERSONNELLES",
+                            text = stringResource(R.string.questions_room_my_questions_header),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = accent,
                             modifier = Modifier.padding(bottom = 16.dp)
@@ -129,7 +131,7 @@ fun QuestionsRoomScreen(
                         HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            text = "QUESTIONS GÉNÉRALES",
+                            text = stringResource(R.string.questions_room_general_questions_header),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = theme.contentColor.copy(alpha = 0.4f),
                             modifier = Modifier.padding(bottom = 16.dp)
@@ -147,6 +149,30 @@ fun QuestionsRoomScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun getCategoryDisplayName(category: String): String {
+    return when (category) {
+        "Toutes" -> stringResource(R.string.question_cat_all)
+        "Enfance" -> stringResource(R.string.question_cat_childhood)
+        "Famille" -> stringResource(R.string.question_cat_family)
+        "Amour" -> stringResource(R.string.question_cat_love)
+        "Amitié" -> stringResource(R.string.question_cat_friendship)
+        "Travail" -> stringResource(R.string.question_cat_work)
+        "Argent & Réussite" -> stringResource(R.string.question_cat_money)
+        "Valeurs" -> stringResource(R.string.question_cat_values)
+        "Foi & Spiritualité" -> stringResource(R.string.question_cat_faith)
+        "Corps & Santé" -> stringResource(R.string.question_cat_health)
+        "Regrets" -> stringResource(R.string.question_cat_regrets)
+        "Rêves" -> stringResource(R.string.question_cat_dreams)
+        "Voyages & Lieux" -> stringResource(R.string.question_cat_travel)
+        "Créativité & Passions" -> stringResource(R.string.question_cat_creativity)
+        "Secrets & Aveux" -> stringResource(R.string.question_cat_secrets)
+        "Sagesse" -> stringResource(R.string.question_cat_wisdom)
+        "Mes Questions" -> stringResource(R.string.question_cat_my_questions)
+        else -> category
     }
 }
 
@@ -170,7 +196,7 @@ fun QuestionCard(
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = question.category.uppercase(),
+                    text = getCategoryDisplayName(question.category).uppercase(),
                     style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                     color = accent,
                     modifier = Modifier.weight(1f)
@@ -186,7 +212,7 @@ fun QuestionCard(
                         ) {
                             Icon(Icons.Default.CheckCircle, null, tint = Success, modifier = Modifier.size(14.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("RÉPONDU", color = Success, style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp))
+                            Text(stringResource(R.string.questions_room_status_answered), color = Success, style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp))
                         }
                     }
                 }
@@ -207,7 +233,7 @@ fun QuestionCard(
                     onClick = onAnswerClick,
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text("Modifier ma réponse", color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.questions_room_button_edit_answer), color = theme.contentColor.copy(alpha = 0.6f), style = MaterialTheme.typography.labelMedium)
                 }
             } else {
                 OutlinedButton(
@@ -216,7 +242,7 @@ fun QuestionCard(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = accent),
                     border = BorderStroke(1.dp, accent.copy(alpha = 0.5f))
                 ) {
-                    Text("Répondre")
+                    Text(stringResource(R.string.questions_room_button_answer))
                 }
             }
         }
@@ -248,7 +274,7 @@ fun MyQuestionResultCard(pending: PendingQuestion, creatorName: String, theme: A
                         shape = MaterialTheme.shapes.small
                     ) {
                         Text(
-                            "RÉPONSE DE $creatorName",
+                            stringResource(R.string.questions_room_result_answered_header, creatorName),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = Success
@@ -267,7 +293,7 @@ fun MyQuestionResultCard(pending: PendingQuestion, creatorName: String, theme: A
                         shape = MaterialTheme.shapes.small
                     ) {
                         Text(
-                            "NON RÉPONDU PAR CHOIX",
+                            stringResource(R.string.questions_room_result_declined_header),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = theme.contentColor.copy(alpha = 0.6f)
@@ -275,7 +301,7 @@ fun MyQuestionResultCard(pending: PendingQuestion, creatorName: String, theme: A
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "$creatorName a vu cette question et a choisi de ne pas y répondre.",
+                        stringResource(R.string.questions_room_result_declined_desc, creatorName),
                         style = MaterialTheme.typography.bodySmall,
                         color = theme.contentColor.copy(alpha = 0.7f)
                     )
@@ -294,7 +320,7 @@ fun MyQuestionResultCard(pending: PendingQuestion, creatorName: String, theme: A
                         shape = MaterialTheme.shapes.small
                     ) {
                         Text(
-                            "SANS RÉPONSE",
+                            stringResource(R.string.questions_room_result_pending_header),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = theme.contentColor.copy(alpha = 0.4f)
@@ -302,7 +328,7 @@ fun MyQuestionResultCard(pending: PendingQuestion, creatorName: String, theme: A
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "Cette question n'a pas eu de réponse.",
+                        stringResource(R.string.questions_room_result_pending_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = theme.contentColor.copy(alpha = 0.6f)
                     )
