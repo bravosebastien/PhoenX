@@ -1,8 +1,10 @@
 package com.example.phoenx.ui.screens.book
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.phoenx.data.encryption.EncryptionManager
+import com.example.phoenx.R
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.data.model.*
 import com.example.phoenx.data.preferences.PreferenceManager
@@ -14,8 +16,6 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await as kotlinAwait
 import javax.inject.Inject
-import android.content.Context
-import android.net.Uri
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
@@ -120,10 +120,10 @@ class BookEditorViewModel @Inject constructor(
                 val doc = com.google.firebase.firestore.FirebaseFirestore.getInstance()
                     .collection("users").document(userId).get().kotlinAwait()
                 _isUserCreator.value = doc.getBoolean("isCreator") ?: true
-                _userName.value = doc.getString("displayName") ?: "Votre proche"
+                _userName.value = doc.getString("displayName") ?: context.getString(R.string.book_editor_vm_creator_fallback)
             } catch (e: Exception) {
                 _isUserCreator.value = true
-                _userName.value = "Votre proche"
+                _userName.value = context.getString(R.string.book_editor_vm_creator_fallback)
             }
         }
     }
@@ -206,7 +206,7 @@ class BookEditorViewModel @Inject constructor(
                 // v9.7.4 : Mettre à jour l'état du backup
                 _hasBackup.value = bookService.hasBackup(userId)
             } catch (e: Exception) {
-                _error.value = e.message ?: "Erreur lors de la génération."
+                _error.value = e.message ?: context.getString(R.string.book_editor_vm_error_gen)
             } finally {
                 _isGenerating.value = false
             }
@@ -217,12 +217,12 @@ class BookEditorViewModel @Inject constructor(
         viewModelScope.launch {
             _isGenerating.value = true
             _error.value = null
-            _generationProgress.value = "Ébauche de la structure de votre vie..."
+            _generationProgress.value = context.getString(R.string.book_editor_vm_progress_plan)
             try {
                 val plan = bookService.generateBookPlan()
                 _proposedPlan.value = plan
             } catch (e: Exception) {
-                _error.value = e.message ?: "Erreur lors de la création du plan."
+                _error.value = e.message ?: context.getString(R.string.book_editor_vm_error_plan)
             } finally {
                 _isGenerating.value = false
             }
@@ -245,7 +245,7 @@ class BookEditorViewModel @Inject constructor(
             try {
                 _regenerationDashboard.value = bookService.computeRegenerationDashboard(userId)
             } catch (e: Exception) {
-                _error.value = "Erreur lors de l'analyse des chapitres."
+                _error.value = context.getString(R.string.book_editor_vm_error_analyze)
             } finally {
                 _isLoadingDashboard.value = false
             }
@@ -317,7 +317,7 @@ class BookEditorViewModel @Inject constructor(
                 )
                 triggerSuccess()
             } catch (e: Exception) {
-                _error.value = "Erreur IA : ${e.message ?: "Cause inconnue"}"
+                _error.value = context.getString(R.string.book_editor_vm_error_ai, e.message ?: context.getString(R.string.book_editor_vm_error_unknown))
             } finally {
                 _isModifyingWithAi.value = false
             }
@@ -389,7 +389,7 @@ class BookEditorViewModel @Inject constructor(
                 bookService.saveBookDraft(userId, updated)
                 triggerSuccess()
             } catch (e: Exception) {
-                _error.value = "Erreur lors de la sauvegarde"
+                _error.value = context.getString(R.string.book_editor_vm_error_save)
                 // En cas d'échec, on rechargera l'état réel
                 loadExistingBook()
             } finally {
@@ -425,7 +425,7 @@ class BookEditorViewModel @Inject constructor(
                 _bookDraft.value = updated
                 triggerSuccess()
             } catch (e: Exception) {
-                _error.value = "Erreur lors de la sauvegarde"
+                _error.value = context.getString(R.string.book_editor_vm_error_title_style)
             } finally {
                 _isSaving.value = false
             }
@@ -445,7 +445,7 @@ class BookEditorViewModel @Inject constructor(
                 _bookDraft.value = updated // Synchro UI
                 triggerSuccess()
             } catch (e: Exception) {
-                _error.value = "Erreur lors de la sauvegarde"
+                _error.value = context.getString(R.string.book_editor_vm_error_title_style)
             } finally {
                 _isSaving.value = false
             }
@@ -464,7 +464,7 @@ class BookEditorViewModel @Inject constructor(
                 val content = bookService.generateGlobalIntro(chapterTitles)
                 updateGlobalIntro(content)
             } catch (e: Exception) {
-                _error.value = "Erreur génération intro : ${e.message}"
+                _error.value = context.getString(R.string.book_editor_vm_error_intro_gen, e.message ?: "")
             } finally {
                 _isGeneratingGlobalIntro.value = false
             }
@@ -487,7 +487,7 @@ class BookEditorViewModel @Inject constructor(
                 bookService.saveBookDraft(userId, updatedDraft)
                 triggerSuccess()
             } catch (e: Exception) {
-                _error.value = "Erreur sauvegarde intro"
+                _error.value = context.getString(R.string.book_editor_vm_error_intro_save)
             } finally {
                 _isSaving.value = false
             }
@@ -556,7 +556,7 @@ class BookEditorViewModel @Inject constructor(
                 triggerSuccess()
             } catch (e: Exception) {
                 android.util.Log.e("BookEditorVM", "Erreur sauvegarde ambiance globale", e)
-                _error.value = "Erreur sauvegarde ambiance"
+                _error.value = context.getString(R.string.book_editor_vm_error_ambiance)
             } finally {
                 _isSaving.value = false
             }
@@ -597,7 +597,7 @@ class BookEditorViewModel @Inject constructor(
                 triggerSuccess()
             } catch (e: Exception) {
                 android.util.Log.e("BookEditorVM", "Erreur upload couverture: ${e.message}")
-                _error.value = "Erreur lors de l'envoi de l'image"
+                _error.value = context.getString(R.string.book_editor_vm_error_upload)
             } finally {
                 _isSaving.value = false
             }
@@ -617,7 +617,7 @@ class BookEditorViewModel @Inject constructor(
                 _bookDraft.value = updated
                 triggerSuccess()
             } catch (e: Exception) {
-                _error.value = "Erreur sauvegarde style titre"
+                _error.value = context.getString(R.string.book_editor_vm_error_title_style)
             } finally {
                 _isSaving.value = false
             }
@@ -629,6 +629,16 @@ class BookEditorViewModel @Inject constructor(
             _saveSuccess.value = true
             kotlinx.coroutines.delay(2000)
             _saveSuccess.value = false
+        }
+    }
+
+    fun getToneDisplayName(tone: String?): String {
+        return when (tone?.lowercase()) {
+            "poetic", "poétique" -> context.getString(R.string.book_tone_poetic)
+            "factual", "factuel" -> context.getString(R.string.book_tone_factual)
+            "warm", "chaleureux" -> context.getString(R.string.book_tone_warm)
+            "nostalgic", "nostalgique" -> context.getString(R.string.book_tone_nostalgic)
+            else -> tone ?: ""
         }
     }
 }

@@ -2252,4 +2252,66 @@
     <string name="chapter_editor_btn_ask_ai">🤖 Demander à l\'IA</string>
     <string name="chapter_editor_btn_validate">✅ Valider</string>
     <string name="chapter_editor_btn_unvalidate">🔓 Modifier quand même</string>
+
+    <!-- Book Batch C (Logic & Generator) -->
+    <string name="book_editor_vm_creator_fallback">Votre proche</string>
+    <string name="book_editor_vm_error_gen">Erreur lors de la génération.</string>
+    <string name="book_editor_vm_progress_plan">Ébauche de la structure de votre vie...</string>
+    <string name="book_editor_vm_error_plan">Erreur lors de la création du plan.</string>
+    <string name="book_editor_vm_error_analyze">Erreur lors de l\'analyse des chapitres.</string>
+    <string name="book_editor_vm_error_ai">Erreur IA : %1$s</string>
+    <string name="book_editor_vm_error_unknown">Cause inconnue</string>
+    <string name="book_editor_vm_error_save">Erreur lors de la sauvegarde</string>
+    <string name="book_editor_vm_error_intro_gen">Erreur génération intro : %1$s</string>
+    <string name="book_editor_vm_error_intro_save">Erreur sauvegarde intro</string>
+    <string name="book_editor_vm_error_ambiance">Erreur sauvegarde ambiance</string>
+    <string name="book_editor_vm_error_upload">Erreur lors de l\'envoi de l\'image</string>
+    <string name="book_editor_vm_error_title_style">Erreur sauvegarde style titre</string>
+
+    <string name="book_empty_state_title">Ton histoire mérite d\'être racontée.</string>
+    <string name="book_empty_state_desc">PHOEN-X va analyser tes souvenirs et rédiger\nle premier chapitre de ton Livre de Vie.\nTu pourras tout relire, modifier et valider.</string>
+    <string name="book_empty_state_btn_generate">Ébaucher mon livre</string>
+    <string name="book_empty_state_missing_memories">Il manque %1$d souvenirs</string>
+
+    <string name="book_proposed_plan_title">Structure proposée</string>
+    <string name="book_proposed_plan_desc">Voici comment l\'IA suggère d\'organiser votre récit.</string>
+    <string name="book_proposed_plan_chapter_header">CHAPITRE %1$d</string>
+    <string name="book_proposed_plan_no_title">Sans titre</string>
+    <string name="book_proposed_plan_memories_count">%1$d souvenirs intégrés</string>
+    <string name="book_proposed_plan_btn_confirm">Confirmer et rédiger</string>
+    <string name="book_proposed_plan_btn_cancel">Annuler</string>
+
+    <string name="book_regen_dashboard_title">État de vos chapitres</string>
+    <string name="book_regen_dashboard_desc">Comparaison locale avec votre dernière génération — aucun appel à l\'IA, rien n\'est encore modifié.</string>
+    <string name="book_regen_status_intact">INTACT</string>
+    <string name="book_regen_status_rework">À RETRAVAILLER</string>
+    <string name="book_regen_dashboard_chapter_status">CHAPITRE %1$d · %2$s</string>
+    <string name="book_regen_dashboard_orphan_title">Souvenirs pas encore dans un chapitre (%1$d)</string>
+    <string name="book_regen_dashboard_warning_full">Le bouton ci-dessous réécrit encore l\'INTÉGRALITÉ des chapitres, y compris ceux marqués intacts.</string>
+    <string name="book_regen_dashboard_btn_regenerate">Réécrire tout le livre maintenant</string>
+
+    <string name="book_generating_moments">Cela peut prendre quelques instants...</string>
+
+    <string name="book_ai_explanation_title">Retouches vs Réécriture</string>
+    <string name="book_ai_explanation_edit_chapter_title">Modifier un chapitre</string>
+    <string name="book_ai_explanation_edit_chapter_desc">L\'action \'Demander à l\'IA\' à l\'intérieur d\'un chapitre ne modifie QUE ce chapitre. C\'est idéal pour corriger un détail sans toucher au reste.</string>
+    <string name="book_ai_explanation_regen_book_title">Régénérer le livre</string>
+    <string name="book_ai_explanation_regen_book_desc">Le bouton \'Régénérer\' (en haut) relance l\'écriture de TOUS les chapitres. Utilisez-le uniquement si vous voulez un manuscrit totalement nouveau.</string>
+    <string name="book_ai_explanation_btn_clear">C\'est très clair</string>
+
+    <string name="book_onboarding_title">Comment l\'IA écrit votre vie</string>
+    <string name="book_onboarding_chrono_title">Respect de votre chronologie</string>
+    <string name="book_onboarding_chrono_desc">Chaque souvenir est trié par âge. L\'IA utilise ces repères pour tisser un récit fluide, du premier chapitre jusqu\'au dernier.</string>
+    <string name="book_onboarding_chars_title">Reconnaissance des personnages</string>
+    <string name="book_onboarding_chars_desc">L\'IA identifie vos proches (ex: \'Julie\', \'mon fils Marc\'). Elle fait le lien entre vos différents souvenirs pour raconter l\'évolution de vos relations.</string>
+    <string name="book_onboarding_narration_title">Une narration personnalisée</string>
+    <string name="book_onboarding_narration_desc">Ce n\'est pas une simple liste. L\'IA rédige à la première personne (\'Je\') et adapte le ton (joie, nostalgie) selon l\'émotion de vos souvenirs.</string>
+    <string name="book_onboarding_advice_title">💡 Conseil du Biographe</string>
+    <string name="book_onboarding_advice_content">Plus vos souvenirs sont détaillés (prénoms, lieux, sentiments), plus le récit de l\'IA sera précis et fidèle à votre réalité.</string>
+    <string name="book_onboarding_btn_understood">J\'ai compris</string>
+
+    <string name="book_tone_poetic">Poétique</string>
+    <string name="book_tone_factual">Factuel</string>
+    <string name="book_tone_warm">Chaleureux</string>
+    <string name="book_tone_nostalgic">Nostalgique</string>
 </resources>

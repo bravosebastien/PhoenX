@@ -24,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.data.model.ChapterRegenStatus
 import com.example.phoenx.data.model.RegenerationDashboard
 import com.example.phoenx.ui.theme.AppThemeState
@@ -90,7 +92,7 @@ fun EmptyBookState(
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "Ton histoire mérite d'être racontée.",
+            text = stringResource(R.string.book_empty_state_title),
             style = TextStyle(
                 fontFamily = theme.fontFamily,
                 fontSize = 20.sp,
@@ -103,9 +105,7 @@ fun EmptyBookState(
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "PHOEN-X va analyser tes souvenirs et rédiger\n" +
-                   "le premier chapitre de ton Livre de Vie.\n" +
-                   "Tu pourras tout relire, modifier et valider.",
+            text = stringResource(R.string.book_empty_state_desc),
             style = TextStyle(
                 fontSize = 14.sp,
                 color = theme.contentColor.copy(alpha = 0.6f),
@@ -130,7 +130,7 @@ fun EmptyBookState(
             shape = RoundedCornerShape(12.dp)
         ) {
             Text(
-                text = if (canGenerate) "Ébaucher mon livre" else "Il manque ${10 - entryCount} souvenirs",
+                text = if (canGenerate) stringResource(R.string.book_empty_state_btn_generate) else stringResource(R.string.book_empty_state_missing_memories, 10 - entryCount),
                 style = TextStyle(
                     fontFamily = theme.fontFamily,
                     fontSize = 16.sp
@@ -160,11 +160,11 @@ fun ProposedPlanView(
         Icon(Icons.Default.Architecture, null, tint = accent, modifier = Modifier.size(48.dp))
         Spacer(Modifier.height(16.dp))
         Text(
-            "Structure proposée",
+            stringResource(R.string.book_proposed_plan_title),
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, color = theme.contentColor)
         )
         Text(
-            "Voici comment l'IA suggère d'organiser votre récit.",
+            stringResource(R.string.book_proposed_plan_desc),
             style = MaterialTheme.typography.bodySmall,
             color = theme.contentColor.copy(alpha = 0.6f),
             textAlign = TextAlign.Center
@@ -180,12 +180,12 @@ fun ProposedPlanView(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        "CHAPITRE ${index + 1}",
+                        stringResource(R.string.book_proposed_plan_chapter_header, index + 1),
                         style = MaterialTheme.typography.labelSmall,
                         color = accent
                     )
                     Text(
-                        chapter["title"] as? String ?: "Sans titre",
+                        chapter["title"] as? String ?: stringResource(R.string.book_proposed_plan_no_title),
                         style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                         color = theme.contentColor
                     )
@@ -199,7 +199,7 @@ fun ProposedPlanView(
                     }
                     val scenes = chapter["sceneIds"] as? List<*>
                     Text(
-                        "${scenes?.size ?: 0} souvenirs intégrés",
+                        stringResource(R.string.book_proposed_plan_memories_count, scenes?.size ?: 0),
                         style = MaterialTheme.typography.labelSmall,
                         color = theme.contentColor.copy(alpha = 0.4f),
                         modifier = Modifier.padding(top = 8.dp)
@@ -216,11 +216,11 @@ fun ProposedPlanView(
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
             colors = ButtonDefaults.buttonColors(containerColor = accent)
         ) {
-            Text("Confirmer et rédiger", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.book_proposed_plan_btn_confirm), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
         
         TextButton(onClick = onCancel, modifier = Modifier.padding(top = 8.dp)) {
-            Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+            Text(stringResource(R.string.book_proposed_plan_btn_cancel), color = theme.contentColor.copy(alpha = 0.6f))
         }
     }
 }
@@ -253,11 +253,11 @@ fun RegenerationDashboardView(
         Icon(Icons.Default.FactCheck, null, tint = accent, modifier = Modifier.size(48.dp))
         Spacer(Modifier.height(16.dp))
         Text(
-            "État de vos chapitres",
+            stringResource(R.string.book_regen_dashboard_title),
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold, color = theme.contentColor)
         )
         Text(
-            "Comparaison locale avec votre dernière génération — aucun appel à l'IA, rien n'est encore modifié.",
+            stringResource(R.string.book_regen_dashboard_desc),
             style = MaterialTheme.typography.bodySmall,
             color = theme.contentColor.copy(alpha = 0.6f),
             textAlign = TextAlign.Center
@@ -297,8 +297,9 @@ fun RegenerationDashboardView(
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(Modifier.width(6.dp))
+                        val statusLabel = if (isIntact) stringResource(R.string.book_regen_status_intact) else stringResource(R.string.book_regen_status_rework)
                         Text(
-                            "CHAPITRE ${chapterInfo.orderIndex + 1} · ${if (isIntact) "INTACT" else "À RETRAVAILLER"}",
+                            stringResource(R.string.book_regen_dashboard_chapter_status, chapterInfo.orderIndex + 1, statusLabel),
                             style = MaterialTheme.typography.labelSmall,
                             color = if (isIntact) intactColor else accent
                         )
@@ -327,7 +328,7 @@ fun RegenerationDashboardView(
         if (dashboard.orphanScenes.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
             Text(
-                "Souvenirs pas encore dans un chapitre (${dashboard.orphanScenes.size})",
+                stringResource(R.string.book_regen_dashboard_orphan_title, dashboard.orphanScenes.size),
                 style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                 color = theme.contentColor,
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp)
@@ -351,7 +352,7 @@ fun RegenerationDashboardView(
         Spacer(Modifier.height(32.dp))
 
         Text(
-            "Le bouton ci-dessous réécrit encore l'INTÉGRALITÉ des chapitres, y compris ceux marqués intacts.",
+            stringResource(R.string.book_regen_dashboard_warning_full),
             style = MaterialTheme.typography.labelSmall,
             color = theme.contentColor.copy(alpha = 0.5f),
             textAlign = TextAlign.Center,
@@ -363,11 +364,11 @@ fun RegenerationDashboardView(
             modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
             colors = ButtonDefaults.buttonColors(containerColor = accent)
         ) {
-            Text("Réécrire tout le livre maintenant", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.book_regen_dashboard_btn_regenerate), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
         }
 
         TextButton(onClick = onCancel, modifier = Modifier.padding(top = 8.dp)) {
-            Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+            Text(stringResource(R.string.book_proposed_plan_btn_cancel), color = theme.contentColor.copy(alpha = 0.6f))
         }
     }
 }
@@ -451,7 +452,7 @@ fun GeneratingBookState(progress: String) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Cela peut prendre quelques instants...",
+            text = stringResource(R.string.book_generating_moments),
             style = TextStyle(
                 fontSize = 12.sp,
                 color = theme.contentColor.copy(alpha = 0.4f),
@@ -474,7 +475,7 @@ fun BookAiExplanationDialog(onDismiss: () -> Unit) {
                 Icon(Icons.Default.Psychology, null, tint = accent, modifier = Modifier.size(40.dp))
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    "Retouches vs Réécriture", 
+                    stringResource(R.string.book_ai_explanation_title), 
                     color = theme.contentColor, 
                     fontFamily = theme.fontFamily,
                     fontWeight = FontWeight.Bold,
@@ -489,16 +490,16 @@ fun BookAiExplanationDialog(onDismiss: () -> Unit) {
                     Icon(Icons.Default.EditNote, null, tint = accent, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("Modifier un chapitre", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
-                        Text("L'action 'Demander à l'IA' à l'intérieur d'un chapitre ne modifie QUE ce chapitre. C'est idéal pour corriger un détail sans toucher au reste.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
+                        Text(stringResource(R.string.book_ai_explanation_edit_chapter_title), style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.book_ai_explanation_edit_chapter_desc), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
                     }
                 }
                 Row(verticalAlignment = Alignment.Top) {
                     Icon(Icons.Default.AutoFixHigh, null, tint = accent, modifier = Modifier.size(20.dp))
                     Spacer(Modifier.width(12.dp))
                     Column {
-                        Text("Régénérer le livre", style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
-                        Text("Le bouton 'Régénérer' (en haut) relance l'écriture de TOUS les chapitres. Utilisez-le uniquement si vous voulez un manuscrit totalement nouveau.", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
+                        Text(stringResource(R.string.book_ai_explanation_regen_book_title), style = MaterialTheme.typography.bodyMedium, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.book_ai_explanation_regen_book_desc), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.7f))
                     }
                 }
             }
@@ -510,7 +511,7 @@ fun BookAiExplanationDialog(onDismiss: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().phoenXMatiere(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("C'est très clair", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.book_ai_explanation_btn_clear), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     )
@@ -534,7 +535,7 @@ fun BookOnboardingDialog(onDismiss: () -> Unit) {
                 )
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    "Comment l'IA écrit votre vie", 
+                    stringResource(R.string.book_onboarding_title), 
                     color = theme.contentColor, 
                     fontFamily = theme.fontFamily,
                     fontWeight = FontWeight.Bold,
@@ -550,20 +551,20 @@ fun BookOnboardingDialog(onDismiss: () -> Unit) {
             ) {
                 OnboardingPoint(
                     icon = Icons.Default.Timeline,
-                    title = "Respect de votre chronologie",
-                    description = "Chaque souvenir est trié par âge. L'IA utilise ces repères pour tisser un récit fluide, du premier chapitre jusqu'au dernier.",
+                    title = stringResource(R.string.book_onboarding_chrono_title),
+                    description = stringResource(R.string.book_onboarding_chrono_desc),
                     theme = theme
                 )
                 OnboardingPoint(
                     icon = Icons.Default.People,
-                    title = "Reconnaissance des personnages",
-                    description = "L'IA identifie vos proches (ex: 'Julie', 'mon fils Marc'). Elle fait le lien entre vos différents souvenirs pour raconter l'évolution de vos relations.",
+                    title = stringResource(R.string.book_onboarding_chars_title),
+                    description = stringResource(R.string.book_onboarding_chars_desc),
                     theme = theme
                 )
                 OnboardingPoint(
                     icon = Icons.Default.HistoryEdu,
-                    title = "Une narration personnalisée",
-                    description = "Ce n'est pas une simple liste. L'IA rédige à la première personne ('Je') et adapte le ton (joie, nostalgie) selon l'émotion de vos souvenirs.",
+                    title = stringResource(R.string.book_onboarding_narration_title),
+                    description = stringResource(R.string.book_onboarding_narration_desc),
                     theme = theme
                 )
                 
@@ -574,14 +575,14 @@ fun BookOnboardingDialog(onDismiss: () -> Unit) {
                 ) {
                     Column(modifier = Modifier.padding(12.dp)) {
                         Text(
-                            "💡 Conseil du Biographe",
+                            stringResource(R.string.book_onboarding_advice_title),
                             style = MaterialTheme.typography.labelMedium,
                             color = accent,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Plus vos souvenirs sont détaillés (prénoms, lieux, sentiments), plus le récit de l'IA sera précis et fidèle à votre réalité.",
+                            stringResource(R.string.book_onboarding_advice_content),
                             style = MaterialTheme.typography.bodySmall,
                             color = theme.contentColor.copy(alpha = 0.7f)
                         )
@@ -596,7 +597,7 @@ fun BookOnboardingDialog(onDismiss: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().phoenXMatiere(),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("J'ai compris", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.book_onboarding_btn_understood), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
         }
     )
