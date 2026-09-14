@@ -16,7 +16,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.phoenXMatiere
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -81,7 +83,7 @@ fun QuestionAnswerScreen(
         containerColor = theme.backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Ma Réponse", style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)) },
+                title = { Text(stringResource(R.string.questions_answer_title), style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = accent)
@@ -93,7 +95,7 @@ fun QuestionAnswerScreen(
     ) { padding ->
         if (question == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Question introuvable", color = theme.contentColor)
+                Text(stringResource(R.string.questions_error_not_found), color = theme.contentColor)
             }
         } else if (uiState.currentAnswerText == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -167,7 +169,7 @@ fun QuestionAnswerScreen(
                     ) {
                         Icon(Icons.Default.PhotoCamera, null, tint = accent)
                         Spacer(Modifier.width(12.dp))
-                        Text("Illustrer ma réponse", color = theme.contentColor)
+                        Text(stringResource(R.string.questions_btn_illustrate), color = theme.contentColor)
                     }
                 }
 
@@ -179,7 +181,7 @@ fun QuestionAnswerScreen(
                     modifier = Modifier.fillMaxWidth().heightIn(min = 150.dp),
                     placeholder = { 
                         Text(
-                            "Dépose tes mots ici...", 
+                            stringResource(R.string.questions_answer_placeholder), 
                             color = theme.contentColor.copy(alpha = 0.3f), 
                             style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)
                         ) 
@@ -204,7 +206,7 @@ fun QuestionAnswerScreen(
                     if (uiState.isSaving) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = theme.backgroundColor, strokeWidth = 2.dp)
                     } else {
-                        Text("Enregistrer", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.questions_btn_save), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
                     }
                 }
             }

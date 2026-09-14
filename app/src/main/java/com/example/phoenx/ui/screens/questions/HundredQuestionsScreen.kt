@@ -415,7 +415,7 @@ fun CustomQuestionDialog(
         containerColor = theme.backgroundColor,
         title = { 
             Text(
-                if (entry == null) "Nouvelle question" else "Modifier la question",
+                if (entry == null) stringResource(R.string.questions_custom_dialog_title_new) else stringResource(R.string.questions_custom_dialog_title_edit),
                 color = theme.contentColor,
                 fontWeight = FontWeight.Bold
             )
@@ -428,33 +428,33 @@ fun CustomQuestionDialog(
                 OutlinedTextField(
                     value = question,
                     onValueChange = { question = it },
-                    label = { Text("La question à poser") },
+                    label = { Text(stringResource(R.string.questions_custom_field_question)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = answer,
                     onValueChange = { answer = it },
-                    label = { Text("La réponse attendue") },
-                    placeholder = { Text(if (entry != null) "Laisser vide pour ne pas changer" else "Ex: Paris") },
+                    label = { Text(stringResource(R.string.questions_custom_field_answer)) },
+                    placeholder = { Text(if (entry != null) stringResource(R.string.questions_custom_field_answer_placeholder_edit) else stringResource(R.string.questions_custom_field_answer_placeholder_new)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = hint,
                     onValueChange = { hint = it },
-                    label = { Text("Indice (optionnel)") },
+                    label = { Text(stringResource(R.string.questions_custom_field_hint)) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 
                 Spacer(Modifier.height(8.dp))
-                Text("LE RÉCIT À DÉBLOQUER", style = MaterialTheme.typography.labelSmall, color = theme.accentColor)
+                Text(stringResource(R.string.questions_custom_section_story), style = MaterialTheme.typography.labelSmall, color = theme.accentColor)
                 OutlinedTextField(
                     value = story,
                     onValueChange = { story = it },
-                    placeholder = { Text("Raconte ici la vraie histoire...") },
+                    placeholder = { Text(stringResource(R.string.questions_custom_story_placeholder)) },
                     modifier = Modifier.fillMaxWidth().height(150.dp)
                 )
 
-                Text("DESTINATAIRES", style = MaterialTheme.typography.labelSmall, color = theme.accentColor)
+                Text(stringResource(R.string.questions_custom_section_recipients), style = MaterialTheme.typography.labelSmall, color = theme.accentColor)
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -498,7 +498,7 @@ fun CustomQuestionDialog(
                             modifier = Modifier.align(Alignment.Center),
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Black.copy(alpha = 0.5f))
                         ) {
-                            Text("Changer l'image")
+                            Text(stringResource(R.string.questions_custom_btn_change_photo))
                         }
                     }
                 } else {
@@ -508,7 +508,7 @@ fun CustomQuestionDialog(
                     ) {
                         Icon(Icons.Default.AddAPhoto, null)
                         Spacer(Modifier.width(8.dp))
-                        Text("Ajouter une photo")
+                        Text(stringResource(R.string.questions_custom_btn_add_photo))
                     }
                 }
             }
@@ -519,12 +519,12 @@ fun CustomQuestionDialog(
                 enabled = question.isNotBlank() && story.isNotBlank() && (entry != null || answer.isNotBlank()) && selectedRecipientIds.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = theme.accentColor)
             ) {
-                Text("Enregistrer", color = theme.backgroundColor)
+                Text(stringResource(R.string.questions_btn_save), color = theme.backgroundColor)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Annuler", color = theme.contentColor.copy(alpha = 0.6f))
+                Text(stringResource(R.string.questions_btn_cancel), color = theme.contentColor.copy(alpha = 0.6f))
             }
         }
     )

@@ -2341,4 +2341,42 @@
     <string name="questions_btn_illustrate">Illustrer ma réponse</string>
     <string name="questions_answer_placeholder">Dépose tes mots ici...</string>
     <string name="questions_btn_seal">Sceller ma réponse</string>
+
+    <!-- Questions Batch B (Saisie & Dialogues) -->
+    <string name="questions_answer_title">Ma Réponse</string>
+    <string name="questions_error_not_found">Question introuvable</string>
+    <string name="questions_btn_save">Enregistrer</string>
+    <string name="questions_custom_dialog_title_new">Nouvelle question</string>
+    <string name="questions_custom_dialog_title_edit">Modifier la question</string>
+    <string name="questions_custom_field_question">La question à poser</string>
+    <string name="questions_custom_field_answer">La réponse attendue</string>
+    <string name="questions_custom_field_answer_placeholder_edit">Laisser vide pour ne pas changer</string>
+    <string name="questions_custom_field_answer_placeholder_new">Ex: Paris</string>
+    <string name="questions_custom_field_hint">Indice (optionnel)</string>
+    <string name="questions_custom_section_story">LE RÉCIT À DÉBLOQUER</string>
+    <string name="questions_custom_story_placeholder">Raconte ici la vraie histoire...</string>
+    <string name="questions_custom_section_recipients">DESTINATAIRES</string>
+    <string name="questions_custom_btn_change_photo">Changer l\'image</string>
+    <string name="questions_custom_btn_add_photo">Ajouter une photo</string>
+    <string name="questions_btn_cancel">Annuler</string>
+    <string name="questions_pending_title">Questions en attente</string>
+    <string name="questions_pending_info_title">Questions en Attente</string>
+    <string name="questions_pending_info_p1">Ce sont les questions que tes proches t\'ont posées.</string>
+    <string name="questions_pending_info_p2">Tu as trois choix : répondre, décliner consciemment, ou laisser en attente.</string>
+    <string name="questions_pending_info_p3">Si tu déclines, tu peux laisser une courte note — ta proche saura que tu as vu sa question.</string>
+    <string name="questions_pending_info_p4">Les réponses seront transmises après l\'activation du protocole.</string>
+    <string name="questions_pending_info_p5">Tu choisis pour chaque proche s\'il a le droit de te poser des questions.</string>
+    <string name="questions_pending_count">%1$d questions de %2$d personnes</string>
+    <string name="questions_pending_empty">Aucune question en attente</string>
+    <string name="questions_status_pending">Nouvelle</string>
+    <string name="questions_status_answered_pending">Répondue</string>
+    <string name="questions_status_declined">Déclinée</string>
+    <string name="questions_pending_btn_answer_now">✍️ Répondre maintenant</string>
+    <string name="questions_pending_btn_decline">🤐 Je ne souhaite pas répondre</string>
+    <string name="questions_pending_btn_later">Laisser en attente</string>
+    <string name="questions_pending_decline_note_info">Tu peux ajouter une courte note (facultatif) — elle sera visible par %1$s, mais pas la réponse à sa question.</string>
+    <string name="questions_pending_decline_note_placeholder">Ex: Certaines choses doivent rester pour moi seul. Mais sache que ta question m\'a touché.</string>
+    <string name="questions_pending_btn_confirm_decline">Confirmer ce choix</string>
+    <string name="questions_pending_btn_back">Retour</string>
+    <string name="questions_date_format">dd MMMM yyyy</string>
 </resources>

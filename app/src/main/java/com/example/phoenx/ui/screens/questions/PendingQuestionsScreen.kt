@@ -18,7 +18,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.phoenx.R
 import com.example.phoenx.domain.model.PendingQuestion
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
@@ -52,15 +54,15 @@ fun PendingQuestionsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Questions en attente", style = MaterialTheme.typography.labelLarge, color = theme.contentColor)
+                        Text(stringResource(R.string.questions_pending_title), style = MaterialTheme.typography.labelLarge, color = theme.contentColor)
                         InfoButton(
-                            title = "Questions en Attente",
+                            title = stringResource(R.string.questions_pending_info_title),
                             points = listOf(
-                                "Ce sont les questions que tes proches t'ont posées.",
-                                "Tu as trois choix : répondre, décliner consciemment, ou laisser en attente.",
-                                "Si tu déclines, tu peux laisser une courte note — ta proche saura que tu as vu sa question.",
-                                "Les réponses seront transmises après l'activation du protocole.",
-                                "Tu choisis pour chaque proche s'il a le droit de te poser des questions."
+                                stringResource(R.string.questions_pending_info_p1),
+                                stringResource(R.string.questions_pending_info_p2),
+                                stringResource(R.string.questions_pending_info_p3),
+                                stringResource(R.string.questions_pending_info_p4),
+                                stringResource(R.string.questions_pending_info_p5)
                             )
                         )
                     }
@@ -84,7 +86,7 @@ fun PendingQuestionsScreen(
             }
 
             Text(
-                text = "${questions.size} questions de ${questions.map { it.recipientName }.distinct().size} personnes",
+                text = stringResource(R.string.questions_pending_count, questions.size, questions.map { it.recipientName }.distinct().size),
                 modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp),
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                 color = theme.contentColor.copy(alpha = 0.4f)
@@ -92,7 +94,7 @@ fun PendingQuestionsScreen(
 
             if (questions.isEmpty() && !isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Aucune question en attente", color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.questions_pending_empty), color = theme.contentColor.copy(alpha = 0.4f), style = MaterialTheme.typography.bodyLarge)
                 }
             } else {
                 LazyColumn(
@@ -152,7 +154,7 @@ fun QuestionCard(question: PendingQuestion, theme: AppThemeState, onClick: () ->
             Text(question.questionText, style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
             Spacer(modifier = Modifier.height(12.dp))
             
-            val date = DateTimeFormatter.ofPattern("dd MMMM yyyy", Locale.FRENCH)
+            val date = DateTimeFormatter.ofPattern(stringResource(R.string.questions_date_format))
                 .withZone(ZoneId.systemDefault())
                 .format(Instant.ofEpochMilli(question.askedAt))
             
@@ -169,9 +171,9 @@ fun QuestionCard(question: PendingQuestion, theme: AppThemeState, onClick: () ->
                 ) {
                     Text(
                         text = when(question.status) {
-                            "pending" -> "Nouvelle"
-                            "answered" -> "Répondue"
-                            else -> "Déclinée"
+                            "pending" -> stringResource(R.string.questions_status_pending)
+                            "answered" -> stringResource(R.string.questions_status_answered_pending)
+                            else -> stringResource(R.string.questions_status_declined)
                         },
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
@@ -215,7 +217,7 @@ fun QuestionActionContent(
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                 colors = ButtonDefaults.buttonColors(containerColor = accent)
             ) {
-                Text("✍️ Répondre maintenant", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.questions_pending_btn_answer_now), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -226,7 +228,7 @@ fun QuestionActionContent(
                 border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.2f)),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = theme.contentColor)
             ) {
-                Text("🤐 Je ne souhaite pas répondre", color = theme.contentColor)
+                Text(stringResource(R.string.questions_pending_btn_decline), color = theme.contentColor)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -235,11 +237,11 @@ fun QuestionActionContent(
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Laisser en attente", color = theme.contentColor.copy(alpha = 0.4f))
+                Text(stringResource(R.string.questions_pending_btn_later), color = theme.contentColor.copy(alpha = 0.4f))
             }
         } else {
             Text(
-                "Tu peux ajouter une courte note (facultatif) — elle sera visible par ${question.recipientName}, mais pas la réponse à sa question.",
+                stringResource(R.string.questions_pending_decline_note_info, question.recipientName),
                 style = MaterialTheme.typography.bodySmall,
                 color = theme.contentColor.copy(alpha = 0.6f)
             )
@@ -247,7 +249,7 @@ fun QuestionActionContent(
             OutlinedTextField(
                 value = declineNote,
                 onValueChange = { declineNote = it },
-                placeholder = { Text("Ex: Certaines choses doivent rester pour moi seul. Mais sache que ta question m'a touché.") },
+                placeholder = { Text(stringResource(R.string.questions_pending_decline_note_placeholder)) },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 textStyle = MaterialTheme.typography.bodyMedium.copy(color = theme.contentColor),
@@ -259,10 +261,10 @@ fun QuestionActionContent(
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = theme.contentColor.copy(alpha = 0.1f))
             ) {
-                Text("Confirmer ce choix", color = theme.contentColor)
+                Text(stringResource(R.string.questions_pending_btn_confirm_decline), color = theme.contentColor)
             }
             TextButton(onClick = { showDeclineNote = false }, modifier = Modifier.fillMaxWidth()) {
-                Text("Retour", color = accent)
+                Text(stringResource(R.string.questions_pending_btn_back), color = accent)
             }
         }
     }
