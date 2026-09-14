@@ -55,6 +55,7 @@ import com.example.phoenx.ui.screens.recipient.RecipientDetailScreen
 import com.example.phoenx.ui.screens.recipient.RecipientPermissionsScreen
 import com.example.phoenx.ui.screens.recipient.RecipientScreen
 import com.example.phoenx.ui.screens.settings.AccessibilitySettingsScreen
+import com.example.phoenx.ui.screens.settings.LanguageSettingsScreen
 import com.example.phoenx.ui.screens.settings.NotificationContactsScreen
 import com.example.phoenx.ui.screens.settings.ProtocolSettingsScreen
 import com.example.phoenx.ui.screens.settings.SettingsScreen
@@ -449,6 +450,7 @@ fun NavGraphBuilder.creatorGraph(
             onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
             onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
             onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
+            onNavigateToLanguage = { navController.navigate(Screen.LanguageSettings.route) },
             onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
             onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) },
             onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
@@ -471,6 +473,12 @@ fun NavGraphBuilder.creatorGraph(
         AccessibilitySettingsScreen(
             onNavigateBack = { navController.popBackStack() },
             mainViewModel = mainViewModel
+        )
+    }
+
+    composable(Screen.LanguageSettings.route) {
+        LanguageSettingsScreen(
+            onNavigateBack = { navController.popBackStack() }
         )
     }
 

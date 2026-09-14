@@ -38,6 +38,7 @@ fun SettingsScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToProtocol: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
+    onNavigateToLanguage: () -> Unit,
     onNavigateToNotificationContacts: () -> Unit,
     onNavigateToReconciliation: () -> Unit,
     onNavigateToRecipients: () -> Unit,
@@ -272,6 +273,16 @@ fun SettingsScreen(
                 icon = Icons.Default.RecordVoiceOver,
                 theme = theme,
                 onClick = onNavigateToAccessibility
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(
+                title = "Language",
+                subtitle = "Français, English, Español",
+                icon = Icons.Default.Language,
+                theme = theme,
+                onClick = onNavigateToLanguage
             )
 
             Spacer(modifier = Modifier.height(16.dp))
