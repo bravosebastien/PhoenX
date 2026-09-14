@@ -219,31 +219,6 @@ export const generateBookPlan = onCall({
     return JSON.parse(text.replace(/```json|```/g, "").trim());
 });
 
-// 9. Génération de distracteurs (v8.3 Quiz 2.0)
-export const generateDistractors = onCall({
-    secrets: ["GEMINI_API_KEY"]
-}, async (request) => {
-    if (!request.auth) {
-        throw new HttpsError("unauthenticated", "Non authentifié");
-    }
-
-    const { question, correctAnswer } = request.data;
-    if (!question || !correctAnswer) throw new HttpsError("invalid-argument", "Question ou réponse manquante");
-
-    const prompt = `${AI_RULES}
-    Génère 3 fausses réponses (distracteurs) crédibles mais distinctes pour le quiz de l'utilisateur.
-    Question : ${question}
-    Vraie réponse : ${correctAnswer}
-
-    Instructions :
-    1. Sois cohérent avec la vraie réponse (même catégorie, même format).
-    2. Ne propose pas de réponses absurdes ou offensantes.
-    3. Réponds UNIQUEMENT en JSON avec cette structure : {"distractors": ["Choix 1", "Choix 2", "Choix 3"]}`;
-
-    const text = await generateWithGemini(prompt, "generateDistractors") || '{"distractors":[]}';
-    return JSON.parse(text.replace(/```json|```/g, "").trim());
-});
-
 // 20. Modification d'un chapitre par l'IA (v8.6.3)
 export const modifyBookChapter = onCall({
     secrets: ["GEMINI_API_KEY"]

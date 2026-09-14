@@ -48,7 +48,6 @@ import com.example.phoenx.ui.screens.profile.ProfileScreen
 import androidx.media3.common.util.UnstableApi
 import com.example.phoenx.ui.screens.questions.PendingQuestionsScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
-import com.example.phoenx.ui.screens.quiz.QuizCreateScreen
 import com.example.phoenx.ui.screens.rankings.RankingDetailScreen
 import com.example.phoenx.ui.screens.rankings.RankingListScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
@@ -569,7 +568,6 @@ fun NavGraphBuilder.creatorGraph(
     }
 
     // --- ALIAS DE ROUTES POUR COMPATIBILITÉ (v8.9.9) ---
-    composable("quiz_create") { QuizCreateScreen(navController = navController) }
     composable(
         route = "fil_pensee?creatorId={creatorId}",
         arguments = listOf(navArgument("creatorId") { nullable = true })

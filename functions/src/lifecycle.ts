@@ -17,7 +17,7 @@ export async function propagateUidLiaison(creatorId: string, oldDocId: string, n
     const operations: { ref: admin.firestore.DocumentReference, data: any }[] = [];
 
     // 1. Collections avec tableaux recipientIds (v9.3.6)
-    const arrayCollections = ["entries", "quizzes", "standaloneMedia"];
+    const arrayCollections = ["entries", "standaloneMedia"];
     for (const col of arrayCollections) {
         const snap = await userRef.collection(col)
             .where("recipientIds", "array-contains", oldDocId).get();
@@ -87,7 +87,7 @@ export async function revokeUidAccess(creatorId: string, uidToRemove: string) {
     const operations: { ref: admin.firestore.DocumentReference, data: any }[] = [];
 
     // 1. Collections avec tableaux recipientIds
-    const arrayCollections = ["entries", "quizzes", "standaloneMedia"];
+    const arrayCollections = ["entries", "standaloneMedia"];
     for (const col of arrayCollections) {
         const snap = await userRef.collection(col)
             .where("recipientIds", "array-contains", uidToRemove).get();

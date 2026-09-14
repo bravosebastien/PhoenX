@@ -18,8 +18,6 @@ import com.example.phoenx.ui.screens.mappemonde.MapMode
 import com.example.phoenx.ui.screens.mappemonde.MappamondeScreen
 import com.example.phoenx.ui.screens.media.MediaViewerScreen
 import com.example.phoenx.ui.screens.questions.AskQuestionScreen
-import com.example.phoenx.ui.screens.quiz.QuizLeaderboardScreen
-import com.example.phoenx.ui.screens.quiz.QuizPlayScreen
 import com.example.phoenx.ui.screens.encounters.EncounterScreen
 import com.example.phoenx.ui.screens.recipient.*
 import com.example.phoenx.ui.screens.silence.SilenceBlockScreen
@@ -673,34 +671,7 @@ fun NavGraphBuilder.recipientGraph(
     }
 
     composable(
-        route = "quiz_play/{creatorId}/{quizId}",
-        arguments = listOf(
-            navArgument("creatorId") { type = NavType.StringType },
-            navArgument("quizId") { type = NavType.StringType }
-        )
-    ) { backStackEntry ->
-        QuizPlayScreen(
-            creatorId = backStackEntry.arguments?.getString("creatorId") ?: "",
-            quizId = backStackEntry.arguments?.getString("quizId") ?: "",
-            navController = navController
-        )
-    }
-
-    composable(
-        route = "quiz_leaderboard/{creatorId}/{quizId}",
-        arguments = listOf(
-            navArgument("creatorId") { type = NavType.StringType },
-            navArgument("quizId") { type = NavType.StringType }
-        )
-    ) { backStackEntry ->
-        QuizLeaderboardScreen(
-            creatorId = backStackEntry.arguments?.getString("creatorId") ?: "",
-            quizId = backStackEntry.arguments?.getString("quizId") ?: "",
-            navController = navController
-        )
-    }
-
-    composable(Screen.HundredQuestionsLeaderboard.route) { backStackEntry ->
+        route = Screen.HundredQuestionsLeaderboard.route) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId")
         com.example.phoenx.ui.screens.questions.HundredQuestionsLeaderboardScreen(
             creatorId = creatorId,
