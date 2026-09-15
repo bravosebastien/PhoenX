@@ -1,0 +1,2559 @@
+<resources>
+    <string name="app_name">Phoen-X</string>
+
+    <!-- Auth Batch -->
+    <string name="auth_toast_password_reset_sent">重置密码的邮件已发送。</string>
+    <string name="auth_dialog_reactivate_title">账户已暂停</string>
+    <string name="auth_dialog_reactivate_text">你的账户目前处于暂停状态。要重新激活以访问你的回忆吗？</string>
+    <string name="auth_dialog_reactivate_confirm">重新激活我的账户</string>
+    <string name="auth_dialog_reactivate_cancel">取消</string>
+    <string name="auth_email_verification_toast_not_verified">邮箱尚未验证，请查看你的邮箱。</string>
+    <string name="auth_email_verification_toast_resent">邮件已重新发送！</string>
+    <string name="auth_step_b_placeholder">高级系统待机中</string>
+    <string name="auth_email_verification_title">请查看你的邮箱</string>
+    <string name="auth_email_verification_text_not_verified">你需要先确认你的邮箱地址才能登录。</string>
+    <string name="auth_email_verification_text_sent">确认邮件已发送至 %1$s。点击链接以激活你的账户。</string>
+    <string name="auth_email_verification_button_confirmed">我已确认邮箱</string>
+    <string name="auth_email_verification_button_resend">重新发送邮件</string>
+    <string name="auth_login_title">很高兴再次见到你</string>
+    <string name="auth_login_email_label">邮箱</string>
+    <string name="auth_login_password_label">密码</string>
+    <string name="auth_login_forgot_password">忘记密码？</string>
+    <string name="auth_login_button_login">登录</string>
+    <string name="auth_login_button_signup">创建账户</string>
+    <string name="auth_login_button_recovery_legacy">通过我的12个助记词恢复（旧版）</string>
+    <string name="auth_signup_title_guest">您的空间从这里开始</string>
+    <string name="auth_signup_title_standard">你的空间从这里开始</string>
+    <string name="auth_signup_email_label">邮箱</string>
+    <string name="auth_signup_birthdate_section_title">用于你的思绪之流</string>
+    <string name="auth_signup_birthdate_format">yyyy年MM月dd日</string>
+    <string name="auth_signup_datepicker_ok">确定</string>
+    <string name="auth_signup_password_label">密码（至少12个字符）</string>
+    <string name="auth_signup_e2ee_warning">你的回忆是加密的。若忘记密码，请使用邮箱找回流程。</string>
+    <string name="auth_signup_terms_text">我接受《使用条款》和《隐私政策》</string>
+    <string name="auth_signup_terms_link_cgu">阅读使用条款</string>
+    <string name="auth_signup_terms_link_privacy">隐私政策</string>
+    <string name="auth_signup_button_continue">继续</string>
+    <string name="auth_signup_link_login">已有账户？登录</string>
+    <string name="auth_signup_step_c_title">最后一步…</string>
+    <string name="auth_signup_step_c_question">你希望有朝一日将你的遗产传递给谁？</string>
+    <string name="auth_signup_step_c_depositary_label">姓名或昵称</string>
+    <string name="auth_signup_step_c_button_finish">创建我的空间</string>
+    <string name="auth_signup_step_c_button_discover">我想先了解一下</string>
+
+    <!-- Auth Errors -->
+    <string name="auth_error_user_not_found">找不到该用户</string>
+    <string name="auth_error_login_failed">登录出错</string>
+    <string name="auth_error_signup_failed">注册出错</string>
+    <string name="auth_error_generic">出错了</string>
+    <string name="auth_error_reactivation_failed">重新激活出错</string>
+    <string name="auth_error_key_missing">缺少密钥</string>
+
+    <!-- Recovery Phrase Screen -->
+    <string name="recovery_toast_success">太好了，你的助记词已经安全保存。</string>
+    <string name="recovery_warning_title">继续之前</string>
+    <string name="recovery_warning_text">PHOEN-X 即将生成你的恢复助记词。这12个词保护着你的全部回忆。\n\n⚠️ 如果你同时丢失了这12个词和你的手机，你的数据将永远无法找回。即使是我们也无法恢复。任何人都不行。永远不行。\n\n如果有一天你更换手机，这12个词将是找回回忆的唯一方式。\n\n现在就准备好纸笔。</string>
+    <string name="recovery_warning_button_ready">我已准备好纸笔</string>
+    <string name="recovery_display_title">你的恢复助记词</string>
+    <string name="recovery_display_subtitle">按准确顺序把这12个词写在纸上，不要截图。</string>
+    <string name="recovery_display_button_noted">我已经记下所有词</string>
+    <string name="recovery_verification_title">一起来验证一下</string>
+    <string name="recovery_verification_subtitle">为确认你已正确记下助记词，请输入第 %1$d、%2$d 和 %3$d 个词</string>
+    <string name="recovery_verification_word_label">第 %1$d 个词</string>
+    <string name="recovery_verification_error">不太对哦。请检查你记下的内容并重试。</string>
+    <string name="recovery_verification_button_finish">验证并完成</string>
+
+    <!-- Home Batch -->
+    <string name="home_dialog_logout_title">要退出登录吗？</string>
+    <string name="home_dialog_logout_text">你确定要结束此次会话吗？</string>
+    <string name="home_dialog_logout_confirm">退出登录</string>
+    <string name="home_dialog_logout_cancel">取消</string>
+    <string name="home_dialog_step_nudge_title">新工具</string>
+    <string name="home_dialog_step_nudge_text">你也可以一步一步地创建回忆——点击小箭头进行选择。</string>
+    <string name="home_dialog_step_nudge_confirm">知道了</string>
+    <string name="home_header_greeting">晚上好，%1$s</string>
+    <string name="home_invitations_pending">你有 %1$d 条待处理的邀请。</string>
+    <string name="home_status_security_title">安全</string>
+    <string name="home_status_security_subtitle">已启用</string>
+    <string name="home_status_presence_title">在线状态</string>
+    <string name="home_status_presence_subtitle">%1$d 天前</string>
+    <string name="home_button_deposit">添加</string>
+    <string name="home_menu_atelier">快速工坊</string>
+    <string name="home_menu_step_by_step">分步添加</string>
+    <string name="home_menu_camera_photo">拍照</string>
+    <string name="home_menu_camera_video">摄像</string>
+    <string name="home_button_library">我的资料库</string>
+    <string name="home_button_fil">我的思绪之流</string>
+    <string name="home_section_quick_actions">快捷操作</string>
+    <string name="home_presence_confirmed">我的在线状态 · %1$d 天前已确认</string>
+    <string name="home_stats_community">PHOEN-X 社区</string>
+    <string name="home_stats_members">%1$d 位成员</string>
+    <string name="home_stats_trust_circle">信任圈</string>
+    <string name="home_stats_proche_single">%1$d 位亲友</string>
+    <string name="home_stats_proche_plural">%1$d 位亲友</string>
+    <string name="home_last_memory_title">最新回忆</string>
+    <string name="home_last_memory_empty">暂时还没有添加任何回忆。</string>
+    <string name="home_last_memory_cta">— 现在就开始吧</string>
+    <string name="home_last_memory_age">— 于 %1$d 岁</string>
+    <string name="home_stats_memories">回忆</string>
+    <string name="home_stats_questions">问题</string>
+    <string name="home_stats_chapters">章节</string>
+    <string name="home_trust_circle_title">我的信任圈</string>
+    <string name="home_trust_circle_subtitle">管理我的接收人与托管人</string>
+    <string name="home_nav_info_title">你的控制中心</string>
+    <string name="home_nav_info_point1">你的传奇：在这里管理你的情感与数字遗产。</string>
+    <string name="home_nav_info_point2">静默机制：我们会监测你的在线状态，确保你的秘密只在恰当的时刻被释放。</string>
+    <string name="home_nav_info_point3">资料库：访问你的所有区块（照片、视频、秘密等）。</string>
+    <string name="home_nav_info_point4">信任圈：管理你的接收人与见证人。</string>
+    <string name="home_nav_home">首页</string>
+    <string name="home_nav_circle">我的圈子</string>
+    <string name="home_nav_library">资料库</string>
+    <string name="home_nav_profile">个人资料</string>
+    <string name="home_perspective_memory">我的记忆</string>
+    <string name="home_perspective_heritage">亲友</string>
+    <string name="home_book_title">我的传记</string>
+    <string name="home_book_default_name">生命之书</string>
+    <string name="home_genealogy_title">我的家谱</string>
+    <string name="home_genealogy_overlay">我的\n家族树</string>
+    <string name="home_encounters_title">相遇的人</string>
+    <string name="home_encounters_overlay">相遇的\n人们</string>
+    <string name="home_video_guide_title">你的视频指南</string>
+    <string name="home_biographer_question_default">你做过的最引以为豪的决定是什么？</string>
+    <string name="home_header_date_format">M月d日 EEEE</string>
+    <string name="home_user_name_fallback">朋友</string>
+
+    <!-- Fil de Pensée Batch -->
+    <string name="fil_title">我的思绪之流</string>
+    <string name="fil_fragments_count">%1$d 段生命片段</string>
+    <string name="fil_info_title">思绪之流</string>
+    <string name="fil_info_p1">每段回忆都按你添加时的年龄进行分类。</string>
+    <string name="fil_info_p2">不是按日期——而是按年龄。这是 PHOEN-X 独有的功能。</string>
+    <string name="fil_info_p3">你的亲人将能够浏览并看到你多年来的成长与变化。</string>
+    <string name="fil_info_p4">使用滑块来浏览你自己思想的历程。</string>
+    <string name="fil_info_p5">每一条记录都带有年龄印记——记录着你添加时的确切年龄。</string>
+    <string name="fil_empty_state">暂时还没有回忆。\n记录下你的第一个想法吧。</string>
+    <string name="fil_unattributed_label">待分配</string>
+    <string name="fil_years_suffix">%1$d 岁</string>
+    <string name="fil_age_label">%1$d 岁时</string>
+    <string name="fil_pensee_singulier">条思绪</string>
+    <string name="fil_pensees_plural">条思绪</string>
+    <string name="fil_filter_title">筛选思绪之流</string>
+    <string name="fil_filter_order_label">显示顺序</string>
+    <string name="fil_filter_order_age">按年龄</string>
+    <string name="fil_filter_order_date">按创建日期</string>
+    <string name="fil_filter_recipient_label">按接收人筛选</string>
+    <string name="fil_filter_recipient_all">全部</string>
+    <string name="fil_filter_favorites_label">我的珍藏</string>
+    <string name="fil_filter_favorites_only">仅显示我的珍藏</string>
+    <string name="fil_dialogue_temporel_title">时光对话</string>
+    <string name="fil_dialogue_temporel_evolution">变化：你的心境在相隔 %1$d 年间的平静显而易见。</string>
+    <string name="fil_entry_no_title">未命名回忆</string>
+    <string name="fil_entry_to_attribute">待分配</string>
+    <string name="fil_entry_age_format">%1$d岁%2$d月</string>
+    <string name="fil_entry_age_format_full">%1$d岁%2$d月%3$d天</string>
+    <string name="fil_entry_date_format">MM月dd日</string>
+
+    <!-- Memory Detail -->
+    <string name="memory_detail_essential_section">核心内容</string>
+    <string name="memory_detail_subject_label">主题</string>
+    <string name="memory_detail_question_label">问题</string>
+    <string name="memory_detail_story_label">故事</string>
+    <string name="memory_detail_response_label">我的回答</string>
+    <string name="memory_detail_tonality_label">是什么基调？</string>
+    <string name="memory_detail_tonality_info_title">回忆的基调</string>
+    <string name="memory_detail_tonality_info_content">基调定义了这一时刻的主要情感（喜悦、怀念、智慧……）。AI 传记作者将用它来调整撰写你的生命之书时的写作风格，以尊重你原本的叙述意图。</string>
+    <string name="memory_detail_tonality_nuance_label">补充说明细微差别（可选）</string>
+    <string name="memory_detail_tonality_nuance_placeholder">例如：有点苦涩，但写下时我在微笑……</string>
+    <string name="memory_detail_subject_placeholder">主题是什么？</string>
+    <string name="memory_detail_story_placeholder">点击以书写…</string>
+    <string name="memory_detail_story_editor_title">你的故事</string>
+    <string name="memory_detail_story_editor_placeholder">在这里写下你的故事…</string>
+    <string name="memory_detail_delete_dialog_title">要删除这条回忆吗？</string>
+    <string name="memory_detail_delete_confirm_title">确认删除？</string>
+    <string name="memory_detail_delete_has_media">这条回忆包含 %1$d 个媒体文件，全部内容都将被永久删除。</string>
+    <string name="memory_detail_delete_no_media">此操作将从你的思绪之流以及云端删除这条回忆。</string>
+    <string name="memory_detail_delete_warning_permanent">此操作是永久性的且无法撤销。确认删除吗？</string>
+    <string name="memory_detail_delete_button_continue">继续</string>
+    <string name="memory_detail_delete_button_permanent">永久删除</string>
+    <string name="memory_detail_delete_button_cancel">取消</string>
+    <string name="memory_detail_delete_button_delete">删除</string>
+    <string name="memory_detail_error_video_too_long_snackbar">此视频超过了允许的最长时长（90秒）。</string>
+    <string name="memory_detail_topbar_portrait">画像</string>
+    <string name="memory_detail_topbar_question">问题：%1$s</string>
+    <string name="memory_detail_topbar_portrait_response">画像回答</string>
+    <string name="memory_detail_topbar_spark_story">灵感火花及其故事</string>
+    <string name="memory_detail_voice_note_ready">准备录音</string>
+    <string name="memory_detail_voice_note_recording">正在录音…</string>
+    <string name="memory_detail_voice_note_button_start">开始</string>
+    <string name="memory_detail_voice_note_button_finish">结束</string>
+    <string name="memory_detail_complements_section">补充媒体内容</string>
+    <string name="memory_portrait_responses_label">画像的回答（%1$d）</string>
+    <string name="memory_portrait_thought_free">自由发挥</string>
+
+    <!-- Memory Metadata -->
+    <string name="memory_metadata_when_where_section">何时何地</string>
+    <string name="memory_metadata_moment_label">时刻</string>
+    <string name="memory_metadata_date_precise_label">精确日期</string>
+    <string name="memory_metadata_date_add">添加日期</string>
+    <string name="memory_metadata_date_format">yyyy年MM月dd日</string>
+    <string name="memory_metadata_date_format_short">yy/MM/dd</string>
+    <string name="memory_metadata_date_confirm">确认</string>
+    <string name="memory_metadata_date_precise">日期</string>
+    <string name="memory_metadata_date_period">时期</string>
+    <string name="memory_metadata_date_start">开始</string>
+    <string name="memory_metadata_date_end">结束</string>
+    <string name="memory_metadata_location_label">地点</string>
+    <string name="memory_metadata_location_none">地点未设置</string>
+    <string name="memory_metadata_location_change">更改地点</string>
+    <string name="memory_metadata_location_view_on_map">在地图上查看</string>
+    <string name="memory_metadata_who_section">给谁</string>
+    <string name="memory_metadata_recipients_label">接收人</string>
+    <string name="memory_metadata_living_link_title">传递一条即时链接</string>
+    <string name="memory_metadata_living_link_subtitle">现在或以后发送这条回忆。</string>
+    <string name="memory_metadata_include_in_book_title">收录到我的传记中</string>
+    <string name="memory_metadata_include_in_book_subtitle">用这条回忆丰富 AI 撰写的叙事。</string>
+    <string name="memory_metadata_include_in_book_info_title">生命之书 帮助</string>
+    <string name="memory_metadata_include_in_book_info_content">选择收录此回忆后，AI 会以自己的语言对其进行归纳、改写，用来丰富你的生命之书。AI 只会使用摘要来撰写流畅的叙事：你的原始文本始终严格保密。\n\n注意：生成的章节将对你传记的所有接收人可见，即使这条回忆最初只指定给了其中部分人。</string>
+    <string name="memory_metadata_mentioned_persons_title">提及的人物</string>
+    <string name="memory_metadata_mentioned_persons_info_title">这段故事中出现了谁？</string>
+    <string name="memory_metadata_mentioned_persons_info_content">标注出现在这条回忆中的亲人。AI 传记作者会用它们来让你的生命之书的叙述更加清晰（例如：“你的表哥托马斯当时也在场”）。\n\n提示：提及某人并不会给予其访问这条回忆的权限，只是帮助更好地梳理你的故事。\n\n为了避免你重复创建，这里会显示你的接收人、见证人和托管人——但这是两回事：只有他们在你的信任圈中被赋予“接收人”身份，才会在未来获得访问你回忆的权限。</string>
+    <string name="memory_metadata_protection_section">保护</string>
+    <string name="memory_metadata_nudge_include_in_book_button_dismiss">不再显示</string>
+    <string name="memory_metadata_nudge_include_in_book_button_close">关闭</string>
+
+    <!-- Storage Section -->
+    <string name="storage_section_title">归档</string>
+    <string name="storage_section_label">放入哪些分区？</string>
+    <string name="storage_section_info_title">按分区归档</string>
+    <string name="storage_section_info_content">你的回忆会根据其包含的媒体类型自动归档（照片、视频库或音乐库）。\n\n你也可以随时手动调整归档方式，让这条回忆出现在资料库的其他区域。注意：这种分类不会影响生命之书的撰写，后者由专门的选项单独管理。</string>
+
+    <!-- Memory Complements -->
+    <string name="memory_complements_add_photos_videos">照片 / 视频</string>
+    <string name="memory_complements_add_voice_note">语音笔记</string>
+    <string name="memory_complements_add_camera">拍照</string>
+    <string name="memory_complements_add_record_video">录制视频</string>
+    <string name="memory_complements_empty_state">暂无附加的补充媒体。</string>
+    <string name="memory_complements_media_fallback">媒体 %1$s</string>
+    <string name="memory_complements_visibility_public">公开</string>
+    <string name="memory_complements_visibility_restricted">受限</string>
+    <string name="memory_complements_error_video_too_long_toast">此视频超过90秒。</string>
+
+    <string-array name="tonality_categories">
+        <item>智慧</item>
+        <item>冒险</item>
+        <item>秘密</item>
+        <item>家庭</item>
+        <item>爱情</item>
+        <item>怀念</item>
+        <item>幽默</item>
+        <item>教训</item>
+        <item>旅行</item>
+        <item>日常</item>
+        <item>考验</item>
+    </string-array>
+
+    <string-array name="nudge_phrases">
+        <item>有一天，会有人读到这段文字时微笑。</item>
+        <item>你不是在讲述你的人生——你是在准备一份充满爱意的礼物。</item>
+        <item>这段回忆会耐心等待，在合适的时刻打动某个人的心。</item>
+        <item>在这里写下的每一个字，都是为明天点亮的一簇火花。</item>
+        <item>你正在写给所爱之人最美的一封信。</item>
+        <item>没有什么会消失，一切都会带着温柔被传递下去。</item>
+        <item>想象一下多年后重新发现这一刻时的喜悦。</item>
+        <item>你的声音与文字，是最珍贵的遗产。</item>
+        <item>这段生命片段，是未来幸福的一粒种子。</item>
+        <item>谢谢你悉心守护自己的故事。</item>
+        <item>在这里，时间静止，只为留住最重要的东西。</item>
+        <item>你的亲人会感谢你保留下这份印记。</item>
+        <item>今天的一句话，是明天的一份厚礼。</item>
+        <item>人生正是由这些你选择珍藏的小瞬间组成的。</item>
+        <item>你的记忆，是通向未来之人的一座桥。</item>
+    </string-array>
+
+    <!-- ViewModels / Logic strings -->
+    <string name="fil_sealed_memory">已封存的回忆</string>
+    <string name="fil_evolution_ai">AI 检测到的风格演变</string>
+    <string name="memory_detail_access_verifying">正在验证访问权限…</string>
+    <string name="memory_detail_content_encrypted">内容已加密</string>
+    <string name="memory_detail_living_link_success">回忆已成功发送！</string>
+    <string name="memory_detail_living_link_error">发送失败：%1$s</string>
+    <string name="memory_detail_error_add_media">添加媒体时出错</string>
+    <string name="memory_detail_voice_note_default_title">语音笔记</string>
+
+    <!-- Genealogy Batch -->
+    <string name="genealogy_tree_heir_title">你亲人的家族树</string>
+    <string name="genealogy_tree_creator_title">我的家族树</string>
+    <string name="genealogy_confidentiality_info_title">家族树的隐私设置</string>
+    <string name="genealogy_confidentiality_info_content">一旦你的遗产被激活，这棵家族树将完整地对你所有的接收人可见，不再区分个人——这与本应用的其他部分不同。</string>
+    <string name="genealogy_preview_mode_description">接收人视角预览</string>
+    <string name="genealogy_empty_state_text">你的家族树还是空的。</string>
+    <string name="genealogy_add_first_person_button">添加第一个人</string>
+    <string name="genealogy_new_relation_title">为 %1$s 添加新关系</string>
+    <string name="genealogy_relation_types_info_title">关系类型</string>
+    <string name="genealogy_relation_types_info_content1">父母：此人将显示在上方，通过直系血缘关系相连。</string>
+    <string name="genealogy_relation_types_info_content2">子女：此人将显示在下方。</string>
+    <string name="genealogy_relation_types_info_content3">共同父母：用于关联与此人共有一个已存在孩子的另一位家长。</string>
+    <string name="genealogy_add_parent_title">添加父母</string>
+    <string name="genealogy_add_parent_description">此人将显示在上方，通过直系血缘关系相连。</string>
+    <string name="genealogy_add_child_title">添加子女</string>
+    <string name="genealogy_add_child_description">此人将显示在下方。</string>
+    <string name="genealogy_add_coparent_title">添加共同父母</string>
+    <string name="genealogy_add_coparent_description">用于关联与此人共有一个已存在孩子的另一位家长。</string>
+    <string name="genealogy_select_child_dialog_title">选择相关的孩子</string>
+    <string name="genealogy_select_child_empty_state">此人在家族树中还没有子女——请先添加一个子女，才能为其关联共同父母。</string>
+    <string name="genealogy_select_child_question">你希望将这位新家长关联到 %1$s 的哪个（或哪些）孩子？</string>
+    <string name="genealogy_button_next">下一步</string>
+    <string name="genealogy_button_compris">知道了</string>
+    <string name="genealogy_button_annuler">取消</string>
+    <string name="genealogy_dialog_reparent_info_title">自动关联</string>
+    <string name="genealogy_dialog_reparent_info_content">在家族链条中的一个中间环节被删除后，此人已被自动重新定位。</string>
+    <string name="genealogy_recentrer_button">重新居中</string>
+    <string name="genealogy_person_deceased_label">已故</string>
+    <string name="genealogy_person_identity_links_button">身份与关系</string>
+    <string name="genealogy_person_deceased_status_badge">虽已远去，但常在我们心中</string>
+    <string name="genealogy_vertical_alignment_section_title">垂直对齐</string>
+    <string name="genealogy_vertical_alignment_description">此人没有可追溯的祖辈。你可以调整其垂直位置，使其与配偶的家族对齐。</string>
+    <string name="genealogy_remonter_tooltip">上移</string>
+    <string name="genealogy_descendre_tooltip">下移</string>
+    <string name="genealogy_relation_nature_label">关系性质（例如：孙子）</string>
+    <string name="genealogy_biography_section_title">生平简介</string>
+    <string name="genealogy_biography_placeholder">写几句关于他/她的生平…</string>
+    <string name="genealogy_biography_empty">尚未填写生平简介。</string>
+    <string name="genealogy_gallery_section_title">媒体相册</string>
+    <string name="genealogy_gallery_info_title">头像照片 与 相册</string>
+    <string name="genealogy_gallery_info_content">头像照片是家族树中展示的那一张。相册可以包含其他照片和视频，只有打开此人的详情页才能看到。</string>
+    <string name="genealogy_video_error_duration">此视频超过了允许的最长时长（90秒）。请选择一段更短的视频。</string>
+    <string name="genealogy_visibility_warning_content">一旦遗产被激活，此媒体将对你所有的接收人可见，且无法设置任何限制。</string>
+    <string name="genealogy_gallery_empty">尚未添加任何媒体。</string>
+    <string name="genealogy_media_summary_fallback">%1$s 的媒体</string>
+    <string name="genealogy_save_details_button">保存修改</string>
+    <string name="genealogy_delete_from_tree_button">从家族树中删除</string>
+    <string name="genealogy_button_close">关闭</string>
+    <string name="genealogy_delete_dialog_title">要删除此人吗？</string>
+    <string name="genealogy_delete_continuity_info_title">关系的延续性</string>
+    <string name="genealogy_delete_continuity_info_content">如果此人已登记了父母信息，其子女将自动关联到这些父母，而不会失去任何关联。之后你可以自行说明这个新关系的具体性质。</string>
+    <string name="genealogy_delete_warning_content">此操作不可撤销。此人将从你的通讯录、家族树中移除，其所有媒体文件也将被删除。</string>
+    <string name="genealogy_delete_reparent_question">以下子女将直接关联到他们的祖父母。你希望如何描述这一新关系？</string>
+    <string name="genealogy_delete_reparent_child_label">%1$s 的关系</string>
+    <string name="genealogy_delete_reparent_child_placeholder">例如：孙子</string>
+    <string name="genealogy_delete_confirm_button">永久删除</string>
+    <string name="genealogy_edit_person_title">修改关系</string>
+    <string name="genealogy_link_person_title">关联一个人</string>
+    <string name="genealogy_new_person_title">新增人物</string>
+    <string name="genealogy_existing_profile_selected">已选择现有档案</string>
+    <string name="genealogy_first_name_label">名字</string>
+    <string name="genealogy_already_exists_question">这个人是否已经存在？</string>
+    <string name="genealogy_already_in_tree_fallback">已在家族树中</string>
+    <string name="genealogy_last_name_label">姓氏（可选）</string>
+    <string name="genealogy_parents_section_title">此人的父母</string>
+    <string name="genealogy_search_parent_placeholder">搜索一位家长…</string>
+    <string name="genealogy_relationship_fallback_proche">亲人</string>
+    <string name="genealogy_button_save">保存</string>
+    <string name="genealogy_button_confirm_link">确认关联</string>
+    <string name="genealogy_button_create">创建</string>
+
+    <!-- Personalities Batch -->
+    <string name="personalities_title">重要人物</string>
+    <string name="personalities_subtitle">曾激励或影响你的人物</string>
+    <string name="personalities_info_title">重要人物</string>
+    <string name="personalities_info_p1">此空间专门用于记录曾对你的人生产生影响的公众人物（艺术家、运动员、科学家、国家元首等）。</string>
+    <string name="personalities_info_p2">与普通回忆不同，一旦你的遗产被激活，这些档案将对你所有接收人无一例外地可见。</string>
+    <string name="personalities_info_p3">你可以在此分享你最喜欢的关于这些人物的传记，尤其是说明他们对你产生了怎样的影响。</string>
+    <string name="personalities_filter_all">全部</string>
+    <string name="personalities_empty_state">尚未添加任何人物。</string>
+    <string name="personalities_category_other">其他</string>
+
+    <string name="personality_detail_edit_desc">编辑</string>
+    <string name="personality_detail_delete_desc">删除</string>
+    <string name="personality_detail_bio_title">生平简介</string>
+    <string name="personality_detail_bio_empty">尚未填写生平简介。</string>
+    <string name="personality_detail_why_title">为什么是这个人？</string>
+    <string name="personality_detail_why_empty">暂无个人评论。</string>
+    <string name="personality_detail_gallery_title">照片相册</string>
+    <string name="personality_detail_media_summary">%1$s 的照片</string>
+    <string name="personality_detail_comment_title">评论</string>
+    <string name="personality_detail_delete_confirm_title">要删除 %1$s 吗？</string>
+    <string name="personality_detail_delete_confirm_text">此操作不可撤销。所有相关信息和照片都将被永久删除。</string>
+    <string name="personality_detail_delete_button_confirm">永久删除</string>
+    <string name="personality_detail_delete_button_cancel">取消</string>
+    <string name="personality_detail_close_button">关闭</string>
+
+    <string name="personality_edit_new_title">新增重要人物</string>
+    <string name="personality_edit_edit_title">编辑档案</string>
+    <string name="personality_edit_name_label">全名</string>
+    <string name="personality_edit_category_label">类别</string>
+    <string name="personality_edit_custom_category_label">请指定类别</string>
+    <string name="personality_edit_photo_info">此部分仅支持照片——无法添加视频或音频。若想以视频形式介绍某位人物，请前往视频库。</string>
+    <string name="personality_edit_bio_label">生平简介</string>
+    <string name="personality_edit_bio_placeholder">在此粘贴描述性文字（例如维基百科内容）…</string>
+    <string name="personality_edit_why_label">这个人对你来说意味着什么？</string>
+    <string name="personality_edit_why_placeholder">分享你与他/她的个人联系，或他/她对你人生的影响…</string>
+    <string name="personality_edit_warning_title">内容提醒</string>
+    <string name="personality_edit_warning_bio">这段文字似乎超出了简单的历史陈述——要重新表述一下吗？</string>
+    <string name="personality_edit_warning_comment">你的个人评论似乎含有不当内容——要重新表述一下吗？</string>
+    <string name="personality_edit_warning_button_force">仍然保存</string>
+    <string name="personality_edit_warning_button_edit">修改文字</string>
+    <string name="personality_edit_save_button">保存</string>
+
+    <!-- Encounters Batch -->
+    <string name="encounter_screen_title">相遇的人</string>
+    <string name="encounter_screen_subtitle">那些曾经重要的人</string>
+    <string name="encounter_info_title">相遇的人</string>
+    <string name="encounter_info_p1">“相遇”是用来讲述那些在家庭之外深刻影响过你人生的人——一位朋友、一位导师、一次决定性的相遇。</string>
+    <string name="encounter_info_p2">按年龄整理，或通过每张档案上可点击的徽章，发现是谁介绍你们认识的。</string>
+    <string name="encounter_info_p3">默认情况下，一旦你的遗产被激活，相遇记录会对你的接收人可见——但你也可以将其标记为“为自己保留”，让它始终是你的秘密花园，对所有人隐藏。</string>
+    <string name="encounter_search_placeholder">搜索姓名…</string>
+    <string name="encounter_stats_person_singular">%1$d 人</string>
+    <string name="encounter_stats_person_plural">%1$d 人</string>
+    <string name="encounter_stats_age_range"> · %1$d 岁至 %2$d 岁</string>
+    <string name="encounter_grouping_age">年龄</string>
+    <string name="encounter_grouping_introducer">介绍人</string>
+    <string name="encounter_header_no_date">无日期</string>
+    <string name="encounter_header_age_format">%1$d 岁时</string>
+    <string name="encounter_header_introducer_none">未填写</string>
+    <string name="encounter_header_introducer_unknown">未知人物</string>
+    <string name="encounter_footer_lost">已失去联系</string>
+    <string name="encounter_footer_passed">已不在人世</string>
+    <string name="encounter_footer_introduced_by">由 %1$s 介绍认识</string>
+    <string name="encounter_empty_state">尚未记录任何相遇。</string>
+
+    <string name="encounter_detail_load_error">无法加载档案。</string>
+    <string name="encounter_detail_back_button">返回</string>
+    <string name="encounter_detail_remove_title">要移除这段相遇吗？</string>
+    <string name="encounter_detail_remove_text">此人将不再出现在你的相遇记录中。与其相关的回忆将保持不变。</string>
+    <string name="encounter_detail_remove_confirm">移除</string>
+    <string name="encounter_detail_cancel">取消</string>
+    <string name="encounter_detail_desc_back">返回</string>
+    <string name="encounter_detail_desc_edit">编辑</string>
+    <string name="encounter_detail_desc_delete">删除</string>
+    <string name="encounter_detail_header_encounter">我们的相遇</string>
+    <string name="encounter_detail_age_at_encounter">当时我 %1$s 岁</string>
+    <string name="encounter_detail_introduced_by">由 %1$s 介绍</string>
+    <string name="encounter_detail_legacy_title">他/她带给我的</string>
+    <string name="encounter_detail_media_title">照片与视频</string>
+    <string name="encounter_detail_memories_count_singular">出现在 %1$d 条回忆中</string>
+    <string name="encounter_detail_memories_count_plural">出现在 %1$d 条回忆中</string>
+    <string name="encounter_detail_status_separated">我们的路已分开 · 当时我 %1$d 岁</string>
+    <string name="encounter_detail_status_present">依然在我的生活中</string>
+    <string name="encounter_detail_status_lost">已失去联系</string>
+    <string name="encounter_detail_status_passed">已不在人世</string>
+
+    <string name="encounter_dialog_attention">注意</string>
+    <string name="encounter_dialog_delete_warning_introducer">此人曾介绍过：%1$s。\n如果继续，这些人的“由谁介绍”关系将被清空。</string>
+    <string name="encounter_dialog_delete_warning_family">此人也是你家族树的一部分。删除后，他/她只会从“相遇”中移除，但仍会保留在家族树中。</string>
+    <string name="encounter_dialog_delete_warning_generic">确定要删除这段相遇吗？</string>
+    <string name="encounter_dialog_delete_confirm">确认删除</string>
+    <string name="encounter_dialog_title_new">新的相遇</string>
+    <string name="encounter_dialog_title_edit">编辑相遇</string>
+    <string name="encounter_dialog_add_photo">添加</string>
+    <string name="encounter_dialog_firstname_label">名字</string>
+    <string name="encounter_dialog_lastname_label">姓氏（可选）</string>
+    <string name="encounter_dialog_nature_section">关系性质</string>
+    <string name="encounter_dialog_nature_custom_label">请说明关系性质</string>
+    <string name="encounter_dialog_encounter_section">相遇</string>
+    <string name="encounter_dialog_age_label">相遇时我的年龄</string>
+    <string name="encounter_dialog_precision_label">补充说明（如：运动）</string>
+    <string name="encounter_dialog_location_label">地点</string>
+    <string name="encounter_dialog_status_section">关系状态</string>
+    <string name="encounter_dialog_status_present">仍在联系</string>
+    <string name="encounter_dialog_status_lost">已失去联系</string>
+    <string name="encounter_dialog_status_disparu">已故</string>
+    <string name="encounter_dialog_end_age_label">关系结束时我的年龄</string>
+    <string name="encounter_dialog_end_reason_label">原因（可选）</string>
+    <string name="encounter_dialog_introducer_section">由谁介绍认识</string>
+    <string name="encounter_dialog_search_introducer_placeholder">搜索一个人…</string>
+    <string name="encounter_dialog_privacy_label">为自己保留</string>
+    <string name="encounter_dialog_privacy_info">说明</string>
+    <string name="encounter_dialog_privacy_subtitle">对继承人不可见</string>
+    <string name="encounter_dialog_privacy_detail">启用后，即使遗产已被激活，这段相遇也永远不会出现在你接收人的应用中。这是你的秘密花园。</string>
+    <string name="encounter_dialog_video_error_duration">此视频超过了允许的最长时长（90秒），以确保你的亲人能够顺利观看。请选择一段更短的视频。</string>
+    <string name="encounter_dialog_media_security_warning">此媒体将被加密并受到保护。只有在你的遗产被激活后，接收人才能看到它，除非这段相遇被设为“为自己保留”（那样它将始终保持完全不可见）。</string>
+    <string name="encounter_dialog_gallery_empty">尚未添加任何照片。</string>
+    <string name="encounter_dialog_biography_label">生平简介</string>
+    <string name="encounter_dialog_biography_placeholder">他/她给我带来了什么</string>
+    <string name="encounter_dialog_button_create">创建相遇记录</string>
+    <string name="encounter_dialog_button_save">保存修改</string>
+    <string name="encounter_dialog_button_remove">从相遇记录中移除</string>
+    <string name="encounter_dialog_create_first_hint">请先创建相遇记录，才能添加照片。</string>
+
+    <string name="encounter_nature_partner">伴侣</string>
+    <string name="encounter_nature_ami">朋友</string>
+    <string name="encounter_nature_mentor">导师</string>
+    <string name="encounter_nature_collegue">同事</string>
+    <string name="encounter_nature_voisin">邻居</string>
+    <string name="encounter_nature_not_set">未填写</string>
+
+    <string name="encounter_context_school">学校</string>
+    <string name="encounter_context_work">工作</string>
+    <string name="encounter_context_sport">运动</string>
+    <string name="encounter_context_passion">兴趣爱好</string>
+    <string name="encounter_context_travel">旅行</string>
+    <string name="encounter_context_other">其他</string>
+    <string name="encounter_context_all">全部</string>
+
+    <!-- Recipient Batch -->
+    <string name="recipient_screen_title">我的接收人</string>
+    <string name="recipient_dialog_delete_title">要删除这位亲人吗？</string>
+    <string name="recipient_dialog_delete_text">你确定要将 %1$s 从你的信任圈中移除吗？此人将不再能访问你的遗产。</string>
+    <string name="recipient_dialog_delete_confirm">删除</string>
+    <string name="recipient_dialog_delete_cancel">取消</string>
+    <string name="recipient_empty_state_title">你的圈子还是空的。</string>
+    <string name="recipient_empty_state_subtitle">添加将接收你遗产的人。</string>
+    <string name="recipient_dialog_add_title">添加一位亲人</string>
+    <string name="recipient_dialog_add_photo_label">添加</string>
+    <string name="recipient_dialog_add_name_label">全名</string>
+    <string name="recipient_dialog_add_email_label">邮箱</string>
+    <string name="recipient_dialog_add_phone_label">电话（可选）</string>
+    <string name="recipient_dialog_add_relationship_label">关系（例如：儿子、妻子……）</string>
+    <string name="recipient_dialog_add_button_next">下一步</string>
+    <string name="recipient_dialog_add_button_cancel">取消</string>
+
+    <string name="heir_heritage_screen_title">我的遗产</string>
+    <string name="heir_heritage_ask_question_desc">提出一个问题</string>
+    <string name="heir_heritage_remaining_questions">剩余 %1$d 次</string>
+    <string name="heir_heritage_souvenirs_destined">有 %1$d 条回忆是留给你的</string>
+    <string name="heir_heritage_special_book_fallback">传记</string>
+    <string name="heir_heritage_special_book_subtitle_sealed">%1$s 决定与你分享其生命之书。时机成熟时即可查看。</string>
+    <string name="heir_heritage_special_book_subtitle_activated">生命故事</string>
+    <string name="heir_heritage_special_vault_title">保险箱</string>
+    <string name="heir_heritage_special_tree_title">家族树</string>
+    <string name="heir_heritage_special_map_title">世界地图</string>
+    <string name="heir_heritage_special_personalities_title">人物</string>
+    <string name="heir_heritage_special_encounters_title">相遇</string>
+    <string name="heir_heritage_special_photos_title">照片</string>
+    <string name="heir_heritage_special_videos_title">视频</string>
+    <string name="heir_heritage_special_audios_title">音频</string>
+    <string name="heir_heritage_entry_fallback_title">回忆</string>
+    <string name="heir_heritage_date_format">yyyy年MM月dd日</string>
+
+    <string name="recipient_photos_screen_title">大照片库</string>
+    <string name="recipient_photos_empty_state">相册还是空的。</string>
+    <string name="recipient_photos_group_standalone">独立照片</string>
+    <string name="recipient_photos_group_memory_fallback">回忆</string>
+    <string name="recipient_photos_dialog_delete_title">要删除这张照片吗？</string>
+    <string name="recipient_photos_dialog_delete_text">此操作不可撤销。</string>
+    <string name="recipient_photos_dialog_delete_confirm">删除</string>
+    <string name="recipient_photos_dialog_delete_cancel">取消</string>
+    <string name="recipient_photos_item_fallback_title">照片</string>
+
+    <string name="recipient_videotheque_screen_title">大视频库</string>
+    <string name="recipient_videotheque_empty_state">放映机还未开启…</string>
+    <string name="recipient_videotheque_group_standalone">独立视频</string>
+    <string name="recipient_videotheque_group_memory_fallback">回忆</string>
+    <string name="recipient_videotheque_dialog_delete_title">要删除这段视频吗？</string>
+    <string name="recipient_videotheque_dialog_delete_text">此操作不可撤销。</string>
+    <string name="recipient_videotheque_dialog_delete_confirm">删除</string>
+    <string name="recipient_videotheque_dialog_delete_cancel">取消</string>
+    <string name="recipient_videotheque_dialog_howto_title">如何获取链接？</string>
+    <string name="recipient_videotheque_dialog_howto_step1">1. 打开 YouTube 应用。</string>
+    <string name="recipient_videotheque_dialog_howto_step2">2. 找到你想要的视频。</string>
+    <string name="recipient_videotheque_dialog_howto_step3">3. 点击“分享”，然后“复制链接”。</string>
+    <string name="recipient_videotheque_dialog_howto_step4">4. 回到这里粘贴链接。</string>
+    <string name="recipient_videotheque_dialog_howto_button_continue">继续</string>
+    <string name="recipient_videotheque_dialog_howto_button_cancel">取消</string>
+    <string name="recipient_videotheque_item_fallback_title">视频</string>
+
+    <string name="recipient_discotheque_screen_title">大音乐库</string>
+    <string name="recipient_discotheque_empty_state">唱机静默无声…</string>
+    <string name="recipient_discotheque_group_standalone">独立媒体</string>
+    <string name="recipient_discotheque_group_memory_fallback">回忆</string>
+    <string name="recipient_discotheque_dialog_delete_title">要删除这首曲子吗？</string>
+    <string name="recipient_discotheque_dialog_delete_text">此操作不可撤销。</string>
+    <string name="recipient_discotheque_dialog_delete_confirm">删除</string>
+    <string name="recipient_discotheque_dialog_delete_cancel">取消</string>
+    <string name="recipient_discotheque_dialog_howto_title">如何获取链接？</string>
+    <string name="recipient_discotheque_dialog_howto_step1">1. 打开 Spotify 或 Deezer 应用。</string>
+    <string name="recipient_discotheque_dialog_howto_step2">2. 找到你想要的歌曲。</string>
+    <string name="recipient_discotheque_dialog_howto_step3">3. 点击“分享”，然后“复制链接”。</string>
+    <string name="recipient_discotheque_dialog_howto_step4">4. 回到这里粘贴链接。</string>
+    <string name="recipient_discotheque_dialog_howto_button_continue">继续</string>
+    <string name="recipient_discotheque_dialog_howto_button_cancel">取消</string>
+    <string name="recipient_discotheque_item_fallback_title">语音回忆</string>
+
+    <string name="recipient_memory_detail_topbar_question">生命问题</string>
+    <string name="recipient_memory_detail_topbar_memory">你亲人的回忆</string>
+    <string name="recipient_memory_detail_sealed_title">这条回忆已被封存。</string>
+    <string name="recipient_memory_detail_sealed_subtitle">它将在传承被激活时解密。</string>
+    <string name="recipient_memory_detail_entry_fallback_title">回忆</string>
+    <string name="recipient_memory_detail_label_response">我的回答</string>
+    <string name="recipient_memory_detail_label_story">故事</string>
+    <string name="recipient_memory_detail_empty_content">没有文字内容。</string>
+    <string name="recipient_memory_detail_comment_label">你亲人的留言</string>
+    <string name="recipient_memory_detail_complements_label">补充媒体内容</string>
+    <string name="recipient_memory_detail_complement_fallback">媒体</string>
+
+    <string name="recipient_media_filter_standard">标准</string>
+    <string name="recipient_media_filter_by_memory">按回忆</string>
+    <string name="recipient_media_filter_by_recipient">按接收人</string>
+    <string name="recipient_media_filter_all_audios">所有音频</string>
+    <string name="recipient_media_filter_vocals_only">仅语音</string>
+    <string name="recipient_media_filter_music_only">仅音乐</string>
+    <string name="recipient_media_filter_all">全部</string>
+    <string name="recipient_media_sealed_photo">已封存的照片</string>
+    <string name="recipient_media_sealed_video">已封存的视频</string>
+    <string name="recipient_media_sealed_audio">已封存的语音回忆</string>
+    <string name="recipient_media_sealed_portrait">已封存的画像</string>
+    <string name="recipient_media_sealed_answer">已封存的回答</string>
+    <string name="recipient_media_sealed_thought">已封存的想法</string>
+    <string name="recipient_media_sealed_content_warning">此内容将在协议激活时解密。</string>
+    <string name="recipient_media_sealed_music">已封存的音乐</string>
+    <string name="recipient_media_sealed_writing">已封存的文字</string>
+    <string name="recipient_media_sealed_generic">已封存的媒体</string>
+    <string name="recipient_media_fallback_music">分享的曲目</string>
+    <string name="recipient_media_fallback_video">分享的视频</string>
+    <string name="recipient_media_fallback_generic">媒体</string>
+    <string name="recipient_media_status_sealed">已封存</string>
+    <string name="recipient_media_status_encrypted">内容已加密</string>
+    <string name="recipient_media_creator_name_fallback">你的亲人</string>
+
+    <string name="recipient_cube_armoire_title">%1$s 的衣橱</string>
+    <string name="recipient_cube_armoire_fallback">……的衣橱</string>
+    <string name="recipient_cube_explore_subtitle">探索他/她的遗产</string>
+    <string name="recipient_cube_heritage_opened_title">遗产已开启</string>
+    <string name="recipient_cube_heritage_intimate_title">私密的遗产</string>
+    <string name="recipient_cube_heritage_opened_desc">你现在可以探索 %1$s 的所有回忆了。</string>
+    <string name="recipient_cube_heritage_intimate_desc">这个衣橱里的物品将随着你的探索逐渐向你开启。</string>
+    <string name="recipient_cube_access_label">访问遗产</string>
+    <string name="recipient_cube_enter_button">走进他/她的回忆</string>
+    <string name="recipient_cube_become_creator_title">那你呢？</string>
+    <string name="recipient_cube_become_creator_subtitle">开始封存你的回忆吧。</string>
+    <string name="recipient_cube_become_creator_button">成为创作者</string>
+
+    <string name="recipient_allocation_fiche_title">接收人档案</string>
+    <string name="recipient_allocation_details_fallback">详情</string>
+    <string name="recipient_allocation_souvenirs_count">有 %1$d 条回忆是留给 %2$s 的。</string>
+    <string name="recipient_allocation_proche_fallback">这位亲人</string>
+    <string name="recipient_allocation_answer_prefix">我对“%1$s”的回答</string>
+    <string name="recipient_allocation_no_title">未命名回忆</string>
+    <string name="recipient_allocation_public_badge">公开</string>
+    <string name="recipient_allocation_date_format">yyyy年MM月dd日</string>
+
+    <string name="recipient_detail_details_fallback">详情</string>
+    <string name="recipient_detail_preview_button">查看他的空间（预览）</string>
+    <string name="recipient_detail_preview_subtitle">查看 %1$s 实际会看到的内容。</string>
+    <string name="recipient_detail_portrait_section">他的画像（镜子）</string>
+    <string name="recipient_detail_portrait_completed">画像已完成</string>
+    <string name="recipient_detail_portrait_not_started">画像尚未开始</string>
+    <string name="recipient_detail_portrait_subtitle">告诉他/她你眼中的他/她。</string>
+    <string name="recipient_detail_assigned_content_section">已分配内容</string>
+    <string name="recipient_detail_section_souvenirs">回忆</string>
+    <string name="recipient_detail_section_photos">照片</string>
+    <string name="recipient_detail_section_videos">视频</string>
+    <string name="recipient_detail_section_audios">音频</string>
+    <string name="recipient_detail_permissions_button">管理访问权限</string>
+    <string name="recipient_detail_no_title">无标题</string>
+    <string name="recipient_detail_see_all">查看全部（%1$d）→</string>
+
+    <string name="recipient_permissions_title">%1$s — 访问权限</string>
+    <string name="recipient_permissions_proche_fallback">亲人</string>
+    <string name="recipient_permissions_questions_header">问题</string>
+    <string name="recipient_permissions_allow_questions">允许 %1$s 向我提问</string>
+    <string name="recipient_permissions_allow_questions_desc">%1$s 将能够提交封存的问题。你可以选择回答，或有意识地选择不回答。在协议激活之前，这些问题对他/她始终不可见。</string>
+    <string name="recipient_permissions_limit_header">问题数量限制</string>
+    <string name="recipient_permissions_unlimited">不限问题数量</string>
+    <string name="recipient_permissions_limited">限制为一个具体数字</string>
+    <string name="recipient_permissions_save_button">保存权限</string>
+
+    <string name="recipient_viewmodel_creator_fallback">你的亲人</string>
+    <string name="recipient_viewmodel_email_subject">%1$s 希望与你分享他/她的故事</string>
+    <string name="recipient_viewmodel_email_text">你好 %1$s，\n\n%2$s 正在 PHOEN-X 上准备自己的回忆空间，并希望信任地选择你作为其生命故事的接收人。\n\n加入其信任圈的链接：https://phoenx.app/join/%3$s</string>
+
+    <string name="recipient_cube_viewmodel_creator_fallback">你的亲人</string>
+    <string name="recipient_cube_viewmodel_error_fallback">连接出错</string>
+
+    <string name="recipient_archive_screen_title">大档案库</string>
+    <string name="recipient_archive_empty_state">相册还是空的。</string>
+    <string name="recipient_archive_item_age">%1$d 岁</string>
+
+    <string name="recipient_books_screen_title">大图书馆</string>
+    <string name="recipient_books_empty_state">这个图书馆里还没有任何文字被托付。</string>
+
+    <!-- Settings Batch -->
+    <string name="settings_screen_title">设置</string>
+    <string name="settings_info_title">设置</string>
+    <string name="settings_info_point1">启用生物识别以保护应用的访问安全。</string>
+    <string name="settings_info_point2">选择在线状态验证的频率。</string>
+    <string name="settings_info_point3">你的数据绝不会被出售或用于商业用途。</string>
+    <string name="settings_info_point4">PHOEN-X 不包含任何广告。</string>
+    <string name="settings_info_point5">你可以在此管理你的接收人和托管人。</string>
+    <string name="settings_section_account">我的账户</string>
+    <string name="settings_item_profile_title">我的个人资料</string>
+    <string name="settings_item_profile_subtitle">管理你的用户名与信息</string>
+    <string name="settings_section_security">安全与传承</string>
+    <string name="settings_item_protocol_title">传承与协议</string>
+    <string name="settings_item_protocol_subtitle">管理你的托管人和延迟设置</string>
+    <string name="settings_item_recipients_title">我的接收人</string>
+    <string name="settings_item_recipients_subtitle">管理你的信任圈</string>
+    <string name="settings_item_notification_contacts_title">需通知的联系人</string>
+    <string name="settings_item_notification_contacts_subtitle">被告知你离世消息的人</string>
+    <string name="settings_item_presence_title">在线状态检测频率</string>
+    <string name="settings_item_presence_subtitle">每 %1$d 天验证一次</string>
+    <string name="settings_biometric_title">指纹识别</string>
+    <string name="settings_biometric_subtitle">安全打开应用</string>
+    <string name="settings_item_unique_key_title">唯一密钥抽屉</string>
+    <string name="settings_item_unique_key_subtitle">你最珍贵的秘密</string>
+    <string name="settings_item_reconciliation_title">和解协议</string>
+    <string name="settings_item_reconciliation_subtitle">延迟开启的秘密话语</string>
+    <string name="settings_item_detective_title">测试保险箱</string>
+    <string name="settings_item_detective_subtitle">解开你自己设置的谜题</string>
+    <string name="settings_section_accessibility">无障碍功能</string>
+    <string name="settings_item_accessibility_title">全语音模式</string>
+    <string name="settings_item_accessibility_subtitle">语音导航</string>
+    <string name="settings_item_reset_video_title">重新显示欢迎视频</string>
+    <string name="settings_item_reset_video_subtitle">重置视频横幅</string>
+    <string name="settings_section_personalization">个性化设置</string>
+    <string name="settings_accent_color_label">主题强调色</string>
+    <string name="settings_background_style_label">背景样式</string>
+    <string name="settings_background_style_radial">径向（默认）</string>
+    <string name="settings_background_style_linear">线性</string>
+    <string name="settings_background_style_solid">纯色</string>
+    <string name="settings_rhythm_dialog_title">在线状态检测频率</string>
+    <string name="settings_rhythm_option_2_weeks">每两周一次</string>
+    <string name="settings_rhythm_option_1_month">每月一次</string>
+    <string name="settings_rhythm_option_2_months">每两个月一次</string>
+    <string name="settings_rhythm_info">如果你未确认在线状态，我们会每周提醒你一次。若连续3周没有回应，你的信任联系人将被通知以确认你的近况。</string>
+    <string name="settings_button_save">保存</string>
+    <string name="settings_button_cancel">取消</string>
+
+    <!-- Protocol Batch -->
+    <string name="protocol_toast_success">邀请已成功发送。</string>
+    <string name="protocol_screen_title">传承与协议</string>
+    <string name="protocol_info_title">传承机制</string>
+    <string name="protocol_info_content">守护人（托管人）是唯一能够确认你离世、从而开启你回忆访问权限的人。异议期是你的安全保障，用于取消误报警报。</string>
+    <string name="protocol_header_title">管理你的遗产</string>
+    <string name="protocol_section_guardians">我信任的守护人</string>
+    <string name="protocol_guardian_primary">主守护人</string>
+    <string name="protocol_guardian_secondary">备用守护人</string>
+    <string name="protocol_section_security">防误触安全机制</string>
+    <string name="protocol_security_desc">在你的回忆被传递之前，你可用来取消误操作激活的时间。</string>
+    <string name="protocol_threshold_format">%1$d 小时</string>
+    <string name="protocol_legal_note">注意：此协议属于道德与私人性质，并不能替代法定的继承规定。</string>
+    <string name="protocol_button_add_guardian">指定一位守护人</string>
+    <string name="protocol_status_active">关联已激活</string>
+    <string name="protocol_status_pending">邀请待处理</string>
+    <string name="protocol_dialog_add_primary">指定主守护人</string>
+    <string name="protocol_dialog_add_secondary">指定备用守护人</string>
+    <string name="protocol_dialog_add_info">此人将收到一封邮件邀请以确认其角色。</string>
+    <string name="protocol_dialog_add_name_label">全名</string>
+    <string name="protocol_dialog_add_email_label">邮箱地址</string>
+    <string name="protocol_dialog_add_button_invite">邀请</string>
+    <string name="protocol_dialog_add_button_cancel">取消</string>
+    <string name="protocol_error_update_threshold">更新延迟时出错</string>
+    <string name="protocol_invitation_label_primary">主守护人</string>
+    <string name="protocol_invitation_label_secondary">备用守护人</string>
+    <string name="protocol_email_subject">%1$s 选择你作为其信任的守护人</string>
+    <string name="protocol_email_text">你好 %1$s，\n\n%2$s 希望在 PHOEN-X 上将其生命故事的守护人（托管人）角色托付给你。\n\n加入其信任圈：https://phoenx.app/join/%3$s</string>
+    <string name="protocol_error_remove">删除时出错</string>
+
+    <!-- Profile Batch -->
+    <string name="profile_dialog_suspend_title">要暂停我的账户吗？</string>
+    <string name="profile_dialog_suspend_text">你的账户将变为不活跃状态，你将被登出。你的亲人将不再收到来自你的通知。\n\n不会有任何内容被删除。你可以随时重新登录以重新激活账户。</string>
+    <string name="profile_dialog_suspend_confirm">确认暂停</string>
+    <string name="profile_dialog_suspend_cancel">取消</string>
+    <string name="profile_dialog_delete_title">永久删除</string>
+    <string name="profile_dialog_delete_text">此操作不可逆转。你的所有数据（回忆、照片、语音、信任圈）将根据 GDPR 规定被永久删除。\n\n请在下方输入“删除”以确认：</string>
+    <string name="profile_dialog_delete_placeholder">删除</string>
+    <string name="profile_dialog_delete_confirm">永久删除</string>
+    <string name="profile_dialog_delete_cancel">取消</string>
+    <string name="profile_toast_delete_reauth">安全提示：删除账户前请重新登录。</string>
+    <string name="profile_bottomsheet_photo_title">我的头像照片</string>
+    <string name="profile_option_take_photo">拍照</string>
+    <string name="profile_option_gallery">从相册选择</string>
+    <string name="profile_screen_title">我的个人资料</string>
+    <string name="profile_display_name_fallback">用户</string>
+    <string name="profile_info_visibility">此名称将对你邀请的对象可见（托管人、见证人、接收人）。</string>
+    <string name="profile_item_rich_profile_title">我的生命画像</string>
+    <string name="profile_item_rich_profile_subtitle">为 AI 传记作者丰富你的故事</string>
+    <string name="profile_section_appearance">外观与风格</string>
+    <string name="profile_button_reset_defaults">恢复默认设置</string>
+    <string name="profile_section_danger_zone">危险区域</string>
+    <string name="profile_button_suspend">暂停我的账户</string>
+    <string name="profile_button_delete">永久删除我的账户</string>
+    <string name="profile_button_back">返回设置</string>
+    <string name="profile_dialog_edit_name_title">修改我的名字</string>
+    <string name="profile_dialog_edit_name_label">用户名</string>
+    <string name="profile_dialog_edit_name_confirm">保存</string>
+    <string name="profile_dialog_edit_name_cancel">取消</string>
+    <string name="profile_edit_name_desc">修改名字</string>
+
+    <!-- Notification Contacts Batch -->
+    <string name="notification_contacts_screen_title">需通知的联系人</string>
+    <string name="notification_contacts_info_title">需通知的联系人</string>
+    <string name="notification_contacts_info_point1">这些人将通过邮件被告知你的离世。</string>
+    <string name="notification_contacts_info_point2">他们不会获得访问你 PHOEN-X 遗产的任何权限。</string>
+    <string name="notification_contacts_info_point3">最多2位联系人——只需姓名和邮箱即可。</string>
+    <string name="notification_contacts_info_point4">一封简洁的邮件：“[名字]已离开我们。”</string>
+    <string name="notification_contacts_info_point5">没有链接，没有邀请——只是一条消息。</string>
+    <string name="notification_contacts_header_desc">这些人将在你离世时收到一封简洁的邮件。他们无法访问你的遗产——只是带着尊严传达一条消息。</string>
+    <string name="notification_contacts_empty_state">暂时还没有添加联系人。</string>
+    <string name="notification_contacts_button_max_reached">已达到最多2位联系人的上限。</string>
+    <string name="notification_contacts_button_add">+ 添加联系人</string>
+    <string name="notification_contacts_dialog_delete_title">要删除这位联系人吗？</string>
+    <string name="notification_contacts_dialog_delete_text">你确定要将 %1$s 从需通知的联系人中移除吗？</string>
+    <string name="notification_contacts_dialog_delete_confirm">删除</string>
+    <string name="notification_contacts_dialog_delete_cancel">取消</string>
+    <string name="notification_contacts_dialog_add_title">新联系人</string>
+    <string name="notification_contacts_dialog_add_name_label">全名</string>
+    <string name="notification_contacts_dialog_add_email_label">邮箱</string>
+    <string name="notification_contacts_dialog_add_relationship_label">关系（例如：儿子、朋友……）</string>
+    <string name="notification_contacts_dialog_add_button_confirm">添加</string>
+    <string name="notification_contacts_dialog_add_button_cancel">取消</string>
+
+    <!-- Accessibility Batch -->
+    <string name="accessibility_screen_title">无障碍功能</string>
+    <string name="accessibility_voice_mode_title">全语音模式</string>
+    <string name="accessibility_voice_mode_desc">专为无需键盘即可导航、聆听和记录回忆而设计。非常适合免提使用，或方便年长者使用。</string>
+    <string name="accessibility_activate_voice_label">启用语音</string>
+    <string name="accessibility_status_listening">应用正在聆听</string>
+    <string name="accessibility_status_disabled">已禁用</string>
+    <string name="accessibility_commands_title">可用指令：</string>
+    <string name="accessibility_command_deposit">“记录一个想法”</string>
+    <string name="accessibility_command_timeline">“打开我的思绪之流”</string>
+    <string name="accessibility_command_night_mode">“夜间模式”</string>
+    <string name="accessibility_command_home">“返回首页”</string>
+    <string name="accessibility_command_help">“帮助”</string>
+
+    <!-- Rich Profile Batch -->
+    <string name="rich_profile_screen_title">我的生命画像</string>
+    <string name="rich_profile_onboarding_title">我的生命画像</string>
+    <string name="rich_profile_onboarding_point1">为 AI 传记作者丰富你的故事。</string>
+    <string name="rich_profile_onboarding_point2">这些信息将帮助 AI 更好地理解你，从而撰写你的传记。</string>
+    <string name="rich_profile_button_save">保存</string>
+    <string name="rich_profile_info_title">生命画像</string>
+    <string name="rich_profile_info_content">生命画像通过几个简单的字段，汇总描述你的事实信息——外貌、家庭、经历。与讲述故事的生命之书不同，此画像是一份参考资料：它帮助人工智能在撰写你的传记时，绝不会在关于你的事实上出错。</string>
+    <string name="rich_profile_header_desc">这些信息将帮助 AI 传记作者更好地理解你，从而撰写你的传记。</string>
+    <string name="rich_profile_section_who_am_i">关于我</string>
+    <string name="rich_profile_label_bio">简介 / 自由描述</string>
+    <string name="rich_profile_label_profession">职业</string>
+    <string name="rich_profile_section_family">家庭与亲人</string>
+    <string name="rich_profile_question_siblings">你有兄弟姐妹吗？</string>
+    <string name="rich_profile_label_siblings_detail">补充说明（例如：2个哥哥）</string>
+    <string name="rich_profile_question_children">你有孩子吗？</string>
+    <string name="rich_profile_label_children_detail">补充说明（例如：一个10岁的女儿）</string>
+    <string name="rich_profile_section_physical">外貌特征</string>
+    <string name="rich_profile_label_height">身高（厘米）</string>
+    <string name="rich_profile_label_weight">体重（公斤）</string>
+    <string name="rich_profile_label_eye_color">眼睛颜色</string>
+    <string name="rich_profile_label_hair_color">头发颜色</string>
+    <string name="rich_profile_section_hobbies">兴趣与爱好</string>
+    <string name="rich_profile_label_hobbies_desc">你的爱好，你喜欢做的事</string>
+    <string name="rich_profile_boolean_yes">是</string>
+    <string name="rich_profile_boolean_no">否</string>
+    <string name="rich_profile_error_save">保存时出错</string>
+    <string name="rich_profile_display_name_fallback">朋友</string>
+    <string name="profile_error_no_user">没有已登录的用户</string>
+    <string name="profile_error_unknown">未知错误</string>
+
+    <!-- Capture Batch -->
+    <string name="capture_soul_title">回忆的灵魂</string>
+    <string name="capture_cancel">取消</string>
+    <string name="capture_next">下一步</string>
+    <string name="capture_header_desc">为这条回忆起个名字或主题。下一步你将丰富它的内容。</string>
+    <string name="capture_placeholder_subject">这条回忆的主题是什么？</string>
+    <string name="capture_viewmodel_me">我</string>
+    <string name="capture_viewmodel_author">作者</string>
+    <string name="capture_viewmodel_new_memory">新回忆</string>
+    <string name="capture_viewmodel_error">出错了</string>
+    <string name="capture_text_label_write">撰写你的故事</string>
+    <string name="capture_text_label_add_media">添加媒体</string>
+    <string name="capture_text_placeholder_write">在这里写下你的文字…</string>
+    <string name="capture_habillage_destination">呈现方式与目标</string>
+    <string name="capture_add_photo_video">添加照片或视频</string>
+    <string name="capture_tonality_label">是什么基调？</string>
+    <string name="capture_tonality_info_title">回忆的精神内核</string>
+    <string name="capture_tonality_info_content">这个类别有助于 AI 理解你叙述的深层含义。</string>
+    <string name="capture_tonality_nuance_label">补充说明细微差别（可选）</string>
+    <string name="capture_tonality_nuance_placeholder">例如：有点苦涩，但写下时我在微笑……</string>
+    <string name="capture_compartments_label">放入哪些分区？</string>
+    <string name="capture_visibility_everyone">所有人</string>
+    <string name="capture_visibility_private">私密</string>
+    <string name="capture_recipients_count">已选择 %1$d 位</string>
+    <string name="capture_capsule_title">时光胶囊</string>
+    <string name="capture_date_format">yyyy年MM月dd日</string>
+    <string name="capture_capsule_now">立即</string>
+    <string name="capture_capsule_none">不设日期（一开始即可见）</string>
+    <string name="capture_button_confirm">确认</string>
+    <string name="capture_button_clear">清除</string>
+    <string name="capture_enigma_section">谜题锁定</string>
+    <string name="capture_enigma_protection">秘密保护</string>
+    <string name="capture_enigma_label_question">你的秘密问题</string>
+    <string name="capture_enigma_label_question_alt">秘密问题</string>
+    <string name="capture_enigma_placeholder_question">例如：我们第一只猫叫什么名字？</string>
+    <string name="capture_enigma_label_answer">期望的答案</string>
+    <string name="capture_enigma_label_answer_alt">期望的答案</string>
+    <string name="capture_enigma_label_hint">提示（可选，3次失败后显示）</string>
+    <string name="capture_enigma_placeholder_hint">例如：这是一种有毛的动物…</string>
+    <string name="capture_enigma_auto_unlock">自动解锁</string>
+    <string name="capture_enigma_unlock_after">%1$d 天后开启</string>
+    <string name="capture_advanced_options">高级选项</string>
+    <string name="capture_advanced_vault_title">保险箱</string>
+    <string name="capture_advanced_vault_info_title">封存的秘密</string>
+    <string name="capture_advanced_vault_info_content">这条内容只有在回答出你的谜题后才会被揭示。你可以设置一个自动解锁的期限，以防被遗忘——除非你将其设为“终极秘密”，那样它将无限期地保持封存。</string>
+    <string name="capture_advanced_vault_desc">用一个私人谜题锁住这条回忆。</string>
+    <string name="capture_enigma_placeholder_question_dog">例如：我们第一只狗叫什么名字？</string>
+    <string name="capture_scheduled_title">定时开启</string>
+    <string name="capture_scheduled_desc">这条回忆只会在指定日期后才可见。</string>
+    <string name="capture_scheduled_placeholder">选择日期</string>
+    <string name="capture_book_title">生命之书</string>
+    <string name="capture_book_desc">将这段内容纳入你整体的生命之书（AI 生成器）。</string>
+    <string name="capture_soul_tone_title">灵魂的基调</string>
+    <string name="capture_soul_tone_desc">影响 AI 生成叙事的风格。</string>
+    <string name="capture_audio_soul">为这段录音赋予灵魂：</string>
+    <string name="capture_audio_listening">我们在听…</string>
+    <string name="capture_audio_instructions">说出来，我们为你记录</string>
+    <string name="capture_audio_continue">继续录音吗？</string>
+    <string name="capture_audio_stop_hint">点击以停止</string>
+    <string name="capture_audio_button_save">封存这段回忆</string>
+    <string name="capture_photo_label_camera">拍照</string>
+    <string name="capture_photo_desc_captured">照片已拍摄</string>
+    <string name="capture_photo_desc_delete">删除照片</string>
+    <string name="capture_photo_location_preselected">已保存给：%1$s</string>
+    <string name="capture_photo_placeholder_caption">为这张照片赋予灵魂…</string>
+
+    <!-- Step by Step Capture Batch -->
+    <string name="step_capture_title">第 %1$d 步，共 8 步</string>
+    <string name="step_capture_skip">跳过</string>
+    <string name="step_capture_next">下一步</string>
+    <string name="step_capture_vault_title">保险箱</string>
+    <string name="step_capture_book_label">收录到我的生命之书</string>
+    <string name="step_capture_book_desc">让 AI 能够依据这条回忆来撰写你的故事。</string>
+    <string name="step_capture_location_title">地点</string>
+    <string name="step_capture_location_desc">这条回忆发生在哪里？你可以将其标记在世界地图上。</string>
+    <string name="step_capture_location_choose">在地图上选择地点</string>
+    <string name="step_capture_location_remove">移除地点</string>
+    <string name="step_capture_spark_title">灵感火花</string>
+    <string name="step_capture_spark_desc">为这条回忆起一个简短的名字或主题，以捕捉这个瞬间。</string>
+    <string name="step_capture_spark_placeholder">主题是什么？</string>
+    <string name="step_capture_tonality_title">基调</string>
+    <string name="step_capture_tonality_desc">回忆的精神内核。这有助于 AI 理解你叙述的深层含义。</string>
+    <string name="step_capture_moment_title">时刻</string>
+    <string name="step_capture_moment_desc">这件事是什么时候发生的？</string>
+    <string name="step_capture_date_precise">精确日期</string>
+    <string name="step_capture_date_period">时期</string>
+    <string name="step_capture_date_placeholder">选择日期</string>
+    <string name="step_capture_date_confirm">确认</string>
+    <string name="step_capture_date_start">开始日期</string>
+    <string name="step_capture_date_end">结束日期</string>
+    <string name="step_capture_viewmodel_location_unknown">未知地点</string>
+
+    <!-- Library Batch -->
+    <string name="library_literary_title">文学书库</string>
+    <string name="library_no_excerpts_filter">没有为该接收人保留的摘录。</string>
+    <string name="library_empty_shelves">书架还是空的……</string>
+    <string name="library_isolated_excerpts">独立摘录</string>
+    <string name="library_delete_excerpt_title">删除这段摘录？</string>
+    <string name="library_delete_excerpt_message">此操作不可撤销。</string>
+    <string name="library_delete_confirm">删除</string>
+    <string name="library_delete_cancel">取消</string>
+    <string name="library_reading_header">阅读</string>
+    <string name="library_reading_fallback_title">文学摘录</string>
+    <string name="library_manuscript_fallback">手稿</string>
+    <string name="library_excerpt_fallback">摘录</string>
+    <string name="library_add_excerpt">存入一段摘录</string>
+    <string name="library_edit_excerpt">编辑摘录</string>
+    <string name="library_book_title_label">作品标题</string>
+    <string name="library_change_cover">更换封面照片</string>
+    <string name="library_personal_comment">个人评注（可选）</string>
+    <string name="library_personal_comment_placeholder">例如：作者姓名、名言类型、个人感想……</string>
+    <string name="library_excerpt_text_label">摘录正文</string>
+    <string name="library_visibility_destinataires">可见范围与接收人</string>
+    <string name="library_save">保存</string>
+    <string name="library_cancel">取消</string>
+    <string name="library_edit_header">摘录编辑</string>
+    <string name="library_editor_placeholder">在此输入或粘贴你的摘录……</string>
+    <string name="library_my_library">我的书库</string>
+    <string name="library_onboarding_point_1">在这里访问你所有的分区：照片、视频、秘密等等。</string>
+    <string name="library_onboarding_point_2">你存入的所有回忆都集中汇总在这里。</string>
+    <string name="library_stats_label">%1$d 个分区 · %2$d 条已存回忆</string>
+    <string name="library_essentials">核心功能</string>
+    <string name="library_fil_pensee_title">思绪之流</string>
+    <string name="library_fil_pensee_info">%1$d 条按年龄排序的回忆</string>
+    <string name="library_book_ma_vie_title">我的生命之书</string>
+    <string name="library_book_info_creator">与叙事 AI 共同撰写</string>
+    <string name="library_book_info_heir">阅读手稿</string>
+    <string name="library_compartments">分区</string>
+    <string name="library_videotheque">视频库</string>
+    <string name="library_phototheque">照片库</string>
+    <string name="library_discotheque">音乐库</string>
+    <string name="library_mappemonde">世界地图</string>
+    <string name="library_le_litteraire">文学天地</string>
+    <string name="library_reduce">收起</string>
+    <string name="library_others">其他</string>
+    <string name="library_other_compartments">其他分区</string>
+    <string name="library_personalities">名人</string>
+    <string name="library_capsule_temporelle">时间胶囊</string>
+    <string name="library_reconciliation">和解</string>
+    <string name="library_miroir_deux">双人之镜</string>
+    <string name="library_mes_classements">我的排行榜</string>
+    <string name="library_coffre_fort">保险箱</string>
+    <string name="library_100_questions">100 个问题</string>
+    <string name="library_portraits">肖像</string>
+    <string name="library_lettre_a_moi">写给我自己的信</string>
+    <string name="library_customize_title">自定义%1$s</string>
+    <string name="library_choose_photo_desc">选一张能代表这个空间的照片。</string>
+    <string name="library_btn_choose_photo">选择照片</string>
+    <string name="library_no_photo_selected">未选择照片</string>
+    <string name="library_image_usage_hint">这张图片会显示在卡片上。用手指捏合缩放，滑动来调整取景范围。</string>
+    <string name="library_uploading">正在上传…… %1$d%%</string>
+    <string name="library_cover_updated_toast">封面已更新。</string>
+    <string name="library_framing_updated_toast">取景已更新。</string>
+    <string name="library_btn_save_cover">保存这张封面</string>
+    <string name="library_btn_delete_customization">删除自定义设置</string>
+    <string name="library_default_illustration_restored_toast">已恢复默认插图。</string>
+    <string name="library_viewmodel_decrypt_error">解密错误</string>
+    <string name="library_viewmodel_sealed_content">已封存的内容</string>
+
+    <!-- Onboarding Library -->
+    <string name="onboarding_photo_title">大型照片库</string>
+    <string-array name="onboarding_photo_content">
+        <item>你回忆里的所有照片都会自动归类到这里，无需额外操作。</item>
+        <item>为每张照片起一个标题，方便日后查找。</item>
+        <item>一段个人评注（可选）能帮你记起当时的情境。</item>
+        <item>点击缩略图可放大查看，使用铅笔图标进行编辑。</item>
+        <item>在你的接收人中选择谁可以看到这张照片，或让所有人都能看到。</item>
+        <item>限制一张照片的接收人，只会影响这张照片本身。这不会影响它所附属的、位于"灵感火花及其叙述"中的那条回忆——两者的可见范围是相互独立的。</item>
+    </string-array>
+
+    <string name="onboarding_disco_title">音乐库</string>
+    <string-array name="onboarding_disco_content">
+        <item>在这里存放你的语音留言，或指向你最喜欢的 Spotify、Deezer 音乐的链接。</item>
+        <item>一段语音留言本身已经带着信息——只需为它起个标题，方便查找。</item>
+        <item>对于一个音乐链接，添加一句评论，说明这首曲子为何对你重要。</item>
+        <item>点击某个条目即可播放，使用铅笔图标进行编辑。</item>
+        <item>在你的接收人中选择谁可以收听这条内容，或让所有人都能收听。</item>
+        <item>如何获取链接？1. 打开 Spotify 或 Deezer。2. 找到你的歌曲。3. 点击"分享"，然后"复制链接"。4. 回到这里粘贴链接。</item>
+        <item>限制一条语音留言或一个音乐链接的接收人，只会影响这一条内容本身。这不会影响它所附属的、位于"灵感火花及其叙述"中的那条回忆——两者的可见范围是相互独立的。</item>
+    </string-array>
+
+    <string name="onboarding_video_title">视频库</string>
+    <string-array name="onboarding_video_content">
+        <item>你的所有个人视频和 YouTube 链接都会汇聚在这里。</item>
+        <item>添加后会自动显示视频缩略图。</item>
+        <item>为它起一个标题，如果愿意，也可以添加一句评论说明这个时刻。</item>
+        <item>点击缩略图开始播放，使用铅笔图标进行编辑。</item>
+        <item>在你的接收人中选择谁可以看到这段视频，或让所有人都能看到。</item>
+        <item>如何获取 YouTube 链接？1. 打开 YouTube 应用。2. 找到你的视频。3. 点击"分享"，然后"复制链接"。4. 回到这里粘贴链接。</item>
+        <item>限制一段视频的接收人，只会影响这段视频本身。这不会影响它所附属的、位于"灵感火花及其叙述"中的那条回忆——两者的可见范围是相互独立的。</item>
+    </string-array>
+
+    <string name="onboarding_literary_title">文学书库</string>
+    <string-array name="onboarding_literary_content">
+        <item>在这里存放对你有意义的文字、名言或段落——一段童年回忆、一封信、一首你写的诗。</item>
+        <item>为每段摘录起一个标题，方便在列表中快速找到它。</item>
+        <item>添加一张个人封面照片：它会替代缩略图上默认的羊皮纸背景。</item>
+        <item>一段个人评注（可选）能帮你记起当时的情境——这段文字为何对你重要。</item>
+        <item>点击缩略图即可全屏阅读该摘录，使用铅笔图标进行编辑。</item>
+        <item>在你的接收人中选择谁可以阅读这段摘录，或让所有人都能阅读。</item>
+        <item>限制一段摘录的接收人，只会影响这段摘录本身。这不会影响它所附属的、位于"灵感火花及其叙述"中的那条回忆——两者的可见范围是相互独立的。</item>
+    </string-array>
+
+    <!-- Splash Screen -->
+    <string name="splash_logo_description">Phoen-X 标志</string>
+    <string name="splash_phrase">这不是一份档案，而是一种陪伴。</string>
+
+    <!-- Trust Circle Hub -->
+    <string name="trust_circle_title">信任圈</string>
+    <string name="trust_circle_description">围绕在你身边、将承载你的传承的人。在这里管理你的信任关系。</string>
+    <string name="trust_circle_onboarding_title">信任圈</string>
+    <string-array name="trust_circle_onboarding_points">
+        <item>围绕在你身边、将承载你的传承的人。在这里管理你的信任关系。</item>
+        <item>你的信任圈中，目前没有任何人能够访问你的内容。</item>
+        <item>在你的监护人启动协议之前，你的传承将始终保持封存状态。</item>
+    </string-array>
+    <string name="trust_circle_item_depositaries_title">我的监护人</string>
+    <string name="trust_circle_item_depositaries_subtitle">传承协议</string>
+    <string name="trust_circle_item_witnesses_title">我的见证人</string>
+    <string name="trust_circle_item_witnesses_subtitle">他们眼中的你的故事</string>
+    <string name="trust_circle_item_recipients_title">我的接收人</string>
+    <string name="trust_circle_item_recipients_subtitle">将收到你回忆的人</string>
+    <string name="trust_circle_item_notifications_title">待通知联系人</string>
+    <string name="trust_circle_item_notifications_subtitle">告知你的离去</string>
+    <string name="trust_circle_item_characters_title">我的人物</string>
+    <string name="trust_circle_item_characters_subtitle">出现在你回忆中的人</string>
+    <string name="trust_circle_privacy_title">隐私</string>
+    <string name="trust_circle_privacy_desc">你的信任圈中，目前没有任何人能够访问你的内容。在你的监护人启动协议之前，你的传承将始终保持封存状态。</string>
+
+    <!-- Welcome Guide -->
+    <string name="guide_step1_title">欢迎来到 PHOEN-X</string>
+    <string name="guide_step1_desc">这是属于你的私密空间，用来记录并传递真正重要的东西。让我们一起了解它是如何运作的。</string>
+    <string name="guide_step2_title">记录你的回忆</string>
+    <string name="guide_step2_desc">文字、语音或照片皆可。一切都会立即被加密。AI 会自动把你的回忆归入合适的情感分区。</string>
+    <string name="guide_step3_title">思绪之流</string>
+    <string name="guide_step3_desc">这是你的专属印记。每一条思绪都标注着你写下它时的确切年龄。你的亲人将看到你随时间的成长与变化。</string>
+    <string name="guide_step4_title">传递给你的亲人</string>
+    <string name="guide_step4_desc">选择谁将收到你的信息。你甚至可以为未来安排发送时间（例如：某个孩子满 18 岁那天）。</string>
+    <string name="guide_step5_title">全方位安全保障</string>
+    <string name="guide_step5_desc">你的回忆受到最先进加密技术（E2EE）的保护，只有你和你指定的亲人才能打开它们。</string>
+    <string name="guide_never_show_again">不再显示此引导</string>
+    <string name="guide_start_adventure">开始旅程</string>
+    <string name="guide_swipe_to_continue">滑动以继续 →</string>
+
+    <!-- Favorites Batch -->
+    <string name="favorites_title">我的最爱</string>
+    <string name="favorites_taste_map_title">你的品味地图</string>
+    <string name="favorites_empty_title">你的收藏还是空的。</string>
+    <string name="favorites_empty_subtitle">添加你最喜欢的书籍、电影和音乐。</string>
+    <string name="favorites_dialog_add_title">添加一个心头好</string>
+    <string name="favorites_label_title">标题 / 名称</string>
+    <string name="favorites_label_why">为什么它对你很重要？</string>
+    <string name="favorites_button_add">添加</string>
+    <string name="favorites_button_cancel">取消</string>
+    <string name="favorites_cat_books">书籍</string>
+    <string name="favorites_cat_movies">电影</string>
+    <string name="favorites_cat_music">音乐</string>
+    <string name="favorites_cat_travels">旅行</string>
+    <string name="favorites_taste_map_fallback">你的收藏透露出你对冒险故事和忧郁音乐的深深眷恋。你的选择常常围绕着"探索"这个主题。</string>
+
+    <!-- Mailbox Batch -->
+    <string name="mailbox_title">时间胶囊</string>
+    <string name="mailbox_info_title">时间胶囊</string>
+    <string name="mailbox_info_content">时间胶囊是一段你提前设定好、在特定日期开启的回忆——一个生日、一场即将到来的婚礼，或任何对你有意义的日子。接收人在这个日期之前无法打开它：它会带着显示的开启日期出现在对方的信箱中，静静等待。一旦设定完成，日期便无法直接修改——如果想更改日期，必须删除该胶囊并重新创建。</string>
+    <string name="mailbox_list_header">你的时间胶囊</string>
+    <string name="mailbox_date_unknown">日期未知</string>
+    <string name="mailbox_opening_on">开启日期：%1$s</string>
+    <string name="mailbox_default_summary">已安排的信息</string>
+    <string name="mailbox_empty_title">还没有时间胶囊。</string>
+    <string name="mailbox_empty_subtitle">为未来的日期安排回忆吧。</string>
+
+    <!-- Media Viewer -->
+    <string name="media_viewer_unsupported">不支持的媒体格式（%1$s）</string>
+    <string name="media_viewer_close">关闭</string>
+
+    <!-- Worlds Batch -->
+    <string name="worlds_title">我生命中的抽屉</string>
+    <string name="worlds_subtitle">AI 辅助整理</string>
+    <string name="worlds_empty_title">柜子还是空的。</string>
+    <string name="worlds_empty_subtitle">记录一些回忆，看着它们自动归类到这里。</string>
+
+    <!-- Young Self Letter Batch -->
+    <string name="young_self_title">写给年轻的自己的信</string>
+    <string name="young_self_history_header">你已封存的信件</string>
+    <string name="young_self_card_age">写给 %1$d 岁的自己</string>
+    <string name="young_self_card_year">写于 %1$d 年</string>
+    <string name="young_self_main_question">在那个一切都还充满不确定性的年纪，你曾多希望听到些什么？</string>
+    <string name="young_self_info_title">写给年轻的自己的信</string>
+    <string name="young_self_info_point1">选择你过去的某个年龄，写一封信给那时的自己。</string>
+    <string name="young_self_info_point2">应用会根据你的出生日期自动计算对应的年份。</string>
+    <string name="young_self_info_point3">如果没有灵感，点一下灯泡图标获取建议。</string>
+    <string name="young_self_info_point4">这封信会像普通回忆一样，被保存在你的思绪之流中。</string>
+    <string name="young_self_info_point5">这是最能触动你亲人的功能之一。</string>
+    <string name="young_self_label_at_age">写给 %1$d 岁的自己</string>
+    <string name="young_self_label_was_in">那年是 %1$d 年</string>
+    <string name="young_self_dialog_age_title">你当时几岁？</string>
+    <string name="young_self_dialog_age_label">确切年龄</string>
+    <string name="young_self_dialog_button_validate">确认</string>
+    <string name="young_self_dialog_button_cancel">取消</string>
+    <string name="young_self_placeholder">亲爱的 %1$d 岁的我……</string>
+    <string name="young_self_button_inspiration">查看灵感方向</string>
+    <string name="young_self_button_seal">封存这封信</string>
+    <string name="young_self_bottom_sheet_title">灵感方向</string>
+    <string name="young_self_no_suggestions">暂时没有建议。继续充实你的传承吧！</string>
+
+    <!-- Pact / Miroir à Deux Batch -->
+    <string name="pact_screen_title">双人之镜</string>
+    <string name="pact_info_title">契约</string>
+    <string name="pact_info_content">"契约"是你与选定的某个人共同书写的双声信息——各自独立、私密地写下自己的版本。在双方都点击"我已完成我的版本"之前，内容不会向任何人揭示，包括你们两人自己。你们也可以各自选择，这份契约是要充实你的生命之书，还是只作为你们两人之间的私密交流。</string>
+    <string name="pact_list_header">你的交织之镜</string>
+    <string name="pact_card_subtitle">与 %1$s 的镜像</string>
+    <string name="pact_empty_state_title">目前没有进行中的双人之镜。</string>
+    <string name="pact_empty_state_desc">邀请一位亲人共同讲述你们的共同故事。</string>
+    <string name="pact_invite_dialog_title">开启一段双人之镜</string>
+    <string name="pact_invite_dialog_desc">同一个故事的两种视角。各自独立书写，待双方都准备好后，版本将同时揭晓。</string>
+    <string name="pact_invite_label_name">对方姓名</string>
+    <string name="pact_invite_label_email">对方邮箱</string>
+    <string name="pact_invite_btn_confirm">邀请共同映照</string>
+    <string name="pact_share_subject">在 PHOEN-X 上互相映照</string>
+    <string name="pact_share_text">我邀请你在 PHOEN-X 上与我共同创建一段双人之镜，分享我们共同的回忆：%1$s</string>
+    <string name="pact_share_chooser_title">分享邀请</string>
+    <string name="pact_viewmodel_fallback_partner_name">伙伴</string>
+    <string name="pact_viewmodel_fallback_user_name">一位亲人</string>
+    <string name="pact_viewmodel_invite_label">镜像伙伴</string>
+    <string name="pact_viewmodel_error_invite">邀请发送失败。</string>
+    <string name="pact_detail_title_with_partner">与 %1$s 的镜像</string>
+    <string name="pact_detail_title_fallback">镜像详情</string>
+    <string name="pact_detail_status_header">镜像状态</string>
+    <string name="pact_detail_label_my_version">你的版本</string>
+    <string name="pact_detail_label_partner_version">%1$s 的版本</string>
+    <string name="pact_detail_sealed_hint">在双方都完成之前，镜像将始终保持封存。</string>
+    <string name="pact_detail_revealed_hint">镜像已揭晓！</string>
+    <string name="pact_detail_book_consent_title">充实我的生命之书</string>
+    <string name="pact_detail_book_consent_desc">需要双方一致同意。</string>
+    <string name="pact_detail_reflections_header">共享的映照</string>
+    <string name="pact_detail_btn_add">添加一段真相</string>
+    <string name="pact_detail_btn_complete">我已完成我的版本</string>
+    <string name="pact_detail_empty_state">还没有存入任何映照。</string>
+    <string name="pact_detail_btn_add_first">存入你的第一段映照</string>
+    <string name="pact_detail_item_fallback_title">未命名的事件</string>
+    <string name="pact_detail_item_status_revealed">交织版本已揭晓</string>
+    <string name="pact_detail_item_status_sealed">你的版本已封存</string>
+
+    <!-- Dialog Media Components -->
+    <string name="dialog_media_label_spotify">一首 Spotify 音乐</string>
+    <string name="dialog_media_label_deezer">一首 Deezer 音乐</string>
+    <string name="dialog_media_label_youtube">一段 YouTube 视频</string>
+    <string name="dialog_media_label_audio">我的语音留言</string>
+    <string name="dialog_media_label_video">我的视频</string>
+    <string name="dialog_media_label_photo">我的照片</string>
+    <string name="dialog_media_label_default">一个媒体文件</string>
+    <string name="dialog_media_title_deposit">存入%1$s</string>
+    <string name="dialog_media_title_customize">自定义</string>
+    <string name="dialog_media_howto_title">如何获取链接？</string>
+    <string name="dialog_media_howto_steps">1. 打开应用（Spotify、Deezer 或 YouTube）。\n2. 找到你的内容。\n3. 点击"分享" &gt; "复制链接"。\n4. 回到这里粘贴链接。</string>
+    <string name="dialog_media_label_title">标题</string>
+    <string name="dialog_media_fetching">正在获取……</string>
+    <string name="dialog_media_placeholder_title">为这个媒体文件起个名字</string>
+    <string name="dialog_media_label_importance">这个媒体文件为什么重要？</string>
+    <string name="dialog_media_label_url">链接（URL）</string>
+    <string name="dialog_media_btn_change_thumb">更换缩略图</string>
+    <string name="dialog_media_btn_change_cover">更换封面照片</string>
+    <string name="dialog_media_label_include_book">收录到我的生命之书</string>
+    <string name="dialog_media_desc_include_book">若不勾选，这张照片将保留在你的回忆中，但绝不会被插入手稿。若勾选，人工智能在撰写你的叙述时可能会选用它，但不保证一定会被采用。</string>
+    <string name="dialog_media_visibility_destinataires">可见范围与接收人</string>
+    <string name="dialog_media_btn_save">保存</string>
+    <string name="dialog_media_btn_cancel">取消</string>
+
+    <string name="dialog_photo_title">存入一张照片</string>
+    <string name="dialog_photo_btn_choose">选择照片</string>
+    <string name="dialog_photo_label_title">标题</string>
+    <string name="dialog_photo_label_description">描述（可选）</string>
+    <string name="dialog_photo_label_visibility">可见范围</string>
+    <string name="dialog_photo_btn_save">保存</string>
+    <string name="dialog_photo_btn_cancel">取消</string>
+
+    <!-- Library Archive -->
+    <string name="library_archive_preview_label">👁 预览 —— 你的亲人将会看到的内容</string>
+    <string name="library_archive_btn_back_space">← 我的空间</string>
+    <string name="library_archive_my_library">你的书库</string>
+    <string name="library_archive_creator_library">%1$s 的书库</string>
+    <string name="library_archive_sealed_content">已封存的内容</string>
+    <string name="library_archive_sealed_compartment">已封存的分区</string>
+    <string name="library_archive_locked_date">这个抽屉将在创建者选定的日期开启。</string>
+    <string name="library_archive_locked_enigma">你需要解开一个谜题才能打开这个秘密。</string>
+    <string name="library_archive_locked_key">需要一把实体钥匙才能解锁这个抽屉。</string>
+    <string name="library_archive_locked_default">这个分区尚未开放访问。</string>
+    <string name="library_archive_btn_close">关闭</string>
+
+    <!-- Detective / Coffre-Fort Batch -->
+    <string name="detective_screen_title">保险箱</string>
+    <string name="detective_onboarding_title">保险箱</string>
+    <string-array name="detective_onboarding_points">
+        <item>把一段内容藏在一个秘密问题背后。</item>
+        <item>答案通过 SHA-256 在本地进行保护。</item>
+        <item>你的亲人有多次机会来猜出答案。</item>
+        <item>点击"需要灵感？"查看示例。</item>
+        <item>与钥匙抽屉不同——这里没有开启次数的限制。</item>
+    </string-array>
+    <string name="detective_subtitle">把一段回忆藏在一个问题背后</string>
+    <string name="detective_empty_state_title">目前还没有创建任何谜题。</string>
+    <string name="detective_empty_state_desc">你锁住的回忆会显示在这里。</string>
+    <string name="detective_enigma_no_question">没有问题的谜题</string>
+    <string name="detective_recipient_label">给：%1$s</string>
+    <string name="detective_recipient_fallback">你的亲人们</string>
+
+    <string name="detective_player_instructions">解开谜题以访问这些回忆。</string>
+    <string name="detective_ultimate_secret">终极秘密</string>
+    <string name="detective_personal_enigma">个人谜题</string>
+    <string name="detective_ultimate_secret_desc">这份心声已被标记为最重要的内容。不存在任何自动开启的可能。只有准确的答案才能解开这最后的封印。</string>
+    <string name="detective_hint_label">提示：%1$s</string>
+    <string name="detective_auto_unlock_hint">如果你不知道答案，这个谜题将在 %1$d 天后自动开启。</string>
+    <string name="detective_creator_option_desc">%1$s 设置了这个选项，无论如何都能让你访问到这条信息。</string>
+    <string name="detective_answer_label">你的答案</string>
+    <string name="detective_verify_button">验证</string>
+    <string name="detective_auto_unlock_timer">将在 %1$d 天后自动开启</string>
+    <string name="detective_secret_ultime_sealed">终极秘密已封存</string>
+    <string name="detective_memory_revealed">回忆已揭晓</string>
+    <string name="detective_sacred_confidence">神圣心声</string>
+    <string name="detective_content_sealed">内容已封存</string>
+    <string name="detective_ultimate_prompt">回答这个唯一的问题……</string>
+    <string name="detective_enigma_prompt">解开谜题以阅读……</string>
+    <string name="detective_auto_unlocked_desc">这个谜题已随时间自动开启。</string>
+    <string name="detective_creator_note">%1$s 的留言："%2$s"</string>
+    <string name="detective_empty_mysteries">没有待解开的谜题。</string>
+
+    <string name="detective_create_type_classic">经典谜题</string>
+    <string name="detective_create_type_ultimate">终极秘密</string>
+    <string name="detective_create_ultimate_title">你传承中的珍宝</string>
+    <string name="detective_create_classic_title">由一个问题守护的秘密</string>
+    <string-array name="detective_create_ultimate_points">
+        <item>你传承中的核心：最珍贵、最私密的秘密。</item>
+        <item>坚不可摧的保护：不存在随时间自动解锁的可能。</item>
+        <item>一个庄重的时刻：它的阅读体验会以独特的视觉呈现方式展现给你的亲人。</item>
+        <item>唯一的钥匙：只有知道答案的人，才能有朝一日打破这最后的封印。</item>
+    </string-array>
+    <string-array name="detective_create_classic_points">
+        <item>用一个私人谜题保护一段回忆：一个只有你的亲人握有答案的问题。</item>
+        <item>绝对安全：答案在你的设备上进行哈希处理，任何人都无法破解。</item>
+        <item>一场私密的寻踪游戏：一旦输入正确答案，回忆将被永久揭晓。</item>
+        <item>经得起时间考验的秘密：与一般信息不同，这段内容会一直封存，直到谜题被解开。</item>
+        <item>点击"需要灵感？"查看问题示例。</item>
+    </string-array>
+    <string name="detective_create_ultimate_subtitle">一段独一无二的心声，封存在你记忆的核心。</string>
+    <string name="detective_create_classic_subtitle">只有知道答案的人，才能访问你在这里存放的内容。</string>
+    <string name="detective_create_solemn_active">庄重处理模式已启用</string>
+    <string name="detective_create_label_question">问题</string>
+    <string name="detective_create_placeholder_question">例如：我们第一只狗叫什么名字？</string>
+    <string name="detective_create_btn_inspiration">需要灵感？</string>
+    <string name="detective_create_label_answer">答案（输入后将不可见）</string>
+    <string name="detective_create_answer_security_desc">答案通过 SHA-256 数字指纹在本地进行保护。任何人都无法读取它，即使是我们的服务器也不行。</string>
+    <string name="detective_create_label_hint">提示（3 次失败后显示）</string>
+    <string name="detective_create_placeholder_hint">例如：这是一种动物的名字……</string>
+    <string name="detective_create_label_auto_unlock">自动解锁</string>
+    <string name="detective_create_auto_unlock_timer">%1$s 天后开启</string>
+    <string name="detective_create_auto_unlock_desc">如果你的亲人找不到答案，在此期限过后可自动查看内容。</string>
+    <string name="detective_create_permanent_lock">在找到答案之前将永久锁定。</string>
+    <string name="detective_create_ultimate_lock_desc">终极秘密没有时间限制地被封存，只有知道答案才能将其打开。</string>
+    <string name="detective_create_label_fallback">揭晓信息（可选）</string>
+    <string name="detective_create_placeholder_fallback">例如：答案是[城市名]。希望你有一天会想起来……</string>
+    <string name="detective_create_label_secret_content">秘密内容</string>
+    <string name="detective_create_content_desc">只有正确回答你的问题后，才能访问这段内容。</string>
+    <string name="detective_create_type_text">✍️ 文字</string>
+    <string name="detective_create_type_photo">📷 照片</string>
+    <string name="detective_create_type_audio">🎙️ 语音</string>
+    <string name="detective_create_btn_choose_photo">选择照片</string>
+    <string name="detective_create_toast_sealed">心声已封存。</string>
+    <string name="detective_create_btn_seal_ultimate">封存终极秘密</string>
+    <string name="detective_create_btn_seal_enigma">封存谜题</string>
+    <string name="detective_create_inspiration_title">一些问题灵感</string>
+    <string name="detective_create_inspiration_desc">这些示例仅供启发。真正的问题，只有你自己知道。</string>
+
+    <string name="detective_viewmodel_fallback_creator">你的亲人</string>
+    <string name="detective_viewmodel_error_connection">连接错误</string>
+    <string name="detective_viewmodel_error_wrong_answer">答案错误，再想想……</string>
+
+    <!-- Inspiration Categories -->
+    <string name="inspiration_cat_childhood">童年回忆</string>
+    <string-array name="inspiration_questions_childhood">
+        <item>我的小学叫什么名字？</item>
+        <item>我最喜欢的老师叫什么名字？</item>
+        <item>我是在哪条街长大的？</item>
+        <item>我童年最好的朋友叫什么名字？</item>
+        <item>我十岁时最喜欢的颜色是什么？</item>
+        <item>有什么玩具我从来不愿意借给别人？</item>
+        <item>我最喜欢的动画片是什么？</item>
+        <item>我童年的宠物叫什么名字？</item>
+        <item>我最喜欢的学科是什么？</item>
+        <item>我在学校练习什么运动？</item>
+        <item>我最害怕的惩罚是什么？</item>
+        <item>我妈妈做的哪道菜是我的最爱？</item>
+        <item>我童年邻居叫什么名字？</item>
+        <item>我第一辆自行车是什么牌子的？</item>
+        <item>父母给我起的绰号是什么？</item>
+        <item>我在哪座城市度过暑假？</item>
+        <item>我十二岁前最喜欢的书是什么？</item>
+        <item>我做过什么从没告诉过你的调皮事？</item>
+        <item>我最喜欢的桌游是什么？</item>
+        <item>哪首歌总能让我小时候翩翩起舞？</item>
+    </string-array>
+
+    <string name="inspiration_cat_our_story">我们的故事</string>
+    <string-array name="inspiration_questions_our_story">
+        <item>我们是在哪座城市相遇的？</item>
+        <item>你对我说的第一句话是什么？</item>
+        <item>我们第一次约会的地方叫什么名字？</item>
+        <item>哪首歌成了"我们的"歌？</item>
+        <item>我送你的第一份礼物是什么？</item>
+        <item>我们第一次共进晚餐是在哪家餐厅？</item>
+        <item>我心情好时最爱说的一句话是什么？</item>
+        <item>我给你起过什么别人都不知道的昵称？</item>
+        <item>我们一起做过什么从未说出口的调皮事？</item>
+        <item>我们反复看的"我们的"电影是什么？</item>
+        <item>只有我们才懂的暗语是什么？</item>
+        <item>我们第一次旅行去了哪座城市？</item>
+        <item>我为你做的第一道菜是什么？</item>
+        <item>我们吵过什么架，你至今还记得？</item>
+        <item>我早晨的哪个习惯让你觉得奇怪？</item>
+        <item>我最先向你许下的承诺是什么？</item>
+        <item>哪一刻让你知道自己可以信任我？</item>
+        <item>我表达爱意的独特方式是什么？</item>
+        <item>你送给我、我一直珍藏着的东西是什么？</item>
+        <item>我们一起做过最疯狂的事是什么？</item>
+    </string-array>
+
+    <string name="inspiration_cat_places">地点与旅行</string>
+    <string-array name="inspiration_questions_places">
+        <item>我去过的第一个外国是哪里？</item>
+        <item>在哪座城市我感觉最像在家一样？</item>
+        <item>我们那次难忘旅行住的酒店叫什么名字？</item>
+        <item>我最想一辈子居住的城市是哪座？</item>
+        <item>我在哪个国家吃到了此生最美味的一餐？</item>
+        <item>我攀登过哪座山峰或山顶？</item>
+        <item>我每年夏天都去的沙滩叫什么名字？</item>
+        <item>我在哪座城市居住的时间最长？</item>
+        <item>哪个国家对我的改变最大？</item>
+        <item>哪个地方让我感到真正的幸福？</item>
+        <item>我和你一起去过哪座欧洲城市？</item>
+        <item>我喜欢在哪个街区迷失自己？</item>
+        <item>我一个人去过哪次旅行，很少和你提起？</item>
+        <item>我小时候去的营地叫什么名字？</item>
+        <item>有哪座世界名都我从未去过？</item>
+        <item>如果可以，我会选择在哪里定居？</item>
+        <item>我常走哪条路来放松自己？</item>
+        <item>哪座博物馆给我留下了深刻印象？</item>
+        <item>我想居住的岛屿是哪座？</item>
+        <item>在哪座城市，我因幸福而流泪？</item>
+    </string-array>
+
+    <string name="inspiration_cat_tastes">喜好与热情</string>
+    <string-array name="inspiration_questions_tastes">
+        <item>我偷偷吃过什么食物？</item>
+        <item>我一个人的时候会听什么音乐？</item>
+        <item>我看过哪部电影却从不承认？</item>
+        <item>我在做什么活动却从不提起？</item>
+        <item>我读过三遍以上的书是什么？</item>
+        <item>我暗暗欣赏的艺术家是谁？</item>
+        <item>我从不错过的节目是什么？</item>
+        <item>我热衷观看的运动是什么？</item>
+        <item>我完全不喜欢的食物是什么？</item>
+        <item>我从不穿的颜色是什么？</item>
+        <item>我想学会演奏的乐器是什么？</item>
+        <item>我最喜欢的外国菜系是什么？</item>
+        <item>我放弃了哪个爱好，一直感到遗憾？</item>
+        <item>哪首歌会让我毫无理由地落泪？</item>
+        <item>哪种香味会让我怀旧？</item>
+        <item>哪类电影总能让我流泪？</item>
+        <item>我早上喝什么饮品？</item>
+        <item>我最放纵自己的美食是什么？</item>
+        <item>我最喜欢哪个季节，为什么？</item>
+        <item>哪种风景曾让我屏住呼吸？</item>
+    </string-array>
+
+    <string name="inspiration_cat_habits">习惯与细节</string>
+    <string-array name="inspiration_questions_habits">
+        <item>我在不知不觉中总是重复说哪句话？</item>
+        <item>我最容易被认出的小动作是什么？</item>
+        <item>我周末几点起床？</item>
+        <item>我睡前的习惯是什么？</item>
+        <item>你怎么知道我心情不好？</item>
+        <item>我笑的方式有什么独特之处？</item>
+        <item>我总是找不到、却一直在找的东西是什么？</item>
+        <item>我是怎么整理（或者不整理）自己东西的？</item>
+        <item>我读书时最喜欢的姿势是什么？</item>
+        <item>我睡床的哪一边？</item>
+        <item>我回家后做的第一件事是什么？</item>
+        <item>我出门前做的最后一件事是什么？</item>
+        <item>我怎么喝咖啡或茶？</item>
+        <item>我难过的时候怎么安慰自己？</item>
+        <item>我最喜欢、用得太多的一个词是什么？</item>
+        <item>我怎么不动声色地表达自豪？</item>
+        <item>我生气的时候怎么叫你？</item>
+        <item>我最容易被认出的亲昵动作是什么？</item>
+        <item>我用得最多的应用程序是什么？</item>
+        <item>我最喜欢的交通方式是什么？</item>
+    </string-array>
+
+    <string name="inspiration_cat_hard_times">艰难时刻</string>
+    <string-array name="inspiration_questions_hard_times">
+        <item>我们一起经历过什么艰难时刻？</item>
+        <item>在你最艰难的时期，我是怎么支持你的？</item>
+        <item>我们有过什么从未真正解决的争执？</item>
+        <item>你为我保守过什么秘密？</item>
+        <item>我做过什么你知情的艰难决定？</item>
+        <item>你想让我冷静下来时怎么称呼我？</item>
+        <item>我们一起克服过什么恐惧？</item>
+        <item>我生命中的哪个阶段最考验你的耐心？</item>
+        <item>我们一起得知过什么坏消息？</item>
+        <item>我是怎么表现出自己需要帮助的？</item>
+        <item>我脆弱的时候你给我起过什么绰号？</item>
+        <item>什么磨难让我变得更坚强？</item>
+        <item>有什么迹象表明事情不太对劲？</item>
+        <item>我们一起度过了哪个艰难的夜晚？</item>
+        <item>我是怎么不明说地向你表达感谢的？</item>
+        <item>你为我处理过什么危机时刻？</item>
+        <item>我犯过什么错误，你帮我克服了？</item>
+        <item>事情不顺利时，我们的暗号是什么？</item>
+        <item>哪段时期你最为我担心？</item>
+        <item>我怎么不用言语表达我的感激？</item>
+    </string-array>
+
+    <string name="inspiration_cat_dreams">梦想与计划</string>
+    <string-array name="inspiration_questions_dreams">
+        <item>如果当初我敢，我想从事什么职业？</item>
+        <item>我想在哪个国家生活一年？</item>
+        <item>我想学习什么乐器？</item>
+        <item>我们提到过却从未实现的计划是什么？</item>
+        <item>我想流利地说哪种语言？</item>
+        <item>我想尝试什么极限运动？</item>
+        <item>我想写一本什么样的书？</item>
+        <item>我想创造什么发明？</item>
+        <item>我想捍卫什么事业？</item>
+        <item>我从未能实现的梦想之旅是什么？</item>
+        <item>我想建造一座什么样的房子？</item>
+        <item>我想领养什么动物？</item>
+        <item>我想更早接受什么培训？</item>
+        <item>我想完成什么个人挑战？</item>
+        <item>我想拥有什么样的相遇？</item>
+        <item>我想开一家什么样的餐厅？</item>
+        <item>我想拍一部什么样的电影？</item>
+        <item>我想创办一个什么样的协会？</item>
+        <item>我想把哪个地方改造成住所？</item>
+        <item>我从未放弃过什么童年梦想？</item>
+    </string-array>
+
+    <string name="inspiration_cat_quotes">我总是挂在嘴边的话</string>
+    <string-array name="inspiration_questions_quotes">
+        <item>我经常重复的一句名言是什么？</item>
+        <item>我总是给出的建议是什么？</item>
+        <item>我谈话中常出现的人生道理是什么？</item>
+        <item>我一直讲的笑话是什么？</item>
+        <item>我用来鼓励别人的说法是什么？</item>
+        <item>在做重要决定之前我会说什么？</item>
+        <item>我讲故事时惯用的开场白是什么？</item>
+        <item>什么事让我生气时，我会说什么？</item>
+        <item>我开心时会说什么话？</item>
+        <item>关于爱情或友情，我常重复什么？</item>
+        <item>我怎么结束一段重要的对话？</item>
+        <item>出发旅行前我会说什么？</item>
+        <item>我会给我爱的人什么样的提醒？</item>
+        <item>有人感谢我时我会说什么？</item>
+        <item>我用什么话来结束一场分歧？</item>
+        <item>看着天空或大自然时我会说什么？</item>
+        <item>我反复说的哪句话让你觉得烦？</item>
+        <item>看着我年轻时的照片，我会说什么？</item>
+        <item>什么事触动我时，我会说什么话？</item>
+        <item>睡前我会说什么？</item>
+    </string-array>
+
+    <string name="inspiration_cat_people">重要的人</string>
+    <string-array name="inspiration_questions_people">
+        <item>我青少年时期最好的朋友叫什么名字？</item>
+        <item>我的职业导师叫什么名字？</item>
+        <item>给了我第一次机会的人叫什么名字？</item>
+        <item>我最亲近的邻居叫什么名字？</item>
+        <item>照顾我多年的医生叫什么名字？</item>
+        <item>在你之前我爱过的人叫什么名字？</item>
+        <item>对我影响最大的老师叫什么名字？</item>
+        <item>我最忠诚的同事叫什么名字？</item>
+        <item>我最亏欠的人叫什么名字？</item>
+        <item>我失联的朋友叫什么名字？</item>
+        <item>最伤害过我的人叫什么名字？</item>
+        <item>教我开车的人叫什么名字？</item>
+        <item>我的运动教练叫什么名字？</item>
+        <item>我的主要合伙人叫什么名字？</item>
+        <item>教我做饭的人叫什么名字？</item>
+        <item>我绝对信任的知己叫什么名字？</item>
+        <item>我钦佩其勇气的那个人叫什么名字？</item>
+        <item>在我最艰难时期帮助过我的人叫什么名字？</item>
+        <item>我从未道谢的人叫什么名字？</item>
+        <item>比任何人都更了解我的人叫什么名字？</item>
+    </string-array>
+
+    <string name="inspiration_cat_deep">深刻问题</string>
+    <string-array name="inspiration_questions_deep">
+        <item>什么事最让我害怕，却很少有人知道？</item>
+        <item>我一生保守的秘密是什么？</item>
+        <item>我从未承认过、却一直后悔的决定是什么？</item>
+        <item>我隐藏了什么才华，只有你少数几人知道？</item>
+        <item>关于我自己的什么真相，我花了多年才接受？</item>
+        <item>我从未展现过的最大情结是什么？</item>
+        <item>什么信念主导了我所有的决定？</item>
+        <item>哪一刻让我最感到怀疑？</item>
+        <item>什么年少时的错误一直伴随着我？</item>
+        <item>我曾希望进行过什么样的对话？</item>
+        <item>我做过什么慷慨的事，却从未提起？</item>
+        <item>什么不公正的事让我永远铭记？</item>
+        <item>我内心最私密的梦想是什么？</item>
+        <item>为了别人，我牺牲了自己的哪个部分？</item>
+        <item>哪一刻让我感到最脆弱？</item>
+        <item>哪次相遇彻底改变了我看待事物的方式？</item>
+        <item>多年来我独自承受着什么重担？</item>
+        <item>我明白得太晚的真相是什么？</item>
+        <item>我希望人们了解我什么？</item>
+        <item>如果你只能保留一段关于我的回忆，会是哪一段？</item>
+    </string-array>
+
+    <string-array name="personality_categories">
+        <item>体育</item>
+        <item>影视</item>
+        <item>音乐</item>
+        <item>绘画</item>
+        <item>雕塑</item>
+        <item>文学</item>
+        <item>诗歌</item>
+        <item>科学</item>
+        <item>医学</item>
+        <item>哲学</item>
+        <item>灵性</item>
+        <item>政治</item>
+        <item>历史</item>
+        <item>抵抗与社会参与</item>
+        <item>幽默</item>
+        <item>戏剧</item>
+        <item>舞蹈</item>
+        <item>摄影</item>
+        <item>时尚</item>
+        <item>建筑</item>
+        <item>美食</item>
+        <item>新闻</item>
+        <item>创业</item>
+        <item>探索</item>
+        <item>行动主义</item>
+        <item>教育</item>
+        <item>艺术手工</item>
+        <item>漫画</item>
+        <item>其他</item>
+    </string-array>
+
+    <!-- Reconciliation Batch -->
+    <string name="reconciliation_title">和解协议</string>
+    <string name="reconciliation_info_title">和解协议</string>
+    <string name="reconciliation_info_p1">给一个你本该说出真心话、却从未说出口的人写一段信息。</string>
+    <string name="reconciliation_info_p2">这段信息会在你离开后送达，延迟时间由你自己选择。</string>
+    <string name="reconciliation_info_p3">延迟期能让哀伤先平复下来，再让对方读到你的信息。</string>
+    <string name="reconciliation_info_p4">对方无需拥有 PHOEN-X 账号即可收到这段信息。</string>
+    <string name="reconciliation_info_p5">你可以选择在你离开后 30 天到 1 年之间的延迟时间。</string>
+    <string name="reconciliation_main_question">有没有一个人，你一直没能说出你本该对他说的话？</string>
+    <string name="reconciliation_label_recipient">接收人的名字</string>
+    <string name="reconciliation_label_intent">你的意图（例如：请求原谅、表达感谢……）</string>
+    <string name="reconciliation_button_ai_help">请求 AI 帮助措辞</string>
+    <string name="reconciliation_ai_suggestions_title">AI 建议</string>
+    <string name="reconciliation_mode_text">✍️ 文字</string>
+    <string name="reconciliation_mode_audio">🎙️ 语音</string>
+    <string name="reconciliation_placeholder_message">在此写下你的信息……</string>
+    <string name="reconciliation_audio_tap_to_record">点击开始录音</string>
+    <string name="reconciliation_golden_rule">黄金法则：这段信息在你的传承启动后将被锁定 30 天，以便让哀伤有时间平复。</string>
+    <string name="reconciliation_button_seal">托付给秘密</string>
+    <string name="reconciliation_success_sealed">信息已封存 30 天。</string>
+    <string name="reconciliation_vm_summary">给 %1$s 的和解信息</string>
+
+    <!-- Recovery Batch -->
+    <string name="recovery_screen_title">账号找回</string>
+    <string name="recovery_main_title">找回你的传承</string>
+    <string name="recovery_main_desc">输入你的 12 个单词恢复短语，以解密你的回忆并设置新密码。</string>
+    <string name="recovery_label_email">你的邮箱地址</string>
+    <string name="recovery_label_phrase">恢复短语（12 个单词）</string>
+    <string name="recovery_label_new_password">新密码</string>
+    <string name="recovery_button_restore">恢复我的访问权限</string>
+    <string name="recovery_error_email_required">邮箱地址为必填项。</string>
+    <string name="recovery_error_12_words">该短语必须恰好包含 12 个单词。</string>
+    <string name="recovery_error_generic">找回失败</string>
+
+    <!-- Portrait Batch -->
+    <string name="portrait_essence_title">本质肖像</string>
+    <string name="portrait_essence_loading">AI 正在通过你的文字描绘你的本质……</string>
+    <string name="portrait_essence_empty">思绪还不够多，无法描绘你的肖像。\n继续记录你的回忆吧。</string>
+    <string name="portrait_essence_error_prefix">错误：%1$s</string>
+    <string name="portrait_essence_intro_title">你的传承正在成形</string>
+    <string name="portrait_essence_intro_desc">PHOEN-X 的 AI 分析你思绪的发展轨迹，撰写一份关于你似乎是怎样一个人的综述。</string>
+    <string name="portrait_essence_button_generate">生成我的肖像</string>
+    <string name="portrait_essence_card_title">你的本质</string>
+    <string name="portrait_essence_footer_ai_version">PHOEN-X AI 综述 v8.9.7</string>
+    <string name="portrait_essence_vm_error_gen">生成错误</string>
+
+    <!-- Characters Batch -->
+    <string name="characters_onboarding_title">人物</string>
+    <string-array name="characters_onboarding_points">
+        <item>在这里管理构成你故事的人物名单。</item>
+        <item>添加对你重要的人，丰富你的叙述。</item>
+    </string-array>
+    <string name="characters_title_selection">选择一个人物</string>
+    <string name="characters_title_list">我的人物</string>
+    <string name="characters_relationship_fallback">亲近的人</string>
+    <string name="characters_count_singular">条回忆</string>
+    <string name="characters_count_plural">条回忆</string>
+    <string name="characters_edit_icon_desc">编辑</string>
+    <string name="characters_empty_title">还没有添加任何人物。</string>
+    <string name="characters_empty_subtitle">添加构成你故事的人物。</string>
+    <string name="characters_role_guardian_primary">主要监护人</string>
+    <string name="characters_role_guardian_secondary">备用监护人</string>
+
+    <string name="character_edit_title">编辑人物</string>
+    <string name="character_edit_button_save">保存</string>
+    <string name="character_type_human">人类</string>
+    <string name="character_type_animal">动物</string>
+    <string name="character_section_identity">身份</string>
+    <string name="character_label_first_name">名字</string>
+    <string name="character_label_pet_name">昵称</string>
+    <string name="character_label_last_name">姓氏（可选）</string>
+    <string name="character_section_relationship">关系</string>
+    <string name="character_label_relationship_human">亲缘关系 / 关系类型</string>
+    <string name="character_label_relationship_animal">它对你来说是什么？</string>
+    <string name="character_placeholder_relationship_human">例如：我的表亲</string>
+    <string name="character_placeholder_relationship_animal">例如：我忠实的伙伴</string>
+    <string name="character_label_history_details">你们故事的细节</string>
+    <string name="character_section_physical_human">外貌肖像（v9.0）</string>
+    <string name="character_section_physical_animal">外貌描述</string>
+    <string name="character_label_height">身高（厘米）</string>
+    <string name="character_label_weight">体重（公斤）</string>
+    <string name="character_label_eyes">眼睛</string>
+    <string name="character_label_hair_human">头发</string>
+    <string name="character_label_hair_animal">毛色</string>
+    <string name="character_section_social">社交生活（v9.0）</string>
+    <string name="character_label_profession">职业 / 从事的工作</string>
+    <string name="character_label_clothing">穿衣风格</string>
+    <string name="character_label_has_children">有孩子吗？</string>
+    <string name="character_label_yes">是</string>
+    <string name="character_label_no">否</string>
+    <string name="character_section_species">品种</string>
+    <string name="character_label_species">品种 / 物种</string>
+    <string name="character_placeholder_species">例如：金毛寻回犬、田园猫</string>
+    <string name="character_button_delete">删除这个人物</string>
+    <string name="character_delete_dialog_title">删除 %1$s？</string>
+    <string name="character_delete_dialog_text">这个人物出现在 %1$d 条回忆中——删除它会将其从这些叙述中移除，但不会删除回忆本身。</string>
+    <string name="character_delete_confirm">永久删除</string>
+    <string name="character_delete_cancel">取消</string>
+
+    <!-- Legacy Batch -->
+    <string name="legacy_prep_title">准备一份传承</string>
+    <string name="legacy_prep_recipient_selection_desc">选择你想传递回忆的对象。</string>
+    <string name="legacy_prep_button_add_recipient">在圈子中添加一个人</string>
+    <string name="legacy_prep_for_recipient">为 %1$s</string>
+    <string name="legacy_prep_selection_title">选择要传递的片段</string>
+    <string name="legacy_prep_entry_age">%1$d 岁时</string>
+    <string name="legacy_prep_entry_fallback">生命片段</string>
+    <string name="legacy_prep_button_change_recipient">更换亲人</string>
+    <string name="legacy_prep_button_validate">确认这份传承</string>
+
+    <string name="legacy_unique_key_title">唯一密钥</string>
+    <string name="legacy_unique_key_creation_title">独一无二的秘密</string>
+    <string name="legacy_unique_key_creation_desc">这段内容是独一无二的。每个账号只能使用一次。它将用一把你需要亲手交付的实体密钥进行加密。</string>
+    <string name="legacy_unique_key_placeholder">在此写下你从未对任何人说过的话……</string>
+    <string name="legacy_unique_key_button_seal">封存并生成密钥</string>
+    <string name="legacy_unique_key_success_title">秘密已封存</string>
+    <string name="legacy_unique_key_success_desc">这是你的唯一密钥，请把它记下来，它将不会再次显示。</string>
+    <string name="legacy_unique_key_exists_title">密钥已被使用</string>
+    <string name="legacy_unique_key_exists_desc">唯一密钥抽屉已经被封存。根据 PHOEN-X 的核心理念，这个抽屉是终局性的。</string>
+    <string name="legacy_unique_key_error_generic">错误</string>
+
+    <!-- Witness Batch -->
+    <string name="witness_title">见证人</string>
+    <string name="witness_info_title">见证人</string>
+    <string name="witness_info_p1">邀请亲人对你作出见证——你将永远看不到他们所写的内容。</string>
+    <string name="witness_info_p2">他们的见证在协议启动之前都会被加密并封存。</string>
+    <string name="witness_info_p3">这是一种 360 度全景记忆：透过爱你的人的眼睛看到的你的故事。</string>
+    <string name="witness_info_p4">每位见证人都会通过邮件收到一个专属链接。</string>
+    <string name="witness_info_p5">你可以选择允许某些见证人的见证在你生前就可以被阅读。</string>
+    <string name="witness_invite_description">邀请亲人讲述一段关于你的回忆。他们的话语将丰富你的传承。</string>
+    <string name="witness_empty_list">目前还没有见证人。</string>
+    <string name="witness_review_dialog_title">%1$s 的见证</string>
+    <string name="witness_review_error">无法读取该见证。</string>
+    <string name="witness_review_button_reject">拒绝</string>
+    <string name="witness_review_button_validate">通过</string>
+    <string name="witness_review_button_close">关闭</string>
+    <string name="witness_delete_dialog_title">删除这位见证人？</string>
+    <string name="witness_delete_dialog_text">你确定要取消对 %1$s 的邀请吗？</string>
+    <string name="witness_delete_button_confirm">删除</string>
+    <string name="witness_delete_button_cancel">取消</string>
+    <string name="witness_status_to_verify">待核实</string>
+    <string name="witness_status_validated">已通过</string>
+    <string name="witness_status_rejected">已拒绝</string>
+    <string name="witness_status_invited">已邀请</string>
+    <string name="witness_dialog_title">邀请一位见证人</string>
+    <string name="witness_dialog_label_name">全名</string>
+    <string name="witness_dialog_label_email">邮箱</string>
+    <string name="witness_dialog_section_orientation">见证方向</string>
+    <string name="witness_dialog_info_title">引导见证人</string>
+    <string name="witness_dialog_info_content">你可以提出一个具体问题，或建议一个主题（例如："讲讲我们的意大利之旅"，"我的性格中最让你印象深刻的是什么？"）。这能帮助见证人知道从哪里开始讲述。</string>
+    <string name="witness_dialog_placeholder_prompt">例如：和我在一起最有趣的回忆是什么？</string>
+    <string name="witness_dialog_check_allow_read">允许我在生前阅读这段见证</string>
+    <string name="witness_dialog_check_allow_reject">审核权：如果内容不合适可以拒绝该见证</string>
+    <string name="witness_dialog_button_next">下一步</string>
+    <string name="witness_dialog_button_cancel">取消</string>
+
+    <string name="witness_response_sealed_title">见证已封存</string>
+    <string name="witness_response_sealed_text">你已经为 %1$s 提交过见证。它现在已被安全保存。</string>
+    <string name="witness_response_button_back">返回</string>
+    <string name="witness_response_ritual_success">见证已封存。\n感谢你留下这段回忆。</string>
+    <string name="witness_response_title">为 %1$s 作见证</string>
+    <string name="witness_response_default_instruction">讲一个 %1$s 让你感到惊喜的瞬间。这段回忆将被珍藏，并传递给他所选择的接收人。</string>
+    <string name="witness_response_placeholder">在此写下你的故事……</string>
+    <string name="witness_response_button_seal">封存我的见证</string>
+    <string name="witness_response_transparency_reject_title">事先审核</string>
+    <string name="witness_response_transparency_reject_desc">你的亲人在传递这段见证前可以先阅读，并可以选择在认为不合适时不予传递。</string>
+    <string name="witness_response_transparency_read_title">开放的见证</string>
+    <string name="witness_response_transparency_read_desc">你的亲人要求在生前就能阅读这段见证。它也将传递给他的接收人。</string>
+    <string name="witness_response_transparency_standard_title">完全保密</string>
+    <string name="witness_response_transparency_standard_desc">你的见证已被加密。只有在协议启动后，你的亲人及其接收人才能阅读它。</string>
+    <string name="witness_response_creator_fallback">你的亲人</string>
+
+    <string name="witness_vm_error_invalid_token">链接无效或访问被拒绝。</string>
+    <string name="witness_vm_invite_label">见证人</string>
+    <string name="witness_vm_email_subject">%1$s 请求你的见证</string>
+    <string name="witness_vm_email_text">你好 %1$s，\n\n%2$s 正在 PHOEN-X 上准备属于自己的回忆空间，并希望信任你，请你为一段共同的回忆作出见证。\n\n加入他的圈子的链接：https://phoenx.app/join/%3$s</string>
+    <string name="witness_vm_error_invite">无法发送邀请，请检查你的网络连接。</string>
+    <string name="witness_vm_error_update_status">更新状态时出错。</string>
+    <string name="witness_vm_error_public_key">缺少创建者的公钥</string>
+    <string name="witness_vm_error_submit">见证提交失败，请稍后重试。</string>
+
+    <!-- Silence Batch -->
+    <string name="silence_block_days_count">已经 %1$d 天没有你的消息了。</string>
+    <string name="silence_block_subtitle">只需告诉我们你还在。</string>
+    <string name="silence_button_im_here">我在这里</string>
+    <string name="silence_checkin_title">你一直都在。</string>
+    <string name="silence_checkin_info_title">生命的证明</string>
+    <string name="silence_checkin_info_p1">轻轻一点"我在这里"，即可确认你的存在。</string>
+    <string name="silence_checkin_info_p2">如果你正在经历困难，可以无需解释地提出信号。</string>
+    <string name="silence_checkin_info_p3">即使是"暂时跳过"也算数——你依然在场。</string>
+    <string name="silence_checkin_info_p4">如果你多次未作回应，你信任的人将会收到通知。</string>
+    <string name="silence_checkin_info_p5">你可以在设置中选择这些确认的频率。</string>
+    <string name="silence_checkin_toast_noted">已记录，回头见。</string>
+    <string name="silence_button_traversing">我正在经历一些事</string>
+    <string name="silence_traversing_title">我们在这里陪着你。</string>
+    <string name="silence_traversing_desc">你无需解释任何事。我们每周都会与你联系，确认你一切安好。若连续 3 周没有回应，你信任的人将会收到通知，前来了解你的近况。</string>
+    <string name="silence_traversing_option_record">现在录一段想法</string>
+    <string name="silence_traversing_option_pass">暂时先跳过</string>
+    <string name="silence_button_close">关闭</string>
+    <string name="silence_onboarding_title">即使沉默，也是一种陪伴</string>
+    <string name="silence_onboarding_desc">PHOEN-X 会不时地请你确认自己还在。只需轻轻一点即可。如果你有一段时间没有回应，你信任的人会被温和地通知，前来了解你的近况。</string>
+    <string name="silence_onboarding_question">你希望我们多久联系你一次？</string>
+    <string name="silence_onboarding_option_2_weeks">每两周一次</string>
+    <string name="silence_onboarding_option_1_month">每月一次</string>
+    <string name="silence_onboarding_option_2_months">每两个月一次</string>
+    <string name="silence_onboarding_footer">如果你没有确认自己的存在，我们会每周与你联系。若连续 3 周没有回应，你信任的人会收到通知，以确认你一切安好。</string>
+    <string name="silence_onboarding_button_confirm">我选择这个频率</string>
+
+    <!-- Rankings Batch -->
+    <string name="rankings_title">我的排行榜</string>
+    <string name="rankings_info_title">我的排行榜</string>
+    <string name="rankings_info_point1">按主题创建你的个人排行榜。</string>
+    <string name="rankings_info_point2">这是一个纯粹用来分享你的品味与心头好的快乐空间。</string>
+    <string name="rankings_info_point3">选择一个分类，或创建属于你自己的，然后填入你喜欢的排名。</string>
+    <string name="rankings_empty_state">目前还没有任何排行榜。</string>
+    <string name="rankings_add_cover_readonly">没有氛围图片</string>
+    <string name="rankings_add_cover_prompt">添加一张氛围图片</string>
+    <string name="rankings_item_add_image">插入一张图片</string>
+    <string name="rankings_item_filled_count">已填 %1$d / %2$d 项</string>
+    <string name="rankings_suggestions_header">开始的灵感</string>
+
+    <string name="rankings_dialog_create_title">新建排行榜</string>
+    <string name="rankings_dialog_create_label_theme">主题</string>
+    <string name="rankings_dialog_create_placeholder_theme">例如：我心中的经典电影</string>
+    <string name="rankings_dialog_create_count_label">项目数量：%1$d</string>
+    <string name="rankings_dialog_create_button_confirm">创建</string>
+    <string name="rankings_dialog_create_button_cancel">取消</string>
+
+    <string name="ranking_detail_menu_rename">重命名</string>
+    <string name="ranking_detail_menu_delete">删除这个排行榜</string>
+    <string name="ranking_detail_bottom_count">已填 %1$d / %2$d 个名次</string>
+    <string name="ranking_detail_no_image">没有图片</string>
+    <string name="ranking_detail_add_image">添加图片</string>
+    <string name="ranking_detail_dialog_rename_title">重命名排行榜</string>
+    <string name="ranking_detail_dialog_rename_label">标题</string>
+    <string name="ranking_detail_dialog_rename_button_save">保存</string>
+    <string name="ranking_detail_dialog_rename_button_cancel">取消</string>
+    <string name="ranking_detail_dialog_delete_title">删除这个排行榜？</string>
+    <string name="ranking_detail_dialog_delete_text">此操作不可撤销。确定要永久删除这个排行榜吗？</string>
+    <string name="ranking_detail_dialog_delete_button_confirm">删除</string>
+    <string name="ranking_detail_dialog_delete_button_cancel">取消</string>
+    <string name="ranking_detail_dialog_item_title">第 %1$d 名</string>
+    <string name="ranking_detail_dialog_item_placeholder">输入你的选择</string>
+    <string name="ranking_detail_dialog_item_button_clear">清空</string>
+    <string name="ranking_detail_dialog_item_button_save">保存</string>
+    <string name="ranking_detail_dialog_item_button_cancel">取消</string>
+    <string name="ranking_detail_row_empty">空缺名次——点击填写</string>
+
+    <!-- Suggestions Categories -->
+    <string name="rankings_cat_music">音乐</string>
+    <string name="rankings_cat_cinema">电影与剧集</string>
+    <string name="rankings_cat_literature">文学</string>
+    <string name="rankings_cat_art">视觉艺术</string>
+    <string name="rankings_cat_travel">地点与旅行</string>
+    <string name="rankings_cat_personal">个人生活</string>
+    <string name="rankings_cat_sport">体育</string>
+
+    <!-- Portraits Batch -->
+    <string name="portrait_proche_title">亲人之镜</string>
+    <string name="portrait_proche_info_title">亲人肖像</string>
+    <string name="portrait_proche_info_content">亲人肖像为你提供 20 个问题，帮你为一位对你重要的人——一位已存在于你信任圈中的亲人——描绘肖像。你的回答会汇总成一条回忆，并在你的思绪之流中标注"肖像"徽章。你可以为同一个人重新创建亲人肖像，次数不限：每个版本都相互独立，各自拥有自己的日期。</string>
+    <string name="portrait_proche_intro">这是我眼中的你。这是我在你身上看到的、你或许从未知晓的一面。</string>
+    <string name="portrait_proche_label_who">这份肖像是为谁而作？</string>
+    <string name="portrait_proche_button_add_recipient">先添加一位亲人</string>
+    <string name="portrait_proche_placeholder_recipient">选择一位亲人</string>
+    <string name="portrait_proche_placeholder_writing">自由写下你在 %1$s 身上看到的一切……</string>
+    <string name="portrait_proche_fallback_recipient">你的亲人</string>
+    <string name="portrait_proche_button_guidance">查看引导性问题</string>
+    <string name="portrait_proche_button_seal">封存这份肖像</string>
+    <string name="portrait_proche_toast_success">肖像已封存并同步。</string>
+    <string name="portrait_proche_guidance_q1">哪段回忆最先浮现？</string>
+    <string name="portrait_proche_guidance_q2">他/她拥有什么独特的品质？</string>
+    <string name="portrait_proche_guidance_q3">他/她教会了你什么？</string>
+    <string name="portrait_proche_guidance_q4">你想让他/她知道自己代表着什么？</string>
+
+    <string name="portrait_selection_title">你要为谁撰写这份肖像？</string>
+    <string name="portrait_selection_empty">你的圈子还是空的，先在首页添加你的亲人吧。</string>
+    <string name="portrait_title_with_name">%1$s 的肖像</string>
+    <string name="portrait_title_fallback">一位亲人的肖像</string>
+    <string name="portrait_progress_label">第 %1$d / %2$d 题</string>
+    <string name="portrait_button_finish_now">现在结束</string>
+    <string name="portrait_placeholder_thoughts">在此写下你的想法……（可选）</string>
+    <string name="portrait_button_previous">上一题</string>
+    <string name="portrait_button_change_recipient">更换亲人</string>
+    <string name="portrait_button_skip">跳过</string>
+    <string name="portrait_button_next">下一题</string>
+    <string name="portrait_button_finalize">完成</string>
+
+    <string name="portrait_vm_error_empty">肖像内容为空，请至少写下一个想法。</string>
+    <string name="portrait_vm_recipient_fallback">一位亲人</string>
+    <string name="portrait_vm_summary_prefix">%1$s 的肖像</string>
+    <string name="portrait_vm_free_thought_label">自由想法</string>
+    <string name="portrait_vm_error_save">保存错误</string>
+
+    <string-array name="portrait_questions">
+        <item>你最欣赏这个人身上的哪种性格特质？</item>
+        <item>什么回忆最能将你们联系在一起？</item>
+        <item>有什么她可能自己都没意识到的事？</item>
+        <item>自从你认识她以来，她发生了什么变化？</item>
+        <item>你想让她知道你是怎样看待她的？</item>
+        <item>想到她时，你脑海中第一时间浮现的是什么？</item>
+        <item>你们一起克服过什么重大挑战？</item>
+        <item>你想向她借鉴什么品质？</item>
+        <item>什么地方最能象征你们的关系？</item>
+        <item>哪首歌或哪部电影会让你立刻想起她？</item>
+        <item>她给过你什么建议，深刻影响了你的人生轨迹？</item>
+        <item>你会怎么形容她的笑声或喜悦？</item>
+        <item>她给过你最深切的依恋证明是什么？</item>
+        <item>如果只能留下一张她的画面，会是哪一张？</item>
+        <item>在千万人中，是什么让她与众不同？</item>
+        <item>她有什么隐藏的天赋，很少有人看到？</item>
+        <item>她如何影响了你对生活的看法？</item>
+        <item>你们分享过什么秘密或心事，让你们更加亲近？</item>
+        <item>如果你们都活到一百岁，你想对她说什么？</item>
+        <item>你认为她会在人们心中留下怎样的印记？</item>
+    </string-array>
+
+    <string-array name="rankings_items_music">
+        <item>最喜欢的音乐人</item>
+        <item>最喜欢的女歌手</item>
+        <item>最喜欢的专辑</item>
+        <item>最喜欢的歌曲</item>
+        <item>最美的歌词</item>
+        <item>最美的吉他独奏</item>
+        <item>难忘的演唱会</item>
+    </string-array>
+    <string-array name="rankings_items_cinema">
+        <item>最喜欢的电影</item>
+        <item>最喜欢的男演员</item>
+        <item>最喜欢的女演员</item>
+        <item>最喜欢的导演</item>
+        <item>经典场景</item>
+        <item>经典台词</item>
+        <item>最喜欢的剧集</item>
+    </string-array>
+    <string-array name="rankings_items_literature">
+        <item>最喜欢的书</item>
+        <item>最喜欢的作者</item>
+        <item>最喜欢的名句</item>
+        <item>令人印象深刻的小说人物</item>
+    </string-array>
+    <string-array name="rankings_items_art">
+        <item>最喜欢的画作</item>
+        <item>最喜欢的画家</item>
+        <item>最喜欢的雕塑</item>
+        <item>最喜欢的摄影作品</item>
+    </string-array>
+    <string-array name="rankings_items_travel">
+        <item>最美的旅行</item>
+        <item>最美的风景</item>
+        <item>最喜欢的城市</item>
+        <item>假期回忆</item>
+    </string-array>
+    <string-array name="rankings_items_personal">
+        <item>人生回忆</item>
+        <item>最重要的人</item>
+        <item>最大的骄傲</item>
+        <item>最喜欢的菜肴</item>
+        <item>家传食谱</item>
+        <item>家庭时光</item>
+    </string-array>
+    <string-array name="rankings_items_sport">
+        <item>最喜欢的运动员</item>
+        <item>难忘的比赛</item>
+        <item>最喜欢的体育时刻</item>
+    </string-array>
+
+    <!-- Assistant Batch -->
+    <string name="assistant_welcome_message">欢迎你，%1$s！我是你的 PHOEN-X 助手。我的职责是陪伴你，让你能够传递真正重要的东西。你想先了解些什么？</string>
+    <string name="assistant_nickname_dialog_title">欢迎</string>
+    <string name="assistant_nickname_dialog_desc">开始之前，你希望我怎么称呼你？</string>
+    <string name="assistant_nickname_dialog_label">你的名字或昵称</string>
+    <string name="assistant_nickname_dialog_confirm">确认</string>
+    <string name="assistant_chat_title">PHOEN-X 助手</string>
+    <string name="assistant_chat_clear">清除</string>
+    <string name="assistant_chat_placeholder">输入你的问题……</string>
+    <string name="assistant_name_fallback_ami">朋友</string>
+    <string name="assistant_name_fallback_user">用户</string>
+    <string name="assistant_suggested_q1">如何存入我的第一条回忆？</string>
+    <string name="assistant_suggested_q2">谁能看到我写的内容？</string>
+    <string name="assistant_suggested_q3">安全保护是如何运作的？</string>
+    <string name="assistant_error_no_answer">抱歉，我无法获取答案。</string>
+    <string name="assistant_error_generic">发生了一个错误。</string>
+
+    <!-- Questions Room Batch -->
+    <string name="questions_room_title">100 个问题</string>
+    <string name="questions_room_all_answered">你所有的故事都已讲述完毕。</string>
+    <string name="questions_room_progress_label">已讲述 %1$d / %2$d 个问题</string>
+    <string name="questions_room_my_questions_header">你的个人问题</string>
+    <string name="questions_room_general_questions_header">通用问题</string>
+    <string name="questions_room_status_answered">已回答</string>
+    <string name="questions_room_button_edit_answer">修改我的回答</string>
+    <string name="questions_room_button_answer">回答</string>
+    <string name="questions_room_result_answered_header">%1$s 的回答</string>
+    <string name="questions_room_result_declined_header">选择不予回答</string>
+    <string name="questions_room_result_declined_desc">%1$s 看到了这个问题，但选择不予回答。</string>
+    <string name="questions_room_result_pending_header">尚未回答</string>
+    <string name="questions_room_result_pending_desc">这个问题还没有得到回答。</string>
+    <string name="questions_room_creator_fallback">你的亲人</string>
+    <string name="questions_room_category_all">全部</string>
+
+    <!-- Question Categories -->
+    <string name="question_cat_all">全部</string>
+    <string name="question_cat_childhood">童年</string>
+    <string name="question_cat_family">家庭</string>
+    <string name="question_cat_love">爱情</string>
+    <string name="question_cat_friendship">友情</string>
+    <string name="question_cat_work">工作</string>
+    <string name="question_cat_money">金钱与成就</string>
+    <string name="question_cat_values">价值观</string>
+    <string name="question_cat_faith">信仰与灵性</string>
+    <string name="question_cat_health">身体与健康</string>
+    <string name="question_cat_regrets">遗憾</string>
+    <string name="question_cat_dreams">梦想</string>
+    <string name="question_cat_travel">旅行与地点</string>
+    <string name="question_cat_creativity">创造力与热爱</string>
+    <string name="question_cat_secrets">秘密与心声</string>
+    <string name="question_cat_wisdom">智慧</string>
+    <string name="question_cat_my_questions">我的问题</string>
+
+    <!-- Additional Feed Categories -->
+    <string name="question_cat_hope">希望</string>
+    <string name="question_cat_transmission">传承</string>
+    <string name="question_cat_reconciliation">和解</string>
+    <string name="question_cat_humanity">人性</string>
+    <string name="question_cat_gratitude">感恩</string>
+
+    <!-- Preview Batch -->
+    <string name="preview_dashboard_title">接收人视角预览</string>
+    <string name="preview_dashboard_warning">你在这里看到的内容，忠实还原了 %1$s 空间的内容与氛围</string>
+    <string name="preview_dashboard_transmission_header">传承空间</string>
+    <string name="preview_pillar_souvenirs">回忆与叙述</string>
+    <string name="preview_pillar_photos">照片</string>
+    <string name="preview_pillar_videos">视频</string>
+    <string name="preview_pillar_audios">音频</string>
+    <string name="preview_pillar_book">生命之书</string>
+    <string name="preview_pillar_vault">保险箱</string>
+    <string name="preview_pillar_genealogy">家族树</string>
+    <string name="preview_pillar_personalities">名人</string>
+    <string name="preview_dashboard_readonly_note">注意：此预览不允许任何修改，这是只读视图，让你安心确认。</string>
+    <string name="preview_pillar_shared_item">个共享项目</string>
+    <string name="preview_pillar_shared_items">个共享项目</string>
+
+    <string name="preview_fil_title">思绪之流（预览）</string>
+    <string name="preview_fil_empty">没有与 %1$s 共享的回忆</string>
+    <string name="preview_entry_no_title">无标题回忆</string>
+    <string name="preview_entry_deposited_at">存入于 %1$s</string>
+
+    <string name="preview_book_title_label">生命之书（预览）</string>
+    <string name="preview_book_fallback_title">我的生命之书</string>
+    <string name="preview_book_available_desc">已有一份手稿可供阅读。</string>
+    <string name="preview_book_button_consult">阅读手稿</string>
+    <string name="preview_book_exists_not_shared">存在一本生命之书，但尚未与 %1$s 共享。</string>
+    <string name="preview_book_how_to_share">要共享它，请回到书籍编辑器，把这位亲人加入接收人列表。</string>
+    <string name="preview_book_none_generated">尚未生成任何生命之书——接收人目前在这方面看不到任何内容。</string>
+    <string name="preview_book_how_to_create">要创建你的生命之书，请回到你的书库，使用 AI 共同撰写功能。</string>
+
+    <string name="preview_vault_title">保险箱（预览）</string>
+    <string name="preview_vault_empty">没有为 %1$s 封存的谜题</string>
+    <string name="preview_vault_sealed_label">已封存的回忆</string>
+    <string name="preview_vault_missing_question">缺少问题</string>
+    <string name="preview_vault_protected_desc">这段内容受谜题保护，只有接收人才能通过猜出答案来解锁。</string>
+
+    <string name="preview_media_photos">照片库</string>
+    <string name="preview_media_videos">视频库</string>
+    <string name="preview_media_audios">音乐库</string>
+    <string name="preview_media_generic">媒体库</string>
+    <string name="preview_media_title_format">%1$s（预览）</string>
+    <string name="preview_media_empty">没有与 %1$s 共享的媒体</string>
+    <string name="preview_media_fallback_label">媒体</string>
+
+    <string name="preview_media_panel_unsupported">预览不支持此格式</string>
+    <string name="preview_media_panel_recipient_view">接收人视角（只读）</string>
+
+    <string name="preview_detail_title">详情（预览）</string>
+    <string name="preview_detail_not_found">找不到该回忆，或未被共享</string>
+    <string name="preview_detail_no_title">无标题</string>
+    <string name="preview_detail_no_content">没有文字内容。</string>
+    <string name="preview_detail_creator_comment">创建者的评论</string>
+    <string name="preview_detail_complements_header">补充媒体</string>
+    <string name="preview_detail_shared_with_desc">这条回忆已根据你的可见性设置与 %1$s 共享。</string>
+
+    <string name="preview_genealogy_title">家族树（预览）</string>
+    <string name="preview_genealogy_empty">你的家族树还是空的。</string>
+    <string name="preview_genealogy_readonly_badge">预览模式：只读</string>
+
+    <string name="preview_vm_recipient_fallback">这位亲人</string>
+    <string name="preview_vm_decrypt_error">解密错误</string>
+
+    <!-- Universal Batch -->
+    <string name="universal_message_title">写给全人类的信</string>
+    <string name="universal_message_info_title">写给全人类的信</string>
+    <string name="universal_message_info_p1">只有一条信息，写给所有人——在你离开后公开发布。</string>
+    <string name="universal_message_info_p2">你最多可以添加 3 张照片和一段不超过 30 秒的视频。</string>
+    <string name="universal_message_info_p3">AI 会自动将你的信息归类（爱、希望、智慧……）。</string>
+    <string name="universal_message_info_p4">我们的团队会在发布前审核每一条信息。</string>
+    <string name="universal_message_info_p5">读者只需一个免费账号即可阅读这些信件。</string>
+    <string name="universal_message_subtitle">只有一条信息，写给所有人。它会在你离开后被阅读。</string>
+    <string name="universal_message_placeholder">在此写下你写给全人类的信息……</string>
+    <string name="universal_message_section_photos">照片（最多 3 张）</string>
+    <string name="universal_message_section_video">视频（最多 30 秒）</string>
+    <string name="universal_message_button_add_video">添加视频</string>
+    <string name="universal_message_video_selected">已选择视频</string>
+    <string name="universal_message_error_video_duration">这段视频超过了 30 秒，请选择更短的片段。</string>
+    <string name="universal_message_section_profile">读者可见的信息：</string>
+    <string name="universal_message_profile_last_name">我的姓氏</string>
+    <string name="universal_message_profile_profession">我的职业</string>
+    <string name="universal_message_profile_city">我的城市</string>
+    <string name="universal_message_profile_bio_label">一句自我介绍</string>
+    <string name="universal_message_charte">我同意 PHOEN-X 团队在发布前重新阅读这段信息，并在我离开后予以发布。</string>
+    <string name="universal_message_toast_success">你的信已封存，将在你离开后发布。</string>
+    <string name="universal_message_toast_error">错误：%1$s</string>
+    <string name="universal_message_button_seal">封存这封信</string>
+    <string name="universal_message_sealed_title">你的信已封存。</string>
+    <string name="universal_message_sealed_desc">你已经存入了写给全人类的信。它将在你离开后、经我们团队审核后发布。</string>
+    <string name="universal_message_button_view">查看我的信</string>
+    <string name="universal_message_vm_error_check">校验错误</string>
+
+    <string name="universal_feed_title">写给人类的信</string>
+    <string name="universal_feed_subtitle">那些已经离去的人为你留下的话语。</string>
+    <string name="universal_feed_empty">目前还没有信件。</string>
+    <string name="universal_feed_card_header">%1$s，%2$d 岁 • %3$s</string>
+    <string name="universal_feed_creator_fallback">一位亲人</string>
+
+    <string name="universal_join_mismatch_title">检测到账号不匹配</string>
+    <string name="universal_join_mismatch_destined">这份邀请是发给：</string>
+    <string name="universal_join_mismatch_currently">但你目前登录的账号是：</string>
+    <string name="universal_join_mismatch_button_logout">登出并继续</string>
+    <string name="universal_join_greeting">你好，</string>
+    <string name="universal_join_invitation_title">%1$s 邀请你</string>
+    <string name="universal_join_role_depositary">成为他的信任监护人</string>
+    <string name="universal_join_role_witness">为他的故事作出见证</string>
+    <string name="universal_join_role_recipient">成为他的接收人之一</string>
+    <string name="universal_join_role_mirror">参与一段双人之镜</string>
+    <string name="universal_join_role_fallback">加入他的圈子</string>
+    <string name="universal_join_pedagogy_depositary">作为监护人，你将是在时机到来时解锁他记忆的钥匙。你的职责是确认他的最终离世。</string>
+    <string name="universal_join_pedagogy_witness">你的见证将丰富他的传承。你写下的内容将保持封存，直到他离开后才会被传递。</string>
+    <string name="universal_join_pedagogy_recipient">你已被选中，将收到他部分记忆和最珍贵的回忆。</string>
+    <string name="universal_join_pedagogy_mirror">同一个故事的两种视角。你们各自独立书写自己的版本，只有当双方都完成后，这段镜像才会揭晓。</string>
+    <string name="universal_join_button_accept">接受这个角色</string>
+    <string name="universal_join_button_login">登录以接受</string>
+    <string name="universal_join_restricted_to">访问权限仅限于该地址：%1$s</string>
+    <string name="universal_join_error_not_found">找不到这份邀请，或它已经过期。</string>
+    <string name="universal_join_error_already_used">这份邀请已经被使用过了。</string>
+    <string name="universal_join_error_wrong_account">抱歉，这份邀请不是发给这个账号的。</string>
+    <string name="universal_join_error_generic">关联时发生了一个错误。</string>
+
+    <string name="guest_dashboard_tab_circle">圈子</string>
+    <string name="guest_dashboard_tab_attentions">关怀</string>
+    <string name="guest_dashboard_title_circle">亲人空间</string>
+    <string name="guest_dashboard_title_attentions">关怀</string>
+    <string name="guest_dashboard_button_logout">退出登录</string>
+    <string name="guest_dashboard_welcome">欢迎来到属于你的专属空间。这里是那些信任你的人。</string>
+    <string name="guest_dashboard_pending_header">待处理的邀请</string>
+    <string name="guest_dashboard_empty">目前没有任何激活的角色。</string>
+    <string name="guest_dashboard_become_creator_title">那你呢？</string>
+    <string name="guest_dashboard_become_creator_desc">开始为你所爱的人封存属于你自己的回忆吧。</string>
+    <string name="guest_dashboard_become_creator_button">成为创建者 →</string>
+    <string name="guest_dashboard_invite_label">邀请你成为：%1$s</string>
+    <string name="guest_dashboard_invite_accept">接受</string>
+    <string name="guest_dashboard_role_depositary">我是他的信任监护人</string>
+    <string name="guest_dashboard_role_witness">我在作出见证</string>
+    <string name="guest_dashboard_role_recipient">我是他的接收人之一</string>
+    <string name="guest_dashboard_role_fallback">信任关系</string>
+
+    <string name="become_creator_witness_msg">%1$s 选择把一段珍贵的见证托付给你，讲述他的故事。</string>
+    <string name="become_creator_depositary_msg">%1$s 让你成为了他记忆的监护人。</string>
+    <string name="become_creator_recipient_msg">%1$s 选择将他故事的一部分传递给你。</string>
+    <string name="become_creator_fallback_msg">%1$s 邀请你加入了他的信任圈。</string>
+    <string name="become_creator_invite_desc">你也来体验 PHOEN-X 吧。\n开始为你所爱的人封存属于你自己的回忆。</string>
+    <string name="become_creator_button">成为创建者</string>
+    <string name="become_creator_later">以后再说</string>
+
+    <string name="attentions_title">最近收到的关怀</string>
+    <string name="attentions_card_header">%1$s 给你写了信</string>
+    <string name="attentions_card_received_at">收到于 %1$s</string>
+    <string name="attentions_card_encrypted">已加密内容</string>
+    <string name="attentions_empty_title">目前还没有收到任何关怀。</string>
+    <string name="attentions_empty_desc">这里将会显示你的亲人在生前选择传递给你的回忆。</string>
+    <string name="attentions_error_load">无法加载关怀内容。</string>
+
+    <!-- Book Batch A (Theme & Cover) -->
+    <string name="book_font_classic">经典</string>
+    <string name="book_font_modern">现代</string>
+    <string name="book_font_cursive">手写体（易读）</string>
+    <string name="book_font_elegant_plume">优雅羽笔</string>
+    <string name="book_font_royal_chronicle">皇家编年体</string>
+    <string name="book_font_plume_script">羽笔草书</string>
+    <string name="book_font_modern_book">现代书籍体</string>
+
+    <string name="book_bg_ivory">象牙白</string>
+    <string name="book_bg_parchment">羊皮纸</string>
+    <string name="book_bg_night">夜色</string>
+    <string name="book_bg_linen">亚麻</string>
+    <string name="book_bg_mist">薄雾</string>
+    <string name="book_bg_ash">灰烬色</string>
+    <string name="book_bg_powder">粉彩色</string>
+    <string name="book_bg_forest">森林绿</string>
+
+    <string name="theme_selector_paper">纸张</string>
+    <string name="theme_selector_plume">笔触</string>
+
+    <!-- Book Batch B (Viewer & Editor) -->
+    <string name="book_viewer_sealed_message">%1$s 的生命之书将在时机到来时向你开启。</string>
+    <string name="book_viewer_sealed_status">这段叙述目前处于封存状态。</string>
+    <string name="book_viewer_sealed_status_recipient">这段叙述目前处于封存状态，只有监护人才能解除封印。</string>
+    <string name="book_viewer_fallback_title">生命之书</string>
+    <string name="book_viewer_btn_back">返回</string>
+    <string name="book_viewer_empty_recipient">生命之书尚未撰写完成。</string>
+    <string name="book_viewer_empty_creator">你的书还没有创建。</string>
+    <string name="book_viewer_btn_create">创建我的书</string>
+    <string name="book_viewer_chapter_label">第 %1$d 章</string>
+    <string name="book_viewer_progress_label">第 %1$d / %2$d 章</string>
+    <string name="book_viewer_btn_edit">编辑这本书</string>
+    <string name="book_viewer_audio_fragment">语音片段</string>
+    <string name="book_viewer_audio_essence">这段回忆的本质</string>
+
+    <string name="book_editor_onboarding_title">我的生命之书</string>
+    <string name="book_editor_onboarding_p1">AI 根据你的回忆生成一本叙事之书。</string>
+    <string name="book_editor_onboarding_p2">每一章都会先以草稿形式出现——你可以确认它、修改它，或者要求 AI 重新撰写。</string>
+    <string name="book_editor_onboarding_p3">AI 永远不会读取你真实的回忆——只会读取匿名化处理后的摘要。</string>
+    <string name="book_editor_onboarding_p4">一个已确认的章节会被锁定，但你可以随时解锁它。</string>
+    <string name="book_editor_onboarding_p5">你的亲人会像读一本真正的书那样，一页一页地阅读它。</string>
+    <string name="book_editor_saving">正在保存……</string>
+    <string name="book_editor_saved">已保存</string>
+    <string name="book_editor_menu_cancel_regen">撤销上一次重新生成</string>
+    <string name="book_editor_dialog_restore_title">恢复到之前的版本？</string>
+    <string name="book_editor_dialog_restore_text">当前内容将被你上次完整重新生成之前的版本替换。此操作不可撤销。</string>
+    <string name="book_editor_dialog_restore_confirm">恢复</string>
+    <string name="book_editor_dialog_restore_cancel">取消</string>
+    <string name="book_editor_stats_label">%1$d 章 · 已整合 %2$d 条回忆</string>
+    <string name="book_editor_btn_read">阅读我的书</string>
+    <string name="book_editor_btn_regenerate">重新生成</string>
+    <string name="book_editor_section_preface">序言</string>
+    <string name="book_editor_section_rights">权限</string>
+    <string name="book_editor_section_ambiance">氛围</string>
+    <string name="book_editor_section_cover">封面</string>
+    <string name="book_editor_cover_custom_title">封面自定义</string>
+    <string name="book_editor_cover_btn_change_photo">更换照片</string>
+    <string name="book_editor_cover_btn_reset">重置</string>
+    <string name="book_editor_cover_title_color">标题颜色</string>
+    <string name="book_editor_ambiance_note">注意：纸张和笔触的选择，定义了你所有亲人在阅读你的生命之书时，将体验到的整体视觉风格。</string>
+    <string name="book_editor_section_recipients">手稿接收人</string>
+    <string name="book_editor_attribution_note">注意：只有已"归属"的回忆（即你已归入某位亲人或某个分区的回忆）才会被 AI 整合进叙述中。仍留在你思绪之流中待处理的想法不会被纳入考虑。</string>
+    <string name="book_editor_section_summary">手稿目录</string>
+
+    <string name="chapter_editor_status_validated">章节已确认</string>
+    <string name="chapter_editor_ai_rewriting">AI 正在重写这一章……</string>
+    <string name="chapter_editor_suggest_rephrase">重新措辞这一段</string>
+    <string name="chapter_editor_suggest_emotion">增加更多情感</string>
+    <string name="chapter_editor_suggest_shorten">缩短这一章</string>
+    <string name="chapter_editor_suggest_tone">改变语气</string>
+    <string name="chapter_editor_suggest_intro">添加一段引言</string>
+    <string name="chapter_editor_suggest_finish">完成这一章</string>
+    <string name="chapter_editor_ai_placeholder">告诉 AI 你想修改什么……</string>
+    <string name="chapter_editor_btn_send_ai">发送给 AI</string>
+    <string name="chapter_editor_btn_ask_ai">🤖 询问 AI</string>
+    <string name="chapter_editor_btn_validate">✅ 确认</string>
+    <string name="chapter_editor_btn_unvalidate">🔓 仍然修改</string>
+
+    <!-- Book Batch C (Logic & Generator) -->
+    <string name="book_editor_vm_creator_fallback">你的亲人</string>
+    <string name="book_editor_vm_error_gen">生成时发生错误。</string>
+    <string name="book_editor_vm_progress_plan">正在勾勒你人生的结构……</string>
+    <string name="book_editor_vm_error_plan">创建大纲时发生错误。</string>
+    <string name="book_editor_vm_error_analyze">分析章节时发生错误。</string>
+    <string name="book_editor_vm_error_ai">AI 错误：%1$s</string>
+    <string name="book_editor_vm_error_unknown">未知原因</string>
+    <string name="book_editor_vm_error_save">保存时发生错误</string>
+    <string name="book_editor_vm_error_intro_gen">生成引言时发生错误：%1$s</string>
+    <string name="book_editor_vm_error_intro_save">保存引言时发生错误</string>
+    <string name="book_editor_vm_error_ambiance">保存氛围设置时发生错误</string>
+    <string name="book_editor_vm_error_upload">发送图片时发生错误</string>
+    <string name="book_editor_vm_error_title_style">保存标题样式时发生错误</string>
+
+    <string name="book_empty_state_title">你的故事值得被讲述。</string>
+    <string name="book_empty_state_desc">PHOEN-X 将分析你的回忆，\n撰写你生命之书的第一章。\n你可以随时重新阅读、修改和确认内容。</string>
+    <string name="book_empty_state_btn_generate">起草我的书</string>
+    <string name="book_empty_state_missing_memories">还缺少 %1$d 条回忆</string>
+
+    <string name="book_proposed_plan_title">建议的结构</string>
+    <string name="book_proposed_plan_desc">这是 AI 建议如何组织你叙述的方式。</string>
+    <string name="book_proposed_plan_chapter_header">第 %1$d 章</string>
+    <string name="book_proposed_plan_no_title">无标题</string>
+    <string name="book_proposed_plan_memories_count">已整合 %1$d 条回忆</string>
+    <string name="book_proposed_plan_btn_confirm">确认并撰写</string>
+    <string name="book_proposed_plan_btn_cancel">取消</string>
+
+    <string name="book_regen_dashboard_title">你的章节状态</string>
+    <string name="book_regen_dashboard_desc">与上一次生成结果的本地比对——不涉及任何 AI 调用，也不会修改任何内容。</string>
+    <string name="book_regen_status_intact">完好</string>
+    <string name="book_regen_status_rework">需要重写</string>
+    <string name="book_regen_dashboard_chapter_status">第 %1$d 章 · %2$s</string>
+    <string name="book_regen_dashboard_orphan_title">尚未归入任何章节的回忆（%1$d 条）</string>
+    <string name="book_regen_dashboard_warning_full">下方的按钮仍会重写整本书的全部章节，包括标记为完好的章节。</string>
+    <string name="book_regen_dashboard_btn_regenerate">现在重写整本书</string>
+
+    <string name="book_generating_moments">这可能需要一些时间……</string>
+
+    <string name="book_ai_explanation_title">局部修改 vs 全书重写</string>
+    <string name="book_ai_explanation_edit_chapter_title">修改一个章节</string>
+    <string name="book_ai_explanation_edit_chapter_desc">在某个章节内使用"询问 AI"功能，只会修改这一个章节，非常适合在不影响其他内容的情况下修正细节。</string>
+    <string name="book_ai_explanation_regen_book_title">重新生成整本书</string>
+    <string name="book_ai_explanation_regen_book_desc">"重新生成"按钮（位于顶部）会重启所有章节的撰写。仅当你想要一份全新的手稿时才使用它。</string>
+    <string name="book_ai_explanation_btn_clear">非常清楚了</string>
+
+    <string name="book_onboarding_title">AI 如何书写你的人生</string>
+    <string name="book_onboarding_chrono_title">尊重你的时间线</string>
+    <string name="book_onboarding_chrono_desc">每条回忆都按年龄排序。AI 利用这些参照点，编织出从第一章到最后一章的流畅叙述。</string>
+    <string name="book_onboarding_chars_title">人物识别</string>
+    <string name="book_onboarding_chars_desc">AI 会识别你的亲人（例如"茱莉"、"我儿子马克"），并把你不同的回忆联系起来，讲述你们关系的演变。</string>
+    <string name="book_onboarding_narration_title">个性化的叙述</string>
+    <string name="book_onboarding_narration_desc">这不是一份简单的清单。AI 以第一人称（"我"）撰写，并根据你回忆中的情感调整语气（喜悦、怀旧）。</string>
+    <string name="book_onboarding_advice_title">💡 传记撰写人的建议</string>
+    <string name="book_onboarding_advice_content">你的回忆细节越丰富（人名、地点、感受），AI 的叙述就会越精确、越贴合你真实的经历。</string>
+    <string name="book_onboarding_btn_understood">我明白了</string>
+
+    <string name="book_tone_poetic">诗意</string>
+    <string name="book_tone_factual">写实</string>
+    <string name="book_tone_warm">温暖</string>
+    <string name="book_tone_nostalgic">怀旧</string>
+
+    <!-- Questions Batch A (Navigation & Cards) -->
+    <string name="questions_title">100 个问题</string>
+    <string name="questions_progress_all_answered">你所有的故事都已讲述完毕。</string>
+    <string name="questions_progress_count">已讲述 %1$d / %2$d 个问题</string>
+    <string name="questions_info_title">120 个问题</string>
+    <string name="questions_info_p1">120 个问题，分为 16 个类别，帮你深入讲述你的人生。</string>
+    <string name="questions_info_p2">回答那些触动你的问题——其余可以忽略。</string>
+    <string name="questions_info_p3">每一个回答都是一条普通的回忆，会被分类并妥善保护。</string>
+    <string name="questions_info_p4">✓ 徽章会出现在你已经回答过的问题上。</string>
+    <string name="questions_info_p5">顶部的计数器显示你的整体进度。</string>
+    <string name="questions_custom_empty">还没有自定义问题。</string>
+    <string name="questions_status_answered">✓ 已回答</string>
+    <string name="questions_custom_no_question">没有问题</string>
+    <string name="questions_custom_hint_label">提示：%1$s</string>
+    <string name="questions_custom_delete_desc">删除</string>
+    <string name="questions_custom_edit_desc">编辑</string>
+    <string name="questions_btn_answer">回答</string>
+    <string name="questions_btn_edit_answer">修改我的回答</string>
+    <string name="questions_info_title_simple">问题</string>
+    <string name="questions_info_p1_simple">超过 100 个问题，帮你深入讲述你的人生。</string>
+    <string name="questions_info_p2_simple">每一个回答都是一条已封存的回忆，随时可以传递出去。</string>
+    <string name="questions_info_p3_simple">✓ 徽章会出现在已处理过的问题上。</string>
+    <string name="questions_info_p4_simple">按自己的节奏，逐个类别地回答。</string>
+    <string name="questions_btn_illustrate">为我的回答配图</string>
+    <string name="questions_answer_placeholder">在此写下你的话……</string>
+    <string name="questions_btn_seal">封存我的回答</string>
+
+    <!-- Questions Batch B (Saisie & Dialogues) -->
+    <string name="questions_answer_title">我的回答</string>
+    <string name="questions_error_not_found">找不到该问题</string>
+    <string name="questions_btn_save">保存</string>
+    <string name="questions_custom_dialog_title_new">新建问题</string>
+    <string name="questions_custom_dialog_title_edit">编辑问题</string>
+    <string name="questions_custom_field_question">要提出的问题</string>
+    <string name="questions_custom_field_answer">预期的答案</string>
+    <string name="questions_custom_field_answer_placeholder_edit">留空表示不修改</string>
+    <string name="questions_custom_field_answer_placeholder_new">例如：巴黎</string>
+    <string name="questions_custom_field_hint">提示（可选）</string>
+    <string name="questions_custom_section_story">待解锁的叙述</string>
+    <string name="questions_custom_story_placeholder">在此讲述真实的故事……</string>
+    <string name="questions_custom_section_recipients">接收人</string>
+    <string name="questions_custom_btn_change_photo">更换图片</string>
+    <string name="questions_custom_btn_add_photo">添加照片</string>
+    <string name="questions_btn_cancel">取消</string>
+    <string name="questions_pending_title">待处理的问题</string>
+    <string name="questions_pending_info_title">待处理的问题</string>
+    <string name="questions_pending_info_p1">这些是你的亲人向你提出的问题。</string>
+    <string name="questions_pending_info_p2">你有三种选择：回答、有意识地婉拒，或先搁置不理。</string>
+    <string name="questions_pending_info_p3">如果你选择婉拒，可以留下一句简短的话——你的亲人会知道你看到了这个问题。</string>
+    <string name="questions_pending_info_p4">回答将在协议启动后传递出去。</string>
+    <string name="questions_pending_info_p5">你可以为每位亲人单独设定，是否允许他们向你提问。</string>
+    <string name="questions_pending_count">来自 %2$d 人的 %1$d 个问题</string>
+    <string name="questions_pending_empty">目前没有待处理的问题</string>
+    <string name="questions_status_pending">新问题</string>
+    <string name="questions_status_answered_pending">已回答</string>
+    <string name="questions_status_declined">已婉拒</string>
+    <string name="questions_pending_btn_answer_now">✍️ 现在回答</string>
+    <string name="questions_pending_btn_decline">🤐 我不想回答</string>
+    <string name="questions_pending_btn_later">先搁置</string>
+    <string name="questions_pending_decline_note_info">你可以添加一句简短的话（可选）——%1$s 能看到这句话，但看不到问题的答案。</string>
+    <string name="questions_pending_decline_note_placeholder">例如：有些事只属于我自己。但请知道，你的问题让我很感动。</string>
+    <string name="questions_pending_btn_confirm_decline">确认这个选择</string>
+    <string name="questions_pending_btn_back">返回</string>
+    <string name="questions_date_format">yyyy年MM月dd日</string>
+
+    <!-- Questions Batch C (Data & Leaderboard) -->
+    <string name="questions_leaderboard_title">猜谜排行榜</string>
+    <string name="questions_leaderboard_empty">还没有人猜出问题。</string>
+    <string name="questions_leaderboard_correct_answers">%1$d 个正确答案</string>
+    <string name="questions_error_load_answers">加载回答时发生错误：%1$s</string>
+    <string name="questions_error_save">保存时发生错误：%1$s</string>
+    <string name="questions_error_decrypt">解密失败</string>
+    <string name="questions_error_firestore_fallback">Firestore 备用方案出错</string>
+    <string name="questions_error_custom_save">保存自定义问题时出错</string>
+    <string name="questions_error_delete_photo">删除照片时出错</string>
+
+    <!-- 150 Questions -->
+    <string name="question_text_e1">你最早的记忆是什么？</string>
+    <string name="question_text_e2">什么气味会让你想起童年的家？</string>
+    <string name="question_text_e3">你小时候的英雄是谁？</string>
+    <string name="question_text_e4">你最喜欢的玩具是什么？</string>
+    <string name="question_text_e5">你童年的房间是什么样子的？</string>
+    <string name="question_text_e6">你小时候最大的恐惧是什么？</string>
+    <string name="question_text_e7">你童年收到过最美好的礼物是什么？</string>
+    <string name="question_text_e8">你在学校是什么样的学生？</string>
+    <string name="question_text_e9">你梦想从事的第一份职业是什么？</string>
+    <string name="question_text_e10">你的童年是什么味道的？</string>
+
+    <string name="question_text_f1">父亲传给了你什么、至今仍伴随着你的东西？</string>
+    <string name="question_text_f2">母亲给过你最好的建议是什么？</string>
+    <string name="question_text_f3">你最快乐的家庭回忆是什么？</string>
+    <string name="question_text_f4">有没有一个你珍视的家庭传统？</string>
+    <string name="question_text_f5">你的家人中，你最像谁？</string>
+    <string name="question_text_f6">你的家庭经历过最大的考验是什么？</string>
+    <string name="question_text_f7">如果能见到祖先，你想对他们说什么？</string>
+    <string name="question_text_f8">家人中最激励你的人是谁？</string>
+    <string name="question_text_f9">你总是讲述的家族故事是什么？</string>
+    <string name="question_text_f10">对你来说，"家庭"如今意味着什么？</string>
+
+    <string name="question_text_a1">你还记得自己的初恋吗？</string>
+    <string name="question_text_a2">是什么让你第一次坠入爱河？</string>
+    <string name="question_text_a3">你收到过最美好的爱的证明是什么？</string>
+    <string name="question_text_a4">你相信一见钟情吗？</string>
+    <string name="question_text_a5">哪首歌会让你想起一个你爱过的人？</string>
+    <string name="question_text_a6">随着时间推移，你对爱情有了什么新的理解？</string>
+    <string name="question_text_a7">你为爱情做过什么牺牲？</string>
+    <string name="question_text_a8">在你看来，什么样的伴侣关系才算成功？</string>
+    <string name="question_text_a9">你曾心碎过吗？你是如何走出来的？</string>
+    <string name="question_text_a10">爱情在你的人生中留下了怎样的印记？</string>
+
+    <string name="question_text_am1">谁是你最忠诚的朋友？为什么？</string>
+    <string name="question_text_am2">有没有一段你后悔失去的友谊？</string>
+    <string name="question_text_am3">在你看来，什么才是真正的朋友？</string>
+    <string name="question_text_am4">哪段友谊最让你感到惊讶？</string>
+    <string name="question_text_am5">你曾背叛过朋友吗？你是如何面对这件事的？</string>
+    <string name="question_text_am6">谁本该在你的生命中停留更久？</string>
+    <string name="question_text_am7">你的朋友们看到了你自己看不到的什么？</string>
+    <string name="question_text_am8">有没有一个你欠他一句道歉的人？</string>
+    <string name="question_text_am9">哪段友谊深刻地改变了你？</string>
+    <string name="question_text_am10">如果能重新找到一个人，你希望是谁？</string>
+
+    <string name="question_text_t1">你的第一份工作是什么？</string>
+    <string name="question_text_t2">你最大的职业成就是什么？</string>
+    <string name="question_text_t3">你有没有想过放弃一切？</string>
+    <string name="question_text_t4">哪位上司或同事给你留下了最深的印象？</string>
+    <string name="question_text_t5">你花了很长时间才掌握的技能是什么？</string>
+    <string name="question_text_t6">哪次职业上的失败最终让你成长？</string>
+    <string name="question_text_t7">对你来说，工作是一种责任还是一种乐趣？</string>
+    <string name="question_text_t8">你怀念哪种办公室氛围？</string>
+    <string name="question_text_t9">你有什么未能实现的职业梦想？</string>
+    <string name="question_text_t10">你会给今天的新人什么建议？</string>
+
+    <string name="question_text_ar1">你在财务或事业上最大的成就是什么？</string>
+    <string name="question_text_ar2">你曾一无所有过吗？你是如何重新站起来的？</string>
+    <string name="question_text_ar3">金钱让你更快乐了吗？</string>
+    <string name="question_text_ar4">为了成功，你牺牲了什么？</string>
+    <string name="question_text_ar5">如果能重新开始你的职业生涯，你会怎么做？</string>
+    <string name="question_text_ar6">对你来说，成功究竟意味着什么？</string>
+    <string name="question_text_ar7">你有没有为了钱做过让自己并不自豪的事？</string>
+    <string name="question_text_ar8">你希望自己更早学到什么理财上的道理？</string>
+    <string name="question_text_ar9">你留下了怎样的职业遗产？</string>
+    <string name="question_text_ar10">有什么你一直想要、却从未负担得起的东西？</string>
+
+    <string name="question_text_v1">对你来说最重要的价值观是什么？</string>
+    <string name="question_text_v2">你愿意为哪个事业而奋斗？</string>
+    <string name="question_text_v3">什么最让你感到愤怒？</string>
+    <string name="question_text_v4">你性格中最引以为豪的是什么？</string>
+    <string name="question_text_v5">你学会接受自己的哪个缺点？</string>
+    <string name="question_text_v6">你如何定义"正直"？</string>
+    <string name="question_text_v7">你最引以为豪的勇敢之举是什么？</string>
+    <string name="question_text_v8">有什么是你永远都无法放弃的？</string>
+    <string name="question_text_v9">"做一个好人"对你来说意味着什么？</string>
+    <string name="question_text_v10">你内心最大的力量是什么？</string>
+
+    <string name="question_text_fs1">你相信有比自己更伟大的存在吗？</string>
+    <string name="question_text_fs2">在你看来，死后会发生什么？</string>
+    <string name="question_text_fs3">你有没有对自己的信仰产生过深深的怀疑？</string>
+    <string name="question_text_fs4">有没有一刻，你感受到了某种存在？</string>
+    <string name="question_text_fs5">亲人的离世改变了你的信仰吗？</string>
+    <string name="question_text_fs6">什么给了你人生的意义？</string>
+    <string name="question_text_fs7">你祈祷或冥想过吗？它给你带来了什么？</string>
+    <string name="question_text_fs8">你希望在死后找到什么？</string>
+    <string name="question_text_fs9">有没有对你来说重要的仪式？</string>
+    <string name="question_text_fs10">你希望亲人们记住你怎样的人生观？</string>
+
+    <string name="question_text_cs1">哪次身体上的考验对你影响最深？</string>
+    <string name="question_text_cs2">你经历过重病吗？你是如何度过的？</string>
+    <string name="question_text_cs3">这些年来，你与自己身体的关系是怎样的？</string>
+    <string name="question_text_cs4">有没有什么事，你本该更早照顾好自己？</string>
+    <string name="question_text_cs5">痛苦教会了你什么？</string>
+    <string name="question_text_cs6">你害怕过死亡吗？是什么时候？</string>
+    <string name="question_text_cs7">你的身体承受过什么、却没有人知道？</string>
+    <string name="question_text_cs8">你的健康状况如何改变了你的生活方式？</string>
+    <string name="question_text_cs9">有没有什么你一直想在身体上做到、却未能实现的事？</string>
+    <string name="question_text_cs10">你想对自己的身体说些什么？</string>
+
+    <string name="question_text_r1">你最大的遗憾是什么？</string>
+    <string name="question_text_r2">如果能回到过去，你会改变什么？</string>
+    <string name="question_text_r3">你错过了什么机会？</string>
+    <string name="question_text_r4">有没有一句话，你希望自己从未说过？</string>
+    <string name="question_text_r5">你没有对谁说过足够多的"我爱你"？</string>
+    <string name="question_text_r6">哪个决定改变了你人生的走向？</string>
+    <string name="question_text_r7">你对什么感到不自豪？</string>
+    <string name="question_text_r8">你对某个人心怀愧疚吗？</string>
+    <string name="question_text_r9">如果早知道，你会做出怎样不同的选择？</string>
+    <string name="question_text_r10">如今你是如何与自己的遗憾共处的？</string>
+
+    <string name="question_text_re1">你实现过的最大梦想是什么？</string>
+    <string name="question_text_re2">你梦想住在哪里？</string>
+    <string name="question_text_re3">你放弃了什么童年的梦想？</string>
+    <string name="question_text_re4">如今是什么依然让你怀有梦想？</string>
+    <string name="question_text_re5">如果没有任何限制，你会做什么？</string>
+    <string name="question_text_re6">你做过最疯狂的梦是什么？</string>
+    <string name="question_text_re7">理想中的一天会是怎样的？</string>
+    <string name="question_text_re8">你还想经历什么样的冒险？</string>
+    <string name="question_text_re9">你希望认识谁？</string>
+    <string name="question_text_re10">你的梦想给你留下了什么讯息？</string>
+
+    <string name="question_text_vl1">哪次旅行改变了你身上的某些东西？</string>
+    <string name="question_text_vl2">有没有一个地方，让你感觉真正做回自己？</string>
+    <string name="question_text_vl3">你希望在死前看到哪个地方？</string>
+    <string name="question_text_vl4">有没有一次你后悔没有去成的旅行？</string>
+    <string name="question_text_vl5">世界上哪个地方让你怀念？</string>
+    <string name="question_text_vl6">有没有一个地方，让你联想到痛苦的回忆？</string>
+    <string name="question_text_vl7">哪个国家最让你感到惊讶？</string>
+    <string name="question_text_vl8">如果可以在别处生活，你会选择哪里？</string>
+    <string name="question_text_vl9">你独自进行过哪次旅行，从中学到了什么？</string>
+    <string name="question_text_vl10">有没有一个童年的地方，你希望再去看看？</string>
+
+    <string name="question_text_cp1">你创造过的、最引以为豪的东西是什么？</string>
+    <string name="question_text_cp2">有没有一项才能，你从未去发展过？</string>
+    <string name="question_text_cp3">你放弃了什么热爱，为什么？</string>
+    <string name="question_text_cp4">什么会让你进入完全心流的状态？</string>
+    <string name="question_text_cp5">有没有一部作品——书籍、音乐、艺术——改变了你？</string>
+    <string name="question_text_cp6">如果你曾是一名艺术家，你会创作什么？</string>
+    <string name="question_text_cp7">有没有一件事，你只为自己而做，从不让别人知道？</string>
+    <string name="question_text_cp8">你想把哪种热爱传承下去？</string>
+    <string name="question_text_cp9">你有没有创作过什么，最后又完全放弃了？</string>
+    <string name="question_text_cp10">你曾希望学会做什么？</string>
+
+    <string name="question_text_sa1">有没有一件事，你从未对任何人说过？</string>
+    <string name="question_text_sa2">你一生守着一个秘密吗？是什么？</string>
+    <string name="question_text_sa3">有没有一件你做过、却从未说起过的事？</string>
+    <string name="question_text_sa4">你曾希望在为时已晚之前向谁坦白些什么？</string>
+    <string name="question_text_sa5">有没有一个关于你自己的真相，亲人们并不知道？</string>
+    <string name="question_text_sa6">你过过哪怕很小的一段秘密生活、没有人察觉？</string>
+    <string name="question_text_sa7">有什么你一直想说、却从未敢说出口的话？</string>
+    <string name="question_text_sa8">有没有一件让你感到羞愧、独自承受的事？</string>
+    <string name="question_text_sa9">如果知道不会被任何人评判，你会坦白什么？</string>
+    <string name="question_text_sa10">你会把什么秘密带进坟墓？</string>
+
+    <string name="question_text_s1">人生教给你最艰难的一课是什么？</string>
+    <string name="question_text_s2">随着年岁增长，你看待世界的方式发生了怎样的变化？</string>
+    <string name="question_text_s3">你会对曾经年轻的自己说什么？</string>
+    <string name="question_text_s4">在你看来，幸福最重要的关键是什么？</string>
+    <string name="question_text_s5">充实人生的秘诀是什么？</string>
+    <string name="question_text_s6">你希望人们怎样记住你？</string>
+    <string name="question_text_s7">如今，你不再害怕失去什么？</string>
+    <string name="question_text_s8">如果要用一句话总结你的人生，你会怎么说？</string>
+    <string name="question_text_s9">你对平静的定义是什么？</string>
+    <string name="question_text_s10">你留下的最珍贵的东西是什么？</string>
+</resources>

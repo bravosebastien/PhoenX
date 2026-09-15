@@ -39,7 +39,12 @@ fun LanguageSettingsScreen(
             LanguageOption("System Default", "", "🌐"),
             LanguageOption("Français", "fr", "🇫🇷"),
             LanguageOption("English", "en", "🇬🇧"),
-            LanguageOption("Español", "es", "🇪🇸")
+            LanguageOption("Español", "es", "🇪🇸"),
+            LanguageOption("Italiano", "it", "🇮🇹"),
+            LanguageOption("Português", "pt", "🇵🇹"),
+            LanguageOption("Deutsch", "de", "🇩🇪"),
+            LanguageOption("中文", "zh", "🇨🇳"),
+            LanguageOption("العربية", "ar", "🇸🇦")
         )
     }
 
