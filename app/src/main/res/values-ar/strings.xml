@@ -1,0 +1,2559 @@
+<resources>
+    <string name="app_name">Phoen-X</string>
+
+    <!-- Auth Batch -->
+    <string name="auth_toast_password_reset_sent">تم إرسال بريد إلكتروني لإعادة تعيين كلمة المرور.</string>
+    <string name="auth_dialog_reactivate_title">الحساب متوقف مؤقتاً</string>
+    <string name="auth_dialog_reactivate_text">حسابك معلق حالياً. هل تود إعادة تنشيطه للوصول إلى ذكرياتك؟</string>
+    <string name="auth_dialog_reactivate_confirm">إعادة تنشيط حسابي</string>
+    <string name="auth_dialog_reactivate_cancel">إلغاء</string>
+    <string name="auth_email_verification_toast_not_verified">لم يتم التحقق من البريد الإلكتروني بعد، يرجى مراجعة صندوق الوارد.</string>
+    <string name="auth_email_verification_toast_resent">تم إعادة إرسال البريد الإلكتروني!</string>
+    <string name="auth_step_b_placeholder">النظام المتقدم في وضع الاستعداد</string>
+    <string name="auth_email_verification_title">تحقق من بريدك الإلكتروني</string>
+    <string name="auth_email_verification_text_not_verified">يجب عليك أولاً تأكيد عنوان بريدك الإلكتروني قبل أن تتمكن من تسجيل الدخول.</string>
+    <string name="auth_email_verification_text_sent">تم إرسال بريد إلكتروني للتأكيد إلى %1$s. انقر على الرابط لتنشيط حسابك.</string>
+    <string name="auth_email_verification_button_confirmed">لقد قمت بتأكيد بريدي الإلكتروني</string>
+    <string name="auth_email_verification_button_resend">إعادة إرسال البريد الإلكتروني</string>
+    <string name="auth_login_title">يسعدنا رؤيتك مجدداً</string>
+    <string name="auth_login_email_label">البريد الإلكتروني</string>
+    <string name="auth_login_password_label">كلمة المرور</string>
+    <string name="auth_login_forgot_password">نسيت كلمة المرور؟</string>
+    <string name="auth_login_button_login">تسجيل الدخول</string>
+    <string name="auth_login_button_signup">إنشاء حساب</string>
+    <string name="auth_login_button_recovery_legacy">استعادة عبر الكلمات الـ 12 (نظام قديم)</string>
+    <string name="auth_signup_title_guest">مساحتك تبدأ من هنا</string>
+    <string name="auth_signup_title_standard">مساحتك تبدأ من هنا</string>
+    <string name="auth_signup_email_label">البريد الإلكتروني</string>
+    <string name="auth_signup_birthdate_section_title">لشريط أفكارك</string>
+    <string name="auth_signup_birthdate_format">dd MMMM yyyy</string>
+    <string name="auth_signup_datepicker_ok">موافق</string>
+    <string name="auth_signup_password_label">كلمة المرور (12 رمزاً على الأقل)</string>
+    <string name="auth_signup_e2ee_warning">ذكرياتك مشفرة. في حال النسيان، استخدم إجراء الاستعادة عبر البريد الإلكتروني.</string>
+    <string name="auth_signup_terms_text">أوافق على شروط الاستخدام العامة وسياسة الخصوصية</string>
+    <string name="auth_signup_terms_link_cgu">قراءة شروط الاستخدام</string>
+    <string name="auth_signup_terms_link_privacy">سياسة الخصوصية</string>
+    <string name="auth_signup_button_continue">متابعة</string>
+    <string name="auth_signup_link_login">لديك حساب بالفعل؟ سجل دخولك</string>
+    <string name="auth_signup_step_c_title">شيء أخير...</string>
+    <string name="auth_signup_step_c_question">من هو الشخص الذي تود أن تنقل إليه إرثك يوماً ما؟</string>
+    <string name="auth_signup_step_c_depositary_label">الاسم أو اللقب</string>
+    <string name="auth_signup_step_c_button_finish">إنشاء مساحتي</string>
+    <string name="auth_signup_step_c_button_discover">أفضل الاكتشاف أولاً</string>
+
+    <!-- Auth Errors -->
+    <string name="auth_error_user_not_found">المستخدم غير موجود</string>
+    <string name="auth_error_login_failed">خطأ في الاتصال</string>
+    <string name="auth_error_signup_failed">خطأ في التسجيل</string>
+    <string name="auth_error_generic">خطأ</string>
+    <string name="auth_error_reactivation_failed">خطأ في إعادة التنشيط</string>
+    <string name="auth_error_key_missing">المفتاح مفقود</string>
+
+    <!-- Recovery Phrase Screen -->
+    <string name="recovery_toast_success">ممتاز. عبارتك في أمان.</string>
+    <string name="recovery_warning_title">قبل المتابعة</string>
+    <string name="recovery_warning_text">سيقوم PHOEN-X بتوليد عبارة الاستعادة الخاصة بك. هي عبارة عن 12 كلمة تحمي جميع ذكرياتك.\n\n⚠️ إذا فقدت هذه الكلمات الـ 12 وهاتفك أيضاً، ستضيع بياناتك للأبد. حتى نحن لن نتمكن من استعادتها. لا أحد. أبداً.\n\nإذا قمت بتغيير هاتفك يوماً ما، ستكون هذه الكلمات الـ 12 هي الطريقة الوحيدة لاستعادة ذكرياتك.\n\nأحضر قلماً وورقة الآن.</string>
+    <string name="recovery_warning_button_ready">معي قلم وورقة، أنا جاهز</string>
+    <string name="recovery_display_title">عبارة الاستعادة الخاصة بك</string>
+    <string name="recovery_display_subtitle">دون هذه الكلمات الـ 12 بالترتيب الصحيح على الورق. لا تأخذ لقطة شاشة.</string>
+    <string name="recovery_display_button_noted">لقد دونت جميع الكلمات</string>
+    <string name="recovery_verification_title">دعنا نتحقق معاً</string>
+    <string name="recovery_verification_subtitle">للتأكد من أنك دونت العبارة بشكل صحيح، أدخل الكلمات رقم %1$d و %2$d و %3$d</string>
+    <string name="recovery_verification_word_label">الكلمة رقم %1$d</string>
+    <string name="recovery_verification_error">هذا ليس صحيحاً تماماً. راجع ما دونته وحاول مرة أخرى.</string>
+    <string name="recovery_verification_button_finish">تحقق وإنهاء</string>
+
+    <!-- Home Batch -->
+    <string name="home_dialog_logout_title">تسجيل الخروج؟</string>
+    <string name="home_dialog_logout_text">هل أنت متأكد أنك تريد إغلاق الجلسة؟</string>
+    <string name="home_dialog_logout_confirm">تسجيل الخروج</string>
+    <string name="home_dialog_logout_cancel">إلغاء</string>
+    <string name="home_dialog_step_nudge_title">أداة جديدة</string>
+    <string name="home_dialog_step_nudge_text">يمكنك أيضاً إنشاء ذكرى خطوة بخطوة — اضغط على السهم الصغير للاختيار.</string>
+    <string name="home_dialog_step_nudge_confirm">فهمت</string>
+    <string name="home_header_greeting">مساء الخير، %1$s</string>
+    <string name="home_invitations_pending">لديك %1$d دعوة (دعوات) معلقة.</string>
+    <string name="home_status_security_title">الأمان</string>
+    <string name="home_status_security_subtitle">نشط</string>
+    <string name="home_status_presence_title">التواجد</string>
+    <string name="home_status_presence_subtitle">منذ %1$d أيام</string>
+    <string name="home_button_deposit">إيداع</string>
+    <string name="home_menu_atelier">المشغل (سريع)</string>
+    <string name="home_menu_step_by_step">خطوة بخطوة</string>
+    <string name="home_menu_camera_photo">آلة التصوير</string>
+    <string name="home_menu_camera_video">كاميرا الفيديو</string>
+    <string name="home_button_library">مكتبتي</string>
+    <string name="home_button_fil">شريط أفكاري</string>
+    <string name="home_section_quick_actions">إجراءات سريعة</string>
+    <string name="home_presence_confirmed">تواجدي · تم تأكيده منذ %1$d أيام</string>
+    <string name="home_stats_community">مجتمع PHOEN-X</string>
+    <string name="home_stats_members">%1$d عضواً</string>
+    <string name="home_stats_trust_circle">دائرة الثقة</string>
+    <string name="home_stats_proche_single">مقرب واحد (%1$d)</string>
+    <string name="home_stats_proche_plural">%1$d مقربين</string>
+    <string name="home_last_memory_title">آخر ذكرى</string>
+    <string name="home_last_memory_empty">لا توجد ذكريات مودعة حتى الآن.</string>
+    <string name="home_last_memory_cta">— ابدأ الآن</string>
+    <string name="home_last_memory_age">— في عمر %1$d</string>
+    <string name="home_stats_memories">ذكريات</string>
+    <string name="home_stats_questions">أسئلة</string>
+    <string name="home_stats_chapters">فصول</string>
+    <string name="home_trust_circle_title">دائرة الثقة الخاصة بي</string>
+    <string name="home_trust_circle_subtitle">إدارة المستلمين والودعاء</string>
+    <string name="home_nav_info_title">مركز القيادة الخاص بك</string>
+    <string name="home_nav_info_point1">أسطورتك: هنا تدير إرثك العاطفي والرقمي.</string>
+    <string name="home_nav_info_point2">الصمت: تتم مراقبة حالة تواجدك لضمان عدم فتح أسرارك إلا في الوقت المناسب.</string>
+    <string name="home_nav_info_point3">المكتبة: الوصول إلى جميع حجراتك (الصور، الفيديوهات، الأسرار، إلخ).</string>
+    <string name="home_nav_info_point4">دائرة الثقة: إدارة من هم المستلمون والشهود.</string>
+    <string name="home_nav_home">الرئيسية</string>
+    <string name="home_nav_circle">دائرتي</string>
+    <string name="home_nav_library">المكتبة</string>
+    <string name="home_nav_profile">الملف الشخصي</string>
+    <string name="home_perspective_memory">ذاكرتي</string>
+    <string name="home_perspective_heritage">المقربون</string>
+    <string name="home_book_title">كتابي</string>
+    <string name="home_book_default_name">كتاب الحياة</string>
+    <string name="home_genealogy_title">شجرة عائلتي</string>
+    <string name="home_genealogy_overlay">شجرة\nعائلتي</string>
+    <string name="home_encounters_title">اللقاءات</string>
+    <string name="home_encounters_overlay">اللقاءات</string>
+    <string name="home_video_guide_title">دليل الفيديو الخاص بك</string>
+    <string name="home_biographer_question_default">ما هو القرار الذي اتخذته وتشعر بأكبر قدر من الفخر تجاهه؟</string>
+    <string name="home_header_date_format">EEEE d MMMM</string>
+    <string name="home_user_name_fallback">صديقي</string>
+
+    <!-- Fil de Pensée Batch -->
+    <string name="fil_title">شريط أفكاري</string>
+    <string name="fil_fragments_count">%1$d شظايا من الحياة</string>
+    <string name="fil_info_title">شريط الأفكار</string>
+    <string name="fil_info_p1">يتم تصنيف كل ذكرى حسب العمر الذي كنت فيه عندما أودعتها.</string>
+    <string name="fil_info_p2">ليس حسب التاريخ — بل حسب العمر. هذه هي الميزة الفريدة لـ PHOEN-X.</string>
+    <string name="fil_info_p3">سيتمكن أحباؤك من التصفح ورؤية كيف تطورت عبر السنين.</string>
+    <string name="fil_info_p4">استخدم المنزلق للتنقل في مسار تفكيرك الخاص.</string>
+    <string name="fil_info_p5">كل إدخال يحمل ختم العمر — عمرك الدقيق لحظة الإيداع.</string>
+    <string name="fil_empty_state">لا توجد ذكريات في الوقت الحالي.\nالتقط فكرتك الأولى.</string>
+    <string name="fil_unattributed_label">بانتظار التخصيص</string>
+    <string name="fil_years_suffix">%1$d عاماً</string>
+    <string name="fil_age_label">في عمر %1$d</string>
+    <string name="fil_pensee_singulier">فكرة</string>
+    <string name="fil_pensees_plural">أفكار</string>
+    <string name="fil_filter_title">تصفية الشريط</string>
+    <string name="fil_filter_order_label">ترتيب العرض</string>
+    <string name="fil_filter_order_age">حسب العمر</string>
+    <string name="fil_filter_order_date">حسب تاريخ الإنشاء</string>
+    <string name="fil_filter_recipient_label">تصفية حسب المستلم</string>
+    <string name="fil_filter_recipient_all">الكل</string>
+    <string name="fil_filter_favorites_label">المفضلات</string>
+    <string name="fil_filter_favorites_only">عرض المفضلات فقط</string>
+    <string name="fil_dialogue_temporel_title">حوار زمني</string>
+    <string name="fil_dialogue_temporel_evolution">التطور: يظهر شعورك بالسلام بعد مرور %1$d عاماً.</string>
+    <string name="fil_entry_no_title">ذكرى بدون عنوان</string>
+    <string name="fil_entry_to_attribute">بانتظار التخصيص</string>
+    <string name="fil_entry_age_format">%1$d سنة %2$d شهر</string>
+    <string name="fil_entry_age_format_full">%1$d سنة %2$d شهر %3$d يوم</string>
+    <string name="fil_entry_date_format">dd MMM</string>
+
+    <!-- Memory Detail -->
+    <string name="memory_detail_essential_section">الأساسي</string>
+    <string name="memory_detail_subject_label">الموضوع</string>
+    <string name="memory_detail_question_label">السؤال</string>
+    <string name="memory_detail_story_label">القصة</string>
+    <string name="memory_detail_response_label">إجابتي</string>
+    <string name="memory_detail_tonality_label">أي نغمة؟</string>
+    <string name="memory_detail_tonality_info_title">نغمة الذكرى</string>
+    <string name="memory_detail_tonality_info_content">تحدد النغمة العاطفة المهيمنة في هذه اللحظة (فرح، حنين، حكمة...). سيستخدمها كاتب السير الذاتية بالذكاء الاصطناعي لتكييف أسلوبه عند كتابة كتاب حياتك.</string>
+    <string name="memory_detail_tonality_nuance_label">حدد التفاصيل (اختياري)</string>
+    <string name="memory_detail_tonality_nuance_placeholder">مثال: مريرة قليلاً ولكنني أبتسم وأنا أكتبها...</string>
+    <string name="memory_detail_subject_placeholder">ما هو الموضوع؟</string>
+    <string name="memory_detail_story_placeholder">اضغط للكتابة...</string>
+    <string name="memory_detail_story_editor_title">قصتك</string>
+    <string name="memory_detail_story_editor_placeholder">اكتب قصتك هنا...</string>
+    <string name="memory_detail_delete_dialog_title">حذف هذه الذكرى؟</string>
+    <string name="memory_detail_delete_confirm_title">تأكيد الحذف؟</string>
+    <string name="memory_detail_delete_has_media">هذه الذكرى تحتوي على %1$d من الوسائط. سيتم حذف كل شيء نهائياً.</string>
+    <string name="memory_detail_delete_no_media">سيؤدي هذا الإجراء إلى حذف الذكرى من شريطك ومن السحابة.</string>
+    <string name="memory_detail_delete_warning_permanent">هذا الإجراء نهائي ولا يمكن التراجع عنه. تأكيد الحذف؟</string>
+    <string name="memory_detail_delete_button_continue">متابعة</string>
+    <string name="memory_detail_delete_button_permanent">حذف نهائي</string>
+    <string name="memory_detail_delete_button_cancel">إلغاء</string>
+    <string name="memory_detail_delete_button_delete">حذف</string>
+    <string name="memory_detail_error_video_too_long_snackbar">يتجاوز هذا الفيديو الحد الأقصى المسموح به وهو 90 ثانية.</string>
+    <string name="memory_detail_topbar_portrait">بورتريه</string>
+    <string name="memory_detail_topbar_question">سؤال: %1$s</string>
+    <string name="memory_detail_topbar_portrait_response">الإجابة على البورتريه</string>
+    <string name="memory_detail_topbar_spark_story">الشرارة والقصة</string>
+    <string name="memory_detail_voice_note_ready">جاهز للتسجيل</string>
+    <string name="memory_detail_voice_note_recording">جاري التسجيل...</string>
+    <string name="memory_detail_voice_note_button_start">بدء</string>
+    <string name="memory_detail_voice_note_button_finish">إنهاء</string>
+    <string name="memory_detail_complements_section">إضافات الميديا</string>
+    <string name="memory_portrait_responses_label">الإجابات على البورتريه (%1$d)</string>
+    <string name="memory_portrait_thought_free">فكرة حرة</string>
+
+    <!-- Memory Metadata -->
+    <string name="memory_metadata_when_where_section">متى وأين</string>
+    <string name="memory_metadata_moment_label">اللحظة</string>
+    <string name="memory_metadata_date_precise_label">تاريخ دقيق</string>
+    <string name="memory_metadata_date_add">إضافة تاريخ</string>
+    <string name="memory_metadata_date_format">dd MMMM yyyy</string>
+    <string name="memory_metadata_date_format_short">dd/MM/yy</string>
+    <string name="memory_metadata_date_confirm">تأكيد</string>
+    <string name="memory_metadata_date_precise">التاريخ</string>
+    <string name="memory_metadata_date_period">الفترة</string>
+    <string name="memory_metadata_date_start">البداية</string>
+    <string name="memory_metadata_date_end">النهاية</string>
+    <string name="memory_metadata_location_label">المكان</string>
+    <string name="memory_metadata_location_none">المكان غير محدد</string>
+    <string name="memory_metadata_location_change">تغيير المكان</string>
+    <string name="memory_metadata_location_view_on_map">مشاهدة على الخريطة</string>
+    <string name="memory_metadata_who_section">لمن</string>
+    <string name="memory_metadata_recipients_label">المستلمون</string>
+    <string name="memory_metadata_living_link_title">نقل رابط حي</string>
+    <string name="memory_metadata_living_link_subtitle">إرسال هذه الذكرى الآن أو لاحقاً.</string>
+    <string name="memory_metadata_include_in_book_title">تضمين في كتابي</string>
+    <string name="memory_metadata_include_in_book_subtitle">تغذية قصة الذكاء الاصطناعي بهذه الذكرى.</string>
+    <string name="memory_metadata_include_in_book_info_title">المساعدة في كتاب الحياة</string>
+    <string name="memory_metadata_include_in_book_info_content">من خلال تضمين هذه الذكرى، سيتم استعادتها وإعادة صياغتها بواسطة الذكاء الاصطناعي لتغذية كتاب حياتك.</string>
+    <string name="memory_metadata_mentioned_persons_title">الأشخاص المذكورون</string>
+    <string name="memory_metadata_mentioned_persons_info_title">من يظهر في هذه القصة؟</string>
+    <string name="memory_metadata_mentioned_persons_info_content">حدد الأقارب الموجودين في هذه الذكرى.</string>
+    <string name="memory_metadata_protection_section">الحماية</string>
+    <string name="memory_metadata_nudge_include_in_book_button_dismiss">عدم العرض مجدداً</string>
+    <string name="memory_metadata_nudge_include_in_book_button_close">إغلاق</string>
+
+    <!-- Storage Section -->
+    <string name="storage_section_title">التنظيم</string>
+    <string name="storage_section_label">في أي أدراج؟</string>
+    <string name="storage_section_info_title">التنظيم بالأدراج</string>
+    <string name="storage_section_info_content">يتم ترتيب ذكراك تلقائياً وفقاً للوسائط التي تحتوي عليها (الصور، فيديوهات، أو تسجيلات صوتية).</string>
+
+    <!-- Memory Complements -->
+    <string name="memory_complements_add_photos_videos">صور / فيديوهات</string>
+    <string name="memory_complements_add_voice_note">ملاحظة صوتية</string>
+    <string name="memory_complements_add_camera">آلة تصوير</string>
+    <string name="memory_complements_add_record_video">تسجيل فيديو</string>
+    <string name="memory_complements_empty_state">لا توجد وسائط إضافية مرتبطة.</string>
+    <string name="memory_complements_media_fallback">وسيط %1$s</string>
+    <string name="memory_complements_visibility_public">عام</string>
+    <string name="memory_complements_visibility_restricted">مقيد</string>
+    <string name="memory_complements_error_video_too_long_toast">يتجاوز هذا الفيديو 90 ثانية.</string>
+
+    <string-array name="tonality_categories">
+        <item>حكمة</item>
+        <item>مغامرة</item>
+        <item>سر</item>
+        <item>عائلة</item>
+        <item>حب</item>
+        <item>حنين</item>
+        <item>فكاهة</item>
+        <item>درس</item>
+        <item>سفر</item>
+        <item>يومي</item>
+        <item>اختبار</item>
+    </string-array>
+
+    <string-array name="nudge_phrases">
+        <item>يوماً ما، سيبتسم شخص ما عند قراءة هذا.</item>
+        <item>أنت لا تحكي حياتك فحسب — بل تجهز هدية مليئة بالحب.</item>
+        <item>هذه الذكرى ستنتظر بصبر اللحظة المناسبة لتلمس قلباً.</item>
+        <item>كل كلمة تودع هنا هي شرارة للغد.</item>
+        <item>أنت تكتب أجمل الرسائل لمن تحب.</item>
+        <item>لا شيء يضيع، كل شيء يُنقل بحنان.</item>
+        <item>تخيل فرحة إعادة اكتشاف هذه اللحظة بعد بضع سنوات.</item>
+        <item>صوتك وكلماتك هي أثمن موروث.</item>
+        <item>هذه الشظية من الحياة هي بذرة سعادة للمستقبل.</item>
+        <item>شكراً لاهتمامك بقصتك الخاصة.</item>
+        <item>هنا يتوقف الزمن ليفسح المجال للأساسي.</item>
+        <item>سيشكرك أحباؤك على ترك هذا الأثر.</item>
+        <item>كلمة صغيرة اليوم، كنز هائل غداً.</item>
+        <item>الحياة مصنوعة من هذه اللحظات الصغيرة التي تختار ختمها.</item>
+        <item>ذاكرتك هي جسر ممدود نحو القادمين.</item>
+    </string-array>
+
+    <!-- ViewModels / Logic strings -->
+    <string name="fil_sealed_memory">ذكرى مختومة</string>
+    <string name="fil_evolution_ai">تطور في الأسلوب اكتشفه الذكاء الاصطناعي</string>
+    <string name="memory_detail_access_verifying">جاري التحقق من الوصول…</string>
+    <string name="memory_detail_content_encrypted">المحتوى مشفر</string>
+    <string name="memory_detail_living_link_success">تم نقل الذكرى بنجاح!</string>
+    <string name="memory_detail_living_link_error">فشل النقل: %1$s</string>
+    <string name="memory_detail_error_add_media">خطأ أثناء إضافة الوسائط</string>
+    <string name="memory_detail_voice_note_default_title">ملاحظة صوتية</string>
+
+    <!-- Genealogy Batch -->
+    <string name="genealogy_tree_heir_title">شجرة قريبك</string>
+    <string name="genealogy_tree_creator_title">شجرة عائلتي</string>
+    <string name="genealogy_confidentiality_info_title">خصوصية الشجرة</string>
+    <string name="genealogy_confidentiality_info_content">ستكون هذه الشجرة مرئية بالكامل لجميع مستلميك بمجرد تفعيل إرثك.</string>
+    <string name="genealogy_preview_mode_description">معاينة المستلم</string>
+    <string name="genealogy_empty_state_text">شجرتك لا تزال فارغة.</string>
+    <string name="genealogy_add_first_person_button">إضافة الشخص الأول</string>
+    <string name="genealogy_new_relation_title">علاقة جديدة لـ %1$s</string>
+    <string name="genealogy_relation_types_info_title">أنواع الروابط</string>
+    <string name="genealogy_relation_types_info_content1">أحد الوالدين: سيظهر هذا الشخص في الأعلى، مرتبطاً برابط بنوة مباشر.</string>
+    <string name="genealogy_relation_types_info_content2">الابن/الابنة: سيظهر هذا الشخص في الأسفل.</string>
+    <string name="genealogy_relation_types_info_content3">والد/والدة مشترك(ة): لربط شخص يشاركك في ابن/ابنة موجود(ة) بالفعل.</string>
+    <string name="genealogy_add_parent_title">إضافة أحد الوالدين</string>
+    <string name="genealogy_add_parent_description">سيظهر هذا الشخص في الأعلى.</string>
+    <string name="genealogy_add_child_title">إضافة ابن/ابنة</string>
+    <string name="genealogy_add_child_description">سيظهر هذا الشخص في الأسفل.</string>
+    <string name="genealogy_add_coparent_title">إضافة والد/والدة مشترك(ة)</string>
+    <string name="genealogy_add_coparent_description">لربط شخص يشاركك في ابن/ابنة موجود(ة) بالفعل.</string>
+    <string name="genealogy_select_child_dialog_title">اختر الابن/الابنة المعني(ة)</string>
+    <string name="genealogy_select_child_empty_state">هذا الشخص ليس لديه أبناء في الشجرة بعد.</string>
+    <string name="genealogy_select_child_question">بأي ابن/ابنة لـ %1$s تود ربط هذا الوالد الجديد؟</string>
+    <string name="genealogy_button_next">التالي</string>
+    <string name="genealogy_button_compris">فهمت</string>
+    <string name="genealogy_button_annuler">إلغاء</string>
+    <string name="genealogy_dialog_reparent_info_title">رابط تلقائي</string>
+    <string name="genealogy_dialog_reparent_info_content">تمت إعادة تموضع هذا الشخص تلقائياً.</string>
+    <string name="genealogy_recentrer_button">إعادة توسيط</string>
+    <string name="genealogy_person_deceased_label">رحل</string>
+    <string name="genealogy_person_identity_links_button">الهوية والروابط</string>
+    <string name="genealogy_person_deceased_status_badge">في مكان آخر، ولكن دائماً في قلوبنا</string>
+    <string name="genealogy_vertical_alignment_section_title">المحاذاة الرأسية</string>
+    <string name="genealogy_vertical_alignment_description">هذا الشخص ليس له أصول.</string>
+    <string name="genealogy_remonter_tooltip">رفع للأعلى</string>
+    <string name="genealogy_descendre_tooltip">خفض للأسفل</string>
+    <string name="genealogy_relation_nature_label">طبيعة الرابط (مثلاً: حفيد)</string>
+    <string name="genealogy_biography_section_title">السيرة الذاتية</string>
+    <string name="genealogy_biography_placeholder">بضع كلمات عن حياته/حياتها...</string>
+    <string name="genealogy_biography_empty">لم يتم إدخال سيرة ذاتية.</string>
+    <string name="genealogy_gallery_section_title">معرض الوسائط</string>
+    <string name="genealogy_gallery_info_title">صورة الملف الشخصي مقابل المعرض</string>
+    <string name="genealogy_gallery_info_content">صورة الملف الشخصي هي التي تظهر في الشجرة.</string>
+    <string name="genealogy_video_error_duration">يتجاوز هذا الفيديو 90 ثانية.</string>
+    <string name="genealogy_visibility_warning_content">سيكون هذا الوسيط مرئياً لجميع مستلميك.</string>
+    <string name="genealogy_gallery_empty">لم يتم إضافة وسائط.</string>
+    <string name="genealogy_media_summary_fallback">وسائط %1$s</string>
+    <string name="genealogy_save_details_button">حفظ التغييرات</string>
+    <string name="genealogy_delete_from_tree_button">حذف من الشجرة</string>
+    <string name="genealogy_button_close">إغلاق</string>
+    <string name="genealogy_delete_dialog_title">حذف هذا الشخص؟</string>
+    <string name="genealogy_delete_continuity_info_title">استمرارية الروابط</string>
+    <string name="genealogy_delete_continuity_info_content">سيتم ربط أبنائه/أبنائها بالأجداد تلقائياً.</string>
+    <string name="genealogy_delete_warning_content">هذا الإجراء غير قابل للتراجع.</string>
+    <string name="genealogy_delete_reparent_question">سيتم ربط الأبناء التاليين بالأجداد مباشرة. كيف تصف هذا الرابط الجديد؟</string>
+    <string name="genealogy_delete_reparent_child_label">رابط لـ %1$s</string>
+    <string name="genealogy_delete_reparent_child_placeholder">مثلاً: حفيد</string>
+    <string name="genealogy_delete_confirm_button">حذف نهائي</string>
+    <string name="genealogy_edit_person_title">تعديل الروابط</string>
+    <string name="genealogy_link_person_title">ربط شخص</string>
+    <string name="genealogy_new_person_title">شخص جديد</string>
+    <string name="genealogy_existing_profile_selected">تم اختيار ملف شخصي موجود</string>
+    <string name="genealogy_first_name_label">الاسم الأول</string>
+    <string name="genealogy_already_exists_question">هل هذا الشخص موجود بالفعل؟</string>
+    <string name="genealogy_already_in_tree_fallback">موجود بالفعل في الشجرة</string>
+    <string name="genealogy_last_name_label">الاسم العائلي (اختياري)</string>
+    <string name="genealogy_parents_section_title">والد(ا) هذا الشخص</string>
+    <string name="genealogy_search_parent_placeholder">البحث عن والد...</string>
+    <string name="genealogy_relationship_fallback_proche">قريب</string>
+    <string name="genealogy_button_save">حفظ</string>
+    <string name="genealogy_button_confirm_link">تأكيد الرابط</string>
+    <string name="genealogy_button_create">إنشاء</string>
+
+    <!-- Personalities Batch -->
+    <string name="personalities_title">شخصيات</string>
+    <string name="personalities_subtitle">شخصيات ملهمة أو مؤثرة</string>
+    <string name="personalities_info_title">شخصيات</string>
+    <string name="personalities_info_p1">هذه المساحة مخصصة للشخصيات العامة التي كان لها دور في حياتك.</string>
+    <string name="personalities_info_p2">على عكس الذكريات، هذه البطاقات مرئية لجميع مستلميك.</string>
+    <string name="personalities_info_p3">يمكنك مشاركة سيرتهم الذاتية المفضلة وشرح كيف أثروا فيك.</string>
+    <string name="personalities_filter_all">الكل</string>
+    <string name="personalities_empty_state">لم يتم إضافة أي شخصيات.</string>
+    <string name="personalities_category_other">أخرى</string>
+
+    <string name="personality_detail_edit_desc">تعديل</string>
+    <string name="personality_detail_delete_desc">حذف</string>
+    <string name="personality_detail_bio_title">السيرة الذاتية</string>
+    <string name="personality_detail_bio_empty">لم يتم إدخال سيرة ذاتية.</string>
+    <string name="personality_detail_why_title">لماذا هذا الشخص؟</string>
+    <string name="personality_detail_why_empty">لا يوجد تعليق شخصي.</string>
+    <string name="personality_detail_gallery_title">معرض الصور</string>
+    <string name="personality_detail_media_summary">صور %1$s</string>
+    <string name="personality_detail_comment_title">تعليق</string>
+    <string name="personality_detail_delete_confirm_title">حذف %1$s؟</string>
+    <string name="personality_detail_delete_confirm_text">هذا الإجراء غير قابل للتراجع.</string>
+    <string name="personality_detail_delete_button_confirm">حذف نهائي</string>
+    <string name="personality_detail_delete_button_cancel">إلغاء</string>
+    <string name="personality_detail_close_button">إغلاق</string>
+
+    <string name="personality_edit_new_title">شخصية جديدة</string>
+    <string name="personality_edit_edit_title">تعديل البطاقة</string>
+    <string name="personality_edit_name_label">الاسم الكامل</string>
+    <string name="personality_edit_category_label">الفئة</string>
+    <string name="personality_edit_custom_category_label">حدد الفئة</string>
+    <string name="personality_edit_photo_info">هذا القسم مخصص للصور فقط.</string>
+    <string name="personality_edit_bio_label">السيرة الذاتية</string>
+    <string name="personality_edit_bio_placeholder">انسخ والصق نصاً وصفياً هنا...</string>
+    <string name="personality_edit_why_label">كيف أثر هذا الشخص فيك؟</string>
+    <string name="personality_edit_why_placeholder">شارك رابطك الشخصي أو مدى تأثيره على حياتك...</string>
+    <string name="personality_edit_warning_title">تنبيه بشأن المحتوى</string>
+    <string name="personality_edit_warning_bio">يبدو أن هذا النص يتجاوز مجرد ذكر تاريخي بسيط...</string>
+    <string name="personality_edit_warning_comment">يبدو أن تعليقك الشخصي يحتوي على مصطلحات قد تكون إشكالية...</string>
+    <string name="personality_edit_warning_button_force">حفظ على أي حال</string>
+    <string name="personality_edit_warning_button_edit">تعديل النص</string>
+    <string name="personality_edit_save_button">حفظ</string>
+
+    <!-- Encounters Batch -->
+    <string name="encounter_screen_title">اللقاءات</string>
+    <string name="encounter_screen_subtitle">من كان لهم أثر</string>
+    <string name="encounter_info_title">اللقاءات</string>
+    <string name="encounter_info_p1">اللقاءات هي المكان المناسب لسرد قصص الأشخاص الذين تركوا بصمة في حياتك خارج نطاق العائلة.</string>
+    <string name="encounter_info_p2">صنفهم حسب العمر أو اكتشف من قدمك لمن.</string>
+    <string name="encounter_info_p3">بشكل افتراضي، اللقاء يكون مرئياً لمستلميك.</string>
+    <string name="encounter_search_placeholder">البحث عن اسم...</string>
+    <string name="encounter_stats_person_singular">شخص واحد (%1$d)</string>
+    <string name="encounter_stats_person_plural">%1$d أشخاص</string>
+    <string name="encounter_stats_age_range"> · من %1$d إلى %2$d عاماً</string>
+    <string name="encounter_grouping_age">العمر</string>
+    <string name="encounter_grouping_introducer">قدمه/قدمتها</string>
+    <string name="encounter_header_no_date">بدون تاريخ</string>
+    <string name="encounter_header_age_format">في عمر %1$d</string>
+    <string name="encounter_header_introducer_none">غير محدد</string>
+    <string name="encounter_header_introducer_unknown">شخص مجهول</string>
+    <string name="encounter_footer_lost">فقدنا الاتصال</string>
+    <string name="encounter_footer_passed">لم يعد موجوداً</string>
+    <string name="encounter_footer_introduced_by">بتقديم من %1$s</string>
+    <string name="encounter_empty_state">لا توجد لقاءات مسجلة.</string>
+
+    <string name="encounter_detail_load_error">تعذر تحميل البطاقة.</string>
+    <string name="encounter_detail_back_button">عودة</string>
+    <string name="encounter_detail_remove_title">حذف هذا اللقاء؟</string>
+    <string name="encounter_detail_remove_text">لن يظهر هذا الشخص في قائمة لقاءاتك بعد الآن.</string>
+    <string name="encounter_detail_remove_confirm">حذف</string>
+    <string name="encounter_detail_cancel">إلغاء</string>
+    <string name="encounter_detail_desc_back">عودة</string>
+    <string name="encounter_detail_desc_edit">تعديل</string>
+    <string name="encounter_detail_desc_delete">حذف</string>
+    <string name="encounter_detail_header_encounter">لقاؤنا</string>
+    <string name="encounter_detail_age_at_encounter">كان عمري %1$s</string>
+    <string name="encounter_detail_introduced_by">بتقديم من %1$s</string>
+    <string name="encounter_detail_legacy_title">ما قدمه/قدمته لي</string>
+    <string name="encounter_detail_media_title">صور وفيديوهات</string>
+    <string name="encounter_detail_memories_count_singular">يظهر في ذكرى واحدة (%1$d)</string>
+    <string name="encounter_detail_memories_count_plural">يظهر في %1$d ذكريات</string>
+    <string name="encounter_detail_status_separated">افترقنا · كان عمري %1$d عاماً</string>
+    <string name="encounter_detail_status_present">لا يزال في حياتي</string>
+    <string name="encounter_detail_status_lost">فقدنا الاتصال</string>
+    <string name="encounter_detail_status_passed">لم يعد موجوداً</string>
+
+    <string name="encounter_dialog_attention">تنبيه</string>
+    <string name="encounter_dialog_delete_warning_introducer">هذا الشخص قام بتقديم: %1$s.</string>
+    <string name="encounter_dialog_delete_warning_family">هذا الشخص جزء من شجرة عائلتك أيضاً.</string>
+    <string name="encounter_dialog_delete_warning_generic">هل تريد حقاً حذف هذا اللقاء؟</string>
+    <string name="encounter_dialog_delete_confirm">تأكيد الحذف</string>
+    <string name="encounter_dialog_title_new">لقاء جديد</string>
+    <string name="encounter_dialog_title_edit">تعديل اللقاء</string>
+    <string name="encounter_dialog_add_photo">إضافة</string>
+    <string name="encounter_dialog_firstname_label">الاسم الأول</string>
+    <string name="encounter_dialog_lastname_label">الاسم العائلي (اختياري)</string>
+    <string name="encounter_dialog_nature_section">طبيعة الرابط</string>
+    <string name="encounter_dialog_nature_custom_label">حدد طبيعة الرابط</string>
+    <string name="encounter_dialog_encounter_section">اللقاء</string>
+    <string name="encounter_dialog_age_label">عمري عند اللقاء</string>
+    <string name="encounter_dialog_precision_label">تفاصيل (مثلاً: رياضة...)</string>
+    <string name="encounter_dialog_location_label">المكان</string>
+    <string name="encounter_dialog_status_section">حالة الرابط</string>
+    <string name="encounter_dialog_status_present">موجود</string>
+    <string name="encounter_dialog_status_lost">فقدنا الاتصال</string>
+    <string name="encounter_dialog_status_disparu">مفقود</string>
+    <string name="encounter_dialog_end_age_label">عمري عند انتهاء العلاقة</string>
+    <string name="encounter_dialog_end_reason_label">السبب (اختياري)</string>
+    <string name="encounter_dialog_introducer_section">بتقديم من</string>
+    <string name="encounter_dialog_search_introducer_placeholder">البحث عن شخص...</string>
+    <string name="encounter_dialog_privacy_label">احتفظ به لنفسي</string>
+    <string name="encounter_dialog_privacy_info">معلومة</string>
+    <string name="encounter_dialog_privacy_subtitle">غير مرئي للورثة</string>
+    <string name="encounter_dialog_privacy_detail">إذا تم تفعيل هذا الخيار، فلن يظهر هذا اللقاء أبداً في تطبيق مستلميك.</string>
+    <string name="encounter_dialog_video_error_duration">يتجاوز هذا الفيديو 90 ثانية.</string>
+    <string name="encounter_dialog_media_security_warning">سيتم تشفير هذا الوسيط وحمايته.</string>
+    <string name="encounter_dialog_gallery_empty">لم يتم إضافة أي صور.</string>
+    <string name="encounter_dialog_biography_label">السيرة الذاتية</string>
+    <string name="encounter_dialog_biography_placeholder">ما قدمه/قدمته لي</string>
+    <string name="encounter_dialog_button_create">إنشاء اللقاء</string>
+    <string name="encounter_dialog_button_save">حفظ التغييرات</string>
+    <string name="encounter_dialog_button_remove">إزالة من اللقاءات</string>
+    <string name="encounter_dialog_create_first_hint">قم بإنشاء اللقاء أولاً لإضافة الصور.</string>
+
+    <string name="encounter_nature_partner">شريك</string>
+    <string name="encounter_nature_ami">صديق</string>
+    <string name="encounter_nature_mentor">مرشد</string>
+    <string name="encounter_nature_collegue">زميل</string>
+    <string name="encounter_nature_voisin">جار</string>
+    <string name="encounter_nature_not_set">غير محدد</string>
+
+    <string name="encounter_context_school">مدرسة</string>
+    <string name="encounter_context_work">عمل</string>
+    <string name="encounter_context_sport">رياضة</string>
+    <string name="encounter_context_passion">هواية</string>
+    <string name="encounter_context_travel">سفر</string>
+    <string name="encounter_context_other">أخرى</string>
+    <string name="encounter_context_all">الكل</string>
+
+    <!-- Recipient Batch -->
+    <string name="recipient_screen_title">مستلميَّ</string>
+    <string name="recipient_dialog_delete_title">حذف هذا المقرب؟</string>
+    <string name="recipient_dialog_delete_text">هل تريد حقاً إزالة %1$s من دائرة الثقة الخاصة بك؟</string>
+    <string name="recipient_dialog_delete_confirm">حذف</string>
+    <string name="recipient_dialog_delete_cancel">إلغاء</string>
+    <string name="recipient_empty_state_title">دائرتك فارغة.</string>
+    <string name="recipient_empty_state_subtitle">أضف الأشخاص الذين سيتلقون إرثك.</string>
+    <string name="recipient_dialog_add_title">إضافة مقرب</string>
+    <string name="recipient_dialog_add_photo_label">إضافة</string>
+    <string name="recipient_dialog_add_name_label">الاسم الكامل</string>
+    <string name="recipient_dialog_add_email_label">البريد الإلكتروني</string>
+    <string name="recipient_dialog_add_phone_label">الهاتف (اختياري)</string>
+    <string name="recipient_dialog_add_relationship_label">الرابط (مثلاً: ابن، زوجة...)</string>
+    <string name="recipient_dialog_add_button_next">التالي</string>
+    <string name="recipient_dialog_add_button_cancel">إلغاء</string>
+
+    <string name="heir_heritage_screen_title">إرثي</string>
+    <string name="heir_heritage_ask_question_desc">طرح سؤال</string>
+    <string name="heir_heritage_remaining_questions">متبقي %1$d</string>
+    <string name="heir_heritage_souvenirs_destined">تم تخصيص %1$d ذكرى لك</string>
+    <string name="heir_heritage_special_book_fallback">كتاب</string>
+    <string name="heir_heritage_special_book_subtitle_sealed">قرر %1$s مشاركة كتاب حياته معك.</string>
+    <string name="heir_heritage_special_book_subtitle_activated">سرد الحياة</string>
+    <string name="heir_heritage_special_vault_title">الخزنة</string>
+    <string name="heir_heritage_special_tree_title">الشجرة</string>
+    <string name="heir_heritage_special_map_title">خريطة العالم</string>
+    <string name="heir_heritage_special_personalities_title">شخصيات</string>
+    <string name="heir_heritage_special_encounters_title">اللقاءات</string>
+    <string name="heir_heritage_special_photos_title">الصور</string>
+    <string name="heir_heritage_special_videos_title">الفيديوهات</string>
+    <string name="heir_heritage_special_audios_title">الصوتيات</string>
+    <string name="heir_heritage_entry_fallback_title">ذكرى</string>
+    <string name="heir_heritage_date_format">dd MMMM yyyy</string>
+
+    <string name="recipient_photos_screen_title">الصور الكبيرة</string>
+    <string name="recipient_photos_empty_state">الألبوم لا يزال فارغاً.</string>
+    <string name="recipient_photos_group_standalone">صور منفردة</string>
+    <string name="recipient_photos_group_memory_fallback">ذكرى</string>
+    <string name="recipient_photos_dialog_delete_title">حذف هذه الصورة؟</string>
+    <string name="recipient_photos_dialog_delete_text">هذا الإجراء غير قابل للتراجع.</string>
+    <string name="recipient_photos_dialog_delete_confirm">حذف</string>
+    <string name="recipient_photos_dialog_delete_cancel">إلغاء</string>
+    <string name="recipient_photos_item_fallback_title">صورة</string>
+
+    <string name="recipient_videotheque_screen_title">الفيديوهات الكبيرة</string>
+    <string name="recipient_videotheque_empty_state">جهاز العرض متوقف...</string>
+    <string name="recipient_videotheque_group_standalone">فيديوهات منفردة</string>
+    <string name="recipient_videotheque_group_memory_fallback">ذكرى</string>
+    <string name="recipient_videotheque_dialog_delete_title">حذف هذا الفيديو؟</string>
+    <string name="recipient_videotheque_dialog_delete_text">هذا الإجراء غير قابل للتراجع.</string>
+    <string name="recipient_videotheque_dialog_delete_confirm">حذف</string>
+    <string name="recipient_videotheque_dialog_delete_cancel">إلغاء</string>
+    <string name="recipient_videotheque_dialog_howto_title">كيف أحصل على رابط؟</string>
+    <string name="recipient_videotheque_dialog_howto_step1">1. افتح تطبيق يوتيوب.</string>
+    <string name="recipient_videotheque_dialog_howto_step2">2. ابحث عن الفيديو المطلوب.</string>
+    <string name="recipient_videotheque_dialog_howto_step3">3. اضغط على \'مشاركة\' ثم \'نسخ الرابط\'.</string>
+    <string name="recipient_videotheque_dialog_howto_step4">4. ارجع إلى هنا والصق الرابط.</string>
+    <string name="recipient_videotheque_dialog_howto_button_continue">متابعة</string>
+    <string name="recipient_videotheque_dialog_howto_button_cancel">إلغاء</string>
+    <string name="recipient_videotheque_item_fallback_title">فيديو</string>
+
+    <string name="recipient_discotheque_screen_title">المكتبة الصوتية الكبيرة</string>
+    <string name="recipient_discotheque_empty_state">المشغل صامت...</string>
+    <string name="recipient_discotheque_group_standalone">وسائط منفردة</string>
+    <string name="recipient_discotheque_group_memory_fallback">ذكرى</string>
+    <string name="recipient_discotheque_dialog_delete_title">حذف هذا المقطع؟</string>
+    <string name="recipient_discotheque_dialog_delete_text">هذا الإجراء غير قابل للتراجع.</string>
+    <string name="recipient_discotheque_dialog_delete_confirm">حذف</string>
+    <string name="recipient_discotheque_dialog_delete_cancel">إلغاء</string>
+    <string name="recipient_discotheque_dialog_howto_title">كيف أحصل على رابط؟</string>
+    <string name="recipient_discotheque_dialog_howto_step1">1. افتح تطبيق سبوتيفاي أو ديزر.</string>
+    <string name="recipient_discotheque_dialog_howto_step2">2. ابحث عن الأغنية المطلوبة.</string>
+    <string name="recipient_discotheque_dialog_howto_step3">3. اضغط على \'مشاركة\' ثم \'نسخ الرابط\'.</string>
+    <string name="recipient_discotheque_dialog_howto_step4">4. ارجع إلى هنا والصق الرابط.</string>
+    <string name="recipient_discotheque_dialog_howto_button_continue">متابعة</string>
+    <string name="recipient_discotheque_dialog_howto_button_cancel">إلغاء</string>
+    <string name="recipient_discotheque_item_fallback_title">ذكرى صوتية</string>
+
+    <string name="recipient_memory_detail_topbar_question">سؤال حياة</string>
+    <string name="recipient_memory_detail_topbar_memory">ذكرى من قريبك</string>
+    <string name="recipient_memory_detail_sealed_title">هذه الذكرى مختومة.</string>
+    <string name="recipient_memory_detail_sealed_subtitle">سيتم فك تشفيرها عند تفعيل الإرث.</string>
+    <string name="recipient_memory_detail_entry_fallback_title">ذكرى</string>
+    <string name="recipient_memory_detail_label_response">إجابتي</string>
+    <string name="recipient_memory_detail_label_story">القصة</string>
+    <string name="recipient_memory_detail_empty_content">لا يوجد محتوى مكتوب.</string>
+    <string name="recipient_memory_detail_comment_label">تعليق من قريبك</string>
+    <string name="recipient_memory_detail_complements_label">إضافات الميديا</string>
+    <string name="recipient_memory_detail_complement_fallback">ميديا</string>
+
+    <string name="recipient_media_filter_standard">افتراضي</string>
+    <string name="recipient_media_filter_by_memory">حسب الذكرى</string>
+    <string name="recipient_media_filter_by_recipient">حسب المستلم</string>
+    <string name="recipient_media_filter_all_audios">كل الصوتيات</string>
+    <string name="recipient_media_filter_vocals_only">التسجيلات فقط</string>
+    <string name="recipient_media_filter_music_only">الموسيقى فقط</string>
+    <string name="recipient_media_filter_all">الكل</string>
+    <string name="recipient_media_sealed_photo">صورة مختومة</string>
+    <string name="recipient_media_sealed_video">فيديو مختوم</string>
+    <string name="recipient_media_sealed_audio">ذكرى صوتية مختومة</string>
+    <string name="recipient_media_sealed_portrait">بورتريه مختوم</string>
+    <string name="recipient_media_sealed_answer">إجابة مختومة</string>
+    <string name="recipient_media_sealed_thought">فكرة مختومة</string>
+    <string name="recipient_media_sealed_content_warning">سيتم فك تشفير هذا المحتوى عند تفعيل البروتوكول.</string>
+    <string name="recipient_media_sealed_music">موسيقى مختومة</string>
+    <string name="recipient_media_sealed_writing">نص مختوم</string>
+    <string name="recipient_media_sealed_generic">وسيط مختوم</string>
+    <string name="recipient_media_fallback_music">مقطع مشارك</string>
+    <string name="recipient_media_fallback_video">فيديو مشارك</string>
+    <string name="recipient_media_fallback_generic">ميديا</string>
+    <string name="recipient_media_status_sealed">مختوم</string>
+    <string name="recipient_media_status_encrypted">محتوى مشفر</string>
+    <string name="recipient_media_creator_name_fallback">قريبك</string>
+
+    <string name="recipient_cube_armoire_title">خزانة %1$s</string>
+    <string name="recipient_cube_armoire_fallback">خزانة...</string>
+    <string name="recipient_cube_explore_subtitle">استكشف إرثه/إرثها</string>
+    <string name="recipient_cube_heritage_opened_title">الإرث مفتوح</string>
+    <string name="recipient_cube_heritage_intimate_title">الإرث الحميم</string>
+    <string name="recipient_cube_heritage_opened_desc">يمكنك الآن استكشاف جميع ذكريات %1$s.</string>
+    <string name="recipient_cube_heritage_intimate_desc">ستفتح أغراض هذه الخزانة أمامك أثناء الاستكشاف.</string>
+    <string name="recipient_cube_access_label">الوصول إلى الإرث</string>
+    <string name="recipient_cube_enter_button">الدخول إلى ذكرياته/ذكرياتها</string>
+    <string name="recipient_cube_become_creator_title">وأنت؟</string>
+    <string name="recipient_cube_become_creator_subtitle">ابدأ بختم ذكرياتك الخاصة.</string>
+    <string name="recipient_cube_become_creator_button">كن مبدعاً</string>
+
+    <string name="recipient_allocation_fiche_title">بطاقة المستلم</string>
+    <string name="recipient_allocation_details_fallback">تفاصيل</string>
+    <string name="recipient_allocation_souvenirs_count">%1$d ذكريات مخصصة لـ %2$s.</string>
+    <string name="recipient_allocation_proche_fallback">هذا المقرب</string>
+    <string name="recipient_allocation_answer_prefix">إجابتي على: %1$s</string>
+    <string name="recipient_allocation_no_title">ذكرى بدون عنوان</string>
+    <string name="recipient_allocation_public_badge">عام</string>
+    <string name="recipient_allocation_date_format">dd MMM yyyy</string>
+
+    <string name="recipient_detail_details_fallback">تفاصيل</string>
+    <string name="recipient_detail_preview_button">مشاهدة مساحته/مساحتها (معاينة)</string>
+    <string name="recipient_detail_preview_subtitle">تحقق مما سيراه %1$s فعلياً.</string>
+    <string name="recipient_detail_portrait_section">بورتريه خاص به/بها (المرآة)</string>
+    <string name="recipient_detail_portrait_completed">اكتمل البورتريه</string>
+    <string name="recipient_detail_portrait_not_started">لم يبدأ البورتريه بعد</string>
+    <string name="recipient_detail_portrait_subtitle">أخبره/أخبريها بما تراه فيه/فيها.</string>
+    <string name="recipient_detail_assigned_content_section">المحتويات المخصصة</string>
+    <string name="recipient_detail_section_souvenirs">ذكريات</string>
+    <string name="recipient_detail_section_photos">صور</string>
+    <string name="recipient_detail_section_videos">فيديوهات</string>
+    <string name="recipient_detail_section_audios">صوتيات</string>
+    <string name="recipient_detail_permissions_button">إدارة حقوق الوصول</string>
+    <string name="recipient_detail_no_title">بدون عنوان</string>
+    <string name="recipient_detail_see_all">عرض الكل (%1$d) ←</string>
+
+    <string name="recipient_permissions_title">%1$s — حقوق الوصول</string>
+    <string name="recipient_permissions_proche_fallback">مقرب</string>
+    <string name="recipient_permissions_questions_header">الأسئلة</string>
+    <string name="recipient_permissions_allow_questions">السماح لـ %1$s بطرح الأسئلة عليَّ</string>
+    <string name="recipient_permissions_allow_questions_desc">سيتمكن %1$s من طرح أسئلة مختومة.</string>
+    <string name="recipient_permissions_limit_header">حد الأسئلة</string>
+    <string name="recipient_permissions_unlimited">عدد غير محدود من الأسئلة</string>
+    <string name="recipient_permissions_limited">تحديد عدد معين</string>
+    <string name="recipient_permissions_save_button">حفظ الحقوق</string>
+
+    <string name="recipient_viewmodel_creator_fallback">قريبك</string>
+    <string name="recipient_viewmodel_email_subject">يرغب %1$s في مشاركة قصته معك</string>
+    <string name="recipient_viewmodel_email_text">مرحباً %1$s،\n\nيقوم %2$s بإعداد مساحة ذكرياته على PHOEN-X ويرغب في منحك ثقته باختيارك مستلماً لقصة حياته.\n\nرابط الانضمام: https://phoenx.app/join/%3$s</string>
+
+    <string name="recipient_cube_viewmodel_creator_fallback">قريبك</string>
+    <string name="recipient_cube_viewmodel_error_fallback">خطأ في الاتصال</string>
+
+    <string name="recipient_archive_screen_title">الأرشيف الكبير</string>
+    <string name="recipient_archive_empty_state">ألبوم الصور لا يزال فارغاً.</string>
+    <string name="recipient_archive_item_age">%1$d عاماً</string>
+
+    <string name="recipient_books_screen_title">المكتبة الكبيرة</string>
+    <string name="recipient_books_empty_state">لم يتم إيداع أي كتابات في هذه المكتبة بعد.</string>
+
+    <!-- Settings Batch -->
+    <string name="settings_screen_title">الإعدادات</string>
+    <string name="settings_info_title">الإعدادات</string>
+    <string name="settings_info_point1">تفعيل البصمة لتأمين الوصول للتطبيق.</string>
+    <string name="settings_info_point2">اختيار تكرار التحقق من التواجد.</string>
+    <string name="settings_info_point3">لا يتم بيع بياناتك أو استخدامها لأغراض تجارية.</string>
+    <string name="settings_info_point4">لا يحتوي PHOEN-X على أي إعلانات.</string>
+    <string name="settings_info_point5">يمكنك إدارة مستلميك ووديعك من هنا.</string>
+    <string name="settings_section_account">حسابي</string>
+    <string name="settings_item_profile_title">ملفي الشخصي</string>
+    <string name="settings_item_profile_subtitle">إدارة اسمك ومعلوماتك</string>
+    <string name="settings_section_security">الأمان والنقل</string>
+    <string name="settings_item_protocol_title">النقل والبروتوكول</string>
+    <string name="settings_item_protocol_subtitle">إدارة وديعك والمواعيد النهائية</string>
+    <string name="settings_item_recipients_title">مستلميَّ</string>
+    <string name="settings_item_recipients_subtitle">إدارة دائرة الثقة الخاصة بك</string>
+    <string name="settings_item_notification_contacts_title">جهات اتصال للإخطار</string>
+    <string name="settings_item_notification_contacts_subtitle">أشخاص يتم إبلاغهم بغيابك</string>
+    <string name="settings_item_presence_title">تكرار التواجد</string>
+    <string name="settings_item_presence_subtitle">التحقق كل %1$d يوماً</string>
+    <string name="settings_biometric_title">بصمة الإصبع</string>
+    <string name="settings_biometric_subtitle">فتح آمن للتطبيق</string>
+    <string name="settings_item_unique_key_title">درج المفتاح الواحد</string>
+    <string name="settings_item_unique_key_subtitle">سرك الأكثر قيمة</string>
+    <string name="settings_item_reconciliation_title">بروتوكول المصالحة</string>
+    <string name="settings_item_reconciliation_subtitle">كلمات سرية تفتح لاحقاً</string>
+    <string name="settings_item_detective_title">اختبار الخزنة</string>
+    <string name="settings_item_detective_subtitle">فك رموز ألغازك الخاصة</string>
+    <string name="settings_section_accessibility">إمكانية الوصول</string>
+    <string name="settings_item_accessibility_title">الوضع الصوتي الكامل</string>
+    <string name="settings_item_accessibility_subtitle">التنقل عبر الصوت</string>
+    <string name="settings_item_reset_video_title">إعادة عرض فيديو الترحيب</string>
+    <string name="settings_item_reset_video_subtitle">إعادة تعيين واجهة الفيديو</string>
+    <string name="settings_section_personalization">التخصيص</string>
+    <string name="settings_accent_color_label">اللون الرئيسي</string>
+    <string name="settings_background_style_label">نمط الخلفية</string>
+    <string name="settings_background_style_radial">دائري (افتراضي)</string>
+    <string name="settings_background_style_linear">خطي</string>
+    <string name="settings_background_style_solid">لون واحد</string>
+    <string name="settings_rhythm_dialog_title">تكرار التواجد</string>
+    <string name="settings_rhythm_option_2_weeks">كل أسبوعين</string>
+    <string name="settings_rhythm_option_1_month">مرة في الشهر</string>
+    <string name="settings_rhythm_option_2_months">كل شهرين</string>
+    <string name="settings_rhythm_info">إذا لم تؤكد تواجدك، سنقوم بتذكيرك كل أسبوع.</string>
+    <string name="settings_button_save">حفظ</string>
+    <string name="settings_button_cancel">إلغاء</string>
+
+    <!-- Protocol Batch -->
+    <string name="protocol_toast_success">تم إرسال الدعوة بنجاح.</string>
+    <string name="protocol_screen_title">النقل والبروتوكول</string>
+    <string name="protocol_info_title">النقل</string>
+    <string name="protocol_info_content">الحراس (الودعاء) هم الأشخاص الوحيدون الذين يمكنهم تأكيد رحيلك.</string>
+    <string name="protocol_header_title">إدارة إرثك</string>
+    <string name="protocol_section_guardians">حراسي الموثوق بهم</string>
+    <string name="protocol_guardian_primary">الحارس الأساسي</string>
+    <string name="protocol_guardian_secondary">الحارس الثانوي</string>
+    <string name="protocol_section_security">أمان ضد الأخطاء</string>
+    <string name="protocol_security_desc">الوقت المتاح لك لإلغاء تفعيل البروتوكول في حالة الخطأ.</string>
+    <string name="protocol_threshold_format">%1$d ساعة</string>
+    <string name="protocol_legal_note">ملاحظة: هذا البروتوكول أخلاقي وخاص.</string>
+    <string name="protocol_button_add_guardian">تعيين حارس</string>
+    <string name="protocol_status_active">ارتباط نشط</string>
+    <string name="protocol_status_pending">دعوة معلقة</string>
+    <string name="protocol_dialog_add_primary">تعيين الحارس الأساسي</string>
+    <string name="protocol_dialog_add_secondary">تعيين الحارس الثانوي</string>
+    <string name="protocol_dialog_add_info">سيتلقى هذا الشخص دعوة عبر البريد الإلكتروني.</string>
+    <string name="protocol_dialog_add_name_label">الاسم الكامل</string>
+    <string name="protocol_dialog_add_email_label">البريد الإلكتروني</string>
+    <string name="protocol_dialog_add_button_invite">دعوة</string>
+    <string name="protocol_dialog_add_button_cancel">إلغاء</string>
+    <string name="protocol_error_update_threshold">خطأ في تحديث المهلة</string>
+    <string name="protocol_invitation_label_primary">الحارس الأساسي</string>
+    <string name="protocol_invitation_label_secondary">الحارس الثانوي</string>
+    <string name="protocol_email_subject">اختارك %1$s لتكون حارساً موثوقاً</string>
+    <string name="protocol_email_text">مرحباً %1$s،\n\nيرغب %2$s في أن يعهد إليك بدور الحارس لقصة حياته على PHOEN-X.\n\nرابط الانضمام: https://phoenx.app/join/%3$s</string>
+    <string name="protocol_error_remove">خطأ في الحذف</string>
+
+    <!-- Profile Batch -->
+    <string name="profile_dialog_suspend_title">تعليق الحساب؟</string>
+    <string name="profile_dialog_suspend_text">سيصبح حسابك غير نشط وسيتم تسجيل خروجك.</string>
+    <string name="profile_dialog_suspend_confirm">تأكيد التعليق</string>
+    <string name="profile_dialog_suspend_cancel">إلغاء</string>
+    <string name="profile_dialog_delete_title">حذف نهائي</string>
+    <string name="profile_dialog_delete_text">هذا الإجراء غير قابل للتراجع. سيتم حذف جميع بياناتك.</string>
+    <string name="profile_dialog_delete_placeholder">حذف</string>
+    <string name="profile_dialog_delete_confirm">حذف نهائي</string>
+    <string name="profile_dialog_delete_cancel">إلغاء</string>
+    <string name="profile_toast_delete_reauth">الأمان: سجل دخولك مرة أخرى قبل حذف حسابك.</string>
+    <string name="profile_bottomsheet_photo_title">صورة ملفي الشخصي</string>
+    <string name="profile_option_take_photo">التقاط صورة</string>
+    <string name="profile_option_gallery">اختيار من المعرض</string>
+    <string name="profile_screen_title">ملفي الشخصي</string>
+    <string name="profile_display_name_fallback">مستخدم</string>
+    <string name="profile_info_visibility">سيكون هذا الاسم مرئياً للأشخاص الذين تدعوهم.</string>
+    <string name="profile_item_rich_profile_title">بورتريه حياتي</string>
+    <string name="profile_item_rich_profile_subtitle">أثرِ قصتك من أجل كاتب السير بالذكاء الاصطناعي</string>
+    <string name="profile_section_appearance">المظهر والأسلوب</string>
+    <string name="profile_button_reset_defaults">إعادة ضبط الإعدادات الافتراضية</string>
+    <string name="profile_section_danger_zone">منطقة الخطر</string>
+    <string name="profile_button_suspend">تعليق حسابي</string>
+    <string name="profile_button_delete">حذف حسابي نهائياً</string>
+    <string name="profile_button_back">العودة للإعدادات</string>
+    <string name="profile_dialog_edit_name_title">تعديل اسمي</string>
+    <string name="profile_dialog_edit_name_label">اسم الاستخدام</string>
+    <string name="profile_dialog_edit_name_confirm">حفظ</string>
+    <string name="profile_dialog_edit_name_cancel">إلغاء</string>
+    <string name="profile_edit_name_desc">تعديل الاسم</string>
+
+    <!-- Notification Contacts Batch -->
+    <string name="notification_contacts_screen_title">جهات اتصال للإخطار</string>
+    <string name="notification_contacts_info_title">جهات اتصال للإخطار</string>
+    <string name="notification_contacts_info_point1">سيتم إبلاغ هؤلاء الأشخاص بغيابك عبر البريد الإلكتروني.</string>
+    <string name="notification_contacts_info_point2">لن يكون لديهم أي وصول إلى إرثك على PHOEN-X.</string>
+    <string name="notification_contacts_info_point3">حد أقصى جهتي اتصال.</string>
+    <string name="notification_contacts_info_point4">بريد إلكتروني رسمي ومختصر.</string>
+    <string name="notification_contacts_info_point5">المعلومة فقط.</string>
+    <string name="notification_contacts_header_desc">سيتم إخطار هؤلاء الأشخاص بوقار في الوقت المناسب.</string>
+    <string name="notification_contacts_empty_state">لم يتم إضافة أي جهات اتصال بعد.</string>
+    <string name="notification_contacts_button_max_reached">تم الوصول للحد الأقصى (2).</string>
+    <string name="notification_contacts_button_add">+ إضافة جهة اتصال</string>
+    <string name="notification_contacts_dialog_delete_title">حذف جهة الاتصال؟</string>
+    <string name="notification_contacts_dialog_delete_text">هل تريد حقاً إزالة %1$s من قائمة الإخطار؟</string>
+    <string name="notification_contacts_dialog_delete_confirm">حذف</string>
+    <string name="notification_contacts_dialog_delete_cancel">إلغاء</string>
+    <string name="notification_contacts_dialog_add_title">جهة اتصال جديدة</string>
+    <string name="notification_contacts_dialog_add_name_label">الاسم الكامل</string>
+    <string name="notification_contacts_dialog_add_email_label">البريد الإلكتروني</string>
+    <string name="notification_contacts_dialog_add_relationship_label">الرابط (مثلاً: ابن، صديق...)</string>
+    <string name="notification_contacts_dialog_add_button_confirm">إضافة</string>
+    <string name="notification_contacts_dialog_add_button_cancel">إلغاء</string>
+
+    <!-- Accessibility Batch -->
+    <string name="accessibility_screen_title">إمكانية الوصول</string>
+    <string name="accessibility_voice_mode_title">الوضع الصوتي الكامل</string>
+    <string name="accessibility_voice_mode_desc">مصمم للتنقل والاستماع والتقاط ذكرياتك دون الحاجة لاستخدام لوحة المفاتيح.</string>
+    <string name="accessibility_activate_voice_label">تفعيل الصوت</string>
+    <string name="accessibility_status_listening">التطبيق يستمع إليك</string>
+    <string name="accessibility_status_disabled">معطل</string>
+    <string name="accessibility_commands_title">الأوامر المتاحة:</string>
+    <string name="accessibility_command_deposit">\'أودع فكرة\'</string>
+    <string name="accessibility_command_timeline">\'افتح شريط أفكاري\'</string>
+    <string name="accessibility_command_night_mode">\'الوضع الليلي\'</string>
+    <string name="accessibility_command_home">\'العودة للرئيسية\'</string>
+    <string name="accessibility_command_help">\'مساعدة\'</string>
+
+    <!-- Rich Profile Batch -->
+    <string name="rich_profile_screen_title">بورتريه حياتي</string>
+    <string name="rich_profile_onboarding_title">بورتريه حياتي</string>
+    <string name="rich_profile_onboarding_point1">أثرِ قصتك من أجل كاتب السير بالذكاء الاصطناعي.</string>
+    <string name="rich_profile_onboarding_point2">ستساعد هذه المعلومات الذكاء الاصطناعي على فهم هويتك.</string>
+    <string name="rich_profile_button_save">حفظ</string>
+    <string name="rich_profile_info_title">بورتريه الحياة</string>
+    <string name="rich_profile_info_content">يجمع بورتريه الحياة المعلومات الواقعية التي تصفك.</string>
+    <string name="rich_profile_header_desc">ستساعد هذه المعلومات الذكاء الاصطناعي على فهم قصتك بشكل أفضل.</string>
+    <string name="rich_profile_section_who_am_i">من أنا</string>
+    <string name="rich_profile_label_bio">السيرة الذاتية / وصف حر</string>
+    <string name="rich_profile_label_profession">المهنة / العمل</string>
+    <string name="rich_profile_section_family">العائلة والمقربون</string>
+    <string name="rich_profile_question_siblings">هل لديك إخوة أو أخوات؟</string>
+    <string name="rich_profile_label_siblings_detail">تفاصيل (مثلاً: أخان أكبر مني)</string>
+    <string name="rich_profile_question_children">هل لديك أطفال؟</string>
+    <string name="rich_profile_label_children_detail">تفاصيل (مثلاً: ابنة عمرها 10 سنوات)</string>
+    <string name="rich_profile_section_physical">البورتريه الجسدي</string>
+    <string name="rich_profile_label_height">الطول (سم)</string>
+    <string name="rich_profile_label_weight">الوزن (كجم)</string>
+    <string name="rich_profile_label_eye_color">لون العينين</string>
+    <string name="rich_profile_label_hair_color">لون الشعر</string>
+    <string name="rich_profile_section_hobbies">الهوايات والاهتمامات</string>
+    <string name="rich_profile_label_hobbies_desc">اهتماماتك وما تحب القيام به</string>
+    <string name="rich_profile_boolean_yes">نعم</string>
+    <string name="rich_profile_boolean_no">لا</string>
+    <string name="rich_profile_error_save">خطأ أثناء الحفظ</string>
+    <string name="rich_profile_display_name_fallback">صديقي</string>
+    <string name="profile_error_no_user">لا يوجد مستخدم متصل</string>
+    <string name="profile_error_unknown">خطأ غير معروف</string>
+
+    <!-- Capture Batch -->
+    <string name="capture_soul_title">روح الذكرى</string>
+    <string name="capture_cancel">إلغاء</string>
+    <string name="capture_next">التالي</string>
+    <string name="capture_header_desc">أعطِ اسماً أو موضوعاً لهذه الذكرى.</string>
+    <string name="capture_placeholder_subject">ما هو موضوع هذه الذكرى؟</string>
+    <string name="capture_viewmodel_me">أنا</string>
+    <string name="capture_viewmodel_author">المؤلف</string>
+    <string name="capture_viewmodel_new_memory">ذكرى جديدة</string>
+    <string name="capture_viewmodel_error">خطأ</string>
+    <string name="capture_text_label_write">اكتب قصتك</string>
+    <string name="capture_text_label_add_media">أضف ميديا</string>
+    <string name="capture_text_placeholder_write">اكتب كلماتك هنا...</string>
+    <string name="capture_habillage_destination">التنسيق والوجهة</string>
+    <string name="capture_add_photo_video">أضف صورة أو فيديو</string>
+    <string name="capture_tonality_label">أي نغمة؟</string>
+    <string name="capture_tonality_info_title">روح الذكرى</string>
+    <string name="capture_tonality_info_content">تساعد هذه الفئة الذكاء الاصطناعي على فهم المعنى العميق لقصتك.</string>
+    <string name="capture_tonality_nuance_label">حدد التفاصيل (اختياري)</string>
+    <string name="capture_tonality_nuance_placeholder">مثال: مريرة قليلاً ولكنني أبتسم...</string>
+    <string name="capture_compartments_label">في أي أدراج؟</string>
+    <string name="capture_visibility_everyone">الكل</string>
+    <string name="capture_visibility_private">خاص</string>
+    <string name="capture_recipients_count">%1$d تم اختيارهم</string>
+    <string name="capture_capsule_title">كبسولة زمنية</string>
+    <string name="capture_date_format">dd MMMM yyyy</string>
+    <string name="capture_capsule_now">من الآن</string>
+    <string name="capture_capsule_none">بدون تاريخ (مرئية فوراً)</string>
+    <string name="capture_button_confirm">تأكيد</string>
+    <string name="capture_button_clear">مسح</string>
+    <string name="capture_enigma_section">قفل بالألغاز</string>
+    <string name="capture_enigma_protection">حماية سرية</string>
+    <string name="capture_enigma_label_question">سؤالك السري</string>
+    <string name="capture_enigma_label_question_alt">سؤال سري</string>
+    <string name="capture_enigma_placeholder_question">مثال: ما هو اسم أول قطة لنا؟</string>
+    <string name="capture_enigma_label_answer">الإجابة المتوقعة</string>
+    <string name="capture_enigma_label_answer_alt">إجابة متوقعة</string>
+    <string name="capture_enigma_label_hint">تلميح (اختياري، يظهر بعد 3 محاولات)</string>
+    <string name="capture_enigma_placeholder_hint">مثال: إنه حيوان أليف...</string>
+    <string name="capture_enigma_auto_unlock">فتح تلقائي</string>
+    <string name="capture_enigma_unlock_after">يفتح بعد %1$d أيام</string>
+    <string name="capture_advanced_options">خيارات متقدمة</string>
+    <string name="capture_advanced_vault_title">الخزنة</string>
+    <string name="capture_advanced_vault_info_title">السر المختوم</string>
+    <string name="capture_advanced_vault_info_content">هذه الشظية لن تُكشف إلا بعد الإجابة على لغزك.</string>
+    <string name="capture_advanced_vault_desc">قفل هذه الذكرى خلف لغز شخصي.</string>
+    <string name="capture_enigma_placeholder_question_dog">مثال: ما كان اسم أول كلب لنا؟</string>
+    <string name="capture_scheduled_title">فتح مبرمج</string>
+    <string name="capture_scheduled_desc">هذه الذكرى لن تكون مرئية إلا بدءاً من تاريخ معين.</string>
+    <string name="capture_scheduled_placeholder">اختر تاريخاً</string>
+    <string name="capture_book_title">كتاب الحياة</string>
+    <string name="capture_book_desc">تضمين هذه الشظية في كتاب حياتك العام.</string>
+    <string name="capture_soul_tone_title">نغمة الروح</string>
+    <string name="capture_soul_tone_desc">يؤثر على أسلوب القصة التي يولدها الذكاء الاصطناعي.</string>
+    <string name="capture_audio_soul">أعطِ روحاً لهذا التسجيل:</string>
+    <string name="capture_audio_listening">نحن نستمع إليك...</string>
+    <string name="capture_audio_instructions">تحدث، ونحن سنكتب لك</string>
+    <string name="capture_audio_continue">هل تريد متابعة التسجيل؟</string>
+    <string name="capture_audio_stop_hint">اضغط للتوقف</string>
+    <string name="capture_audio_button_save">اختم هذه الذكرى</string>
+    <string name="capture_photo_label_camera">التقاط صورة</string>
+    <string name="capture_photo_desc_captured">تم التقاط الصورة</string>
+    <string name="capture_photo_desc_delete">حذف الصورة</string>
+    <string name="capture_photo_location_preselected">مسجل لـ : %1$s</string>
+    <string name="capture_photo_placeholder_caption">أعطِ روحاً لهذه الصورة...</string>
+
+    <!-- Step by Step Capture Batch -->
+    <string name="step_capture_title">الخطوة %1$d من 8</string>
+    <string name="step_capture_skip">تخطي</string>
+    <string name="step_capture_next">التالي</string>
+    <string name="step_capture_vault_title">الخزنة</string>
+    <string name="step_capture_book_label">تضمين في كتاب حياتي</string>
+    <string name="step_capture_book_desc">السماح للذكاء الاصطناعي بالاعتماد على هذه الذكرى.</string>
+    <string name="step_capture_location_title">المكان</string>
+    <string name="step_capture_location_desc">أين حدثت هذه الذكرى؟</string>
+    <string name="step_capture_location_choose">اختيار مكان على الخريطة</string>
+    <string name="step_capture_location_remove">إزالة المكان</string>
+    <string name="step_capture_spark_title">الشرارة</string>
+    <string name="step_capture_spark_desc">أعطِ اسماً أو موضوعاً قصيراً لهذه الذكرى.</string>
+    <string name="step_capture_spark_placeholder">ما هو الموضوع؟</string>
+    <string name="step_capture_tonality_title">النغمة</string>
+    <string name="step_capture_tonality_desc">روح الذكرى.</string>
+    <string name="step_capture_moment_title">اللحظة</string>
+    <string name="step_capture_moment_desc">متى حدث ذلك؟</string>
+    <string name="step_capture_date_precise">تاريخ دقيق</string>
+    <string name="step_capture_date_period">فترة زمنية</string>
+    <string name="step_capture_date_placeholder">اختر تاريخاً</string>
+    <string name="step_capture_date_confirm">تأكيد</string>
+    <string name="step_capture_date_start">تاريخ البدء</string>
+    <string name="step_capture_date_end">تاريخ الانتهاء</string>
+    <string name="step_capture_viewmodel_location_unknown">مكان غير معروف</string>
+
+    <!-- Library Batch -->
+    <string name="library_literary_title">المكتبة الأدبية</string>
+    <string name="library_no_excerpts_filter">لا توجد مقتطفات لهذا المستلم.</string>
+    <string name="library_empty_shelves">الأرفف فارغة...</string>
+    <string name="library_isolated_excerpts">مقتطفات منفردة</string>
+    <string name="library_delete_excerpt_title">حذف المقتطف؟</string>
+    <string name="library_delete_excerpt_message">هذا الإجراء غير قابل للتراجع.</string>
+    <string name="library_delete_confirm">حذف</string>
+    <string name="library_delete_cancel">إلغاء</string>
+    <string name="library_reading_header">قراءة</string>
+    <string name="library_reading_fallback_title">مقتطف أدبي</string>
+    <string name="library_manuscript_fallback">مخطوطة</string>
+    <string name="library_excerpt_fallback">مقتطف</string>
+    <string name="library_add_excerpt">إيداع مقتطف</string>
+    <string name="library_edit_excerpt">تعديل المقتطف</string>
+    <string name="library_book_title_label">عنوان العمل</string>
+    <string name="library_change_cover">تغيير صورة الغلاف</string>
+    <string name="library_personal_comment">تعليق شخصي (اختياري)</string>
+    <string name="library_personal_comment_placeholder">مثال: اسم المؤلف، زينة...</string>
+    <string name="library_excerpt_text_label">نص المقتطف</string>
+    <string name="library_visibility_destinataires">الرؤية والمستلمون</string>
+    <string name="library_save">حفظ</string>
+    <string name="library_cancel">إلغاء</string>
+    <string name="library_edit_header">تحرير المقتطف</string>
+    <string name="library_editor_placeholder">أدخل أو الصق المقتطف الخاص بك هنا...</string>
+    <string name="library_my_library">مكتبتي</string>
+    <string name="library_onboarding_point_1">الوصول إلى جميع الحجرات: الصور، الفيديوهات، الأسرار، إلخ.</string>
+    <string name="library_onboarding_point_2">هنا يتم تجميع جميع ذكرياتك المودعة.</string>
+    <string name="library_stats_label">%1$d حجرات · %2$d ذكريات مودعة</string>
+    <string name="library_essentials">الأساسيات</string>
+    <string name="library_fil_pensee_title">شريط الأفكار</string>
+    <string name="library_fil_pensee_info">%1$d ذكريات مرتبة حسب العمر</string>
+    <string name="library_book_ma_vie_title">كتاب حياتي</string>
+    <string name="library_book_info_creator">كتب بالتعاون مع الذكاء الاصطناعي</string>
+    <string name="library_book_info_heir">الاطلاع على المخطوطة</string>
+    <string name="library_compartments">الحجرات</string>
+    <string name="library_videotheque">مكتبة الفيديو</string>
+    <string name="library_phototheque">مكتبة الصور</string>
+    <string name="library_discotheque">مكتبة الصوت</string>
+    <string name="library_mappemonde">خريطة العالم</string>
+    <string name="library_le_litteraire">الأدبي</string>
+    <string name="library_reduce">تصغير</string>
+    <string name="library_others">أخرى</string>
+    <string name="library_other_compartments">حجرات أخرى</string>
+    <string name="library_personalities">شخصيات</string>
+    <string name="library_capsule_temporelle">كبسولة زمنية</string>
+    <string name="library_reconciliation">مصالحة</string>
+    <string name="library_miroir_deux">المرآة الثنائية</string>
+    <string name="library_mes_classements">تصنيفاتي</string>
+    <string name="library_coffre_fort">الخزنة</string>
+    <string name="library_100_questions">100 سؤال</string>
+    <string name="library_portraits">بورتريهات</string>
+    <string name="library_lettre_a_moi">رسالة إلى نفسي</string>
+    <string name="library_customize_title">تخصيص %1$s</string>
+    <string name="library_choose_photo_desc">اختر صورة تمثل هذه المساحة بالنسبة لك.</string>
+    <string name="library_btn_choose_photo">اختيار صورة</string>
+    <string name="library_no_photo_selected">لم يتم اختيار صورة</string>
+    <string name="library_image_usage_hint">ستظهر هذه الصورة على البطاقة.</string>
+    <string name="library_uploading">جاري الرفع... %1$d%%</string>
+    <string name="library_cover_updated_toast">تم تحديث الغلاف.</string>
+    <string name="library_framing_updated_toast">تم تحديث الإطار.</string>
+    <string name="library_btn_save_cover">حفظ هذا الغلاف</string>
+    <string name="library_btn_delete_customization">حذف التخصيص</string>
+    <string name="library_default_illustration_restored_toast">تمت استعادة الرسم التوضيحي الافتراضي.</string>
+    <string name="library_viewmodel_decrypt_error">خطأ في فك التشفير</string>
+    <string name="library_viewmodel_sealed_content">محتوى مختوم</string>
+
+    <!-- Onboarding Library -->
+    <string name="onboarding_photo_title">المكتبة الكبيرة للصور</string>
+    <string-array name="onboarding_photo_content">
+        <item>يتم ترتيب جميع صور ذكرياتك هنا تلقائياً.</item>
+        <item>أعطِ عنواناً لكل صورة لتجدها بسهولة.</item>
+        <item>يساعدك التعليق الشخصي على تذكر السياق.</item>
+        <item>انقر على صورة مصغرة لفتحها بالحجم الكبير.</item>
+        <item>اختر من يمكنه رؤية هذه الصورة من بين مستلميك.</item>
+        <item>تقييد مستلمي صورة ما يتعلق فقط بتلك الصورة تحديداً.</item>
+    </string-array>
+
+    <string name="onboarding_disco_title">المكتبة الصوتية</string>
+    <string-array name="onboarding_disco_content">
+        <item>أودع هنا ملاحظاتك الصوتية، أو روابط لموسيقاك المفضلة.</item>
+        <item>الملاحظة الصوتية تحمل رسالتها بالفعل — أعطها عنواناً فقط.</item>
+        <item>بالنسبة للروابط الموسيقية، أضف تعليقاً لشرح أهمية المقطع.</item>
+        <item>انقر على عنصر للاستماع إليه.</item>
+        <item>اختر من يمكنه الاستماع إلى هذا العنصر.</item>
+        <item>كيف تحصل على رابط؟ انسخ الرابط من التطبيق وألصقه هنا.</item>
+        <item>تقييد المستلمين يتعلق فقط بهذا العنصر الصوتي تحديداً.</item>
+    </string-array>
+
+    <string name="onboarding_video_title">المكتبة المرئية</string>
+    <string-array name="onboarding_video_content">
+        <item>توجد جميع فيديوهاتك الشخصية وروابط يوتيوب هنا.</item>
+        <item>تظهر صورة مصغرة للفيديو تلقائياً بمجرد إضافته.</item>
+        <item>أعطِ عنواناً وتعليقاً لشرح هذه اللحظة.</item>
+        <item>انقر على صورة مصغرة لبدء التشغيل.</item>
+        <item>اختر من يمكنه رؤية هذا الفيديو.</item>
+        <item>كيف تحصل على رابط يوتيوب؟ انسخ الرابط من يوتيوب وألصقه هنا.</item>
+        <item>تقييد المستلمين يتعلق فقط بهذا الفيديو تحديداً.</item>
+    </string-array>
+
+    <string name="onboarding_literary_title">المكتبة الأدبية</string>
+    <string-array name="onboarding_literary_content">
+        <item>أودع هنا نصوصك، اقتباساتك أو المقاطع التي تهمك.</item>
+        <item>أعطِ عنواناً لكل مقتطف لتجده بسهولة.</item>
+        <item>أضف صورة غلاف شخصية للمقتطف.</item>
+        <item>يساعدك التعليق الشخصي على تذكر سياق النص.</item>
+        <item>انقر على مقتطف لقراءته بملء الشاشة.</item>
+        <item>اختر من يمكنه قراءة هذا المقتطف.</item>
+        <item>تقييد المستلمين يتعلق فقط بهذا المقتطف تحديداً.</item>
+    </string-array>
+
+    <!-- Splash Screen -->
+    <string name="splash_logo_description">شعار Phoen-X</string>
+    <string name="splash_phrase">إنه ليس مجرد أرشيف، إنه حضور حي.</string>
+
+    <!-- Trust Circle Hub -->
+    <string name="trust_circle_title">دائرة الثقة</string>
+    <string name="trust_circle_description">الأشخاص الذين يحيطون بك وسيحملون إرثك.</string>
+    <string name="trust_circle_onboarding_title">دائرة الثقة</string>
+    <string-array name="trust_circle_onboarding_points">
+        <item>من يحيطون بك وسيحملون إرثك. أدر روابط الثقة هنا.</item>
+        <item>لا أحد في دائرتك لديه حق الوصول إلى محتوياتك اليوم.</item>
+        <item>يظل إرثك مختوماً حتى يتم تفعيل البروتوكول.</item>
+    </string-array>
+    <string name="trust_circle_item_depositaries_title">الودعاء</string>
+    <string name="trust_circle_item_depositaries_subtitle">بروتوكول النقل</string>
+    <string name="trust_circle_item_witnesses_title">الشهود</string>
+    <string name="trust_circle_item_witnesses_subtitle">رؤيتهم لقصتك</string>
+    <string name="trust_circle_item_recipients_title">المستلمون</string>
+    <string name="trust_circle_item_recipients_subtitle">من سيتلقون ذكرياتك</string>
+    <string name="trust_circle_item_notifications_title">جهات اتصال للإخطار</string>
+    <string name="trust_circle_item_notifications_subtitle">الإبلاغ عن رحيلك</string>
+    <string name="trust_circle_item_characters_title">الشخصيات</string>
+    <string name="trust_circle_item_characters_subtitle">من يملؤون ذكرياتك</string>
+    <string name="trust_circle_privacy_title">الخصوصية</string>
+    <string name="trust_circle_privacy_desc">لا أحد في دائرتك لديه حق الوصول إلى محتوياتك اليوم.</string>
+
+    <!-- Welcome Guide -->
+    <string name="guide_step1_title">مرحباً بك في PHOEN-X</string>
+    <string name="guide_step1_desc">مساحتك الخاصة لالتقاط ونقل ما يهم حقاً.</string>
+    <string name="guide_step2_title">التقط ذكرياتك</string>
+    <string name="guide_step2_desc">نص، صوت أو صورة. يتم تشفير كل شيء فوراً.</string>
+    <string name="guide_step3_title">شريط الأفكار</string>
+    <string name="guide_step3_desc">إنه توقيعك. كل فكرة تحمل عمرك الدقيق.</string>
+    <string name="guide_step4_title">انقلها لأحبائك</string>
+    <string name="guide_step4_desc">اختر من سيتلقى رسائلك. يمكنك برمجة إرسال للمستقبل.</string>
+    <string name="guide_step5_title">أمان كامل</string>
+    <string name="guide_step5_desc">ذكرياتك محمية بأحدث تقنيات التشفير.</string>
+    <string name="guide_never_show_again">عدم إظهار هذا الدليل مرة أخرى</string>
+    <string name="guide_start_adventure">ابدأ المغامرة</string>
+    <string name="guide_swipe_to_continue">اسحب للمتابعة ←</string>
+
+    <!-- Favorites Batch -->
+    <string name="favorites_title">أفضل ما لدي</string>
+    <string name="favorites_taste_map_title">خريطة ذوقك</string>
+    <string name="favorites_empty_title">مكتبتك فارغة.</string>
+    <string name="favorites_empty_subtitle">أضف كتبك، أفلامك وموسيقاك الأساسية.</string>
+    <string name="favorites_dialog_add_title">إضافة عنصر أساسي</string>
+    <string name="favorites_label_title">العنوان / الاسم</string>
+    <string name="favorites_label_why">لماذا هذا مهم؟</string>
+    <string name="favorites_button_add">إضافة</string>
+    <string name="favorites_button_cancel">إلغاء</string>
+    <string name="favorites_cat_books">كتب</string>
+    <string name="favorites_cat_movies">أفلام</string>
+    <string name="favorites_cat_music">موسيقى</string>
+    <string name="favorites_cat_travels">رحلات</string>
+    <string name="favorites_taste_map_fallback">تكشف مكتبتك عن ارتباط عميق بقصص المغامرة.</string>
+
+    <!-- Mailbox Batch -->
+    <string name="mailbox_title">كبسولات زمنية</string>
+    <string name="mailbox_info_title">كبسولات زمنية</string>
+    <string name="mailbox_info_content">الكبسولة الزمنية هي ذكرى تبرمجها لتفتح في تاريخ محدد مسبقاً.</string>
+    <string name="mailbox_list_header">كبسولاتك الزمنية</string>
+    <string name="mailbox_date_unknown">تاريخ غير معروف</string>
+    <string name="mailbox_opening_on">الافتتاح في %1$s</string>
+    <string name="mailbox_default_summary">رسالة مبرمجة</string>
+    <string name="mailbox_empty_title">لا توجد كبسولات زمنية.</string>
+    <string name="mailbox_empty_subtitle">برمج ذكريات لتواريخ مستقبلية.</string>
+
+    <!-- Media Viewer -->
+    <string name="media_viewer_unsupported">الوسيط غير مدعوم (%1$s)</string>
+    <string name="media_viewer_close">إغلاق</string>
+
+    <!-- Worlds Batch -->
+    <string name="worlds_title">أدراج حياتي</string>
+    <string name="worlds_subtitle">تنظيم مدعوم بالذكاء الاصطناعي</string>
+    <string name="worlds_empty_title">الخزانة فارغة.</string>
+    <string name="worlds_empty_subtitle">التقط ذكريات لترها منظمة هنا.</string>
+
+    <!-- Young Self Letter Batch -->
+    <string name="young_self_title">رسالة إلى نفسي الشابة</string>
+    <string name="young_self_history_header">رسائلك المختومة</string>
+    <string name="young_self_card_age">في عمر %1$d</string>
+    <string name="young_self_card_year">كُتبت لعام %1$d</string>
+    <string name="young_self_main_question">ماذا كنت تود أن تسمع، في العمر الذي كان يبدو فيه كل شيء غير مؤكد؟</string>
+    <string name="young_self_info_title">رسالة إلى نفسي الشابة</string>
+    <string name="young_self_info_point1">اختر عمراً في ماضيك واكتب رسالة إلى نفسك.</string>
+    <string name="young_self_info_point2">يحسب التطبيق السنة المقابلة من تاريخ ميلادك.</string>
+    <string name="young_self_info_point3">إذا كنت تفتقر للإلهام، اضغط على المصباح للحصول على اقتراحات.</string>
+    <string name="young_self_info_point4">سيتم الاحتفاظ بهذه الرسالة في شريط أفكارك.</string>
+    <string name="young_self_info_point5">إنها واحدة من أكثر الميزات تأثيراً لأحبائك.</string>
+    <string name="young_self_label_at_age">في عمر %1$d</string>
+    <string name="young_self_label_was_in">كان ذلك في عام %1$d</string>
+    <string name="young_self_dialog_age_title">كم كان عمرك؟</string>
+    <string name="young_self_dialog_age_label">العمر الدقيق</string>
+    <string name="young_self_dialog_button_validate">تأكيد</string>
+    <string name="young_self_dialog_button_cancel">إلغاء</string>
+    <string name="young_self_placeholder">عزيزي أنا في عمر %1$d...</string>
+    <string name="young_self_button_inspiration">عرض مسارات الإلهام</string>
+    <string name="young_self_button_seal">ختم هذه الرسالة</string>
+    <string name="young_self_bottom_sheet_title">مسارات الإلهام</string>
+    <string name="young_self_no_suggestions">لا توجد اقتراحات حالياً. استمر في ملء إرثك!</string>
+
+    <!-- Pact / Miroir à Deux Batch -->
+    <string name="pact_screen_title">المرآة الثنائية</string>
+    <string name="pact_info_title">الميثاق</string>
+    <string name="pact_info_content">الميثاق هو رسالة بصوتين تقوم بتأليفها مع شخص تختاره.</string>
+    <string name="pact_list_header">انعكاساتكما المتقاطعة</string>
+    <string name="pact_card_subtitle">مرآة مع %1$s</string>
+    <string name="pact_empty_state_title">لا توجد مرآة ثنائية جارية.</string>
+    <string name="pact_empty_state_desc">ادعُ قريباً ليروي قصة مشتركة بينكما.</string>
+    <string name="pact_invite_dialog_title">بدء مرآة ثنائية</string>
+    <string name="pact_invite_dialog_desc">وجهتا نظر لقصة واحدة.</string>
+    <string name="pact_invite_label_name">اسم الشريك</string>
+    <string name="pact_invite_label_email">البريد الإلكتروني للشريك</string>
+    <string name="pact_invite_btn_confirm">دعوة للانعكاس</string>
+    <string name="pact_share_subject">الانعكاس في PHOEN-X</string>
+    <string name="pact_share_text">أدعوك لإنشاء مرآة ثنائية معي على PHOEN-X: %1$s</string>
+    <string name="pact_share_chooser_title">مشاركة الدعوة</string>
+    <string name="pact_viewmodel_fallback_partner_name">شريك</string>
+    <string name="pact_viewmodel_fallback_user_name">قريب</string>
+    <string name="pact_viewmodel_invite_label">شريك المرآة</string>
+    <string name="pact_viewmodel_error_invite">فشل إرسال الدعوة.</string>
+    <string name="pact_detail_title_with_partner">مرآة مع %1$s</string>
+    <string name="pact_detail_title_fallback">تفاصيل المرآة</string>
+    <string name="pact_detail_status_header">حالة المرآة</string>
+    <string name="pact_detail_label_my_version">نسختك</string>
+    <string name="pact_detail_label_partner_version">نسخة %1$s</string>
+    <string name="pact_detail_sealed_hint">يظل الانعكاس مختوماً حتى ينتهي كلاكما.</string>
+    <string name="pact_detail_revealed_hint">تم كشف المرآة!</string>
+    <string name="pact_detail_book_consent_title">تغذية كتاب حياتي</string>
+    <string name="pact_detail_book_consent_desc">يتطلب موافقة الطرفين.</string>
+    <string name="pact_detail_reflections_header">انعكاسات مشتركة</string>
+    <string name="pact_detail_btn_add">إضافة حقيقة</string>
+    <string name="pact_detail_btn_complete">أنهيت نسختي</string>
+    <string name="pact_detail_empty_state">لم يتم إيداع أي انعكاس بعد.</string>
+    <string name="pact_detail_btn_add_first">أودع انعكاسك الأول</string>
+    <string name="pact_detail_item_fallback_title">حدث بدون عنوان</string>
+    <string name="pact_detail_item_status_revealed">كشف النسخ المتقاطعة</string>
+    <string name="pact_detail_item_status_sealed">نسختك مختومة</string>
+
+    <!-- Dialog Media Components -->
+    <string name="dialog_media_label_spotify">مقطع من سبوتيفاي</string>
+    <string name="dialog_media_label_deezer">مقطع من ديزر</string>
+    <string name="dialog_media_label_youtube">فيديو يوتيوب</string>
+    <string name="dialog_media_label_audio">ملاحظتي الصوتية</string>
+    <string name="dialog_media_label_video">فيديو خاص بي</string>
+    <string name="dialog_media_label_photo">صورتي</string>
+    <string name="dialog_media_label_default">وسيط ميديا</string>
+    <string name="dialog_media_title_deposit">إيداع %1$s</string>
+    <string name="dialog_media_title_customize">تخصيص</string>
+    <string name="dialog_media_howto_title">كيف تحصل على الرابط؟</string>
+    <string name="dialog_media_howto_steps">1. افتح التطبيق.\n2. ابحث عن المحتوى.\n3. مشاركة &gt; نسخ الرابط.\n4. ارجع إلى هنا وألصقه.</string>
+    <string name="dialog_media_label_title">العنوان</string>
+    <string name="dialog_media_fetching">جاري الاسترجاع...</string>
+    <string name="dialog_media_placeholder_title">أعطِ اسماً لهذا الوسيط</string>
+    <string name="dialog_media_label_importance">لماذا هذا الوسيط مهم؟</string>
+    <string name="dialog_media_label_url">الرابط (URL)</string>
+    <string name="dialog_media_btn_change_thumb">تغيير الصورة المصغرة</string>
+    <string name="dialog_media_btn_change_cover">تغيير صورة الغلاف</string>
+    <string name="dialog_media_label_include_book">تضمين في كتابي</string>
+    <string name="dialog_media_desc_include_book">إذا لم يتم اختياره، ستبقى هذه الصورة في ذكرياتك لكنها لن تُدرج في المخطوطة.</string>
+    <string name="dialog_media_visibility_destinataires">الرؤية والمستلمون</string>
+    <string name="dialog_media_btn_save">حفظ</string>
+    <string name="dialog_media_btn_cancel">إلغاء</string>
+
+    <string name="dialog_photo_title">إيداع صورة</string>
+    <string name="dialog_photo_btn_choose">اختيار صورة</string>
+    <string name="dialog_photo_label_title">العنوان</string>
+    <string name="dialog_photo_label_description">الوصف (اختياري)</string>
+    <string name="dialog_photo_label_visibility">الرؤية</string>
+    <string name="dialog_photo_btn_save">حفظ</string>
+    <string name="dialog_photo_btn_cancel">إلغاء</string>
+
+    <!-- Library Archive -->
+    <string name="library_archive_preview_label">👁 معاينة — ما سيراه أحباؤك</string>
+    <string name="library_archive_btn_back_space">← مساحتي</string>
+    <string name="library_archive_my_library">مكتبتك</string>
+    <string name="library_archive_creator_library">مكتبة %1$s</string>
+    <string name="library_archive_sealed_content">محتوى مختوم</string>
+    <string name="library_archive_sealed_compartment">حجرة مختومة</string>
+    <string name="library_archive_locked_date">سيفتح هذا الدرج في تاريخ اختاره المنشئ.</string>
+    <string name="library_archive_locked_enigma">يجب عليك حل لغز لفتح هذا السر.</string>
+    <string name="library_archive_locked_key">مفتاح مادي مطلوب لفتح هذا الدرج.</string>
+    <string name="library_archive_locked_default">لا يمكن الوصول لهذه الحجرة بعد.</string>
+    <string name="library_archive_btn_close">إغلاق</string>
+
+    <!-- Detective / Coffre-Fort Batch -->
+    <string name="detective_screen_title">الخزنة</string>
+    <string name="detective_onboarding_title">الخزنة</string>
+    <string-array name="detective_onboarding_points">
+        <item>اخفِ محتوى خلف سؤال سري.</item>
+        <item>الإجابة محمية محلياً بتشفير SHA-256.</item>
+        <item>لدى قريبك عدة محاولات للاكتشاف.</item>
+        <item>اضغط على \'بحاجة لإلهام\' للحصول على أمثلة.</item>
+        <item>مختلف عن درج المفتاح — لا يوجد حد لعدد المرات.</item>
+    </string-array>
+    <string name="detective_subtitle">إخفاء ذكرى خلف سؤال</string>
+    <string name="detective_empty_state_title">لا توجد ألغاز حالياً.</string>
+    <string name="detective_empty_state_desc">ستظهر ذكرياتك المقفولة هنا.</string>
+    <string name="detective_enigma_no_question">لغز بدون سؤال</string>
+    <string name="detective_recipient_label">إلى : %1$s</string>
+    <string name="detective_recipient_fallback">أحباؤك</string>
+
+    <string name="detective_player_instructions">فك رموز الألغاز للوصول للذكريات.</string>
+    <string name="detective_ultimate_secret">السر المطلق</string>
+    <string name="detective_personal_enigma">لغز شخصي</string>
+    <string name="detective_ultimate_secret_desc">تم تحديد هذه السرية كأمر حيوي.</string>
+    <string name="detective_hint_label">تلميح : %1$s</string>
+    <string name="detective_auto_unlock_hint">إذا لم تعرف الإجابة، سيفتح اللغز تلقائياً بعد %1$d أيام.</string>
+    <string name="detective_creator_option_desc">لقد وضع %1$s هذا الخيار لتتمكن من الوصول للرسالة.</string>
+    <string name="detective_answer_label">إجابتك</string>
+    <string name="detective_verify_button">تحقق</string>
+    <string name="detective_auto_unlock_timer">سيفتح تلقائياً خلال %1$d أيام</string>
+    <string name="detective_secret_ultime_sealed">السر المطلق مختوم</string>
+    <string name="detective_memory_revealed">كشف الذكرى</string>
+    <string name="detective_sacred_confidence">سرية مقدسة</string>
+    <string name="detective_content_sealed">المحتوى مختوم</string>
+    <string name="detective_ultimate_prompt">أجب على السؤال الوحيد...</string>
+    <string name="detective_enigma_prompt">حل اللغز للقراءة...</string>
+    <string name="detective_auto_unlocked_desc">فُتح هذا اللغز مع مرور الوقت.</string>
+    <string name="detective_creator_note">ملاحظة من %1$s : \"%2$s\"</string>
+    <string name="detective_empty_mysteries">لا توجد أسرار لحلها.</string>
+
+    <string name="detective_create_type_classic">لغز كلاسيكي</string>
+    <string name="detective_create_type_ultimate">سر مطلق</string>
+    <string name="detective_create_ultimate_title">كنز إرثك</string>
+    <string name="detective_create_classic_title">سر محمي بسؤال</string>
+    <string-array name="detective_create_ultimate_points">
+        <item>القطعة الأساسية في إرثك: السر الأكثر قيمة وحميمية.</item>
+        <item>حماية غير قابلة للاختراق: لا يوجد فتح تلقائي مع الوقت.</item>
+        <item>لحظة رسمية: عرض بصري فريد لأحبائك.</item>
+        <item>المفتاح الوحيد: فقط من يعرف الإجابة يمكنه كسر هذا الختم.</item>
+    </string-array>
+    <string-array name="detective_create_classic_points">
+        <item>حماية ذكرى بلغز شخصي.</item>
+        <item>أمان مطلق: يتم تشفير الإجابة على جهازك.</item>
+        <item>لعبة بحث حميمية.</item>
+        <item>سر صامد أمام الزمن.</item>
+        <item>تتوفر اقتراحات للأسئلة.</item>
+    </string-array>
+    <string name="detective_create_ultimate_subtitle">سرية فريدة، مختومة في قلب ذاكرتك.</string>
+    <string name="detective_create_classic_subtitle">فقط من يعرف الإجابة يمكنه الوصول لما تودعه هنا.</string>
+    <string name="detective_create_solemn_active">تفعيل المعاملة الرسمية</string>
+    <string name="detective_create_label_question">السؤال</string>
+    <string name="detective_create_placeholder_question">مثال: ما كان اسم أول كلب لنا؟</string>
+    <string name="detective_create_btn_inspiration">بحاجة لإلهام؟</string>
+    <string name="detective_create_label_answer">الإجابة (مخفية بعد الإدخال)</string>
+    <string name="detective_create_answer_security_desc">الإجابة محمية محلياً.</string>
+    <string name="detective_create_label_hint">تلميح (يظهر بعد 3 محاولات)</string>
+    <string name="detective_create_placeholder_hint">مثال: إنه اسم حيوان...</string>
+    <string name="detective_create_label_auto_unlock">فتح تلقائي</string>
+    <string name="detective_create_auto_unlock_timer">يفتح بعد %1$s يوماً</string>
+    <string name="detective_create_auto_unlock_desc">سيتمكن قريبك من رؤية المحتوى تلقائياً بعد هذه المدة.</string>
+    <string name="detective_create_permanent_lock">قفل دائم حتى يتم العثور على الإجابة.</string>
+    <string name="detective_create_ultimate_lock_desc">السر المطلق مختوم بدون حد زمني.</string>
+    <string name="detective_create_label_fallback">رسالة كشف السر (اختياري)</string>
+    <string name="detective_create_placeholder_fallback">مثال: كانت الإجابة هي [المدينة]...</string>
+    <string name="detective_create_label_secret_content">المحتوى السري</string>
+    <string name="detective_create_content_desc">لن يمكن الوصول لهذا المحتوى إلا بعد الإجابة الصحيحة.</string>
+    <string name="detective_create_type_text">✍️ نص</string>
+    <string name="detective_create_type_photo">📷 صورة</string>
+    <string name="detective_create_type_audio">🎙️ صوت</string>
+    <string name="detective_create_btn_choose_photo">اختيار صورة</string>
+    <string name="detective_create_toast_sealed">تم ختم السرية.</string>
+    <string name="detective_create_btn_seal_ultimate">ختم السر المطلق</string>
+    <string name="detective_create_btn_seal_enigma">ختم اللغز</string>
+    <string name="detective_create_inspiration_title">أفكار للأسئلة</string>
+    <string name="detective_create_inspiration_desc">هذه الأمثلة موجودة لتلهمك.</string>
+
+    <string name="detective_viewmodel_fallback_creator">قريبك</string>
+    <string name="detective_viewmodel_error_connection">خطأ في الاتصال</string>
+    <string name="detective_viewmodel_error_wrong_answer">إجابة خاطئة. حاول مجدداً...</string>
+
+    <!-- Inspiration Categories -->
+    <string name="inspiration_cat_childhood">ذكريات الطفولة</string>
+    <string-array name="inspiration_questions_childhood">
+        <item>ما كان اسم مدرستي الابتدائية؟</item>
+        <item>ما هو اسم معلمي المفضل؟</item>
+        <item>في أي شارع نشأت؟</item>
+        <item>ما هو اسم صديق طفولتي المفضل؟</item>
+        <item>ما كان لوني المفضل في سن العاشرة؟</item>
+        <item>أي لعبة لم أكن أرغب في إعارتها أبداً؟</item>
+        <item>ما هو الرسوم المتحركة المفضل لدي؟</item>
+        <item>ماذا كان اسم حيواني الأليف؟</item>
+        <item>ما كانت مادتي الدراسية المفضلة؟</item>
+        <item>أي رياضة كنت أمارسها في المدرسة؟</item>
+        <item>ما هو العقاب الذي كنت أخشاه أكثر من غيره؟</item>
+        <item>ما هو الطبق المفضل الذي كانت أمي تطبخه؟</item>
+        <item>ما هو اسم جاري في الطفولة؟</item>
+        <item>ما هي علامة أول دراجة لي؟</item>
+        <item>ما هو اللقب الذي كان والداي يطلقانه علي؟</item>
+        <item>في أي مدينة كنت أقضي عطلتي الصيفية؟</item>
+        <item>ما هو كتابي المفضل قبل سن الـ 12؟</item>
+        <item>ما هي الحماقة التي ارتكبتها ولم أخبرك بها أبداً؟</item>
+        <item>ما هي اللعبة اللوحية التي كنت أعشقها؟</item>
+        <item>ما هي الأغنية التي كانت تجعلني أرقص دائماً؟</item>
+    </string-array>
+
+    <string name="inspiration_cat_our_story">قصتنا</string>
+    <string-array name="inspiration_questions_our_story">
+        <item>في أي مدينة التقينا؟</item>
+        <item>ما هي أول كلمة قلتها لك؟</item>
+        <item>ما هو اسم مكان خروجنا الأول؟</item>
+        <item>أي أغنية أصبحت أغنيتنا؟</item>
+        <item>ما هي أول هدية قدمتها لك؟</item>
+        <item>في أي مطعم تناولنا العشاء لأول مرة؟</item>
+        <item>ما هي جملتي المفضلة عندما أكون في مزاج جيد؟</item>
+        <item>ما هو اللقب الذي أطلقته عليك ولا يعرفه أحد غيرنا؟</item>
+        <item>ما هي الحماقة التي ارتكبناها معاً ولم نخبر أحداً بها؟</item>
+        <item>ما هو الفيلم الذي كنا نشاهده باستمرار؟</item>
+        <item>ما هو التعبير السري الذي كنا نفهمه نحن فقط؟</item>
+        <item>في أي مدينة قضينا رحلتنا الأولى؟</item>
+        <item>ما هو أول طبق طبخته لك؟</item>
+        <item>ما هو الجدال الذي خضناه وما زلت تتذكره؟</item>
+        <item>ما هو طقسي الصباحي الذي كنت تجده غريباً؟</item>
+        <item>ما هو أول وعد قطعته لك؟</item>
+        <item>ما هي اللحظة التي أظهرت لك أنه يمكنك الوثوق بي؟</item>
+        <item>ما هي طريقتي الفريدة في قول أنني أحبك؟</item>
+        <item>ما هو الشيء الذي أهديتني إياه واحتفظت به بعناية؟</item>
+        <item>ما هو أجن جنون قمنا به معاً؟</item>
+    </string-array>
+
+    <string name="inspiration_cat_places">أماكن ورحلات</string>
+    <string-array name="inspiration_questions_places">
+        <item>ما هو أول بلد أجنبي زرته؟</item>
+        <item>في أي مدينة شعرت بأنني في منزلي أكثر من غيرها؟</item>
+        <item>ما كان اسم الفندق في رحلتنا التي لا تُنسى؟</item>
+        <item>أي مدينة كنت أود العيش فيها طوال حياتي؟</item>
+        <item>في أي بلد تناولت أفضل وجبة في حياتي؟</item>
+        <item>أي جبل أو قمة تسلقتها؟</item>
+        <item>ما كان اسم الشاطئ الذي كنت أذهب إليه كل صيف؟</item>
+        <item>في أي مدينة عشت لأطول فترة؟</item>
+        <item>أي بلد غيرني أكثر من غيره؟</item>
+        <item>أي مكان جعلني سعيداً حقاً؟</item>
+        <item>أي مدينة أوروبية زرتها معك؟</item>
+        <item>في أي حي كنت أحب أن أتوه؟</item>
+        <item>أي رحلة قمت بها بمفردي ولم أتحدث عنها كثيراً؟</item>
+        <item>ما هو اسم المخيم الذي كنت أذهب إليه طفلاً؟</item>
+        <item>أي عاصمة عالمية لم أزرها أبداً؟</item>
+        <item>أين كنت سأستقر لو استطعت؟</item>
+        <item>أي طريق كنت أسلكه لاستعادة طاقتي؟</item>
+        <item>أي متحف ترك أثراً عميقاً في نفسي؟</item>
+        <item>أي جزيرة كنت أود السكن فيها؟</item>
+        <item>في أي مدينة بكيت من الفرح عند وصولي؟</item>
+    </string-array>
+
+    <string name="inspiration_cat_tastes">أذواق واهتمامات</string>
+    <string-array name="inspiration_questions_tastes">
+        <item>أي طبق كنت آكله في السر؟</item>
+        <item>أي موسيقى كنت أستمع إليها عندما أكون وحيداً؟</item>
+        <item>أي فيلم كنت أشاهده دون أن أعترف بذلك؟</item>
+        <item>أي نشاط كنت أمارسه دون التحدث عنه؟</item>
+        <item>أي كتاب قرأته أكثر من ثلاث مرات؟</item>
+        <item>أي فنان كنت أعجب به في السر؟</item>
+        <item>أي برنامج لم أكن أفوته أبداً؟</item>
+        <item>أي رياضة كنت أتابعها بشغف؟</item>
+        <item>أي طعام لم أكن أطيقه إطلاقاً؟</item>
+        <item>أي لون لم أكن أرتديه أبداً؟</item>
+        <item>أي آلة موسيقية كنت أود العزف عليها؟</item>
+        <item>أي مطبخ أجنبي كان المفضل لدي؟</item>
+        <item>أي هواية تخليت عنها وندمت على ذلك؟</item>
+        <item>أي أغنية كانت تجعلني أبكي بدون سبب؟</item>
+        <item>أي عطر كان يشعرني بالحنين؟</item>
+        <item>أي نوع من الأفلام كان يجعلني أبكي دائماً؟</item>
+        <item>أي مشروب كنت أتناوله في الصباح؟</item>
+        <item>ما هي نقطة ضعفي في الطعام؟</item>
+        <item>أي فصل كنت أفضل ولماذا؟</item>
+        <item>أي منظر طبيعي كان يحبس أنفاسي؟</item>
+    </string-array>
+
+    <string name="inspiration_cat_habits">عادات وتفاصيل</string>
+    <string-array name="inspiration_questions_habits">
+        <item>أي جملة كنت أكررها دون وعي؟</item>
+        <item>ما كان أكثر تيك عصبي يمكن ملاحظته لدي؟</item>
+        <item>في أي ساعة كنت أستيقظ في عطلة نهاية الأسبوع؟</item>
+        <item>ماذا كان طقسي قبل النوم؟</item>
+        <item>كيف كنت تعرف أنني في مزاج سيء؟</item>
+        <item>ما كانت طريقتي الفريدة في الضحك؟</item>
+        <item>ما هو الشيء الذي كنت أبحث عنه دائماً ولا أجده؟</item>
+        <item>كيف كنت أرتب (أو لا أرتب) أشيائي؟</item>
+        <item>ما كانت وضعيتي المفضلة للقراءة؟</item>
+        <item>أي جانب من السرير كان لي؟</item>
+        <item>ما هو أول شيء كنت أفعله عند العودة للمنزل؟</item>
+        <item>ما هو آخر شيء قبل الخروج؟</item>
+        <item>كيف كنت أحب شرب قهوتي أو الشاي؟</item>
+        <item>كيف كنت أواسي نفسي عندما أكون حزيناً؟</item>
+        <item>ما هي كلمتي المفضلة التي كنت أستخدمها بكثرة؟</item>
+        <item>كيف كنت أظهر فخري دون قول ذلك؟</item>
+        <item>ماذا كنت أناديك عندما أكون غاضباً؟</item>
+        <item>ما كانت إيماءتي العاطفية الأكثر تميزاً؟</item>
+        <item>أي تطبيق كنت أستخدمه أكثر من غيره؟</item>
+        <item>ما هي وسيلة المواصلات المفضلة لدي؟</item>
+    </string-array>
+
+    <string name="inspiration_cat_hard_times">لحظات صعبة</string>
+    <string-array name="inspiration_questions_hard_times">
+        <item>أي لحظة صعبة مررنا بها معاً؟</item>
+        <item>كيف دعمتك خلال أسوأ فتراتك؟</item>
+        <item>أي خلاف لم نحسمه أبداً بشكل كامل؟</item>
+        <item>أي سر احتفظت به من أجلي؟</item>
+        <item>أي قرار صعب اتخذته كنت أنت على علم به؟</item>
+        <item>ماذا كنت تناديني عندما كنت تريدني أن أهدأ؟</item>
+        <item>أي خوف تجاوزناه معاً؟</item>
+        <item>أي لحظة في حياتي تطلبت منك أكبر قدر من الصبر؟</item>
+        <item>أي خبر سيء تلقيناه معاً؟</item>
+        <item>كيف كنت أظهر أنني بحاجة للمساعدة؟</item>
+        <item>ما هو اللقب الذي كنت تطلقه علي عندما أكون ضعيفاً؟</item>
+        <item>أي محنة جعلتني أقوى؟</item>
+        <item>ما كانت العلامة التي تدل على أن شيئاً ما ليس على ما يرام؟</item>
+        <item>أي ليلة صعبة قضيناها معاً؟</item>
+        <item>كيف كنت أشكرك دون قول ذلك فعلياً؟</item>
+        <item>أي لحظة أزمة أدرتها من أجلي؟</item>
+        <item>أي خطأ ارتكبته وساعدتني على تجاوزه؟</item>
+        <item>ماذا كان رمزنا السري عندما لا تسير الأمور على ما يرام؟</item>
+        <item>أي فترة كانت الأكثر قلقاً بالنسبة لك علي؟</item>
+        <item>كيف كنت أعبر لك عن امتناني بدون كلمات؟</item>
+    </string-array>
+
+    <string name="inspiration_cat_dreams">أحلام ومشاريع</string>
+    <string-array name="inspiration_questions_dreams">
+        <item>أي مهنة كنت أود ممارستها لو تجرأت؟</item>
+        <item>في أي بلد كنت أود العيش لمدة عام؟</item>
+        <item>أي آلة موسيقية كنت أود تعلمها؟</item>
+        <item>أي مشروع ذكرناه ولم نحققه أبداً؟</item>
+        <item>أي لغة كنت أود التحدث بها بطلاقة؟</item>
+        <item>أي رياضة خطرة كنت أود ممارستها؟</item>
+        <item>أي كتاب كنت أود تأليفه؟</item>
+        <item>أي اختراع كنت أود ابتكاره؟</item>
+        <item>أي قضية كنت أود الدفاع عنها؟</item>
+        <item>أي رحلة حلم لم أتمكن من القيام بها أبداً؟</item>
+        <item>أي منزل كنت أود بناءه؟</item>
+        <item>أي حيوان كنت أود تبنيه؟</item>
+        <item>أي تدريب كنت أود اتباعه في وقت سابق؟</item>
+        <item>أي تحدٍ شخصي كنت أود تحقيقه؟</item>
+        <item>أي لقاء كنت أود القيام به؟</item>
+        <item>أي مطعم كنت أود افتتاحه؟</item>
+        <item>أي فيلم كنت أود إنتاجه؟</item>
+        <item>أي جمعية كنت أود تأسيسها؟</item>
+        <item>أي مكان كنت أود تحويله إلى سكن؟</item>
+        <item>أي حلم طفولة لم أتخلَّ عنه أبداً؟</item>
+    </string-array>
+
+    <string name="inspiration_cat_quotes">ما كنت أقوله دائماً</string>
+    <string-array name="inspiration_questions_quotes">
+        <item>أي مقولة كنت أكررها غالباً؟</item>
+        <item>أي نصيحة كنت أقدمها بشكل منهجي؟</item>
+        <item>أي درس حياة كان يتكرر في محادثاتي؟</item>
+        <item>أي نكتة كنت أقولها طوال الوقت؟</item>
+        <item>أي تعبير كنت أستخدمه للتشجيع؟</item>
+        <item>ماذا كنت أقول قبل اتخاذ قرار مهم؟</item>
+        <item>ما كانت طريقتي في بدء القصة؟</item>
+        <item>ماذا كنت أقول عندما يزعجني شيء ما؟</item>
+        <item>أي جملة كنت أنطق بها عندما أكون سعيداً؟</item>
+        <item>ماذا كنت أكرر عن الحب أو الصداقة؟</item>
+        <item>كيف كنت أنهي محادثة مهمة؟</item>
+        <item>ماذا كنت أقول قبل الانطلاق في رحلة؟</item>
+        <item>أي تحذير كنت أوجهه لمن أحبهم؟</item>
+        <item>ماذا كنت أقول عندما يشكرني أحدهم؟</item>
+        <item>أي جملة كنت أستخدمها لإنهاء خلاف؟</item>
+        <item>ماذا كنت أقول وأنا أنظر للسماء أو الطبيعة؟</item>
+        <item>أي تعبير كان يزعجك لأنني أكرره؟</item>
+        <item>ماذا كنت أقول وأنا أنظر لصور شبابي؟</item>
+        <item>أي جملة كنت أنطق بها عندما يلمسني شيء ما؟</item>
+        <item>ماذا كنت أقول في المساء قبل النوم؟</item>
+    </string-array>
+
+    <string name="inspiration_cat_people">أشخاص مهمون</string>
+    <string-array name="inspiration_questions_people">
+        <item>ما كان اسم أعز أصدقائي في فترة المراهقة؟</item>
+        <item>ما هو اسم مرشدي المهني؟</item>
+        <item>ما هو اسم الشخص الذي منحني فرصتي الأولى؟</item>
+        <item>ما هو اسم جاري الأقرب؟</item>
+        <item>ما هو اسم الطبيب الذي تابعني لسنوات؟</item>
+        <item>ما هو اسم الشخص الذي أحببته قبلك؟</item>
+        <item>ما هو اسم المعلم الأكثر تأثيراً في حياتي؟</item>
+        <item>ما هو اسم زميلي الأكثر إخلاصاً؟</item>
+        <item>ما هو اسم الشخص الذي أدين له بالكثير؟</item>
+        <item>ما هو اسم الصديق الذي فقدت التواصل معه؟</item>
+        <item>ما هو اسم الشخص الذي جرحني أكثر من غيره؟</item>
+        <item>ما هو اسم من علمني القيادة؟</item>
+        <item>ما هو اسم مدربي الرياضي؟</item>
+        <item>ما هو اسم شريكي الأساسي؟</item>
+        <item>ما هو اسم الشخص الذي علمني الطبخ؟</item>
+        <item>ما هو اسم كاتم أسراري المطلق؟</item>
+        <item>ما هو اسم الشخص الذي كنت أعجب بشجاعته؟</item>
+        <item>ما هو اسم من ساعدني في أسوأ فتراتي؟</item>
+        <item>ما هو اسم الشخص الذي لم أقل له شكراً أبداً؟</item>
+        <item>ما هو اسم الشخص الذي كان يعرفني أكثر من أي شخص آخر؟</item>
+    </string-array>
+
+    <string name="inspiration_cat_deep">أسئلة عميقة</string>
+    <string-array name="inspiration_questions_deep">
+        <item>ما هو الشيء الذي كان يخيفني أكثر ولم يعرفه إلا القليل؟</item>
+        <item>أي سر احتفظت به طوال حياتي؟</item>
+        <item>أي قرار ندمت عليه ولم أعترف به أبداً؟</item>
+        <item>أي موهبة كنت أخفيها وكنت أنت من القلائل الذين يعرفونها؟</item>
+        <item>أي حقيقة عن نفسي استغرق قبولها مني سنوات؟</item>
+        <item>ما هو أكبر عقدة نقص لدي لم أظهرها أبداً؟</item>
+        <item>أي قناعة كانت توجه كل قراراتي؟</item>
+        <item>أي لحظة شعرت فيها بأكبر قدر من الشك؟</item>
+        <item>أي خطأ من أيام الشباب طاردني طويلاً؟</item>
+        <item>أي محادثة كنت أتمنى لو أجريتها؟</item>
+        <item>أي عمل سخي قمت به دون التحدث عنه؟</item>
+        <item>أي ظلم ترك أثراً في نفسي للأبد؟</item>
+        <item>ماذا كان حلمي الأكثر حميمية؟</item>
+        <item>أي جزء من نفسي ضحيت به من أجل الآخرين؟</item>
+        <item>أي لحظة جعلتني الأكثر ضعفاً؟</item>
+        <item>أي لقاء غير كل شيء في طريقة رؤيتي للأمور؟</item>
+        <item>أي ثقل كنت أحمله وحدي لسنوات؟</item>
+        <item>أي حقيقة فهمتها بعد فوات الأوان؟</item>
+        <item>ماذا كنت أتمنى أن يعرفه الناس عني؟</item>
+        <item>لو كان عليك الاحتفاظ بذكرى واحدة فقط عني، فماذا ستكون؟</item>
+    </string-array>
+
+    <string-array name="personality_categories">
+        <item>رياضة</item>
+        <item>سينما وتلفزيون</item>
+        <item>موسيقى</item>
+        <item>رسم</item>
+        <item>نحت</item>
+        <item>أدب</item>
+        <item>شعر</item>
+        <item>علوم</item>
+        <item>طب</item>
+        <item>فلسفة</item>
+        <item>روحانيات</item>
+        <item>سياسة</item>
+        <item>تاريخ</item>
+        <item>مقاومة والتزام</item>
+        <item>فكاهة</item>
+        <item>مسرح</item>
+        <item>رقص</item>
+        <item>تصوير فوتوغرافي</item>
+        <item>موضة</item>
+        <item>عمارة</item>
+        <item>طبخ</item>
+        <item>صحافة</item>
+        <item>ريادة أعمال</item>
+        <item>استكشاف</item>
+        <item>نشاط حقوقي</item>
+        <item>تعليم</item>
+        <item>حرف فنية</item>
+        <item>قصص مصورة</item>
+        <item>أخرى</item>
+    </string-array>
+
+    <!-- Reconciliation Batch -->
+    <string name="reconciliation_title">بروتوكول المصالحة</string>
+    <string name="reconciliation_info_title">بروتوكول المصالحة</string>
+    <string name="reconciliation_info_p1">اكتب رسالة إلى شخص لم تقل له أبداً ما كان يجب أن تقوله.</string>
+    <string name="reconciliation_info_p2">سيتم تسليم هذه الرسالة بعد رحيلك.</string>
+    <string name="reconciliation_info_p3">يسمح التأخير بتهدئة الحزن قبل أن يقرأ الشخص رسالتك.</string>
+    <string name="reconciliation_info_p4">لا يحتاج الشخص لامتلاك حساب PHOEN-X لتلقي الرسالة.</string>
+    <string name="reconciliation_info_p5">يمكنك اختيار تأخير بين 30 يوماً وسنة واحدة بعد رحيلك.</string>
+    <string name="reconciliation_main_question">هل هناك شخص لم تقل له أبداً ما كان يجب قوله؟</string>
+    <string name="reconciliation_label_recipient">اسم المستلم</string>
+    <string name="reconciliation_label_intent">نيتك (مثلاً: طلب السماح، شكر...)</string>
+    <string name="reconciliation_button_ai_help">طلب مساعدة الذكاء الاصطناعي في الصياغة</string>
+    <string name="reconciliation_ai_suggestions_title">اقتراحات الذكاء الاصطناعي</string>
+    <string name="reconciliation_mode_text">✍️ نص</string>
+    <string name="reconciliation_mode_audio">🎙️ صوت</string>
+    <string name="reconciliation_placeholder_message">اكتب رسالتك هنا...</string>
+    <string name="reconciliation_audio_tap_to_record">اضغط للتسجيل</string>
+    <string name="reconciliation_golden_rule">القاعدة الذهبية: ستظل هذه الرسالة مقفولة لمدة 30 يوماً بعد تفعيل إرثك.</string>
+    <string name="reconciliation_button_seal">وضعها في عهدة السر</string>
+    <string name="reconciliation_success_sealed">تم ختم الرسالة لمدة 30 يوماً.</string>
+    <string name="reconciliation_vm_summary">رسالة مصالحة لـ %1$s</string>
+
+    <!-- Recovery Batch -->
+    <string name="recovery_screen_title">استعادة الحساب</string>
+    <string name="recovery_main_title">استعد إرثك</string>
+    <string name="recovery_main_desc">أدخل عبارتك المكونة من 12 كلمة لفك تشفير ذكرياتك وتعيين كلمة مرور جديدة.</string>
+    <string name="recovery_label_email">بريدك الإلكتروني</string>
+    <string name="recovery_label_phrase">عبارة الاستعادة (12 كلمة)</string>
+    <string name="recovery_label_new_password">كلمة مرور جديدة</string>
+    <string name="recovery_button_restore">استعادة وصولي</string>
+    <string name="recovery_error_email_required">البريد الإلكتروني مطلوب.</string>
+    <string name="recovery_error_12_words">يجب أن تحتوي العبارة على 12 كلمة بالضبط.</string>
+    <string name="recovery_error_generic">خطأ في الاستعادة</string>
+
+    <!-- Portrait Batch -->
+    <string name="portrait_essence_title">بورتريه الجوهر</string>
+    <string name="portrait_essence_loading">الذكاء الاصطناعي يرسم جوهرك من خلال كلماتك...</string>
+    <string name="portrait_essence_empty">لا توجد أفكار كافية لرسم بورتريه خاص بك.\nاستمر في التقاط ذكرياتك.</string>
+    <string name="portrait_essence_error_prefix">خطأ: %1$s</string>
+    <string name="portrait_essence_intro_title">إرثك يتشكل</string>
+    <string name="portrait_essence_intro_desc">يحلل الذكاء الاصطناعي لـ PHOEN-X مسار أفكارك لكتابة ملخص عمن تبدو عليه.</string>
+    <string name="portrait_essence_button_generate">توليد البورتريه الخاص بي</string>
+    <string name="portrait_essence_card_title">جوهرك</string>
+    <string name="portrait_essence_footer_ai_version">ملخص ذكاء اصطناعي PHOEN-X إصدار 8.9.7</string>
+    <string name="portrait_essence_vm_error_gen">خطأ في التوليد</string>
+
+    <!-- Characters Batch -->
+    <string name="characters_onboarding_title">الشخصيات</string>
+    <string-array name="characters_onboarding_points">
+        <item>أدر هنا قائمة الأشخاص الذين يملؤون قصتك.</item>
+        <item>أضف الأشخاص الأعزاء عليك لإثراء سردك.</item>
+    </string-array>
+    <string name="characters_title_selection">اختر شخصية</string>
+    <string name="characters_title_list">شخصياتي</string>
+    <string name="characters_relationship_fallback">مقرب</string>
+    <string name="characters_count_singular">ذكرى واحدة</string>
+    <string name="characters_count_plural">%1$d ذكريات</string>
+    <string name="characters_edit_icon_desc">تعديل</string>
+    <string name="characters_empty_title">لم يتم ذكر أي شخصية بعد.</string>
+    <string name="characters_empty_subtitle">أضف الأشخاص الذين يملؤون قصتك.</string>
+    <string name="characters_role_guardian_primary">الحارس الأساسي</string>
+    <string name="characters_role_guardian_secondary">الحارس الثانوي</string>
+
+    <string name="character_edit_title">تعديل الشخصية</string>
+    <string name="character_edit_button_save">حفظ</string>
+    <string name="character_type_human">إنسان</string>
+    <string name="character_type_animal">حيوان</string>
+    <string name="character_section_identity">الهوية</string>
+    <string name="character_label_first_name">الاسم</string>
+    <string name="character_label_pet_name">لقب أو اسم تدليل</string>
+    <string name="character_label_last_name">الاسم العائلي (اختياري)</string>
+    <string name="character_section_relationship">العلاقة</string>
+    <string name="character_label_relationship_human">صلة القرابة / العلاقة</string>
+    <string name="character_label_relationship_animal">من هو بالنسبة لك؟</string>
+    <string name="character_placeholder_relationship_human">مثلاً: ابن عمي</string>
+    <string name="character_placeholder_relationship_animal">مثلاً: رفيقي المخلص</string>
+    <string name="character_label_history_details">تفاصيل عن قصتكما</string>
+    <string name="character_section_physical_human">البورتريه الجسدي (v9.0)</string>
+    <string name="character_section_physical_animal">الوصف الجسدي</string>
+    <string name="character_label_height">الطول (سم)</string>
+    <string name="character_label_weight">الوزن (كجم)</string>
+    <string name="character_label_eyes">العينان</string>
+    <string name="character_label_hair_human">الشعر</string>
+    <string name="character_label_hair_animal">لون الفرو</string>
+    <string name="character_section_social">الحياة الاجتماعية (v9.0)</string>
+    <string name="character_label_profession">المهنة / العمل</string>
+    <string name="character_label_clothing">نمط الملابس</string>
+    <string name="character_label_has_children">هل لديه أطفال؟</string>
+    <string name="character_label_yes">نعم</string>
+    <string name="character_label_no">لا</string>
+    <string name="character_section_species">الفصيلة</string>
+    <string name="character_label_species">السلالة / الفصيلة</string>
+    <string name="character_placeholder_species">مثلاً: غولدن ريتريفر، قط منزلي</string>
+    <string name="character_button_delete">حذف هذه الشخصية</string>
+    <string name="character_delete_dialog_title">حذف %1$s؟</string>
+    <string name="character_delete_dialog_text">تظهر هذه الشخصية في %1$d ذكريات — حذفها سيزيلها من هذه القصص دون حذف الذكريات نفسها.</string>
+    <string name="character_delete_confirm">حذف نهائي</string>
+    <string name="character_delete_cancel">إلغاء</string>
+
+    <!-- Legacy Batch -->
+    <string name="legacy_prep_title">تجهيز وصية</string>
+    <string name="legacy_prep_recipient_selection_desc">اختر من تريد أن تنقل إليه الذكريات.</string>
+    <string name="legacy_prep_button_add_recipient">إضافة شخص إلى الدائرة</string>
+    <string name="legacy_prep_for_recipient">لأجل %1$s</string>
+    <string name="legacy_prep_selection_title">اختر الشظايا المراد نقلها</string>
+    <string name="legacy_prep_entry_age">في عمر %1$d</string>
+    <string name="legacy_prep_entry_fallback">شظية حياة</string>
+    <string name="legacy_prep_button_change_recipient">تغيير القريب</string>
+    <string name="legacy_prep_button_validate">تأكيد هذه الوصية</string>
+
+    <string name="legacy_unique_key_title">المفتاح الفريد</string>
+    <string name="legacy_unique_key_creation_title">السر الوحيد</string>
+    <string name="legacy_unique_key_creation_desc">هذا المحتوى فريد. مرة واحدة فقط لكل حساب.</string>
+    <string name="legacy_unique_key_placeholder">اكتب هنا ما لم تقله لأي شخص آخر...</string>
+    <string name="legacy_unique_key_button_seal">ختم وتوليد المفتاح</string>
+    <string name="legacy_unique_key_success_title">تم ختم السر</string>
+    <string name="legacy_unique_key_success_desc">إليك مفتاحك الفريد. دونه، فلن يُعرض مرة أخرى.</string>
+    <string name="legacy_unique_key_exists_title">تم استخدام المفتاح مسبقاً</string>
+    <string name="legacy_unique_key_exists_desc">تم ختم درج المفتاح الفريد مسبقاً.</string>
+    <string name="legacy_unique_key_error_generic">خطأ</string>
+
+    <!-- Witness Batch -->
+    <string name="witness_title">الشهود</string>
+    <string name="witness_info_title">الشهود</string>
+    <string name="witness_info_p1">ادعُ مقربيك للشهادة عنك — لن ترى أبداً ما يكتبونه.</string>
+    <string name="witness_info_p2">شهاداتهم مشفرة ومختومة حتى يتم تفعيل البروتوكول.</string>
+    <string name="witness_info_p3">إنها ذاكرة بزاوية 360 درجة: قصتك بعيون من يحبونك.</string>
+    <string name="witness_info_p4">يتلقى كل شاهد رابطاً فريداً عبر البريد الإلكتروني.</string>
+    <string name="witness_info_p5">يمكنك اختيار السماح بالقراءة أثناء حياتك لبعض الشهود.</string>
+    <string name="witness_invite_description">ادعُ مقربيك ليروا ذكرى عنك. كلماتهم ستثري إرثك.</string>
+    <string name="witness_empty_list">لا يوجد شهود حالياً.</string>
+    <string name="witness_review_dialog_title">شهادة %1$s</string>
+    <string name="witness_review_error">تعذر قراءة الشهادة.</string>
+    <string name="witness_review_button_reject">رفض</string>
+    <string name="witness_review_button_validate">تأكيد</string>
+    <string name="witness_review_button_close">إغلاق</string>
+    <string name="witness_delete_dialog_title">حذف هذا الشاهد؟</string>
+    <string name="witness_delete_dialog_text">هل تريد حقاً إلغاء دعوة %1$s؟</string>
+    <string name="witness_delete_button_confirm">حذف</string>
+    <string name="witness_delete_button_cancel">إلغاء</string>
+    <string name="witness_status_to_verify">بانتظار التحقق</string>
+    <string name="witness_status_validated">تم التأكيد</string>
+    <string name="witness_status_rejected">تم الرفض</string>
+    <string name="witness_status_invited">تمت الدعوة</string>
+    <string name="witness_dialog_title">دعوة شاهد</string>
+    <string name="witness_dialog_label_name">الاسم الكامل</string>
+    <string name="witness_dialog_label_email">البريد الإلكتروني</string>
+    <string name="witness_dialog_section_orientation">توجيه الشهادة</string>
+    <string name="witness_dialog_info_title">توجيه الشاهد</string>
+    <string name="witness_dialog_info_content">يمكنك طرح سؤال محدد أو اقتراح موضوع.</string>
+    <string name="witness_dialog_placeholder_prompt">مثال: ما هي أطرف ذكرى لك معي؟</string>
+    <string name="witness_dialog_check_allow_read">السماح لي بقراءة هذه الشهادة خلال حياتي</string>
+    <string name="witness_dialog_check_allow_reject">حق المراجعة: القدرة على رفض الشهادة إذا كانت غير لائقة</string>
+    <string name="witness_dialog_button_next">التالي</string>
+    <string name="witness_dialog_button_cancel">إلغاء</string>
+
+    <string name="witness_response_sealed_title">الشهادة مختومة بالفعل</string>
+    <string name="witness_response_sealed_text">لقد أرسلت بالفعل شهادتك لـ %1$s. هي الآن في أمان.</string>
+    <string name="witness_response_button_back">عودة</string>
+    <string name="witness_response_ritual_success">تم ختم الشهادة.\nشكراً لك على هذه الذكرى.</string>
+    <string name="witness_response_title">شهادة لـ %1$s</string>
+    <string name="witness_response_default_instruction">اروِ لحظة فاجأك فيها %1$s.</string>
+    <string name="witness_response_placeholder">اكتب قصتك هنا...</string>
+    <string name="witness_response_button_seal">ختم شهادتي</string>
+    <string name="witness_response_transparency_reject_title">تحقق مسبق</string>
+    <string name="witness_response_transparency_reject_desc">سيتمكن قريبك من قراءة هذه الشهادة قبل نقلها.</string>
+    <string name="witness_response_transparency_read_title">شهادة مفتوحة</string>
+    <string name="witness_response_transparency_read_desc">طلب قريبك التمكن من قراءة هذه الشهادة خلال حياته.</string>
+    <string name="witness_response_transparency_standard_title">خصوصية كاملة</string>
+    <string name="witness_response_transparency_standard_desc">شهادتك مشفرة بالكامل.</string>
+    <string name="witness_response_creator_fallback">قريبك</string>
+
+    <string name="witness_vm_error_invalid_token">رابط غير صالح أو تم رفض الوصول.</string>
+    <string name="witness_vm_invite_label">شاهد</string>
+    <string name="witness_vm_email_subject">يطلب %1$s شهادتك</string>
+    <string name="witness_vm_email_text">مرحباً %1$s،\n\nيعد %2$s مساحة ذكرياته على PHOEN-X ويرغب في طلب شهادتك عن ذكرى مشتركة.\n\nرابط الانضمام : https://phoenx.app/join/%3$s</string>
+    <string name="witness_vm_error_invite">تعذر إرسال الدعوة. تحقق من اتصالك.</string>
+    <string name="witness_vm_error_update_status">خطأ أثناء تحديث الحالة.</string>
+    <string name="witness_vm_error_public_key">المفتاح العام للمنشئ مفقود</string>
+    <string name="witness_vm_error_submit">فشل إرسال الشهادة. حاول لاحقاً.</string>
+
+    <!-- Silence Batch -->
+    <string name="silence_block_days_count">مر %1$d يوماً منذ آخر مرة تواصلنا فيها.</string>
+    <string name="silence_block_subtitle">أخبرنا فقط أنك موجود.</string>
+    <string name="silence_button_im_here">أنا هنا</string>
+    <string name="silence_checkin_title">أنت لا تزال هنا.</string>
+    <string name="silence_checkin_info_title">دليل الحياة</string>
+    <string name="silence_checkin_info_p1">لمسة بسيطة على \'أنا هنا\' تؤكد تواجدك.</string>
+    <string name="silence_checkin_info_p2">إذا كنت تمر بوقت صعب، يمكنك الإشارة لذلك دون شرح.</string>
+    <string name="silence_checkin_info_p3">حتى \'تخطي الآن\' تُحسب — ابقَ حاضراً.</string>
+    <string name="silence_checkin_info_p4">إذا لم ترد لعدة مرات، سيتم إخطار الشخص الموثوق به.</string>
+    <string name="silence_checkin_info_p5">اختر تكرار هذه الفحوصات في إعداداتك.</string>
+    <string name="silence_checkin_toast_noted">تم التسجيل. نراك قريباً.</string>
+    <string name="silence_button_traversing">أمر بفترة صعبة</string>
+    <string name="silence_traversing_title">نحن هنا.</string>
+    <string name="silence_traversing_desc">لست مضطراً لشرح أي شيء. سنذكرك كل أسبوع للتأكد من أنك بخير.</string>
+    <string name="silence_traversing_option_record">سجل فكرة الآن</string>
+    <string name="silence_traversing_option_pass">مجرد تحية للوقت الحالي</string>
+    <string name="silence_button_close">إغلاق</string>
+    <string name="silence_onboarding_title">حضور، حتى في الصمت</string>
+    <string name="silence_onboarding_desc">بين الحين والآخر، سيطلب منك PHOEN-X فقط التأكد من أنك موجود. لمسة بسيطة تكفي.</string>
+    <string name="silence_onboarding_question">كم مرة تود أن نتواصل معك؟</string>
+    <string name="silence_onboarding_option_2_weeks">كل أسبوعين</string>
+    <string name="silence_onboarding_option_1_month">مرة في الشهر</string>
+    <string name="silence_onboarding_option_2_months">كل شهرين</string>
+    <string name="silence_onboarding_footer">إذا لم تؤكد حضورك، سنذكرك كل أسبوع.</string>
+    <string name="silence_onboarding_button_confirm">اختر هذا التكرار</string>
+
+    <!-- Rankings Batch -->
+    <string name="rankings_title">تصنيفاتي</string>
+    <string name="rankings_info_title">تصنيفاتي</string>
+    <string name="rankings_info_point1">أنشئ قوائمك الشخصية حسب الموضوع.</string>
+    <string name="rankings_info_point2">إنها مساحة للمتعة الخالصة لمشاركة أذواقك.</string>
+    <string name="rankings_info_point3">اختر فئة أو أنشئ فئتك الخاصة، ثم املأ المراكز المفضلة لديك.</string>
+    <string name="rankings_empty_state">لا توجد تصنيفات حالياً.</string>
+    <string name="rankings_add_cover_readonly">لا توجد صورة غلاف</string>
+    <string name="rankings_add_cover_prompt">أضف صورة غلاف</string>
+    <string name="rankings_item_add_image">أدخل صورة</string>
+    <string name="rankings_item_filled_count">تم ملء %1$d من أصل %2$d</string>
+    <string name="rankings_suggestions_header">أفكار للبدء</string>
+
+    <string name="rankings_dialog_create_title">تصنيف جديد</string>
+    <string name="rankings_dialog_create_label_theme">الموضوع</string>
+    <string name="rankings_dialog_create_placeholder_theme">مثال: أفلامي المفضلة</string>
+    <string name="rankings_dialog_create_count_label">عدد العناصر: %1$d</string>
+    <string name="rankings_dialog_create_button_confirm">إنشاء</string>
+    <string name="rankings_dialog_create_button_cancel">إلغاء</string>
+
+    <string name="ranking_detail_menu_rename">إعادة تسمية</string>
+    <string name="ranking_detail_menu_delete">حذف هذا التصنيف</string>
+    <string name="ranking_detail_bottom_count">تم ملء %1$d مراكز من أصل %2$d</string>
+    <string name="ranking_detail_no_image">لا توجد صورة</string>
+    <string name="ranking_detail_add_image">أضف صورة</string>
+    <string name="ranking_detail_dialog_rename_title">إعادة تسمية التصنيف</string>
+    <string name="ranking_detail_dialog_rename_label">العنوان</string>
+    <string name="ranking_detail_dialog_rename_button_save">حفظ</string>
+    <string name="ranking_detail_dialog_rename_button_cancel">إلغاء</string>
+    <string name="ranking_detail_dialog_delete_title">حذف هذا التصنيف؟</string>
+    <string name="ranking_detail_dialog_delete_text">هذا الإجراء غير قابل للتراجع. حذف هذا التصنيف نهائياً؟</string>
+    <string name="ranking_detail_dialog_delete_button_confirm">حذف</string>
+    <string name="ranking_detail_dialog_delete_button_cancel">إلغاء</string>
+    <string name="ranking_detail_dialog_item_title">المركز رقم %1$d</string>
+    <string name="ranking_detail_dialog_item_placeholder">أدخل اختيارك</string>
+    <string name="ranking_detail_dialog_item_button_clear">تفريغ</string>
+    <string name="ranking_detail_dialog_item_button_save">حفظ</string>
+    <string name="ranking_detail_dialog_item_button_cancel">إلغاء</string>
+    <string name="ranking_detail_row_empty">مركز شاغر — اضغط للملء</string>
+
+    <!-- Suggestions Categories -->
+    <string name="rankings_cat_music">موسيقى</string>
+    <string name="rankings_cat_cinema">سينما ومسلسلات</string>
+    <string name="rankings_cat_literature">أدب</string>
+    <string name="rankings_cat_art">فنون بصرية</string>
+    <string name="rankings_cat_travel">أماكن ورحلات</string>
+    <string name="rankings_cat_personal">حياة شخصية</string>
+    <string name="rankings_cat_sport">رياضة</string>
+
+    <!-- Portraits Batch -->
+    <string name="portrait_proche_title">مرآة القريب</string>
+    <string name="portrait_proche_info_title">بورتريه قريب</string>
+    <string name="portrait_proche_info_content">يقدم لك بورتريه القريب 20 سؤالاً لرسم صورة لشخص يهمك.</string>
+    <string name="portrait_proche_intro">إليك كيف رأيتك. إليك ما رأيته فيك وربما لم تعرفه أبداً.</string>
+    <string name="portrait_proche_label_who">لمن هذا البورتريه؟</string>
+    <string name="portrait_proche_button_add_recipient">أضف قريباً أولاً</string>
+    <string name="portrait_proche_placeholder_recipient">اختر قريباً</string>
+    <string name="portrait_proche_placeholder_writing">اكتب بحرية ما رأيته في %1$s...</string>
+    <string name="portrait_proche_fallback_recipient">قريبك</string>
+    <string name="portrait_proche_button_guidance">عرض أسئلة توجيهية</string>
+    <string name="portrait_proche_button_seal">ختم هذا البورتريه</string>
+    <string name="portrait_proche_toast_success">تم ختم البورتريه ومزامنته.</string>
+    <string name="portrait_proche_guidance_q1">ما هي أول ذكرى تتبادر للذهن؟</string>
+    <string name="portrait_proche_guidance_q2">ما هي الصفة الفريدة التي يمتلكها؟</string>
+    <string name="portrait_proche_guidance_q3">ماذا تعلمت منه؟</string>
+    <string name="portrait_proche_guidance_q4">ماذا تريد منه أن يعرف عما يمثله بالنسبة لك؟</string>
+
+    <string name="portrait_selection_title">لمن تكتب هذا البورتريه؟</string>
+    <string name="portrait_selection_empty">دائرتك فارغة. أضف أقاربك من الصفحة الرئيسية أولاً.</string>
+    <string name="portrait_title_with_name">بورتريه %1$s</string>
+    <string name="portrait_title_fallback">بورتريه قريب</string>
+    <string name="portrait_progress_label">سؤال %1$d من %2$d</string>
+    <string name="portrait_button_finish_now">إنهاء الآن</string>
+    <string name="portrait_placeholder_thoughts">اكتب أفكارك هنا... (اختياري)</string>
+    <string name="portrait_button_previous">السابق</string>
+    <string name="portrait_button_change_recipient">تغيير القريب</string>
+    <string name="portrait_button_skip">تخطي</string>
+    <string name="portrait_button_next">التالي</string>
+    <string name="portrait_button_finalize">نهائي</string>
+
+    <string name="portrait_vm_error_empty">البورتريه فارغ. اكتب فكرة واحدة على الأقل.</string>
+    <string name="portrait_vm_recipient_fallback">قريب</string>
+    <string name="portrait_vm_summary_prefix">بورتريه %1$s</string>
+    <string name="portrait_vm_free_thought_label">فكرة حرة</string>
+    <string name="portrait_vm_error_save">خطأ في الحفظ</string>
+
+    <!-- Assistant Batch -->
+    <string name="assistant_welcome_message">مرحباً %1$s ! أنا مساعدك في PHOEN-X.</string>
+    <string name="assistant_nickname_dialog_title">مرحباً بك</string>
+    <string name="assistant_nickname_dialog_desc">قبل البدء، بماذا تود أن أناديك؟</string>
+    <string name="assistant_nickname_dialog_label">اسمك أو لقبك</string>
+    <string name="assistant_nickname_dialog_confirm">تأكيد</string>
+    <string name="assistant_chat_title">مساعد PHOEN-X</string>
+    <string name="assistant_chat_clear">مسح</string>
+    <string name="assistant_chat_placeholder">اطرح سؤالك...</string>
+    <string name="assistant_name_fallback_ami">صديقي</string>
+    <string name="assistant_name_fallback_user">المستخدم</string>
+    <string name="assistant_suggested_q1">كيف أودع ذكراي الأولى؟</string>
+    <string name="assistant_suggested_q2">من يمكنه رؤية ما أكتب؟</string>
+    <string name="assistant_suggested_q3">كيف تعمل الحماية؟</string>
+    <string name="assistant_error_no_answer">عذراً، لم أتمكن من الحصول على إجابة.</string>
+    <string name="assistant_error_generic">حدث خطأ ما.</string>
+
+    <!-- Questions Room Batch -->
+    <string name="questions_room_title">الـ 100 سؤال</string>
+    <string name="questions_room_all_answered">تم سرد كل قصصك.</string>
+    <string name="questions_room_progress_label">تم سرد %1$d من أصل %2$d سؤالاً</string>
+    <string name="questions_room_my_questions_header">أسئلتك الشخصية</string>
+    <string name="questions_room_general_questions_header">أسئلة عامة</string>
+    <string name="questions_room_status_answered">تمت الإجابة</string>
+    <string name="questions_room_button_edit_answer">تعديل إجابتي</string>
+    <string name="questions_room_button_answer">إجابة</string>
+    <string name="questions_room_result_answered_header">إجابة %1$s</string>
+    <string name="questions_room_result_declined_header">لم تتم الإجابة بناءً على اختيار</string>
+    <string name="questions_room_result_declined_desc">اطلع %1$s على هذا السؤال واختار عدم الإجابة عليه.</string>
+    <string name="questions_room_result_pending_header">بدون إجابة</string>
+    <string name="questions_room_result_pending_desc">هذا السؤال لم تتم الإجابة عليه.</string>
+    <string name="questions_room_creator_fallback">قريبك</string>
+    <string name="questions_room_category_all">الكل</string>
+
+    <!-- Question Categories -->
+    <string name="question_cat_all">الكل</string>
+    <string name="question_cat_childhood">الطفولة</string>
+    <string name="question_cat_family">العائلة</string>
+    <string name="question_cat_love">الحب</string>
+    <string name="question_cat_friendship">الصداقة</string>
+    <string name="question_cat_work">العمل</string>
+    <string name="question_cat_money">المال والنجاح</string>
+    <string name="question_cat_values">القيم</string>
+    <string name="question_cat_faith">الإيمان والروحانية</string>
+    <string name="question_cat_health">الجسد والصحة</string>
+    <string name="question_cat_regrets">الندم</string>
+    <string name="question_cat_dreams">الأحلام</string>
+    <string name="question_cat_travel">الرحلات والأماكن</string>
+    <string name="question_cat_creativity">الإبداع والهوايات</string>
+    <string name="question_cat_secrets">الأسرار والاعترافات</string>
+    <string name="question_cat_wisdom">الحكمة</string>
+    <string name="question_cat_my_questions">أسئلتي</string>
+
+    <!-- Additional Feed Categories -->
+    <string name="question_cat_hope">الأمل</string>
+    <string name="question_cat_transmission">النقل</string>
+    <string name="question_cat_reconciliation">المصالحة</string>
+    <string name="question_cat_humanity">الإنسانية</string>
+    <string name="question_cat_gratitude">الامتنان</string>
+
+    <!-- Preview Batch -->
+    <string name="preview_dashboard_title">معاينة رؤية المستلم</string>
+    <string name="preview_dashboard_warning">ما تراه هنا يعكس بدقة محتوى وأجواء مساحة %1$s</string>
+    <string name="preview_dashboard_transmission_header">مساحة النقل</string>
+    <string name="preview_pillar_souvenirs">ذكريات وقصص</string>
+    <string name="preview_pillar_photos">صور</string>
+    <string name="preview_pillar_videos">فيديوهات</string>
+    <string name="preview_pillar_audios">صوتيات</string>
+    <string name="preview_pillar_book">كتاب الحياة</string>
+    <string name="preview_pillar_vault">الخزنة</string>
+    <string name="preview_pillar_genealogy">شجرة العائلة</string>
+    <string name="preview_pillar_personalities">شخصيات</string>
+    <string name="preview_dashboard_readonly_note">ملاحظة : هذه المعاينة لا تسمح بأي تعديل. هي للقراءة فقط.</string>
+    <string name="preview_pillar_shared_item">عنصر مشترك</string>
+    <string name="preview_pillar_shared_items">عناصر مشتركة</string>
+
+    <string name="preview_fil_title">شريط الأفكار (معاينة)</string>
+    <string name="preview_fil_empty">لا توجد ذكريات مشتركة مع %1$s</string>
+    <string name="preview_entry_no_title">ذكرى بدون عنوان</string>
+    <string name="preview_entry_deposited_at">أودعت في %1$s</string>
+
+    <string name="preview_book_title_label">كتاب الحياة (معاينة)</string>
+    <string name="preview_book_fallback_title">كتاب حياتي</string>
+    <string name="preview_book_available_desc">المخطوطة جاهزة للاطلاع.</string>
+    <string name="preview_book_button_consult">الاطلاع على المخطوطة</string>
+    <string name="preview_book_exists_not_shared">الكتاب موجود، لكنه غير مشترك مع %1$s.</string>
+    <string name="preview_book_how_to_share">لمشاركته، ارجع إلى محرر الكتاب.</string>
+    <string name="preview_book_none_generated">لم يتم توليد أي كتاب بعد.</string>
+    <string name="preview_book_how_to_create">لإنشاء كتابك، ارجع إلى مكتبتك.</string>
+
+    <string name="preview_vault_title">الخزنة (معاينة)</string>
+    <string name="preview_vault_empty">لا توجد ألغاز مختومة لـ %1$s</string>
+    <string name="preview_vault_sealed_label">ذكرى مختومة</string>
+    <string name="preview_vault_missing_question">السؤال مفقود</string>
+    <string name="preview_vault_protected_desc">هذا المحتوى محمي بلغز.</string>
+
+    <string name="preview_media_photos">مكتبة الصور</string>
+    <string name="preview_media_videos">مكتبة الفيديو</string>
+    <string name="preview_media_audios">المكتبة الصوتية</string>
+    <string name="preview_media_generic">مكتبة الوسائط</string>
+    <string name="preview_media_title_format">%1$s (معاينة)</string>
+    <string name="preview_media_empty">لا توجد وسائط مشتركة مع %1$s</string>
+    <string name="preview_media_fallback_label">وسائط</string>
+
+    <string name="preview_media_panel_unsupported">تنسيق غير مدعوم في المعاينة</string>
+    <string name="preview_media_panel_recipient_view">رؤية المستلم (للقراءة فقط)</string>
+
+    <string name="preview_detail_title">التفاصيل (معاينة)</string>
+    <string name="preview_detail_not_found">الذكرى غير موجودة أو غير مشتركة</string>
+    <string name="preview_detail_no_title">بدون عنوان</string>
+    <string name="preview_detail_no_content">لا يوجد محتوى مكتوب.</string>
+    <string name="preview_detail_creator_comment">تعليق المنشئ</string>
+    <string name="preview_detail_complements_header">إضافات الميديا</string>
+    <string name="preview_detail_shared_with_desc">هذه الذكرى مشتركة مع %1$s.</string>
+
+    <string name="preview_genealogy_title">شجرة العائلة (معاينة)</string>
+    <string name="preview_genealogy_empty">شجرتك لا تزال فارغة.</string>
+    <string name="preview_genealogy_readonly_badge">وضع المعاينة : للقراءة فقط</string>
+
+    <string name="preview_vm_recipient_fallback">هذا القريب</string>
+    <string name="preview_vm_decrypt_error">خطأ في فك التشفير</string>
+
+    <!-- Universal Batch -->
+    <string name="universal_message_title">رسالتي إلى البشرية</string>
+    <string name="universal_message_info_title">رسالتي إلى البشرية</string>
+    <string name="universal_message_info_p1">رسالة واحدة للجميع — تُنشر بعد رحيلك.</string>
+    <string name="universal_message_info_p2">يمكنك إضافة حتى 3 صور وفيديو لمدة 30 ثانية.</string>
+    <string name="universal_message_info_p3">يصنف الذكاء الاصطناعي رسالتك تلقائياً.</string>
+    <string name="universal_message_info_p4">يقوم فريقنا بمراجعة كل رسالة قبل النشر.</string>
+    <string name="universal_message_info_p5">يحتاج القراء فقط لحساب مجاني.</string>
+    <string name="universal_message_subtitle">رسالة واحدة. للجميع.</string>
+    <string name="universal_message_placeholder">اكتب هنا رسالتك العالمية...</string>
+    <string name="universal_message_section_photos">صور (بحد أقصى 3)</string>
+    <string name="universal_message_section_video">فيديو (بحد أقصى 30 ثانية)</string>
+    <string name="universal_message_button_add_video">إضافة فيديو</string>
+    <string name="universal_message_video_selected">تم اختيار الفيديو</string>
+    <string name="universal_message_error_video_duration">يتجاوز هذا الفيديو 30 ثانية.</string>
+    <string name="universal_message_section_profile">المعلومات المرئية للقراء :</string>
+    <string name="universal_message_profile_last_name">اسمي العائلي</string>
+    <string name="universal_message_profile_profession">مهنتي</string>
+    <string name="universal_message_profile_city">مدينتي</string>
+    <string name="universal_message_profile_bio_label">جملة تعريفية</string>
+    <string name="universal_message_charte">أوافق على مراجعة هذه الرسالة قبل النشر.</string>
+    <string name="universal_message_toast_success">تم ختم رسالتك.</string>
+    <string name="universal_message_toast_error">خطأ : %1$s</string>
+    <string name="universal_message_button_seal">ختم هذه الرسالة</string>
+    <string name="universal_message_sealed_title">رسالتك مختومة.</string>
+    <string name="universal_message_sealed_desc">لقد أودعت بالفعل رسالتك إلى البشرية.</string>
+    <string name="universal_message_button_view">عرض رسالتي</string>
+    <string name="universal_message_vm_error_check">خطأ في التحقق</string>
+
+    <string name="universal_feed_title">رسائل إلى البشرية</string>
+    <string name="universal_feed_subtitle">كلمات تركها من رحلوا من أجلك.</string>
+    <string name="universal_feed_empty">لا توجد رسائل حالياً.</string>
+    <string name="universal_feed_card_header">%1$s، %2$d عاماً • %3$s</string>
+    <string name="universal_feed_creator_fallback">قريب</string>
+
+    <string name="universal_join_mismatch_title">تم اكتشاف حساب خاطئ</string>
+    <string name="universal_join_mismatch_destined">هذه الدعوة مخصصة لـ :</string>
+    <string name="universal_join_mismatch_currently">لكنك متصل حالياً بـ :</string>
+    <string name="universal_join_mismatch_button_logout">تسجيل الخروج والمتابعة</string>
+    <string name="universal_join_greeting">مرحباً،</string>
+    <string name="universal_join_invitation_title">يدعوك %1$s</string>
+    <string name="universal_join_role_depositary">لتكون حارسه الموثوق</string>
+    <string name="universal_join_role_witness">لتقديم شهادة عن قصته</string>
+    <string name="universal_join_role_recipient">لتكون أحد مستلميه</string>
+    <string name="universal_join_role_mirror">لمرآة ثنائية</string>
+    <string name="universal_join_role_fallback">للانضمام إلى دائرته</string>
+    <string name="universal_join_pedagogy_depositary">كحارس، ستكون المفتاح لفتح ذاكرته في الوقت المناسب.</string>
+    <string name="universal_join_pedagogy_witness">شهادتك ستثري إرثه.</string>
+    <string name="universal_join_pedagogy_recipient">تم اختيارك لتلقي جزء من ذاكرته.</string>
+    <string name="universal_join_pedagogy_mirror">وجهتا نظر لقصة واحدة.</string>
+    <string name="universal_join_button_accept">قبول هذا الدور</string>
+    <string name="universal_join_button_login">سجل دخولك للقبول</string>
+    <string name="universal_join_restricted_to">الوصول مقتصر على العنوان : %1$s</string>
+    <string name="universal_join_error_not_found">هذه الدعوة غير موجودة أو انتهت صلاحيتها.</string>
+    <string name="universal_join_error_already_used">تم استخدام هذه الدعوة بالفعل.</string>
+    <string name="universal_join_error_wrong_account">عذراً، هذه الدعوة ليست لهذا الحساب.</string>
+    <string name="universal_join_error_generic">حدث خطأ أثناء الربط.</string>
+
+    <string name="guest_dashboard_tab_circle">الدائرة</string>
+    <string name="guest_dashboard_tab_attentions">الرسائل المستلمة</string>
+    <string name="guest_dashboard_title_circle">مساحة الأقارب</string>
+    <string name="guest_dashboard_title_attentions">الرسائل المستلمة</string>
+    <string name="guest_dashboard_button_logout">تسجيل الخروج</string>
+    <string name="guest_dashboard_welcome">مرحباً بك في مساحتك الخاصة.</string>
+    <string name="guest_dashboard_pending_header">دعوات معلقة</string>
+    <string name="guest_dashboard_empty">لا يوجد أدوار نشطة حالياً.</string>
+    <string name="guest_dashboard_become_creator_title">ماذا عنك؟</string>
+    <string name="guest_dashboard_become_creator_desc">ابدأ بختم ذكرياتك لمن تحب.</string>
+    <string name="guest_dashboard_become_creator_button">كن منشئاً ←</string>
+    <string name="guest_dashboard_invite_label">يدعوك لتكون : %1$s</string>
+    <string name="guest_dashboard_invite_accept">قبول</string>
+    <string name="guest_dashboard_role_depositary">أنا حارسه الموثوق</string>
+    <string name="guest_dashboard_role_witness">أقدم شهادتي</string>
+    <string name="guest_dashboard_role_recipient">أنا أحد مستلميه</string>
+    <string name="guest_dashboard_role_fallback">رابط ثقة</string>
+
+    <string name="become_creator_witness_msg">اختار %1$s أن يعهد إليك بشهادة ثمينة.</string>
+    <string name="become_creator_depositary_msg">جعلك %1$s حارساً لذاكرته.</string>
+    <string name="become_creator_recipient_msg">اختار %1$s أن ينقل إليك جزءاً من قصته.</string>
+    <string name="become_creator_fallback_msg">دعاك %1$s للانضمام لدائرة ثقته.</string>
+    <string name="become_creator_invite_desc">عش تجربة PHOEN-X أنت أيضاً.</string>
+    <string name="become_creator_button">كن منشئاً</string>
+    <string name="become_creator_later">لاحقاً</string>
+
+    <string name="attentions_title">آخر الرسائل المستلمة</string>
+    <string name="attentions_card_header">كتب %1$s لك</string>
+    <string name="attentions_card_received_at">استُلمت في %1$s</string>
+    <string name="attentions_card_encrypted">المحتوى مشفر</string>
+    <string name="attentions_empty_title">لا يوجد رسائل حالياً.</string>
+    <string name="attentions_empty_desc">هنا ستتلقى الذكريات التي يختار أقاربك نقلها إليك.</string>
+    <string name="attentions_error_load">تعذر تحميل الرسائل.</string>
+
+    <!-- Book Batch A (Theme & Cover) -->
+    <string name="book_font_classic">كلاسيكي</string>
+    <string name="book_font_modern">عصري</string>
+    <string name="book_font_cursive">خط اليد</string>
+    <string name="book_font_elegant_plume">ريشة أنيقة</string>
+    <string name="book_font_royal_chronicle">السجل الملكي</string>
+    <string name="book_font_plume_script">خط الريشة</string>
+    <string name="book_font_modern_book">كتاب حديث</string>
+
+    <string name="book_bg_ivory">عاجي</string>
+    <string name="book_bg_parchment">ورق قديم</string>
+    <string name="book_bg_night">ليل</string>
+    <string name="book_bg_linen">كتان</string>
+    <string name="book_bg_mist">ضباب</string>
+    <string name="book_bg_ash">رمادي</string>
+    <string name="book_bg_powder">بودرة</string>
+    <string name="book_bg_forest">غابة</string>
+
+    <string name="theme_selector_paper">الورق</string>
+    <string name="theme_selector_plume">الريشة</string>
+
+    <!-- Book Batch B (Viewer & Editor) -->
+    <string name="book_viewer_sealed_message">سيفتح لك كتاب %1$s في الوقت المناسب.</string>
+    <string name="book_viewer_sealed_status">هذا السرد مختوم حالياً.</string>
+    <string name="book_viewer_sealed_status_recipient">هذا السرد مختوم حالياً. الحارس وحده هو من يمكنه فك الختم.</string>
+    <string name="book_viewer_fallback_title">كتاب الحياة</string>
+    <string name="book_viewer_btn_back">عودة</string>
+    <string name="book_viewer_empty_recipient">لم يتم كتابة كتاب الحياة بعد.</string>
+    <string name="book_viewer_empty_creator">لم يتم إنشاء كتابك بعد.</string>
+    <string name="book_viewer_btn_create">إنشاء كتابي</string>
+    <string name="book_viewer_chapter_label">الفصل %1$d</string>
+    <string name="book_viewer_progress_label">الفصل %1$d / %2$d</string>
+    <string name="book_viewer_btn_edit">تعديل هذا الكتاب</string>
+    <string name="book_viewer_audio_fragment">شظية صوتية</string>
+    <string name="book_viewer_audio_essence">جوهر هذه الذكرى</string>
+
+    <string name="book_editor_onboarding_title">كتاب حياتي</string>
+    <string name="book_editor_onboarding_p1">يولد الذكاء الاصطناعي كتاباً سردياً من ذكرياتك.</string>
+    <string name="book_editor_onboarding_p2">يصل كل فصل كمسودة — يمكنك تأكيده، تعديله، أو طلب إعادة كتابته.</string>
+    <string name="book_editor_onboarding_p3">لا يقرأ الذكاء الاصطناعي ذكرياتك الحقيقية — فقط ملخصات مجهولة المصدر.</string>
+    <string name="book_editor_onboarding_p4">الفصل المؤكد يتم قفله ولكن يمكنك فتحه في أي وقت.</string>
+    <string name="book_editor_onboarding_p5">سيقرأ أحباؤك هذا الكتاب ككتاب حقيقي، صفحة بصفحة.</string>
+    <string name="book_editor_saving">جاري الحفظ...</string>
+    <string name="book_editor_saved">تم الحفظ</string>
+    <string name="book_editor_menu_cancel_regen">إلغاء آخر توليد</string>
+    <string name="book_editor_dialog_restore_title">استعادة النسخة السابقة؟</string>
+    <string name="book_editor_dialog_restore_text">سيتم استبدال المحتوى الحالي بالمحتوى السابق.</string>
+    <string name="book_editor_dialog_restore_confirm">استعادة</string>
+    <string name="book_editor_dialog_restore_cancel">إلغاء</string>
+    <string name="book_editor_stats_label">%1$d فصول · %2$d ذكريات مدمجة</string>
+    <string name="book_editor_btn_read">قراءة كتابي</string>
+    <string name="book_editor_btn_regenerate">إعادة توليد</string>
+    <string name="book_editor_section_preface">المقدمة</string>
+    <string name="book_editor_section_rights">الحقوق</string>
+    <string name="book_editor_section_ambiance">الأجواء</string>
+    <string name="book_editor_section_cover">الغلاف</string>
+    <string name="book_editor_cover_custom_title">تخصيص الغلاف</string>
+    <string name="book_editor_cover_btn_change_photo">تغيير الصورة</string>
+    <string name="book_editor_cover_btn_reset">إعادة تعيين</string>
+    <string name="book_editor_cover_title_color">لون العنوان</string>
+    <string name="book_editor_ambiance_note">ملاحظة : اختيار الورق والريشة يحدد الأجواء البصرية العامة.</string>
+    <string name="book_editor_section_recipients">مستلمو المخطوطة</string>
+    <string name="book_editor_attribution_note">ملاحظة : فقط الذكريات \"المخصصة\" يتم دمجها في السرد.</string>
+    <string name="book_editor_section_summary">ملخص المخطوطة</string>
+
+    <string name="chapter_editor_status_validated">فصل مؤكد</string>
+    <string name="chapter_editor_ai_rewriting">الذكاء الاصطناعي يعيد كتابة الفصل...</string>
+    <string name="chapter_editor_suggest_rephrase">إعادة صياغة هذا المقطع</string>
+    <string name="chapter_editor_suggest_emotion">إضافة المزيد من المشاعر</string>
+    <string name="chapter_editor_suggest_shorten">تقصير هذا الفصل</string>
+    <string name="chapter_editor_suggest_tone">تغيير النغمة</string>
+    <string name="chapter_editor_suggest_intro">إضافة مقدمة</string>
+    <string name="chapter_editor_suggest_finish">إنهاء هذا الفصل</string>
+    <string name="chapter_editor_ai_placeholder">أخبر الذكاء الاصطناعي بما تريد تعديله...</string>
+    <string name="chapter_editor_btn_send_ai">إرسال للذكاء الاصطناعي</string>
+    <string name="chapter_editor_btn_ask_ai">🤖 اسأل الذكاء الاصطناعي</string>
+    <string name="chapter_editor_btn_validate">✅ تأكيد</string>
+    <string name="chapter_editor_btn_unvalidate">🔓 تعديل على أي حال</string>
+
+    <!-- Book Batch C (Logic & Generator) -->
+    <string name="book_editor_vm_creator_fallback">قريبك</string>
+    <string name="book_editor_vm_error_gen">خطأ أثناء التوليد.</string>
+    <string name="book_editor_vm_progress_plan">رسم مسودة لهيكل حياتك...</string>
+    <string name="book_editor_vm_error_plan">خطأ في إنشاء الخطة.</string>
+    <string name="book_editor_vm_error_analyze">خطأ في تحليل الفصول.</string>
+    <string name="book_editor_vm_error_ai">خطأ في الذكاء الاصطناعي : %1$s</string>
+    <string name="book_editor_vm_error_unknown">سبب غير معروف</string>
+    <string name="book_editor_vm_error_save">خطأ أثناء الحفظ</string>
+    <string name="book_editor_vm_error_intro_gen">خطأ في توليد المقدمة : %1$s</string>
+    <string name="book_editor_vm_error_intro_save">خطأ في حفظ المقدمة</string>
+    <string name="book_editor_vm_error_ambiance">خطأ في حفظ الأجواء</string>
+    <string name="book_editor_vm_error_upload">خطأ أثناء رفع الصورة</string>
+    <string name="book_editor_vm_error_title_style">خطأ في حفظ نمط العنوان</string>
+
+    <string name="book_empty_state_title">قصتك تستحق أن تُروى.</string>
+    <string name="book_empty_state_desc">سيقوم PHOEN-X بتحليل ذكرياتك وكتابة أول فصل من كتاب حياتك.</string>
+    <string name="book_empty_state_btn_generate">مسودة كتابي</string>
+    <string name="book_empty_state_missing_memories">يفتقد %1$d ذكريات</string>
+
+    <string name="book_proposed_plan_title">الهيكل المقترح</string>
+    <string name="book_proposed_plan_desc">إليك كيف يقترح الذكاء الاصطناعي تنظيم سردك.</string>
+    <string name="book_proposed_plan_chapter_header">الفصل %1$d</string>
+    <string name="book_proposed_plan_no_title">بدون عنوان</string>
+    <string name="book_proposed_plan_memories_count">%1$d ذكريات مدمجة</string>
+    <string name="book_proposed_plan_btn_confirm">تأكيد وكتابة</string>
+    <string name="book_proposed_plan_btn_cancel">إلغاء</string>
+
+    <string name="book_regen_dashboard_title">حالة فصولك</string>
+    <string name="book_regen_dashboard_desc">مقارنة محلية مع آخر توليد لك.</string>
+    <string name="book_regen_status_intact">سليم</string>
+    <string name="book_regen_status_rework">يحتاج عمل</string>
+    <string name="book_regen_dashboard_chapter_status">الفصل %1$d · %2$s</string>
+    <string name="book_regen_dashboard_orphan_title">ذكريات لم تدخل في فصول بعد (%1$d)</string>
+    <string name="book_regen_dashboard_warning_full">الزر أدناه سيعيد كتابة كافة الفصول.</string>
+    <string name="book_regen_dashboard_btn_regenerate">إعادة كتابة الكتاب بالكامل الآن</string>
+
+    <string name="book_generating_moments">قد يستغرق ذلك بضع لحظات...</string>
+
+    <string name="book_ai_explanation_title">تعديلات بسيطة مقابل إعادة كتابة</string>
+    <string name="book_ai_explanation_edit_chapter_title">تعديل فصل</string>
+    <string name="book_ai_explanation_edit_chapter_desc">خيار \'اسأل الذكاء الاصطناعي\' يعدل هذا الفصل فقط.</string>
+    <string name="book_ai_explanation_regen_book_title">إعادة توليد الكتاب</string>
+    <string name="book_ai_explanation_regen_book_desc">زر \'إعادة توليد\' يعيد كتابة كافة الفصول.</string>
+    <string name="book_ai_explanation_btn_clear">واضح جداً</string>
+
+    <string name="book_onboarding_title">كيف يكتب الذكاء الاصطناعي حياتك</string>
+    <string name="book_onboarding_chrono_title">احترام التسلسل الزمني</string>
+    <string name="book_onboarding_chrono_desc">يتم ترتيب كل ذكرى حسب العمر.</string>
+    <string name="book_onboarding_chars_title">التعرف على الشخصيات</string>
+    <string name="book_onboarding_chars_desc">يتعرف الذكاء الاصطناعي على أحبائك.</string>
+    <string name="book_onboarding_narration_title">سرد مخصص</string>
+    <string name="book_onboarding_narration_desc">الكتابة بضمير المتكلم (\'أنا\').</string>
+    <string name="book_onboarding_advice_title">💡 نصيحة كاتب السير</string>
+    <string name="book_onboarding_advice_content">كلما كانت ذكرياتك مفصلة، كان السرد أكثر دقة.</string>
+    <string name="book_onboarding_btn_understood">فهمت</string>
+
+    <string name="book_tone_poetic">شاعري</string>
+    <string name="book_tone_factual">واقعي</string>
+    <string name="book_tone_warm">دافئ</string>
+    <string name="book_tone_nostalgic">حنوني</string>
+
+    <!-- 150 Questions -->
+    <string name="question_text_e1">ما هي أقدم ذكرى لك؟</string>
+    <string name="question_text_e2">أي رائحة تذكرك بمنزل طفولتك؟</string>
+    <string name="question_text_e3">من كان بطلك عندما كنت صغيراً؟</string>
+    <string name="question_text_e4">ما هي لعبتك المفضلة؟</string>
+    <string name="question_text_e5">كيف كانت غرفتك وأنت طفل؟</string>
+    <string name="question_text_e6">ماذا كانت أكبر مخاوفك وأنت صغير؟</string>
+    <string name="question_text_e7">ما هي أجمل هدية تلقيتها في طفولتك؟</string>
+    <string name="question_text_e8">أي نوع من الطلاب كنت في المدرسة؟</string>
+    <string name="question_text_e9">ما هي أول مهنة حلمت بممارستها؟</string>
+    <string name="question_text_e10">ما هو طعم طفولتك؟</string>
+
+    <string name="question_text_f1">ماذا ورثت عن والدك ولا تزال تحمله؟</string>
+    <string name="question_text_f2">ما هي أفضل نصيحة قدمتها لك والدتك؟</string>
+    <string name="question_text_f3">ما هي أسعد ذكرى عائلية لك؟</string>
+    <string name="question_text_f4">هل هناك تقليد عائلي تعتز به؟</string>
+    <string name="question_text_f5">من تشبه أكثر في عائلتك؟</string>
+    <string name="question_text_f6">ما هي أكبر محنة واجهتها عائلتك؟</string>
+    <string name="question_text_f7">ماذا تود أن تقول لأجدادك لو رأيتهم؟</string>
+    <string name="question_text_f8">أي فرد من عائلتك ألهمك أكثر من غيره؟</string>
+    <string name="question_text_f9">ما هي القصة العائلية التي ترويها دائماً؟</string>
+    <string name="question_text_f10">ماذا تعني لك كلمة \'عائلة\' اليوم؟</string>
+
+    <string name="question_text_a1">هل تتذكر حبك الأول؟</string>
+    <string name="question_text_a2">ما الذي جعلك تقع في الحب للمرة الأولى؟</string>
+    <string name="question_text_a3">ما هو أجمل دليل على الحب تلقيته؟</string>
+    <string name="question_text_a4">هل تؤمن بالحب من أول نظرة؟</string>
+    <string name="question_text_a5">أي أغنية تذكرك بشخص أحببته؟</string>
+    <string name="question_text_a6">ماذا تعلمت عن الحب مع مرور الوقت؟</string>
+    <string name="question_text_a7">أي تضحية قدمتها من أجل الحب؟</string>
+    <string name="question_text_a8">ما هو تعريف الزوجين الناجحين بالنسبة لك؟</string>
+    <string name="question_text_a9">هل كُسر قلبك يوماً؟ كيف تعافيت؟</string>
+    <string name="question_text_a10">أي أثر تركه الحب في حياتك؟</string>
+
+    <string name="question_text_am1">من كان أوفى أصدقائك ولماذا؟</string>
+    <string name="question_text_am2">هل هناك صداقة تندم على فقدانها؟</string>
+    <string name="question_text_am3">ما هو الصديق الحقيقي بالنسبة لك؟</string>
+    <string name="question_text_am4">أي صداقة فاجأتك أكثر من غيرها؟</string>
+    <string name="question_text_am5">هل خنت صديقاً يوماً ما؟ كيف تعيش مع ذلك؟</string>
+    <string name="question_text_am6">من كان يجب أن يبقى في حياتك لفترة أطول؟</string>
+    <string name="question_text_am7">ماذا يرى أصدقاؤك فيك وأنت لا تراه؟</string>
+    <string name="question_text_am8">هل هناك شخص مدين له باعتذار؟</string>
+    <string name="question_text_am9">أي صداقة غيرتك بعمق؟</string>
+    <string name="question_text_am10">لو كان بإمكانك استعادة شخص ما، فمن سيكون؟</string>
+
+    <string name="question_text_t1">ماذا كان أول عمل لك على الإطلاق؟</string>
+    <string name="question_text_t2">ما هو أكبر فخر مهني لك؟</string>
+    <string name="question_text_t3">هل فكرت يوماً في ترك كل شيء؟</string>
+    <string name="question_text_t4">أي مدير أو زميل ترك أثراً كبيراً فيك؟</string>
+    <string name="question_text_t5">ما هي المهارة التي استغرقت وقتاً في اكتسابها؟</string>
+    <string name="question_text_t6">أي فشل مهني جعلك تنمو في النهاية؟</string>
+    <string name="question_text_t7">العمل بالنسبة لك واجب أم متعة؟</string>
+    <string name="question_text_t8">أي جو في المكتب تفتقده؟</string>
+    <string name="question_text_t9">أي حلم مهني لم تحققه؟</string>
+    <string name="question_text_t10">ما النصيحة التي تقدمها لمبتدئ اليوم؟</string>
+
+    <string name="question_text_ar1">ما هو أكبر نجاح مالي أو مهني لك؟</string>
+    <string name="question_text_ar2">هل فقدت كل شيء يوماً؟ كيف نهضت مجدداً؟</string>
+    <string name="question_text_ar3">هل جعلك المال أكثر سعادة؟</string>
+    <string name="question_text_ar4">ماذا ضحيت به لتنجح؟</string>
+    <string name="question_text_ar5">لو كان بإمكانك البدء من جديد مهنياً؟</string>
+    <string name="question_text_ar6">ماذا يعني النجاح حقاً بالنسبة لك؟</string>
+    <string name="question_text_ar7">هل فعلت شيئاً لست فخوراً به من أجل المال؟</string>
+    <string name="question_text_ar8">أي درس مالي كنت تود تعلمه في وقت مبكر؟</string>
+    <string name="question_text_ar9">ماذا ستترك كإرث مهني؟</string>
+    <string name="question_text_ar10">ما هو الشيء الذي لم تستطع شراءه وكنت ترغب فيه؟</string>
+
+    <string name="question_text_v1">ما هي القيمة الأهم بالنسبة لك؟</string>
+    <string name="question_text_v2">من أجل أي قضية قد تناضل؟</string>
+    <string name="question_text_v3">ما الذي يغضبك أكثر من أي شيء؟</string>
+    <string name="question_text_v4">بماذا تشعر بأكبر قدر من الفخر في شخصيتك؟</string>
+    <string name="question_text_v5">أي عيب تعلمت قبوله في نفسك؟</string>
+    <string name="question_text_v6">ما هو تعريفك للنزاهة؟</string>
+    <string name="question_text_v7">ما هو عمل الشجاعة الذي تفتخر به؟</string>
+    <string name="question_text_v8">عن ماذا لا يمكنك التخلي أبداً؟</string>
+    <string name="question_text_v9">ماذا يعني أن تكون \'شخصاً جيداً\'؟</string>
+    <string name="question_text_v10">ما هي أكبر قوتك الداخلية؟</string>
+
+    <string name="question_text_fs1">هل تؤمن بشيء أكبر منك؟</string>
+    <string name="question_text_fs2">ماذا يحدث بعد الموت في نظرك؟</string>
+    <string name="question_text_fs3">هل مررت بلحظة شك عميق في إيمانك؟</string>
+    <string name="question_text_fs4">هل هناك لحظة شعرت فيها بحضور غيبي؟</string>
+    <string name="question_text_fs5">هل غير موت شخص قريب قناعاتك؟</string>
+    <string name="question_text_fs6">ما الذي يعطي معنى لحياتك؟</string>
+    <string name="question_text_fs7">هل صليت أو تأملت؟ ماذا قدم لك ذلك؟</string>
+    <string name="question_text_fs8">ماذا تأمل أن تجد بعد موتك؟</string>
+    <string name="question_text_fs9">هل هناك طقوس تهمك؟</string>
+    <string name="question_text_fs10">ماذا تود أن يتذكر أحباؤك عن رؤيتك للحياة؟</string>
+
+    <string name="question_text_cs1">أي محنة جسدية تركت أثراً فيك؟</string>
+    <string name="question_text_cs2">هل مررت بمرض خطير؟ كيف تجاوزته؟</string>
+    <string name="question_text_cs3">كيف كانت علاقتك بجسدك عبر السنين؟</string>
+    <string name="question_text_cs4">هل هناك شيء كان يجب عليك فعله للعناية بنفسك مبكراً؟</string>
+    <string name="question_text_cs5">هل علمك الألم شيئاً؟</string>
+    <string name="question_text_cs6">هل خفت من الموت؟ متى؟</string>
+    <string name="question_text_cs7">ما الذي تحمله جسدك ولا يعرفه أحد؟</string>
+    <string name="question_text_cs8">كيف غيرت صحتك طريقتك في العيش؟</string>
+    <string name="question_text_cs9">هل هناك شيء كنت تود فعله جسدياً ولم تستطع؟</string>
+    <string name="question_text_cs10">ماذا تود أن تقول لجسدك؟</string>
+
+    <string name="question_text_r1">ما هو أكبر ندم لك؟</string>
+    <string name="question_text_r2">لو كان بإمكانك العودة بالزمن، ماذا ستغير؟</string>
+    <string name="question_text_r3">أي فرصة ضاعت منك؟</string>
+    <string name="question_text_r4">هل هناك كلمة كنت تود لو لم تنطق بها؟</string>
+    <string name="question_text_r5">من هو الشخص الذي لم تقل له \'أحبك\' بالقدر الكافي؟</string>
+    <string name="question_text_r6">أي قرار غير مسار حياتك؟</string>
+    <string name="question_text_r7">ما هو الشيء الذي لست فخوراً به؟</string>
+    <string name="question_text_r8">هل تشعر بالندم تجاه شخص ما؟</string>
+    <string name="question_text_r9">ماذا كنت ستفعل بشكل مختلف لو كنت تعلم؟</string>
+    <string name="question_text_r10">كيف تعيش مع ندمك اليوم؟</string>
+
+    <string name="question_text_re1">ما هو أكبر حلم حققته؟</string>
+    <string name="question_text_re2">أين تحلم بالعيش؟</string>
+    <string name="question_text_re3">أي حلم طفولة تراجعت عنه؟</string>
+    <string name="question_text_re4">ما الذي يجعلك تحلم اليوم؟</string>
+    <string name="question_text_re5">لو لم يكن هناك حدود، ماذا كنت ستفعل؟</string>
+    <string name="question_text_re6">ما هو أغرب حلم حلمت به؟</string>
+    <string name="question_text_re7">كيف سيكون يومك المثالي؟</string>
+    <string name="question_text_re8">أي مغامرة تود أن تعيشها بعد؟</string>
+    <string name="question_text_re9">من كنت تود أن تقابل؟</string>
+    <string name="question_text_re10">ما هي الرسالة التي تركتها لك أحلامك؟</string>
+
+    <string name="question_text_vl1">أي رحلة غيرت شيئاً فيك؟</string>
+    <string name="question_text_vl2">هل هناك مكان تشعر فيه بأنك على طبيعتك حقاً؟</string>
+    <string name="question_text_vl3">أي مكان كنت تود رؤيته قبل رحيلك؟</string>
+    <string name="question_text_vl4">رحلة تندم على عدم القيام بها؟</string>
+    <string name="question_text_vl5">أي مكان في العالم تفتقده؟</string>
+    <string name="question_text_vl6">هل هناك مكان مرتبط بذكرى مؤلمة؟</string>
+    <string name="question_text_vl7">أي بلد فاجأك أكثر من غيره؟</string>
+    <string name="question_text_vl8">لو كان بإمكانك العيش في مكان آخر، فأين سيكون؟</string>
+    <string name="question_text_vl9">أي رحلة قمت بها وحدك وماذا علمتك؟</string>
+    <string name="question_text_vl10">هل هناك مكان من طفولتك تود رؤيته مجدداً؟</string>
+
+    <string name="question_text_cp1">ماذا ابتكرت وتشعر بأكبر قدر من الفخر تجاهه؟</string>
+    <string name="question_text_cp2">هل هناك موهبة لم تطورها أبداً؟</string>
+    <string name="question_text_cp3">أي شغف تخليت عنه ولماذا؟</string>
+    <string name="question_text_cp4">ما الذي يجعلك تندمج تماماً في العمل (Flow)؟</string>
+    <string name="question_text_cp5">هل هناك عمل فني — كتاب، موسيقى، فن — غيرك؟</string>
+    <string name="question_text_cp6">لو كنت فناناً، ماذا كنت ستبتكر؟</string>
+    <string name="question_text_cp7">هل هناك شيء تفعله لنفسك فقط دون أن يعرف أحد؟</string>
+    <string name="question_text_cp8">أي شغف تود أن تنقله؟</string>
+    <string name="question_text_cp9">هل بدأت يوماً في ابتكار شيء ثم توقفت؟</string>
+    <string name="question_text_cp10">ماذا كنت تود تعلم القيام به؟</string>
+
+    <string name="question_text_sa1">هل هناك شيء لم تخبر به أحداً؟</string>
+    <string name="question_text_sa2">هل احتفظت بسر طوال حياتك؟ ما هو؟</string>
+    <string name="question_text_sa3">هل هناك شيء فعلته ولم تتحدث عنه أبداً؟</string>
+    <string name="question_text_sa4">ماذا كنت تود أن تعترف به لشخص ما قبل فوات الأوان؟</string>
+    <string name="question_text_sa5">هل هناك حقيقة عنك لا يعرفها أحباؤك؟</string>
+    <string name="question_text_sa6">هل كانت لديك حياة سرية — ولو بسيطة — لا يشك فيها أحد؟</string>
+    <string name="question_text_sa7">ماذا كنت تريد قوله دائماً ولم تجرؤ أبداً؟</string>
+    <string name="question_text_sa8">هل هناك شيء تشعر بالخجل منه وتحمله وحدك؟</string>
+    <string name="question_text_sa9">اعتراف كنت ستقوم به لو علمت أن أحداً لن يحكم عليك؟</string>
+    <string name="question_text_sa10">ماذا ستأخذ معك كسر إلى قبرك؟</string>
+
+    <string name="question_text_s1">ما هو أقسى درس علمتك إياه الحياة؟</string>
+    <string name="question_text_s2">كيف تغيرت نظرتك للعالم مع تقدم العمر؟</string>
+    <string name="question_text_s3">ماذا كنت ستقول للشاب/للشابة الذي كنته؟</string>
+    <string name="question_text_s4">ما هو الأساسي لتكون سعيداً في نظرك؟</string>
+    <string name="question_text_s5">ما هو سر الحياة المليئة؟</string>
+    <string name="question_text_s6">كيف تود أن يتم تذكرك؟</string>
+    <string name="question_text_s7">ما الذي لم تعد تخاف من فقدانه اليوم؟</string>
+    <string name="question_text_s8">لو كان عليك تلخيص حياتك في جملة واحدة؟</string>
+    <string name="question_text_s9">ما هو تعريفك للسلام؟</string>
+    <string name="question_text_s10">ما هو أثمن شيء تتركه خلفك؟</string>
+
+    <string-array name="portrait_questions">
+        <item>ما هي صفة الشخصية التي تعجبك أكثر في هذا الشخص؟</item>
+        <item>ما هي الذكرى التي تربطكما بقوة أكبر؟</item>
+        <item>ما الذي قد لا يعرفه عن نفسه؟</item>
+        <item>كيف تغير منذ أن عرفته؟</item>
+        <item>ماذا تريد منه أن يعرف عن نظرتك له؟</item>
+        <item>ما هو أول شيء يتبادر إلى ذهنك عندما تفكر فيه؟</item>
+        <item>ما هو التحدي الكبير الذي تجاوزتماه معاً؟</item>
+        <item>ما هي الصفة التي تود استعارتها منه؟</item>
+        <item>ما هو المكان الذي يرمز لعلاقتكما بشكل أفضل؟</item>
+        <item>أي أغنية أو فيلم يجعلك تفكر فيه على الفور؟</item>
+        <item>ما هي النصيحة التي قدمها لك وغيرت مسارك؟</item>
+        <item>كيف تصف ضحكته أو فرحته؟</item>
+        <item>ما هو أكبر دليل على تعلقه بك قدمه لك؟</item>
+        <item>لو بقيت صورة واحدة فقط له، فماذا ستكون؟</item>
+        <item>ما الذي يجعله فريداً وسط آلاف الأشخاص؟</item>
+        <item>ما هي موهبته الخفية التي لا يراها الكثيرون؟</item>
+        <item>كيف أثرت رؤيته للحياة على رؤيتك الخاصة؟</item>
+        <item>أي سر أو ثقة مشتركة قربتكما أكثر؟</item>
+        <item>ماذا تود أن تقول له لو كنتما كليكما في سن المئة؟</item>
+        <item>ما هو الأثر الذي تعتقد أنه سيتركه في قلوب الناس؟</item>
+    </string-array>
+
+    <string-array name="rankings_items_music">
+        <item>الموسيقيون المفضلون</item>
+        <item>المغنيات المفضلات</item>
+        <item>الألبومات المفضلة</item>
+        <item>الأغاني المفضلة</item>
+        <item>أجمل كلمات الأغاني</item>
+        <item>أجمل معزوفات الجيتار المنفردة</item>
+        <item>حفلات موسيقية لا تُنسى</item>
+    </string-array>
+    <string-array name="rankings_items_cinema">
+        <item>الأفلام المفضلة</item>
+        <item>الممثلون المفضلون</item>
+        <item>الممثلات المفضلات</item>
+        <item>المخرجون المفضلون</item>
+        <item>مشاهد سينمائية شهيرة</item>
+        <item>جمل حوارية شهيرة</item>
+        <item>المسلسلات المفضلة</item>
+    </string-array>
+    <string-array name="rankings_items_literature">
+        <item>الكتب المفضلة</item>
+        <item>المؤلفون المفضلون</item>
+        <item>الاقتباسات المفضلة</item>
+        <item>شخصيات روائية مؤثرة</item>
+    </string-array>
+    <string-array name="rankings_items_art">
+        <item>اللوحات المفضلة</item>
+        <item>الرسامون المفضلون</item>
+        <item>التماثيل المفضلة</item>
+        <item>الصور الفوتوغرافية المفضلة</item>
+    </string-array>
+    <string-array name="rankings_items_travel">
+        <item>أجمل الرحلات</item>
+        <item>أجمل المناظر الطبيعية</item>
+        <item>المدن المفضلة</item>
+        <item>ذكريات العطلات</item>
+    </string-array>
+    <string-array name="rankings_items_personal">
+        <item>ذكريات الحياة</item>
+        <item>الأشخاص الذين كان لهم الأثر الأكبر</item>
+        <item>أكبر الإنجازات التي أفتخر بها</item>
+        <item>الأطباق المفضلة</item>
+        <item>وصفات عائلية</item>
+        <item>لحظات عائلية</item>
+    </string-array>
+    <string-array name="rankings_items_sport">
+        <item>الرياضيون المفضلون</item>
+        <item>مباريات لا تُنسى</item>
+        <item>اللحظات الرياضية المفضلة</item>
+    </string-array>
+    <!-- Questions Batch A (Navigation & Cards) -->
+    <string name="questions_title">الـ 100 سؤال</string>
+    <string name="questions_progress_all_answered">تم سرد جميع قصصك.</string>
+    <string name="questions_progress_count">%1$d / %2$d سؤالاً تم سردها</string>
+    <string name="questions_info_title">الـ 120 سؤالاً</string>
+    <string name="questions_info_p1">120 سؤالاً منظمة في 16 فئة لتروي حياتك بعمق.</string>
+    <string name="questions_info_p2">أجب على الأسئلة التي تلمسك — وتجاهل الأخرى.</string>
+    <string name="questions_info_p3">كل إجابة هي ذكرى عادية، مصنفة ومحمية.</string>
+    <string name="questions_info_p4">تظهر علامة ✓ على الأسئلة التي أجبت عليها بالفعل.</string>
+    <string name="questions_info_p5">العداد في الأعلى يظهر تقدمك الإجمالي.</string>
+    <string name="questions_custom_empty">لا توجد أسئلة مخصصة.</string>
+    <string name="questions_status_answered">✓ تمت الإجابة</string>
+    <string name="questions_custom_no_question">بدون سؤال</string>
+    <string name="questions_custom_hint_label">تلميح : %1$s</string>
+    <string name="questions_custom_delete_desc">حذف</string>
+    <string name="questions_custom_edit_desc">تعديل</string>
+    <string name="questions_btn_answer">إجابة</string>
+    <string name="questions_btn_edit_answer">تعديل إجابتي</string>
+    <string name="questions_info_title_simple">الأسئلة</string>
+    <string name="questions_info_p1_simple">أكثر من 100 سؤال لتروي حياتك بعمق.</string>
+    <string name="questions_info_p2_simple">كل إجابة هي ذكرى مختومة، جاهزة للنقل.</string>
+    <string name="questions_info_p3_simple">تظهر علامة ✓ على الأسئلة التي تم التعامل معها بالفعل.</string>
+    <string name="questions_info_p4_simple">أجب على وتيرتك الخاصة، فئة تلو الأخرى.</string>
+    <string name="questions_btn_illustrate">توضيح إجابتي</string>
+    <string name="questions_answer_placeholder">ضع كلماتك هنا...</string>
+    <string name="questions_btn_seal">ختم إجابتي</string>
+
+    <!-- Questions Batch B (Saisie & Dialogues) -->
+    <string name="questions_answer_title">إجابتي</string>
+    <string name="questions_error_not_found">السؤال غير موجود</string>
+    <string name="questions_btn_save">حفظ</string>
+    <string name="questions_custom_dialog_title_new">سؤال جديد</string>
+    <string name="questions_custom_dialog_title_edit">تعديل السؤال</string>
+    <string name="questions_custom_field_question">السؤال المراد طرحه</string>
+    <string name="questions_custom_field_answer">الإجابة المتوقعة</string>
+    <string name="questions_custom_field_answer_placeholder_edit">اتركه فارغاً لعدم التغيير</string>
+    <string name="questions_custom_field_answer_placeholder_new">مثال: باريس</string>
+    <string name="questions_custom_field_hint">تلميح (اختياري)</string>
+    <string name="questions_custom_section_story">القصة المراد فك قفلها</string>
+    <string name="questions_custom_story_placeholder">اروِ القصة الحقيقية هنا...</string>
+    <string name="questions_custom_section_recipients">المستلمون</string>
+    <string name="questions_custom_btn_change_photo">تغيير الصورة</string>
+    <string name="questions_custom_btn_add_photo">إضافة صورة</string>
+    <string name="questions_btn_cancel">إلغاء</string>
+    <string name="questions_pending_title">أسئلة في الانتظار</string>
+    <string name="questions_pending_info_title">أسئلة في الانتظار</string>
+    <string name="questions_pending_info_p1">هذه هي الأسئلة التي طرحها عليك أحباؤك.</string>
+    <string name="questions_pending_info_p2">لديك ثلاثة خيارات : الإجابة، الرفض بوعي، أو تركها في الانتظار.</string>
+    <string name="questions_pending_info_p3">إذا رفضت، يمكنك ترك ملاحظة قصيرة — سيعرف قريبك أنك رأيت سؤاله.</string>
+    <string name="questions_pending_info_p4">سيتم نقل الإجابات بعد تفعيل البروتوكول.</string>
+    <string name="questions_pending_info_p5">تختار لكل قريب ما إذا كان له الحق في طرح الأسئلة عليك.</string>
+    <string name="questions_pending_count">%1$d أسئلة من %2$d أشخاص</string>
+    <string name="questions_pending_empty">لا توجد أسئلة في الانتظار</string>
+    <string name="questions_status_pending">جديد</string>
+    <string name="questions_status_answered_pending">تمت الإجابة</string>
+    <string name="questions_status_declined">تم الرفض</string>
+    <string name="questions_pending_btn_answer_now">✍️ الإجابة الآن</string>
+    <string name="questions_pending_btn_decline">🤐 لا أرغب في الإجابة</string>
+    <string name="questions_pending_btn_later">تركها في الانتظار</string>
+    <string name="questions_pending_decline_note_info">يمكنك إضافة ملاحظة قصيرة (اختياري) — ستكون مرئية لـ %1$s، ولكن ليست الإجابة على سؤاله.</string>
+    <string name="questions_pending_decline_note_placeholder">مثال: بعض الأمور يجب أن تبقى لي وحدي. لكن اعلم أن سؤالك قد لمسني.</string>
+    <string name="questions_pending_btn_confirm_decline">تأكيد هذا الاختيار</string>
+    <string name="questions_pending_btn_back">عودة</string>
+    <string name="questions_date_format">dd MMMM yyyy</string>
+
+    <!-- Questions Batch C (Data & Leaderboard) -->
+    <string name="questions_leaderboard_title">ترتيب الحزازير</string>
+    <string name="questions_leaderboard_empty">لم يخمن أحد أي أسئلة بعد.</string>
+    <string name="questions_leaderboard_correct_answers">%1$d إجابات صحيحة</string>
+    <string name="questions_error_load_answers">خطأ أثناء تحميل الإجابات : %1$s</string>
+    <string name="questions_error_save">خطأ أثناء الحفظ : %1$s</string>
+    <string name="questions_error_decrypt">فشل فك التشفير</string>
+    <string name="questions_error_firestore_fallback">خطأ في نظام Firestore البديل</string>
+    <string name="questions_error_custom_save">خطأ في حفظ السؤال المخصص</string>
+    <string name="questions_error_delete_photo">خطأ في حذف الصورة</string>
+
+</resources>

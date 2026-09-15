@@ -38,9 +38,9 @@ class GenealogyTreeViewModel @Inject constructor(
     // Cache des URLs résolues (Id du média/personne -> URL signée ou locale)
     private val _resolvedUrls = MutableStateFlow<Map<String, String>>(emptyMap())
     val resolvedUrls: StateFlow<Map<String, String>> = _resolvedUrls.asStateFlow()
-    
+
     // v12.3 : Cache de validation des chemins pour éviter les résolutions infinies ou bloquées sur un ancien chemin
-    private val _resolutionPathCache = mutableMapOf<String, String>() 
+    private val _resolutionPathCache = mutableMapOf<String, String>()
 
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
@@ -50,11 +50,11 @@ class GenealogyTreeViewModel @Inject constructor(
         if (targetId == null || targetId == auth.currentUser?.uid) {
             // MODE CRÉATEUR : Filtrage par catégorie FAMILY ou vide (Garde-fou)
             offlineEntryDao.getAllPersons().map { list ->
-                list.filter { p -> 
+                list.filter { p ->
                     val hasFamilyCat = p.categories.contains(",FAMILY,")
                     val isOldFamilyData = p.categories.isBlank() || p.categories == ",,"
                     val hasFamilyMarkers = p.parentIds.replace(",", "").isNotBlank() || p.isDeceased
-                    
+
                     hasFamilyCat || (isOldFamilyData && hasFamilyMarkers)
                 }
             }
@@ -70,11 +70,11 @@ class GenealogyTreeViewModel @Inject constructor(
                         }
                         val list = snapshot?.documents?.map { it.toPersonEntity() } ?: emptyList()
                         // v9.6.5 : Sécurité Jardin Secret + Filtrage Catégories (v12.2)
-                        val filtered = list.filter { p -> 
+                        val filtered = list.filter { p ->
                             val hasFamilyCat = p.categories.contains(",FAMILY,")
                             val isOldFamilyData = p.categories.isBlank() || p.categories == ",,"
                             val hasFamilyMarkers = p.parentIds.replace(",", "").isNotBlank() || p.isDeceased
-                            
+
                             p.visibility != "PRIVATE" && (hasFamilyCat || (isOldFamilyData && hasFamilyMarkers))
                         }
                         android.util.Log.d("GenealogySecurityDebug", "Snapshot distant persons: count=${filtered.size}")
@@ -90,7 +90,7 @@ class GenealogyTreeViewModel @Inject constructor(
      */
     fun resolveSingleUrl(creatorId: String, docType: String, docId: String, path: String, personId: String? = null, fieldOverride: String? = null) {
         if (path.isBlank()) return
-        
+
         // v12.3 : Si le chemin n'a pas changé et qu'on a déjà une URL résolue, on ne fait rien
         if (_resolutionPathCache[docId] == path && _resolvedUrls.value.containsKey(docId)) return
 
@@ -158,17 +158,21 @@ class GenealogyTreeViewModel @Inject constructor(
         // On récupère le premier média de galerie pour ceux qui n'ont pas de photo de profil
         val resolved = persons.map { person ->
             var finalPhotoUrl = urls[person.id]
-            person.toResolvedPerson(finalPhotoUrl) 
+            person.toResolvedPerson(finalPhotoUrl)
         }
         TreeAlgorithm.calculateLayout(resolved)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), TreeLayout(emptyList(), emptyList()))
 
     /**
      * Reconstruit la hiérarchie par GROUPES pour la vue Liste (v9.4.26)
+     * Corrigé le 14/09 : construction RÉCURSIVE sur tous les niveaux.
+     * Avant : un seul niveau d'enfants était attaché à chaque groupe, ce qui rendait
+     * invisibles dans la vue Liste toutes les personnes à partir de la 3e génération
+     * (petits-enfants et au-delà), alors qu'elles s'affichaient bien dans le carrousel.
      */
     val treeGroups: StateFlow<List<VisualGroup>> = treeLayout.map { layout ->
         val nodes = layout.nodes
-        val groups = mutableListOf<VisualGroup>()
+        val baseGroups = mutableListOf<VisualGroup>()
         val processedNodeIds = mutableSetOf<String>()
 
         // Groupement par couples et niveaux
@@ -177,10 +181,10 @@ class GenealogyTreeViewModel @Inject constructor(
                 // Trouver le partenaire éventuel
                 val spouseId = layout.coupleConnections.find { it.first == node.person.id }?.second
                     ?: layout.coupleConnections.find { it.second == node.person.id }?.first
-                
+
                 val members = mutableListOf(node.person)
                 processedNodeIds.add(node.person.id)
-                
+
                 if (spouseId != null) {
                     layout.nodes.find { it.person.id == spouseId }?.let {
                         members.add(it.person)
@@ -188,7 +192,7 @@ class GenealogyTreeViewModel @Inject constructor(
                     }
                 }
 
-                groups.add(VisualGroup(
+                baseGroups.add(VisualGroup(
                     id = "group_${node.person.id}",
                     level = node.generation,
                     members = members,
@@ -197,20 +201,34 @@ class GenealogyTreeViewModel @Inject constructor(
             }
         }
 
-        // Attribution des enfants à chaque groupe
-        val finalGroups = groups.map { group ->
+        // Table de correspondance : id d'une personne -> son groupe (couple ou solo)
+        val groupByMemberId = mutableMapOf<String, VisualGroup>()
+        baseGroups.forEach { g -> g.members.forEach { m -> groupByMemberId[m.id] = g } }
+
+        // Construction RÉCURSIVE de la hiérarchie complète, génération après génération.
+        // "ancestors" sert uniquement de garde-fou anti-cycle sur une même branche de descendance.
+        fun buildGroupHierarchy(group: VisualGroup, ancestors: Set<String>): VisualGroup {
+            if (ancestors.contains(group.id)) return group // cycle détecté, on s'arrête proprement
+
+            val newAncestors = ancestors + group.id
             val parentIds = group.members.map { it.id }
             val childrenNodeIds = layout.connections
                 .filter { it.first.any { pid -> parentIds.contains(pid) } }
                 .map { it.second }
-            
-            group.copy(children = groups.filter { childGroup -> 
-                childGroup.members.any { childrenNodeIds.contains(it.id) }
-            })
+
+            val directChildGroups = childrenNodeIds
+                .mapNotNull { groupByMemberId[it] }
+                .distinctBy { it.id }
+
+            val fullyBuiltChildren = directChildGroups.map { buildGroupHierarchy(it, newAncestors) }
+
+            return group.copy(children = fullyBuiltChildren)
         }
 
-        // On ne retourne que les racines (level 0) pour la récursion UI
-        finalGroups.filter { it.level == 0 }
+        // On ne retourne que les racines (level 0), chacune avec TOUTE sa descendance déjà attachée
+        baseGroups
+            .filter { it.level == 0 }
+            .map { buildGroupHierarchy(it, emptySet()) }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
@@ -219,7 +237,7 @@ class GenealogyTreeViewModel @Inject constructor(
     fun getMediaForPerson(personId: String): Flow<List<PersonMediaEntity>> {
         val targetId = _targetCreatorId.value
         val currentUid = auth.currentUser?.uid ?: ""
-        
+
         return if (targetId == null || targetId == currentUid) {
             personMediaDao.getMediaForPerson(personId).onEach { list ->
                 // v9.6.7 : Pré-résolution réactive uniquement pour les nouveaux IDs
@@ -227,7 +245,7 @@ class GenealogyTreeViewModel @Inject constructor(
                 list.forEach { media ->
                     val path = media.thumbnailPath ?: media.mediaPath
                     val cacheKey = if (media.thumbnailPath != null) "thumb_${media.id}" else media.id
-                    
+
                     if (!currentCache.containsKey(cacheKey) && !path.isNullOrBlank()) {
                         val field = if (media.thumbnailPath != null) "thumbnailPath" else "mediaPath"
                         resolveSingleUrl(currentUid, "personMedia", cacheKey, path, personId, fieldOverride = field)
@@ -256,7 +274,7 @@ class GenealogyTreeViewModel @Inject constructor(
                                 )
                             } catch (e: Exception) { null }
                         } ?: emptyList()
-                        
+
                         // Déclenche la résolution des URLs pour les nouveaux médias
                         list.forEach { media ->
                             resolveSingleUrl(targetId, "personMedia", media.id, media.mediaPath, personId)
@@ -264,7 +282,7 @@ class GenealogyTreeViewModel @Inject constructor(
                                 resolveSingleUrl(targetId, "personMedia", "thumb_${media.id}", media.thumbnailPath, personId)
                             }
                         }
-                        
+
                         trySend(list)
                     }
                 awaitClose { listener.remove() }
@@ -278,14 +296,14 @@ class GenealogyTreeViewModel @Inject constructor(
     fun addMedia(personId: String, file: File, type: String) {
         viewModelScope.launch {
             var thumbnailPath: String? = null
-            
+
             if (type == "VIDEO") {
                 try {
                     val retriever = android.media.MediaMetadataRetriever()
                     retriever.setDataSource(file.absolutePath)
                     val bitmap = retriever.getFrameAtTime(0)
                     retriever.release()
-                    
+
                     if (bitmap != null) {
                         val thumbFile = File(context.cacheDir, "thumb_${file.name}.jpg")
                         java.io.FileOutputStream(thumbFile).use { out ->
@@ -313,14 +331,14 @@ class GenealogyTreeViewModel @Inject constructor(
     fun removeMedia(media: PersonMediaEntity) {
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
-            
+
             // 1. Suppression Storage
             try {
                 mediaManager.deleteFile(media.mediaPath)
             } catch (e: Exception) {
                 android.util.Log.e("GenealogyVM", "Erreur suppression fichier media ${media.id}: ${e.message}")
             }
-            
+
             // 2. Suppression Firestore
             try {
                 db.collection("users").document(userId)
@@ -331,7 +349,7 @@ class GenealogyTreeViewModel @Inject constructor(
             } catch (e: Exception) {
                 android.util.Log.e("GenealogyVM", "Erreur suppression Firestore media ${media.id}: ${e.message}")
             }
-            
+
             // 3. Suppression Room
             try {
                 personMediaDao.deleteMedia(media)
@@ -377,15 +395,15 @@ class GenealogyTreeViewModel @Inject constructor(
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
             val person = offlineEntryDao.getPersonsByIds(listOf(personId)).firstOrNull() ?: return@launch
-            
+
             // 1. Gérer le re-parentage des enfants (Continuité de l'arbre)
             val children = offlineEntryDao.getChildrenOf(personId).first()
             val parents = person.parentIds.trim(',').split(",").filter { it.isNotBlank() }
-            
+
             children.forEach { child ->
                 val currentParents = child.parentIds.trim(',').split(",").filter { it.isNotBlank() && it != personId }
                 val newParents = (currentParents + parents).distinct()
-                
+
                 val updatedChild = child.copy(
                     parentIds = if (newParents.isEmpty()) "" else "," + newParents.joinToString(",") + ",",
                     isReparented = parents.isNotEmpty(), // Marqueur visuel si rattaché aux grands-parents
@@ -398,11 +416,11 @@ class GenealogyTreeViewModel @Inject constructor(
             // 2. Supprimer la personne (Local + Firestore)
             offlineEntryDao.deletePerson(person)
             db.collection("users").document(userId).collection("persons").document(personId).delete().await()
-            
+
             // 3. Nettoyer les médias rattachés
             val mediaList = personMediaDao.getMediaForPerson(personId).first()
             mediaList.forEach { removeMedia(it) }
-            
+
             SyncWorker.trigger(context)
         }
     }
@@ -451,12 +469,12 @@ class GenealogyTreeViewModel @Inject constructor(
                 offlineEntryDao.upsertPerson(newPerson)
                 newPerson
             }
-            
+
             // Lier aux enfants existants (v12.3: Robustesse accrue)
             if (targetPerson != null && childrenIdsToLink.isNotEmpty()) {
                 val children = offlineEntryDao.getPersonsByIds(childrenIdsToLink)
                 android.util.Log.d("GenealogyLink", "Liaison de ${targetPerson.firstName} à ${children.size} enfants: $childrenIdsToLink")
-                
+
                 children.forEach { child ->
                     val currentParents = child.parentIds.split(",").filter { it.isNotBlank() }
                     if (!currentParents.contains(targetPerson.id)) {
@@ -469,7 +487,7 @@ class GenealogyTreeViewModel @Inject constructor(
                     }
                 }
             }
-            
+
             SyncWorker.trigger(context)
         }
     }

@@ -29,6 +29,9 @@ import com.google.firebase.firestore.Blob
 import kotlinx.coroutines.channels.awaitClose
 import com.example.phoenx.R
 import com.example.phoenx.data.sync.SyncWorker
+import com.google.firebase.remoteconfig.remoteConfigSettings
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.remoteconfig.ktx.remoteConfig
 import org.json.JSONObject
 import java.time.Instant
 import javax.inject.Inject
@@ -201,7 +204,7 @@ class RecipientMediaViewModel @Inject constructor(
             connection.connect()
             val response = connection.getInputStream().bufferedReader().use { it.readText() }
             val json = org.json.JSONObject(response)
-            
+
             val rawTitle = json.optString("title")
             val thumbUrl = json.optString("thumbnail_url")
 
@@ -262,6 +265,35 @@ class RecipientMediaViewModel @Inject constructor(
     private val _bookTitle = MutableStateFlow<String?>(null)
     val bookTitle: StateFlow<String?> = _bookTitle.asStateFlow()
 
+    // v12.4 : Couverture personnalisée du Livre du Créateur consulté, pour le bandeau Livre côté Destinataire
+    private val _bookCoverImageUrl = MutableStateFlow<String?>(null)
+    val bookCoverImageUrl: StateFlow<String?> = _bookCoverImageUrl.asStateFlow()
+
+    private val _bookCoverTitleStyle = MutableStateFlow("GOLD")
+    val bookCoverTitleStyle: StateFlow<String> = _bookCoverTitleStyle.asStateFlow()
+
+    private val _bookCoverScale = MutableStateFlow(1f)
+    val bookCoverScale: StateFlow<Float> = _bookCoverScale.asStateFlow()
+
+    private val _bookCoverOffsetX = MutableStateFlow(0f)
+    val bookCoverOffsetX: StateFlow<Float> = _bookCoverOffsetX.asStateFlow()
+
+    private val _bookCoverOffsetY = MutableStateFlow(0f)
+    val bookCoverOffsetY: StateFlow<Float> = _bookCoverOffsetY.asStateFlow()
+
+    // v12.4 : Images globales de l'accueil (mêmes valeurs que HomeViewModel), réutilisées côté Destinataire
+    private val _genealogyCardImageUrl = MutableStateFlow<String?>(null)
+    val genealogyCardImageUrl: StateFlow<String?> = _genealogyCardImageUrl.asStateFlow()
+
+    private val _encountersCardImageUrl = MutableStateFlow<String?>(null)
+    val encountersCardImageUrl: StateFlow<String?> = _encountersCardImageUrl.asStateFlow()
+
+    private val _earthTextureUrl = MutableStateFlow<String?>(null)
+    val earthTextureUrl: StateFlow<String?> = _earthTextureUrl.asStateFlow()
+
+    private val _defaultBookCoverUrl = MutableStateFlow<String?>(null)
+    val defaultBookCoverUrl: StateFlow<String?> = _defaultBookCoverUrl.asStateFlow()
+
     private val _creatorName = MutableStateFlow(context.getString(R.string.recipient_media_creator_name_fallback))
     val creatorName: StateFlow<String> = _creatorName.asStateFlow()
 
@@ -276,6 +308,45 @@ class RecipientMediaViewModel @Inject constructor(
         loadAllMedia()
         loadParentTitles() // v9.4.27
         syncRecipients() // v12.3 : Correction bug partage (linkedUid stale)
+        loadHomeCardsConfig() // v12.4 : Images globales (Arbre, Rencontres)
+        fetchRemoteConfig() // v12.4 : Texture Mappemonde + couverture de Livre par défaut
+    }
+
+    /**
+     * v12.4 : Reprend telle quelle la logique déjà en place dans HomeViewModel pour les
+     * images globales de l'Arbre Généalogique et des Rencontres (appConfig/homeCards),
+     * afin que le Destinataire voie exactement les mêmes visuels que le Créateur.
+     */
+    private fun loadHomeCardsConfig() {
+        db.collection("appConfig").document("homeCards")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    android.util.Log.e("RecipientMediaVM", "Erreur homeCards config: ${error.message}")
+                    return@addSnapshotListener
+                }
+                _genealogyCardImageUrl.value = snapshot?.getString("genealogyCardImageUrl")
+                _encountersCardImageUrl.value = snapshot?.getString("encountersCardImageUrl")
+            }
+    }
+
+    /**
+     * v12.4 : Reprend telle quelle la logique déjà en place dans HomeViewModel pour la
+     * texture animée de la Mappemonde et la couverture de Livre par défaut (Remote Config).
+     */
+    private fun fetchRemoteConfig() {
+        val remoteConfig = Firebase.remoteConfig
+        val configSettings = remoteConfigSettings {
+            minimumFetchIntervalInSeconds = 3600
+        }
+        remoteConfig.setConfigSettingsAsync(configSettings)
+        remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val earthUrl = remoteConfig.getString("earth_texture_url").trim()
+                val defaultCover = remoteConfig.getString("default_book_cover_url").trim()
+                _earthTextureUrl.value = earthUrl.ifEmpty { null }
+                _defaultBookCoverUrl.value = defaultCover.ifEmpty { null }
+            }
+        }
     }
 
     private fun syncRecipients() {
@@ -285,7 +356,7 @@ class RecipientMediaViewModel @Inject constructor(
                 android.util.Log.d("PHOENX_SHARE_DIAG", "Syncing recipients to get latest linkedUids...")
                 val snapshot = db.collection("users").document(userId)
                     .collection("recipients").get().await()
-                
+
                 val currentRecipients = snapshot.documents.map { doc ->
                     val recipient = com.example.phoenx.data.local.RecipientEntity(
                         id = doc.id,
@@ -303,7 +374,7 @@ class RecipientMediaViewModel @Inject constructor(
 
                 // v12.3 : RATTRAPAGE (Backfill) - Réparation des partages existants
                 var hasChanges = false
-                
+
                 // 1. Scan Standalone Media
                 val allStandalone = standaloneMediaDao.getAllStandaloneMedia().first()
                 allStandalone.forEach { media ->
@@ -357,13 +428,26 @@ class RecipientMediaViewModel @Inject constructor(
         }
     }
 
+    /**
+     * v12.4 : Lecture des champs de couverture personnalisée depuis le document book/current_draft
+     * déjà résolu (bookDoc). Champs déjà existants dans le schéma Firestore (Partie 4 du Document
+     * Technique Maître) : coverImageUrl, coverScale, coverOffsetX, coverOffsetY, coverTitleStyle.
+     */
+    private fun applyBookCoverFields(bookDoc: com.google.firebase.firestore.DocumentSnapshot) {
+        _bookCoverImageUrl.value = bookDoc.getString("coverImageUrl")
+        _bookCoverTitleStyle.value = bookDoc.getString("coverTitleStyle") ?: "GOLD"
+        _bookCoverScale.value = bookDoc.getDouble("coverScale")?.toFloat() ?: 1f
+        _bookCoverOffsetX.value = bookDoc.getDouble("coverOffsetX")?.toFloat() ?: 0f
+        _bookCoverOffsetY.value = bookDoc.getDouble("coverOffsetY")?.toFloat() ?: 0f
+    }
+
     fun setTargetCreator(creatorId: String?) {
         val cleanCreatorId = creatorId?.takeIf { it.isNotBlank() && !it.startsWith("{") && it != "null" }
         _targetCreatorId.value = cleanCreatorId
         if (cleanCreatorId != null && cleanCreatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
                 _protocolStatus.value = ProtocolStatus.VERIFYING
-                
+
                 // 1. Fetch Creator Name (v8.6.2)
                 try {
                     val creatorDoc = db.collection("users").document(cleanCreatorId).get().await()
@@ -387,17 +471,18 @@ class RecipientMediaViewModel @Inject constructor(
                     isActivated = data?.get("isActivated") as? Boolean ?: false
                     _bookSealedMessage.value = data?.get("sealedMessage") as? String
                     _protocolStatus.value = if (isActivated) ProtocolStatus.ACTIVATED else ProtocolStatus.LOCKED
-                } catch (e: Exception) { 
+                } catch (e: Exception) {
                     android.util.Log.e("RecipientMediaVM", "Erreur statut protocole")
-                    _protocolStatus.value = ProtocolStatus.LOCKED 
+                    _protocolStatus.value = ProtocolStatus.LOCKED
                 }
 
-                // 3. Fetch Book Title (v9.2)
+                // 3. Fetch Book Title + Couverture (v9.2, étendu v12.4)
                 try {
                     val bookDoc = db.collection("users").document(cleanCreatorId)
                         .collection("book").document("current_draft").get().await()
                     _bookTitle.value = bookDoc.getString("bookTitle")
-                } catch (e: Exception) { android.util.Log.e("RecipientMediaVM", "Erreur titre livre") }
+                    applyBookCoverFields(bookDoc)
+                } catch (e: Exception) { android.util.Log.e("RecipientMediaVM", "Erreur titre/couverture livre") }
 
                 // 4. Fetch My Permissions (v9.2.6)
                 try {
@@ -405,7 +490,7 @@ class RecipientMediaViewModel @Inject constructor(
                         .collection("recipients")
                         .whereEqualTo("linkedUid", currentUid)
                         .get().await()
-                    
+
                     if (!recipientsSnapshot.isEmpty) {
                         val recipientDoc = recipientsSnapshot.documents.first()
                         _canAskQuestions.value = recipientDoc.getBoolean("canAskQuestions") ?: false
@@ -432,21 +517,22 @@ class RecipientMediaViewModel @Inject constructor(
         } else {
             _protocolStatus.value = ProtocolStatus.ACTIVATED
             _heirKey.value = null
-            // Mode Créateur : Charger son propre titre de livre (v9.2)
+            // Mode Créateur : Charger son propre titre + couverture de livre (v9.2, étendu v12.4)
             viewModelScope.launch {
                 try {
                     val bookDoc = db.collection("users").document(currentUid)
                         .collection("book").document("current_draft").get().await()
                     _bookTitle.value = bookDoc.getString("bookTitle")
+                    applyBookCoverFields(bookDoc)
                 } catch (e: Exception) { _bookTitle.value = null }
             }
         }
     }
 
     fun addStandaloneMedia(
-        title: String, 
-        content: String, 
-        type: String, 
+        title: String,
+        content: String,
+        type: String,
         recipientIds: List<String>,
         userComment: String? = null,
         existingId: String? = null,
@@ -456,7 +542,7 @@ class RecipientMediaViewModel @Inject constructor(
         viewModelScope.launch {
             val mediaId = existingId ?: java.util.UUID.randomUUID().toString()
             val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
-            
+
             // v9.4.27 : Détection auto YouTube si type générique envoyé
             val finalType = if (content.contains("youtube") || content.contains("youtu.be")) "YOUTUBE" else type
 
@@ -481,7 +567,7 @@ class RecipientMediaViewModel @Inject constructor(
             )
 
             standaloneMediaDao.insertMedia(entity)
-            
+
             // v9.4.27 : Auto-Miniature (YouTube ou oEmbed Thumbnail)
             if (autoThumbUrl != null) {
                 fetchAndStoreExternalThumbnail(mediaId, autoThumbUrl)
@@ -511,7 +597,7 @@ class RecipientMediaViewModel @Inject constructor(
                 connection.connect()
                 val inputStream = connection.getInputStream()
                 val tempFile = java.io.File(context.cacheDir, "ext_thumb_$mediaId.jpg")
-                
+
                 java.io.FileOutputStream(tempFile).use { outputStream ->
                     inputStream.copyTo(outputStream)
                 }
@@ -520,10 +606,10 @@ class RecipientMediaViewModel @Inject constructor(
                 android.util.Log.d("ExternalThumb", "Début upload miniature pour $mediaId vers Storage...")
                 val storagePath = mediaManager.encryptAndUpload(uid, mediaId, tempFile)
                 android.util.Log.d("ExternalThumb", "Upload réussi. Chemin Storage : $storagePath")
-                
+
                 standaloneMediaDao.updateMediaCover(mediaId, storagePath, tempFile.absolutePath)
                 standaloneMediaDao.updateSyncStatus(mediaId, "pending")
-                
+
                 android.util.Log.d("ExternalThumb", "Miniature externe auto-récupérée et enregistrée en Room pour $mediaId")
             } catch (e: Exception) {
                 android.util.Log.e("ExternalThumb", "ÉCHEC CRITIQUE récupération miniature externe pour $mediaId. Type: ${e.javaClass.simpleName}, Message: ${e.message}", e)
@@ -541,15 +627,15 @@ class RecipientMediaViewModel @Inject constructor(
                     // C'est un complément : On utilise la logique de MemoryDetail
                     // Mais on l'implémente ici pour éviter les dépendances croisées de VM
                     val uid = auth.currentUser?.uid ?: return@launch
-                    
+
                     // 1. Suppression Storage (v9.4.27)
                     mediaManager.deleteFile(entry.mediaUrl)
-                    
+
                     // 2. Suppression Firestore
                     db.collection("users").document(uid)
                         .collection("entries").document(entry.id)
                         .delete().await()
-                    
+
                     // 3. Suppression Room locale
                     offlineEntryDao.deleteEntry(entry.id)
                     android.util.Log.d("RecipientMediaVM", "Complément supprimé: ${entry.id}")
@@ -611,7 +697,7 @@ class RecipientMediaViewModel @Inject constructor(
                 // 1. Suppression Firestore
                 db.collection("users").document(currentUid)
                     .collection("standaloneMedia").document(media.id).delete().await()
-                
+
                 // 2. Suppression Room locale
                 // Note: On devrait idéalement avoir un DAO delete by ID
                 standaloneMediaDao.getAllStandaloneMedia().first().find { it.id == media.id }?.let {
@@ -645,7 +731,7 @@ class RecipientMediaViewModel @Inject constructor(
                 val mediaId = java.util.UUID.randomUUID().toString()
                 // 1. Upload chiffré vers Storage
                 val downloadUrl = mediaManager.encryptAndUploadStandalone(currentUid, mediaId, localFile)
-                
+
                 // 2. Enregistrement de l'entité avec l'URL (qui sera elle-même chiffrée dans Firestore)
                 addStandaloneMedia(title, downloadUrl, "PHOTO", recipientIds, userComment, mediaId)
             } catch (e: Exception) {
@@ -680,7 +766,7 @@ class RecipientMediaViewModel @Inject constructor(
                 inputStream?.use { input -> tempFile.outputStream().use { output -> input.copyTo(output) } }
                 tempFile
             } catch(_: Exception) { null } ?: return@launch
-            
+
             try {
                 val storagePath = mediaManager.encryptAndUpload(currentUid, id, file)
                 if (isComplement) {
@@ -803,20 +889,20 @@ class RecipientMediaViewModel @Inject constructor(
                 val isHeirMode = targetId != null && targetId != currentUid
                 val isActivated = status == ProtocolStatus.ACTIVATED
                 val timestamp = System.currentTimeMillis()
-                
+
                 android.util.Log.d("PHOENX_HEIR_TRACE", "--- RECALCUL LISTE ($timestamp) ---")
                 android.util.Log.d("PHOENX_HEIR_TRACE", "Status: $status, Key present: ${key != null}, Key size: ${key?.size ?: 0}")
                 android.util.Log.d("PHOENX_HEIR_TRACE", "Entries count: ${entries.size}, Standalone count: ${allStandalone.size}")
 
-                val decodedEntries = entries.map { 
+                val decodedEntries = entries.map {
                     if (isHeirMode && !isActivated) it.toSealedDomain()
                     else {
                         val result = it.toDomain(encryptionManager, key)
                         val contentStr = String(result.encryptedContent)
                         if (contentStr == context.getString(R.string.recipient_media_status_encrypted)) {
-                           android.util.Log.e("PHOENX_HEIR_TRACE", "ERREUR DECHIFFREMENT id=${it.id}")
+                            android.util.Log.e("PHOENX_HEIR_TRACE", "ERREUR DECHIFFREMENT id=${it.id}")
                         } else {
-                           android.util.Log.d("PHOENX_HEIR_TRACE", "SUCCÈS id=${it.id}, title=${result.aiSummary}")
+                            android.util.Log.d("PHOENX_HEIR_TRACE", "SUCCÈS id=${it.id}, title=${result.aiSummary}")
                         }
                         result
                     }
@@ -827,7 +913,7 @@ class RecipientMediaViewModel @Inject constructor(
                 }
 
                 val allDecoded = decodedEntries.toList()
-                
+
                 android.util.Log.d("PHOENX_ENTRY_DISAPPEAR_TRACE", "Avant filtrage: ${allDecoded.map { it.id }}")
 
                 val result = mapOf(
@@ -841,14 +927,14 @@ class RecipientMediaViewModel @Inject constructor(
                 android.util.Log.d("PHOENX_ENTRY_DISAPPEAR_TRACE", "Après filtrage (heritage): ${result["heritage"]?.map { (it as PhoenXEntry).id }}")
                 result
             }
-            .flowOn(Dispatchers.Default)
-            .collectLatest { result ->
-                _libraryEntries.value = result["library"] ?: emptyList()
-                _videoEntries.value = result["video"] ?: emptyList()
-                _discothequeEntries.value = result["audio"] ?: emptyList()
-                _archiveEntries.value = result["photo"] ?: emptyList()
-                _heritageEntries.value = result["heritage"] ?: emptyList()
-            }
+                .flowOn(Dispatchers.Default)
+                .collectLatest { result ->
+                    _libraryEntries.value = result["library"] ?: emptyList()
+                    _videoEntries.value = result["video"] ?: emptyList()
+                    _discothequeEntries.value = result["audio"] ?: emptyList()
+                    _archiveEntries.value = result["photo"] ?: emptyList()
+                    _heritageEntries.value = result["heritage"] ?: emptyList()
+                }
         }
     }
 
@@ -859,7 +945,7 @@ class RecipientMediaViewModel @Inject constructor(
             months = ageJson.optInt("months", 0),
             days = ageJson.optInt("days", 0)
         )
-        
+
         val typeLabel = when(entryType) {
             "PHOTO" -> context.getString(R.string.recipient_media_sealed_photo)
             "VIDEO" -> context.getString(R.string.recipient_media_sealed_video)
@@ -888,14 +974,14 @@ class RecipientMediaViewModel @Inject constructor(
     private fun OfflineEntry.toDomain(encryptionManager: EncryptionManager, explicitKey: ByteArray? = null): PhoenXEntry {
         // v9.4.27 : Logique de progression - Si c'est déjà en clair, on ne déchiffre pas (Évite régression sur course de flux)
         val decryptedText = if (encryptedPayload.isEmpty()) "" else {
-            try { 
+            try {
                 encryptionManager.decryptText(encryptedPayload, explicitKey)
-            } catch(e: Exception) { 
+            } catch(e: Exception) {
                 android.util.Log.e("PHOENX_HEIR_TRACE", "Exception decrypt id=$id: ${e.message}", e)
-                context.getString(R.string.recipient_media_status_encrypted) 
+                context.getString(R.string.recipient_media_status_encrypted)
             }
         }
-        
+
         val ageJson = JSONObject(ageAtCreation)
         val age = AgeSnapshot(
             years = ageJson.getInt("years"),
@@ -942,7 +1028,7 @@ class RecipientMediaViewModel @Inject constructor(
     ): PhoenXEntry {
         val age = AgeSnapshot(0, 0, 0)
         val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
-        
+
         val displayTitle = if (isHeirMode && !activated) {
             when(type) {
                 "SPOTIFY", "DEEZER" -> context.getString(R.string.recipient_media_sealed_music)
@@ -951,7 +1037,7 @@ class RecipientMediaViewModel @Inject constructor(
                 "TEXT_EXCERPT" -> context.getString(R.string.recipient_media_sealed_writing)
                 else -> context.getString(R.string.recipient_media_sealed_generic)
             }
-        } else title.ifEmpty { 
+        } else title.ifEmpty {
             when(type) {
                 "SPOTIFY", "DEEZER" -> context.getString(R.string.recipient_media_fallback_music)
                 "YOUTUBE" -> context.getString(R.string.recipient_media_fallback_video)

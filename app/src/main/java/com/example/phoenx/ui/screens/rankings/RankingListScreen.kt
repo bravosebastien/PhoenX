@@ -55,7 +55,7 @@ fun RankingListScreen(
     val rankings by viewModel.allRankings.collectAsState()
     val covers by coverViewModel.covers.collectAsState()
     val context = LocalContext.current
-    
+
     val isReadOnly = targetCreatorId != null
 
     LaunchedEffect(targetCreatorId) {
@@ -70,6 +70,7 @@ fun RankingListScreen(
     }
 
     var showCreateDialog by remember { mutableStateOf(false) }
+    var prefilledTitle by remember { mutableStateOf("") }
 
     Scaffold(
         containerColor = theme.backgroundColor,
@@ -152,7 +153,10 @@ fun RankingListScreen(
             if (!isReadOnly) {
                 item {
                     RankingSuggestionsSection(
-                        onSelect = { title -> viewModel.createRanking(title, 5) },
+                        onSelect = { title ->
+                            prefilledTitle = title
+                            showCreateDialog = true
+                        },
                         accent = accent,
                         theme = theme
                     )
@@ -183,10 +187,15 @@ fun RankingListScreen(
 
     if (showCreateDialog) {
         CreateRankingDialog(
-            onDismiss = { showCreateDialog = false },
+            initialTitle = prefilledTitle,
+            onDismiss = {
+                showCreateDialog = false
+                prefilledTitle = ""
+            },
             onConfirm = { title, count ->
                 viewModel.createRanking(title, count)
                 showCreateDialog = false
+                prefilledTitle = ""
             },
             accent = accent,
             theme = theme
@@ -223,7 +232,7 @@ fun RankingItem(
                     .clip(RoundedCornerShape(8.dp))
                     .background(theme.contentColor.copy(alpha = 0.05f))
                     .then(
-                        if (ranking.coverImageUrl == null) 
+                        if (ranking.coverImageUrl == null)
                             Modifier.border(1.dp, accent.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
                         else Modifier
                     ),
@@ -301,7 +310,7 @@ fun RankingSuggestionsSection(
 
         suggestions.forEach { (category, items) ->
             var isExpanded by remember { mutableStateOf(false) }
-            
+
             Column(modifier = Modifier.padding(bottom = 8.dp)) {
                 Surface(
                     modifier = Modifier
@@ -325,7 +334,7 @@ fun RankingSuggestionsSection(
                         )
                     }
                 }
-                
+
                 AnimatedVisibility(visible = isExpanded) {
                     FlowRow(
                         modifier = Modifier
@@ -347,7 +356,7 @@ fun RankingSuggestionsSection(
                         }
                     }
                 }
-                
+
                 HorizontalDivider(
                     modifier = Modifier.padding(horizontal = 24.dp),
                     color = theme.contentColor.copy(alpha = 0.05f),
@@ -360,12 +369,13 @@ fun RankingSuggestionsSection(
 
 @Composable
 fun CreateRankingDialog(
+    initialTitle: String = "",
     onDismiss: () -> Unit,
     onConfirm: (String, Int) -> Unit,
     accent: Color,
     theme: com.example.phoenx.ui.theme.AppThemeState
 ) {
-    var title by remember { mutableStateOf("") }
+    var title by remember { mutableStateOf(initialTitle) }
     var count by remember { mutableStateOf(5) }
 
     AlertDialog(
@@ -382,7 +392,7 @@ fun CreateRankingDialog(
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
                 )
-                
+
                 Column {
                     Text(stringResource(R.string.rankings_dialog_create_count_label, count), style = MaterialTheme.typography.bodyMedium, color = theme.contentColor)
                     Slider(

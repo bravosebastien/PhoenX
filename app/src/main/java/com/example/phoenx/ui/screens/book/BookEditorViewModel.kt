@@ -111,6 +111,43 @@ class BookEditorViewModel @Inject constructor(
     init {
         checkCreatorStatus()
         loadExistingBook()
+        syncRecipients() // Fix : évite que les destinataires du Livre "disparaissent" après une réinstallation
+    }
+
+    /**
+     * Fix "Destinataires du Livre effacés à chaque réinstallation" :
+     * la liste `recipients` ci-dessus vient uniquement de Room, jamais rafraîchie depuis Firestore
+     * dans ce fichier. Sur un appareil neuf (Room vide), le mapping UID -> DocID dans `bookDraft`
+     * échoue silencieusement et la sélection de destinataires du Livre apparaît vide.
+     * On resynchronise donc Room depuis Firestore au démarrage, comme cela a déjà été corrigé
+     * dans RecipientMediaViewModel.kt (v12.3).
+     */
+    private fun syncRecipients() {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                val snapshot = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                    .collection("users").document(userId)
+                    .collection("recipients").get().kotlinAwait()
+
+                snapshot.documents.forEach { doc ->
+                    val recipient = com.example.phoenx.data.local.RecipientEntity(
+                        id = doc.id,
+                        name = doc.getString("name") ?: "",
+                        email = doc.getString("email") ?: "",
+                        relationship = doc.getString("relationship") ?: "",
+                        canAskQuestions = doc.getBoolean("canAskQuestions") ?: false,
+                        maxQuestionsAllowed = doc.getLong("maxQuestionsAllowed")?.toInt(),
+                        linkedUid = doc.getString("linkedUid"),
+                        photoUrl = doc.getString("photoUrl")
+                    )
+                    offlineEntryDao.insertRecipient(recipient)
+                }
+                android.util.Log.d("PHOENX_BOOK_TRACE", "syncRecipients: ${snapshot.documents.size} destinataires resynchronisés depuis Firestore")
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_BOOK_TRACE", "Erreur syncRecipients (BookEditorViewModel)", e)
+            }
+        }
     }
 
     private fun checkCreatorStatus() {
@@ -132,7 +169,7 @@ class BookEditorViewModel @Inject constructor(
         android.util.Log.d("PHOENX_BOOK_TRACE", "A. Début loadExistingBook (Éditeur)")
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
-            
+
             // 1. Charger l'ambiance globale (v9.4.27)
             offlineEntryDao.getCreatorProfile(userId).collect { profile ->
                 if (profile != null) {
@@ -143,12 +180,12 @@ class BookEditorViewModel @Inject constructor(
                 }
             }
         }
-        
+
         viewModelScope.launch {
             val userId = auth.currentUser?.uid ?: return@launch
             val draft = bookService.loadBookDraft(userId)
             android.util.Log.d("PHOENX_BOOK_TRACE", "B. Résultat service: ${if (draft == null) "NULL" else "PRÉSENT (" + draft.chapters.size + " chapitres)"}")
-            
+
             if (draft != null) {
                 // v9.2.1 : On affiche d'abord le livre brut pour éviter le blocage (réinstallation)
                 _bookDraft.value = draft
@@ -202,7 +239,7 @@ class BookEditorViewModel @Inject constructor(
                 }
                 _bookDraft.value = draft
                 decryptAllChapters(userId, draft)
-                
+
                 // v9.7.4 : Mettre à jour l'état du backup
                 _hasBackup.value = bookService.hasBackup(userId)
             } catch (e: Exception) {
@@ -350,7 +387,7 @@ class BookEditorViewModel @Inject constructor(
             }
         )
         _bookDraft.value = updated
-        
+
         // v8.7.1 : Mise à jour du chapitre sélectionné pour débloquer l'UI
         updated.chapters.find { it.id == chapterId }?.let {
             _selectedChapter.value = it
@@ -381,10 +418,10 @@ class BookEditorViewModel @Inject constructor(
                     recipientIds = persistentIds,
                     visibility = finalVisibility
                 )
-                
+
                 // Optimistic Update synchrone pour l'UI
                 _bookDraft.value = updated
-                
+
                 // Sauvegarde asynchrone
                 bookService.saveBookDraft(userId, updated)
                 triggerSuccess()
@@ -420,7 +457,7 @@ class BookEditorViewModel @Inject constructor(
                 // v9.4.29 : Fresh Read avant modification
                 val freshDraft = bookService.loadBookDraft(userId) ?: _bookDraft.value ?: BookDraft(userId = userId)
                 val updated = freshDraft.copy(sealedMessage = message)
-                
+
                 bookService.saveBookDraft(userId, updated)
                 _bookDraft.value = updated
                 triggerSuccess()
@@ -440,7 +477,7 @@ class BookEditorViewModel @Inject constructor(
                 // v9.4.29 : Fresh Read avant modification
                 val freshDraft = bookService.loadBookDraft(userId) ?: _bookDraft.value ?: BookDraft(userId = userId)
                 val updated = freshDraft.copy(bookTitle = title.ifBlank { null })
-                
+
                 bookService.saveBookDraft(userId, updated)
                 _bookDraft.value = updated // Synchro UI
                 triggerSuccess()
@@ -474,7 +511,7 @@ class BookEditorViewModel @Inject constructor(
     fun updateGlobalIntro(newContent: String) {
         val current = _bookDraft.value ?: return
         val userId = auth.currentUser?.uid ?: return
-        
+
         _decryptedGlobalIntro.value = newContent
 
         viewModelScope.launch {
@@ -507,9 +544,9 @@ class BookEditorViewModel @Inject constructor(
                 preferenceManager.setGlobalTheme(backgroundId, fontId)
 
                 // 1. FRESH READ de la base locale (Garantie de sécurité Lot 3)
-                val currentLocal = offlineEntryDao.getCreatorProfileSync(userId) 
+                val currentLocal = offlineEntryDao.getCreatorProfileSync(userId)
                     ?: com.example.phoenx.data.local.CreatorProfileEntity(userId = userId)
-                
+
                 // 2. Préparation de la fusion : On ne change QUE l'ambiance
                 val finalToSave = currentLocal.copy(
                     transmissionBackgroundId = backgroundId,
@@ -529,26 +566,26 @@ class BookEditorViewModel @Inject constructor(
                         "transmissionBackgroundId", backgroundId,
                         "transmissionFontId", fontId
                     ).kotlinAwait()
-                
+
                 // 5. Marquage synchro
                 offlineEntryDao.insertCreatorProfile(finalToSave.copy(syncStatus = "synced"))
-                
+
                 // 6. Synchronisation du thème du draft actuel (v9.4.27 : MISE À JOUR PARTIELLE CIBLÉE)
                 // v9.4.29 : Fresh Read Firestore avant de toucher au draft
                 val freshDraft = bookService.loadBookDraft(userId)
-                
+
                 freshDraft?.let { currentDraft ->
                     // v9.4.29: Le thème du draft lui-même ne stocke pas showPersonPhotos (réglage global user)
                     val updatedThemeMap = mapOf(
                         "backgroundId" to backgroundId,
                         "fontId" to fontId
                     )
-                    
+
                     com.google.firebase.firestore.FirebaseFirestore.getInstance()
                         .collection("users").document(userId)
                         .collection("book").document("current_draft")
                         .update("theme", updatedThemeMap).kotlinAwait()
-                    
+
                     // Mise à jour de l'état local pour l'UI
                     _bookDraft.value = currentDraft.copy(theme = BookTheme(backgroundId, fontId))
                 }
@@ -587,12 +624,12 @@ class BookEditorViewModel @Inject constructor(
 
                 // 2. Upload vers Storage (On réutilise le dossier cameos pour la simplicité v9.2.4)
                 val downloadUrl = mediaManager.uploadCameo(userId, "book_cover", tempFile)
-                
+
                 // 3. Mise à jour du Draft
                 val updatedDraft = freshDraft.copy(coverImageUrl = downloadUrl)
                 bookService.saveBookDraft(userId, updatedDraft)
                 _bookDraft.value = updatedDraft
-                
+
                 tempFile.delete()
                 triggerSuccess()
             } catch (e: Exception) {
@@ -612,7 +649,7 @@ class BookEditorViewModel @Inject constructor(
                 // v9.4.29 : Fresh Read avant modification
                 val freshDraft = bookService.loadBookDraft(userId) ?: _bookDraft.value ?: BookDraft(userId = userId)
                 val updated = freshDraft.copy(coverTitleStyle = style)
-                
+
                 bookService.saveBookDraft(userId, updated)
                 _bookDraft.value = updated
                 triggerSuccess()

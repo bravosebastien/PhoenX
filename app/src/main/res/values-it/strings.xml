@@ -1,0 +1,2547 @@
+<resources>
+    <string name="app_name">Phoen-X</string>
+
+    <!-- Auth Batch -->
+    <string name="auth_toast_password_reset_sent">Un\'e-mail di ripristino è stata inviata.</string>
+    <string name="auth_dialog_reactivate_title">Account in pausa</string>
+    <string name="auth_dialog_reactivate_text">Il tuo account è attualmente sospeso. Vuoi riattivarlo per accedere ai tuoi ricordi?</string>
+    <string name="auth_dialog_reactivate_confirm">Riattiva il mio account</string>
+    <string name="auth_dialog_reactivate_cancel">Annulla</string>
+    <string name="auth_email_verification_toast_not_verified">E-mail non ancora verificata, controlla la tua casella di posta.</string>
+    <string name="auth_email_verification_toast_resent">E-mail reinviata!</string>
+    <string name="auth_step_b_placeholder">Sistema avanzato in standby</string>
+    <string name="auth_email_verification_title">Controlla la tua casella e-mail</string>
+    <string name="auth_email_verification_text_not_verified">Devi prima confermare il tuo indirizzo e-mail prima di poterti connettere.</string>
+    <string name="auth_email_verification_text_sent">Un\'e-mail di conferma è stata inviata a %1$s. Clicca sul link per attivare il tuo account.</string>
+    <string name="auth_email_verification_button_confirmed">Ho confermato la mia e-mail</string>
+    <string name="auth_email_verification_button_resend">Reinvia l\'e-mail</string>
+    <string name="auth_login_title">Felice di rivederti</string>
+    <string name="auth_login_email_label">E-mail</string>
+    <string name="auth_login_password_label">Password</string>
+    <string name="auth_login_forgot_password">Password dimenticata?</string>
+    <string name="auth_login_button_login">Accedi</string>
+    <string name="auth_login_button_signup">Crea un account</string>
+    <string name="auth_login_button_recovery_legacy">Ripristina tramite le mie 12 parole (Legacy)</string>
+    <string name="auth_signup_title_guest">Il tuo spazio inizia qui</string>
+    <string name="auth_signup_title_standard">Il tuo spazio inizia qui</string>
+    <string name="auth_signup_email_label">E-mail</string>
+    <string name="auth_signup_birthdate_section_title">PER IL TUO FILO DEI PENSIERI</string>
+    <string name="auth_signup_birthdate_format">dd MMMM yyyy</string>
+    <string name="auth_signup_datepicker_ok">OK</string>
+    <string name="auth_signup_password_label">Password (12+ caratteri)</string>
+    <string name="auth_signup_e2ee_warning">I tuoi ricordi sono crittografati. In caso di oblio, usa la procedura di recupero via e-mail.</string>
+    <string name="auth_signup_terms_text">Accetto le Condizioni Generali di Utilizzo e l\'Informativa sulla Privacy</string>
+    <string name="auth_signup_terms_link_cgu">Leggi le CGU</string>
+    <string name="auth_signup_terms_link_privacy">Informativa sulla Privacy</string>
+    <string name="auth_signup_button_continue">Continua</string>
+    <string name="auth_signup_link_login">Hai già un account? Accedi</string>
+    <string name="auth_signup_step_c_title">Un\'ultima cosa...</string>
+    <string name="auth_signup_step_c_question">Chi è la persona a cui desideri un giorno trasmettere la tua eredità?</string>
+    <string name="auth_signup_step_c_depositary_label">Nome o Soprannome</string>
+    <string name="auth_signup_step_c_button_finish">Crea il mio spazio</string>
+    <string name="auth_signup_step_c_button_discover">Preferisco esplorare prima</string>
+
+    <!-- Auth Errors -->
+    <string name="auth_error_user_not_found">Utente non trovato</string>
+    <string name="auth_error_login_failed">Errore di connessione</string>
+    <string name="auth_error_signup_failed">Errore di registrazione</string>
+    <string name="auth_error_generic">Errore</string>
+    <string name="auth_error_reactivation_failed">Errore di riattivazione</string>
+    <string name="auth_error_key_missing">Chiave mancante</string>
+
+    <!-- Recovery Phrase Screen -->
+    <string name="recovery_toast_success">Perfetto. La tua frase è al sicuro.</string>
+    <string name="recovery_warning_title">Prima di continuare</string>
+    <string name="recovery_warning_text">PHOEN-X genererà la tua frase di recupero. Sono 12 parole che proteggono tutti i tuoi ricordi.\n\n⚠️ Se perdi queste 12 parole E il tuo telefono, i tuoi dati saranno persi per sempre. Nemmeno noi potremo recuperarli. Nessuno. Mai.\n\nSe un giorno cambi telefono, queste 12 parole saranno l\'unico modo per ritrovare i tuoi ricordi.\n\nPrendi carta e penna ora.</string>
+    <string name="recovery_warning_button_ready">Ho carta e penna, sono pronto/a</string>
+    <string name="recovery_display_title">La tua frase di recupero</string>
+    <string name="recovery_display_subtitle">Annota queste 12 parole nell\'ordine esatto su carta. Nessuno screenshot.</string>
+    <string name="recovery_display_button_noted">Ho annotato tutte le parole</string>
+    <string name="recovery_verification_title">Verifichiamo insieme</string>
+    <string name="recovery_verification_subtitle">Per confermare che hai annotato la frase, inserisci le parole numero %1$d, %2$d e %3$d</string>
+    <string name="recovery_verification_word_label">Parola n°%1$d</string>
+    <string name="recovery_verification_error">Non è esattamente così. Controlla quello che hai annotato e riprova.</string>
+    <string name="recovery_verification_button_finish">Verifica e termina</string>
+
+    <!-- Home Batch -->
+    <string name="home_dialog_logout_title">Disconnettersi?</string>
+    <string name="home_dialog_logout_text">Sei sicuro di voler chiudere la sessione?</string>
+    <string name="home_dialog_logout_confirm">Disconnessione</string>
+    <string name="home_dialog_logout_cancel">Annulla</string>
+    <string name="home_dialog_step_nudge_title">Nuovo strumento</string>
+    <string name="home_dialog_step_nudge_text">Puoi anche creare il tuo ricordo passo dopo passo — premi la freccetta per scegliere.</string>
+    <string name="home_dialog_step_nudge_confirm">Capito</string>
+    <string name="home_header_greeting">Buonasera, %1$s</string>
+    <string name="home_invitations_pending">Hai %1$d invito/i in attesa.</string>
+    <string name="home_status_security_title">Sicurezza</string>
+    <string name="home_status_security_subtitle">Attiva</string>
+    <string name="home_status_presence_title">Presenza</string>
+    <string name="home_status_presence_subtitle">%1$d giorni fa</string>
+    <string name="home_button_deposit">Deposita</string>
+    <string name="home_menu_atelier">L\'Atelier (Rapido)</string>
+    <string name="home_menu_step_by_step">Passo dopo passo</string>
+    <string name="home_menu_camera_photo">Fotocamera</string>
+    <string name="home_menu_camera_video">Videocamera</string>
+    <string name="home_button_library">La mia Biblioteca</string>
+    <string name="home_button_fil">Il mio Filo dei Pensieri</string>
+    <string name="home_section_quick_actions">AZIONI RAPIDE</string>
+    <string name="home_presence_confirmed">La mia presenza · confermata %1$d giorni fa</string>
+    <string name="home_stats_community">Community PHOEN-X</string>
+    <string name="home_stats_members">%1$d membri</string>
+    <string name="home_stats_trust_circle">Cerchio di Fiducia</string>
+    <string name="home_stats_proche_single">%1$d caro</string>
+    <string name="home_stats_proche_plural">%1$d cari</string>
+    <string name="home_last_memory_title">ULTIMO RICORDO</string>
+    <string name="home_last_memory_empty">Nessun ricordo depositato per ora.</string>
+    <string name="home_last_memory_cta">— Inizia ora</string>
+    <string name="home_last_memory_age">— A %1$d anni</string>
+    <string name="home_stats_memories">RICORDI</string>
+    <string name="home_stats_questions">DOMANDE</string>
+    <string name="home_stats_chapters">CAPITOLI</string>
+    <string name="home_trust_circle_title">Il mio Cerchio di Fiducia</string>
+    <string name="home_trust_circle_subtitle">Gestisci i tuoi destinatari e depositari</string>
+    <string name="home_nav_info_title">Il tuo Centro di Controllo</string>
+    <string name="home_nav_info_point1">LA TUA LEGGENDA: Qui gestisci la tua eredità emotiva e digitale.</string>
+    <string name="home_nav_info_point2">IL SILENZIO: Il tuo stato di presenza è monitorato per garantire che i tuoi segreti vengano sbloccati solo al momento giusto.</string>
+    <string name="home_nav_info_point3">LA BIBLIOTECA: Accedi a tutti i tuoi scomparti (Foto, Video, Segreti, ecc.).</string>
+    <string name="home_nav_info_point4">CERCHIO DI FIDUCIA: Gestisci chi sono i tuoi destinatari e testimoni.</string>
+    <string name="home_nav_home">Home</string>
+    <string name="home_nav_circle">Il mio Cerchio</string>
+    <string name="home_nav_library">Biblioteca</string>
+    <string name="home_nav_profile">Profilo</string>
+    <string name="home_perspective_memory">LA MIA MEMORIA</string>
+    <string name="home_perspective_heritage">CARI</string>
+    <string name="home_book_title">IL MIO LIBRO</string>
+    <string name="home_book_default_name">Libro della Vita</string>
+    <string name="home_genealogy_title">LA MIA GENEALOGIA</string>
+    <string name="home_genealogy_overlay">Il mio Albero\nGenealogico</string>
+    <string name="home_encounters_title">GLI INCONTRI</string>
+    <string name="home_encounters_overlay">Gli\nIncontri</string>
+    <string name="home_video_guide_title">LA TUA GUIDA VIDEO</string>
+    <string name="home_biographer_question_default">Quale decisione hai preso di cui sei più orgoglioso?</string>
+    <string name="home_header_date_format">EEEE d MMMM</string>
+    <string name="home_user_name_fallback">Amico</string>
+
+    <!-- Fil de Pensée Batch -->
+    <string name="fil_title">Il mio Filo dei Pensieri</string>
+    <string name="fil_fragments_count">%1$d frammenti di vita</string>
+    <string name="fil_info_title">Il Filo dei Pensieri</string>
+    <string name="fil_info_p1">Ogni ricordo è classificato in base all\'età che avevi quando lo hai depositato.</string>
+    <string name="fil_info_p2">Non per data — per età. È la funzionalità unica di PHOEN-X.</string>
+    <string name="fil_info_p3">I tuoi cari potranno navigare e vedere come sei evoluto nel corso degli anni.</string>
+    <string name="fil_info_p4">Usa lo slider per navigare nella tua traiettoria di pensiero.</string>
+    <string name="fil_info_p5">Ogni voce porta un Sigillo dell\'Età — la tua età esatta al momento del deposito.</string>
+    <string name="fil_empty_state">Nessun ricordo per il momento.\nCattura il tuo primo pensiero.</string>
+    <string name="fil_unattributed_label">DA ASSEGNARE</string>
+    <string name="fil_years_suffix">%1$d ANNI</string>
+    <string name="fil_age_label">A %1$d anni</string>
+    <string name="fil_pensee_singulier">pensiero</string>
+    <string name="fil_pensees_plural">pensieri</string>
+    <string name="fil_filter_title">FILTRA IL FILO</string>
+    <string name="fil_filter_order_label">Ordine di visualizzazione</string>
+    <string name="fil_filter_order_age">Per età</string>
+    <string name="fil_filter_order_date">Per data di creazione</string>
+    <string name="fil_filter_recipient_label">Filtra per destinatario</string>
+    <string name="fil_filter_recipient_all">Tutti</string>
+    <string name="fil_filter_favorites_label">I miei preferiti</string>
+    <string name="fil_filter_favorites_only">Vedi solo i miei preferiti</string>
+    <string name="fil_dialogue_temporel_title">DIOLOGO TEMPORALE</string>
+    <string name="fil_dialogue_temporel_evolution">Evoluzione: La tua serenità è visibile a %1$d anni di distanza.</string>
+    <string name="fil_entry_no_title">Ricordo senza titolo</string>
+    <string name="fil_entry_to_attribute">Da assegnare</string>
+    <string name="fil_entry_age_format">%1$da %2$dm</string>
+    <string name="fil_entry_age_format_full">%1$da %2$dm %3$dg</string>
+    <string name="fil_entry_date_format">dd MMM</string>
+
+    <!-- Memory Detail -->
+    <string name="memory_detail_essential_section">L\'ESSENZIALE</string>
+    <string name="memory_detail_subject_label">IL SOGGETTO</string>
+    <string name="memory_detail_question_label">LA DOMANDA</string>
+    <string name="memory_detail_story_label">IL RACCONTO</string>
+    <string name="memory_detail_response_label">LA MIA RISPOSTA</string>
+    <string name="memory_detail_tonality_label">QUALE TONALITÀ?</string>
+    <string name="memory_detail_tonality_info_title">La Tonalità del ricordo</string>
+    <string name="memory_detail_tonality_info_content">La tonalità definisce l\'emozione dominante di questo momento (Gioia, Nostalgia, Saggezza...). L\'IA Biografa la userà per adattare il suo stile durante la scrittura del tuo Libro della Vita.</string>
+    <string name="memory_detail_tonality_nuance_label">Precisa la sfumatura (opzionale)</string>
+    <string name="memory_detail_tonality_nuance_placeholder">Es: un po\' amaro ma sorrido mentre lo scrivo...</string>
+    <string name="memory_detail_subject_placeholder">Qual è il soggetto?</string>
+    <string name="memory_detail_story_placeholder">Premi per scrivere...</string>
+    <string name="memory_detail_story_editor_title">IL TUO RACCONTO</string>
+    <string name="memory_detail_story_editor_placeholder">Scrivi qui il tuo racconto...</string>
+    <string name="memory_detail_delete_dialog_title">Eliminare questo ricordo?</string>
+    <string name="memory_detail_delete_confirm_title">Confermare l\'eliminazione?</string>
+    <string name="memory_detail_delete_has_media">Questo ricordo contiene %1$d media. Tutto verrà eliminato definitivamente.</string>
+    <string name="memory_detail_delete_no_media">Questa azione eliminerà il ricordo dal tuo filo e dal Cloud.</string>
+    <string name="memory_detail_delete_warning_permanent">Questa azione è definitiva e non può essere annullata. Confermare l\'eliminazione?</string>
+    <string name="memory_detail_delete_button_continue">Continua</string>
+    <string name="memory_detail_delete_button_permanent">Elimina definitivamente</string>
+    <string name="memory_detail_delete_button_cancel">Annulla</string>
+    <string name="memory_detail_delete_button_delete">Elimina</string>
+    <string name="memory_detail_error_video_too_long_snackbar">Questo video supera la durata massima consentita di 90 secondi.</string>
+    <string name="memory_detail_topbar_portrait">Ritratto</string>
+    <string name="memory_detail_topbar_question">Domanda: %1$s</string>
+    <string name="memory_detail_topbar_portrait_response">Risposta al Ritratto</string>
+    <string name="memory_detail_topbar_spark_story">L\'Innesco e il suo Racconto</string>
+    <string name="memory_detail_voice_note_ready">Pronto per registrare</string>
+    <string name="memory_detail_voice_note_recording">Registrazione in corso...</string>
+    <string name="memory_detail_voice_note_button_start">Avvia</string>
+    <string name="memory_detail_voice_note_button_finish">Termina</string>
+    <string name="memory_detail_complements_section">INTEGRAZIONI MEDIA</string>
+    <string name="memory_portrait_responses_label">LE RISPOSTE AL RITRATTO (%1$d)</string>
+    <string name="memory_portrait_thought_free">Pensiero libero</string>
+
+    <!-- Memory Metadata -->
+    <string name="memory_metadata_when_where_section">QUANDO E DOVE</string>
+    <string name="memory_metadata_moment_label">IL MOMENTO</string>
+    <string name="memory_metadata_date_precise_label">DATA PRECISA</string>
+    <string name="memory_metadata_date_add">Aggiungi una data</string>
+    <string name="memory_metadata_date_format">dd MMMM yyyy</string>
+    <string name="memory_metadata_date_format_short">dd/MM/yy</string>
+    <string name="memory_metadata_date_confirm">Conferma</string>
+    <string name="memory_metadata_date_precise">Data</string>
+    <string name="memory_metadata_date_period">Periodo</string>
+    <string name="memory_metadata_date_start">Inizio</string>
+    <string name="memory_metadata_date_end">Fine</string>
+    <string name="memory_metadata_location_label">IL LUOGO</string>
+    <string name="memory_metadata_location_none">Luogo non definito</string>
+    <string name="memory_metadata_location_change">Cambia luogo</string>
+    <string name="memory_metadata_location_view_on_map">Vedi sulla mappa</string>
+    <string name="memory_metadata_who_section">PER CHI</string>
+    <string name="memory_metadata_recipients_label">DESTINATARI</string>
+    <string name="memory_metadata_living_link_title">Trasmetti un Legame Vivente</string>
+    <string name="memory_metadata_living_link_subtitle">Invia questo ricordo ora o più tardi.</string>
+    <string name="memory_metadata_include_in_book_title">Includi nel mio Libro</string>
+    <string name="memory_metadata_include_in_book_subtitle">Alimenta il racconto IA con questo ricordo.</string>
+    <string name="memory_metadata_include_in_book_info_title">Aiuto per il Libro della Vita</string>
+    <string name="memory_metadata_include_in_book_info_content">Includendo questo ricordo, verrà ripreso e rielaborato dall\'IA per alimentare il tuo Libro della Vita.</string>
+    <string name="memory_metadata_mentioned_persons_title">Persone menzionate</string>
+    <string name="memory_metadata_mentioned_persons_info_title">Chi appare in questo racconto?</string>
+    <string name="memory_metadata_mentioned_persons_info_content">Identifica i cari presenti in questo ricordo. L\'IA Biografa li userà per chiarire la narrazione nel tuo Libro della Vita.</string>
+    <string name="memory_metadata_protection_section">PROTEZIONE</string>
+    <string name="memory_metadata_nudge_include_in_book_button_dismiss">Non mostrare più</string>
+    <string name="memory_metadata_nudge_include_in_book_button_close">Chiudi</string>
+
+    <!-- Storage Section -->
+    <string name="storage_section_title">ORGANIZZAZIONE</string>
+    <string name="storage_section_label">IN QUALI CASSETTI?</string>
+    <string name="storage_section_info_title">L\'organizzazione nei Cassetti</string>
+    <string name="storage_section_info_content">Il tuo ricordo viene salvato automaticamente in base ai media che contiene (Fototeca, Videoteca o Discoteca).</string>
+
+    <!-- Memory Complements -->
+    <string name="memory_complements_add_photos_videos">Foto / Video</string>
+    <string name="memory_complements_add_voice_note">Nota Vocale</string>
+    <string name="memory_complements_add_camera">Fotocamera</string>
+    <string name="memory_complements_add_record_video">Registra Video</string>
+    <string name="memory_complements_empty_state">Nessun media complementare collegato.</string>
+    <string name="memory_complements_media_fallback">Media %1$s</string>
+    <string name="memory_complements_visibility_public">Pubblico</string>
+    <string name="memory_complements_visibility_restricted">Ristretto</string>
+    <string name="memory_complements_error_video_too_long_toast">Questo video supera i 90 secondi.</string>
+
+    <string-array name="tonality_categories">
+        <item>Saggezza</item>
+        <item>Avventura</item>
+        <item>Segreto</item>
+        <item>Famiglia</item>
+        <item>Amore</item>
+        <item>Nostalgia</item>
+        <item>Umorismo</item>
+        <item>Insegnamento</item>
+        <item>Viaggio</item>
+        <item>Vita quotidiana</item>
+        <item>Prova</item>
+    </string-array>
+
+    <string-array name="nudge_phrases">
+        <item>Un giorno, qualcuno sorriderà leggendo questo.</item>
+        <item>Non stai solo raccontando la tua vita — stai preparando un regalo pieno d\'amore.</item>
+        <item>Questo ricordo attenderà pazientemente il momento giusto per far vibrare un cuore.</item>
+        <item>Ogni parola depositata qui è una scintilla per domani.</item>
+        <item>Stai scrivendo la più bella delle lettere a chi ami.</item>
+        <item>Nulla si perde, tutto si trasmette con tenerezza.</item>
+        <item>Immagina la gioia di riscoprire questo momento tra qualche anno.</item>
+        <item>La tua voce e le tue parole sono la più preziosa delle eredità.</item>
+        <item>Questo frammento di vita è un seme di felicità per il futuro.</item>
+        <item>Grazie per prenderti cura della tua storia.</item>
+        <item>Qui il tempo si ferma per lasciare spazio all\'essenziale.</item>
+        <item>I tuoi cari ti ringrazieranno per aver lasciato questa traccia.</item>
+        <item>Un piccolo pensiero oggi, un immenso tesoro domani.</item>
+        <item>La vita è fatta di questi piccoli istanti che scegli di custodire.</item>
+        <item>La tua memoria è un ponte verso chi verrà.</item>
+    </string-array>
+
+    <!-- ViewModels / Logic strings -->
+    <string name="fil_sealed_memory">Ricordo sigillato</string>
+    <string name="fil_evolution_ai">Evoluzione stilistica rilevata dall\'IA</string>
+    <string name="memory_detail_access_verifying">Verifica dell\'accesso…</string>
+    <string name="memory_detail_content_encrypted">Contenuto crittografato</string>
+    <string name="memory_detail_living_link_success">Ricordo trasmesso con successo!</string>
+    <string name="memory_detail_living_link_error">Errore nella trasmissione: %1$s</string>
+    <string name="memory_detail_error_add_media">Errore durante l\'aggiunta del media</string>
+    <string name="memory_detail_voice_note_default_title">Nota vocale</string>
+
+    <!-- Genealogy Batch -->
+    <string name="genealogy_tree_heir_title">L\'Albero del tuo caro</string>
+    <string name="genealogy_tree_creator_title">Il mio Albero Genealogico</string>
+    <string name="genealogy_confidentiality_info_title">Riservatezza dell\'Albero</string>
+    <string name="genealogy_confidentiality_info_content">Questo albero sarà visibile nella sua interezza a tutti i tuoi Destinatari una volta attivata la tua eredità.</string>
+    <string name="genealogy_preview_mode_description">Anteprima Destinatario</string>
+    <string name="genealogy_empty_state_text">Il tuo albero è ancora vuoto.</string>
+    <string name="genealogy_add_first_person_button">Aggiungi la prima persona</string>
+    <string name="genealogy_new_relation_title">Nuova relazione per %1$s</string>
+    <string name="genealogy_relation_types_info_title">Tipi di legame</string>
+    <string name="genealogy_relation_types_info_content1">Genitore: Questa persona apparirà sopra, collegata da un legame di filiazione diretta.</string>
+    <string name="genealogy_relation_types_info_content2">Figlio: Questa persona apparirà sotto.</string>
+    <string name="genealogy_relation_types_info_content3">Co-genitore: Per collegare una persona che condivide un figlio già esistente.</string>
+    <string name="genealogy_add_parent_title">Aggiungi un genitore</string>
+    <string name="genealogy_add_parent_description">Questa persona apparirà sopra, collegata da un legame diretto.</string>
+    <string name="genealogy_add_child_title">Aggiungi un figlio</string>
+    <string name="genealogy_add_child_description">Questa persona apparirà sotto.</string>
+    <string name="genealogy_add_coparent_title">Aggiungi un co-genitore</string>
+    <string name="genealogy_add_coparent_description">Per collegare una persona che condivide un figlio già esistente.</string>
+    <string name="genealogy_select_child_dialog_title">Seleziona il figlio interessato</string>
+    <string name="genealogy_select_child_empty_state">Questa persona non ha ancora figli nell\'albero — aggiungi prima un figlio.</string>
+    <string name="genealogy_select_child_question">A quale/i figlio/i di %1$s desideri collegare questo nuovo genitore?</string>
+    <string name="genealogy_button_next">Avanti</string>
+    <string name="genealogy_button_compris">Capito</string>
+    <string name="genealogy_button_annuler">Annulla</string>
+    <string name="genealogy_dialog_reparent_info_title">Legame automatico</string>
+    <string name="genealogy_dialog_reparent_info_content">Questa persona è stata riposizionata automaticamente dopo l\'eliminazione di un intermedio.</string>
+    <string name="genealogy_recentrer_button">Ricentra</string>
+    <string name="genealogy_person_deceased_label">Andato/a</string>
+    <string name="genealogy_person_identity_links_button">Identità e Legami</string>
+    <string name="genealogy_person_deceased_status_badge">Altrove, ma sempre nei nostri cuori</string>
+    <string name="genealogy_vertical_alignment_section_title">ALLINEAMENTO VERTICALE</string>
+    <string name="genealogy_vertical_alignment_description">Questa persona non ha ascendenza. Puoi regolare la sua posizione verticale per allinearla con i suoceri.</string>
+    <string name="genealogy_remonter_tooltip">Sposta su</string>
+    <string name="genealogy_descendre_tooltip">Sposta giù</string>
+    <string name="genealogy_relation_nature_label">Natura del legame (es: Nipote)</string>
+    <string name="genealogy_biography_section_title">BIOGRAFIA</string>
+    <string name="genealogy_biography_placeholder">Qualche parola sulla sua vita...</string>
+    <string name="genealogy_biography_empty">Nessuna biografia inserita.</string>
+    <string name="genealogy_gallery_section_title">GALLERIA MEDIA</string>
+    <string name="genealogy_gallery_info_title">Foto profilo vs Galleria</string>
+    <string name="genealogy_gallery_info_content">La foto profilo è quella mostrata nell\'albero. La galleria può contenere altre foto e video.</string>
+    <string name="genealogy_video_error_duration">Questo video supera i 90 secondi consentiti.</string>
+    <string name="genealogy_visibility_warning_content">Questo media sarà visibile a TUTTI i tuoi Destinatari una volta attivata l\'eredità.</string>
+    <string name="genealogy_gallery_empty">Nessun media aggiunto.</string>
+    <string name="genealogy_media_summary_fallback">Media di %1$s</string>
+    <string name="genealogy_save_details_button">Salva le modifiche</string>
+    <string name="genealogy_delete_from_tree_button">Rimuovi dall\'albero</string>
+    <string name="genealogy_button_close">Chiudi</string>
+    <string name="genealogy_delete_dialog_title">Eliminare questa persona?</string>
+    <string name="genealogy_delete_continuity_info_title">Continuità dei legami</string>
+    <string name="genealogy_delete_continuity_info_content">Se questa persona ha genitori registrati, i suoi figli verranno collegati automaticamente a loro.</string>
+    <string name="genealogy_delete_warning_content">Questa azione è irreversibile. Verrà rimossa dall\'albero e tutti i suoi media cancellati.</string>
+    <string name="genealogy_delete_reparent_question">I seguenti figli verranno collegati direttamente ai nonni. Come descrivere questo nuovo legame?</string>
+    <string name="genealogy_delete_reparent_child_label">Legame per %1$s</string>
+    <string name="genealogy_delete_reparent_child_placeholder">es: Nipote</string>
+    <string name="genealogy_delete_confirm_button">Elimina definitivamente</string>
+    <string name="genealogy_edit_person_title">Modifica i legami</string>
+    <string name="genealogy_link_person_title">Collega una persona</string>
+    <string name="genealogy_new_person_title">Nuova Persona</string>
+    <string name="genealogy_existing_profile_selected">Profilo esistente selezionato</string>
+    <string name="genealogy_first_name_label">Nome</string>
+    <string name="genealogy_already_exists_question">QUESTA PERSONA ESISTE GIÀ?</string>
+    <string name="genealogy_already_in_tree_fallback">Già nell\'albero</string>
+    <string name="genealogy_last_name_label">Cognome (opzionale)</string>
+    <string name="genealogy_parents_section_title">GENITORE/I DI QUESTA PERSONA</string>
+    <string name="genealogy_search_parent_placeholder">Cerca un genitore...</string>
+    <string name="genealogy_relationship_fallback_proche">Caro</string>
+    <string name="genealogy_button_save">Salva</string>
+    <string name="genealogy_button_confirm_link">Conferma legame</string>
+    <string name="genealogy_button_create">Crea</string>
+
+    <!-- Personalities Batch -->
+    <string name="personalities_title">Personalità</string>
+    <string name="personalities_subtitle">Figure ispiratrici o significative</string>
+    <string name="personalities_info_title">Personalità</string>
+    <string name="personalities_info_p1">Questo spazio è dedicato alle figure pubbliche che hanno contato nella tua vita.</string>
+    <string name="personalities_info_p2">A differenza dei Ricordi, queste schede sono visibili a TUTTI i tuoi Destinatari.</string>
+    <string name="personalities_info_p3">Puoi condividere la tua biografia preferita e spiegare come ti hanno influenzato.</string>
+    <string name="personalities_filter_all">Tutti</string>
+    <string name="personalities_empty_state">Nessuna personalità aggiunta.</string>
+    <string name="personalities_category_other">Altro</string>
+
+    <string name="personality_detail_edit_desc">Modifica</string>
+    <string name="personality_detail_delete_desc">Elimina</string>
+    <string name="personality_detail_bio_title">BIOGRAFIA</string>
+    <string name="personality_detail_bio_empty">Nessuna biografia inserita.</string>
+    <string name="personality_detail_why_title">PERCHÉ QUESTA PERSONA?</string>
+    <string name="personality_detail_why_empty">Nessun commento personale.</string>
+    <string name="personality_detail_gallery_title">GALLERIA FOTO</string>
+    <string name="personality_detail_media_summary">Foto di %1$s</string>
+    <string name="personality_detail_comment_title">COMMENTO</string>
+    <string name="personality_detail_delete_confirm_title">Eliminare %1$s?</string>
+    <string name="personality_detail_delete_confirm_text">Questa azione è irreversibile. Tutte le informazioni saranno eliminate.</string>
+    <string name="personality_detail_delete_button_confirm">Elimina definitivamente</string>
+    <string name="personality_detail_delete_button_cancel">Annulla</string>
+    <string name="personality_detail_close_button">Chiudi</string>
+
+    <string name="personality_edit_new_title">Nuova Personalità</string>
+    <string name="personality_edit_edit_title">Modifica la scheda</string>
+    <string name="personality_edit_name_label">Nome completo</string>
+    <string name="personality_edit_category_label">Categoria</string>
+    <string name="personality_edit_custom_category_label">Specifica la categoria</string>
+    <string name="personality_edit_photo_info">Questa sezione accoglie solo foto.</string>
+    <string name="personality_edit_bio_label">Biografia</string>
+    <string name="personality_edit_bio_placeholder">Incolla qui un testo descrittivo...</string>
+    <string name="personality_edit_why_label">Perché questa persona ha contato per te?</string>
+    <string name="personality_edit_why_placeholder">Condividi il tuo legame personale...</string>
+    <string name="personality_edit_warning_title">Attenzione Contenuto</string>
+    <string name="personality_edit_warning_bio">Questo testo sembra superare una semplice menzione storica...</string>
+    <string name="personality_edit_warning_comment">Il tuo commento personale sembra contenere termini problematici...</string>
+    <string name="personality_edit_warning_button_force">Salva comunque</string>
+    <string name="personality_edit_warning_button_edit">Modifica il testo</string>
+    <string name="personality_edit_save_button">Salva</string>
+
+    <!-- Encounters Batch -->
+    <string name="encounter_screen_title">Gli Incontri</string>
+    <string name="encounter_screen_subtitle">Chi ha contato</string>
+    <string name="encounter_info_title">Gli Incontri</string>
+    <string name="encounter_info_p1">Gli Incontri è il luogo per raccontare le persone che hanno segnato la tua vita al di fuori della famiglia.</string>
+    <string name="encounter_info_p2">Classificali per età o scopri chi ti ha presentato chi.</string>
+    <string name="encounter_info_p3">Per impostazione predefinita, un incontro è visibile ai tuoi Destinatari.</string>
+    <string name="encounter_search_placeholder">Cerca un nome...</string>
+    <string name="encounter_stats_person_singular">%1$d persona</string>
+    <string name="encounter_stats_person_plural">%1$d persone</string>
+    <string name="encounter_stats_age_range"> · da %1$d a %2$d anni</string>
+    <string name="encounter_grouping_age">Età</string>
+    <string name="encounter_grouping_introducer">Presentato da</string>
+    <string name="encounter_header_no_date">Senza data</string>
+    <string name="encounter_header_age_format">A %1$d anni</string>
+    <string name="encounter_header_introducer_none">Non specificato</string>
+    <string name="encounter_header_introducer_unknown">Persona sconosciuta</string>
+    <string name="encounter_footer_lost">perso di vista</string>
+    <string name="encounter_footer_passed">non c\'è più</string>
+    <string name="encounter_footer_introduced_by">presentata da %1$s</string>
+    <string name="encounter_empty_state">Nessun incontro registrato.</string>
+
+    <string name="encounter_detail_load_error">Impossibile caricare la scheda.</string>
+    <string name="encounter_detail_back_button">Indietro</string>
+    <string name="encounter_detail_remove_title">Rimuovere questo incontro?</string>
+    <string name="encounter_detail_remove_text">Questa persona non figurerà più tra i tuoi incontri.</string>
+    <string name="encounter_detail_remove_confirm">Rimuovi</string>
+    <string name="encounter_detail_cancel">Annulla</string>
+    <string name="encounter_detail_desc_back">Indietro</string>
+    <string name="encounter_detail_desc_edit">Modifica</string>
+    <string name="encounter_detail_desc_delete">Elimina</string>
+    <string name="encounter_detail_header_encounter">IL NOSTRO INCONTRO</string>
+    <string name="encounter_detail_age_at_encounter">Avevo %1$s anni</string>
+    <string name="encounter_detail_introduced_by">Presentato/a da %1$s</string>
+    <string name="encounter_detail_legacy_title">COSA MI HA DATO</string>
+    <string name="encounter_detail_media_title">FOTO &amp; VIDEO</string>
+    <string name="encounter_detail_memories_count_singular">Appare in %1$d ricordo</string>
+    <string name="encounter_detail_memories_count_plural">Appare in %1$d ricordi</string>
+    <string name="encounter_detail_status_separated">Le nostre strade si sono divise · avevo %1$d anni</string>
+    <string name="encounter_detail_status_present">Ancora nella mia vita</string>
+    <string name="encounter_detail_status_lost">Perso di vista</string>
+    <string name="encounter_detail_status_passed">Non c\'è più</string>
+
+    <string name="encounter_dialog_attention">Attenzione</string>
+    <string name="encounter_dialog_delete_warning_introducer">Questa persona ha presentato: %1$s.</string>
+    <string name="encounter_dialog_delete_warning_family">Questa persona fa parte anche del tuo Albero Genealogico.</string>
+    <string name="encounter_dialog_delete_warning_generic">Vuoi davvero eliminare questo incontro?</string>
+    <string name="encounter_dialog_delete_confirm">Conferma eliminazione</string>
+    <string name="encounter_dialog_title_new">Nuovo Incontro</string>
+    <string name="encounter_dialog_title_edit">Modifica Incontro</string>
+    <string name="encounter_dialog_add_photo">Aggiungi</string>
+    <string name="encounter_dialog_firstname_label">Nome</string>
+    <string name="encounter_dialog_lastname_label">Cognome (opzionale)</string>
+    <string name="encounter_dialog_nature_section">NATURA DEL LEGAME</string>
+    <string name="encounter_dialog_nature_custom_label">Precisa la natura del legame</string>
+    <string name="encounter_dialog_encounter_section">INCONTRO</string>
+    <string name="encounter_dialog_age_label">La mia età all\'incontro</string>
+    <string name="encounter_dialog_precision_label">Dettagli (es: sport...)</string>
+    <string name="encounter_dialog_location_label">Luogo</string>
+    <string name="encounter_dialog_status_section">STATO DEL LEGAME</string>
+    <string name="encounter_dialog_status_present">Presente</string>
+    <string name="encounter_dialog_status_lost">Perso di vista</string>
+    <string name="encounter_dialog_status_disparu">Scomparso</string>
+    <string name="encounter_dialog_end_age_label">La mia età alla fine della relazione</string>
+    <string name="encounter_dialog_end_reason_label">Motivo (opzionale)</string>
+    <string name="encounter_dialog_introducer_section">PRESENTATO/A DA</string>
+    <string name="encounter_dialog_search_introducer_placeholder">Cerca una persona...</string>
+    <string name="encounter_dialog_privacy_label">Tenuto per me</string>
+    <string name="encounter_dialog_privacy_info">Informazione</string>
+    <string name="encounter_dialog_privacy_subtitle">Invisibile per gli eredi</string>
+    <string name="encounter_dialog_privacy_detail">Se attivo, questo incontro non apparirà mai nell\'applicazione dei tuoi destinatari.</string>
+    <string name="encounter_dialog_video_error_duration">Questo video supera i 90 secondi consentiti.</string>
+    <string name="encounter_dialog_media_security_warning">Questo media sarà crittografato e protetto.</string>
+    <string name="encounter_dialog_gallery_empty">Nessuna foto aggiunta.</string>
+    <string name="encounter_dialog_biography_label">BIOGRAFIA</string>
+    <string name="encounter_dialog_biography_placeholder">Cosa mi ha dato</string>
+    <string name="encounter_dialog_button_create">Crea incontro</string>
+    <string name="encounter_dialog_button_save">Salva modifiche</string>
+    <string name="encounter_dialog_button_remove">Rimuovi dagli Incontri</string>
+    <string name="encounter_dialog_create_first_hint">Crea prima l\'incontro per aggiungere foto.</string>
+
+    <string name="encounter_nature_partner">Partner</string>
+    <string name="encounter_nature_ami">Amico</string>
+    <string name="encounter_nature_mentor">Mentore</string>
+    <string name="encounter_nature_collegue">Collega</string>
+    <string name="encounter_nature_voisin">Vicino</string>
+    <string name="encounter_nature_not_set">non specificato</string>
+
+    <string name="encounter_context_school">Scuola</string>
+    <string name="encounter_context_work">Lavoro</string>
+    <string name="encounter_context_sport">Sport</string>
+    <string name="encounter_context_passion">Passione</string>
+    <string name="encounter_context_travel">Viaggio</string>
+    <string name="encounter_context_other">Altro</string>
+    <string name="encounter_context_all">Tutti</string>
+
+    <!-- Recipient Batch -->
+    <string name="recipient_screen_title">I miei Destinatari</string>
+    <string name="recipient_dialog_delete_title">Eliminare questo caro?</string>
+    <string name="recipient_dialog_delete_text">Vuoi davvero rimuovere %1$s dal tuo Cerchio di Fiducia?</string>
+    <string name="recipient_dialog_delete_confirm">Elimina</string>
+    <string name="recipient_dialog_delete_cancel">Annulla</string>
+    <string name="recipient_empty_state_title">Il tuo cerchio è vuoto.</string>
+    <string name="recipient_empty_state_subtitle">Aggiungi le persone che riceveranno la tua eredità.</string>
+    <string name="recipient_dialog_add_title">Aggiungi un caro</string>
+    <string name="recipient_dialog_add_photo_label">Aggiungi</string>
+    <string name="recipient_dialog_add_name_label">Nome completo</string>
+    <string name="recipient_dialog_add_email_label">E-mail</string>
+    <string name="recipient_dialog_add_phone_label">Telefono (Opzionale)</string>
+    <string name="recipient_dialog_add_relationship_label">Legame (es: Figlio, Moglie...)</string>
+    <string name="recipient_dialog_add_button_next">Avanti</string>
+    <string name="recipient_dialog_add_button_cancel">Annulla</string>
+
+    <string name="heir_heritage_screen_title">La mia Eredità</string>
+    <string name="heir_heritage_ask_question_desc">Fai una domanda</string>
+    <string name="heir_heritage_remaining_questions">%1$d rim.</string>
+    <string name="heir_heritage_souvenirs_destined">%1$d ricordi ti sono stati destinati</string>
+    <string name="heir_heritage_special_book_fallback">Libro</string>
+    <string name="heir_heritage_special_book_subtitle_sealed">%1$s ha deciso di condividere il libro della sua vita con te.</string>
+    <string name="heir_heritage_special_book_subtitle_activated">Racconto di vita</string>
+    <string name="heir_heritage_special_vault_title">Cassaforte</string>
+    <string name="heir_heritage_special_tree_title">Albero</string>
+    <string name="heir_heritage_special_map_title">Mappamondo</string>
+    <string name="heir_heritage_special_personalities_title">Personaggi</string>
+    <string name="heir_heritage_special_encounters_title">Incontri</string>
+    <string name="heir_heritage_special_photos_title">Foto</string>
+    <string name="heir_heritage_special_videos_title">Video</string>
+    <string name="heir_heritage_special_audios_title">Audio</string>
+    <string name="heir_heritage_entry_fallback_title">Ricordo</string>
+    <string name="heir_heritage_date_format">dd MMMM yyyy</string>
+
+    <string name="recipient_photos_screen_title">Grande Fototeca</string>
+    <string name="recipient_photos_empty_state">L\'album è ancora vuoto.</string>
+    <string name="recipient_photos_group_standalone">Foto singole</string>
+    <string name="recipient_photos_group_memory_fallback">Ricordo</string>
+    <string name="recipient_photos_dialog_delete_title">Eliminare questa foto?</string>
+    <string name="recipient_photos_dialog_delete_text">Questa azione è irreversibile.</string>
+    <string name="recipient_photos_dialog_delete_confirm">Elimina</string>
+    <string name="recipient_photos_dialog_delete_cancel">Annulla</string>
+    <string name="recipient_photos_item_fallback_title">Foto</string>
+
+    <string name="recipient_videotheque_screen_title">Grande Videoteca</string>
+    <string name="recipient_videotheque_empty_state">Il proiettore è spento...</string>
+    <string name="recipient_videotheque_group_standalone">Video singoli</string>
+    <string name="recipient_videotheque_group_memory_fallback">Ricordo</string>
+    <string name="recipient_videotheque_dialog_delete_title">Eliminare questo video?</string>
+    <string name="recipient_videotheque_dialog_delete_text">Questa azione è irreversibile.</string>
+    <string name="recipient_videotheque_dialog_delete_confirm">Elimina</string>
+    <string name="recipient_videotheque_dialog_delete_cancel">Annulla</string>
+    <string name="recipient_videotheque_dialog_howto_title">Come recuperare un link?</string>
+    <string name="recipient_videotheque_dialog_howto_step1">1. Apri l\'app YouTube.</string>
+    <string name="recipient_videotheque_dialog_howto_step2">2. Trova il video desiderato.</string>
+    <string name="recipient_videotheque_dialog_howto_step3">3. Premi \'Condividi\' poi \'Copia link\'.</string>
+    <string name="recipient_videotheque_dialog_howto_step4">4. Torna qui e incollalo.</string>
+    <string name="recipient_videotheque_dialog_howto_button_continue">Continua</string>
+    <string name="recipient_videotheque_dialog_howto_button_cancel">Annulla</string>
+    <string name="recipient_videotheque_item_fallback_title">Video</string>
+
+    <string name="recipient_discotheque_screen_title">Grande Discoteca</string>
+    <string name="recipient_discotheque_empty_state">Il giradischi è silenzioso...</string>
+    <string name="recipient_discotheque_group_standalone">Media singoli</string>
+    <string name="recipient_discotheque_group_memory_fallback">Ricordo</string>
+    <string name="recipient_discotheque_dialog_delete_title">Eliminare questo brano?</string>
+    <string name="recipient_discotheque_dialog_delete_text">Questa azione è irreversibile.</string>
+    <string name="recipient_discotheque_dialog_delete_confirm">Elimina</string>
+    <string name="recipient_discotheque_dialog_delete_cancel">Annulla</string>
+    <string name="recipient_discotheque_dialog_howto_title">Come recuperare un link?</string>
+    <string name="recipient_discotheque_dialog_howto_step1">1. Apri l\'app Spotify o Deezer.</string>
+    <string name="recipient_discotheque_dialog_howto_step2">2. Trova il brano desiderato.</string>
+    <string name="recipient_discotheque_dialog_howto_step3">3. Premi \'Condividi\' poi \'Copia link\'.</string>
+    <string name="recipient_discotheque_dialog_howto_step4">4. Torna qui e incollalo.</string>
+    <string name="recipient_discotheque_dialog_howto_button_continue">Continua</string>
+    <string name="recipient_discotheque_dialog_howto_button_cancel">Annulla</string>
+    <string name="recipient_discotheque_item_fallback_title">Ricordo vocale</string>
+
+    <string name="recipient_memory_detail_topbar_question">Domanda di vita</string>
+    <string name="recipient_memory_detail_topbar_memory">Ricordo del tuo caro</string>
+    <string name="recipient_memory_detail_sealed_title">Questo ricordo è sigillato.</string>
+    <string name="recipient_memory_detail_sealed_subtitle">Verrà decrittografato al momento dell\'attivazione.</string>
+    <string name="recipient_memory_detail_entry_fallback_title">Ricordo</string>
+    <string name="recipient_memory_detail_label_response">LA MIA RISPOSTA</string>
+    <string name="recipient_memory_detail_label_story">IL RACCONTO</string>
+    <string name="recipient_memory_detail_empty_content">Nessun contenuto scritto.</string>
+    <string name="recipient_memory_detail_comment_label">COMMENTO DEL TUO CARO</string>
+    <string name="recipient_memory_detail_complements_label">INTEGRAZIONI MEDIA</string>
+    <string name="recipient_memory_detail_complement_fallback">Media</string>
+
+    <string name="recipient_media_filter_standard">Standard</string>
+    <string name="recipient_media_filter_by_memory">Per Ricordo</string>
+    <string name="recipient_media_filter_by_recipient">Per Destinatario</string>
+    <string name="recipient_media_filter_all_audios">Tutti gli audio</string>
+    <string name="recipient_media_filter_vocals_only">Solo vocali</string>
+    <string name="recipient_media_filter_music_only">Solo musica</string>
+    <string name="recipient_media_filter_all">Tutti</string>
+    <string name="recipient_media_sealed_photo">Foto sigillata</string>
+    <string name="recipient_media_sealed_video">Video sigillato</string>
+    <string name="recipient_media_sealed_audio">Ricordo vocale sigillato</string>
+    <string name="recipient_media_sealed_portrait">Ritratto sigillato</string>
+    <string name="recipient_media_sealed_answer">Risposta sigillata</string>
+    <string name="recipient_media_sealed_thought">Pensiero sigillato</string>
+    <string name="recipient_media_sealed_content_warning">Questo contenuto verrà decrittografato all\'attivazione del protocollo.</string>
+    <string name="recipient_media_sealed_music">Musica sigillata</string>
+    <string name="recipient_media_sealed_writing">Testo sigillato</string>
+    <string name="recipient_media_sealed_generic">Media sigillato</string>
+    <string name="recipient_media_fallback_music">Brano condiviso</string>
+    <string name="recipient_media_fallback_video">Video condiviso</string>
+    <string name="recipient_media_fallback_generic">Media</string>
+    <string name="recipient_media_status_sealed">Sigillato</string>
+    <string name="recipient_media_status_encrypted">Contenuto crittografato</string>
+    <string name="recipient_media_creator_name_fallback">Il tuo caro</string>
+
+    <string name="recipient_cube_armoire_title">L\'Armadio di %1$s</string>
+    <string name="recipient_cube_armoire_fallback">L\'Armadio di...</string>
+    <string name="recipient_cube_explore_subtitle">Esplora la sua eredità</string>
+    <string name="recipient_cube_heritage_opened_title">L\'Eredità è Aperta</string>
+    <string name="recipient_cube_heritage_intimate_title">L\'Eredità Intima</string>
+    <string name="recipient_cube_heritage_opened_desc">Ora puoi esplorare tutti i ricordi di %1$s.</string>
+    <string name="recipient_cube_heritage_intimate_desc">Gli oggetti di questo armadio si apriranno durante l\'esplorazione.</string>
+    <string name="recipient_cube_access_label">ACCEDI ALL\'EREDITÀ</string>
+    <string name="recipient_cube_enter_button">ENTRA NEI SUOI RICORDI</string>
+    <string name="recipient_cube_become_creator_title">E tu?</string>
+    <string name="recipient_cube_become_creator_subtitle">Inizia a sigillare i tuoi ricordi.</string>
+    <string name="recipient_cube_become_creator_button">DIVENTA CREATORE</string>
+
+    <string name="recipient_allocation_fiche_title">Scheda Destinatario</string>
+    <string name="recipient_allocation_details_fallback">Dettagli</string>
+    <string name="recipient_allocation_souvenirs_count">%1$d ricordi sono destinati a %2$s.</string>
+    <string name="recipient_allocation_proche_fallback">questo caro</string>
+    <string name="recipient_allocation_answer_prefix">La mia risposta a: %1$s</string>
+    <string name="recipient_allocation_no_title">Ricordo senza titolo</string>
+    <string name="recipient_allocation_public_badge">PUBBLICO</string>
+    <string name="recipient_allocation_date_format">dd MMM yyyy</string>
+
+    <string name="recipient_detail_details_fallback">Dettagli</string>
+    <string name="recipient_detail_preview_button">Vedi il suo spazio (Anteprima)</string>
+    <string name="recipient_detail_preview_subtitle">Verifica cosa vedrà realmente %1$s.</string>
+    <string name="recipient_detail_portrait_section">IL SUO RITRATTO (LO SPECCHIO)</string>
+    <string name="recipient_detail_portrait_completed">Ritratto completato</string>
+    <string name="recipient_detail_portrait_not_started">Ritratto non iniziato</string>
+    <string name="recipient_detail_portrait_subtitle">Digli cosa vedi in lui/lei.</string>
+    <string name="recipient_detail_assigned_content_section">CONTENUTI ASSEGNATI</string>
+    <string name="recipient_detail_section_souvenirs">RICORDI</string>
+    <string name="recipient_detail_section_photos">FOTO</string>
+    <string name="recipient_detail_section_videos">VIDEO</string>
+    <string name="recipient_detail_section_audios">AUDIO</string>
+    <string name="recipient_detail_permissions_button">Gestisci i diritti di accesso</string>
+    <string name="recipient_detail_no_title">Senza titolo</string>
+    <string name="recipient_detail_see_all">Vedi tutto (%1$d) →</string>
+
+    <string name="recipient_permissions_title">%1$s — Diritti di accesso</string>
+    <string name="recipient_permissions_proche_fallback">Caro</string>
+    <string name="recipient_permissions_questions_header">DOMANDE</string>
+    <string name="recipient_permissions_allow_questions">Consenti a %1$s di farmi domande</string>
+    <string name="recipient_permissions_allow_questions_desc">%1$s potrà depositare domande sigillate.</string>
+    <string name="recipient_permissions_limit_header">LIMITE DOMANDE</string>
+    <string name="recipient_permissions_unlimited">Numero illimitato di domande</string>
+    <string name="recipient_permissions_limited">Limita a un numero preciso</string>
+    <string name="recipient_permissions_save_button">Salva diritti</string>
+
+    <string name="recipient_viewmodel_creator_fallback">Il tuo caro</string>
+    <string name="recipient_viewmodel_email_subject">%1$s desidera condividere la sua storia con te</string>
+    <string name="recipient_viewmodel_email_text">Ciao %1$s,\n\n%2$s sta preparando il suo spazio di ricordi su PHOEN-X e desidera invitarti come destinatario della sua storia di vita.\n\nLink per unirti al suo cerchio di fiducia: https://phoenx.app/join/%3$s</string>
+
+    <string name="recipient_cube_viewmodel_creator_fallback">Il tuo caro</string>
+    <string name="recipient_cube_viewmodel_error_fallback">Errore di connessione</string>
+
+    <string name="recipient_archive_screen_title">Grande Archivio</string>
+    <string name="recipient_archive_empty_state">L\'album fotografico è ancora vuoto.</string>
+    <string name="recipient_archive_item_age">%1$d anni</string>
+
+    <string name="recipient_books_screen_title">Grande Biblioteca</string>
+    <string name="recipient_books_empty_state">Nessun testo è stato ancora affidato a questa biblioteca.</string>
+
+    <!-- Settings Batch -->
+    <string name="settings_screen_title">Impostazioni</string>
+    <string name="settings_info_title">Impostazioni</string>
+    <string name="settings_info_point1">Attiva la biometria per proteggere l\'accesso all\'app.</string>
+    <string name="settings_info_point2">Scegli la frequenza dei controlli di presenza.</string>
+    <string name="settings_info_point3">I tuoi dati non vengono mai venduti o usati a fini commerciali.</string>
+    <string name="settings_info_point4">PHOEN-X non contiene pubblicità.</string>
+    <string name="settings_info_point5">Puoi gestire i tuoi Destinatari e il tuo Depositario da qui.</string>
+    <string name="settings_section_account">IL MIO ACCOUNT</string>
+    <string name="settings_item_profile_title">Il mio Profilo</string>
+    <string name="settings_item_profile_subtitle">Gestisci il tuo nome e le tue info</string>
+    <string name="settings_section_security">SICUREZZA E TRASMISSIONE</string>
+    <string name="settings_item_protocol_title">Trasmissione e Protocollo</string>
+    <string name="settings_item_protocol_subtitle">Gestisci il tuo depositario e i tempi</string>
+    <string name="settings_item_recipients_title">I miei Destinatari</string>
+    <string name="settings_item_recipients_subtitle">Gestisci il tuo cerchio di fiducia</string>
+    <string name="settings_item_notification_contacts_title">Contatti da avvisare</string>
+    <string name="settings_item_notification_contacts_subtitle">Persone informate sulla tua assenza</string>
+    <string name="settings_item_presence_title">Frequenza di presenza</string>
+    <string name="settings_item_presence_subtitle">Verifica ogni %1$d giorni</string>
+    <string name="settings_biometric_title">Impronta Digitale</string>
+    <string name="settings_biometric_subtitle">Apertura sicura dell\'applicazione</string>
+    <string name="settings_item_unique_key_title">Il Cassetto a Chiave Unica</string>
+    <string name="settings_item_unique_key_subtitle">Il tuo segreto più prezioso</string>
+    <string name="settings_item_reconciliation_title">Protocollo di Riconciliazione</string>
+    <string name="settings_item_reconciliation_subtitle">Parole segrete ad apertura differita</string>
+    <string name="settings_item_detective_title">Testa la Cassaforte</string>
+    <string name="settings_item_detective_subtitle">Decifra i tuoi enigmi</string>
+    <string name="settings_section_accessibility">ACCESSIBILITÀ</string>
+    <string name="settings_item_accessibility_title">Modalità Vocale Totale</string>
+    <string name="settings_item_accessibility_subtitle">Navigazione tramite voce</string>
+    <string name="settings_item_reset_video_title">Mostra di nuovo il video di benvenuto</string>
+    <string name="settings_item_reset_video_subtitle">Ripristina il banner video</string>
+    <string name="settings_section_personalization">PERSONALIZZAZIONE</string>
+    <string name="settings_accent_color_label">Colore principale</string>
+    <string name="settings_background_style_label">Stile dello sfondo</string>
+    <string name="settings_background_style_radial">Radiale (Predefinito)</string>
+    <string name="settings_background_style_linear">Lineare</string>
+    <string name="settings_background_style_solid">Tinta unita</string>
+    <string name="settings_rhythm_dialog_title">Frequenza di presenza</string>
+    <string name="settings_rhythm_option_2_weeks">Ogni 2 settimane</string>
+    <string name="settings_rhythm_option_1_month">Una volta al mese</string>
+    <string name="settings_rhythm_option_2_months">Ogni 2 mesi</string>
+    <string name="settings_rhythm_info">Se non confermi la tua presenza, ti ricorderemo ogni settimana.</string>
+    <string name="settings_button_save">Salva</string>
+    <string name="settings_button_cancel">Annulla</string>
+
+    <!-- Protocol Batch -->
+    <string name="protocol_toast_success">Invito inviato con successo.</string>
+    <string name="protocol_screen_title">Trasmissione e Protocollo</string>
+    <string name="protocol_info_title">La Trasmissione</string>
+    <string name="protocol_info_content">I Custodi (Depositari) sono le uniche persone che potranno confermare la tua partenza.</string>
+    <string name="protocol_header_title">Gestisci la tua eredità</string>
+    <string name="protocol_section_guardians">I MIEI CUSTODI DI FIDUCIA</string>
+    <string name="protocol_guardian_primary">Custode Principale</string>
+    <string name="protocol_guardian_secondary">Custode Secondario</string>
+    <string name="protocol_section_security">SICUREZZA ANTI-ERRORE</string>
+    <string name="protocol_security_desc">Tempo a disposizione per annullare un\'attivazione accidentale.</string>
+    <string name="protocol_threshold_format">%1$d ore</string>
+    <string name="protocol_legal_note">Nota: Questo protocollo è morale e privato.</string>
+    <string name="protocol_button_add_guardian">Nomina un Custode</string>
+    <string name="protocol_status_active">Collegamento attivo</string>
+    <string name="protocol_status_pending">Invito in attesa</string>
+    <string name="protocol_dialog_add_primary">Nomina il Custode Principale</string>
+    <string name="protocol_dialog_add_secondary">Nomina il Custode Secondario</string>
+    <string name="protocol_dialog_add_info">Questa persona riceverà un invito via e-mail.</string>
+    <string name="protocol_dialog_add_name_label">Nome completo</string>
+    <string name="protocol_dialog_add_email_label">Indirizzo e-mail</string>
+    <string name="protocol_dialog_add_button_invite">Invita</string>
+    <string name="protocol_dialog_add_button_cancel">Annulla</string>
+    <string name="protocol_error_update_threshold">Errore aggiornamento tempo</string>
+    <string name="protocol_invitation_label_primary">Custode Principale</string>
+    <string name="protocol_invitation_label_secondary">Custode Secondario</string>
+    <string name="protocol_email_subject">%1$s ti ha scelto come Custode di fiducia</string>
+    <string name="protocol_email_text">Ciao %1$s,\n\n%2$s desidera affidarti il ruolo di Custode della sua storia su PHOEN-X.\n\nUnisciti al suo cerchio: https://phoenx.app/join/%3$s</string>
+    <string name="protocol_error_remove">Errore rimozione</string>
+
+    <!-- Profile Batch -->
+    <string name="profile_dialog_suspend_title">Sospendere l\'account?</string>
+    <string name="profile_dialog_suspend_text">Il tuo account diventerà inattivo e verrai disconnesso.</string>
+    <string name="profile_dialog_suspend_confirm">Conferma sospensione</string>
+    <string name="profile_dialog_suspend_cancel">Annulla</string>
+    <string name="profile_dialog_delete_title">ELIMINAZIONE DEFINITIVA</string>
+    <string name="profile_dialog_delete_text">Questa azione è IRREVERSIBILE. Tutti i tuoi dati verranno cancellati.</string>
+    <string name="profile_dialog_delete_placeholder">ELIMINA</string>
+    <string name="profile_dialog_delete_confirm">Elimina definitivamente</string>
+    <string name="profile_dialog_delete_cancel">Annulla</string>
+    <string name="profile_toast_delete_reauth">Sicurezza: Riconnettiti prima di eliminare il tuo account.</string>
+    <string name="profile_bottomsheet_photo_title">La mia foto profilo</string>
+    <string name="profile_option_take_photo">Scatta una foto</string>
+    <string name="profile_option_gallery">Scegli dalla galleria</string>
+    <string name="profile_screen_title">Il mio Profilo</string>
+    <string name="profile_display_name_fallback">Utente</string>
+    <string name="profile_info_visibility">Questo nome sarà visibile alle persone che inviti.</string>
+    <string name="profile_item_rich_profile_title">Il mio Ritratto di Vita</string>
+    <string name="profile_item_rich_profile_subtitle">Arricchisci la tua storia per l\'IA Biografa</string>
+    <string name="profile_section_appearance">Aspetto e Stile</string>
+    <string name="profile_button_reset_defaults">Ripristina le impostazioni predefinite</string>
+    <string name="profile_section_danger_zone">ZONA PERICOLOSA</string>
+    <string name="profile_button_suspend">Sospendi il mio account</string>
+    <string name="profile_button_delete">Elimina definitivamente il mio account</string>
+    <string name="profile_button_back">Torna alle impostazioni</string>
+    <string name="profile_dialog_edit_name_title">Modifica il mio nome</string>
+    <string name="profile_dialog_edit_name_label">Nome visibile</string>
+    <string name="profile_dialog_edit_name_confirm">Salva</string>
+    <string name="profile_dialog_edit_name_cancel">Annulla</string>
+    <string name="profile_edit_name_desc">Modifica il nome</string>
+
+    <!-- Notification Contacts Batch -->
+    <string name="notification_contacts_screen_title">Contatti da avvisare</string>
+    <string name="notification_contacts_info_title">Contatti da avvisare</string>
+    <string name="notification_contacts_info_point1">Queste persone saranno informate della tua assenza via e-mail.</string>
+    <string name="notification_contacts_info_point2">Non avranno alcun accesso alla tua eredità PHOEN-X.</string>
+    <string name="notification_contacts_info_point3">Massimo 2 contatti — nome ed e-mail sono sufficienti.</string>
+    <string name="notification_contacts_info_point4">Un\'e-mail sobria: \'[Nome] ci ha lasciati.\'</string>
+    <string name="notification_contacts_info_point5">Nessun link, nessun invito — solo l\'informazione.</string>
+    <string name="notification_contacts_header_desc">Queste persone riceveranno un\'e-mail sobria al momento opportuno.</string>
+    <string name="notification_contacts_empty_state">Nessun contatto aggiunto al momento.</string>
+    <string name="notification_contacts_button_max_reached">Raggiunto il massimo di 2 contatti.</string>
+    <string name="notification_contacts_button_add">+ Aggiungi un contatto</string>
+    <string name="notification_contacts_dialog_delete_title">Eliminare questo contatto?</string>
+    <string name="notification_contacts_dialog_delete_text">Vuoi davvero rimuovere %1$s dai contatti da avvisare?</string>
+    <string name="notification_contacts_dialog_delete_confirm">Elimina</string>
+    <string name="notification_contacts_dialog_delete_cancel">Annulla</string>
+    <string name="notification_contacts_dialog_add_title">Nuovo contatto</string>
+    <string name="notification_contacts_dialog_add_name_label">Nome completo</string>
+    <string name="notification_contacts_dialog_add_email_label">E-mail</string>
+    <string name="notification_contacts_dialog_add_relationship_label">Legame (es: Figlio, Amico...)</string>
+    <string name="notification_contacts_dialog_add_button_confirm">Aggiungi</string>
+    <string name="notification_contacts_dialog_add_button_cancel">Annulla</string>
+
+    <!-- Accessibility Batch -->
+    <string name="accessibility_screen_title">Accessibilità</string>
+    <string name="accessibility_voice_mode_title">Modalità Vocale Totale</string>
+    <string name="accessibility_voice_mode_desc">Progettato per navigare, ascoltare e catturare i tuoi ricordi senza usare la tastiera.</string>
+    <string name="accessibility_activate_voice_label">Attiva voce</string>
+    <string name="accessibility_status_listening">L\'applicazione ti sta ascoltando</string>
+    <string name="accessibility_status_disabled">Disattivato</string>
+    <string name="accessibility_commands_title">Comandi disponibili:</string>
+    <string name="accessibility_command_deposit">\'Deposita un pensiero\'</string>
+    <string name="accessibility_command_timeline">\'Apri il mio Filo dei Pensieri\'</string>
+    <string name="accessibility_command_night_mode">\'Modalità Notte\'</string>
+    <string name="accessibility_command_home">\'Torna alla home\'</string>
+    <string name="accessibility_command_help">\'Aiuto\'</string>
+
+    <!-- Rich Profile Batch -->
+    <string name="rich_profile_screen_title">Il mio Ritratto di Vita</string>
+    <string name="rich_profile_onboarding_title">Il mio Ritratto di Vita</string>
+    <string name="rich_profile_onboarding_point1">Arricchisci la tua storia per l\'IA Biografa.</string>
+    <string name="rich_profile_onboarding_point2">Queste informazioni aiuteranno l\'IA a capire chi sei.</string>
+    <string name="rich_profile_button_save">Salva</string>
+    <string name="rich_profile_info_title">Il Ritratto di Vita</string>
+    <string name="rich_profile_info_content">Il Ritratto di Vita raccoglie le informazioni fattuali che ti descrivono.</string>
+    <string name="rich_profile_header_desc">Queste informazioni aiuteranno l\'IA Biografa a capire meglio chi sei.</string>
+    <string name="rich_profile_section_who_am_i">Chi sono</string>
+    <string name="rich_profile_label_bio">Bio / Descrizione libera</string>
+    <string name="rich_profile_label_profession">Lavoro / Occupazione</string>
+    <string name="rich_profile_section_family">Famille e Cari</string>
+    <string name="rich_profile_question_siblings">Hai fratelli/sorelle?</string>
+    <string name="rich_profile_label_siblings_detail">Dettagli (es: 2 fratelli maggiori)</string>
+    <string name="rich_profile_question_children">Hai figli?</string>
+    <string name="rich_profile_label_children_detail">Dettagli (es: una figlia di 10 anni)</string>
+    <string name="rich_profile_section_physical">Ritratto Fisico</string>
+    <string name="rich_profile_label_height">Altezza (cm)</string>
+    <string name="rich_profile_label_weight">Peso (kg)</string>
+    <string name="rich_profile_label_eye_color">Colore degli occhi</string>
+    <string name="rich_profile_label_hair_color">Colore dei capelli</string>
+    <string name="rich_profile_section_hobbies">Passioni e Hobby</string>
+    <string name="rich_profile_label_hobbies_desc">Le tue passioni, cosa ti piace fare</string>
+    <string name="rich_profile_boolean_yes">Sì</string>
+    <string name="rich_profile_boolean_no">No</string>
+    <string name="rich_profile_error_save">Errore durante il salvataggio</string>
+    <string name="rich_profile_display_name_fallback">Amico</string>
+    <string name="profile_error_no_user">Nessun utente connesso</string>
+    <string name="profile_error_unknown">Errore sconosciuto</string>
+
+    <!-- Capture Batch -->
+    <string name="capture_soul_title">L\'Anima del Ricordo</string>
+    <string name="capture_cancel">Annulla</string>
+    <string name="capture_next">Avanti</string>
+    <string name="capture_header_desc">Dai un nome o un argomento a questo ricordo.</string>
+    <string name="capture_placeholder_subject">Qual è l\'argomento di questo ricordo?</string>
+    <string name="capture_viewmodel_me">Io</string>
+    <string name="capture_viewmodel_author">Autore</string>
+    <string name="capture_viewmodel_new_memory">Nuovo ricordo</string>
+    <string name="capture_viewmodel_error">Errore</string>
+    <string name="capture_text_label_write">SCRIVI IL TUO RACCONTO</string>
+    <string name="capture_text_label_add_media">AGGIUNGI UN MEDIA</string>
+    <string name="capture_text_placeholder_write">Scrivi qui le tue parole...</string>
+    <string name="capture_habillage_destination">STILE E DESTINAZIONE</string>
+    <string name="capture_add_photo_video">Aggiungi foto o video</string>
+    <string name="capture_tonality_label">QUALE TONALITÀ?</string>
+    <string name="capture_tonality_info_title">Lo Spirito del Ricordo</string>
+    <string name="capture_tonality_info_content">Questa categoria aiuta l\'IA a capire il significato profondo del tuo racconto.</string>
+    <string name="capture_tonality_nuance_label">Precisa la sfumatura (opzionale)</string>
+    <string name="capture_tonality_nuance_placeholder">Es: un po\' amaro ma sorrido mentre lo scrivo...</string>
+    <string name="capture_compartments_label">IN QUALI CASSETTI?</string>
+    <string name="capture_visibility_everyone">Tutti</string>
+    <string name="capture_visibility_private">Privato</string>
+    <string name="capture_recipients_count">%1$d scelto/i</string>
+    <string name="capture_capsule_title">CAPSULA TEMPORALE</string>
+    <string name="capture_date_format">dd MMMM yyyy</string>
+    <string name="capture_capsule_now">Da ora</string>
+    <string name="capture_capsule_none">Nessuna data (visibile subito)</string>
+    <string name="capture_button_confirm">Conferma</string>
+    <string name="capture_button_clear">Cancella</string>
+    <string name="capture_enigma_section">BLOCCO TRAMITE ENIGMA</string>
+    <string name="capture_enigma_protection">PROTEZIONE SEGRETA</string>
+    <string name="capture_enigma_label_question">La tua domanda segreta</string>
+    <string name="capture_enigma_label_question_alt">Domanda segreta</string>
+    <string name="capture_enigma_placeholder_question">Es: Qual è il nome del nostro primo gatto?</string>
+    <string name="capture_enigma_label_answer">La risposta attesa</string>
+    <string name="capture_enigma_label_answer_alt">Risposta attesa</string>
+    <string name="capture_enigma_label_hint">Indizio (opzionale, dopo 3 tentativi)</string>
+    <string name="capture_enigma_placeholder_hint">Es: È un animale peloso...</string>
+    <string name="capture_enigma_auto_unlock">Sblocco automatico</string>
+    <string name="capture_enigma_unlock_after">Apri dopo %1$d giorni</string>
+    <string name="capture_advanced_options">OPZIONI AVANZATE</string>
+    <string name="capture_advanced_vault_title">La Cassaforte</string>
+    <string name="capture_advanced_vault_info_title">Il Segreto Sigillato</string>
+    <string name="capture_advanced_vault_info_content">Questo frammento verrà rivelato solo dopo aver risposto al tuo enigma.</string>
+    <string name="capture_advanced_vault_desc">Blocca questo ricordo dietro un enigma personale.</string>
+    <string name="capture_enigma_placeholder_question_dog">Es: Qual era il nome del nostro primo cane?</string>
+    <string name="capture_scheduled_title">Apertura Programmata</string>
+    <string name="capture_scheduled_desc">Questo ricordo sarà visibile solo a partire da una data precisa.</string>
+    <string name="capture_scheduled_placeholder">Scegli una data</string>
+    <string name="capture_book_title">Libro della Vita</string>
+    <string name="capture_book_desc">Includi questo frammento nel tuo Libro della Vita.</string>
+    <string name="capture_soul_tone_title">Tono dell\'Anima</string>
+    <string name="capture_soul_tone_desc">Influenza lo stile del racconto generato dall\'IA.</string>
+    <string name="capture_audio_soul">Dai un\'anima a questa registrazione:</string>
+    <string name="capture_audio_listening">Ti ascoltiamo...</string>
+    <string name="capture_audio_instructions">Parla, scriviamo noi per te</string>
+    <string name="capture_audio_continue">Continuare la registrazione?</string>
+    <string name="capture_audio_stop_hint">Premi per fermare</string>
+    <string name="capture_audio_button_save">Sigilla questo ricordo</string>
+    <string name="capture_photo_label_camera">Scatta una foto</string>
+    <string name="capture_photo_desc_captured">Foto scattata</string>
+    <string name="capture_photo_desc_delete">Elimina foto</string>
+    <string name="capture_photo_location_preselected">Registrato per: %1$s</string>
+    <string name="capture_photo_placeholder_caption">Dai un\'anima a questa foto...</string>
+
+    <!-- Step by Step Capture Batch -->
+    <string name="step_capture_title">Passaggio %1$d di 8</string>
+    <string name="step_capture_skip">Salta</string>
+    <string name="step_capture_next">Avanti</string>
+    <string name="step_capture_vault_title">LA CASSAFORTE</string>
+    <string name="step_capture_book_label">Includi nel mio Libro della Vita</string>
+    <string name="step_capture_book_desc">Consenti all\'IA di basarsi su questo ricordo.</string>
+    <string name="step_capture_location_title">IL LUOGO</string>
+    <string name="step_capture_location_desc">Dove si è svolto questo ricordo?</string>
+    <string name="step_capture_location_choose">Scegli un luogo sulla mappa</string>
+    <string name="step_capture_location_remove">Rimuovi luogo</string>
+    <string name="step_capture_spark_title">L\'INNESCO</string>
+    <string name="step_capture_spark_desc">Dai un nome o un breve argomento a questo ricordo.</string>
+    <string name="step_capture_spark_placeholder">Qual è l\'argomento?</string>
+    <string name="step_capture_tonality_title">LA TONALITÀ</string>
+    <string name="step_capture_tonality_desc">Lo spirito del ricordo.</string>
+    <string name="step_capture_moment_title">IL MOMENTO</string>
+    <string name="step_capture_moment_desc">Quando è successo?</string>
+    <string name="step_capture_date_precise">Data precisa</string>
+    <string name="step_capture_date_period">Periodo</string>
+    <string name="step_capture_date_placeholder">Scegli una data</string>
+    <string name="step_capture_date_confirm">Conferma</string>
+    <string name="step_capture_date_start">Data di inizio</string>
+    <string name="step_capture_date_end">Data di fine</string>
+    <string name="step_capture_viewmodel_location_unknown">Luogo sconosciuto</string>
+
+    <!-- Library Batch -->
+    <string name="library_literary_title">Biblioteca Letteraria</string>
+    <string name="library_no_excerpts_filter">Nessun estratto per questo destinatario.</string>
+    <string name="library_empty_shelves">I ripiani sono vuoti...</string>
+    <string name="library_isolated_excerpts">Estratti singoli</string>
+    <string name="library_delete_excerpt_title">Eliminare l\'estratto?</string>
+    <string name="library_delete_excerpt_message">Questa azione è irreversibile.</string>
+    <string name="library_delete_confirm">Elimina</string>
+    <string name="library_delete_cancel">Annulla</string>
+    <string name="library_reading_header">LETTURA</string>
+    <string name="library_reading_fallback_title">Estratto Letterario</string>
+    <string name="library_manuscript_fallback">Manoscritto</string>
+    <string name="library_excerpt_fallback">Estratto</string>
+    <string name="library_add_excerpt">Deposita un estratto</string>
+    <string name="library_edit_excerpt">Modifica l\'estratto</string>
+    <string name="library_book_title_label">Titolo dell\'opera</string>
+    <string name="library_change_cover">Cambia foto di copertina</string>
+    <string name="library_personal_comment">Commento personale (opzionale)</string>
+    <string name="library_personal_comment_placeholder">Es: Nome dell\'autore, citazione...</string>
+    <string name="library_excerpt_text_label">Testo dell\'estratto</string>
+    <string name="library_visibility_destinataires">Visibilità e Destinatari</string>
+    <string name="library_save">Salva</string>
+    <string name="library_cancel">Annulla</string>
+    <string name="library_edit_header">MODIFICA DELL\'ESTRATTO</string>
+    <string name="library_editor_placeholder">Inserisci o incolla qui il tuo estratto...</string>
+    <string name="library_my_library">La mia Biblioteca</string>
+    <string name="library_onboarding_point_1">Accedi a tutti i tuoi scomparti: Foto, Video, Segreti, ecc.</string>
+    <string name="library_onboarding_point_2">Qui sono centralizzati tutti i tuoi ricordi.</string>
+    <string name="library_stats_label">%1$d scomparti · %2$d ricordi depositati</string>
+    <string name="library_essentials">ESSENZIALI</string>
+    <string name="library_fil_pensee_title">Filo dei Pensieri</string>
+    <string name="library_fil_pensee_info">%1$d ricordi ordinati per età</string>
+    <string name="library_book_ma_vie_title">Libro della Mia Vita</string>
+    <string name="library_book_info_creator">Co-scritto con l\'IA narrativa</string>
+    <string name="library_book_info_heir">Consultazione del manoscritto</string>
+    <string name="library_compartments">SCOMPARTI</string>
+    <string name="library_videotheque">Videoteca</string>
+    <string name="library_phototheque">Fototeca</string>
+    <string name="library_discotheque">Discoteca</string>
+    <string name="library_mappemonde">Mappamondo</string>
+    <string name="library_le_litteraire">Letteratura</string>
+    <string name="library_reduce">Riduci</string>
+    <string name="library_others">Altri</string>
+    <string name="library_other_compartments">ALTRI SCOMPARTI</string>
+    <string name="library_personalities">Personalità</string>
+    <string name="library_capsule_temporelle">Capsula temporale</string>
+    <string name="library_reconciliation">Riconciliazione</string>
+    <string name="library_miroir_deux">Lo Specchio a Due</string>
+    <string name="library_mes_classements">Le mie Classifiche</string>
+    <string name="library_coffre_fort">La Cassaforte</string>
+    <string name="library_100_questions">100 Domande</string>
+    <string name="library_portraits">Ritratti</string>
+    <string name="library_lettre_a_moi">Lettera a Me Stesso</string>
+    <string name="library_customize_title">Personalizza %1$s</string>
+    <string name="library_choose_photo_desc">Scegli una foto che rappresenti questo spazio.</string>
+    <string name="library_btn_choose_photo">Scegli una foto</string>
+    <string name="library_no_photo_selected">Nessuna foto selezionata</string>
+    <string name="library_image_usage_hint">Questa immagine verrà mostrata sulla scheda.</string>
+    <string name="library_uploading">Caricamento in corso... %1$d%%</string>
+    <string name="library_cover_updated_toast">Copertina aggiornata.</string>
+    <string name="library_framing_updated_toast">Inquadratura aggiornata.</string>
+    <string name="library_btn_save_cover">Salva questa copertina</string>
+    <string name="library_btn_delete_customization">Rimuovi personalizzazione</string>
+    <string name="library_default_illustration_restored_toast">Illustrazione predefinita ripristinata.</string>
+    <string name="library_viewmodel_decrypt_error">Errore decrittografia</string>
+    <string name="library_viewmodel_sealed_content">Contenuto sigillato</string>
+
+    <!-- Onboarding Library -->
+    <string name="onboarding_photo_title">La Grande Fototeca</string>
+    <string-array name="onboarding_photo_content">
+        <item>Tutte le foto dei tuoi ricordi vengono organizzate qui automaticamente.</item>
+        <item>Dai un titolo a ciascuna foto per ritrovarla facilmente.</item>
+        <item>Un commento personale (opzionale) ti aiuta a ricordare il contesto.</item>
+        <item>Clicca su un\'anteprima per aprirla in grande. Usa la matita per modificarla.</item>
+        <item>Scegli chi potrà vedere questa foto tra i tuoi destinatari.</item>
+    </string-array>
+
+    <string name="onboarding_disco_title">La Discoteca</string>
+    <string-array name="onboarding_disco_content">
+        <item>Deposita qui i tuoi ricordi vocali o i link alla tua musica preferita.</item>
+        <item>Una nota vocale contiene già il suo messaggio — dai un titolo per ritrovarla.</item>
+        <item>Per i link musicali, aggiungi un commento per spiegare perché la canzone è importante.</item>
+    </string-array>
+
+    <string name="onboarding_video_title">La Videoteca</string>
+    <string-array name="onboarding_video_content">
+        <item>Tutti i tuoi video personali e i link YouTube si trovano qui.</item>
+        <item>Un\'anteprima del video appare automaticamente all\'aggiunta.</item>
+    </string-array>
+
+    <string name="onboarding_literary_title">La Biblioteca Letteraria</string>
+    <string-array name="onboarding_literary_content">
+        <item>Deposita qui i tuoi testi, citazioni o brani importanti.</item>
+        <item>Dai un titolo a ogni estratto per ritrovarlo facilmente nell\'elenco.</item>
+    </string-array>
+
+    <!-- Splash Screen -->
+    <string name="splash_logo_description">Logo Phoen-X</string>
+    <string name="splash_phrase">Non è un archivio. È una presenza.</string>
+
+    <!-- Trust Circle Hub -->
+    <string name="trust_circle_title">Cerchio di Fiducia</string>
+    <string name="trust_circle_description">Chi ti circonda e porterà la tua eredità.</string>
+    <string name="trust_circle_onboarding_title">Cerchio di Fiducia</string>
+    <string-array name="trust_circle_onboarding_points">
+        <item>Chi ti circonda e porterà la tua eredità. Gestisci qui i tuoi contatti di fiducia.</item>
+        <item>Nessuno nel tuo cerchio ha accesso ai tuoi contenuti oggi.</item>
+        <item>La tua eredità rimane sigillata fino all\'attivazione del protocollo.</item>
+    </string-array>
+    <string name="trust_circle_item_depositaries_title">I miei Depositari</string>
+    <string name="trust_circle_item_depositaries_subtitle">Il protocollo di trasmissione</string>
+    <string name="trust_circle_item_witnesses_title">I miei Testimoni</string>
+    <string name="trust_circle_item_witnesses_subtitle">I loro sguardi sulla tua storia</string>
+    <string name="trust_circle_item_recipients_title">I miei Destinatari</string>
+    <string name="trust_circle_item_recipients_subtitle">Chi riceverà i tuoi ricordi</string>
+    <string name="trust_circle_item_notifications_title">Contatti da avvisare</string>
+    <string name="trust_circle_item_notifications_subtitle">Informare della tua partenza</string>
+    <string name="trust_circle_item_characters_title">I miei Personaggi</string>
+    <string name="trust_circle_item_characters_subtitle">Chi popola i tuoi ricordi</string>
+    <string name="trust_circle_privacy_title">Riservatezza</string>
+    <string name="trust_circle_privacy_desc">Nessuno nel tuo cerchio ha accesso ai tuoi contenuti oggi.</string>
+
+    <!-- Welcome Guide -->
+    <string name="guide_step1_title">Benvenuto in PHOEN-X</string>
+    <string name="guide_step1_desc">Il tuo spazio intimo per catturare e trasmettere ciò che conta davvero.</string>
+    <string name="guide_step2_title">Cattura i tuoi ricordi</string>
+    <string name="guide_step2_desc">Testo, voce o foto. Tutto viene crittografato immediatamente.</string>
+    <string name="guide_step3_title">Il Filo dei Pensieri</string>
+    <string name="guide_step3_desc">È la tua firma. Ogni pensiero è contrassegnato dalla tua età esatta.</string>
+    <string name="guide_step4_title">Trasmetti ai tuoi cari</string>
+    <string name="guide_step4_desc">Scegli chi riceverà i tuoi messaggi. Puoi programmare invii per il futuro.</string>
+    <string name="guide_step5_title">Sicurezza Totale</string>
+    <string name="guide_step5_desc">I tuoi ricordi sono protetti da crittografia end-to-end (E2EE).</string>
+    <string name="guide_never_show_again">Non mostrare più questa guida</string>
+    <string name="guide_start_adventure">Inizia l\'avventura</string>
+    <string name="guide_swipe_to_continue">Scorri per continuare →</string>
+
+    <!-- Favorites Batch -->
+    <string name="favorites_title">I miei Preferiti</string>
+    <string name="favorites_taste_map_title">LA TUA MAPPA DEI GUSTI</string>
+    <string name="favorites_empty_title">La tua biblioteca è vuota.</string>
+    <string name="favorites_empty_subtitle">Aggiungi libri, film e musica essenziali.</string>
+    <string name="favorites_dialog_add_title">Aggiungi un elemento essenziale</string>
+    <string name="favorites_label_title">Titolo / Nome</string>
+    <string name="favorites_label_why">Perché è importante?</string>
+    <string name="favorites_button_add">Aggiungi</string>
+    <string name="favorites_button_cancel">Annulla</string>
+    <string name="favorites_cat_books">Libri</string>
+    <string name="favorites_cat_movies">Film</string>
+    <string name="favorites_cat_music">Musica</string>
+    <string name="favorites_cat_travels">Viaggi</string>
+    <string name="favorites_taste_map_fallback">La tua biblioteca rivela un profondo legame con racconti d\'avventura e musica malinconica.</string>
+
+    <!-- Mailbox Batch -->
+    <string name="mailbox_title">Capsule Temporali</string>
+    <string name="mailbox_info_title">Capsule Temporali</string>
+    <string name="mailbox_info_content">Una Capsula Temporale è un ricordo che programmi per l\'apertura in una data precisa.</string>
+    <string name="mailbox_list_header">Le tue capsule temporali</string>
+    <string name="mailbox_date_unknown">Data sconosciuta</string>
+    <string name="mailbox_opening_on">APERTURA IL %1$s</string>
+    <string name="mailbox_default_summary">Messaggio programmato</string>
+    <string name="mailbox_empty_title">Nessuna capsula temporale.</string>
+    <string name="mailbox_empty_subtitle">Programma ricordi per date future.</string>
+
+    <!-- Media Viewer -->
+    <string name="media_viewer_unsupported">Media non supportato (%1$s)</string>
+    <string name="media_viewer_close">Chiudi</string>
+
+    <!-- Worlds Batch -->
+    <string name="worlds_title">I Cassetti della mia Vita</string>
+    <string name="worlds_subtitle">Organizzazione assistita da IA</string>
+    <string name="worlds_empty_title">Il cassettone è vuoto.</string>
+    <string name="worlds_empty_subtitle">Cattura ricordi per vederli organizzati qui.</string>
+
+    <!-- Young Self Letter Batch -->
+    <string name="young_self_title">Lettera al me più giovane</string>
+    <string name="young_self_history_header">LE TUE LETTERE SIGILLATE</string>
+    <string name="young_self_card_age">Ai miei %1$d anni</string>
+    <string name="young_self_card_year">Scritto per il %1$d</string>
+    <string name="young_self_main_question">Cosa avresti voluto sentire all\'età in cui tutto sembrava ancora incerto?</string>
+    <string name="young_self_info_title">Lettera al me più giovane</string>
+    <string name="young_self_info_point1">Scegli un\'età del passato e scrivi una lettera a te stesso.</string>
+    <string name="young_self_info_point2">L\'app calcola l\'anno corrispondente dalla tua data di nascita.</string>
+    <string name="young_self_info_point3">Se ti manca l\'ispirazione, tocca la lampadina per dei suggerimenti.</string>
+    <string name="young_self_info_point4">Questa lettera sarà conservata nel tuo Filo dei Pensieri.</string>
+    <string name="young_self_info_point5">È una delle funzionalità più toccanti per i tuoi cari.</string>
+    <string name="young_self_label_at_age">Ai miei %1$d anni</string>
+    <string name="young_self_label_was_in">Era il %1$d</string>
+    <string name="young_self_dialog_age_title">Quanti anni avevi?</string>
+    <string name="young_self_dialog_age_label">Età esatta</string>
+    <string name="young_self_dialog_button_validate">Conferma</string>
+    <string name="young_self_dialog_button_cancel">Annulla</string>
+    <string name="young_self_placeholder">Caro me stesso di %1$d anni...</string>
+    <string name="young_self_button_inspiration">Vedi spunti di ispirazione</string>
+    <string name="young_self_button_seal">Sigilla questa lettera</string>
+    <string name="young_self_bottom_sheet_title">SPUNTI DI ISPIRAZIONE</string>
+    <string name="young_self_no_suggestions">Nessun suggerimento per ora. Continua a riempire la tua eredità!</string>
+
+    <!-- Pact / Miroir à Deux Batch -->
+    <string name="pact_screen_title">Lo Specchio a Due</string>
+    <string name="pact_info_title">Il Patto</string>
+    <string name="pact_info_content">Il Patto è un messaggio a due voci che componi con una persona scelta.</string>
+    <string name="pact_list_header">I tuoi riflessi incrociati</string>
+    <string name="pact_card_subtitle">Specchio con %1$s</string>
+    <string name="pact_empty_state_title">Nessun Specchio a Due in corso.</string>
+    <string name="pact_empty_state_desc">Invita un caro a raccontare la vostra storia comune.</string>
+    <string name="pact_invite_dialog_title">Avvia uno Specchio a Due</string>
+    <string name="pact_invite_dialog_desc">Due punti di vista per una stessa storia.</string>
+    <string name="pact_invite_label_name">Nome del partner</string>
+    <string name="pact_invite_label_email">E-mail del partner</string>
+    <string name="pact_invite_btn_confirm">Invita a riflettersi</string>
+    <string name="pact_share_subject">Riflettersi in PHOEN-X</string>
+    <string name="pact_share_text">Ti invito a creare uno Specchio a Due con me su PHOEN-X: %1$s</string>
+    <string name="pact_share_chooser_title">Condividi l\'invito</string>
+    <string name="pact_viewmodel_fallback_partner_name">Partner</string>
+    <string name="pact_viewmodel_fallback_user_name">Un caro</string>
+    <string name="pact_viewmodel_invite_label">Partner di Specchio</string>
+    <string name="pact_viewmodel_error_invite">Invito non riuscito.</string>
+    <string name="pact_detail_title_with_partner">Specchio con %1$s</string>
+    <string name="pact_detail_title_fallback">Dettagli dello Specchio</string>
+    <string name="pact_detail_status_header">STATO DELLO SPECCHIO</string>
+    <string name="pact_detail_label_my_version">La tua versione</string>
+    <string name="pact_detail_label_partner_version">Versione di %1$s</string>
+    <string name="pact_detail_sealed_hint">Il riflesso rimane sigillato finché entrambi non avete finito.</string>
+    <string name="pact_detail_revealed_hint">Lo Specchio è svelato!</string>
+    <string name="pact_detail_book_consent_title">Alimenta il mio Libro della Vita</string>
+    <string name="pact_detail_book_consent_desc">Richiede il consenso di entrambi.</string>
+    <string name="pact_detail_reflections_header">RIFLESSI CONDIVISI</string>
+    <string name="pact_detail_btn_add">Aggiungi una verità</string>
+    <string name="pact_detail_btn_complete">Ho finito la mia versione</string>
+    <string name="pact_detail_empty_state">Nessun riflesso ancora depositato.</string>
+    <string name="pact_detail_btn_add_first">Deposita il tuo primo riflesso</string>
+    <string name="pact_detail_item_fallback_title">Evento senza titolo</string>
+    <string name="pact_detail_item_status_revealed">Versioni incrociate svelate</string>
+    <string name="pact_detail_item_status_sealed">La tua versione sigillata</string>
+
+    <!-- Dialog Media Components -->
+    <string name="dialog_media_label_spotify">un brano Spotify</string>
+    <string name="dialog_media_label_deezer">un brano Deezer</string>
+    <string name="dialog_media_label_youtube">un video YouTube</string>
+    <string name="dialog_media_label_audio">la mia Nota Vocale</string>
+    <string name="dialog_media_label_video">il mio Video</string>
+    <string name="dialog_media_label_photo">la mia Foto</string>
+    <string name="dialog_media_label_default">un media</string>
+    <string name="dialog_media_title_deposit">Deposita %1$s</string>
+    <string name="dialog_media_title_customize">Personalizza</string>
+    <string name="dialog_media_howto_title">Come recuperare il link?</string>
+    <string name="dialog_media_howto_steps">1. Apri l\'app (Spotify, Deezer o YouTube).\n2. Trova il tuo contenuto.\n3. Condividi &gt; Copia link.\n4. Torna qui e incollalo.</string>
+    <string name="dialog_media_label_title">Titolo</string>
+    <string name="dialog_media_fetching">Recupero in corso...</string>
+    <string name="dialog_media_placeholder_title">Dai un nome a questo media</string>
+    <string name="dialog_media_label_importance">Perché questo media è importante?</string>
+    <string name="dialog_media_label_url">Link (URL)</string>
+    <string name="dialog_media_btn_change_thumb">Cambia anteprima</string>
+    <string name="dialog_media_btn_change_cover">Cambia foto di copertina</string>
+    <string name="dialog_media_label_include_book">Includi nel mio Libro</string>
+    <string name="dialog_media_desc_include_book">Se deselezionata, questa foto rimarrà nei tuoi ricordi ma non verrà mai inserita nel manoscritto.</string>
+    <string name="dialog_media_visibility_destinataires">Visibilité e Destinatari</string>
+    <string name="dialog_media_btn_save">Salva</string>
+    <string name="dialog_media_btn_cancel">Annulla</string>
+
+    <string name="dialog_photo_title">Deposita una foto</string>
+    <string name="dialog_photo_btn_choose">Scegli una foto</string>
+    <string name="dialog_photo_label_title">Titolo</string>
+    <string name="dialog_photo_label_description">Descrizione (opzionale)</string>
+    <string name="dialog_photo_label_visibility">Visibilità</string>
+    <string name="dialog_photo_btn_save">Salva</string>
+    <string name="dialog_photo_btn_cancel">Annulla</string>
+
+    <!-- Library Archive -->
+    <string name="library_archive_preview_label">👁 Anteprima — Cosa vedranno i tuoi cari</string>
+    <string name="library_archive_btn_back_space">← Il mio spazio</string>
+    <string name="library_archive_my_library">La tua Biblioteca</string>
+    <string name="library_archive_creator_library">La biblioteca di %1$s</string>
+    <string name="library_archive_sealed_content">Contenuto Sigillato</string>
+    <string name="library_archive_sealed_compartment">Scomparto Sigillato</string>
+    <string name="library_archive_locked_date">Questo cassetto si aprirà in una data scelta dal Creatore.</string>
+    <string name="library_archive_locked_enigma">Devi risolvere un enigma per aprire questo segreto.</string>
+    <string name="library_archive_locked_key">È necessaria una chiave fisica per sbloccare questo cassetto.</string>
+    <string name="library_archive_locked_default">Questo scomparto non è ancora accessibile.</string>
+    <string name="library_archive_btn_close">Chiudi</string>
+
+    <!-- Detective / Coffre-Fort Batch -->
+    <string name="detective_screen_title">La Cassaforte</string>
+    <string name="detective_onboarding_title">La Cassaforte</string>
+    <string-array name="detective_onboarding_points">
+        <item>Nascondi un contenuto dietro una domanda segreta.</item>
+        <item>La risposta è protetta localmente tramite SHA-256.</item>
+        <item>Il tuo caro ha diversi tentativi per indovinare.</item>
+        <item>Tocca \'Bisogno di ispirazione\' per degli esempi.</item>
+        <item>Diverso dal Cassetto a Chiave — nessun limite di aperture.</item>
+    </string-array>
+    <string name="detective_subtitle">Nascondi un ricordo dietro una domanda</string>
+    <string name="detective_empty_state_title">Nessun enigma creato per ora.</string>
+    <string name="detective_empty_state_desc">I tuoi ricordi bloccati appariranno qui.</string>
+    <string name="detective_enigma_no_question">Enigma senza domanda</string>
+    <string name="detective_recipient_label">Per: %1$s</string>
+    <string name="detective_recipient_fallback">I tuoi cari</string>
+
+    <string name="detective_player_instructions">Decifra gli enigmi per accedere ai ricordi.</string>
+    <string name="detective_ultimate_secret">Il Segreto Ultimo</string>
+    <string name="detective_personal_enigma">Enigma Personale</string>
+    <string name="detective_ultimate_secret_desc">Questa confidenza è stata contrassegnata come fondamentale. Nessuna apertura automatica è possibile.</string>
+    <string name="detective_hint_label">Indizio: %1$s</string>
+    <string name="detective_auto_unlock_hint">Se non conosci la risposta, questo enigma si aprirà automaticamente tra %1$d giorni.</string>
+    <string name="detective_creator_option_desc">%1$s ha previsto questa opzione per permetterti di accedere al suo messaggio in ogni caso.</string>
+    <string name="detective_answer_label">La tua risposta</string>
+    <string name="detective_verify_button">Verifica</string>
+    <string name="detective_auto_unlock_timer">Si aprirà automaticamente tra %1$d giorni</string>
+    <string name="detective_secret_ultime_sealed">SEGRETO ULTIMO SIGILLATO</string>
+    <string name="detective_memory_revealed">RICORDO SVELATO</string>
+    <string name="detective_sacred_confidence">CONFIDENZA SACRA</string>
+    <string name="detective_content_sealed">CONTENUTO SIGILLATO</string>
+    <string name="detective_ultimate_prompt">Rispondi all\'unica domanda...</string>
+    <string name="detective_enigma_prompt">Risolvi l\'enigma per leggere...</string>
+    <string name="detective_auto_unlocked_desc">Questo enigma si è aperto con il tempo.</string>
+    <string name="detective_creator_note">Nota di %1$s: \"%2$s\"</string>
+    <string name="detective_empty_mysteries">Nessun mistero da risolvere.</string>
+
+    <string name="detective_create_type_classic">Enigma Classico</string>
+    <string name="detective_create_type_ultimate">Segreto Ultimo</string>
+    <string name="detective_create_ultimate_title">Il Tesoro della tua Eredità</string>
+    <string name="detective_create_classic_title">Un segreto protetto da una domanda</string>
+    <string-array name="detective_create_ultimate_points">
+        <item>Il pezzo forte della tua eredità: il segreto più prezioso e intimo.</item>
+        <item>Protezione inviolabile: nessuno sblocco automatico con il tempo.</item>
+        <item>Un momento solenne: visualizzazione unica per i tuoi cari.</item>
+        <item>L\'unica chiave: solo chi conosce la risposta potrà spezzare questo ultimo sigillo.</item>
+    </string-array>
+    <string-array name="detective_create_classic_points">
+        <item>Proteggi un ricordo tramite un enigma personale.</item>
+        <item>Sicurezza assoluta: la risposta è sottoposta ad hash sul tuo dispositivo.</item>
+    </string-array>
+    <string name="detective_create_ultimate_subtitle">Una confidenza unica, sigillata nel cuore della tua memoria.</string>
+    <string name="detective_create_classic_subtitle">Solo chi conosce la risposta potrà accedere a ciò che depositi qui.</string>
+    <string name="detective_create_solemn_active">Trattamento Solenne Attivo</string>
+    <string name="detective_create_label_question">LA DOMANDA</string>
+    <string name="detective_create_placeholder_question">Es: Qual era il nome del nostro primo cane?</string>
+    <string name="detective_create_btn_inspiration">Bisogno di ispirazione?</string>
+    <string name="detective_create_label_answer">LA RISPOSTA (invisibile dopo l\'inserimento)</string>
+    <string name="detective_create_answer_security_desc">La risposta è protetta localmente da un\'impronta digitale SHA-256.</string>
+    <string name="detective_create_label_hint">INDIZIO (Mostrato dopo 3 tentativi errati)</string>
+    <string name="detective_create_placeholder_hint">Es: È il nome di un animale...</string>
+    <string name="detective_create_label_auto_unlock">SBLOCCO AUTOMATICO</string>
+    <string name="detective_create_auto_unlock_timer">Apri dopo %1$s giorni</string>
+    <string name="detective_create_auto_unlock_desc">Il tuo caro potrà vedere il contenuto automaticamente dopo questo periodo.</string>
+    <string name="detective_create_permanent_lock">Blocco permanente finché la risposta non viene trovata.</string>
+    <string name="detective_create_ultimate_lock_desc">Il Segreto Ultimo è sigillato senza limiti di tempo.</string>
+    <string name="detective_create_label_fallback">MESSAGGIO DI RIVELAZIONE (OPZIONALE)</string>
+    <string name="detective_create_placeholder_fallback">Es: La risposta era [città]...</string>
+    <string name="detective_create_label_secret_content">IL CONTENUTO SEGRETO</string>
+    <string name="detective_create_content_desc">Questo contenuto sarà accessibile solo dopo aver risposto correttamente alla domanda.</string>
+    <string name="detective_create_type_text">✍️ Testo</string>
+    <string name="detective_create_type_photo">📷 Foto</string>
+    <string name="detective_create_type_audio">🎙️ Audio</string>
+    <string name="detective_create_btn_choose_photo">Scegli una foto</string>
+    <string name="detective_create_toast_sealed">Confidenza sigillata.</string>
+    <string name="detective_create_btn_seal_ultimate">Sigilla il Segreto Ultimo</string>
+    <string name="detective_create_btn_seal_enigma">Sigilla l\'enigma</string>
+    <string name="detective_create_inspiration_title">Idee per domande</string>
+    <string name="detective_create_inspiration_desc">Questi esempi sono qui per ispirarti.</string>
+
+    <string name="detective_viewmodel_fallback_creator">Il tuo caro</string>
+    <string name="detective_viewmodel_error_connection">Errore di connessione</string>
+    <string name="detective_viewmodel_error_wrong_answer">Risposta errata. Cerca ancora...</string>
+
+    <!-- Inspiration Categories -->
+    <string name="inspiration_cat_childhood">Ricordi d\'Infanzia</string>
+    <string-array name="inspiration_questions_childhood">
+        <item>Come si chiamava la mia scuola elementare?</item>
+        <item>Qual era il nome del mio insegnante preferito?</item>
+        <item>In quale via sono cresciuto/a?</item>
+        <item>Qual era il nome del mio migliore amico d\'infanzia?</item>
+        <item>Qual era il mio colore preferito a 10 anni?</item>
+        <item>Quale giocattolo non volevo mai prestare?</item>
+        <item>Qual era il mio cartone animato preferito?</item>
+        <item>Come si chiamava il mio animale domestico d\'infanzia?</item>
+        <item>Qual era la mia materia scolastica preferita?</item>
+        <item>Che sport praticavo a scuola?</item>
+        <item>Quale punizione temevo di più?</item>
+        <item>Qual era il mio piatto preferito cucinato da mia madre?</item>
+        <item>Qual era il nome del mio vicino d\'infanzia?</item>
+        <item>Qual era la marca della mia prima bicicletta?</item>
+        <item>Qual era il soprannome che mi davano i miei genitori?</item>
+        <item>In quale città trascorrevo le vacanze estive?</item>
+        <item>Qual era il mio libro preferito prima dei 12 anni?</item>
+        <item>Quale monelleria ho fatto di cui non ti ho mai parlato?</item>
+        <item>Qual era il gioco da tavolo che adoravo?</item>
+        <item>Quale canzone mi faceva sempre ballare da bambino/a?</item>
+    </string-array>
+
+    <string name="inspiration_cat_our_story">La Nostra Storia</string>
+    <string-array name="inspiration_questions_our_story">
+        <item>In quale città ci siamo incontrati?</item>
+        <item>Qual è stata la prima cosa che ti ho detto?</item>
+        <item>Qual era il nome del luogo della nostra prima uscita?</item>
+        <item>Quale canzone era diventata la \'nostra\' canzone?</item>
+        <item>Qual è stato il primo regalo che ti ho fatto?</item>
+        <item>In quale ristorante abbiamo cenato per la prima volta?</item>
+        <item>Qual era la mia frase preferita quando ero di buon umore?</item>
+        <item>Quale soprannome ti avevo dato che nessun altro conosce?</item>
+        <item>Quale sciocchezza abbiamo fatto insieme senza mai dirlo?</item>
+        <item>Qual era il nostro film che guardavamo a ripetizione?</item>
+        <item>Quale espressione segreta capivamo solo noi?</item>
+        <item>In quale città abbiamo fatto il nostro primo viaggio?</item>
+        <item>Qual è stato il primo piatto che ho cucinato per te?</item>
+        <item>Quale litigio abbiamo avuto di cui ti ricordi ancora?</item>
+        <item>Qual era il mio rituale del mattino che trovavi strano?</item>
+        <item>Quale promessa ti avevo fatto per prima?</item>
+        <item>Quale momento ti ha mostrato che potevi fidarti di me?</item>
+        <item>Qual era il mio modo unico di dirti che ti volevo bene?</item>
+        <item>Quale oggetto mi avevi regalato che ho conservato preziosamente?</item>
+        <item>Qual è la cosa più pazza che abbiamo fatto insieme?</item>
+    </string-array>
+
+    <string name="inspiration_cat_places">Luoghi e Viaggi</string>
+    <string-array name="inspiration_questions_places">
+        <item>Qual è il primo paese straniero che ho visitato?</item>
+        <item>In quale città mi sono sentito/a più a casa?</item>
+        <item>Qual era il nome dell\'hotel del nostro viaggio memorabile?</item>
+        <item>In quale città avrei voluto vivere per tutta la vita?</item>
+        <item>In quale paese ho mangiato il miglior pasto della mia vita?</item>
+        <item>Quale montagna o cima ho scalato?</item>
+        <item>Qual era il nome della spiaggia dove andavo ogni estate?</item>
+        <item>In quale città ho vissuto più a lungo?</item>
+        <item>Quale paese mi ha trasformato/a di più?</item>
+        <item>Quale luogo mi ha reso/a davvero felice?</item>
+        <item>Quale città europea ho visitato con te?</item>
+        <item>In quale quartiere amavo perdermi?</item>
+        <item>Quale viaggio ho fatto da solo/a di cui ti ho parlato poco?</item>
+        <item>Qual era il nome del campeggio dove andavo da bambino/a?</item>
+        <item>Quale capitale mondiale non avevo mai visitato?</item>
+        <item>Dove mi sarei stabilito/a se avessi potuto?</item>
+        <item>Quale percorso prendevo per ricaricarmi?</item>
+        <item>Quale museo mi ha profondamente colpito/a?</item>
+        <item>In quale isola avrei voluto abitare?</item>
+        <item>In quale città ho pianto di gioia all\'arrivo?</item>
+    </string-array>
+
+    <string name="inspiration_cat_tastes">Gusti e Passioni</string>
+    <string-array name="inspiration_questions_tastes">
+        <item>Quale piatto mangiavo in segreto?</item>
+        <item>Quale musica ascoltavo quando ero solo/a?</item>
+        <item>Quale film guardavo senza mai ammetterlo?</item>
+        <item>Quale attività praticavo senza parlarne?</item>
+        <item>Quale libro avevo letto più di tre volte?</item>
+        <item>Quale artista ammiravo in segreto?</item>
+        <item>Quale programma non perdevo mai?</item>
+        <item>Quale sport guardavo con passione?</item>
+        <item>Quale cibo non mi piaceva affatto?</item>
+        <item>Quale colore non indossavo mai?</item>
+        <item>Quale strumento avrei voluto suonare?</item>
+        <item>Quale cucina straniera era la mia preferita?</item>
+        <item>Quale hobby avevo abbandonato e rimpiangevo?</item>
+
+        <item>Quale canzone mi faceva piangere senza motivo?</item>
+        <item>Quale profumo mi rendeva nostalgico/a?</item>
+        <item>Che genere di film mi faceva sempre piangere?</item>
+        <item>Che bevanda prendevo al mattino?</item>
+        <item>Qual era il mio peccato di gola preferito?</item>
+        <item>Quale stagione preferivo e perché?</item>
+        <item>Quale paesaggio mi toglieva il fiato?</item>
+    </string-array>
+
+    <string name="inspiration_cat_habits">Abitudini e Dettagli</string>
+    <string-array name="inspiration_questions_habits">
+        <item>Quale frase ripetevo senza rendermene conto?</item>
+        <item>Qual era il mio tic gestuale più riconoscibile?</item>
+        <item>A che ora mi alzavo nel fine settimana?</item>
+        <item>Qual era il mio rituale prima di dormire?</item>
+        <item>Come sapevi che ero di cattivo umore?</item>
+        <item>Qual era il mio modo unico di ridere?</item>
+        <item>Quale oggetto cercavo sempre e non trovavo mai?</item>
+        <item>Come ordinavo (o non ordinavo) le mie cose?</item>
+        <item>Qual era la mia posizione preferita per leggere?</item>
+        <item>Qual era il mio lato del letto?</item>
+        <item>Qual era la prima cosa che facevo tornando a casa?</item>
+        <item>Qual era l\'ultima cosa prima di uscire?</item>
+        <item>Come prendevo il caffè o il tè?</item>
+        <item>Come mi consolavo quando ero triste?</item>
+        <item>Qual era la mia parola preferita usata troppo spesso?</item>
+        <item>Come mostravo il mio orgoglio senza dirlo?</item>
+        <item>Come ti chiamavo quando ero arrabbiato/a?</item>
+        <item>Qual era il mio gesto d\'affetto più riconoscibile?</item>
+        <item>Quale applicazione usavo di più?</item>
+        <item>Qual era il mio mezzo di trasporto preferito?</item>
+    </string-array>
+
+    <string name="inspiration_cat_hard_times">Momenti Difficili</string>
+    <string-array name="inspiration_questions_hard_times">
+        <item>Quale momento difficile abbiamo attraversato insieme?</item>
+        <item>Come ti ho sostenuto/a durante il tuo periodo peggiore?</item>
+        <item>Quale litigio non abbiamo mai davvero risolto?</item>
+        <item>Quale segreto hai tenuto per me?</item>
+        <item>Quale decisione difficile ho preso di cui eri a conoscenza?</item>
+        <item>Come mi chiamavi quando volevi che mi calmassi?</item>
+        <item>Quale paura abbiamo superato insieme?</item>
+        <item>Quale momento della mia vita ti ha richiesto più pazienza?</item>
+        <item>Quale brutta notizia abbiamo appreso insieme?</item>
+        <item>Come mostravo di aver bisogno di aiuto?</item>
+        <item>Quale soprannome mi davi quando ero vulnerabile?</item>
+        <item>Quale prova mi ha reso/a più forte?</item>
+        <item>Qual era il segnale che qualcosa non andava?</item>
+        <item>Quale notte difficile abbiamo trascorso insieme?</item>
+        <item>Come ti ringraziavo senza davvero dirlo?</item>
+        <item>Quale momento di crisi hai gestito per me?</item>
+        <item>Quale errore ho fatto che mi hai aiutato/a a superare?</item>
+        <item>Qual era il nostro codice segreto quando le cose non andavano?</item>
+        <item>Quale periodo ti ha preoccupato/a di più per me?</item>
+        <item>Come ti esprimevo la mia gratitudine senza parole?</item>
+    </string-array>
+
+    <string name="inspiration_cat_dreams">Sogni e Progetti</string>
+    <string-array name="inspiration_questions_dreams">
+        <item>Quale lavoro avrei voluto fare se avessi osato?</item>
+        <item>In quale paese avrei voluto vivere per un anno?</item>
+        <item>Quale strumento avrei voluto imparare?</item>
+        <item>Quale progetto avevamo ipotizzato e mai realizzato?</item>
+        <item>Quale lingua avrei voluto parlare fluentemente?</item>
+        <item>Quale sport estremo avrei voluto praticare?</item>
+        <item>Quale libro avrei voluto scrivere?</item>
+        <item>Quale invenzione avrei voluto creare?</item>
+        <item>Quale causa avrei voluto difendere?</item>
+        <item>Quale viaggio da sogno non ho mai potuto fare?</item>
+        <item>Quale casa avrei voluto costruire?</item>
+        <item>Quale animale avrei voluto adottare?</item>
+        <item>Quale corso di formazione avrei voluto seguire prima?</item>
+        <item>Quale sfida personale avrei voluto compiere?</item>
+        <item>Quale incontro avrei voluto fare?</item>
+        <item>Quale ristorante avrei voluto aprire?</item>
+        <item>Quale film avrei voluto creare?</item>
+        <item>Quale associazione avrei voluto fondare?</item>
+        <item>Quale luogo avrei voluto trasformare in residenza?</item>
+        <item>Quale sogno d\'infanzia non ho mai abbandonato?</item>
+    </string-array>
+
+    <string name="inspiration_cat_quotes">Cosa Dicevo Sempre</string>
+    <string-array name="inspiration_questions_quotes">
+        <item>Quale citazione ripetevo spesso?</item>
+        <item>Quale consiglio davi sistematicamente?</item>
+        <item>Quale lezione di vita ritornava nelle mie conversazioni?</item>
+        <item>Quale battuta facevo continuamente?</item>
+        <item>Quale espressione usavo per incoraggiare?</item>
+        <item>Cosa dicevo prima di una decisione importante?</item>
+        <item>Qual era il mio modo di iniziare una storia?</item>
+        <item>Cosa dicevo quando qualcosa mi innervosiva?</item>
+        <item>Quale frase pronunciavo quando ero felice?</item>
+        <item>Cosa ripetevo sull\'amore o sull\'amicizia?</item>
+        <item>Come concludevo una conversazione importante?</item>
+        <item>Cosa dicevo prima di partire per un viaggio?</item>
+        <item>Quale avvertimento davo alle persone che amavo?</item>
+        <item>Cosa dicevo quando qualcuno mi ringraziava?</item>
+        <item>Quale frase usavo per chiudere un disaccordo?</item>
+        <item>Cosa dicevo guardando il cielo o la natura?</item>
+        <item>Quale espressione ti infastidiva perché la ripetevo?</item>
+        <item>Cosa dicevo guardando le foto della mia giovinezza?</item>
+        <item>Quale frase pronunciavo quando qualcosa mi toccava?</item>
+        <item>Cosa dicevo la sera prima di dormire?</item>
+    </string-array>
+
+    <string name="inspiration_cat_people">Persone Importanti</string>
+    <string-array name="inspiration_questions_people">
+        <item>Come si chiamava il mio migliore amico / la mia migliore amica dell\'adolescenza?</item>
+        <item>Qual era il nome del mio mentore professionale?</item>
+        <item>Come si chiamava la persona che mi ha dato la prima opportunità?</item>
+        <item>Qual era il nome del mio vicino più vicino?</item>
+        <item>Come si chiamava il medico che mi ha seguito per anni?</item>
+        <item>Qual era il nome della persona amata prima di te?</item>
+        <item>Come si chiamava il mio insegnante più influente?</item>
+        <item>Qual era il nome del mio collega più fedele?</item>
+        <item>Come si chiamava la persona a cui devo di più?</item>
+        <item>Qual era il nome dell\'amico/a perso/a di vista?</item>
+        <item>Come si chiamava la persona che mi ha ferito di più?</item>
+        <item>Qual era il nome di chi mi ha insegnato a guidare?</item>
+        <item>Come si chiamava il mio allenatore sportivo?</item>
+        <item>Qual era il nome del mio socio principale?</item>
+        <item>Come si chiamava la persona che mi ha insegnato a cucinare?</item>
+        <item>Qual era il nome del mio confidente assoluto?</item>
+        <item>Come si chiamava la persona di cui ammiravo il coraggio?</item>
+        <item>Qual era il nome di chi mi ha aiutato nel mio periodo peggiore?</item>
+        <item>Come si chiamava la persona a cui non ho mai detto grazie?</item>
+        <item>Qual era il nome della persona che mi conosceva meglio di chiunque altro?</item>
+    </string-array>
+
+    <string name="inspiration_cat_deep">Domande Profonde</string>
+    <string-array name="inspiration_questions_deep">
+        <item>Quale cosa mi spaventava di più e che pochi sapevano?</item>
+        <item>Quale segreto ho custodito per tutta la vita?</item>
+        <item>Quale decisione rimpiangevo senza mai ammetterlo?</item>
+        <item>Quale talento nascondevo di cui eri uno dei pochi a sapere?</item>
+        <item>Quale verità su me stesso/a ho impiegato anni ad accettare?</item>
+        <item>Qual era il mio più grande complesso mai mostrato?</item>
+        <item>Quale convinzione guidava tutte le mie decisioni?</item>
+        <item>Quale momento mi ha dato più dubbi?</item>
+        <item>Quale errore di gioventù mi ha seguito a lungo?</item>
+        <item>Quale conversazione avrei voluto avere?</item>
+        <item>Quale atto di generosità ho fatto senza parlarne?</item>
+        <item>Quale ingiustizia mi ha segnato/a per sempre?</item>
+        <item>Qual era il mio sogno più intimo?</item>
+        <item>Quale parte di me ho sacrificato per gli altri?</item>
+        <item>Quale momento mi ha reso/a più vulnerabile?</item>
+        <item>Quale incontro ha cambiato tutto nel mio modo di vedere le cose?</item>
+        <item>Quale peso portavo da solo/a da anni?</item>
+        <item>Quale verità ho capito troppo tardi?</item>
+        <item>Cosa avrei voluto che le persone sapessero di me?</item>
+        <item>Se dovessi tenere un solo ricordo di me, quale sarebbe?</item>
+    </string-array>
+
+    <string-array name="personality_categories">
+        <item>Sport</item>
+        <item>Cinema e TV</item>
+        <item>Musica</item>
+        <item>Pittura</item>
+        <item>Scultura</item>
+        <item>Letteratura</item>
+        <item>Poesia</item>
+        <item>Scienze</item>
+        <item>Medicina</item>
+        <item>Filosofia</item>
+        <item>Spiritualità</item>
+        <item>Politica</item>
+        <item>Storia</item>
+        <item>Resistenza e impegno</item>
+        <item>Umorismo</item>
+        <item>Teatro</item>
+        <item>Danza</item>
+        <item>Fotografia</item>
+        <item>Moda</item>
+        <item>Architettura</item>
+        <item>Gastronomia</item>
+        <item>Giornalismo</item>
+        <item>Imprenditoria</item>
+        <item>Esplorazione</item>
+        <item>Attivismo</item>
+        <item>Educazione</item>
+        <item>Artigianato artistico</item>
+        <item>Fumetto</item>
+        <item>Altro</item>
+    </string-array>
+
+    <!-- Reconciliation Batch -->
+    <string name="reconciliation_title">Protocollo di Riconciliazione</string>
+    <string name="reconciliation_info_title">Protocollo di Riconciliazione</string>
+    <string name="reconciliation_info_p1">Scrivi un messaggio a qualcuno a cui non hai mai detto quello che avresti dovuto dire.</string>
+    <string name="reconciliation_info_p2">Questo messaggio verrà recapitato dopo la tua partenza.</string>
+    <string name="reconciliation_info_p3">Il ritardo permette al lutto di placarsi prima che la persona legga il tuo messaggio.</string>
+    <string name="reconciliation_info_p4">La persona non ha bisogno di avere un account PHOEN-X per ricevere questo messaggio.</string>
+    <string name="reconciliation_info_p5">Puoi scegliere un ritardo tra 30 giorni e 1 anno dopo la tua partenza.</string>
+    <string name="reconciliation_main_question">C\'è qualcuno a cui non hai mai detto quello che avresti dovuto dire?</string>
+    <string name="reconciliation_label_recipient">Nome del destinatario</string>
+    <string name="reconciliation_label_intent">La tua intenzione (es: chiedere scusa, dire grazie...)</string>
+    <string name="reconciliation_button_ai_help">Chiedi l\'aiuto dell\'IA per formulare</string>
+    <string name="reconciliation_ai_suggestions_title">SUGGERIMENTI DELL\'IA</string>
+    <string name="reconciliation_mode_text">✍️ Testo</string>
+    <string name="reconciliation_mode_audio">🎙️ Audio</string>
+    <string name="reconciliation_placeholder_message">Scrivi qui il tuo messaggio...</string>
+    <string name="reconciliation_audio_tap_to_record">Premi per registrare</string>
+    <string name="reconciliation_golden_rule">REGOLA D\'ORO: Questo messaggio rimarrà bloccato per 30 giorni dopo l\'attivazione della tua eredità.</string>
+    <string name="reconciliation_button_seal">Affida al segreto</string>
+    <string name="reconciliation_success_sealed">Messaggio sigillato per 30 giorni.</string>
+    <string name="reconciliation_vm_summary">Messaggio di riconciliazione per %1$s</string>
+
+    <!-- Recovery Batch -->
+    <string name="recovery_screen_title">Recupero account</string>
+    <string name="recovery_main_title">Ritrova la tua eredità</string>
+    <string name="recovery_main_desc">Inserisci la tua frase di 12 parole per decifrare i tuoi ricordi e impostare una nuova password.</string>
+    <string name="recovery_label_email">Il tuo indirizzo e-mail</string>
+    <string name="recovery_label_phrase">Frase di recupero (12 parole)</string>
+    <string name="recovery_label_new_password">Nuova password</string>
+    <string name="recovery_button_restore">Ripristina il mio accesso</string>
+    <string name="recovery_error_email_required">L\'indirizzo e-mail è richiesto.</string>
+    <string name="recovery_error_12_words">La frase deve contenere esattamente 12 parole.</string>
+    <string name="recovery_error_generic">Errore di recupero</string>
+
+    <!-- Portrait Batch -->
+    <string name="portrait_essence_title">Ritratto d\'Essenza</string>
+    <string name="portrait_essence_loading">L\'IA disegna la tua essenza attraverso le tue parole...</string>
+    <string name="portrait_essence_empty">Non ci sono abbastanza pensieri per disegnare il tuo ritratto.\nContinua a catturare i tuoi ricordi.</string>
+    <string name="portrait_essence_error_prefix">Errore: %1$s</string>
+    <string name="portrait_essence_intro_title">La tua eredità prende forma</string>
+    <string name="portrait_essence_intro_desc">L\'IA di PHOEN-X analizza la traiettoria dei tuoi pensieri per elaborare una sintesi di chi sembri essere.</string>
+    <string name="portrait_essence_button_generate">Genera il mio Ritratto</string>
+    <string name="portrait_essence_card_title">LA TUA ESSENZA</string>
+    <string name="portrait_essence_footer_ai_version">Sintesi IA PHOEN-X v8.9.7</string>
+    <string name="portrait_essence_vm_error_gen">Errore di generazione</string>
+
+    <!-- Characters Batch -->
+    <string name="characters_onboarding_title">I Personaggi</string>
+    <string-array name="characters_onboarding_points">
+        <item>Gestisci qui l\'elenco delle persone che popolano la tua storia.</item>
+        <item>Aggiungi le persone a te care per arricchire il tuo racconto.</item>
+    </string-array>
+    <string name="characters_title_selection">Scegli un personaggio</string>
+    <string name="characters_title_list">I miei Personaggi</string>
+    <string name="characters_relationship_fallback">Caro</string>
+    <string name="characters_count_singular">ricordo</string>
+    <string name="characters_count_plural">ricordi</string>
+    <string name="characters_edit_icon_desc">Modifica</string>
+    <string name="characters_empty_title">Nessun personaggio ancora citato.</string>
+    <string name="characters_empty_subtitle">Aggiungi le persone che popolano la tua storia.</string>
+    <string name="characters_role_guardian_primary">Custode Principale</string>
+    <string name="characters_role_guardian_secondary">Custode Secondario</string>
+
+    <string name="character_edit_title">Modifica il Personaggio</string>
+    <string name="character_edit_button_save">Salva</string>
+    <string name="character_type_human">Umano</string>
+    <string name="character_type_animal">Animale</string>
+    <string name="character_section_identity">Identità</string>
+    <string name="character_label_first_name">Nome</string>
+    <string name="character_label_pet_name">Soprannome</string>
+    <string name="character_label_last_name">Cognome (opzionale)</string>
+    <string name="character_section_relationship">Relazione</string>
+    <string name="character_label_relationship_human">Grado di parentela / Relazione</string>
+    <string name="character_label_relationship_animal">Chi è per te?</string>
+    <string name="character_placeholder_relationship_human">Es: Mio cugino</string>
+    <string name="character_placeholder_relationship_animal">Es: Il mio fedele compagno</string>
+    <string name="character_label_history_details">Dettagli sulla vostra storia</string>
+    <string name="character_section_physical_human">Ritratto Fisico (v9.0)</string>
+    <string name="character_section_physical_animal">Descrizione Fisica</string>
+    <string name="character_label_height">Altezza (cm)</string>
+    <string name="character_label_weight">Peso (kg)</string>
+    <string name="character_label_eyes">Occhi</string>
+    <string name="character_label_hair_human">Capelli</string>
+    <string name="character_label_hair_animal">Colore del pelo</string>
+    <string name="character_section_social">Vita Sociale (v9.0)</string>
+    <string name="character_label_profession">Lavoro / Occupazione</string>
+    <string name="character_label_clothing">Stile di abbigliamento</string>
+    <string name="character_label_has_children">Ha figli?</string>
+    <string name="character_label_yes">Sì</string>
+    <string name="character_label_no">No</string>
+    <string name="character_section_species">Specie</string>
+    <string name="character_label_species">Razza / Specie</string>
+    <string name="character_placeholder_species">Es: Golden Retriever, Gatto comune</string>
+    <string name="character_button_delete">Elimina questo personaggio</string>
+    <string name="character_delete_dialog_title">Eliminare %1$s?</string>
+    <string name="character_delete_dialog_text">Questo personaggio appare in %1$d ricordi — la sua eliminazione lo rimuoverà da questi racconti, senza eliminare i ricordi stessi.</string>
+    <string name="character_delete_confirm">Elimina definitivamente</string>
+    <string name="character_delete_cancel">Annulla</string>
+
+    <!-- Legacy Batch -->
+    <string name="legacy_prep_title">Prepara un Lascito</string>
+    <string name="legacy_prep_recipient_selection_desc">Scegli a chi desideri trasmettere i ricordi.</string>
+    <string name="legacy_prep_button_add_recipient">Aggiungi una persona al cerchio</string>
+    <string name="legacy_prep_for_recipient">Per %1$s</string>
+    <string name="legacy_prep_selection_title">Seleziona i frammenti da trasmettere</string>
+    <string name="legacy_prep_entry_age">A %1$d anni</string>
+    <string name="legacy_prep_entry_fallback">Frammento di vita</string>
+    <string name="legacy_prep_button_change_recipient">Cambia caro</string>
+    <string name="legacy_prep_button_validate">Conferma questo Lascito</string>
+
+    <string name="legacy_unique_key_title">Chiave Unica</string>
+    <string name="legacy_unique_key_creation_title">L\'Unico Segreto</string>
+    <string name="legacy_unique_key_creation_desc">Questo contenuto è unico. Una sola volta per account.</string>
+    <string name="legacy_unique_key_placeholder">Scrivi qui quello che non hai mai detto a nessun altro...</string>
+    <string name="legacy_unique_key_button_seal">Sigilla e Genera la Chiave</string>
+    <string name="legacy_unique_key_success_title">Segreto Sigillato</string>
+    <string name="legacy_unique_key_success_desc">Ecco la tua Chiave Unica. Annotala. Non verrà mai più mostrata.</string>
+    <string name="legacy_unique_key_exists_title">Chiave già utilizzata</string>
+    <string name="legacy_unique_key_exists_desc">Il Cassetto a Chiave Unica è già stato sigillato.</string>
+    <string name="legacy_unique_key_error_generic">Errore</string>
+
+    <!-- Witness Batch -->
+    <string name="witness_title">I Testimoni</string>
+    <string name="witness_info_title">I Testimoni</string>
+    <string name="witness_info_p1">Invita i tuoi cari a testimoniare su di te — non vedrai mai quello che scrivono.</string>
+    <string name="witness_info_p2">Le loro testimonianze sono crittografate e sigillate fino all\'attivazione del protocollo.</string>
+    <string name="witness_info_p3">È una memoria a 360°: la tua storia vista con gli occhi di chi ti ama.</string>
+    <string name="witness_info_p4">Ogni testimone riceve un link unico via e-mail.</string>
+    <string name="witness_info_p5">Puoi scegliere di autorizzare la lettura mentre sei in vita per alcuni testimoni.</string>
+    <string name="witness_invite_description">Invita i tuoi cari a raccontare un ricordo su di te. Le loro parole arricchiranno la tua eredità.</string>
+    <string name="witness_empty_list">Nessun testimone al momento.</string>
+    <string name="witness_review_dialog_title">Testimonianza di %1$s</string>
+    <string name="witness_review_error">Impossibile leggere la testimonianza.</string>
+    <string name="witness_review_button_reject">Rifiuta</string>
+    <string name="witness_review_button_validate">Conferma</string>
+    <string name="witness_review_button_close">Chiudi</string>
+    <string name="witness_delete_dialog_title">Eliminare questo testimone?</string>
+    <string name="witness_delete_dialog_text">Vuoi davvero annullare l\'invito di %1$s?</string>
+    <string name="witness_delete_button_confirm">Elimina</string>
+    <string name="witness_delete_button_cancel">Annulla</string>
+    <string name="witness_status_to_verify">Da verificare</string>
+    <string name="witness_status_validated">Confermato</string>
+    <string name="witness_status_rejected">Rifiutato</string>
+    <string name="witness_status_invited">Invitato</string>
+    <string name="witness_dialog_title">Invita un testimone</string>
+    <string name="witness_dialog_label_name">Nome completo</string>
+    <string name="witness_dialog_label_email">E-mail</string>
+    <string name="witness_dialog_section_orientation">ORIENTAMENTO DELLA TESTIMONIANZA</string>
+    <string name="witness_dialog_info_title">Guida il testimone</string>
+    <string name="witness_dialog_info_content">Puoi porre una domanda precisa o suggerire un tema.</string>
+    <string name="witness_dialog_placeholder_prompt">Es: Qual è il tuo ricordo più divertente con me?</string>
+    <string name="witness_dialog_check_allow_read">Autorizzami a leggere questa testimonianza mentre sono in vita</string>
+    <string name="witness_dialog_check_allow_reject">Diritto di moderazione: poter rifiutare la testimonianza se inappropriata</string>
+    <string name="witness_dialog_button_next">Avanti</string>
+    <string name="witness_dialog_button_cancel">Annulla</string>
+
+    <string name="witness_response_sealed_title">Testimonianza già sigillata</string>
+    <string name="witness_response_sealed_text">Hai già inviato la tua testimonianza per %1$s. Ora è al sicuro.</string>
+    <string name="witness_response_button_back">Indietro</string>
+    <string name="witness_response_ritual_success">Testimonianza sigillata.\nGrazie per questo ricordo.</string>
+    <string name="witness_response_title">Una testimonianza per %1$s</string>
+    <string name="witness_response_default_instruction">Racconta un momento in cui %1$s ti ha sorpreso.</string>
+    <string name="witness_response_placeholder">Scrivi qui la tua storia...</string>
+    <string name="witness_response_button_seal">Sigilla la mia testimonianza</string>
+    <string name="witness_response_transparency_reject_title">Validazione preventiva</string>
+    <string name="witness_response_transparency_reject_desc">Il tuo caro potrà leggere questa testimonianza prima di trasmetterla.</string>
+    <string name="witness_response_transparency_read_title">Testimonianza aperta</string>
+    <string name="witness_response_transparency_read_desc">Il tuo caro ha chiesto di poter leggere questa testimonianza mentre è in vita.</string>
+    <string name="witness_response_transparency_standard_title">Riservatezza totale</string>
+    <string name="witness_response_transparency_standard_desc">La tua testimonianza è crittografata.</string>
+    <string name="witness_response_creator_fallback">il tuo caro</string>
+
+    <string name="witness_vm_error_invalid_token">Link non valido o accesso negato.</string>
+    <string name="witness_vm_invite_label">Testimone</string>
+    <string name="witness_vm_email_subject">%1$s richiede la tua testimonianza</string>
+    <string name="witness_vm_email_text">Ciao %1$s,\n\n%2$s sta preparando il suo spazio di ricordi su PHOEN-X e desidera chiederti di testimoniare su un ricordo condiviso.\n\nLink per unirti al suo cerchio: https://phoenx.app/join/%3$s</string>
+    <string name="witness_vm_error_invite">Impossibile inviare l\'invito. Controlla la tua connessione.</string>
+    <string name="witness_vm_error_update_status">Errore durante l\'aggiornamento dello stato.</string>
+    <string name="witness_vm_error_public_key">Chiave pubblica del Creatore mancante</string>
+    <string name="witness_vm_error_submit">Mancato invio della testimonianza. Riprova più tardi.</string>
+
+    <!-- Silence Batch -->
+    <string name="silence_block_days_count">Sono passati %1$d giorni dall\'ultima volta che ci siamo sentiti.</string>
+    <string name="silence_block_subtitle">Facci solo sapere che ci sei.</string>
+    <string name="silence_button_im_here">Sono qui</string>
+    <string name="silence_checkin_title">Ci sei ancora.</string>
+    <string name="silence_checkin_info_title">La Prova di Vita</string>
+    <string name="silence_checkin_info_p1">Un semplice tocco su \'Sono qui\' conferma la tua presenza.</string>
+    <string name="silence_checkin_info_p2">Se stai attraversando un momento difficile, puoi segnalarlo senza spiegare.</string>
+    <string name="silence_checkin_info_p3">Anche \'salta per ora\' conta — rimani presente.</string>
+    <string name="silence_checkin_info_p4">Se non rispondi per diverse volte, la tua persona di fiducia verrà avvisata.</string>
+    <string name="silence_checkin_info_p5">Scegli la frequenza di questi controlli nelle tue impostazioni.</string>
+    <string name="silence_checkin_toast_noted">Annotato. A presto.</string>
+    <string name="silence_button_traversing">Sto attraversando un momento difficile</string>
+    <string name="silence_traversing_title">Siamo qui.</string>
+    <string name="silence_traversing_desc">Non devi spiegare nulla. Ti ricorderemo ogni settimana per assicurarci che tu stia bene.</string>
+    <string name="silence_traversing_option_record">Registra un pensiero ora</string>
+    <string name="silence_traversing_option_pass">Solo un saluto per ora</string>
+    <string name="silence_button_close">Chiudi</string>
+    <string name="silence_onboarding_title">Una presenza, anche nel silenzio</string>
+    <string name="silence_onboarding_desc">Di tanto in tanto, PHOEN-X ti chiederà solo di confermare che ci sei. Un semplice tocco è sufficiente.</string>
+    <string name="silence_onboarding_question">Con quale frequenza vuoi che ti contattiamo?</string>
+    <string name="silence_onboarding_option_2_weeks">Ogni 2 settimane</string>
+    <string name="silence_onboarding_option_1_month">Una volta al mese</string>
+    <string name="silence_onboarding_option_2_months">Ogni 2 mesi</string>
+    <string name="silence_onboarding_footer">Se non confermi la tua presenza, ti ricorderemo ogni settimana.</string>
+    <string name="silence_onboarding_button_confirm">Scegli questa frequenza</string>
+
+    <!-- Rankings Batch -->
+    <string name="rankings_title">Le mie Classifiche</string>
+    <string name="rankings_info_title">Le mie Classifiche</string>
+    <string name="rankings_info_point1">Crea i tuoi top personali per argomento.</string>
+    <string name="rankings_info_point2">È uno spazio di puro piacere per condividere i tuoi gusti.</string>
+    <string name="rankings_info_point3">Scegli una categoria o crea la tua, quindi riempi le tue posizioni preferite.</string>
+    <string name="rankings_empty_state">Nessuna classifica al momento.</string>
+    <string name="rankings_add_cover_readonly">Nessuna immagine d\'atmosfera</string>
+    <string name="rankings_add_cover_prompt">Aggiungi un\'immagine d\'atmosfera</string>
+    <string name="rankings_item_add_image">Inserisci un\'immagine</string>
+    <string name="rankings_item_filled_count">%1$d / %2$d elementi compilati</string>
+    <string name="rankings_suggestions_header">IDEE PER INIZIARE</string>
+
+    <string name="rankings_dialog_create_title">Nuova classifica</string>
+    <string name="rankings_dialog_create_label_theme">Argomento</string>
+    <string name="rankings_dialog_create_placeholder_theme">Es: I miei film cult</string>
+    <string name="rankings_dialog_create_count_label">Numero di elementi: %1$d</string>
+    <string name="rankings_dialog_create_button_confirm">Crea</string>
+    <string name="rankings_dialog_create_button_cancel">Annulla</string>
+
+    <string name="ranking_detail_menu_rename">Rinomina</string>
+    <string name="ranking_detail_menu_delete">Elimina questa classifica</string>
+    <string name="ranking_detail_bottom_count">%1$d posizioni compilate su %2$d</string>
+    <string name="ranking_detail_no_image">Nessuna immagine</string>
+    <string name="ranking_detail_add_image">Aggiungi un\'immagine</string>
+    <string name="ranking_detail_dialog_rename_title">Rinomina classifica</string>
+    <string name="ranking_detail_dialog_rename_label">Titolo</string>
+    <string name="ranking_detail_dialog_rename_button_save">Salva</string>
+    <string name="ranking_detail_dialog_rename_button_cancel">Annulla</string>
+    <string name="ranking_detail_dialog_delete_title">Eliminare questa classifica?</string>
+    <string name="ranking_detail_dialog_delete_text">Questa azione è irreversibile. Eliminare definitivamente questa classifica?</string>
+    <string name="ranking_detail_dialog_delete_button_confirm">Elimina</string>
+    <string name="ranking_detail_dialog_delete_button_cancel">Annulla</string>
+    <string name="ranking_detail_dialog_item_title">Posizione #%1$d</string>
+    <string name="ranking_detail_dialog_item_placeholder">Inserisci la tua scelta</string>
+    <string name="ranking_detail_dialog_item_button_clear">Svuota</string>
+    <string name="ranking_detail_dialog_item_button_save">Salva</string>
+    <string name="ranking_detail_dialog_item_button_cancel">Annulla</string>
+    <string name="ranking_detail_row_empty">Posizione libera — premi per compilare</string>
+
+    <!-- Suggestions Categories -->
+    <string name="rankings_cat_music">Musica</string>
+    <string name="rankings_cat_cinema">Cinema e serie</string>
+    <string name="rankings_cat_literature">Letteratura</string>
+    <string name="rankings_cat_art">Arte visiva</string>
+    <string name="rankings_cat_travel">Luoghi e viaggi</string>
+    <string name="rankings_cat_personal">Vita personale</string>
+    <string name="rankings_cat_sport">Sport</string>
+
+    <!-- Portraits Batch -->
+    <string name="portrait_proche_title">Specchio del caro</string>
+    <string name="portrait_proche_info_title">Ritratto Caro</string>
+    <string name="portrait_proche_info_content">Il Ritratto Caro ti propone 20 domande per tracciare il ritratto di una persona che conta per te.</string>
+    <string name="portrait_proche_intro">Ecco come ti ho visto. Ecco cosa ho visto in te che forse non hai mai saputo.</string>
+    <string name="portrait_proche_label_who">PER CHI È QUESTO RITRATTO?</string>
+    <string name="portrait_proche_button_add_recipient">Aggiungi prima un caro</string>
+    <string name="portrait_proche_placeholder_recipient">Scegli un caro</string>
+    <string name="portrait_proche_placeholder_writing">Scrivi liberamente quello che hai visto in %1$s...</string>
+    <string name="portrait_proche_fallback_recipient">il tuo caro</string>
+    <string name="portrait_proche_button_guidance">Vedi domande guida</string>
+    <string name="portrait_proche_button_seal">Sigilla questo ritratto</string>
+    <string name="portrait_proche_toast_success">Ritratto sigillato e sincronizzato.</string>
+    <string name="portrait_proche_guidance_q1">Quale ricordo torna per primo?</string>
+    <string name="portrait_proche_guidance_q2">Quale qualità unica possiede?</string>
+    <string name="portrait_proche_guidance_q3">Cosa ti ha insegnato?</string>
+    <string name="portrait_proche_guidance_q4">Cosa vuoi che sappia su ciò che rappresenta?</string>
+
+    <string name="portrait_selection_title">Per chi stai scrivendo questo ritratto?</string>
+    <string name="portrait_selection_empty">Il tuo cerchio è vuoto. Aggiungi i tuoi cari prima nella home.</string>
+    <string name="portrait_title_with_name">Ritratto di %1$s</string>
+    <string name="portrait_title_fallback">Ritratto di un caro</string>
+    <string name="portrait_progress_label">DOMANDA %1$d DI %2$d</string>
+    <string name="portrait_button_finish_now">Termina ora</string>
+    <string name="portrait_placeholder_thoughts">Scrivi qui i tuoi pensieri... (Opzionale)</string>
+    <string name="portrait_button_previous">Precedente</string>
+    <string name="portrait_button_change_recipient">Cambia caro</string>
+    <string name="portrait_button_skip">Salta</string>
+    <string name="portrait_button_next">Avanti</string>
+    <string name="portrait_button_finalize">Finalizza</string>
+
+    <string name="portrait_vm_error_empty">Il ritratto è vuoto. Scrivi almeno un pensiero.</string>
+    <string name="portrait_vm_recipient_fallback">un caro</string>
+    <string name="portrait_vm_summary_prefix">Ritratto di %1$s</string>
+    <string name="portrait_vm_free_thought_label">Pensiero libero</string>
+    <string name="portrait_vm_error_save">Errore di salvataggio</string>
+
+    <!-- Assistant Batch -->
+    <string name="assistant_welcome_message">Benvenuto %1$s! Sono il tuo assistente PHOEN-X.</string>
+    <string name="assistant_nickname_dialog_title">Benvenuto</string>
+    <string name="assistant_nickname_dialog_desc">Prima di iniziare, come vorresti che ti chiamassi?</string>
+    <string name="assistant_nickname_dialog_label">Il tuo nome o soprannome</string>
+    <string name="assistant_nickname_dialog_confirm">Conferma</string>
+    <string name="assistant_chat_title">Assistente PHOEN-X</string>
+    <string name="assistant_chat_clear">Cancella</string>
+    <string name="assistant_chat_placeholder">Fai la tua domanda...</string>
+    <string name="assistant_name_fallback_ami">amico</string>
+    <string name="assistant_name_fallback_user">Utente</string>
+    <string name="assistant_suggested_q1">Come depositare il mio primo ricordo?</string>
+    <string name="assistant_suggested_q2">Chi potrà vedere cosa scrivo?</string>
+    <string name="assistant_suggested_q3">Come funziona la protezione?</string>
+    <string name="assistant_error_no_answer">Spiacente, non ho potuto ottenere una risposta.</string>
+    <string name="assistant_error_generic">Si è verificato un errore.</string>
+
+    <!-- Questions Room Batch -->
+    <string name="questions_room_title">Le 100 Domande</string>
+    <string name="questions_room_all_answered">Tutte le tue storie sono raccontate.</string>
+    <string name="questions_room_progress_label">%1$d / %2$d domande raccontate</string>
+    <string name="questions_room_my_questions_header">LE TUE DOMANDE PERSONALI</string>
+    <string name="questions_room_general_questions_header">DOMANDE GENERALI</string>
+    <string name="questions_room_status_answered">RISPOSTO</string>
+    <string name="questions_room_button_edit_answer">Modifica la mia risposta</string>
+    <string name="questions_room_button_answer">Rispondi</string>
+    <string name="questions_room_result_answered_header">RISPOSTA DI %1$s</string>
+    <string name="questions_room_result_declined_header">NON RISPOSTO PER SCELTA</string>
+    <string name="questions_room_result_declined_desc">%1$s ha visto questa domanda e ha scelto di non rispondere.</string>
+    <string name="questions_room_result_pending_header">SENZA RISPOSTA</string>
+    <string name="questions_room_result_pending_desc">Questa domanda non ha avuto risposta.</string>
+    <string name="questions_room_creator_fallback">Il tuo caro</string>
+    <string name="questions_room_category_all">Tutte</string>
+
+    <!-- Question Categories -->
+    <string name="question_cat_all">Tutte</string>
+    <string name="question_cat_childhood">Infanzia</string>
+    <string name="question_cat_family">Famiglia</string>
+    <string name="question_cat_love">Amore</string>
+    <string name="question_cat_friendship">Amicizia</string>
+    <string name="question_cat_work">Lavoro</string>
+    <string name="question_cat_money">Denaro e Successo</string>
+    <string name="question_cat_values">Valori</string>
+    <string name="question_cat_faith">Fede e Spiritualità</string>
+    <string name="question_cat_health">Corpo e Salute</string>
+    <string name="question_cat_regrets">Rimpianti</string>
+    <string name="question_cat_dreams">Sogni</string>
+    <string name="question_cat_travel">Viaggi e Luoghi</string>
+    <string name="question_cat_creativity">Creatività e Passioni</string>
+    <string name="question_cat_secrets">Segreti e Confessioni</string>
+    <string name="question_cat_wisdom">Saggezza</string>
+    <string name="question_cat_my_questions">Le mie Domande</string>
+
+    <!-- Additional Feed Categories -->
+    <string name="question_cat_hope">Speranza</string>
+    <string name="question_cat_transmission">Trasmissione</string>
+    <string name="question_cat_reconciliation">Riconciliazione</string>
+    <string name="question_cat_humanity">Umanità</string>
+    <string name="question_cat_gratitude">Gratitudine</string>
+
+    <!-- Preview Batch -->
+    <string name="preview_dashboard_title">Anteprima Visione Destinatario</string>
+    <string name="preview_dashboard_warning">Cosa vedi qui riflette fedelmente il contenuto e l\'atmosfera dello spazio di %1$s</string>
+    <string name="preview_dashboard_transmission_header">SPAZIO DI TRASMISSIONE</string>
+    <string name="preview_pillar_souvenirs">Ricordi e Racconti</string>
+    <string name="preview_pillar_photos">Foto</string>
+    <string name="preview_pillar_videos">Video</string>
+    <string name="preview_pillar_audios">Audio</string>
+    <string name="preview_pillar_book">Libro della Vita</string>
+    <string name="preview_pillar_vault">Cassaforte</string>
+    <string name="preview_pillar_genealogy">Albero Genealogico</string>
+    <string name="preview_pillar_personalities">Personalità</string>
+    <string name="preview_dashboard_readonly_note">Nota: Questa anteprima non consente alcuna modifica.</string>
+    <string name="preview_pillar_shared_item">elemento condiviso</string>
+    <string name="preview_pillar_shared_items">elementi condivisi</string>
+
+    <string name="preview_fil_title">Filo dei Pensieri (Anteprima)</string>
+    <string name="preview_fil_empty">Nessun ricordo condiviso con %1$s</string>
+    <string name="preview_entry_no_title">Ricordo senza titolo</string>
+    <string name="preview_entry_deposited_at">Depositato il %1$s</string>
+
+    <string name="preview_book_title_label">Libro della Vita (Anteprima)</string>
+    <string name="preview_book_fallback_title">Libro della Mia Vita</string>
+    <string name="preview_book_available_desc">Un manoscritto è già disponibile per la consultazione.</string>
+    <string name="preview_book_button_consult">Consulta il manoscritto</string>
+    <string name="preview_book_exists_not_shared">Un Libro esiste, ma non è condiviso con %1$s.</string>
+    <string name="preview_book_how_to_share">Per condividerlo, torna nell\'editor del libro.</string>
+    <string name="preview_book_none_generated">Nessun Libro è stato ancora generato.</string>
+    <string name="preview_book_how_to_create">Per creare il tuo Libro, torna alla tua Biblioteca.</string>
+
+    <string name="preview_vault_title">Cassaforte (Anteprima)</string>
+    <string name="preview_vault_empty">Nessun enigma sigillato per %1$s</string>
+    <string name="preview_vault_sealed_label">RICORDO SIGILLATO</string>
+    <string name="preview_vault_missing_question">Domanda mancante</string>
+    <string name="preview_vault_protected_desc">Questo contenuto è protetto da un enigma.</string>
+
+    <string name="preview_media_photos">Fototeca</string>
+    <string name="preview_media_videos">Videoteca</string>
+    <string name="preview_media_audios">Discoteca</string>
+    <string name="preview_media_generic">Mediateca</string>
+    <string name="preview_media_title_format">%1$s (Anteprima)</string>
+    <string name="preview_media_empty">Nessun media condiviso con %1$s</string>
+    <string name="preview_media_fallback_label">Media</string>
+
+    <string name="preview_media_panel_unsupported">Formato non supportato in anteprima</string>
+    <string name="preview_media_panel_recipient_view">Visione destinatario (Sola lettura)</string>
+
+    <string name="preview_detail_title">Dettaglio (Anteprima)</string>
+    <string name="preview_detail_not_found">Ricordo non trovato o non condiviso</string>
+    <string name="preview_detail_no_title">Senza titolo</string>
+    <string name="preview_detail_no_content">Nessun contenuto scritto.</string>
+    <string name="preview_detail_creator_comment">COMMENTO DEL CREATORE</string>
+    <string name="preview_detail_complements_header">INTEGRAZIONI MEDIA</string>
+    <string name="preview_detail_shared_with_desc">Questo ricordo è condiviso con %1$s.</string>
+
+    <string name="preview_genealogy_title">Albero Genealogico (Anteprima)</string>
+    <string name="preview_genealogy_empty">Il tuo albero è ancora vuoto.</string>
+    <string name="preview_genealogy_readonly_badge">Modalità Anteprima: Sola Lettura</string>
+
+    <string name="preview_vm_recipient_fallback">Questo caro</string>
+    <string name="preview_vm_decrypt_error">Errore decrittografia</string>
+
+    <!-- Universal Batch -->
+    <string name="universal_message_title">La mia Lettera all\'Umanità</string>
+    <string name="universal_message_info_title">La mia Lettera all\'Umanità</string>
+    <string name="universal_message_info_p1">Un unico messaggio per tutti — reso pubblico dopo la tua partenza.</string>
+    <string name="universal_message_info_p2">Puoi aggiungere fino a 3 foto e un video di massimo 30 secondi.</string>
+    <string name="universal_message_info_p3">L\'IA classifica automaticamente il tuo messaggio in una categoria.</string>
+    <string name="universal_message_info_p4">Il nostro team convalida ogni messaggio prima della pubblicazione.</string>
+    <string name="universal_message_info_p5">I lettori hanno solo bisogno di un account gratuito.</string>
+    <string name="universal_message_subtitle">Un unico messaggio. Per tutti.</string>
+    <string name="universal_message_placeholder">Scrivi qui il tuo messaggio universale...</string>
+    <string name="universal_message_section_photos">FOTO (MAX 3)</string>
+    <string name="universal_message_section_video">VIDEO (MAX 30 SEC)</string>
+    <string name="universal_message_button_add_video">Aggiungi un video</string>
+    <string name="universal_message_video_selected">Video selezionato</string>
+    <string name="universal_message_error_video_duration">Questo video supera i 30 secondi.</string>
+    <string name="universal_message_section_profile">INFORMAZIONI VISIBILI AI LETTORI:</string>
+    <string name="universal_message_profile_last_name">Il mio cognome</string>
+    <string name="universal_message_profile_profession">La mia professione</string>
+    <string name="universal_message_profile_city">La mia città</string>
+    <string name="universal_message_profile_bio_label">Una frase di presentazione</string>
+    <string name="universal_message_charte">Accetto che questo messaggio venga riletto prima della pubblicazione.</string>
+    <string name="universal_message_toast_success">La tua lettera è sigillata.</string>
+    <string name="universal_message_toast_error">Errore: %1$s</string>
+    <string name="universal_message_button_seal">Sigilla questa lettera</string>
+    <string name="universal_message_sealed_title">La tua lettera è sigillata.</string>
+    <string name="universal_message_sealed_desc">Hai già depositato la tua lettera all\'umanità.</string>
+    <string name="universal_message_button_view">Vedi la mia lettera</string>
+    <string name="universal_message_vm_error_check">Errore di verifica</string>
+
+    <string name="universal_feed_title">Lettere all\'Umanità</string>
+    <string name="universal_feed_subtitle">Parole lasciate per te da chi se n\'è andato.</string>
+    <string name="universal_feed_empty">Nessuna lettera al momento.</string>
+    <string name="universal_feed_card_header">%1$s, %2$d anni • %3$s</string>
+    <string name="universal_feed_creator_fallback">Un caro</string>
+
+    <string name="universal_join_mismatch_title">Account errato rilevato</string>
+    <string name="universal_join_mismatch_destined">Questo invito è destinato a:</string>
+    <string name="universal_join_mismatch_currently">Ma sei attualmente connesso come:</string>
+    <string name="universal_join_mismatch_button_logout">Disconnettiti e continua</string>
+    <string name="universal_join_greeting">Buongiorno,</string>
+    <string name="universal_join_invitation_title">%1$s ti invita</string>
+    <string name="universal_join_role_depositary">a essere il suo Custode di Fiducia</string>
+    <string name="universal_join_role_witness">a portare testimonianza sulla sua storia</string>
+    <string name="universal_join_role_recipient">a essere uno dei suoi destinatari</string>
+    <string name="universal_join_role_mirror">a uno Specchio a Due</string>
+    <string name="universal_join_role_fallback">a unirti al suo cerchio</string>
+    <string name="universal_join_pedagogy_depositary">Come Custode, sarai la chiave che sbloccherà la sua memoria a tempo debito.</string>
+    <string name="universal_join_pedagogy_witness">La tua testimonianza arricchirà la sua eredità.</string>
+    <string name="universal_join_pedagogy_recipient">Sei stato scelto per ricevere una parte della sua memoria.</string>
+    <string name="universal_join_pedagogy_mirror">Due punti di vista per una stessa storia.</string>
+    <string name="universal_join_button_accept">Accetta questo ruolo</string>
+    <string name="universal_join_button_login">Accedi per accettare</string>
+    <string name="universal_join_restricted_to">L\'accesso è riservato all\'indirizzo: %1$s</string>
+    <string name="universal_join_error_not_found">Questo invito non è stato trovato o è scaduto.</string>
+    <string name="universal_join_error_already_used">Questo invito è già stato utilizzato.</string>
+    <string name="universal_join_error_wrong_account">Spiacenti, questo invito non è destinato a questo account.</string>
+    <string name="universal_join_error_generic">Si è verificato un errore durante il collegamento.</string>
+
+    <string name="guest_dashboard_tab_circle">Il Cerchio</string>
+    <string name="guest_dashboard_tab_attentions">Le Attenzioni</string>
+    <string name="guest_dashboard_title_circle">Spazio Cari</string>
+    <string name="guest_dashboard_title_attentions">Le Attentions</string>
+    <string name="guest_dashboard_button_logout">Disconnessione</string>
+    <string name="guest_dashboard_welcome">Benvenuto nel tuo spazio dedicato.</string>
+    <string name="guest_dashboard_pending_header">INVITI IN ATTESA</string>
+    <string name="guest_dashboard_empty">Nessun ruolo attivo al momento.</string>
+    <string name="guest_dashboard_become_creator_title">E tu?</string>
+    <string name="guest_dashboard_become_creator_desc">Inizia a sigillare i tuoi ricordi per chi ami.</string>
+    <string name="guest_dashboard_become_creator_button">Diventa Creatore →</string>
+    <string name="guest_dashboard_invite_label">Ti invita a essere: %1$s</string>
+    <string name="guest_dashboard_invite_accept">Accetta</string>
+    <string name="guest_dashboard_role_depositary">Sono il suo Custode di Fiducia</string>
+    <string name="guest_dashboard_role_witness">Porto testimonianza</string>
+    <string name="guest_dashboard_role_recipient">Sono uno dei suoi destinatari</string>
+    <string name="guest_dashboard_role_fallback">Legame di fiducia</string>
+
+    <string name="become_creator_witness_msg">%1$s ha scelto di affidarti una preziosa testimonianza.</string>
+    <string name="become_creator_depositary_msg">%1$s ti ha reso Custode della sua memoria.</string>
+    <string name="become_creator_recipient_msg">%1$s ha scelto di trasmetterti una parte della sua storia.</string>
+    <string name="become_creator_fallback_msg">%1$s ti ha invitato nel suo cerchio di fiducia.</string>
+    <string name="become_creator_invite_desc">Vivi anche tu l\'esperienza PHOEN-X.</string>
+    <string name="become_creator_button">Diventa Creatore</string>
+    <string name="become_creator_later">Più tardi</string>
+
+    <string name="attentions_title">Ultime attenzioni ricevute</string>
+    <string name="attentions_card_header">%1$s ti ha scritto</string>
+    <string name="attentions_card_received_at">Ricevuto il %1$s</string>
+    <string name="attentions_card_encrypted">Contenuto crittografato</string>
+    <string name="attentions_empty_title">Nessuna attenzione al momento.</string>
+    <string name="attentions_empty_desc">Qui riceverai i ricordi che i tuoi cari scelgono di trasmetterti.</string>
+    <string name="attentions_error_load">Impossibile caricare le attenzioni.</string>
+
+    <!-- Book Batch A (Theme & Cover) -->
+    <string name="book_font_classic">Classico</string>
+    <string name="book_font_modern">Moderno</string>
+    <string name="book_font_cursive">Corsivo (Leggibile)</string>
+    <string name="book_font_elegant_plume">Piuma Elegante</string>
+    <string name="book_font_royal_chronicle">Cronaca Reale</string>
+    <string name="book_font_plume_script">Piuma Script</string>
+    <string name="book_font_modern_book">Libro Moderno</string>
+
+    <string name="book_bg_ivory">Avorio</string>
+    <string name="book_bg_parchment">Pergamena</string>
+    <string name="book_bg_night">Notte</string>
+    <string name="book_bg_linen">Lino</string>
+    <string name="book_bg_mist">Nebbia</string>
+    <string name="book_bg_ash">Cenere</string>
+    <string name="book_bg_powder">Cipria</string>
+    <string name="book_bg_forest">Foresta</string>
+
+    <string name="theme_selector_paper">Carta</string>
+    <string name="theme_selector_plume">Piuma</string>
+
+    <!-- Book Batch B (Viewer & Editor) -->
+    <string name="book_viewer_sealed_message">Il Libro di %1$s ti sarà aperto al momento opportuno.</string>
+    <string name="book_viewer_sealed_status">Questo racconto è attualmente sigillato.</string>
+    <string name="book_viewer_sealed_status_recipient">Questo racconto è attualmente sigillato. Solo il Custode potrà togliere il sigillo.</string>
+    <string name="book_viewer_fallback_title">Libro della Vita</string>
+    <string name="book_viewer_btn_back">Indietro</string>
+    <string name="book_viewer_empty_recipient">Il Libro della Vita non è stato ancora redatto.</string>
+    <string name="book_viewer_empty_creator">Il tuo libro non è ancora stato creato.</string>
+    <string name="book_viewer_btn_create">Crea il mio libro</string>
+    <string name="book_viewer_chapter_label">Capitolo %1$d</string>
+    <string name="book_viewer_progress_label">Capitolo %1$d / %2$d</string>
+    <string name="book_viewer_btn_edit">Modifica questo libro</string>
+    <string name="book_viewer_audio_fragment">FRAMMENTO VOCALE</string>
+    <string name="book_viewer_audio_essence">L\'essenza di questo ricordo</string>
+
+    <string name="book_editor_onboarding_title">Il Libro della Mia Vita</string>
+    <string name="book_editor_onboarding_p1">L\'IA genera un libro narrativo dai tuoi ricordi.</string>
+    <string name="book_editor_onboarding_p2">Ogni capitolo arriva come bozza — puoi convalidarlo o modificarlo.</string>
+    <string name="book_editor_onboarding_p3">L\'IA non legge mai i tuoi veri ricordi — solo i riassunti anonimizzati.</string>
+    <string name="book_editor_onboarding_p4">Un capitolo convalidato è bloccato ma puoi sbloccarlo in qualsiasi momento.</string>
+    <string name="book_editor_onboarding_p5">I tuoi cari leggeranno questo libro come un vero libro, pagina per pagina.</string>
+    <string name="book_editor_saving">Salvataggio...</string>
+    <string name="book_editor_saved">Salvato</string>
+    <string name="book_editor_menu_cancel_regen">Annulla l\'ultima rigenerazione</string>
+    <string name="book_editor_dialog_restore_title">Ripristinare la versione precedente?</string>
+    <string name="book_editor_dialog_restore_text">Il contenuto attuale verrà sostituito da quello precedente.</string>
+    <string name="book_editor_dialog_restore_confirm">Ripristina</string>
+    <string name="book_editor_dialog_restore_cancel">Annulla</string>
+    <string name="book_editor_stats_label">%1$d capitoli · %2$d ricordi integrati</string>
+    <string name="book_editor_btn_read">LEGGI IL MIO LIBRO</string>
+    <string name="book_editor_btn_regenerate">Rigenera</string>
+    <string name="book_editor_section_preface">PREFAZIONE</string>
+    <string name="book_editor_section_rights">DIRITTI</string>
+    <string name="book_editor_section_ambiance">ATMOSFERA</string>
+    <string name="book_editor_section_cover">COPERTINA</string>
+    <string name="book_editor_cover_custom_title">PERSONALIZZAZIONE DELLA COPERTINA</string>
+    <string name="book_editor_cover_btn_change_photo">Cambia foto</string>
+    <string name="book_editor_cover_btn_reset">Ripristina</string>
+    <string name="book_editor_cover_title_color">COLORE DEL TITOLO</string>
+    <string name="book_editor_ambiance_note">Nota: La scelta della Carta e della Piuma definisce l\'universo visivo GLOBALE.</string>
+    <string name="book_editor_section_recipients">DESTINATARI DEL MANOSCRITTO</string>
+    <string name="book_editor_attribution_note">Nota: Solo i ricordi già «Assegnati» vengono integrati nel racconto.</string>
+    <string name="book_editor_section_summary">SOMMARIO DEL MANOSCRITTO</string>
+
+    <string name="chapter_editor_status_validated">Capitolo convalidato</string>
+    <string name="chapter_editor_ai_rewriting">L\'IA sta riscrivendo questo capitolo...</string>
+    <string name="chapter_editor_suggest_rephrase">Riformula questo passaggio</string>
+    <string name="chapter_editor_suggest_emotion">Aggiungi più emozione</string>
+    <string name="chapter_editor_suggest_shorten">Accorcia questo capitolo</string>
+    <string name="chapter_editor_suggest_tone">Cambia il tono</string>
+    <string name="chapter_editor_suggest_intro">Aggiungi un\'introduzione</string>
+    <string name="chapter_editor_suggest_finish">Termina questo capitolo</string>
+    <string name="chapter_editor_ai_placeholder">Di\' all\'IA cosa vuoi modificare...</string>
+    <string name="chapter_editor_btn_send_ai">Invia all\'IA</string>
+    <string name="chapter_editor_btn_ask_ai">🤖 Chiedi all\'IA</string>
+    <string name="chapter_editor_btn_validate">✅ Convalida</string>
+    <string name="chapter_editor_btn_unvalidate">🔓 Modifica comunque</string>
+
+    <!-- Book Batch C (Logic & Generator) -->
+    <string name="book_editor_vm_creator_fallback">Il tuo caro</string>
+    <string name="book_editor_vm_error_gen">Errore durante la generazione.</string>
+    <string name="book_editor_vm_progress_plan">Bozza della struttura della tua vita...</string>
+    <string name="book_editor_vm_error_plan">Errore durante la creazione del piano.</string>
+    <string name="book_editor_vm_error_analyze">Errore durante l\'analisi dei capitoli.</string>
+    <string name="book_editor_vm_error_ai">Errore IA: %1$s</string>
+    <string name="book_editor_vm_error_unknown">Causa sconosciuta</string>
+    <string name="book_editor_vm_error_save">Errore durante il salvataggio</string>
+    <string name="book_editor_vm_error_intro_gen">Errore generazione intro: %1$s</string>
+    <string name="book_editor_vm_error_intro_save">Errore salvataggio intro</string>
+    <string name="book_editor_vm_error_ambiance">Errore salvataggio atmosfera</string>
+    <string name="book_editor_vm_error_upload">Errore durante l\'invio dell\'immagine</string>
+    <string name="book_editor_vm_error_title_style">Errore salvataggio stile titolo</string>
+
+    <string name="book_empty_state_title">La tua storia merita di essere raccontata.</string>
+    <string name="book_empty_state_desc">PHOEN-X analizzerà i tuoi ricordi e redigerà\nil primo capitolo del tuo Libro della Vita.</string>
+    <string name="book_empty_state_btn_generate">Bozza il mio libro</string>
+    <string name="book_empty_state_missing_memories">Mancano %1$d ricordi</string>
+
+    <string name="book_proposed_plan_title">Struttura proposta</string>
+    <string name="book_proposed_plan_desc">Ecco come l\'IA suggerisce di organizzare il tuo racconto.</string>
+    <string name="book_proposed_plan_chapter_header">CAPITOLO %1$d</string>
+    <string name="book_proposed_plan_no_title">Senza titolo</string>
+    <string name="book_proposed_plan_memories_count">%1$d ricordi integrati</string>
+    <string name="book_proposed_plan_btn_confirm">Conferma e redigi</string>
+    <string name="book_proposed_plan_btn_cancel">Annulla</string>
+
+    <string name="book_regen_dashboard_title">Stato dei tuoi capitoli</string>
+    <string name="book_regen_dashboard_desc">Confronto locale con la tua ultima generazione.</string>
+    <string name="book_regen_status_intact">INTEGRO</string>
+    <string name="book_regen_status_rework">DA RIELABORARE</string>
+    <string name="book_regen_dashboard_chapter_status">CAPITOLO %1$d · %2$s</string>
+    <string name="book_regen_dashboard_orphan_title">Ricordi non ancora in un capitolo (%1$d)</string>
+    <string name="book_regen_dashboard_warning_full">Il pulsante sottostante riscrive TUTTI i capitoli.</string>
+    <string name="book_regen_dashboard_btn_regenerate">Riscrivi tutto il libro ora</string>
+
+    <string name="book_generating_moments">Potrebbe richiedere qualche istante...</string>
+
+    <string name="book_ai_explanation_title">Ritocchi vs Riscrittura</string>
+    <string name="book_ai_explanation_edit_chapter_title">Modifica un capitolo</string>
+    <string name="book_ai_explanation_edit_chapter_desc">L\'azione \'Chiedi all\'IA\' modifica SOLO quel capitolo.</string>
+    <string name="book_ai_explanation_regen_book_title">Rigenera il libro</string>
+    <string name="book_ai_explanation_regen_book_desc">Il pulsante \'Rigenera\' riavvia la scrittura di TUTTI i capitoli.</string>
+    <string name="book_ai_explanation_btn_clear">È molto chiaro</string>
+
+    <string name="book_onboarding_title">Come l\'IA scrive la tua vita</string>
+    <string name="book_onboarding_chrono_title">Rispetto della tua cronologia</string>
+    <string name="book_onboarding_chrono_desc">Ogni ricordo è ordinato per età.</string>
+    <string name="book_onboarding_chars_title">Riconoscimento dei personaggi</string>
+    <string name="book_onboarding_chars_desc">L\'IA identifica i tuoi cari.</string>
+    <string name="book_onboarding_narration_title">Una narrazione personalizzata</string>
+    <string name="book_onboarding_narration_desc">L\'IA redige in prima persona (\'Io\').</string>
+    <string name="book_onboarding_advice_title">💡 Consiglio del Biografo</string>
+    <string name="book_onboarding_advice_content">Più i tuoi ricordi sono dettagliati, più il racconto dell\'IA sarà preciso.</string>
+    <string name="book_onboarding_btn_understood">Ho capito</string>
+
+    <string name="book_tone_poetic">Poetico</string>
+    <string name="book_tone_factual">Fattuale</string>
+    <string name="book_tone_warm">Caloroso</string>
+    <string name="book_tone_nostalgic">Nostalgico</string>
+
+    <!-- Questions Batch A (Navigation & Cards) -->
+    <string name="questions_title">Le 100 Domande</string>
+    <string name="questions_progress_all_answered">Tutte le tue storie sono raccontate.</string>
+    <string name="questions_progress_count">%1$d / %2$d domande raccontate</string>
+    <string name="questions_info_title">Le 120 Domande</string>
+    <string name="questions_info_p1">120 domande organizzate in 16 categorie per raccontare la tua vita in profondità.</string>
+    <string name="questions_info_p2">Rispondi a quelle che ti toccano — ignora le altre.</string>
+    <string name="questions_info_p3">Ogni risposta è un ricordo normale, classificato e protetto.</string>
+    <string name="questions_info_p4">Un badge ✓ appare sulle domande a cui hai già risposto.</string>
+    <string name="questions_info_p5">Il contatore in alto mostra i tuoi progressi globali.</string>
+    <string name="questions_custom_empty">Nessuna domanda personalizzata.</string>
+    <string name="questions_status_answered">✓ Risposto</string>
+    <string name="questions_custom_no_question">Senza domanda</string>
+    <string name="questions_custom_hint_label">Indizio: %1$s</string>
+    <string name="questions_custom_delete_desc">Elimina</string>
+    <string name="questions_custom_edit_desc">Modifica</string>
+    <string name="questions_btn_answer">Rispondi</string>
+    <string name="questions_btn_edit_answer">Modifica la mia risposta</string>
+    <string name="questions_info_title_simple">Le Domande</string>
+    <string name="questions_info_p1_simple">Oltre 100 domande per raccontare la tua vita in profondità.</string>
+    <string name="questions_info_p2_simple">Ogni risposta è un ricordo sigillato, pronto per essere trasmesso.</string>
+    <string name="questions_info_p3_simple">Un badge ✓ appare sulle domande già trattate.</string>
+    <string name="questions_info_p4_simple">Rispondi al tuo ritmo, categoria per categoria.</string>
+    <string name="questions_btn_illustrate">Illustra la mia risposta</string>
+    <string name="questions_answer_placeholder">Deposita le tue parole qui...</string>
+    <string name="questions_btn_seal">Sigilla la mia risposta</string>
+
+    <!-- Questions Batch B (Saisie & Dialogues) -->
+    <string name="questions_answer_title">La Mia Risposta</string>
+    <string name="questions_error_not_found">Domanda non trovata</string>
+    <string name="questions_btn_save">Salva</string>
+    <string name="questions_custom_dialog_title_new">Nuova domanda</string>
+    <string name="questions_custom_dialog_title_edit">Modifica la domanda</string>
+    <string name="questions_custom_field_question">La domanda da porre</string>
+    <string name="questions_custom_field_answer">La risposta attesa</string>
+    <string name="questions_custom_field_answer_placeholder_edit">Lascia vuoto per non cambiare</string>
+    <string name="questions_custom_field_answer_placeholder_new">Es: Roma</string>
+    <string name="questions_custom_field_hint">Indizio (opzionale)</string>
+    <string name="questions_custom_section_story">IL RACCONTO DA SBLOCCARE</string>
+    <string name="questions_custom_story_placeholder">Racconta qui la vera storia...</string>
+    <string name="questions_custom_section_recipients">DESTINATARI</string>
+    <string name="questions_custom_btn_change_photo">Cambia immagine</string>
+    <string name="questions_custom_btn_add_photo">Aggiungi una foto</string>
+    <string name="questions_btn_cancel">Annulla</string>
+    <string name="questions_pending_title">Domande in attesa</string>
+    <string name="questions_pending_info_title">Domande in Attesa</string>
+    <string name="questions_pending_info_p1">Queste sono le domande che ti hanno posto i tuoi cari.</string>
+    <string name="questions_pending_info_p2">Hai tre opzioni: rispondere, rifiutare consapevolmente o lasciare in attesa.</string>
+    <string name="questions_pending_info_p3">Se rifiuti, puoi lasciare una breve nota.</string>
+    <string name="questions_pending_info_p4">Le risposte verranno trasmesse dopo l\'attivazione del protocollo.</string>
+    <string name="questions_pending_info_p5">Scegli per ogni caro se ha il diritto di farti domande.</string>
+    <string name="questions_pending_count">%1$d domande da %2$d persone</string>
+    <string name="questions_pending_empty">Nessuna domanda in attesa</string>
+    <string name="questions_status_pending">Nuova</string>
+    <string name="questions_status_answered_pending">Risposta</string>
+    <string name="questions_status_declined">Rifiutata</string>
+    <string name="questions_pending_btn_answer_now">✍️ Rispondi ora</string>
+    <string name="questions_pending_btn_decline">🤐 Non desidero rispondere</string>
+    <string name="questions_pending_btn_later">Lascia in attesa</string>
+    <string name="questions_pending_decline_note_info">Puoi aggiungere una breve nota (opzionale).</string>
+    <string name="questions_pending_decline_note_placeholder">Es: Alcune cose devono rimanere solo per me.</string>
+    <string name="questions_pending_btn_confirm_decline">Conferma questa scelta</string>
+    <string name="questions_pending_btn_back">Indietro</string>
+    <string name="questions_date_format">dd MMMM yyyy</string>
+
+    <!-- Questions Batch C (Data & Leaderboard) -->
+    <string name="questions_leaderboard_title">Classifica Indovinelli</string>
+    <string name="questions_leaderboard_empty">Nessuno ha ancora indovinato le domande.</string>
+    <string name="questions_leaderboard_correct_answers">%1$d risposte corrette</string>
+    <string name="questions_error_load_answers">Errore durante il caricamento delle risposte: %1$s</string>
+    <string name="questions_error_save">Errore durante il salvataggio: %1$s</string>
+    <string name="questions_error_decrypt">Decrittografia non riuscita</string>
+    <string name="questions_error_firestore_fallback">Errore fallback Firestore</string>
+    <string name="questions_error_custom_save">Errore salvataggio domanda personalizzata</string>
+    <string name="questions_error_delete_photo">Errore eliminazione foto</string>
+
+    <!-- 150 Questions -->
+    <string name="question_text_e1">Qual è il tuo ricordo più vecchio?</string>
+    <string name="question_text_e2">Quale odore ti ricorda la casa della tua infanzia?</string>
+    <string name="question_text_e3">Chi era il tuo eroe da piccolo/a?</string>
+    <string name="question_text_e4">Qual era il tuo giocattolo preferito?</string>
+    <string name="question_text_e5">Com\'era la tua cameretta da bambino/a?</string>
+    <string name="question_text_e6">Qual era la tua paura più grande da piccolo/a?</string>
+    <string name="question_text_e7">Qual è il regalo più bello che hai ricevuto da bambino/a?</string>
+    <string name="question_text_e8">Che tipo di studente eri a scuola?</string>
+    <string name="question_text_e9">Qual è il primo lavoro che hai sognato di fare?</string>
+    <string name="question_text_e10">Che sapore ha la tua infanzia?</string>
+
+    <string name="question_text_f1">Cosa ti ha trasmesso tuo padre che porti ancora dentro?</string>
+    <string name="question_text_f2">Qual è il miglior consiglio che ti ha dato tua madre?</string>
+    <string name="question_text_f3">Qual è il tuo ricordo di famiglia più felice?</string>
+    <string name="question_text_f4">C\'è una tradizione di famiglia che custosisci con cura?</string>
+    <string name="question_text_f5">A chi assomigli di più nella tua famiglia?</string>
+    <string name="question_text_f6">Qual è stata la prova più grande per la tua famiglia?</string>
+    <string name="question_text_f7">Cosa vorresti dire ai tuoi antenati se li vedessi?</string>
+    <string name="question_text_f8">Quale membro della tua famiglia ti ha ispirato di più?</string>
+    <string name="question_text_f9">Quale storia di famiglia racconti sempre?</string>
+    <string name="question_text_f10">Cosa significa \'famiglia\' per te oggi?</string>
+
+    <string name="question_text_a1">Ti ricordi del tuo primo amore?</string>
+    <string name="question_text_a2">Cosa ti ha fatto innamorare la prima volta?</string>
+    <string name="question_text_a3">Qual è la più bella dimostrazione d\'amore ricevuta?</string>
+    <string name="question_text_a4">Credi al colpo di fulmine?</string>
+    <string name="question_text_a5">Quale canzone ti ricorda una persona amata?</string>
+    <string name="question_text_a6">Cosa hai imparato sull\'amore con il tempo?</string>
+    <string name="question_text_a7">Quale sacrificio hai fatto per amore?</string>
+    <string name="question_text_a8">Qual è la definizione di una coppia felice secondo te?</string>
+    <string name="question_text_a9">Hai mai avuto il cuore spezzato? Come sei guarito/a?</string>
+    <string name="question_text_a10">Che traccia ha lasciato l\'amore sulla tua vita?</string>
+
+    <string name="question_text_am1">Chi è stato il tuo amico / la tua amica più fedele e perché?</string>
+    <string name="question_text_am2">C\'è un\'amicizia che ti rammarichi di aver perso?</string>
+    <string name="question_text_am3">Cos\'è un vero amico secondo te?</string>
+    <string name="question_text_am4">Quale amicizia ti ha sorpreso di più?</string>
+    <string name="question_text_am5">Hai mai tradito un amico / un\'amica? Come vivi questa cosa?</string>
+    <string name="question_text_am6">Chi avrebbe dovuto rimanere nella tua vita più a lungo?</string>
+    <string name="question_text_am7">Cosa vedono i tuoi amici in te che tu non vedi?</string>
+    <string name="question_text_am8">C\'è qualcuno a cui devi delle scuse?</string>
+    <string name="question_text_am9">Quale amicizia ti ha cambiato/a profondamente?</string>
+    <string name="question_text_am10">Se potessi ritrovare qualcuno, chi sarebbe?</string>
+
+    <string name="question_text_t1">Qual è stato il tuo primissimo lavoro?</string>
+    <string name="question_text_t2">Qual è il tuo più grande orgoglio professionale?</string>
+    <string name="question_text_t3">Hai mai avuto voglia di mollare tutto?</string>
+    <string name="question_text_t4">Quale capo o collega ti ha colpito di più?</string>
+    <string name="question_text_t5">Quale competenza ci hai messo tempo ad acquisire?</string>
+    <string name="question_text_t6">Quale fallimento professionale ti ha fatto alla fine crescere?</string>
+    <string name="question_text_t7">Lavorare è per te un dovere o un piacere?</string>
+    <string name="question_text_t8">Quale atmosfera da ufficio ti manca?</string>
+    <string name="question_text_t9">Quale sogno di carriera non hai realizzato?</string>
+    <string name="question_text_t10">Che consiglio daresti a un principiante oggi?</string>
+
+    <string name="question_text_ar1">Qual è il tuo più grande successo finanziario o professionale?</string>
+    <string name="question_text_ar2">Hai mai perso tutto? Come ti sei rialzato/a?</string>
+    <string name="question_text_ar3">Il denaro ti ha reso più felice?</string>
+    <string name="question_text_ar4">Cosa hai sacrificato per avere successo?</string>
+    <string name="question_text_ar5">Se potessi ricominciare tutto da capo professionalmente?</string>
+    <string name="question_text_ar6">Cosa significa davvero per te il successo?</string>
+    <string name="question_text_ar7">Hai mai fatto qualcosa di cui non vai fiero/a per soldi?</string>
+    <string name="question_text_ar8">Quale lezione finanziaria avresti voluto imparare prima?</string>
+    <string name="question_text_ar9">Cosa lasci come eredità professionale?</string>
+    <string name="question_text_ar10">Cosa non ti sei mai potuto/a permettere e che desideravi?</string>
+
+    <string name="question_text_v1">Qual è il valore più importante per te?</string>
+    <string name="question_text_v2">Per quale causa potresti lottare?</string>
+    <string name="question_text_v3">Cosa ti fa arrabbiare di più?</string>
+    <string name="question_text_v4">Di cosa sei più orgoglioso/a nel tuo carattere?</string>
+    <string name="question_text_v5">Quale difetto hai imparato ad accettare in te stesso/a?</string>
+    <string name="question_text_v6">Qual è la tua definizione di integrità?</string>
+    <string name="question_text_v7">Qual è l\'atto di coraggio di cui sei più orgoglioso/a?</string>
+    <string name="question_text_v8">A cosa non potresti mai rinunciare?</string>
+    <string name="question_text_v9">Cosa significa \'essere una brava persona\'?</string>
+    <string name="question_text_v10">Qual è la tua forza interiore più grande?</string>
+
+    <string name="question_text_fs1">Credi in qualcosa di più grande di te?</string>
+    <string name="question_text_fs2">Cosa succede dopo la morte secondo te?</string>
+    <string name="question_text_fs3">Hai avuto un momento di profondo dubbio nella tua fede?</string>
+    <string name="question_text_fs4">C\'è un momento in cui hai sentito una presenza?</string>
+    <string name="question_text_fs5">La morte di una persona cara ha cambiato le tue convinzioni?</string>
+    <string name="question_text_fs6">Cosa dà senso alla tua vita?</string>
+    <string name="question_text_fs7">Hai pregato o meditato? Cosa ti ha portato?</string>
+    <string name="question_text_fs8">Cosa speri di trovare dopo la morte?</string>
+    <string name="question_text_fs9">Ci sono rituali che contano per te?</string>
+    <string name="question_text_fs10">Cosa vorresti che i tuoi cari ricordassero del tuo modo di vedere la vita?</string>
+
+    <string name="question_text_cs1">Quale prova fisica ti ha segnato/a di più?</string>
+    <string name="question_text_cs2">Hai vissuto una malattia grave? Come l\'hai affrontata?</string>
+    <string name="question_text_cs3">Che rapporto hai avuto con il tuo corpo nel corso degli anni?</string>
+    <string name="question_text_cs4">C\'è qualcosa che avresti dovuto fare prima per prenderti cura di te?</string>
+    <string name="question_text_cs5">Il dolore ti ha insegnato qualcosa?</string>
+    <string name="question_text_cs6">Hai avuto paura di morire? Quando?</string>
+    <string name="question_text_cs7">Cosa ha sopportato il tuo corpo che nessuno sa?</string>
+    <string name="question_text_cs8">Come ha cambiato la tua salute il tuo modo di vivere?</string>
+    <string name="question_text_cs9">C\'è qualcosa che avresti voluto fare fisicamente e che non hai potuto?</string>
+    <string name="question_text_cs10">Cosa vorresti dire al tuo corpo?</string>
+
+    <string name="question_text_r1">Qual è il tuo rimpianto più grande?</string>
+    <string name="question_text_r2">Se potessi tornare indietro, cosa cambieresti?</string>
+    <string name="question_text_r3">Quale opportunità ti sei lasciato/a sfuggire?</string>
+    <string name="question_text_r4">C\'è una parola che avresti voluto rimangiarti?</string>
+    <string name="question_text_r5">A chi non hai detto \'ti voglio bene\' abbastanza spesso?</string>
+    <string name="question_text_r6">Quale decisione ha cambiato il corso della tua vita?</string>
+    <string name="question_text_r7">Di cosa non vai fiero/a?</string>
+    <string name="question_text_r8">Hai rimorsi verso qualcuno?</string>
+    <string name="question_text_r9">Cosa faresti diversamente se l\'avessi saputo?</string>
+    <string name="question_text_r10">Come vivi con i tuoi rimpianti oggi?</string>
+
+    <string name="question_text_re1">Qual è il tuo sogno più grande realizzato?</string>
+    <string name="question_text_re2">Dove sogneresti di vivere?</string>
+    <string name="question_text_re3">Quale sogno d\'infanzia hai abbandonato?</string>
+    <string name="question_text_re4">Cosa ti fa ancora sognare oggi?</string>
+    <string name="question_text_re5">Se non avessi limiti, cosa faresti?</string>
+    <string name="question_text_re6">Qual è il sogno più folle che hai fatto?</string>
+    <string name="question_text_re7">Come sarebbe la tua giornata ideale?</string>
+    <string name="question_text_re8">Quale avventura vorresti ancora vivere?</string>
+    <string name="question_text_re9">Chi avresti voluto incontrare?</string>
+    <string name="question_text_re10">Che messaggio ti hanno lasciato i tuoi sogni?</string>
+
+    <string name="question_text_vl1">Quale viaggio ha cambiato qualcosa in te?</string>
+    <string name="question_text_vl2">C\'è un posto dove ti senti davvero te stesso/a?</string>
+    <string name="question_text_vl3">Quale luogo vorresti aver visto prima di morire?</string>
+    <string name="question_text_vl4">Un viaggio che ti rammarichi di non aver fatto?</string>
+    <string name="question_text_vl5">Quale posto nel mondo ti manca?</string>
+    <string name="question_text_vl6">C\'è un luogo legato a un ricordo doloroso?</string>
+    <string name="question_text_vl7">Quale paese ti ha sorpreso/a di più?</string>
+    <string name="question_text_vl8">Se potessi vivere altrove, dove sarebbe?</string>
+    <string name="question_text_vl9">Quale viaggio hai fatto da solo/a e cosa ti ha insegnato?</string>
+    <string name="question_text_vl10">C\'è un posto della tua infanzia che vorresti rivedere?</string>
+
+    <string name="question_text_cp1">Cosa hai creato di cui sei più orgoglioso/a?</string>
+    <string name="question_text_cp2">C\'è un talento che non hai mai sviluppato?</string>
+    <string name="question_text_cp3">Quale passione hai abbandonato e perché?</string>
+    <string name="question_text_cp4">Cosa ti mette in uno stato di totale coinvolgimento (flow)?</string>
+    <string name="question_text_cp5">Hai un\'opera — libro, musica, arte — che ti ha cambiato/a?</string>
+    <string name="question_text_cp6">Se fossi stato/a un artista, cosa avresti creato?</string>
+    <string name="question_text_cp7">C\'è qualcosa che fai solo per te, senza che nessuno lo sappia?</string>
+    <string name="question_text_cp8">Quale passione vorresti trasmettere?</string>
+    <string name="question_text_cp9">Hai mai creato qualcosa e poi fermato tutto?</string>
+    <string name="question_text_cp10">Cosa avresti voluto imparare a fare?</string>
+
+    <string name="question_text_sa1">C\'è qualcosa che non hai detto a nessuno?</string>
+    <string name="question_text_sa2">Hai custodito un segreto per tutta la vita? Quale?</string>
+    <string name="question_text_sa3">C\'è qualcosa che hai fatto e di cui non hai mai parlato?</string>
+    <string name="question_text_sa4">Cosa avresti voluto confessare a qualcuno prima che fosse troppo tardi?</string>
+    <string name="question_text_sa5">C\'è una verità su di te che i tuoi cari non conoscono?</string>
+    <string name="question_text_sa6">Hai avuto una vita segreta — anche piccola — che nessuno sospetta?</string>
+    <string name="question_text_sa7">Cosa hai sempre voluto dire ma non hai mai osato?</string>
+    <string name="question_text_sa8">C\'è qualcosa di cui ti vergogni e che porti da solo/a?</string>
+    <string name="question_text_sa9">Una confessione che faresti se sapessi che nessuno ti giudicherebbe?</string>
+    <string name="question_text_sa10">Cosa porteresti come segreto nella tomba?</string>
+
+    <string name="question_text_s1">Qual è la lezione più dura che la vita ti ha insegnato?</string>
+    <string name="question_text_s2">Come è cambiato il tuo sguardo sul mondo con l\'età?</string>
+    <string name="question_text_s3">Cosa diresti al giovane uomo / alla giovane donna che eri?</string>
+    <string name="question_text_s4">Cosa è essenziale per essere felici, secondo te?</string>
+    <string name="question_text_s5">Qual è il segreto di una vita piena?</string>
+    <string name="question_text_s6">Come vorresti essere ricordato/a?</string>
+    <string name="question_text_s7">Cosa non hai più paura di perdere oggi?</string>
+    <string name="question_text_s8">Se dovessi riassumere la tua vita in una frase?</string>
+    <string name="question_text_s9">Qual è la tua definizione di pace?</string>
+    <string name="question_text_s10">Cosa lasci di più prezioso dietro di te?</string>
+    <string-array name="portrait_questions">
+        <item>Quale tratto del carattere ammiri di più in questa persona?</item>
+        <item>Quale ricordo vi lega più fortemente?</item>
+        <item>Cosa potrebbe non sapere di se stessa?</item>
+        <item>Come è cambiata da quando la conosci?</item>
+        <item>Cosa vuoi che sappia su come la vedi?</item>
+        <item>Qual è la prima cosa che ti viene in mente quando pensi a lei?</item>
+        <item>Quale grande sfida avete superato insieme?</item>
+        <item>Quale qualità vorresti prenderle in prestito?</item>
+        <item>Quale luogo simboleggia meglio la vostra relazione?</item>
+        <item>Quale canzone o film ti fa pensare istantaneamente a lei?</item>
+        <item>Quale suo consiglio ha segnato la tua traiettoria?</item>
+        <item>Come descriveresti la sua risata o la sua gioia?</item>
+        <item>Qual è la più grande prova di attaccamento che ti ha dato?</item>
+        <item>Se dovesse rimanere una sola sua immagine, quale sarebbe?</item>
+        <item>Cosa la rende unica in mezzo a mille persone?</item>
+        <item>Qual è il suo talento nascosto che pochi vedono?</item>
+        <item>Come ha influenzato la tua visione della vita?</item>
+        <item>Quale segreto o confidenza condivisa vi ha avvicinato?</item>
+        <item>Cosa vorresti dirle se aveste entrambi 100 anni?</item>
+        <item>Quale traccia pensi che lascerà nel cuore delle persone?</item>
+    </string-array>
+
+    <string-array name="rankings_items_music">
+        <item>Musicisti preferiti</item>
+        <item>Cantanti preferite</item>
+        <item>Album preferiti</item>
+        <item>Canzoni preferite</item>
+        <item>Testi più belli</item>
+        <item>Assoli di chitarra più belli</item>
+        <item>Concerti indimenticabili</item>
+    </string-array>
+
+    <string-array name="rankings_items_cinema">
+        <item>Film preferiti</item>
+        <item>Attori preferiti</item>
+        <item>Attrici preferite</item>
+        <item>Registi preferiti</item>
+        <item>Scene cult</item>
+        <item>Battute cult</item>
+        <item>Serie preferite</item>
+    </string-array>
+
+    <string-array name="rankings_items_literature">
+        <item>Libri preferiti</item>
+        <item>Autori preferiti</item>
+        <item>Citazioni preferite</item>
+        <item>Personaggi di romanzi memorabili</item>
+    </string-array>
+
+    <string-array name="rankings_items_art">
+        <item>Dipinti preferiti</item>
+        <item>Pittori preferiti</item>
+        <item>Sculture preferite</item>
+        <item>Fotografie preferite</item>
+    </string-array>
+
+    <string-array name="rankings_items_travel">
+        <item>Viaggi più belli</item>
+        <item>Paesaggi più belli</item>
+        <item>Città preferite</item>
+        <item>Ricordi di vacanza</item>
+    </string-array>
+
+    <string-array name="rankings_items_personal">
+        <item>Ricordi di vita</item>
+        <item>Persone che hanno contato di più</item>
+        <item>Più grandi orgogli</item>
+        <item>Piatti preferiti</item>
+        <item>Ricette di famiglia</item>
+        <item>Momenti in famiglia</item>
+    </string-array>
+
+    <string-array name="rankings_items_sport">
+        <item>Sportivi preferiti</item>
+        <item>Partite indimenticabili</item>
+        <item>Momenti sportivi preferiti</item>
+    </string-array>
+</resources>
