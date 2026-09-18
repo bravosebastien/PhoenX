@@ -217,6 +217,7 @@ sealed class Screen(val route: String) {
     object ProtocolSettings : Screen("settings/protocol")
     object AccessibilitySettings : Screen("settings/accessibility")
     object LanguageSettings : Screen("settings/language")
+    object LegacyVideoSettings : Screen("settings/legacy_video")
     object NotificationContacts : Screen("notification_contacts")
     object Genealogy : Screen("genealogy?creatorId={creatorId}") {
         fun createRoute(creatorId: String? = null) = 

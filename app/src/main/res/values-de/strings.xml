@@ -769,7 +769,7 @@
     <string name="profile_section_danger_zone">GEFAHRENZONE</string>
     <string name="profile_button_suspend">Mein Konto pausieren</string>
     <string name="profile_button_delete">Mein Konto endgültig löschen</string>
-    <string name="profile_button_back">Zurück zu den Einstellungen</string>
+    <string name="profile_button_back">Zurück</string>
     <string name="profile_dialog_edit_name_title">Meinen Namen ändern</string>
     <string name="profile_dialog_edit_name_label">Anzeigename</string>
     <string name="profile_dialog_edit_name_confirm">Speichern</string>

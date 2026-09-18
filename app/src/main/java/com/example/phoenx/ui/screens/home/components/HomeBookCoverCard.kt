@@ -41,7 +41,11 @@ fun BookCoverCard(
     // v9.4.19 : Prise en charge du cadrage
     scale: Float = 1f,
     offsetX: Float = 0f,
-    offsetY: Float = 0f
+    offsetY: Float = 0f,
+    // v12.5 : Support de déchiffrement explicite (Héritier)
+    explicitKey: ByteArray? = null,
+    // v12.5 : Taille personnalisable pour intégration en grille
+    isCompact: Boolean = false
 ) {
     val accent = theme.accentColor
     val context = LocalContext.current
@@ -57,11 +61,11 @@ fun BookCoverCard(
     var displayUrl by remember { mutableStateOf<String?>(null) }
     val finalCoverUrl = coverImageUrl ?: defaultCoverUrl
 
-    LaunchedEffect(finalCoverUrl) {
+    LaunchedEffect(finalCoverUrl, explicitKey) {
         if (finalCoverUrl == null) {
             displayUrl = null
         } else {
-            val resolved = mediaManager.getSafeUrl(finalCoverUrl)
+            val resolved = mediaManager.getSafeUrl(finalCoverUrl, explicitKey)
             // v9.4.19 : On ne met à jour displayUrl que si la résolution réussit,
             // évitant de repasser par null (flicker) si les données Firestore changent.
             if (resolved != null) {
@@ -82,29 +86,30 @@ fun BookCoverCard(
 
     Column(
         modifier = Modifier
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = if (isCompact) 0.dp else 12.dp, vertical = if (isCompact) 0.dp else 8.dp)
             .fillMaxWidth()
     ) {
-        Text(
-            stringResource(R.string.home_book_title),
-            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
-            color = theme.contentColor.copy(alpha = 0.4f),
-            modifier = Modifier.padding(start = 2.dp, bottom = 8.dp)
-        )
+        if (!isCompact) {
+            Text(
+                stringResource(R.string.home_book_title),
+                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
+                color = theme.contentColor.copy(alpha = 0.4f),
+                modifier = Modifier.padding(start = 2.dp, bottom = 8.dp)
+            )
+        }
         
         Card(
             onClick = onClick,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .width(180.dp)
-                .aspectRatio(0.72f)
+                .then(if (isCompact) Modifier.fillMaxSize() else Modifier.width(180.dp).aspectRatio(0.72f))
                 .shadow(
-                    elevation = 14.dp,
-                    shape = RoundedCornerShape(14.dp),
+                    elevation = if (isCompact) 4.dp else 14.dp,
+                    shape = RoundedCornerShape(if (isCompact) 8.dp else 14.dp),
                     spotColor = accent.copy(alpha = 0.5f),
                     ambientColor = accent.copy(alpha = 0.3f)
                 ),
-            shape = RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(if (isCompact) 8.dp else 14.dp),
             colors = CardDefaults.cardColors(containerColor = theme.backgroundColor),
             border = BorderStroke(0.8.dp, accent.copy(alpha = 0.6f))
         ) {

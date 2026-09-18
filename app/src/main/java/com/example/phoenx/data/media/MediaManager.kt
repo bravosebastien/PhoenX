@@ -274,6 +274,24 @@ class MediaManager @Inject constructor(
     }
 
     /**
+     * Uploade la vidéo de présentation de l'héritage (une seule par Créateur, publique à
+     * tous les Destinataires une fois l'héritage activé). Fichier non chiffré, à l'image des
+     * portraits Cameo : elle doit pouvoir être diffusée en streaming direct (jusqu'à 5 minutes)
+     * sans passer par un téléchargement + déchiffrement complet côté Destinataire.
+     * Retourne le CHEMIN Storage.
+     */
+    suspend fun uploadLegacyVideo(userId: String, localFile: File): String {
+        val storageRef = storage.reference
+            .child("users")
+            .child(userId)
+            .child("legacy_video")
+            .child("main.mp4")
+
+        storageRef.putFile(android.net.Uri.fromFile(localFile)).await()
+        return storageRef.path.removePrefix("/")
+    }
+
+    /**
      * Télécharge un portrait Cameo depuis Storage (v9.4.17).
      */
     suspend fun downloadCameo(pathOrUrl: String, destFile: File) {

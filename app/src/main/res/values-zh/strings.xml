@@ -769,7 +769,7 @@
     <string name="profile_section_danger_zone">危险区域</string>
     <string name="profile_button_suspend">暂停我的账户</string>
     <string name="profile_button_delete">永久删除我的账户</string>
-    <string name="profile_button_back">返回设置</string>
+    <string name="profile_button_back">返回</string>
     <string name="profile_dialog_edit_name_title">修改我的名字</string>
     <string name="profile_dialog_edit_name_label">用户名</string>
     <string name="profile_dialog_edit_name_confirm">保存</string>

@@ -67,7 +67,7 @@ fun EncounterDetailScreen(
 
     // Chargement des médias et statistiques (v9.6.6 : Passage en Flow réactif)
     android.util.Log.d("PHX_MEDIA_DEBUG", "EncounterDetailScreen COMPOSABLE: personId=$personId")
-    val personMedia by viewModel.getMediaForPerson(personId).collectAsState(initial = emptyList())
+    val personMedia by viewModel.getMediaForPerson(personId, targetCreatorId).collectAsState(initial = emptyList())
     
     LaunchedEffect(personMedia) {
         android.util.Log.d("PHX_MEDIA_DEBUG", "EncounterDetailScreen personMedia EMIT: size=${personMedia.size}, ids=${personMedia.map { it.id }}")

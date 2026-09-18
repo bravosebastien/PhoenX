@@ -1,19 +1,22 @@
 package com.example.phoenx.ui.screens.recipient
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material3.*
@@ -21,11 +24,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Brush
+import coil3.compose.AsyncImage
 import androidx.navigation.NavController
 import com.example.phoenx.R
 import com.example.phoenx.domain.model.EntryType
@@ -59,7 +64,6 @@ fun HeirHeritageScreen(
 ) {
     val heritageEntries by viewModel.heritageEntries.collectAsState()
     val heirKey by viewModel.heirKey.collectAsState()
-    val bookMessage by viewModel.bookSealedMessage.collectAsState()
     val bookTitle by viewModel.bookTitle.collectAsState()
     val creatorName by viewModel.creatorName.collectAsState()
     val protocolStatus by viewModel.protocolStatus.collectAsState()
@@ -68,6 +72,8 @@ fun HeirHeritageScreen(
     val questionsAsked by viewModel.questionsAsked.collectAsState()
     val recipientId by viewModel.recipientId.collectAsState()
     val ambiance by viewModel.ambiance.collectAsState()
+    val isMirrorRevealed by viewModel.isMirrorRevealed.collectAsState()
+    val mirrorId by viewModel.mirrorId.collectAsState()
 
     // v12.4 : Visuels réutilisés depuis l'accueil du Créateur
     val bookCoverImageUrl by viewModel.bookCoverImageUrl.collectAsState()
@@ -79,13 +85,13 @@ fun HeirHeritageScreen(
     val genealogyCardImageUrl by viewModel.genealogyCardImageUrl.collectAsState()
     val encountersCardImageUrl by viewModel.encountersCardImageUrl.collectAsState()
     val earthTextureUrl by viewModel.earthTextureUrl.collectAsState()
+    val legacyVideoUrl by viewModel.legacyVideoUrl.collectAsState()
 
     // v12.4 : La liste à plat des souvenirs est maintenant repliée derrière une tuile "Liste de souvenirs"
     var showSouvenirsList by remember { mutableStateOf(false) }
 
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
-    val backgroundBrush = LocalBackgroundBrush.current
     val context = LocalContext.current
 
     LaunchedEffect(creatorId) {
@@ -102,18 +108,11 @@ fun HeirHeritageScreen(
             topBar = {
                 TopAppBar(
                     title = {
-                        Column {
-                            Text(
-                                stringResource(R.string.heir_heritage_screen_title),
-                                style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
-                                color = theme.contentColor
-                            )
-                            Text(
-                                "BUILD-DEBUG-v9427-fix3",
-                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, color = accent),
-                                modifier = Modifier.padding(start = 2.dp)
-                            )
-                        }
+                        Text(
+                            stringResource(R.string.heir_heritage_screen_title),
+                            style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
+                            color = theme.contentColor
+                        )
                     },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
@@ -150,130 +149,171 @@ fun HeirHeritageScreen(
                     .padding(padding),
                 contentPadding = PaddingValues(bottom = 32.dp)
             ) {
-                item {
-                    Text(
-                        text = stringResource(R.string.heir_heritage_souvenirs_destined, heritageEntries.size),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = theme.contentColor.copy(alpha = 0.4f),
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-                    )
+                // 0. VIDÉO DE PRÉSENTATION DE L'HÉRITAGE (v12.6) — n'apparaît que si le Créateur en a déposé une
+                if (legacyVideoUrl != null) {
+                    item {
+                        com.example.phoenx.ui.components.VideoPlayerBanner(
+                            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
+                            overrideVideoUrl = legacyVideoUrl,
+                            onDismiss = {}
+                        )
+                    }
                 }
 
-                // BANDEAU LIVRE (v12.4 : sorti de la grille, en grand format, même visuel que côté Créateur)
+                // 1. LES PILIERS DE L'HÉRITAGE (v12.5 : Grille 2x2 Harmonisée - Point 2 & 3)
                 item {
-                    BookCoverCard(
-                        title = bookTitle ?: stringResource(R.string.heir_heritage_special_book_fallback),
-                        chaptersCount = 0,
-                        coverImageUrl = bookCoverImageUrl,
-                        defaultCoverUrl = defaultBookCoverUrl,
-                        coverTitleStyle = bookCoverTitleStyle,
-                        scale = bookCoverScale,
-                        offsetX = bookCoverOffsetX,
-                        offsetY = bookCoverOffsetY,
+                    Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            // MAPPEMONDE
+                            HeritageMainCard(
+                                title = stringResource(R.string.heir_heritage_main_map),
+                                modifier = Modifier.weight(1f),
+                                theme = theme,
+                                content = {
+                                    AnimatedEarthCard(
+                                        textureUrl = earthTextureUrl,
+                                        onClick = { navController.navigate(Screen.Map.createRoute(targetCreatorId = creatorId)) },
+                                        theme = theme
+                                    )
+                                }
+                            ) { navController.navigate(Screen.Map.createRoute(targetCreatorId = creatorId)) }
+                            
+                            // GÉNÉALOGIE
+                            HeritageMainCard(
+                                title = stringResource(R.string.heir_heritage_main_tree),
+                                modifier = Modifier.weight(1f),
+                                theme = theme,
+                                content = {
+                                    if (genealogyCardImageUrl != null) {
+                                        AsyncImage(
+                                            model = genealogyCardImageUrl,
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            ) { navController.navigate(Screen.Genealogy.createRoute(creatorId)) }
+                        }
+                        
+                        Spacer(Modifier.height(16.dp))
+                        
+                        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            // RENCONTRES
+                            HeritageMainCard(
+                                title = stringResource(R.string.heir_heritage_main_encounters),
+                                modifier = Modifier.weight(1f),
+                                theme = theme,
+                                content = {
+                                    if (encountersCardImageUrl != null) {
+                                        AsyncImage(
+                                            model = encountersCardImageUrl,
+                                            contentDescription = null,
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            ) { navController.navigate(Screen.RecipientEncounters.createRoute(creatorId)) }
+
+                            // LIVRE DE VIE (v12.5 : Intégré dans la grille avec FIX Couverture)
+                            val titleText = bookTitle ?: stringResource(R.string.heir_heritage_book_default_title)
+                            HeritageMainCard(
+                                title = titleText,
+                                modifier = Modifier.weight(1f),
+                                theme = theme,
+                                content = {
+                                    // Utilisation de la version qui gère explicitKey pour le Destinataire
+                                    BookCoverCard(
+                                        title = titleText,
+                                        chaptersCount = 0,
+                                        coverImageUrl = bookCoverImageUrl, // v12.5 : Résolu réactivement dans le VM
+                                        defaultCoverUrl = defaultBookCoverUrl,
+                                        coverTitleStyle = bookCoverTitleStyle,
+                                        scale = bookCoverScale,
+                                        offsetX = bookCoverOffsetX,
+                                        offsetY = bookCoverOffsetY,
+                                        theme = theme,
+                                        explicitKey = heirKey, // Fix critique Bug 1
+                                        isCompact = true,
+                                        onClick = {
+                                            if (protocolStatus == RecipientMediaViewModel.ProtocolStatus.ACTIVATED) {
+                                                navController.navigate(Screen.RecipientLibrary.createRoute(creatorId))
+                                            }
+                                        }
+                                    )
+                                }
+                            ) {
+                                if (protocolStatus == RecipientMediaViewModel.ProtocolStatus.ACTIVATED) {
+                                    navController.navigate(Screen.RecipientLibrary.createRoute(creatorId))
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // 2. LE COFFRET DES SOUVENIRS (v12.5 : Habillage "Coffret Ancien" - Point 1, 2, 3)
+                item {
+                    HeritageCasket(
+                        title = "SOUVENIRS",
+                        isExpanded = showSouvenirsList,
+                        onToggle = { showSouvenirsList = !showSouvenirsList },
                         theme = theme,
-                        onClick = { navController.navigate("book_viewer_recipient?creatorId=$creatorId") }
-                    )
-                    if (protocolStatus != RecipientMediaViewModel.ProtocolStatus.ACTIVATED) {
-                        Text(
-                            text = bookMessage ?: stringResource(R.string.heir_heritage_special_book_subtitle_sealed, creatorName),
-                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                            color = theme.contentColor.copy(alpha = 0.5f),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+                        accent = accent
+                    ) {
+                        // Grille de vignettes rondes (3 colonnes)
+                        data class CasketItem(val label: String, val icon: ImageVector, val onClick: () -> Unit)
+                        val casketItems = listOf(
+                            CasketItem(stringResource(R.string.heir_heritage_special_vault_title), Icons.Outlined.Lock) { navController.navigate(Screen.RecipientDetective.createRoute(creatorId)) },
+                            CasketItem(stringResource(R.string.heir_heritage_special_personalities_title), Icons.Default.Star) { navController.navigate(Screen.Personalities.createRoute(creatorId)) },
+                            CasketItem(stringResource(R.string.heir_heritage_special_photos_title), Icons.Default.PhotoLibrary) { navController.navigate(Screen.RecipientPhotos.createRoute(creatorId)) },
+                            CasketItem(stringResource(R.string.heir_heritage_special_videos_title), Icons.Default.Videocam) { navController.navigate(Screen.RecipientVideotheque.createRoute(creatorId)) },
+                            CasketItem(stringResource(R.string.heir_heritage_special_audios_title), Icons.Default.MusicNote) { navController.navigate(Screen.RecipientDiscotheque.createRoute(creatorId)) },
+                            CasketItem(stringResource(R.string.questions_title), Icons.Default.QuestionAnswer) { navController.navigate(Screen.HundredQuestionsLeaderboard.createRoute(creatorId)) },
+                            CasketItem(stringResource(R.string.library_mes_classements), Icons.Default.FormatListNumbered) { navController.navigate(Screen.Rankings.createRoute(creatorId)) },
+                            CasketItem(stringResource(R.string.library_capsule_temporelle), Icons.Default.MailOutline) { navController.navigate("lettres") }
                         )
+
+                        // Si Miroir révélé, on l'ajoute
+                        val finalItems = if (isMirrorRevealed) {
+                            casketItems + CasketItem(stringResource(R.string.heir_heritage_special_mirror_title), Icons.Default.People) { 
+                                mirrorId?.let { navController.navigate(Screen.RecipientPact.createRoute(it)) }
+                            }
+                        } else casketItems
+
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            finalItems.chunked(3).forEach { rowItems ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    rowItems.forEach { item ->
+                                        CasketThumbnail(
+                                            label = item.label,
+                                            icon = item.icon,
+                                            onClick = item.onClick,
+                                            theme = theme,
+                                            accent = accent,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    // Compléter la ligne si nécessaire
+                                    repeat(3 - rowItems.size) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // LISTE DES SOUVENIRS (v12.4 : repliée par défaut, dépliée via le coffret)
+                if (showSouvenirsList) {
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f), modifier = Modifier.padding(horizontal = 24.dp))
                         Spacer(modifier = Modifier.height(8.dp))
                     }
-                }
-
-                // BANDEAU IMAGES (v12.4 : Arbre, Rencontres, Mappemonde — mêmes visuels que côté Créateur)
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState())
-                            .padding(horizontal = 12.dp)
-                    ) {
-                        Box(modifier = Modifier.width(160.dp)) {
-                            AnimatedEarthCard(
-                                textureUrl = earthTextureUrl,
-                                onClick = { navController.navigate(Screen.Map.createRoute(targetCreatorId = creatorId)) },
-                                theme = theme
-                            )
-                        }
-                        GenealogyCard(
-                            imageUrl = genealogyCardImageUrl,
-                            onClick = { navController.navigate(Screen.Genealogy.createRoute(creatorId)) },
-                            theme = theme
-                        )
-                        EncounterCard(
-                            imageUrl = encountersCardImageUrl,
-                            onClick = { navController.navigate(Screen.RecipientEncounters.createRoute(creatorId)) },
-                            theme = theme
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                // ACCÈS SPÉCIAUX (Coffre, Persos, Photos, Vidéos, Audios, Liste de souvenirs)
-                item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        SpecialAccessCard(
-                            title = stringResource(R.string.heir_heritage_special_vault_title),
-                            icon = Icons.Outlined.Lock,
-                            modifier = Modifier.weight(1f),
-                            theme = theme
-                        ) { navController.navigate(Screen.RecipientDetective.createRoute(creatorId)) }
-                        SpecialAccessCard(
-                            title = stringResource(R.string.heir_heritage_special_personalities_title),
-                            icon = Icons.Default.Star,
-                            modifier = Modifier.weight(1f),
-                            theme = theme
-                        ) { navController.navigate(Screen.Personalities.createRoute(creatorId)) }
-                        SpecialAccessCard(
-                            title = stringResource(R.string.heir_heritage_special_photos_title),
-                            icon = Icons.Default.PhotoLibrary,
-                            modifier = Modifier.weight(1f),
-                            theme = theme
-                        ) { navController.navigate(Screen.RecipientPhotos.createRoute(creatorId)) }
-                    }
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 24.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        SpecialAccessCard(
-                            title = stringResource(R.string.heir_heritage_special_videos_title),
-                            icon = Icons.Default.Videocam,
-                            modifier = Modifier.weight(1f),
-                            theme = theme
-                        ) { navController.navigate(Screen.RecipientVideotheque.createRoute(creatorId)) }
-                        SpecialAccessCard(
-                            title = stringResource(R.string.heir_heritage_special_audios_title),
-                            icon = Icons.Default.MusicNote,
-                            modifier = Modifier.weight(1f),
-                            theme = theme
-                        ) { navController.navigate(Screen.RecipientDiscotheque.createRoute(creatorId)) }
-                        SpecialAccessCard(
-                            title = "Liste de souvenirs", // TODO i18n : ajouter une vraie clé string si le projet gère plusieurs langues
-                            subtitle = stringResource(R.string.heir_heritage_souvenirs_destined, heritageEntries.size),
-                            icon = Icons.Default.List,
-                            modifier = Modifier.weight(1f),
-                            theme = theme
-                        ) { showSouvenirsList = !showSouvenirsList }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f), modifier = Modifier.padding(horizontal = 24.dp))
-                    Spacer(modifier = Modifier.height(8.dp))
-                }
-
-                // LISTE DES SOUVENIRS (v12.4 : repliée par défaut, dépliée via la tuile "Liste de souvenirs")
-                if (showSouvenirsList) {
                     items(heritageEntries) { entry ->
                         HeritageEntryRow(
                             entry = entry,
@@ -310,42 +350,125 @@ fun HeirHeritageScreen(
 }
 
 @Composable
-fun SpecialAccessCard(
+fun HeritageCasket(
     title: String,
-    subtitle: String? = null,
-    icon: ImageVector,
-    modifier: Modifier = Modifier,
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
     theme: AppThemeState,
-    onClick: () -> Unit
+    accent: Color,
+    content: @Composable () -> Unit
 ) {
-    val accent = theme.accentColor
+    val rotation by animateFloatAsState(if (isExpanded) 180f else 0f, label = "chevron")
+
     Surface(
-        onClick = onClick,
-        color = theme.contentColor.copy(alpha = 0.03f),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f)),
-        modifier = modifier.heightIn(min = 80.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = theme.contentColor.copy(alpha = 0.02f),
+        border = BorderStroke(1.2.dp, accent.copy(alpha = 0.4f))
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(icon, null, tint = accent, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(title, style = MaterialTheme.typography.labelSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
-            if (subtitle != null) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                    color = theme.contentColor.copy(alpha = 0.6f),
-                    textAlign = TextAlign.Center,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+        Column {
+            // Header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(64.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(theme.backgroundColor, accent.copy(alpha = 0.12f))
+                        )
+                    )
+                    .clickable { onToggle() }
+                    .padding(horizontal = 20.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Outlined.MenuBook, 
+                        null, 
+                        tint = accent, 
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Text(
+                        text = title.uppercase(),
+                        style = MaterialTheme.typography.titleSmall.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.5.sp
+                        ),
+                        color = theme.contentColor.copy(alpha = 0.8f),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        Icons.Default.ExpandMore,
+                        null,
+                        tint = accent.copy(alpha = 0.6f),
+                        modifier = Modifier
+                            .size(24.dp)
+                            .rotate(rotation)
+                    )
+                }
+                // Bordure basse du header
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(accent.copy(alpha = 0.2f))
                 )
             }
+
+            // Body
+            AnimatedVisibility(visible = isExpanded) {
+                content()
+            }
         }
+    }
+}
+
+@Composable
+fun CasketThumbnail(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    theme: AppThemeState,
+    accent: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.clickable { onClick() },
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(60.dp)
+                .clip(CircleShape)
+                .background(
+                    Brush.radialGradient(
+                        listOf(theme.backgroundColor, accent.copy(alpha = 0.15f))
+                    )
+                )
+                .border(1.dp, accent.copy(alpha = 0.25f), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = accent,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+            color = theme.contentColor.copy(alpha = 0.6f),
+            textAlign = TextAlign.Center,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
     }
 }
 
@@ -417,18 +540,73 @@ fun HeritageEntryRow(
                     color = theme.contentColor.copy(alpha = 0.4f)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                // Aperçu court
-                val preview = String(entry.encryptedContent).take(60) + "..."
+                // Récit tronqué à 4 lignes (Point 2)
                 Text(
-                    text = preview,
-                    style = MaterialTheme.typography.bodySmall,
+                    text = String(entry.encryptedContent),
+                    style = MaterialTheme.typography.bodySmall.copy(lineHeight = 18.sp),
                     color = theme.contentColor.copy(alpha = 0.7f),
-                    maxLines = 1,
+                    maxLines = 4,
                     overflow = TextOverflow.Ellipsis
                 )
             }
 
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.2f))
+        }
+    }
+}
+
+@Composable
+fun HeritageMainCard(
+    title: String,
+    icon: ImageVector? = null,
+    modifier: Modifier = Modifier,
+    theme: AppThemeState,
+    content: @Composable (BoxScope.() -> Unit)? = null,
+    onClick: () -> Unit
+) {
+    val accent = theme.accentColor
+    Card(
+        modifier = modifier
+            .aspectRatio(1f)
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.08f))
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (content != null) {
+                content()
+            } else if (icon != null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Icon(
+                        icon, null, 
+                        tint = accent.copy(alpha = 0.2f), 
+                        modifier = Modifier.size(48.dp)
+                    )
+                }
+            }
+            
+            // Bottom Label
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color.Black.copy(alpha = 0.4f))))
+                    .padding(8.dp),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Text(
+                    text = title.uppercase(),
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Black, 
+                        color = Color.White, 
+                        fontSize = 9.sp,
+                        letterSpacing = 1.sp
+                    ),
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

@@ -14,6 +14,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -152,10 +153,44 @@ class EncounterViewModel @Inject constructor(
     }
 
     /**
-     * Récupère les médias liés à une personne (v9.6.0)
+     * Récupère les médias liés à une personne (v9.6.0).
+     * v9.8.x : Corrigé pour aussi fonctionner en mode Destinataire (targetCreatorId renseigné) :
+     * la table Room locale du Destinataire n'a jamais été synchronisée avec les médias de
+     * Rencontre d'un autre Créateur (contrairement à l'Arbre Généalogique, qui lisait déjà
+     * directement Firestore dans ce cas). On applique ici exactement le même mécanisme que
+     * GenealogyTreeViewModel.getMediaForPerson.
      */
-    fun getMediaForPerson(personId: String): Flow<List<PersonMediaEntity>> {
-        return personMediaDao.getMediaForPerson(personId)
+    fun getMediaForPerson(personId: String, targetCreatorId: String? = null): Flow<List<PersonMediaEntity>> {
+        val currentUid = auth.currentUser?.uid ?: ""
+        return if (targetCreatorId == null || targetCreatorId == currentUid) {
+            personMediaDao.getMediaForPerson(personId)
+        } else {
+            callbackFlow {
+                val listener = db.collection("users").document(targetCreatorId)
+                    .collection("persons").document(personId)
+                    .collection("media")
+                    .addSnapshotListener { snapshot, error ->
+                        if (error != null) {
+                            android.util.Log.e("EncounterVM", "Erreur snapshot media distant: ${error.message}")
+                            return@addSnapshotListener
+                        }
+                        val list = snapshot?.documents?.mapNotNull { doc ->
+                            try {
+                                PersonMediaEntity(
+                                    id = doc.id,
+                                    personId = personId,
+                                    mediaPath = doc.getString("mediaPath") ?: "",
+                                    mediaType = doc.getString("mediaType") ?: "PHOTO",
+                                    thumbnailPath = doc.getString("thumbnailPath"),
+                                    syncStatus = "synced"
+                                )
+                            } catch (e: Exception) { null }
+                        } ?: emptyList()
+                        trySend(list)
+                    }
+                awaitClose { listener.remove() }
+            }
+        }
     }
 
     /**

@@ -769,7 +769,7 @@
     <string name="profile_section_danger_zone">ZONA PERICOLOSA</string>
     <string name="profile_button_suspend">Sospendi il mio account</string>
     <string name="profile_button_delete">Elimina definitivamente il mio account</string>
-    <string name="profile_button_back">Torna alle impostazioni</string>
+    <string name="profile_button_back">Indietro</string>
     <string name="profile_dialog_edit_name_title">Modifica il mio nome</string>
     <string name="profile_dialog_edit_name_label">Nome visibile</string>
     <string name="profile_dialog_edit_name_confirm">Salva</string>

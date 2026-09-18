@@ -56,6 +56,7 @@ import com.example.phoenx.ui.screens.recipient.RecipientPermissionsScreen
 import com.example.phoenx.ui.screens.recipient.RecipientScreen
 import com.example.phoenx.ui.screens.settings.AccessibilitySettingsScreen
 import com.example.phoenx.ui.screens.settings.LanguageSettingsScreen
+import com.example.phoenx.ui.screens.settings.LegacyVideoScreen
 import com.example.phoenx.ui.screens.settings.NotificationContactsScreen
 import com.example.phoenx.ui.screens.settings.ProtocolSettingsScreen
 import com.example.phoenx.ui.screens.settings.SettingsScreen
@@ -451,6 +452,7 @@ fun NavGraphBuilder.creatorGraph(
             onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
             onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
             onNavigateToLanguage = { navController.navigate(Screen.LanguageSettings.route) },
+            onNavigateToLegacyVideo = { navController.navigate(Screen.LegacyVideoSettings.route) },
             onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
             onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) },
             onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
@@ -478,6 +480,12 @@ fun NavGraphBuilder.creatorGraph(
 
     composable(Screen.LanguageSettings.route) {
         LanguageSettingsScreen(
+            onNavigateBack = { navController.popBackStack() }
+        )
+    }
+
+    composable(Screen.LegacyVideoSettings.route) {
+        LegacyVideoScreen(
             onNavigateBack = { navController.popBackStack() }
         )
     }
@@ -712,6 +720,10 @@ fun NavGraphBuilder.creatorGraph(
         val isHeirMode = creatorId != null
         val heirKey = if (isHeirMode) {
             val viewModel: RecipientMediaViewModel = hiltViewModel()
+            // Correctif : sans cet appel, setTargetCreator() n'était jamais déclenché sur cette
+            // instance fraîche et heirKey restait null, empêchant tout déchiffrement des
+            // photos/médias de Rencontre pour un Destinataire arrivant via l'alias EncounterDetail.
+            LaunchedEffect(creatorId) { viewModel.setTargetCreator(creatorId) }
             viewModel.heirKey.collectAsState().value
         } else null
 

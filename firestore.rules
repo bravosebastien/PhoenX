@@ -90,6 +90,17 @@ service cloud.firestore {
         );
       }
 
+      // ═══ VIDÉO DE PRÉSENTATION DE L'HÉRITAGE — un seul document "main", public à tous les Destinataires ═══
+      match /legacyVideo/{docId} {
+        allow write: if request.auth != null && request.auth.uid == userId;
+        allow read: if request.auth != null && (
+          request.auth.uid == userId || (
+            get(/databases/$(database)/documents/users/$(userId)).data.protocolStatus == "activated" &&
+            (userId + '_recipient') in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.myRoles
+          )
+        );
+      }
+
       // ═══ PERSONS — Répertoire ═══
       match /persons/{personId} {
         allow write: if request.auth != null && request.auth.uid == userId;
@@ -163,26 +174,6 @@ service cloud.firestore {
         );
         allow create: if request.auth != null && request.auth.uid == userId;
         allow update, delete: if request.auth != null && request.auth.uid == userId;
-      }
-
-      // ═══ QUIZZES ═══
-      match /quizzes/{quizId} {
-        allow write: if request.auth != null && request.auth.uid == userId;
-        allow read: if request.auth != null && (
-          request.auth.uid == userId || (
-            get(/databases/$(database)/documents/users/$(userId)).data.protocolStatus == "activated" &&
-            (userId + '_recipient') in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.myRoles && (
-              resource.data.get('visibility', 'RESTRICTED') == "EVERYONE" ||
-              request.auth.uid in resource.data.get('recipientIds', [])
-            )
-          )
-        );
-      }
-
-      match /quizResults/{resultId} {
-        allow read: if request.auth != null && (request.auth.uid == userId || request.auth.uid == resource.data.recipientId);
-        allow create: if request.auth != null && request.resource.data.recipientId == request.auth.uid;
-        allow update, delete: if false;
       }
 
       match /guessResults/{resultId} {

@@ -78,8 +78,6 @@ fun RecipientMemoryDetailScreen(
         }
     }
 
-    var showFullStory by remember { mutableStateOf(false) }
-
     Scaffold(
         containerColor = theme.backgroundColor,
         modifier = Modifier.background(backgroundBrush),
@@ -188,69 +186,42 @@ fun RecipientMemoryDetailScreen(
                     }
                 }
 
-                // RÉCIT (Tronqué v9.4.27)
+                // RÉCIT (Plein écran direct v12.5)
                 Column {
                     val récitLabel = if (entry!!.entryType == "QUESTION_ANSWER") stringResource(R.string.recipient_memory_detail_label_response) else stringResource(R.string.recipient_memory_detail_label_story)
-                    Text(récitLabel, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
-                    Spacer(Modifier.height(8.dp))
-                    Surface(
-                        color = theme.contentColor.copy(alpha = 0.03f),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth().clickable { showFullStory = true }
-                    ) {
-                        Text(
-                            text = content.ifBlank { stringResource(R.string.recipient_memory_detail_empty_content) },
-                            modifier = Modifier.padding(20.dp),
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontStyle = if (entry!!.entryType == "QUESTION_ANSWER") FontStyle.Italic else null,
-                                color = if (entry!!.entryType == "QUESTION_ANSWER") accent else theme.contentColor.copy(alpha = 0.8f)
-                            ),
-                            lineHeight = 24.sp,
-                            maxLines = 4,
-                            overflow = TextOverflow.Ellipsis
+                    Text(récitLabel, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold), color = accent.copy(alpha = 0.6f))
+                    Spacer(Modifier.height(12.dp))
+                    
+                    Text(
+                        text = content.ifBlank { stringResource(R.string.recipient_memory_detail_empty_content) },
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontStyle = if (entry!!.entryType == "QUESTION_ANSWER") FontStyle.Italic else null,
+                            color = if (entry!!.entryType == "QUESTION_ANSWER") accent else theme.contentColor.copy(alpha = 0.9f),
+                            lineHeight = 28.sp,
+                            fontFamily = theme.fontFamily
                         )
-                    }
-                }
-                
-                // COMMENTAIRE
-                if (!entry!!.userComment.isNullOrBlank()) {
-                    Column {
-                        Text(
-                            stringResource(R.string.recipient_memory_detail_comment_label),
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = accent
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            text = entry!!.userComment!!,
-                            style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
-                            color = theme.contentColor.copy(alpha = 0.7f)
-                        )
-                    }
+                    )
                 }
 
-                // COMPLÉMENTS (Grille unifiée v9.4.27)
+                // COMPLÉMENTS MÉDIA (Affichage Direct v12.5 - Point 3)
                 if (complements.isNotEmpty()) {
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f))
+                    
                     Text(
                         stringResource(R.string.recipient_memory_detail_complements_label),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, letterSpacing = 2.sp),
                         color = theme.contentColor.copy(alpha = 0.4f)
                     )
-                    
-                    FlowRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
+
+                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                         complements.forEach { complement ->
-                            RecipientComplementItem(
+                            RecipientInlineMediaItem(
                                 complement = complement,
                                 theme = theme,
                                 mediaManager = mediaManager,
                                 heirKey = heirKey,
-                                creatorId = creatorId, // v9.4.27
-                                onClick = { 
-                                    // Gestion des liens externes (v9.4.27)
+                                creatorId = creatorId,
+                                onClick = {
                                     val url = complement.mediaUrl
                                     val isExternal = url?.startsWith("http") == true && 
                                                    (complement.mediaProvider != null || url.contains("spotify") || url.contains("youtube") || url.contains("deezer") || url.contains("youtu.be"))
@@ -260,24 +231,10 @@ fun RecipientMemoryDetailScreen(
                                             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url!!))
                                             context.startActivity(intent)
                                         } catch(_: Exception) { 
-                                            navController.navigate(Screen.MediaViewer.createRoute(
-                                                entryId = complement.id, 
-                                                creatorId = creatorId,
-                                                mediaUrl = complement.mediaUrl,
-                                                entryType = complement.entryType,
-                                                aiSummary = complement.aiSummary,
-                                                sourceDocType = "entries"
-                                            ))
+                                            navController.navigate(Screen.MediaViewer.createRoute(complement.id, creatorId, complement.mediaUrl, complement.entryType, complement.aiSummary, "entries"))
                                         }
                                     } else {
-                                        navController.navigate(Screen.MediaViewer.createRoute(
-                                            entryId = complement.id, 
-                                            creatorId = creatorId,
-                                            mediaUrl = complement.mediaUrl,
-                                            entryType = complement.entryType,
-                                            aiSummary = complement.aiSummary,
-                                            sourceDocType = "entries"
-                                        ))
+                                        navController.navigate(Screen.MediaViewer.createRoute(complement.id, creatorId, complement.mediaUrl, complement.entryType, complement.aiSummary, "entries"))
                                     }
                                 }
                             )
@@ -289,32 +246,80 @@ fun RecipientMemoryDetailScreen(
             }
         }
     }
+}
 
-    // PLEIN ÉCRAN RÉCIT (v9.4.27)
-    if (showFullStory) {
-        Dialog(onDismissRequest = { showFullStory = false }) {
+@Composable
+fun RecipientInlineMediaItem(
+    complement: OfflineEntry,
+    theme: com.example.phoenx.ui.theme.AppThemeState,
+    mediaManager: MediaManager,
+    heirKey: ByteArray?,
+    creatorId: String,
+    onClick: () -> Unit
+) {
+    val accent = theme.accentColor
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() }
+            .phoenXMatiere(),
+        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            val hasImage = complement.coverUrl != null || complement.localCoverPath != null || complement.localMediaPath != null || complement.entryType == "PHOTO"
+            if (hasImage) {
+                SecureAsyncImage(
+                    mediaUrl = complement.coverUrl ?: complement.mediaUrl,
+                    localPath = complement.localCoverPath ?: complement.localMediaPath,
+                    explicitKey = heirKey,
+                    mediaManager = mediaManager,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    creatorId = creatorId,
+                    docType = "entries",
+                    docId = complement.id,
+                    field = if (complement.coverUrl != null) "coverUrl" else null
+                )
+            } else {
+                val icon = when(complement.entryType) {
+                    "VIDEO" -> Icons.Default.Videocam
+                    "AUDIO" -> Icons.Default.Mic
+                    "TEXT" -> Icons.Default.Description
+                    else -> Icons.Default.Attachment
+                }
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Icon(icon, null, tint = accent.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                }
+            }
+
+            // Overlay Titre
             Surface(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
-                shape = RoundedCornerShape(24.dp),
-                color = theme.backgroundColor
+                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
+                color = Color.Black.copy(alpha = 0.6f)
             ) {
-                Column(modifier = Modifier.fillMaxSize().padding(24.dp)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.recipient_memory_detail_label_story), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent, modifier = Modifier.weight(1f))
-                        IconButton(onClick = { showFullStory = false }) { Icon(Icons.Default.Close, null, tint = theme.contentColor.copy(alpha = 0.3f)) }
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    val icon = when(complement.entryType) {
+                        "VIDEO" -> Icons.Default.PlayCircleFilled
+                        "AUDIO" -> Icons.Default.Headset
+                        else -> Icons.Default.Image
                     }
-                    Spacer(Modifier.height(16.dp))
-                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                        Text(
-                            text = content,
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                lineHeight = 32.sp, 
-                                fontFamily = theme.fontFamily,
-                                fontStyle = if (entry?.entryType == "QUESTION_ANSWER") FontStyle.Italic else null,
-                                color = if (entry?.entryType == "QUESTION_ANSWER") accent else theme.contentColor
-                            )
-                        )
-                    }
+                    Icon(icon, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = complement.aiSummary.ifBlank { stringResource(R.string.recipient_memory_detail_complement_fallback) },
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
@@ -333,81 +338,6 @@ fun RecipientInfoChip(icon: androidx.compose.ui.graphics.vector.ImageVector, tex
             Icon(icon, null, tint = accent, modifier = Modifier.size(14.dp))
             Spacer(Modifier.width(8.dp))
             Text(text, style = MaterialTheme.typography.labelSmall, color = theme.contentColor)
-        }
-    }
-}
-
-@Composable
-fun RecipientComplementItem(
-    complement: OfflineEntry, 
-    theme: com.example.phoenx.ui.theme.AppThemeState,
-    mediaManager: MediaManager,
-    heirKey: ByteArray?,
-    creatorId: String, // v9.4.27
-    onClick: () -> Unit
-) {
-    val accent = theme.accentColor
-
-    // Diagnostic v9.4.27 (PHOENX_MEMORY_OPEN_TRACE)
-    LaunchedEffect(complement) {
-        val targetUrl = complement.coverUrl ?: complement.mediaUrl
-        android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE", 
-            "Complement ID: ${complement.id} | Type: ${complement.entryType} | " +
-            "Raw mediaUrl: ${complement.mediaUrl} | coverUrl: ${complement.coverUrl} | " +
-            "Final targetUrl: $targetUrl | Summary: ${complement.aiSummary}"
-        )
-    }
-
-    Card(
-        modifier = Modifier
-            .width(100.dp)
-            .height(120.dp)
-            .clickable { onClick() }
-            .phoenXMatiere(),
-        colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            val hasImage = complement.coverUrl != null || complement.localCoverPath != null || complement.localMediaPath != null || complement.entryType == "PHOTO"
-            if (hasImage) {
-                SecureAsyncImage(
-                    mediaUrl = complement.coverUrl ?: complement.mediaUrl,
-                    localPath = complement.localCoverPath ?: complement.localMediaPath,
-                    explicitKey = heirKey,
-                    mediaManager = mediaManager,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    creatorId = creatorId,
-                    docType = "entries",
-                    docId = complement.id,
-                    field = if (complement.coverUrl != null) "coverUrl" else null // v9.4.27
-                )
-            } else {
-                val icon = when(complement.entryType) {
-                    "VIDEO" -> Icons.Default.Videocam
-                    "AUDIO" -> Icons.Default.Mic
-                    "TEXT" -> Icons.Default.Description
-                    else -> Icons.Default.Attachment
-                }
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = accent.copy(alpha = 0.3f), modifier = Modifier.size(32.dp))
-                }
-            }
-            
-            Surface(
-                modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
-                color = Color.Black.copy(alpha = 0.6f)
-            ) {
-                Text(
-                    text = complement.aiSummary.ifBlank { stringResource(R.string.recipient_memory_detail_complement_fallback) },
-                    modifier = Modifier.padding(4.dp),
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
-                    color = Color.White,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
         }
     }
 }

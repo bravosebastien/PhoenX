@@ -769,7 +769,7 @@
     <string name="profile_section_danger_zone">DANGER ZONE</string>
     <string name="profile_button_suspend">Suspend my account</string>
     <string name="profile_button_delete">Permanently delete my account</string>
-    <string name="profile_button_back">Back to settings</string>
+    <string name="profile_button_back">Back</string>
     <string name="profile_dialog_edit_name_title">Modify my name</string>
     <string name="profile_dialog_edit_name_label">Display name</string>
     <string name="profile_dialog_edit_name_confirm">Save</string>

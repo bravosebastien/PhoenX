@@ -512,6 +512,12 @@
     <string name="heir_heritage_ask_question_desc">Poser une question</string>
     <string name="heir_heritage_remaining_questions">%1$d rest.</string>
     <string name="heir_heritage_souvenirs_destined">%1$d souvenirs vous ont été destinés</string>
+    <string name="heir_heritage_book_default_title">Une histoire ordinairement extraordinaire</string>
+    <string name="heir_heritage_book_status_unsealed">Ton livre de vie est désormais accessible</string>
+    <string name="heir_heritage_book_status_sealed">Ce livre sera scellé jusqu\'à l\'activation du protocole</string>
+    <string name="heir_heritage_main_map">Mappemonde</string>
+    <string name="heir_heritage_main_tree">Généalogie</string>
+    <string name="heir_heritage_main_encounters">Rencontres</string>
     <string name="heir_heritage_special_book_fallback">Livre</string>
     <string name="heir_heritage_special_book_subtitle_sealed">%1$s a décidé de vous partager le livre de sa vie. Visible le moment venu.</string>
     <string name="heir_heritage_special_book_subtitle_activated">Récit de vie</string>
@@ -523,6 +529,8 @@
     <string name="heir_heritage_special_photos_title">Photos</string>
     <string name="heir_heritage_special_videos_title">Vidéos</string>
     <string name="heir_heritage_special_audios_title">Audios</string>
+    <string name="heir_heritage_special_mirror_title">Miroir à deux</string>
+    <string name="heir_heritage_special_souvenirs_title">Souvenirs</string>
     <string name="heir_heritage_entry_fallback_title">Souvenir</string>
     <string name="heir_heritage_date_format">dd MMMM yyyy</string>
 
@@ -769,7 +777,7 @@
     <string name="profile_section_danger_zone">ZONE DE DANGER</string>
     <string name="profile_button_suspend">Suspendre mon compte</string>
     <string name="profile_button_delete">Supprimer définitivement mon compte</string>
-    <string name="profile_button_back">Retour aux réglages</string>
+    <string name="profile_button_back">Retour</string>
     <string name="profile_dialog_edit_name_title">Modifier mon nom</string>
     <string name="profile_dialog_edit_name_label">Nom d\'usage</string>
     <string name="profile_dialog_edit_name_confirm">Enregistrer</string>

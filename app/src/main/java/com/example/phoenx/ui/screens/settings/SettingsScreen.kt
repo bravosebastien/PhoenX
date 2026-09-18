@@ -44,6 +44,7 @@ fun SettingsScreen(
     onNavigateToRecipients: () -> Unit,
     onNavigateToUniqueKey: () -> Unit,
     onNavigateToDetective: () -> Unit,
+    onNavigateToLegacyVideo: () -> Unit,
     onVerifyBiometrics: (onSuccess: () -> Unit) -> Unit,
     mainViewModel: MainViewModel,
     initialShowRecovery: Boolean = false
@@ -156,6 +157,16 @@ fun SettingsScreen(
                 icon = Icons.Default.NotificationsNone,
                 theme = theme,
                 onClick = onNavigateToNotificationContacts
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            SettingsItem(
+                title = "Vidéo de mon héritage",
+                subtitle = "Une vidéo unique, visible par tous vos destinataires",
+                icon = Icons.Default.VideoCall,
+                theme = theme,
+                onClick = onNavigateToLegacyVideo
             )
 
             Spacer(modifier = Modifier.height(16.dp))

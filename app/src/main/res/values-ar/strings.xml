@@ -769,7 +769,7 @@
     <string name="profile_section_danger_zone">منطقة الخطر</string>
     <string name="profile_button_suspend">تعليق حسابي</string>
     <string name="profile_button_delete">حذف حسابي نهائياً</string>
-    <string name="profile_button_back">العودة للإعدادات</string>
+    <string name="profile_button_back">رجوع</string>
     <string name="profile_dialog_edit_name_title">تعديل اسمي</string>
     <string name="profile_dialog_edit_name_label">اسم الاستخدام</string>
     <string name="profile_dialog_edit_name_confirm">حفظ</string>

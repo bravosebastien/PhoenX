@@ -109,12 +109,17 @@ fun ProfileDrawer(
                         onNavigateToProfile() 
                     }
 
-                    DrawerItem(icon = Icons.Outlined.People, text = "Mon Cercle de Confiance", theme = theme) { 
+                    DrawerItem(icon = Icons.Outlined.People, text = "Mon Cercle de Confiance", theme = theme) {
                         scope.launch { drawerState.close() }
-                        onNavigateToTransmission() 
+                        onNavigateToTransmission()
                     }
-                    
-                    DrawerItem(icon = Icons.Outlined.Info, text = "Aide & Guide", theme = theme) { 
+
+                    DrawerItem(icon = Icons.Outlined.Settings, text = "Réglages", theme = theme) {
+                        scope.launch { drawerState.close() }
+                        onNavigateToSettings()
+                    }
+
+                    DrawerItem(icon = Icons.Outlined.Info, text = "Aide & Guide", theme = theme) {
                         // Futur guide
                     }
 

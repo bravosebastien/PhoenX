@@ -226,8 +226,12 @@ fun NavGraphBuilder.recipientGraph(
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
         // Récupération de la clé d'héritage depuis le ViewModel partagé (comme sur les autres écrans)
         val viewModel: RecipientMediaViewModel = hiltViewModel()
+        // Correctif : ce ViewModel est une instance fraîche propre à cette route ; sans cet appel,
+        // setTargetCreator() n'était jamais déclenché ici et heirKey restait indéfiniment null,
+        // empêchant tout déchiffrement des photos/médias de Rencontre côté Destinataire.
+        LaunchedEffect(creatorId) { viewModel.setTargetCreator(creatorId) }
         val heirKey by viewModel.heirKey.collectAsState()
-        
+
         EncounterScreen(
             onNavigateBack = { navController.popBackStack() },
             navController = navController,
@@ -755,6 +759,22 @@ fun NavGraphBuilder.recipientGraph(
             creatorId = creatorId,
             onNavigateBack = { navController.popBackStack() },
             navController = navController
+        )
+    }
+
+    composable(
+        route = Screen.RecipientPact.route,
+        arguments = listOf(navArgument("pactId") { type = NavType.StringType }),
+        enterTransition = { NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { NavigationAnimations.getExitTransition(this) }
+    ) { backStackEntry ->
+        val pactId = backStackEntry.arguments?.getString("pactId") ?: ""
+        com.example.phoenx.ui.screens.pact.PactDetailScreen(
+            pactId = pactId,
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToCapture = { pId, partnerName -> 
+                navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, pactId = pId))
+            }
         )
     }
 }

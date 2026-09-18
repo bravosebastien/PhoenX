@@ -269,12 +269,6 @@ fun RecipientLibraryScreen(
                         val route = if (isCreatorMode) "personalities" else "personalities?creatorId=$targetCreatorId"
                         navController.navigate(route) 
                     }, theme, itemModifier)
-                    
-                    /* Haché v12.3 (Réversible)
-                    CompactGridItem("Mon Quiz", Icons.Outlined.EmojiEvents, { 
-                        if (isCreatorMode) navController.navigate("quiz_create") 
-                    }, theme, itemModifier)
-                    */
 
                     CompactGridItem(stringResource(R.string.library_capsule_temporelle), Icons.Outlined.MailOutline, { 
                         navController.navigate("lettres") 

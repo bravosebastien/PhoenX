@@ -294,6 +294,20 @@ class RecipientMediaViewModel @Inject constructor(
     private val _defaultBookCoverUrl = MutableStateFlow<String?>(null)
     val defaultBookCoverUrl: StateFlow<String?> = _defaultBookCoverUrl.asStateFlow()
 
+    // v12.6 : Vidéo de présentation de l'héritage — une seule vidéo par Créateur, publique
+    // à tous ses Destinataires une fois l'héritage activé (voir Partie A.2 du complément).
+    private val _legacyVideoUrl = MutableStateFlow<String?>(null)
+    val legacyVideoUrl: StateFlow<String?> = _legacyVideoUrl.asStateFlow()
+
+    // TODO(Le Pacte / Miroir) : la tuile "Miroir" du Coffret (HeirHeritageScreen) référence ces
+    // deux propriétés mais aucune logique de résolution du Pacte n'a encore été câblée ici —
+    // stub à false/null en attendant ce chantier, pour ne pas bloquer la compilation.
+    private val _isMirrorRevealed = MutableStateFlow(false)
+    val isMirrorRevealed: StateFlow<Boolean> = _isMirrorRevealed.asStateFlow()
+
+    private val _mirrorId = MutableStateFlow<String?>(null)
+    val mirrorId: StateFlow<String?> = _mirrorId.asStateFlow()
+
     private val _creatorName = MutableStateFlow(context.getString(R.string.recipient_media_creator_name_fallback))
     val creatorName: StateFlow<String> = _creatorName.asStateFlow()
 
@@ -484,6 +498,10 @@ class RecipientMediaViewModel @Inject constructor(
                     applyBookCoverFields(bookDoc)
                 } catch (e: Exception) { android.util.Log.e("RecipientMediaVM", "Erreur titre/couverture livre") }
 
+                // 3bis. Vidéo de présentation de l'héritage (v12.6) — visible par tous les
+                // Destinataires une fois l'héritage activé, sans filtrage personne par personne
+                loadLegacyVideo(cleanCreatorId, isSelf = false)
+
                 // 4. Fetch My Permissions (v9.2.6)
                 try {
                     val recipientsSnapshot = db.collection("users").document(cleanCreatorId)
@@ -525,6 +543,73 @@ class RecipientMediaViewModel @Inject constructor(
                     _bookTitle.value = bookDoc.getString("bookTitle")
                     applyBookCoverFields(bookDoc)
                 } catch (e: Exception) { _bookTitle.value = null }
+            }
+            loadLegacyVideo(currentUid, isSelf = true)
+        }
+    }
+
+    /**
+     * v12.6 : Résout l'URL de la vidéo de présentation de l'héritage (un seul document
+     * users/{creatorId}/legacyVideo/main). Fichier non chiffré (comme un portrait Cameo) :
+     * la résolution passe par getSafeUrl, jamais par un téléchargement + déchiffrement complet,
+     * pour permettre une vidéo allant jusqu'à 5 minutes en streaming direct.
+     */
+    private fun loadLegacyVideo(creatorId: String, isSelf: Boolean) {
+        viewModelScope.launch {
+            try {
+                val doc = db.collection("users").document(creatorId)
+                    .collection("legacyVideo").document("main").get().await()
+                val path = doc.getString("videoPath")
+                if (path.isNullOrBlank()) {
+                    _legacyVideoUrl.value = null
+                    return@launch
+                }
+                _legacyVideoUrl.value = mediaManager.getSafeUrl(
+                    pathOrUrl = path,
+                    explicitKey = if (isSelf) null else byteArrayOf(0), // Flag mode Destinataire (valeur non utilisée, fichier non chiffré)
+                    creatorId = if (isSelf) null else creatorId,
+                    docType = "legacyVideo",
+                    docId = "main"
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientMediaVM", "Erreur chargement vidéo d'héritage: ${e.message}")
+                _legacyVideoUrl.value = null
+            }
+        }
+    }
+
+    /**
+     * v12.6 : Enregistre (ou remplace) la vidéo de présentation de l'héritage du Créateur.
+     */
+    fun saveLegacyVideo(localFile: java.io.File) {
+        viewModelScope.launch {
+            try {
+                val path = mediaManager.uploadLegacyVideo(currentUid, localFile)
+                db.collection("users").document(currentUid)
+                    .collection("legacyVideo").document("main")
+                    .set(mapOf("videoPath" to path, "updatedAt" to System.currentTimeMillis()))
+                    .await()
+                loadLegacyVideo(currentUid, isSelf = true)
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientMediaVM", "Erreur upload vidéo d'héritage: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * v12.6 : Retire la vidéo de présentation de l'héritage (garde le fichier Storage existant
+     * hors périmètre — suppression volontairement non automatique ici, cohérent avec le reste
+     * du projet où un retrait de contenu n'efface pas nécessairement le fichier source).
+     */
+    fun removeLegacyVideo() {
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(currentUid)
+                    .collection("legacyVideo").document("main")
+                    .delete().await()
+                _legacyVideoUrl.value = null
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientMediaVM", "Erreur suppression vidéo d'héritage: ${e.message}")
             }
         }
     }
@@ -900,9 +985,9 @@ class RecipientMediaViewModel @Inject constructor(
                         val result = it.toDomain(encryptionManager, key)
                         val contentStr = String(result.encryptedContent)
                         if (contentStr == context.getString(R.string.recipient_media_status_encrypted)) {
-                            android.util.Log.e("PHOENX_HEIR_TRACE", "ERREUR DECHIFFREMENT id=${it.id}")
+                           android.util.Log.e("PHOENX_HEIR_TRACE", "ERREUR DECHIFFREMENT id=${it.id}")
                         } else {
-                            android.util.Log.d("PHOENX_HEIR_TRACE", "SUCCÈS id=${it.id}, title=${result.aiSummary}")
+                           android.util.Log.d("PHOENX_HEIR_TRACE", "SUCCÈS id=${it.id}, title=${result.aiSummary}")
                         }
                         result
                     }
@@ -927,14 +1012,14 @@ class RecipientMediaViewModel @Inject constructor(
                 android.util.Log.d("PHOENX_ENTRY_DISAPPEAR_TRACE", "Après filtrage (heritage): ${result["heritage"]?.map { (it as PhoenXEntry).id }}")
                 result
             }
-                .flowOn(Dispatchers.Default)
-                .collectLatest { result ->
-                    _libraryEntries.value = result["library"] ?: emptyList()
-                    _videoEntries.value = result["video"] ?: emptyList()
-                    _discothequeEntries.value = result["audio"] ?: emptyList()
-                    _archiveEntries.value = result["photo"] ?: emptyList()
-                    _heritageEntries.value = result["heritage"] ?: emptyList()
-                }
+            .flowOn(Dispatchers.Default)
+            .collectLatest { result ->
+                _libraryEntries.value = result["library"] ?: emptyList()
+                _videoEntries.value = result["video"] ?: emptyList()
+                _discothequeEntries.value = result["audio"] ?: emptyList()
+                _archiveEntries.value = result["photo"] ?: emptyList()
+                _heritageEntries.value = result["heritage"] ?: emptyList()
+            }
         }
     }
 
