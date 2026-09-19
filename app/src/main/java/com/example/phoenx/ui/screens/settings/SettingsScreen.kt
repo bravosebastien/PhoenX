@@ -49,7 +49,6 @@ fun SettingsScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
     onNavigateToLanguage: () -> Unit,
-    onNavigateToDetective: () -> Unit,
     onNavigateToLegacyVideo: () -> Unit,
     onVerifyBiometrics: (onSuccess: () -> Unit) -> Unit,
     mainViewModel: MainViewModel,
@@ -203,16 +202,6 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             // v12.7 : "Le Tiroir à Clé Unique" retiré des Réglages — faisait doublon avec les
             // autres verrous (Coffre-Fort / Secret Ultime) et n'était pas fiable (voir ci-dessous).
-
-            SettingsItem(
-                title = stringResource(R.string.settings_item_detective_title),
-                subtitle = stringResource(R.string.settings_item_detective_subtitle),
-                icon = Icons.Default.Fingerprint,
-                theme = theme,
-                onClick = onNavigateToDetective
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             Spacer(modifier = Modifier.height(32.dp))
 

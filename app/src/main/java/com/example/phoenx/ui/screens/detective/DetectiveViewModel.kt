@@ -107,7 +107,7 @@ class DetectiveViewModel @Inject constructor(
     }
 
     fun attemptUnlock(entry: OfflineEntry, answer: String, creatorId: String?) {
-        val hashedInput = EnigmaUtils.hashAnswer(answer)
+        val hashedInput = EnigmaUtils.hashAnswer(answer, entry.answerType)
         val isCorrect = entry.enigmaAnswer == hashedInput || entry.fallbackAnswer == hashedInput
         
         val newAttempts = _uiState.value.attempts.toMutableMap()

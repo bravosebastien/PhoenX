@@ -231,13 +231,37 @@ fun DetectiveCreateScreen(
 
             // ÉTAPE 2 — LA RÉPONSE
             Text(stringResource(R.string.detective_create_label_answer), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // v12.7.6 : Choix du type de réponse
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    selected = uiState.answerType == "WORD",
+                    onClick = { viewModel.updateAnswerType("WORD") },
+                    label = { Text("Texte") },
+                    leadingIcon = if (uiState.answerType == "WORD") { { Icon(Icons.Default.TextFields, null, modifier = Modifier.size(16.dp)) } } else null
+                )
+                FilterChip(
+                    selected = uiState.answerType == "NUMBER",
+                    onClick = { viewModel.updateAnswerType("NUMBER") },
+                    label = { Text("Nombre") },
+                    leadingIcon = if (uiState.answerType == "NUMBER") { { Icon(Icons.Default.Numbers, null, modifier = Modifier.size(16.dp)) } } else null
+                )
+            }
+
             OutlinedTextField(
                 value = uiState.secretAnswer,
                 onValueChange = { viewModel.updateAnswer(it) },
                 visualTransformation = PasswordVisualTransformation(),
+                placeholder = { Text(if (uiState.answerType == "NUMBER") "Ex: 27" else "La réponse secrète") },
                 modifier = Modifier.fillMaxWidth(),
                 textStyle = TextStyle(fontSize = 17.sp, color = theme.contentColor),
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardType = if (uiState.answerType == "NUMBER") androidx.compose.ui.text.input.KeyboardType.Number else androidx.compose.ui.text.input.KeyboardType.Text
+                ),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = accent,
                     unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f),
@@ -245,11 +269,33 @@ fun DetectiveCreateScreen(
                     focusedContainerColor = theme.contentColor.copy(alpha = 0.03f)
                 )
             )
+
+            if (uiState.answerType == "WORD") {
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Nombre de mots attendus :", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                    Spacer(Modifier.width(12.dp))
+                    OutlinedTextField(
+                        value = uiState.expectedWordCount,
+                        onValueChange = { if (it.length <= 2) viewModel.updateExpectedWordCount(it.filter { c -> c.isDigit() }) },
+                        modifier = Modifier.width(60.dp),
+                        textStyle = TextStyle(fontSize = 14.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
+                    )
+                }
+                Text(
+                    "Plus votre réponse comporte de mots, plus il sera difficile à votre proche de la retrouver exactement. Restez simple si possible.",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontStyle = FontStyle.Italic),
+                    color = theme.contentColor.copy(alpha = 0.4f),
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
             Text(
                 stringResource(R.string.detective_create_answer_security_desc),
                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                 color = theme.contentColor.copy(alpha = 0.4f),
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 8.dp)
             )
 
             Spacer(modifier = Modifier.height(32.dp))

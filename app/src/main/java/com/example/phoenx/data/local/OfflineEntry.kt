@@ -116,7 +116,11 @@ data class OfflineEntry(
     val userTitle: String = "",
 
     // DEVINETTES & QUESTIONS PERSONNALISÉES (v12.3)
-    val isGuessQuestion: Boolean = false
+    val isGuessQuestion: Boolean = false,
+
+    // TOLÉRANCE RÉPONSES (v12.7.6)
+    val answerType: String? = null, // "WORD" | "NUMBER"
+    val expectedWordCount: Int? = null
 ) {
     fun isChild(): Boolean = parentEntryId != null
 
@@ -161,6 +165,8 @@ data class OfflineEntry(
         if (tonalNuance != other.tonalNuance) return false
         if (userTitle != other.userTitle) return false
         if (isGuessQuestion != other.isGuessQuestion) return false
+        if (answerType != other.answerType) return false
+        if (expectedWordCount != other.expectedWordCount) return false
 
         return true
     }
@@ -201,6 +207,8 @@ data class OfflineEntry(
         result = 31 * result + silentAttribution.hashCode()
         result = 31 * result + userTitle.hashCode()
         result = 31 * result + isGuessQuestion.hashCode()
+        result = 31 * result + (answerType?.hashCode() ?: 0)
+        result = 31 * result + (expectedWordCount ?: 0)
         return result
     }
 }

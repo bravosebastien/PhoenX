@@ -105,7 +105,9 @@ class HundredQuestionsViewModel @Inject constructor(
         answer: String,
         story: String,
         recipientIds: List<String>,
-        photoFile: java.io.File? = null
+        photoFile: java.io.File? = null,
+        answerType: String = "WORD",
+        expectedWordCount: Int? = null
     ) {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
@@ -121,6 +123,8 @@ class HundredQuestionsViewModel @Inject constructor(
                 val age = AgeUtils.calculateAge(birthDate)
                 val ageJson = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }"
 
+                val hashedAnswer = EnigmaUtils.hashAnswer(answer, answerType)
+
                 val encryptedPayload = encryptionManager.encryptText(story)
                 val entry = com.example.phoenx.data.local.OfflineEntry(
                     id = id ?: java.util.UUID.randomUUID().toString(),
@@ -132,13 +136,15 @@ class HundredQuestionsViewModel @Inject constructor(
                     visibility = "RESTRICTED",
                     recipientIds = recipientIds.joinToString(","),
                     enigmaQuestion = question,
-                    enigmaAnswer = EnigmaUtils.hashAnswer(answer),
+                    enigmaAnswer = hashedAnswer,
                     enigmaHint = hint,
                     isGuessQuestion = true,
                     localMediaPath = photoFile?.absolutePath,
                     mediaUrl = photoPath,
                     userTitle = question,
-                    syncStatus = "pending"
+                    syncStatus = "pending",
+                    answerType = answerType,
+                    expectedWordCount = expectedWordCount
                 )
                 
                 offlineEntryDao.insertEntry(entry)

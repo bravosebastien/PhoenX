@@ -776,4 +776,14 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE persons ADD COLUMN manualGenerationOffset INTEGER NOT NULL DEFAULT 0")
         }
     }
+
+    /**
+     * MIGRATION_62_63 — Tolérance des réponses aux énigmes (v12.7.6)
+     */
+    val MIGRATION_62_63 = object : Migration(62, 63) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN answerType TEXT")
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN expectedWordCount INTEGER")
+        }
+    }
 }

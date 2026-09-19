@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -231,8 +232,8 @@ fun HundredQuestionsScreen(
         CustomQuestionDialog(
             entry = selectedEntry,
             onDismiss = { showCreateDialog = false; selectedEntry = null },
-            onSave = { q, h, a, s, r, p ->
-                viewModel.saveCustomQuestion(selectedEntry?.id, q, h, a, s, r, p)
+            onSave = { q, h, a, s, r, p, type, wc ->
+                viewModel.saveCustomQuestion(selectedEntry?.id, q, h, a, s, r, p, type, wc)
                 showCreateDialog = false
                 selectedEntry = null
             },
@@ -384,13 +385,15 @@ fun CustomQuestionItem(
 fun CustomQuestionDialog(
     entry: OfflineEntry?,
     onDismiss: () -> Unit,
-    onSave: (String, String?, String, String, List<String>, File?) -> Unit,
+    onSave: (String, String?, String, String, List<String>, File?, String, Int?) -> Unit,
     theme: AppThemeState,
     viewModel: HundredQuestionsViewModel = hiltViewModel()
 ) {
     var question by remember { mutableStateOf(entry?.enigmaQuestion ?: "") }
     var hint by remember { mutableStateOf(entry?.enigmaHint ?: "") }
     var answer by remember { mutableStateOf("") } // Toujours vide au départ pour la sécu
+    var answerType by remember { mutableStateOf(entry?.answerType ?: "WORD") }
+    var expectedWordCount by remember { mutableStateOf(entry?.expectedWordCount?.toString() ?: "1") }
     var story by remember { mutableStateOf(entry?.let { viewModel.decryptStory(it.encryptedPayload) } ?: "") }
     var photoFile by remember { mutableStateOf<File?>(null) }
     
@@ -431,13 +434,54 @@ fun CustomQuestionDialog(
                     label = { Text(stringResource(R.string.questions_custom_field_question)) },
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                // v12.7.6 : Type de réponse
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = answerType == "WORD",
+                        onClick = { answerType = "WORD" },
+                        label = { Text("Texte") }
+                    )
+                    FilterChip(
+                        selected = answerType == "NUMBER",
+                        onClick = { answerType = "NUMBER" },
+                        label = { Text("Nombre") }
+                    )
+                }
+
                 OutlinedTextField(
                     value = answer,
                     onValueChange = { answer = it },
                     label = { Text(stringResource(R.string.questions_custom_field_answer)) },
                     placeholder = { Text(if (entry != null) stringResource(R.string.questions_custom_field_answer_placeholder_edit) else stringResource(R.string.questions_custom_field_answer_placeholder_new)) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = if (answerType == "NUMBER") androidx.compose.ui.text.input.KeyboardType.Number else androidx.compose.ui.text.input.KeyboardType.Text
+                    )
                 )
+
+                if (answerType == "WORD") {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Mots attendus :", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                        Spacer(Modifier.width(12.dp))
+                        OutlinedTextField(
+                            value = expectedWordCount,
+                            onValueChange = { if (it.length <= 2) expectedWordCount = it.filter { c -> c.isDigit() } },
+                            modifier = Modifier.width(60.dp),
+                            textStyle = TextStyle(fontSize = 14.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center),
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
+                        )
+                    }
+                    Text(
+                        "Rester simple facilite la tâche de votre proche.",
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontStyle = FontStyle.Italic),
+                        color = theme.contentColor.copy(alpha = 0.4f)
+                    )
+                }
+
                 OutlinedTextField(
                     value = hint,
                     onValueChange = { hint = it },
@@ -515,7 +559,7 @@ fun CustomQuestionDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onSave(question, hint.ifBlank { null }, answer, story, selectedRecipientIds, photoFile) },
+                onClick = { onSave(question, hint.ifBlank { null }, answer, story, selectedRecipientIds, photoFile, answerType, expectedWordCount.toIntOrNull()) },
                 enabled = question.isNotBlank() && story.isNotBlank() && (entry != null || answer.isNotBlank()) && selectedRecipientIds.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = theme.accentColor)
             ) {

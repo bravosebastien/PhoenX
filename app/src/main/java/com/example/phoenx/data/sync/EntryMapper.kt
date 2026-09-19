@@ -115,7 +115,9 @@ fun OfflineEntry.toFirestoreMap(encryptionManager: EncryptionManager): Map<Strin
         "mediaProvider" to mediaProvider,
         "tonalNuance" to tonalNuance, // v9.4.27
         "includedInBook" to includedInBook, // v9.6.7
-        "isGuessQuestion" to isGuessQuestion // v12.3
+        "isGuessQuestion" to isGuessQuestion, // v12.3
+        "answerType" to answerType, // v12.7.6
+        "expectedWordCount" to expectedWordCount
     )
 }
 
@@ -293,7 +295,9 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
         mediaProvider = this["mediaProvider"] as? String,
         tonalNuance = this["tonalNuance"] as? String, // v9.4.27
         includedInBook = this["includedInBook"] as? Boolean ?: true, // v9.6.7
-        isGuessQuestion = this["isGuessQuestion"] as? Boolean ?: false // v12.3
+        isGuessQuestion = this["isGuessQuestion"] as? Boolean ?: false, // v12.3
+        answerType = this["answerType"] as? String, // v12.7.6
+        expectedWordCount = (this["expectedWordCount"] as? Number)?.toInt()
     ).also {
         val rawLat = this["latitude"]
         val rawLng = this["longitude"]

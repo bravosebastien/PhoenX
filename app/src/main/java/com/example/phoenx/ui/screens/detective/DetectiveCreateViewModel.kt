@@ -35,7 +35,9 @@ data class DetectiveCreateUiState(
     val enigmaHint: String = "",
     val autoUnlockDays: String = "", // Pour le nouveau champ optionnel
     val fallbackMessage: String = "",
-    val isUltimateSecret: Boolean = false // v8.9.4 : Fusion Tiroir Secret
+    val isUltimateSecret: Boolean = false, // v8.9.4 : Fusion Tiroir Secret
+    val answerType: String = "WORD", // v12.7.6
+    val expectedWordCount: String = ""
 )
 
 @HiltViewModel
@@ -90,6 +92,14 @@ class DetectiveCreateViewModel @Inject constructor(
         _uiState.update { it.copy(isUltimateSecret = enabled) }
     }
 
+    fun updateAnswerType(type: String) {
+        _uiState.update { it.copy(answerType = type) }
+    }
+
+    fun updateExpectedWordCount(count: String) {
+        _uiState.update { it.copy(expectedWordCount = count) }
+    }
+
     fun hashAnswer(answer: String): String {
         return MessageDigest
             .getInstance("SHA-256")
@@ -104,8 +114,8 @@ class DetectiveCreateViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
             try {
-                // Normalisation et hachage unifiés (v8.3)
-                val hashedAnswer = EnigmaUtils.hashAnswer(state.secretAnswer)
+                // Normalisation et hachage unifiés (v8.3 / v12.7.6)
+                val hashedAnswer = EnigmaUtils.hashAnswer(state.secretAnswer, state.answerType)
                 val hashedFallback = EnigmaUtils.hashAnswer(state.fallbackMessage)
                 
                 // Préparation du contenu à chiffrer
@@ -139,7 +149,9 @@ class DetectiveCreateViewModel @Inject constructor(
                         fallbackAnswer = hashedFallback,
                         enigmaHint = state.enigmaHint.ifBlank { null },
                         enigmaAutoUnlockDays = if (state.isUltimateSecret) null else state.autoUnlockDays.toIntOrNull(),
-                        isUltimateSecret = state.isUltimateSecret
+                        isUltimateSecret = state.isUltimateSecret,
+                        answerType = state.answerType,
+                        expectedWordCount = state.expectedWordCount.toIntOrNull()
                     )
                 )
 
