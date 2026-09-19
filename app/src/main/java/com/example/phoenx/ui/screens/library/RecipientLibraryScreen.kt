@@ -201,14 +201,14 @@ fun RecipientLibraryScreen(
             CompactGridItem(
                 label = stringResource(R.string.library_mappemonde),
                 icon = Icons.Outlined.Public,
-                onClick = { navController.navigate("mappemonde") },
+                onClick = { navController.navigate(Screen.Map.createRoute(targetCreatorId = targetCreatorId ?: mediaViewModel.currentUid)) },
                 theme = theme,
                 modifier = itemModifier
             )
             CompactGridItem(
                 label = stringResource(R.string.library_le_litteraire),
                 icon = Icons.Outlined.AutoStories,
-                onClick = { navController.navigate("literary_library") },
+                onClick = { navController.navigate("literary_library?creatorId=${targetCreatorId ?: mediaViewModel.currentUid}") },
                 theme = theme,
                 modifier = itemModifier
             )
@@ -269,6 +269,12 @@ fun RecipientLibraryScreen(
                         val route = if (isCreatorMode) "personalities" else "personalities?creatorId=$targetCreatorId"
                         navController.navigate(route) 
                     }, theme, itemModifier)
+
+                    /* Haché v12.3 (Réversible)
+                    CompactGridItem("Mon Quiz", Icons.Outlined.EmojiEvents, {
+                        if (isCreatorMode) navController.navigate("quiz_create")
+                    }, theme, itemModifier)
+                    */
 
                     CompactGridItem(stringResource(R.string.library_capsule_temporelle), Icons.Outlined.MailOutline, { 
                         navController.navigate("lettres") 

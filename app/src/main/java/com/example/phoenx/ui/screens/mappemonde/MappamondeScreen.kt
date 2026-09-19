@@ -217,7 +217,7 @@ fun MappamondeScreen(
                     }
                 },
                 clusterItemContent = { item ->
-                    MarqueurSouvenir(memoriesCount = item.location.memoriesCount)
+                    MarqueurSouvenir(memoriesCount = item.location.memoriesCount, emoji = item.location.emoji)
                 }
             )
         }
@@ -391,7 +391,7 @@ fun MappamondeScreen(
 }
 
 @Composable
-fun MarqueurSouvenir(memoriesCount: Int) {
+fun MarqueurSouvenir(memoriesCount: Int, emoji: String = "📍") {
     val accent = LocalAccentColor.current
     val size = when {
         memoriesCount == 0 -> 24.dp
@@ -417,13 +417,9 @@ fun MarqueurSouvenir(memoriesCount: Int) {
             border = androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.6f))
         ) {
             Box(contentAlignment = Alignment.Center) {
-                if (memoriesCount >= 11) {
-                    Icon(Icons.Default.Star, null, tint = Color(0xFF1A1A1F), modifier = Modifier.size((size.value * 0.5f).dp))
-                } else if (memoriesCount > 0) {
-                    Text(memoriesCount.toString(), color = Color(0xFF1A1A1F), fontWeight = FontWeight.Bold, fontSize = (size.value * 0.35f).sp)
-                } else {
-                    Box(modifier = Modifier.size(5.dp).background(Color(0xFF1A1A1F), CircleShape))
-                }
+                // v13.0 : l'icône choisie par le Créateur pour ce lieu remplace désormais
+                // le simple point/chiffre générique — demande explicite du Créateur.
+                Text(emoji.ifBlank { "📍" }, fontSize = (size.value * 0.5f).sp)
             }
         }
     }

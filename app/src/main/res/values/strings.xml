@@ -512,12 +512,6 @@
     <string name="heir_heritage_ask_question_desc">Poser une question</string>
     <string name="heir_heritage_remaining_questions">%1$d rest.</string>
     <string name="heir_heritage_souvenirs_destined">%1$d souvenirs vous ont été destinés</string>
-    <string name="heir_heritage_book_default_title">Une histoire ordinairement extraordinaire</string>
-    <string name="heir_heritage_book_status_unsealed">Ton livre de vie est désormais accessible</string>
-    <string name="heir_heritage_book_status_sealed">Ce livre sera scellé jusqu\'à l\'activation du protocole</string>
-    <string name="heir_heritage_main_map">Mappemonde</string>
-    <string name="heir_heritage_main_tree">Généalogie</string>
-    <string name="heir_heritage_main_encounters">Rencontres</string>
     <string name="heir_heritage_special_book_fallback">Livre</string>
     <string name="heir_heritage_special_book_subtitle_sealed">%1$s a décidé de vous partager le livre de sa vie. Visible le moment venu.</string>
     <string name="heir_heritage_special_book_subtitle_activated">Récit de vie</string>
@@ -529,10 +523,13 @@
     <string name="heir_heritage_special_photos_title">Photos</string>
     <string name="heir_heritage_special_videos_title">Vidéos</string>
     <string name="heir_heritage_special_audios_title">Audios</string>
-    <string name="heir_heritage_special_mirror_title">Miroir à deux</string>
-    <string name="heir_heritage_special_souvenirs_title">Souvenirs</string>
     <string name="heir_heritage_entry_fallback_title">Souvenir</string>
     <string name="heir_heritage_date_format">dd MMMM yyyy</string>
+    <string name="heir_heritage_main_map">Mappemonde</string>
+    <string name="heir_heritage_main_tree">Généalogie</string>
+    <string name="heir_heritage_main_encounters">Rencontres</string>
+    <string name="heir_heritage_book_default_title">Mon Livre</string>
+    <string name="heir_heritage_special_mirror_title">Miroir</string>
 
     <string name="recipient_photos_screen_title">Grande Photothèque</string>
     <string name="recipient_photos_empty_state">L\'album est encore vide.</string>
@@ -691,7 +688,7 @@
     <string name="settings_item_protocol_title">Transmission &amp; Protocole</string>
     <string name="settings_item_protocol_subtitle">Gère ton dépositaire et tes délais</string>
     <string name="settings_item_recipients_title">Mes Destinataires</string>
-    <string name="settings_item_recipients_subtitle">Gère ton cercle de confiance</string>
+    <string name="settings_item_recipients_subtitle">Choisis qui recevra tes souvenirs</string>
     <string name="settings_item_notification_contacts_title">Contacts à prévenir</string>
     <string name="settings_item_notification_contacts_subtitle">Personnes informées de ton départ</string>
     <string name="settings_item_presence_title">Fréquence de présence</string>
@@ -929,6 +926,10 @@
     <string name="step_capture_location_desc">Où ce souvenir s\'est-il déroulé ? Tu peux l\'épingler sur ta Mappemonde.</string>
     <string name="step_capture_location_choose">Choisir un lieu sur la carte</string>
     <string name="step_capture_location_remove">Retirer le lieu</string>
+    <string name="step_capture_location_or">ou</string>
+    <string name="step_capture_location_use_gps">Utiliser ma position actuelle</string>
+    <string name="step_capture_location_locating">Localisation en cours…</string>
+    <string name="step_capture_location_gps_unavailable">Impossible d\'obtenir ta position. Vérifie que la localisation est activée sur ton téléphone.</string>
     <string name="step_capture_spark_title">L\'ÉTINCELLE</string>
     <string name="step_capture_spark_desc">Donne un nom ou un sujet court à ce souvenir pour capturer l\'instant.</string>
     <string name="step_capture_spark_placeholder">Quel est le sujet ?</string>
@@ -1259,6 +1260,11 @@
     <string name="detective_recipient_fallback">Tes proches</string>
 
     <string name="detective_player_instructions">Déchiffre les énigmes pour accéder aux souvenirs.</string>
+    <string name="enigma_form_info_title">Souvenir Scellé</string>
+    <string name="enigma_form_info_point1">C\'est un souvenir normal (texte, photo ou audio) auquel tu ajoutes une petite énigme.</string>
+    <string name="enigma_form_info_point2">Ton proche ne verra ni le titre ni le contenu tant qu\'il n\'aura pas trouvé la bonne réponse à ta question.</string>
+    <string name="enigma_form_info_point3">Tu peux ajouter un indice, qui n\'apparaît qu\'après plusieurs essais ratés.</string>
+    <string name="enigma_form_info_point4">Le souvenir peut se débloquer tout seul après un certain temps — sauf si tu actives le **Secret Ultime**, qui n\'a alors plus jamais de déblocage automatique.</string>
     <string name="detective_ultimate_secret">Le Secret Ultime</string>
     <string name="detective_personal_enigma">Énigme Personnelle</string>
     <string name="detective_ultimate_secret_desc">Cette confidence a été marquée comme capitale. Aucune ouverture automatique n\'est possible. Seule la réponse exacte lèvera le sceau.</string>
@@ -1699,6 +1705,9 @@
     <string name="character_delete_dialog_text">Ce personnage apparaît dans %1$d souvenirs — le supprimer le retirera de ces récits, sans supprimer les souvenirs eux-mêmes.</string>
     <string name="character_delete_confirm">Supprimer définitivement</string>
     <string name="character_delete_cancel">Annuler</string>
+    <string name="character_delete_linked_title">Suppression à faire ailleurs</string>
+    <string name="character_delete_linked_text">Cette personne fait aussi partie de ton Arbre Généalogique et/ou de tes Rencontres. Pour la supprimer, rends-toi directement dans cet écran-là : tu pourras y choisir précisément ce qui doit être retiré, sans rien casser dans le reste de ton histoire.</string>
+    <string name="character_delete_linked_ok">Compris</string>
 
     <!-- Legacy Batch -->
     <string name="legacy_prep_title">Préparer un Legs</string>

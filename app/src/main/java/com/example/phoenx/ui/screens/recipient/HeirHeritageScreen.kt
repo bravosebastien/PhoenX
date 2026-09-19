@@ -177,7 +177,7 @@ fun HeirHeritageScreen(
                                     )
                                 }
                             ) { navController.navigate(Screen.Map.createRoute(targetCreatorId = creatorId)) }
-                            
+
                             // GÉNÉALOGIE
                             HeritageMainCard(
                                 title = stringResource(R.string.heir_heritage_main_tree),
@@ -195,9 +195,9 @@ fun HeirHeritageScreen(
                                 }
                             ) { navController.navigate(Screen.Genealogy.createRoute(creatorId)) }
                         }
-                        
+
                         Spacer(Modifier.height(16.dp))
-                        
+
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             // RENCONTRES
                             HeritageMainCard(
@@ -235,17 +235,19 @@ fun HeirHeritageScreen(
                                         offsetY = bookCoverOffsetY,
                                         theme = theme,
                                         explicitKey = heirKey, // Fix critique Bug 1
+                                        creatorId = creatorId, // v12.6.1 : requis pour résolution sécurisée Destinataire
                                         isCompact = true,
                                         onClick = {
                                             if (protocolStatus == RecipientMediaViewModel.ProtocolStatus.ACTIVATED) {
-                                                navController.navigate(Screen.RecipientLibrary.createRoute(creatorId))
+                                                // v13.0 : Ouvre directement la lecture du Livre (au lieu de la Bibliothèque générale)
+                                                navController.navigate("book_viewer_recipient?creatorId=$creatorId")
                                             }
                                         }
                                     )
                                 }
                             ) {
                                 if (protocolStatus == RecipientMediaViewModel.ProtocolStatus.ACTIVATED) {
-                                    navController.navigate(Screen.RecipientLibrary.createRoute(creatorId))
+                                    navController.navigate("book_viewer_recipient?creatorId=$creatorId")
                                 }
                             }
                         }
@@ -276,7 +278,7 @@ fun HeirHeritageScreen(
 
                         // Si Miroir révélé, on l'ajoute
                         val finalItems = if (isMirrorRevealed) {
-                            casketItems + CasketItem(stringResource(R.string.heir_heritage_special_mirror_title), Icons.Default.People) { 
+                            casketItems + CasketItem(stringResource(R.string.heir_heritage_special_mirror_title), Icons.Default.People) {
                                 mirrorId?.let { navController.navigate(Screen.RecipientPact.createRoute(it)) }
                             }
                         } else casketItems
@@ -385,9 +387,9 @@ fun HeritageCasket(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        Icons.Outlined.MenuBook, 
-                        null, 
-                        tint = accent, 
+                        Icons.Outlined.MenuBook,
+                        null,
+                        tint = accent,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(Modifier.width(16.dp))
@@ -579,13 +581,13 @@ fun HeritageMainCard(
             } else if (icon != null) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Icon(
-                        icon, null, 
-                        tint = accent.copy(alpha = 0.2f), 
+                        icon, null,
+                        tint = accent.copy(alpha = 0.2f),
                         modifier = Modifier.size(48.dp)
                     )
                 }
             }
-            
+
             // Bottom Label
             Box(
                 modifier = Modifier
@@ -597,8 +599,8 @@ fun HeritageMainCard(
                 Text(
                     text = title.uppercase(),
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight = FontWeight.Black, 
-                        color = Color.White, 
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
                         fontSize = 9.sp,
                         letterSpacing = 1.sp
                     ),
