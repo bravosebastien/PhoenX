@@ -30,7 +30,7 @@ class PreferenceManager @Inject constructor(
     private val SILENCE_ONBOARDING_DONE_KEY = booleanPreferencesKey("silence_onboarding_done")
     private val ACCENT_COLOR_KEY = androidx.datastore.preferences.core.intPreferencesKey("accent_color")
     private val BACKGROUND_COLOR_KEY = androidx.datastore.preferences.core.intPreferencesKey("background_color")
-    private val BACKGROUND_STYLE_KEY = androidx.datastore.preferences.core.stringPreferencesKey("background_style")
+    private val GLOBAL_BACKGROUND_COLOR_KEY = androidx.datastore.preferences.core.intPreferencesKey("global_background_color")
     private val SYNC_MIGRATION_V1_DONE_KEY = booleanPreferencesKey("sync_migration_v1_done")
     
     // v8.9.0 : Thème Global (Plume & Papier)
@@ -94,9 +94,9 @@ class PreferenceManager @Inject constructor(
             preferences[BACKGROUND_COLOR_KEY]
         }
 
-    val backgroundStyle: Flow<String> = context.dataStore.data
+    val globalBackgroundColor: Flow<Int?> = context.dataStore.data
         .map { preferences ->
-            preferences[BACKGROUND_STYLE_KEY] ?: "RADIAL"
+            preferences[GLOBAL_BACKGROUND_COLOR_KEY]
         }
 
     val globalBackgroundId: Flow<String> = context.dataStore.data
@@ -180,9 +180,9 @@ class PreferenceManager @Inject constructor(
         }
     }
 
-    suspend fun setBackgroundStyle(style: String) {
+    suspend fun setGlobalBackgroundColor(color: Int) {
         context.dataStore.edit { preferences ->
-            preferences[BACKGROUND_STYLE_KEY] = style
+            preferences[GLOBAL_BACKGROUND_COLOR_KEY] = color
         }
     }
 

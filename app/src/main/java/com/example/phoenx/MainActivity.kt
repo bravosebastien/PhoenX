@@ -79,15 +79,13 @@ class MainActivity : AppCompatActivity() {
         setContent {
             val themeViewModel: ThemeViewModel = hiltViewModel()
             val accentColor by themeViewModel.accentColor.collectAsState()
-            val backgroundId by themeViewModel.globalBackgroundId.collectAsState()
+            val backgroundColor by themeViewModel.globalBackgroundColor.collectAsState()
             val fontId by themeViewModel.globalFontId.collectAsState()
-            val backgroundStyle by themeViewModel.backgroundStyle.collectAsState()
             
             PhoenXTheme(
                 accentColor = accentColor,
-                backgroundId = backgroundId,
-                fontId = fontId,
-                backgroundStyle = backgroundStyle
+                backgroundColor = backgroundColor,
+                fontId = fontId
             ) {
                 val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
                 val shouldShowGuide by mainViewModel.shouldShowWelcomeGuide.collectAsState()

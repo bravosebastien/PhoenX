@@ -34,8 +34,9 @@ class ThemeViewModel @Inject constructor(
     val globalFontId: StateFlow<String> = preferenceManager.globalFontId
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "eb_garamond")
 
-    val backgroundStyle: StateFlow<String> = preferenceManager.backgroundStyle
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "RADIAL")
+    val globalBackgroundColor: StateFlow<Color> = preferenceManager.globalBackgroundColor
+        .map { it?.let { Color(it) } ?: Color(0xFFFFFDF5) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), Color(0xFFFFFDF5))
 
     fun setAccent(color: Color) {
         viewModelScope.launch {
@@ -51,9 +52,17 @@ class ThemeViewModel @Inject constructor(
         }
     }
 
+    fun setGlobalBackgroundColor(color: Color) {
+        viewModelScope.launch {
+            preferenceManager.setGlobalBackgroundColor(color.toArgb())
+            syncThemeToFirestore()
+        }
+    }
+
     fun resetToDefaults() {
         viewModelScope.launch {
             preferenceManager.setGlobalTheme("classic_ivory", "eb_garamond")
+            preferenceManager.setGlobalBackgroundColor(Color(0xFFFFFDF5).toArgb())
             preferenceManager.setAccentColor(AccentPrimary.toArgb())
             syncThemeToFirestore()
         }
@@ -65,6 +74,7 @@ class ThemeViewModel @Inject constructor(
             val bgId = preferenceManager.globalBackgroundId.first()
             val fId = preferenceManager.globalFontId.first()
             val acc = preferenceManager.accentColor.first()
+            val bgCol = preferenceManager.globalBackgroundColor.first() ?: Color(0xFFFFFDF5).toArgb()
 
             // v12.7 : "appTheme" est le look de l'application elle-même (Profil/Réglages) — on ne
             // touche plus ici à "transmissionBackgroundId/FontId", qui appartient désormais
@@ -76,18 +86,13 @@ class ThemeViewModel @Inject constructor(
                     "appTheme" to mapOf(
                         "backgroundId" to bgId,
                         "fontId" to fId,
-                        "accentColor" to acc
+                        "accentColor" to acc,
+                        "backgroundColor" to bgCol
                     )
                 )
             )
         } catch (e: Exception) {
             android.util.Log.e("ThemeVM", "Erreur sync Firestore: ${e.message}")
-        }
-    }
-
-    fun setBackgroundStyle(style: String) {
-        viewModelScope.launch {
-            preferenceManager.setBackgroundStyle(style)
         }
     }
 }

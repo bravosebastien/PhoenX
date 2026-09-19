@@ -137,9 +137,6 @@ class MainViewModel @Inject constructor(
         .map { it ?: BackgroundPrimary.toArgb() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), BackgroundPrimary.toArgb())
 
-    val backgroundStyle: StateFlow<String> = preferenceManager.backgroundStyle
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "SOLID")
-
     val isVoiceModeActive: StateFlow<Boolean> = preferenceManager.isVoiceModeActive
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -156,10 +153,6 @@ class MainViewModel @Inject constructor(
 
     fun setBackgroundColor(color: Int) {
         viewModelScope.launch { preferenceManager.setBackgroundColor(color) }
-    }
-
-    fun setBackgroundStyle(style: String) {
-        viewModelScope.launch { preferenceManager.setBackgroundStyle(style) }
     }
 
     fun logout() {
@@ -219,13 +212,21 @@ class MainViewModel @Inject constructor(
 
             val bgId = doc.getString("transmissionBackgroundId") ?: "classic_ivory"
             val fontId = doc.getString("transmissionFontId") ?: "playfair_display"
-            
-            viewModelScope.launch {
-                preferenceManager.setGlobalTheme(bgId, fontId)
-            }
 
             _transmissionBackgroundId.value = bgId
             _transmissionFontId.value = fontId
+
+            // v12.7 : Correction — on ne pilote plus le thème GLOBAL via les champs du Livre
+            // (transmissionBackgroundId/FontId). On utilise le champ dédié "appTheme".
+            val appThemeMap = doc.get("appTheme") as? Map<*, *>
+            val globalBgId = appThemeMap?.get("backgroundId") as? String ?: "classic_ivory"
+            val globalFontId = appThemeMap?.get("fontId") as? String ?: "eb_garamond"
+            val globalBgColor = (appThemeMap?.get("backgroundColor") as? Long)?.toInt() ?: 0xFFFFFDF5.toInt()
+
+            viewModelScope.launch {
+                preferenceManager.setGlobalTheme(globalBgId, globalFontId)
+                preferenceManager.setGlobalBackgroundColor(globalBgColor)
+            }
 
             val rolesData = doc.get("myRoles") as? Map<String, Any>
             val parsedRoles = mutableMapOf<String, UserRole>()

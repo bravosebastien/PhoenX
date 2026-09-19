@@ -16,6 +16,8 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.lazy.items
+import com.example.phoenx.ui.screens.book.BookThemeOptions
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +25,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.R
@@ -33,6 +36,11 @@ import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.RecoveryPhraseBottomSheet
 import com.example.phoenx.ui.theme.*
 import kotlinx.coroutines.launch
+
+import androidx.compose.animation.*
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.rotate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -309,105 +317,60 @@ fun SettingsScreen(
             Text(stringResource(R.string.settings_section_personalization), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
             Spacer(modifier = Modifier.height(16.dp))
 
-            Surface(
-                color = theme.contentColor.copy(alpha = 0.05f),
-                shape = MaterialTheme.shapes.medium,
-                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+            var showAccentPicker by remember { mutableStateOf(false) }
+            var showBackgroundPicker by remember { mutableStateOf(false) }
+
+            // v12.7 : Nouvelle organisation par bandeaux dépliables pour la couleur libre
+            ExpandablePersonalizationBanner(
+                title = "Couleur icônes et bordures",
+                isExpanded = showAccentPicker,
+                onToggle = { showAccentPicker = !showAccentPicker },
+                theme = theme,
+                accent = accent
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.settings_accent_color_label), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    val currentAccentInt by mainViewModel.accentColor.collectAsState()
-
-                    // v12.7 : vraie palette (teinte + saturation/luminosité) à la place des 6
-                    // pastilles fixes — on peut désormais choisir n'importe quelle nuance exacte.
-                    HsvColorPicker(
-                        initialColor = Color(currentAccentInt),
-                        onColorChanged = { color -> mainViewModel.setAccentColor(color.toArgb()) }
-                    )
-                }
+                val currentAccentInt by mainViewModel.accentColor.collectAsState()
+                HsvColorPicker(
+                    initialColor = Color(currentAccentInt),
+                    onColorChanged = { color -> mainViewModel.setAccentColor(color.toArgb()) }
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // v12.7 : "Apparence et Style" (papier & plume) a rejoint ici le reste de la
-            // personnalisation visuelle, à côté de la couleur d'accentuation — ce n'était pas
-            // sa place au milieu des informations de Profil.
-            Surface(
-                color = theme.contentColor.copy(alpha = 0.05f),
-                shape = MaterialTheme.shapes.medium,
-                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+            ExpandablePersonalizationBanner(
+                title = "Couleur fond d\'écran",
+                isExpanded = showBackgroundPicker,
+                onToggle = { showBackgroundPicker = !showBackgroundPicker },
+                theme = theme,
+                accent = accent
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.profile_section_appearance), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    GlobalThemeSelector(
-                        currentBackgroundId = backgroundId,
-                        currentFontId = fontId
-                    ) { bg, font -> themeViewModel.setGlobalTheme(bg, font) }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    TextButton(
-                        onClick = { themeViewModel.resetToDefaults() },
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    ) {
-                        Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.profile_button_reset_defaults))
-                    }
-                }
+                val currentBgColor by themeViewModel.globalBackgroundColor.collectAsState()
+                HsvColorPicker(
+                    initialColor = currentBgColor,
+                    onColorChanged = { color -> themeViewModel.setGlobalBackgroundColor(color) }
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Surface(
-                color = theme.contentColor.copy(alpha = 0.05f),
-                shape = MaterialTheme.shapes.medium,
-                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+            // v12.7 : Le sélecteur de police est conservé mais séparé des couleurs de fond
+            // qui sont désormais libres (HsvColorPicker).
+            FontSelector(
+                currentFontId = fontId,
+                onFontChange = { font -> themeViewModel.setGlobalTheme(backgroundId, font) },
+                theme = theme,
+                accent = accent
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            TextButton(
+                onClick = { themeViewModel.resetToDefaults() },
+                modifier = Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(stringResource(R.string.settings_background_style_label), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    
-                    val styles = listOf(
-                        "RADIAL" to stringResource(R.string.settings_background_style_radial),
-                        "LINEAR" to stringResource(R.string.settings_background_style_linear),
-                        "SOLID" to stringResource(R.string.settings_background_style_solid)
-                    )
-                    
-                    val currentStyle by mainViewModel.backgroundStyle.collectAsState()
-                    
-                    Column(Modifier.selectableGroup()) {
-                        styles.forEach { (style, label) ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .selectable(
-                                        selected = currentStyle == style,
-                                        onClick = { mainViewModel.setBackgroundStyle(style) },
-                                        role = Role.RadioButton
-                                    )
-                                    .padding(vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(
-                                    selected = currentStyle == style,
-                                    onClick = null,
-                                    colors = RadioButtonDefaults.colors(selectedColor = accent)
-                                )
-                                Text(
-                                    text = label,
-                                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                                    color = if (currentStyle == style) theme.contentColor else theme.contentColor.copy(alpha = 0.6f),
-                                    modifier = Modifier.padding(start = 12.dp)
-                                )
-                            }
-                        }
-                    }
-                }
+                Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.profile_button_reset_defaults))
             }
         }
     }
@@ -514,6 +477,104 @@ fun SettingsItem(
                 Text(subtitle, style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
             }
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.2f))
+        }
+    }
+}
+
+@Composable
+fun ExpandablePersonalizationBanner(
+    title: String,
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
+    theme: AppThemeState,
+    accent: Color,
+    content: @Composable () -> Unit
+) {
+    val rotation by animateFloatAsState(if (isExpanded) 180f else 0f, label = "chevron")
+
+    Surface(
+        color = theme.contentColor.copy(alpha = 0.05f),
+        shape = MaterialTheme.shapes.medium,
+        border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+    ) {
+        Column {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onToggle() }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                    color = theme.contentColor
+                )
+                Icon(
+                    imageVector = Icons.Default.ExpandMore,
+                    contentDescription = null,
+                    tint = accent,
+                    modifier = Modifier.rotate(rotation)
+                )
+            }
+
+            AnimatedVisibility(visible = isExpanded) {
+                Box(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+                    content()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FontSelector(
+    currentFontId: String,
+    onFontChange: (String) -> Unit,
+    theme: AppThemeState,
+    accent: Color
+) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            stringResource(R.string.theme_selector_plume),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = theme.contentColor.copy(alpha = 0.4f),
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+        androidx.compose.foundation.lazy.LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(BookThemeOptions.fonts) { font ->
+                val isSelected = currentFontId == font.id
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.width(70.dp).clickable { onFontChange(font.id) }
+                ) {
+                    Surface(
+                        modifier = Modifier.size(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = theme.contentColor.copy(alpha = 0.03f),
+                        border = BorderStroke(1.dp, if (isSelected) accent.copy(alpha = 0.6f) else theme.contentColor.copy(alpha = 0.1f))
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "Aa",
+                                style = MaterialTheme.typography.titleLarge.copy(fontFamily = font.fontFamily),
+                                color = if (isSelected) accent else theme.contentColor.copy(alpha = 0.6f)
+                            )
+                        }
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(font.nameRes),
+                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
+                        color = if (isSelected) accent else theme.contentColor.copy(alpha = 0.4f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        maxLines = 1
+                    )
+                }
+            }
         }
     }
 }

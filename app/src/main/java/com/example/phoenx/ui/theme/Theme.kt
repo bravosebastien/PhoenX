@@ -16,6 +16,8 @@ import androidx.core.view.WindowCompat
 import com.example.phoenx.ui.screens.book.BookThemeOptions
 import androidx.compose.ui.text.font.FontFamily
 
+import androidx.compose.ui.graphics.luminance
+
 // v8.9.0 : Structure du Thème Global
 data class AppThemeState(
     val backgroundColor: Color = Color(0xFFFFFDF5), // Ivoire par défaut
@@ -51,15 +53,13 @@ private val DarkColorScheme = darkColorScheme(
 @Composable
 fun PhoenXTheme(
     accentColor: Color = AccentPrimary,
-    backgroundId: String = "classic_ivory", // v8.9.0
+    backgroundColor: Color = Color(0xFFFFFDF5),
     fontId: String = "eb_garamond",         // v8.9.0
-    backgroundStyle: String = "RADIAL",
     content: @Composable () -> Unit
 ) {
-    val bgOption = BookThemeOptions.getBackground(backgroundId)
     val fontFamily = BookThemeOptions.getFont(fontId)
-    val backgroundColor = bgOption.color
-    val contentColor = if (bgOption.darkText) Color(0xFF1A1A1A) else Color(0xFFF2EDE8)
+    val isLight = backgroundColor.luminance() > 0.5f
+    val contentColor = if (isLight) Color(0xFF1A1A1A) else Color(0xFFF2EDE8)
 
     val themeState = AppThemeState(
         backgroundColor = backgroundColor,
@@ -78,24 +78,13 @@ fun PhoenXTheme(
     
     val view = LocalView.current
     
-    // v12.7 : les 3 styles étaient auparavant de simples variations d'alpha sur la même teinte
-    // (l'alpha ne se voit que si un fond différent est dessous, ce qui n'était pas le cas ici) —
-    // donc visuellement indissociables. On mélange désormais vraiment la couleur du "papier"
-    // avec la couleur d'encre (contentColor) pour obtenir un dégradé réellement visible, quel que
-    // soit le papier choisi parmi les 8 teintes disponibles.
-    val toned = lerp(backgroundColor, contentColor, 0.12f)
-    val backgroundBrush = when(backgroundStyle) {
-        "LINEAR" -> Brush.verticalGradient(
-            colors = listOf(backgroundColor, toned)
-        )
-        "SOLID" -> Brush.linearGradient(
-            colors = listOf(backgroundColor, backgroundColor)
-        )
-        else -> Brush.radialGradient(
-            colors = listOf(backgroundColor, toned),
-            radius = 1200f
-        )
-    }
+    // v12.7 : On mélange désormais vraiment la couleur du "papier" avec la couleur d'encre 
+    // (contentColor) pour obtenir un dégradé doux et élégant par défaut.
+    val toned = lerp(backgroundColor, contentColor, 0.08f)
+    val backgroundBrush = Brush.radialGradient(
+        colors = listOf(backgroundColor, toned),
+        radius = 1200f
+    )
 
     if (!view.isInEditMode) {
         SideEffect {
@@ -105,8 +94,8 @@ fun PhoenXTheme(
             
             val controller = WindowCompat.getInsetsController(window, view)
             // v8.9.0 : Adapter les icônes de la barre de statut au fond (Clair vs Sombre)
-            controller.isAppearanceLightStatusBars = bgOption.darkText
-            controller.isAppearanceLightNavigationBars = bgOption.darkText
+            controller.isAppearanceLightStatusBars = isLight
+            controller.isAppearanceLightNavigationBars = isLight
         }
     }
 
