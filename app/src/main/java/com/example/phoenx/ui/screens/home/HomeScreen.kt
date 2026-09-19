@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -348,8 +349,16 @@ fun HomeScreen(
                                         shape = CircleShape,
                                         color = Color.Black.copy(alpha = 0.25f)
                                     ) {
-                                        Box(contentAlignment = Alignment.Center) {
-                                            Text("+", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                        // v12.7 : un glyphe texte "+" n'est jamais parfaitement centré par la
+                                        // police (métriques de hauteur de ligne) — une vraie icône vectorielle,
+                                        // elle, se centre au pixel près dans le cercle.
+                                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                            Icon(
+                                                imageVector = Icons.Default.Add,
+                                                contentDescription = null,
+                                                tint = Color.White,
+                                                modifier = Modifier.size(14.dp)
+                                            )
                                         }
                                     }
                                     Spacer(modifier = Modifier.width(8.dp))

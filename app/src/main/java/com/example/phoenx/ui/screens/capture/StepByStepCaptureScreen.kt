@@ -1,5 +1,10 @@
 package com.example.phoenx.ui.screens.capture
 
+// RESTAURÉS le 18/09 : ces trois imports avaient disparu de l'en-tête du fichier,
+// alors que le code qui les utilise était resté en place.
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.example.phoenx.ui.components.RecipientSelector
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -30,17 +35,72 @@ import com.example.phoenx.ui.components.InfoPoint
 import com.example.phoenx.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun StepByStepCaptureScreen(
     onNavigateBack: () -> Unit,
     onNavigateToMap: () -> Unit, // v9.4.26
-    viewModel: StepByStepCaptureViewModel = hiltViewModel()
+    viewModel: StepByStepCaptureViewModel = hiltViewModel(),
+    captureViewModel: CaptureViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val captureState by captureViewModel.uiState.collectAsState()
+    val recipients by captureViewModel.recipients.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+
+    // v13.0 : Géolocalisation directe (alternative à la sélection manuelle sur la Mappemonde)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isLocatingGps by remember { mutableStateOf(false) }
+
+    fun resolveAndUseCurrentLocation() {
+        isLocatingGps = true
+        scope.launch {
+            try {
+                val fusedLocationClient = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(context)
+                val location = fusedLocationClient.getCurrentLocation(
+                    com.google.android.gms.location.Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                    null
+                ).await()
+                if (location != null) {
+                    val geocoder = android.location.Geocoder(context, Locale.getDefault())
+                    @Suppress("DEPRECATION")
+                    val addresses = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                    val address = addresses?.firstOrNull()
+                    val placeName = address?.locality ?: address?.subAdminArea ?: address?.adminArea
+                        ?: context.getString(R.string.step_capture_viewmodel_location_unknown)
+                    val countryName = address?.countryName ?: ""
+                    viewModel.useCurrentGpsLocation(location.latitude, location.longitude, placeName, countryName)
+                } else {
+                    android.widget.Toast.makeText(context, context.getString(R.string.step_capture_location_gps_unavailable), android.widget.Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                android.widget.Toast.makeText(context, context.getString(R.string.step_capture_location_gps_unavailable), android.widget.Toast.LENGTH_LONG).show()
+            } finally {
+                isLocatingGps = false
+            }
+        }
+    }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> if (granted) resolveAndUseCurrentLocation() }
+
+    fun onUseCurrentLocationClick() {
+        if (androidx.core.content.ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            resolveAndUseCurrentLocation()
+        } else {
+            locationPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
 
     Scaffold(
         containerColor = theme.backgroundColor,
@@ -84,15 +144,66 @@ fun StepByStepCaptureScreen(
                     }
 
                     Button(
-                        onClick = { viewModel.nextStep() },
+                        onClick = {
+                            if (uiState.currentStep < 8) {
+                                viewModel.nextStep()
+                            } else {
+                                // v12.6 CORRECTIF : le souvenir est TOUJOURS créé en type TEXT ; tous
+                                // les médias (y compris le premier) deviennent des compléments, jamais
+                                // le média principal — pour un placement uniforme dans "Compléments Média".
+                                captureViewModel.saveEntry(
+                                    content = uiState.story.ifBlank { uiState.title },
+                                    type = "TEXT",
+                                    category = uiState.category,
+                                    tonalNuance = uiState.tonalNuance,
+                                    visibility = uiState.visibility,
+                                    recipientIds = uiState.selectedRecipientIds,
+                                    locationId = uiState.locationId,
+                                    locationName = uiState.locationName,
+                                    enigmaQuestion = if (uiState.enigmaEnabled) uiState.enigmaQuestion else null,
+                                    enigmaAnswer = if (uiState.enigmaEnabled) uiState.enigmaAnswer else null,
+                                    enigmaHint = if (uiState.enigmaEnabled) uiState.enigmaHint else null,
+                                    enigmaAutoUnlockDays = if (uiState.enigmaEnabled) uiState.autoUnlockDays else null,
+                                    includeInBook = uiState.includeInBook,
+                                    onSuccess = { entryId ->
+                                        uiState.mediaAttachments.forEach { (file, type) ->
+                                            captureViewModel.addMediaComplement(entryId, file, type)
+                                        }
+                                        // v12.6 : Ajouter les liens externes (Spotify/Deezer/YouTube) en attente
+                                        uiState.pendingLinks.forEach { link ->
+                                            captureViewModel.addLinkComplement(
+                                                parentId = entryId,
+                                                provider = link.provider,
+                                                title = link.title,
+                                                comment = link.comment,
+                                                url = link.url,
+                                                recipientUids = uiState.selectedRecipientIds,
+                                                visibility = uiState.visibility,
+                                                thumbnailUrl = link.thumbnailUrl
+                                            )
+                                        }
+                                        onNavigateBack()
+                                    }
+                                )
+                            }
+                        },
                         enabled = when (uiState.currentStep) {
                             1 -> uiState.title.isNotBlank()
-                            else -> true
+                            8 -> uiState.story.isNotBlank() && captureState !is CaptureUiState.Loading
+                            else -> captureState !is CaptureUiState.Loading
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = accent),
                         shape = MaterialTheme.shapes.medium
                     ) {
-                        Text(stringResource(R.string.step_capture_next), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                        if (captureState is CaptureUiState.Loading) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = theme.backgroundColor, strokeWidth = 2.dp)
+                        } else {
+                            Text(
+                                text = if (uiState.currentStep < 8) stringResource(R.string.step_capture_next) else stringResource(R.string.capture_audio_button_save),
+                                color = theme.backgroundColor, 
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -131,6 +242,8 @@ fun StepByStepCaptureScreen(
                     locationName = uiState.locationName,
                     onChooseLocation = onNavigateToMap,
                     onClearLocation = { viewModel.setLocation(null) },
+                    onUseCurrentLocation = { onUseCurrentLocationClick() },
+                    isLocatingGps = isLocatingGps,
                     theme = theme,
                     accent = accent
                 )
@@ -152,8 +265,396 @@ fun StepByStepCaptureScreen(
                     theme = theme,
                     accent = accent
                 )
+                6 -> StepDestinataires(
+                    recipients = recipients,
+                    selectedIds = uiState.selectedRecipientIds,
+                    visibility = uiState.visibility,
+                    onToggleRecipient = { viewModel.toggleRecipient(it) },
+                    onVisibilityChange = { viewModel.updateVisibility(it) },
+                    theme = theme,
+                    accent = accent
+                )
+                7 -> StepMedias(
+                    attachments = uiState.mediaAttachments,
+                    onAddMedia = { file, type -> viewModel.addMediaAttachment(file, type) },
+                    onRemoveMedia = { viewModel.removeMediaAttachment(it) },
+                    pendingLinks = uiState.pendingLinks,
+                    onAddLink = { viewModel.addPendingLink(it) },
+                    onRemoveLink = { viewModel.removePendingLink(it) },
+                    recipients = recipients,
+                    captureViewModel = captureViewModel, // v12.5 : Pour l'audio
+                    theme = theme,
+                    accent = accent
+                )
+                8 -> StepRecit(
+                    title = uiState.title,
+                    story = uiState.story,
+                    onStoryChange = { viewModel.updateStory(it) },
+                    theme = theme,
+                    accent = accent
+                )
             }
         }
+    }
+}
+
+/**
+ * Étape 8 : le Récit.
+ * RECONSTRUIT le 18/09 — ce composant avait entièrement disparu du fichier alors
+ * qu'il était toujours appelé à l'étape 8. Reconstruit à l'identique de la
+ * signature attendue par l'appelant, dans le style des autres étapes.
+ * Utilise des clés de texte déjà existantes (aucune nouvelle traduction requise).
+ */
+@Composable
+fun StepRecit(
+    title: String,
+    story: String,
+    onStoryChange: (String) -> Unit,
+    theme: AppThemeState,
+    accent: Color
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(R.string.memory_detail_story_editor_title),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
+            color = accent
+        )
+
+        if (title.isNotBlank()) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodySmall,
+                color = theme.contentColor.copy(alpha = 0.5f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        TextField(
+            value = story,
+            onValueChange = onStoryChange,
+            placeholder = {
+                Text(
+                    stringResource(R.string.memory_detail_story_editor_placeholder),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = theme.contentColor.copy(alpha = 0.3f)
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 220.dp),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                color = theme.contentColor,
+                fontFamily = theme.fontFamily
+            ),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                focusedIndicatorColor = accent,
+                unfocusedIndicatorColor = theme.contentColor.copy(alpha = 0.1f),
+                focusedTextColor = theme.contentColor,
+                unfocusedTextColor = theme.contentColor
+            )
+        )
+    }
+}
+
+@Composable
+fun StepDestinataires(
+    recipients: List<com.example.phoenx.data.local.RecipientEntity>,
+    selectedIds: List<String>,
+    visibility: String,
+    onToggleRecipient: (String) -> Unit,
+    onVisibilityChange: (String) -> Unit,
+    theme: AppThemeState,
+    accent: Color
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = stringResource(R.string.capture_compartments_label),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
+            color = accent
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        RecipientSelector(
+            recipients = recipients,
+            selectedIds = selectedIds,
+            onToggleRecipient = onToggleRecipient,
+            visibility = visibility,
+            onVisibilityChange = onVisibilityChange,
+            accent = accent
+        )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun StepMedias(
+    attachments: List<Pair<java.io.File, String>>,
+    onAddMedia: (java.io.File, String) -> Unit,
+    onRemoveMedia: (Int) -> Unit,
+    pendingLinks: List<PendingLink> = emptyList(), // v12.6
+    onAddLink: (PendingLink) -> Unit = {}, // v12.6
+    onRemoveLink: (Int) -> Unit = {}, // v12.6
+    recipients: List<com.example.phoenx.data.local.RecipientEntity> = emptyList(), // v12.6
+    captureViewModel: CaptureViewModel,
+    theme: AppThemeState,
+    accent: Color
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val captureState by captureViewModel.uiState.collectAsState()
+    val isRecording = captureState is CaptureUiState.RecordingAudio
+    var addingLinkProvider by remember { mutableStateOf<String?>(null) } // v12.6
+
+    // v12.6 : L'enregistrement audio exige la permission RECORD_AUDIO au runtime.
+    // Sans cette vérification, MediaRecorder.setAudioSource() plante l'application
+    // si la permission n'a jamais été accordée (ex: jamais utilisé la dictée vocale).
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            captureViewModel.startAudioRecording(context.cacheDir)
+        }
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = stringResource(R.string.capture_photo_label_camera),
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 2.sp),
+            color = accent
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Liste des médias déjà ajoutés
+        if (attachments.isNotEmpty()) {
+            attachments.forEachIndexed { index, (file, type) ->
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = theme.contentColor.copy(alpha = 0.05f)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            when(type) {
+                                "PHOTO" -> Icons.Default.Photo
+                                "VIDEO" -> Icons.Default.Videocam
+                                "AUDIO" -> Icons.Default.Mic
+                                else -> Icons.Default.Attachment
+                            },
+                            null,
+                            tint = accent
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(file.name, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = theme.contentColor, maxLines = 1)
+                        IconButton(onClick = { onRemoveMedia(index) }) {
+                            Icon(Icons.Default.Delete, null, tint = Error.copy(alpha = 0.6f))
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        // v12.6 : Liste des liens externes déjà ajoutés
+        if (pendingLinks.isNotEmpty()) {
+            pendingLinks.forEachIndexed { index, link ->
+                Surface(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = theme.contentColor.copy(alpha = 0.05f)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            if (link.provider == "YOUTUBE") Icons.Default.OndemandVideo else Icons.Default.MusicNote,
+                            null,
+                            tint = accent
+                        )
+                        Spacer(Modifier.width(12.dp))
+                        Text(link.title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = theme.contentColor, maxLines = 1)
+                        IconButton(onClick = { onRemoveLink(index) }) {
+                            Icon(Icons.Default.Delete, null, tint = Error.copy(alpha = 0.6f))
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+        }
+
+        val photoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                val file = captureViewModel.uriToFile(it)
+                if (file != null) onAddMedia(file, "PHOTO")
+            }
+        }
+
+        val videoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                // v12.6 CORRECTIF : la limite de durée (1min30) existait déjà pour une vidéo
+                // ajoutée à un souvenir existant (MemoryComplementsSection), mais manquait ici,
+                // dans l'Étape par Étape — une vidéo de n'importe quelle durée passait sans contrôle.
+                val isValid = com.example.phoenx.ui.util.VideoUtils.isVideoDurationValid(
+                    context, it, com.example.phoenx.ui.util.VideoUtils.MAX_VIDEO_DURATION_SECONDS_STANDARD
+                )
+                if (isValid) {
+                    val file = captureViewModel.uriToFile(it)
+                    if (file != null) onAddMedia(file, "VIDEO")
+                } else {
+                    android.widget.Toast.makeText(context, context.getString(R.string.memory_complements_error_video_too_long_toast), android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+
+        fun toggleAudioRecording() {
+            if (isRecording) {
+                val file = captureViewModel.stopAudioRecording()
+                if (file != null) onAddMedia(file, "AUDIO")
+            } else {
+                if (androidx.core.content.ContextCompat.checkSelfPermission(
+                        context,
+                        android.Manifest.permission.RECORD_AUDIO
+                    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                ) {
+                    captureViewModel.startAudioRecording(context.cacheDir)
+                } else {
+                    audioPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+                }
+            }
+        }
+
+        // v12.6 : Un enregistrement en cours reste toujours visible et accessible en un geste,
+        // même quand le menu déroulant n'est pas ouvert.
+        if (isRecording) {
+            Surface(
+                modifier = Modifier.fillMaxWidth().clickable { toggleAudioRecording() },
+                shape = RoundedCornerShape(16.dp),
+                color = Error.copy(alpha = 0.1f),
+                border = BorderStroke(1.dp, Error.copy(alpha = 0.4f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(Icons.Default.Stop, null, tint = Error)
+                    Spacer(Modifier.width(12.dp))
+                    Text("Arrêter l'enregistrement vocal", color = Error, fontWeight = FontWeight.Bold)
+                }
+            }
+        } else {
+            // v12.6 : Menu déroulant unique "Ajouter" — plus lisible qu'une rangée d'icônes seules
+            var showAddMenu by remember { mutableStateOf(false) }
+            Box {
+                Surface(
+                    modifier = Modifier.clickable { showAddMenu = true },
+                    shape = RoundedCornerShape(24.dp),
+                    color = accent.copy(alpha = 0.1f),
+                    border = BorderStroke(1.dp, accent.copy(alpha = 0.4f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.AddCircle, null, tint = accent)
+                        Spacer(Modifier.width(10.dp))
+                        Text("Ajouter un média ou un lien", color = accent, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.width(6.dp))
+                        Icon(Icons.Default.ArrowDropDown, null, tint = accent)
+                    }
+                }
+
+                DropdownMenu(
+                    expanded = showAddMenu,
+                    onDismissRequest = { showAddMenu = false },
+                    containerColor = theme.backgroundColor
+                ) {
+                    Text(
+                        "MÉDIAS",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+                        color = theme.contentColor.copy(alpha = 0.4f),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Photo", color = theme.contentColor) },
+                        leadingIcon = { Icon(Icons.Default.AddAPhoto, null, tint = accent) },
+                        onClick = { showAddMenu = false; photoLauncher.launch("image/*") }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Vidéo", color = theme.contentColor) },
+                        leadingIcon = { Icon(Icons.Default.VideoCall, null, tint = accent) },
+                        onClick = { showAddMenu = false; videoLauncher.launch("video/*") }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Enregistrement vocal", color = theme.contentColor) },
+                        leadingIcon = { Icon(Icons.Default.Mic, null, tint = accent) },
+                        onClick = { showAddMenu = false; toggleAudioRecording() }
+                    )
+
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
+
+                    Text(
+                        "LIENS EXTERNES",
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, letterSpacing = 1.sp),
+                        color = theme.contentColor.copy(alpha = 0.4f),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Spotify", color = theme.contentColor) },
+                        leadingIcon = { Icon(Icons.Default.MusicNote, null, tint = accent) },
+                        onClick = { showAddMenu = false; addingLinkProvider = "SPOTIFY" }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Deezer", color = theme.contentColor) },
+                        leadingIcon = { Icon(Icons.Default.LibraryMusic, null, tint = accent) },
+                        onClick = { showAddMenu = false; addingLinkProvider = "DEEZER" }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("YouTube", color = theme.contentColor) },
+                        leadingIcon = { Icon(Icons.Default.OndemandVideo, null, tint = accent) },
+                        onClick = { showAddMenu = false; addingLinkProvider = "YOUTUBE" }
+                    )
+                }
+            }
+        }
+
+        Text(
+            text = "Ajoutez autant de photos, vidéos, vocaux ou liens que vous le souhaitez",
+            style = MaterialTheme.typography.labelSmall,
+            color = theme.contentColor.copy(alpha = 0.4f),
+            modifier = Modifier.padding(top = 16.dp)
+        )
+    }
+
+    // v12.6 : DIALOGUE D'AJOUT D'UN LIEN EXTERNE
+    if (addingLinkProvider != null) {
+        com.example.phoenx.ui.components.DirectMediaDialog(
+            type = addingLinkProvider!!,
+            recipients = recipients,
+            onDismiss = { addingLinkProvider = null },
+            onSave = { title, comment, url, _, _, thumbUrl, _ ->
+                onAddLink(
+                    PendingLink(
+                        provider = addingLinkProvider!!,
+                        title = title,
+                        comment = comment,
+                        url = url,
+                        thumbnailUrl = thumbUrl
+                    )
+                )
+                addingLinkProvider = null
+            }
+        )
     }
 }
 
@@ -242,6 +743,8 @@ fun StepLieu(
     locationName: String?,
     onChooseLocation: () -> Unit,
     onClearLocation: () -> Unit,
+    onUseCurrentLocation: () -> Unit = {}, // v13.0 : Géolocalisation directe
+    isLocatingGps: Boolean = false,
     theme: AppThemeState,
     accent: Color
 ) {
@@ -284,6 +787,35 @@ fun StepLieu(
                 fontWeight = if (locationName != null) FontWeight.Bold else FontWeight.Normal,
                 style = MaterialTheme.typography.bodyLarge
             )
+        }
+    }
+
+    if (locationName == null) {
+        // v13.0 : Alternative à la sélection manuelle sur la Mappemonde — géolocalisation directe.
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            HorizontalDivider(modifier = Modifier.weight(1f), color = theme.contentColor.copy(alpha = 0.1f))
+            Text(
+                text = stringResource(R.string.step_capture_location_or),
+                style = MaterialTheme.typography.labelSmall,
+                color = theme.contentColor.copy(alpha = 0.4f),
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+            HorizontalDivider(modifier = Modifier.weight(1f), color = theme.contentColor.copy(alpha = 0.1f))
+        }
+
+        TextButton(onClick = onUseCurrentLocation, enabled = !isLocatingGps) {
+            if (isLocatingGps) {
+                CircularProgressIndicator(modifier = Modifier.size(16.dp), color = accent, strokeWidth = 2.dp)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.step_capture_location_locating), color = accent, style = MaterialTheme.typography.labelMedium)
+            } else {
+                Icon(Icons.Default.MyLocation, contentDescription = null, tint = accent, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.step_capture_location_use_gps), color = accent, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
+            }
         }
     }
 
@@ -541,7 +1073,20 @@ fun StepDate(
                         showStartPicker = false
                     }) { Text(stringResource(R.string.step_capture_date_confirm), color = accent) }
                 }
-            ) { DatePicker(state = startState) }
+            ) {
+                DatePicker(
+                    state = startState,
+                    colors = DatePickerDefaults.colors(
+                        containerColor = theme.backgroundColor,
+                        titleContentColor = theme.contentColor,
+                        headlineContentColor = theme.contentColor,
+                        selectedDayContainerColor = accent,
+                        selectedDayContentColor = theme.backgroundColor,
+                        todayContentColor = accent,
+                        todayDateBorderColor = accent
+                    )
+                )
+            }
         }
         if (showEndPicker) {
             DatePickerDialog(
@@ -552,7 +1097,20 @@ fun StepDate(
                         showEndPicker = false
                     }) { Text(stringResource(R.string.step_capture_date_confirm), color = accent) }
                 }
-            ) { DatePicker(state = endState) }
+            ) {
+                DatePicker(
+                    state = endState,
+                    colors = DatePickerDefaults.colors(
+                        containerColor = theme.backgroundColor,
+                        titleContentColor = theme.contentColor,
+                        headlineContentColor = theme.contentColor,
+                        selectedDayContainerColor = accent,
+                        selectedDayContentColor = theme.backgroundColor,
+                        todayContentColor = accent,
+                        todayDateBorderColor = accent
+                    )
+                )
+            }
         }
     }
 }

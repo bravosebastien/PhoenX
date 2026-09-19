@@ -9,6 +9,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -77,18 +78,21 @@ fun PhoenXTheme(
     
     val view = LocalView.current
     
+    // v12.7 : les 3 styles étaient auparavant de simples variations d'alpha sur la même teinte
+    // (l'alpha ne se voit que si un fond différent est dessous, ce qui n'était pas le cas ici) —
+    // donc visuellement indissociables. On mélange désormais vraiment la couleur du "papier"
+    // avec la couleur d'encre (contentColor) pour obtenir un dégradé réellement visible, quel que
+    // soit le papier choisi parmi les 8 teintes disponibles.
+    val toned = lerp(backgroundColor, contentColor, 0.12f)
     val backgroundBrush = when(backgroundStyle) {
         "LINEAR" -> Brush.verticalGradient(
-            colors = listOf(backgroundColor.copy(alpha = 0.6f), backgroundColor)
+            colors = listOf(backgroundColor, toned)
         )
         "SOLID" -> Brush.linearGradient(
             colors = listOf(backgroundColor, backgroundColor)
         )
         else -> Brush.radialGradient(
-            colors = listOf(
-                backgroundColor.copy(alpha = 0.7f),
-                backgroundColor.copy(alpha = 0.95f)
-            ),
+            colors = listOf(backgroundColor, toned),
             radius = 1200f
         )
     }

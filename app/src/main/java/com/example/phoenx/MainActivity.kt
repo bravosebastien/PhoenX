@@ -13,7 +13,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -39,7 +39,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : FragmentActivity() {
+class MainActivity : AppCompatActivity() {
 
     private val mainViewModel: MainViewModel by viewModels()
     private var navController: NavHostController? = null
@@ -91,8 +91,8 @@ class MainActivity : FragmentActivity() {
             ) {
                 val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
                 val shouldShowGuide by mainViewModel.shouldShowWelcomeGuide.collectAsState()
-                
-                var isUnlocked by remember { mutableStateOf(value = false) }
+
+                val isUnlocked by mainViewModel.isUnlocked.collectAsState()
                 var showGuide by remember { mutableStateOf(value = false) }
 
                 // LOGIQUE DE DÉVERROUILLAGE BIOMÉTRIQUE
@@ -102,14 +102,14 @@ class MainActivity : FragmentActivity() {
                         if (biometricManager.isBiometricAvailable()) {
                             biometricManager.showBiometricPrompt(
                                 activity = this@MainActivity,
-                                onSuccess = { isUnlocked = true },
+                                onSuccess = { mainViewModel.setUnlocked(true) },
                                 onError = { /* handle error */ },
                             )
                         } else {
-                            isUnlocked = true
+                            mainViewModel.setUnlocked(true)
                         }
                     } else {
-                        isUnlocked = true
+                        mainViewModel.setUnlocked(true)
                     }
                 }
 

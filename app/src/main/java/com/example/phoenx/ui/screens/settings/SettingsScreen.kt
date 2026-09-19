@@ -24,8 +24,11 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.R
 import com.example.phoenx.ui.MainViewModel
+import com.example.phoenx.ui.components.GlobalThemeSelector
+import com.example.phoenx.ui.components.HsvColorPicker
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.RecoveryPhraseBottomSheet
 import com.example.phoenx.ui.theme.*
@@ -47,11 +50,14 @@ fun SettingsScreen(
     onNavigateToLegacyVideo: () -> Unit,
     onVerifyBiometrics: (onSuccess: () -> Unit) -> Unit,
     mainViewModel: MainViewModel,
+    themeViewModel: ThemeViewModel = hiltViewModel(),
     initialShowRecovery: Boolean = false
 ) {
     val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val backgroundId by themeViewModel.globalBackgroundId.collectAsState()
+    val fontId by themeViewModel.globalFontId.collectAsState()
     var showRecoveryPhrase by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
@@ -222,16 +228,8 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsItem(
-                title = stringResource(R.string.settings_item_unique_key_title),
-                subtitle = stringResource(R.string.settings_item_unique_key_subtitle),
-                icon = Icons.Default.Key,
-                theme = theme,
-                onClick = onNavigateToUniqueKey
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
+            // v12.7 : "Le Tiroir à Clé Unique" retiré des Réglages — faisait doublon avec les
+            // autres verrous (Coffre-Fort / Secret Ultime) et n'était pas fiable (voir ci-dessous).
 
             SettingsItem(
                 title = stringResource(R.string.settings_item_reconciliation_title),
@@ -319,36 +317,46 @@ fun SettingsScreen(
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(stringResource(R.string.settings_accent_color_label), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
                     Spacer(modifier = Modifier.height(12.dp))
-                    
-                    val colors = listOf(
-                        Color(0xFFC97B3A), // Gold
-                        Color(0xFFE91E63), // Pink
-                        Color(0xFF2196F3), // Blue
-                        Color(0xFF4CAF50), // Green
-                        Color(0xFF9C27B0), // Purple
-                        Color(0xFFF44336)  // Red
-                    )
-                    
+
                     val currentAccentInt by mainViewModel.accentColor.collectAsState()
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+
+                    // v12.7 : vraie palette (teinte + saturation/luminosité) à la place des 6
+                    // pastilles fixes — on peut désormais choisir n'importe quelle nuance exacte.
+                    HsvColorPicker(
+                        initialColor = Color(currentAccentInt),
+                        onColorChanged = { color -> mainViewModel.setAccentColor(color.toArgb()) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // v12.7 : "Apparence et Style" (papier & plume) a rejoint ici le reste de la
+            // personnalisation visuelle, à côté de la couleur d'accentuation — ce n'était pas
+            // sa place au milieu des informations de Profil.
+            Surface(
+                color = theme.contentColor.copy(alpha = 0.05f),
+                shape = MaterialTheme.shapes.medium,
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(stringResource(R.string.profile_section_appearance), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    GlobalThemeSelector(
+                        currentBackgroundId = backgroundId,
+                        currentFontId = fontId
+                    ) { bg, font -> themeViewModel.setGlobalTheme(bg, font) }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    TextButton(
+                        onClick = { themeViewModel.resetToDefaults() },
+                        modifier = Modifier.align(Alignment.CenterHorizontally)
                     ) {
-                        colors.forEach { color ->
-                            val isSelected = color.toArgb() == currentAccentInt
-                            Box(
-                                modifier = Modifier
-                                    .size(36.dp)
-                                    .background(color, CircleShape)
-                                    .border(
-                                        width = if (isSelected) 2.dp else 0.dp,
-                                        color = if (isSelected) theme.contentColor else Color.Transparent,
-                                        shape = CircleShape
-                                    )
-                                    .clickable { mainViewModel.setAccentColor(color.toArgb()) }
-                            )
-                        }
+                        Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.profile_button_reset_defaults))
                     }
                 }
             }

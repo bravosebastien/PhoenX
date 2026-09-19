@@ -44,6 +44,10 @@ fun BookCoverCard(
     offsetY: Float = 0f,
     // v12.5 : Support de déchiffrement explicite (Héritier)
     explicitKey: ByteArray? = null,
+    // v12.6.1 : Identifiant du Créateur consulté — requis pour que la résolution passe par
+    // le mécanisme sécurisé Destinataire (getInheritedFileUrl) plutôt que l'accès direct
+    // Storage réservé au seul propriétaire du fichier.
+    creatorId: String? = null,
     // v12.5 : Taille personnalisable pour intégration en grille
     isCompact: Boolean = false
 ) {
@@ -61,11 +65,23 @@ fun BookCoverCard(
     var displayUrl by remember { mutableStateOf<String?>(null) }
     val finalCoverUrl = coverImageUrl ?: defaultCoverUrl
 
-    LaunchedEffect(finalCoverUrl, explicitKey) {
+    LaunchedEffect(finalCoverUrl, explicitKey, creatorId) {
         if (finalCoverUrl == null) {
             displayUrl = null
         } else {
-            val resolved = mediaManager.getSafeUrl(finalCoverUrl, explicitKey)
+            // v12.6.1 : Fix — sans creatorId/docType/docId, getSafeUrl retombait toujours sur
+            // l'accès direct Storage (réservé au propriétaire), même avec explicitKey renseigné.
+            val resolved = if (explicitKey != null && creatorId != null) {
+                mediaManager.getSafeUrl(
+                    pathOrUrl = finalCoverUrl,
+                    explicitKey = explicitKey,
+                    creatorId = creatorId,
+                    docType = "book",
+                    docId = "current_draft"
+                )
+            } else {
+                mediaManager.getSafeUrl(finalCoverUrl)
+            }
             // v9.4.19 : On ne met à jour displayUrl que si la résolution réussit,
             // évitant de repasser par null (flicker) si les données Firestore changent.
             if (resolved != null) {

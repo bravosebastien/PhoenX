@@ -56,6 +56,7 @@ fun MemoryComplementsSection(
 ) {
     var showAddMediaMenu by remember { mutableStateOf(false) }
     var editingMedia by remember { mutableStateOf<OfflineEntry?>(null) } // v9.4.27
+    var addingLinkProvider by remember { mutableStateOf<String?>(null) } // v12.6 : "SPOTIFY" | "DEEZER" | "YOUTUBE"
     val recipients by viewModel.recipients.collectAsState()
 
     val context = LocalContext.current
@@ -168,6 +169,34 @@ fun MemoryComplementsSection(
                             onClick = {
                                 showAddMediaMenu = false
                                 onStartCameraVideo()
+                            }
+                        )
+
+                        HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
+
+                        // v12.6 : Liens externes comme compléments d'un souvenir
+                        DropdownMenuItem(
+                            text = { Text("Chanson Spotify", color = theme.contentColor) },
+                            leadingIcon = { Icon(Icons.Default.MusicNote, null, tint = accent) },
+                            onClick = {
+                                showAddMediaMenu = false
+                                addingLinkProvider = "SPOTIFY"
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Chanson Deezer", color = theme.contentColor) },
+                            leadingIcon = { Icon(Icons.Default.MusicNote, null, tint = accent) },
+                            onClick = {
+                                showAddMediaMenu = false
+                                addingLinkProvider = "DEEZER"
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Vidéo YouTube", color = theme.contentColor) },
+                            leadingIcon = { Icon(Icons.Default.OndemandVideo, null, tint = accent) },
+                            onClick = {
+                                showAddMediaMenu = false
+                                addingLinkProvider = "YOUTUBE"
                             }
                         )
                     }
@@ -326,6 +355,28 @@ fun MemoryComplementsSection(
             initialVisibility = editingMedia!!.visibility,
             initialIncludedInBook = editingMedia!!.includedInBook,
             onChangeCover = if (editingMedia!!.entryType == "AUDIO") { { coverLauncher.launch("image/*") } } else null
+        )
+    }
+
+    // v12.6 : DIALOGUE D'AJOUT D'UN LIEN EXTERNE (Spotify/Deezer/YouTube) COMME COMPLÉMENT
+    if (addingLinkProvider != null && !isReadOnly) {
+        com.example.phoenx.ui.components.DirectMediaDialog(
+            type = addingLinkProvider!!,
+            recipients = recipients,
+            onDismiss = { addingLinkProvider = null },
+            onSave = { title, comment, url, ids, visibility, thumbUrl, _ ->
+                viewModel.addLinkComplement(
+                    parentId = entryId,
+                    provider = addingLinkProvider!!,
+                    title = title,
+                    comment = comment,
+                    url = url,
+                    recipientUids = ids,
+                    visibility = visibility,
+                    thumbnailUrl = thumbUrl
+                )
+                addingLinkProvider = null
+            }
         )
     }
 }

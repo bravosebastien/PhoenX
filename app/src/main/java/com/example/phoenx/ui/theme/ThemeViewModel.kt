@@ -66,16 +66,18 @@ class ThemeViewModel @Inject constructor(
             val fId = preferenceManager.globalFontId.first()
             val acc = preferenceManager.accentColor.first()
 
-            android.util.Log.e("PHOENX_LOOP", "ThemeViewModel: syncThemeToFirestore (appTheme, transmissionBackgroundId, transmissionFontId)")
+            // v12.7 : "appTheme" est le look de l'application elle-même (Profil/Réglages) — on ne
+            // touche plus ici à "transmissionBackgroundId/FontId", qui appartient désormais
+            // uniquement à l'habillage du Livre (voir BookEditorViewModel.updateGlobalAmbiance),
+            // pour que changer l'un ne modifie plus l'autre par accident.
+            android.util.Log.e("PHOENX_LOOP", "ThemeViewModel: syncThemeToFirestore (appTheme)")
             db.collection("users").document(userId).update(
                 mapOf(
                     "appTheme" to mapOf(
                         "backgroundId" to bgId,
                         "fontId" to fId,
                         "accentColor" to acc
-                    ),
-                    "transmissionBackgroundId" to bgId,
-                    "transmissionFontId" to fId
+                    )
                 )
             )
         } catch (e: Exception) {

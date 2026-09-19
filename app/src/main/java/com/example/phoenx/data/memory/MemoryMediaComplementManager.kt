@@ -103,4 +103,66 @@ class MemoryMediaComplementManager @Inject constructor(
             throw e // Renvoyé pour gestion d'erreur dans le ViewModel
         }
     }
+
+    /**
+     * v12.6 : Ajoute un lien externe (Spotify, Deezer, YouTube) comme complément
+     * d'un souvenir existant, rattaché par parentEntryId — au même titre qu'une
+     * photo ou une vidéo. L'URL est chiffrée dans encryptedPayload (même mécanisme
+     * que pour un lien déposé en autonome), jamais stockée en clair.
+     */
+    suspend fun addLinkComplement(
+        parentId: String,
+        provider: String, // "SPOTIFY", "DEEZER", "YOUTUBE"
+        title: String,
+        comment: String?,
+        url: String,
+        recipientUids: List<String>,
+        visibility: String,
+        thumbnailUrl: String?
+    ) {
+        try {
+            val parent = offlineEntryDao.getEntryById(parentId).first() ?: return
+
+            // AUTOMATISME TIROIRS : un lien musical rejoint la Discothèque,
+            // un lien vidéo rejoint la Vidéothèque — comme un fichier déposé directement.
+            val targetCompartment = when (provider) {
+                "SPOTIFY", "DEEZER" -> CompartmentIds.LIBRARY_MUSIC
+                "YOUTUBE" -> CompartmentIds.LIBRARY_VIDEO
+                else -> null
+            }
+            if (targetCompartment != null) {
+                val currentIds = parent.compartmentIds.split(",").filter { it.isNotBlank() }.toMutableList()
+                if (!currentIds.contains(targetCompartment)) {
+                    currentIds.add(targetCompartment)
+                    val csv = ",${currentIds.joinToString(",")},"
+                    offlineEntryDao.updateEntryCompartments(csv, parentId)
+                }
+            }
+
+            val finalTitle = title.ifBlank { provider }
+
+            val entry = OfflineEntry(
+                id = UUID.randomUUID().toString(),
+                creatorUid = parent.creatorUid,
+                encryptedPayload = encryptionManager.encryptText(url),
+                entryType = provider,
+                mediaProvider = provider,
+                ageAtCreation = parent.ageAtCreation,
+                emotionalCategory = parent.emotionalCategory,
+                visibility = visibility,
+                recipientIds = recipientUids.joinToString(","),
+                parentEntryId = parentId,
+                coverUrl = thumbnailUrl,
+                aiSummary = finalTitle,
+                userComment = comment,
+                includedInBook = false, // Un lien externe n'est jamais éligible au Livre
+                syncStatus = "pending"
+            )
+            offlineEntryDao.insertEntry(entry)
+            syncTrigger.triggerSync(entry.id)
+        } catch (e: Exception) {
+            android.util.Log.e("MemoryMediaComplementManager", "Erreur ajout lien", e)
+            throw e
+        }
+    }
 }

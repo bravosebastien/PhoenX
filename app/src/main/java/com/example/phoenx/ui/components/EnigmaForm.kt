@@ -19,6 +19,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.stringResource
+import com.example.phoenx.R
 import com.example.phoenx.ui.theme.*
 
 /**
@@ -73,6 +75,16 @@ fun EnigmaForm(
                         text = if (isEnabled) "EXPÉRIENCE : SOUVENIR SCELLÉ" else "Verrouiller avec une énigme",
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         color = if (isEnabled) accent else theme.contentColor
+                    )
+                    // v12.7 : point d'information pour expliquer ce qu'est un "Souvenir Scellé"
+                    InfoButton(
+                        title = stringResource(R.string.enigma_form_info_title),
+                        points = listOf(
+                            stringResource(R.string.enigma_form_info_point1),
+                            stringResource(R.string.enigma_form_info_point2),
+                            stringResource(R.string.enigma_form_info_point3),
+                            stringResource(R.string.enigma_form_info_point4)
+                        )
                     )
                 }
                 Icon(

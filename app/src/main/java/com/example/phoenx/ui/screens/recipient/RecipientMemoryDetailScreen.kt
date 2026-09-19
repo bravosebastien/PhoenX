@@ -78,6 +78,8 @@ fun RecipientMemoryDetailScreen(
         }
     }
 
+    var showFullStory by remember { mutableStateOf(false) }
+
     Scaffold(
         containerColor = theme.backgroundColor,
         modifier = Modifier.background(backgroundBrush),
@@ -186,42 +188,69 @@ fun RecipientMemoryDetailScreen(
                     }
                 }
 
-                // RÉCIT (Plein écran direct v12.5)
+                // RÉCIT (Tronqué v9.4.27)
                 Column {
                     val récitLabel = if (entry!!.entryType == "QUESTION_ANSWER") stringResource(R.string.recipient_memory_detail_label_response) else stringResource(R.string.recipient_memory_detail_label_story)
-                    Text(récitLabel, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold), color = accent.copy(alpha = 0.6f))
-                    Spacer(Modifier.height(12.dp))
-                    
-                    Text(
-                        text = content.ifBlank { stringResource(R.string.recipient_memory_detail_empty_content) },
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            fontStyle = if (entry!!.entryType == "QUESTION_ANSWER") FontStyle.Italic else null,
-                            color = if (entry!!.entryType == "QUESTION_ANSWER") accent else theme.contentColor.copy(alpha = 0.9f),
-                            lineHeight = 28.sp,
-                            fontFamily = theme.fontFamily
+                    Text(récitLabel, style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp), color = theme.contentColor.copy(alpha = 0.3f))
+                    Spacer(Modifier.height(8.dp))
+                    Surface(
+                        color = theme.contentColor.copy(alpha = 0.03f),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.fillMaxWidth().clickable { showFullStory = true }
+                    ) {
+                        Text(
+                            text = content.ifBlank { stringResource(R.string.recipient_memory_detail_empty_content) },
+                            modifier = Modifier.padding(20.dp),
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontStyle = if (entry!!.entryType == "QUESTION_ANSWER") FontStyle.Italic else null,
+                                color = if (entry!!.entryType == "QUESTION_ANSWER") accent else theme.contentColor.copy(alpha = 0.8f)
+                            ),
+                            lineHeight = 24.sp,
+                            maxLines = 4,
+                            overflow = TextOverflow.Ellipsis
                         )
-                    )
+                    }
                 }
 
-                // COMPLÉMENTS MÉDIA (Affichage Direct v12.5 - Point 3)
+                // COMMENTAIRE
+                if (!entry!!.userComment.isNullOrBlank()) {
+                    Column {
+                        Text(
+                            stringResource(R.string.recipient_memory_detail_comment_label),
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = accent
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = entry!!.userComment!!,
+                            style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
+                            color = theme.contentColor.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+
+                // COMPLÉMENTS (Grille unifiée v9.4.27)
                 if (complements.isNotEmpty()) {
-                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.05f))
-                    
                     Text(
                         stringResource(R.string.recipient_memory_detail_complements_label),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black, letterSpacing = 2.sp),
                         color = theme.contentColor.copy(alpha = 0.4f)
                     )
 
-                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         complements.forEach { complement ->
-                            RecipientInlineMediaItem(
+                            RecipientComplementItem(
                                 complement = complement,
                                 theme = theme,
                                 mediaManager = mediaManager,
                                 heirKey = heirKey,
-                                creatorId = creatorId,
+                                creatorId = creatorId, // v9.4.27
                                 onClick = {
+                                    // Gestion des liens externes (v9.4.27)
                                     val url = complement.mediaUrl
                                     val isExternal = url?.startsWith("http") == true && 
                                                    (complement.mediaProvider != null || url.contains("spotify") || url.contains("youtube") || url.contains("deezer") || url.contains("youtu.be"))
@@ -231,10 +260,24 @@ fun RecipientMemoryDetailScreen(
                                             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url!!))
                                             context.startActivity(intent)
                                         } catch(_: Exception) { 
-                                            navController.navigate(Screen.MediaViewer.createRoute(complement.id, creatorId, complement.mediaUrl, complement.entryType, complement.aiSummary, "entries"))
+                                            navController.navigate(Screen.MediaViewer.createRoute(
+                                                entryId = complement.id,
+                                                creatorId = creatorId,
+                                                mediaUrl = complement.mediaUrl,
+                                                entryType = complement.entryType,
+                                                aiSummary = complement.aiSummary,
+                                                sourceDocType = "entries"
+                                            ))
                                         }
                                     } else {
-                                        navController.navigate(Screen.MediaViewer.createRoute(complement.id, creatorId, complement.mediaUrl, complement.entryType, complement.aiSummary, "entries"))
+                                        navController.navigate(Screen.MediaViewer.createRoute(
+                                            entryId = complement.id,
+                                            creatorId = creatorId,
+                                            mediaUrl = complement.mediaUrl,
+                                            entryType = complement.entryType,
+                                            aiSummary = complement.aiSummary,
+                                            sourceDocType = "entries"
+                                        ))
                                     }
                                 }
                             )
@@ -249,25 +292,34 @@ fun RecipientMemoryDetailScreen(
 }
 
 @Composable
-fun RecipientInlineMediaItem(
+fun RecipientComplementItem(
     complement: OfflineEntry,
     theme: com.example.phoenx.ui.theme.AppThemeState,
     mediaManager: MediaManager,
     heirKey: ByteArray?,
-    creatorId: String,
+    creatorId: String, // v9.4.27
     onClick: () -> Unit
 ) {
     val accent = theme.accentColor
-    
+
+    // Diagnostic v9.4.27 (PHOENX_MEMORY_OPEN_TRACE)
+    LaunchedEffect(complement) {
+        val targetUrl = complement.coverUrl ?: complement.mediaUrl
+        android.util.Log.d("PHOENX_MEMORY_OPEN_TRACE",
+            "Complement ID: ${complement.id} | Type: ${complement.entryType} | " +
+            "Raw mediaUrl: ${complement.mediaUrl} | coverUrl: ${complement.coverUrl} | " +
+            "Final targetUrl: $targetUrl | Summary: ${complement.aiSummary}"
+        )
+    }
+
     Card(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(200.dp)
-            .clip(RoundedCornerShape(16.dp))
+            .width(100.dp)
+            .height(120.dp)
             .clickable { onClick() }
             .phoenXMatiere(),
         colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
-        shape = RoundedCornerShape(16.dp)
+        shape = RoundedCornerShape(12.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             val hasImage = complement.coverUrl != null || complement.localCoverPath != null || complement.localMediaPath != null || complement.entryType == "PHOTO"
@@ -282,7 +334,7 @@ fun RecipientInlineMediaItem(
                     creatorId = creatorId,
                     docType = "entries",
                     docId = complement.id,
-                    field = if (complement.coverUrl != null) "coverUrl" else null
+                    field = if (complement.coverUrl != null) "coverUrl" else null // v9.4.27
                 )
             } else {
                 val icon = when(complement.entryType) {
@@ -292,40 +344,33 @@ fun RecipientInlineMediaItem(
                     else -> Icons.Default.Attachment
                 }
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = accent.copy(alpha = 0.3f), modifier = Modifier.size(48.dp))
+                    Icon(icon, null, tint = accent.copy(alpha = 0.3f), modifier = Modifier.size(32.dp))
                 }
             }
 
-            // Overlay Titre
             Surface(
                 modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth(),
                 color = Color.Black.copy(alpha = 0.6f)
             ) {
-                Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val icon = when(complement.entryType) {
-                        "VIDEO" -> Icons.Default.PlayCircleFilled
-                        "AUDIO" -> Icons.Default.Headset
-                        else -> Icons.Default.Image
-                    }
-                    Icon(icon, null, tint = Color.White, modifier = Modifier.size(16.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = complement.aiSummary.ifBlank { stringResource(R.string.recipient_memory_detail_complement_fallback) },
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
+                Text(
+                    text = complement.aiSummary.ifBlank { stringResource(R.string.recipient_memory_detail_complement_fallback) },
+                    modifier = Modifier.padding(4.dp),
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp),
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
             }
         }
     }
 }
 
+/**
+ * RESTAURÉ le 18/09 — cette fonction avait disparu de la fin du fichier alors
+ * qu'elle est appelée deux fois plus haut. Reprise à l'identique de la version
+ * saine du dernier commit (3934e14).
+ */
 @Composable
 fun RecipientInfoChip(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String, accent: Color, theme: com.example.phoenx.ui.theme.AppThemeState, onClick: () -> Unit) {
     Surface(

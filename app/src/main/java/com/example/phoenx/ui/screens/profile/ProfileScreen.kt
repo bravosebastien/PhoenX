@@ -48,21 +48,16 @@ fun ProfileScreen(
     onNavigateToGenealogy: () -> Unit,
     onLogoutSuccess: () -> Unit,
     mainViewModel: MainViewModel,
-    viewModel: ProfileViewModel = hiltViewModel(),
-    themeViewModel: com.example.phoenx.ui.theme.ThemeViewModel = hiltViewModel()
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val uploadProgress by viewModel.uploadProgress.collectAsState()
-    
-    // v8.9.0 : Thème Global
+
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
-    val backgroundId by themeViewModel.globalBackgroundId.collectAsState()
-    val fontId by themeViewModel.globalFontId.collectAsState()
     val context = LocalContext.current
 
     var showEditDialog by remember { mutableStateOf(false) }
-    var isAppearingExpanded by remember { mutableStateOf(false) }
     var newName by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -345,58 +340,12 @@ fun ProfileScreen(
                     }
                 }
 
+                Spacer(modifier = Modifier.height(32.dp))
+                // v12.7 : "Apparence et Style" (papier, plume, couleur d'accentuation) a déménagé
+                // dans Réglages, à côté du reste de la personnalisation visuelle — ce n'était pas
+                // sa place ici, au milieu des informations de profil.
+
                 Spacer(modifier = Modifier.height(16.dp))
-
-                // --- ACCORDÉON APPARENCE (v8.9.0 Global) ---
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
-                    shape = MaterialTheme.shapes.large,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { isAppearingExpanded = !isAppearingExpanded },
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Palette, null, tint = accent)
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(stringResource(R.string.profile_section_appearance), style = MaterialTheme.typography.bodyLarge, color = theme.contentColor)
-                            }
-                            Icon(
-                                if (isAppearingExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                null,
-                                tint = theme.contentColor.copy(alpha = 0.4f)
-                            )
-                        }
-
-                        if (isAppearingExpanded) {
-                            Spacer(modifier = Modifier.height(24.dp))
-                            
-                            com.example.phoenx.ui.components.GlobalThemeSelector(
-                                currentBackgroundId = backgroundId,
-                                currentFontId = fontId
-                            ) { bg, font -> themeViewModel.setGlobalTheme(bg, font) }
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            TextButton(
-                                onClick = { themeViewModel.resetToDefaults() },
-                                modifier = Modifier.align(Alignment.CenterHorizontally)
-                            ) {
-                                Icon(Icons.Default.Refresh, null, modifier = Modifier.size(16.dp))
-                                Spacer(Modifier.width(8.dp))
-                                Text(stringResource(R.string.profile_button_reset_defaults))
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(48.dp))
 
                 // --- ZONE DE DANGER ---
                 Text(stringResource(R.string.profile_section_danger_zone), style = MaterialTheme.typography.labelSmall, color = Error.copy(alpha = 0.7f), modifier = Modifier.align(Alignment.Start))

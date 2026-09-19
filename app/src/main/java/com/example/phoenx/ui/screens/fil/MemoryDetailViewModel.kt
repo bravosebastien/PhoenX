@@ -21,6 +21,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.FileOutputStream
@@ -654,5 +655,32 @@ class MemoryDetailViewModel @Inject constructor(
 
     fun uriToFile(uri: Uri): File? {
         return memoryMetadataUpdater.uriToFile(uri)
+    }
+
+    /**
+     * v12.6 : Ajoute un lien Spotify/Deezer/YouTube comme complément d'un souvenir.
+     * `recipientUids` est déjà exprimé en UIDs (DirectMediaDialog convertit les
+     * DocIDs internes avant de rappeler onSave), donc aucune reconversion nécessaire ici.
+     */
+    fun addLinkComplement(
+        parentId: String,
+        provider: String,
+        title: String,
+        comment: String?,
+        url: String,
+        recipientUids: List<String>,
+        visibility: String,
+        thumbnailUrl: String?
+    ) {
+        viewModelScope.launch {
+            try {
+                mediaComplementManager.addLinkComplement(
+                    parentId, provider, title, comment, url, recipientUids, visibility, thumbnailUrl
+                )
+            } catch (e: Exception) {
+                android.util.Log.e("MemoryDetailVM", "Erreur ajout lien", e)
+                _error.value = context.getString(R.string.memory_detail_error_add_media)
+            }
+        }
     }
 }

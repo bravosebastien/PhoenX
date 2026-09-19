@@ -540,8 +540,10 @@ class BookEditorViewModel @Inject constructor(
         viewModelScope.launch {
             _isSaving.value = true
             try {
-                // 0. MISE À JOUR PRÉFÉRENCES LOCALES (v9.4.29 : Rétablissement réactivité thème)
-                preferenceManager.setGlobalTheme(backgroundId, fontId)
+                // v12.7 : on ne touche plus au thème local de toute l'app (preferenceManager.setGlobalTheme) —
+                // choisir le papier/la plume du Livre ne doit plus recolorer le reste de l'application (Profil,
+                // Réglages, etc). Seul "transmissionBackgroundId/FontId" (l'habillage propre au Livre, ci-dessous)
+                // est mis à jour.
 
                 // 1. FRESH READ de la base locale (Garantie de sécurité Lot 3)
                 val currentLocal = offlineEntryDao.getCreatorProfileSync(userId)

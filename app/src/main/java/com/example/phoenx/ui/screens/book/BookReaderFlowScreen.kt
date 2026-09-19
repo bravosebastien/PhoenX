@@ -69,6 +69,7 @@ fun BookReaderFlowScreen(
     val fontSizeScale by viewModel.fontSizeScale.collectAsState()
     val ambiance by viewModel.ambiance.collectAsState()
     val readingMode by viewModel.readingMode.collectAsState()
+    val heirKey by viewModel.heirKey.collectAsState()
 
     val fontFamily = BookThemeOptions.getFont(ambiance.fontId)
     val background = BookThemeOptions.getBackground(ambiance.backgroundId)
@@ -96,7 +97,9 @@ fun BookReaderFlowScreen(
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val availableWidth = with(density) { (maxWidth - 64.dp).toPx() }
-        val dynamicDeduction = topInset + bottomInset + 196.dp
+        // v13.1 : Marge de sécurité supplémentaire pour éviter que la dernière ligne visible
+        // ne soit rognée par le numéro de page (footer) ou par un léger écart de mesure du texte.
+        val dynamicDeduction = topInset + bottomInset + 196.dp + 40.dp
         val availableHeight = with(density) { (maxHeight - dynamicDeduction).toPx() }
 
         LaunchedEffect(bookDraft, decryptedChapters, decryptedIntro, mediaMap, fontSizeScale, ambiance.fontId, availableWidth, availableHeight) {
@@ -325,9 +328,9 @@ fun BookReaderFlowScreen(
                 }
             } else {
                 if (readingMode == BookViewerViewModel.BookReadingMode.SCROLL) {
-                    ScrollModeView(padding, bookDraft, decryptedChapters, decryptedIntro, mediaMap, viewModel, listState = rememberLazyListState(), scrollProgress, fontSizeScale, fontFamily, textColor, accent, targetCreatorId, navController, onMediaExclude = { entry -> photoToExclude = entry })
+                    ScrollModeView(padding, bookDraft, decryptedChapters, decryptedIntro, mediaMap, viewModel, listState = rememberLazyListState(), scrollProgress, fontSizeScale, fontFamily, textColor, accent, targetCreatorId, navController, heirKey = heirKey, onMediaExclude = { entry -> photoToExclude = entry })
                 } else {
-                    PagesModeView(padding, pages, pagesProgress, viewModel, targetCreatorId, bookDraft, fontSizeScale, fontFamily, background, textColor, accent, navController, isCreator = isCreator, onMediaExclude = { entry -> photoToExclude = entry })
+                    PagesModeView(padding, pages, pagesProgress, viewModel, targetCreatorId, bookDraft, fontSizeScale, fontFamily, background, textColor, accent, navController, isCreator = isCreator, heirKey = heirKey, onMediaExclude = { entry -> photoToExclude = entry })
                 }
             }
         }
@@ -378,6 +381,7 @@ fun ScrollModeView(
     accent: Color,
     targetCreatorId: String?,
     navController: NavController,
+    heirKey: ByteArray? = null,
     onMediaExclude: ((OfflineEntry) -> Unit)? = null
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -436,8 +440,9 @@ fun ScrollModeView(
                             fontFamily = fontFamily, 
                             textColor = textColor, 
                             accent = accent, 
-                            fontSizeScale = fontSizeScale, 
-                            creatorId = targetCreatorId ?: bookDraft?.userId, 
+                            fontSizeScale = fontSizeScale,
+                            creatorId = targetCreatorId ?: bookDraft?.userId,
+                            explicitKey = heirKey,
                             onMediaClick = { entry ->
                                 navController.navigate(com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(entry.id, targetCreatorId ?: bookDraft?.userId, entry.mediaUrl, entry.entryType, entry.aiSummary, "entries", null, entry.mediaUrl?.contains(".enc") ?: true))
                             },
@@ -487,6 +492,7 @@ fun PagesModeView(
     accent: Color,
     navController: NavController,
     isCreator: Boolean = false,
+    heirKey: ByteArray? = null,
     onMediaExclude: ((OfflineEntry) -> Unit)? = null
 ) {
     val pagerState = rememberPagerState(pageCount = { pages.size })
@@ -562,6 +568,7 @@ fun PagesModeView(
                                 SecureAsyncImage(
                                     mediaUrl = atom.entry.mediaUrl,
                                     localPath = atom.entry.localMediaPath,
+                                    explicitKey = heirKey,
                                     mediaManager = viewModel.mediaManager,
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -621,8 +628,9 @@ fun ReaderIllustrableText(
     fontFamily: FontFamily, 
     textColor: Color, 
     accent: Color, 
-    fontSizeScale: Float, 
-    creatorId: String? = null, 
+    fontSizeScale: Float,
+    creatorId: String? = null,
+    explicitKey: ByteArray? = null,
     onMediaClick: (OfflineEntry) -> Unit,
     onMediaExclude: ((OfflineEntry) -> Unit)? = null
 ) {
@@ -646,9 +654,10 @@ fun ReaderIllustrableText(
                     if (!lastWasPhoto && photosInChapter < MAX_PHOTOS_PER_CHAPTER) {
                         Box(modifier = Modifier.align(Alignment.CenterHorizontally).padding(vertical = 24.dp)) {
                             SecureAsyncImage(
-                                mediaUrl = entry.mediaUrl, 
-                                localPath = entry.localMediaPath, 
-                                mediaManager = mediaManager, 
+                                mediaUrl = entry.mediaUrl,
+                                localPath = entry.localMediaPath,
+                                explicitKey = explicitKey,
+                                mediaManager = mediaManager,
                                 modifier = Modifier
                                     .fillMaxWidth(0.6f)
                                     .aspectRatio(1f)

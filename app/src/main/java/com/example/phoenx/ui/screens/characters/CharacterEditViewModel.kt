@@ -56,6 +56,17 @@ class CharacterEditViewModel @Inject constructor(
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
+                // v13.0 : Garde-fou "Mes Personnages" — une personne qui existe aussi
+                // dans l'Arbre Généalogique ou dans les Rencontres ne doit JAMAIS être
+                // supprimée depuis cet écran générique : cela casserait silencieusement
+                // sa lignée (Arbre) ou ses données de rencontre. L'écran (CharacterEditScreen)
+                // bloque déjà ce cas en amont ; ce garde-fou protège aussi contre un appel direct.
+                val categories = _character.value?.categories?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+                if (categories.contains("FAMILY") || categories.contains("ENCOUNTER")) {
+                    android.util.Log.w("CharacterEdit", "Suppression bloquée : personne liée à l'Arbre/Rencontres ($personId)")
+                    return@launch
+                }
+
                 // 1. Nettoyage des références dans les souvenirs Room
                 val allEntries = offlineEntryDao.getAllEntriesSync()
                 allEntries.forEach { entry ->

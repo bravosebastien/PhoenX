@@ -51,6 +51,7 @@ class CaptureViewModel @Inject constructor(
     private val audioRecorder: PhoenXAudioRecorder,
     private val hapticManager: HapticManager,
     private val sttManager: SpeechToTextManager,
+    private val mediaComplementManager: com.example.phoenx.data.memory.MemoryMediaComplementManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -322,9 +323,17 @@ class CaptureViewModel @Inject constructor(
         _uiState.value = CaptureUiState.RecordingAudio
     }
 
-    fun stopAudioRecording() {
+    /**
+     * Arrête l'enregistrement et renvoie le fichier audio produit.
+     * RESTAURÉ le 18/09 : le type de retour (File?) avait disparu, alors que
+     * l'Étape par Étape l'attend pour rattacher l'audio comme complément.
+     */
+    fun stopAudioRecording(): File? {
         audioRecorder.stop()
         _uiState.value = CaptureUiState.Idle
+        val file = currentAudioFile
+        currentAudioFile = null
+        return file
     }
 
     /**
@@ -355,6 +364,43 @@ class CaptureViewModel @Inject constructor(
 
     private val _newEntryId = MutableSharedFlow<String>()
     val newEntryId = _newEntryId.asSharedFlow()
+
+    /**
+     * v12.6 : Ajoute un média (photo/vidéo/audio) comme complément d'un souvenir déjà créé —
+     * utilisé par l'Étape par Étape pour que TOUS les médias (y compris le premier) deviennent
+     * des compléments, jamais le média principal du souvenir (voir StepByStepCaptureScreen).
+     */
+    fun addMediaComplement(parentId: String, file: File, type: String, transcription: String? = null) {
+        viewModelScope.launch {
+            try {
+                mediaComplementManager.addMediaComplement(parentId, file, type, transcription)
+            } catch (e: Exception) {
+                Log.e("CaptureVM", "Erreur ajout complément média", e)
+            }
+        }
+    }
+
+    /**
+     * v12.6 : Ajoute un lien externe (Spotify/Deezer/YouTube) comme complément d'un souvenir.
+     */
+    fun addLinkComplement(
+        parentId: String,
+        provider: String,
+        title: String,
+        comment: String?,
+        url: String,
+        recipientUids: List<String>,
+        visibility: String,
+        thumbnailUrl: String?
+    ) {
+        viewModelScope.launch {
+            try {
+                mediaComplementManager.addLinkComplement(parentId, provider, title, comment, url, recipientUids, visibility, thumbnailUrl)
+            } catch (e: Exception) {
+                Log.e("CaptureVM", "Erreur ajout lien complément", e)
+            }
+        }
+    }
 
     fun saveEntry(
         content: String?,
@@ -426,6 +472,42 @@ class CaptureViewModel @Inject constructor(
                 }
                 val finalCompartmentIds = ",${initialCompartments.distinct().joinToString(",")},"
 
+                // v12.6 CORRECTIF : mediaFile était accepté en paramètre mais jamais réellement
+                // copié ni référencé sur l'entrée créée (Étape par Étape avec Photo/Vidéo en 1er
+                // média). Reprend exactement la même logique que MemoryMediaComplementManager
+                // (copie dans un dossier permanent + miniature pour une vidéo).
+                var finalLocalMediaPath: String? = null
+                var finalLocalCoverPath: String? = null
+                if (mediaFile != null) {
+                    try {
+                        val mediaDir = File(context.filesDir, "media")
+                        if (!mediaDir.exists()) mediaDir.mkdirs()
+                        val destFile = File(mediaDir, "PHX_${UUID.randomUUID()}_${mediaFile.name}")
+                        mediaFile.inputStream().use { input -> destFile.outputStream().use { output -> input.copyTo(output) } }
+                        finalLocalMediaPath = destFile.absolutePath
+
+                        if (type == "VIDEO" || type == "CAMERA_VIDEO") {
+                            try {
+                                val retriever = android.media.MediaMetadataRetriever()
+                                retriever.setDataSource(destFile.absolutePath)
+                                val bitmap = retriever.getFrameAtTime(0)
+                                retriever.release()
+                                if (bitmap != null) {
+                                    val thumbFile = File(mediaDir, "THUMB_${destFile.name}.jpg")
+                                    FileOutputStream(thumbFile).use { out ->
+                                        bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 70, out)
+                                    }
+                                    finalLocalCoverPath = thumbFile.absolutePath
+                                }
+                            } catch (e: Exception) {
+                                Log.e("CaptureVM", "Échec extraction miniature vidéo (saveEntry)", e)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("CaptureVM", "Erreur copie du média principal", e)
+                    }
+                }
+
                 val entry = OfflineEntry(
                     id = entryId,
                     creatorUid = user.uid,
@@ -441,6 +523,8 @@ class CaptureViewModel @Inject constructor(
                     userTitle = rawText, // Migration v59 : titre initial = texte de capture (l'Étincelle)
                     locationName = locationName ?: _preselectedLocationName.value,
                     locationId = locationId,
+                    localMediaPath = finalLocalMediaPath, // v12.6
+                    localCoverPath = finalLocalCoverPath, // v12.6
                     includeInBook = if (type == "VIDEO" || type == "CAMERA_VIDEO" || type == "AUDIO") false else includeInBook,
                     questionId = pendingQuestionId,
                     parentEntryId = parentEntryId, // v9.4.27 : RÉTABLI

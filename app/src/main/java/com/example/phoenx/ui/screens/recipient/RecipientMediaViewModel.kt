@@ -267,7 +267,7 @@ class RecipientMediaViewModel @Inject constructor(
 
     // v12.4 : Couverture personnalisée du Livre du Créateur consulté, pour le bandeau Livre côté Destinataire
     private val _bookCoverImageUrl = MutableStateFlow<String?>(null)
-    val bookCoverImageUrl: StateFlow<String?> = _bookCoverImageUrl.asStateFlow()
+val bookCoverImageUrl: StateFlow<String?> = _bookCoverImageUrl.asStateFlow()
 
     private val _bookCoverTitleStyle = MutableStateFlow("GOLD")
     val bookCoverTitleStyle: StateFlow<String> = _bookCoverTitleStyle.asStateFlow()

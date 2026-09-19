@@ -683,7 +683,7 @@
     <string name="settings_item_protocol_title">Transmisión y Protocolo</string>
     <string name="settings_item_protocol_subtitle">Gestiona tu depositario y tus plazos</string>
     <string name="settings_item_recipients_title">Mis Destinatarios</string>
-    <string name="settings_item_recipients_subtitle">Gestiona tu círculo de confianza</string>
+    <string name="settings_item_recipients_subtitle">Elige quién recibirá tus recuerdos</string>
     <string name="settings_item_notification_contacts_title">Contactos a avisar</string>
     <string name="settings_item_notification_contacts_subtitle">Personas informadas de tu partida</string>
     <string name="settings_item_presence_title">Frecuencia de presencia</string>
@@ -1251,6 +1251,11 @@
     <string name="detective_recipient_fallback">Tus seres queridos</string>
 
     <string name="detective_player_instructions">Descifra los enigmas para acceder a los recuerdos.</string>
+    <string name="enigma_form_info_title">Recuerdo Sellado</string>
+    <string name="enigma_form_info_point1">Es un recuerdo normal (texto, foto o audio) al que añades un pequeño acertijo.</string>
+    <string name="enigma_form_info_point2">Tu ser querido no verá ni el título ni el contenido hasta que encuentre la respuesta correcta a tu pregunta.</string>
+    <string name="enigma_form_info_point3">Puedes añadir una pista, que solo aparece tras varios intentos fallidos.</string>
+    <string name="enigma_form_info_point4">El recuerdo puede desbloquearse solo después de cierto tiempo, a menos que actives el **Secreto Definitivo**, que entonces ya no se desbloquea nunca automáticamente.</string>
     <string name="detective_ultimate_secret">El Secreto Último</string>
     <string name="detective_personal_enigma">Enigma Personal</string>
     <string name="detective_ultimate_secret_desc">Esta confidencia se ha marcado como capital. No es posible la apertura automática. Solo la respuesta exacta levantará el sello.</string>

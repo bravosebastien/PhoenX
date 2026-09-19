@@ -43,6 +43,13 @@ fun CharacterEditScreen(
     val context = LocalContext.current
 
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showLinkedElsewhereInfo by remember { mutableStateOf(false) }
+
+    // v13.0 : une personne présente dans l'Arbre Généalogique et/ou les Rencontres
+    // ne peut pas être supprimée depuis cet écran générique "Mes Personnages" —
+    // il faut passer par l'écran dédié pour ne rien casser (lignée, données de rencontre).
+    val personCategories = character?.categories?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+    val isLinkedElsewhere = personCategories.contains("FAMILY") || personCategories.contains("ENCOUNTER")
 
     LaunchedEffect(personId) {
         viewModel.loadCharacter(personId)
@@ -337,7 +344,7 @@ fun CharacterEditScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             TextButton(
-                onClick = { showDeleteConfirm = true },
+                onClick = { if (isLinkedElsewhere) showLinkedElsewhereInfo = true else showDeleteConfirm = true },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.Red.copy(alpha = 0.7f))
             ) {
@@ -370,6 +377,25 @@ fun CharacterEditScreen(
                 dismissButton = {
                     TextButton(onClick = { showDeleteConfirm = false }) {
                         Text(stringResource(R.string.character_delete_cancel), color = theme.contentColor.copy(alpha = 0.6f))
+                    }
+                },
+                containerColor = theme.backgroundColor,
+                titleContentColor = theme.contentColor,
+                textContentColor = theme.contentColor.copy(alpha = 0.8f)
+            )
+        }
+
+        if (showLinkedElsewhereInfo) {
+            AlertDialog(
+                onDismissRequest = { showLinkedElsewhereInfo = false },
+                title = { Text(stringResource(R.string.character_delete_linked_title)) },
+                text = { Text(stringResource(R.string.character_delete_linked_text)) },
+                confirmButton = {
+                    Button(
+                        onClick = { showLinkedElsewhereInfo = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = accent)
+                    ) {
+                        Text(stringResource(R.string.character_delete_linked_ok), color = theme.backgroundColor)
                     }
                 },
                 containerColor = theme.backgroundColor,

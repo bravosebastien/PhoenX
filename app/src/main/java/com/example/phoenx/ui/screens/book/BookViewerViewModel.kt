@@ -46,6 +46,10 @@ class BookViewerViewModel @Inject constructor(
     private val _mediaMap = MutableStateFlow<Map<String, OfflineEntry>>(emptyMap())
     val mediaMap: StateFlow<Map<String, OfflineEntry>> = _mediaMap.asStateFlow()
 
+    // v13.1 : Clé miroir pour déchiffrer les PHOTOS des souvenirs côté Destinataire (distincte de bookKey, qui ne sert qu'au texte)
+    private val _heirKey = MutableStateFlow<ByteArray?>(null)
+    val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
+
     private val _isLocked = MutableStateFlow(false)
     val isLocked: StateFlow<Boolean> = _isLocked.asStateFlow()
 
@@ -169,6 +173,22 @@ class BookViewerViewModel @Inject constructor(
             }
         } catch (e: Exception) {
             android.util.Log.e("PHOENX_BOOK", "Impossible de récupérer la clé du livre", e)
+        }
+
+        // 1bis. RÉCUPÉRATION DE LA CLÉ MIROIR DES SOUVENIRS (v13.1 : nécessaire pour les photos côté Destinataire)
+        if (recipientUid != null) {
+            try {
+                val heirKeyDoc = db.collection("users").document(userId)
+                    .collection("entry_keys").document("main").get().kotlinAwait()
+                val heirKeyBase64 = heirKeyDoc.getString("key")
+                if (heirKeyBase64 != null) {
+                    _heirKey.value = android.util.Base64.decode(heirKeyBase64, android.util.Base64.NO_WRAP)
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_BOOK", "Impossible de récupérer la clé miroir (entry_keys)", e)
+            }
+        } else {
+            _heirKey.value = null
         }
 
         // 2. Déchiffrement de l'intro globale (v8.7.0)

@@ -761,20 +761,4 @@ fun NavGraphBuilder.recipientGraph(
             navController = navController
         )
     }
-
-    composable(
-        route = Screen.RecipientPact.route,
-        arguments = listOf(navArgument("pactId") { type = NavType.StringType }),
-        enterTransition = { NavigationAnimations.getEnterTransition(this) },
-        exitTransition = { NavigationAnimations.getExitTransition(this) }
-    ) { backStackEntry ->
-        val pactId = backStackEntry.arguments?.getString("pactId") ?: ""
-        com.example.phoenx.ui.screens.pact.PactDetailScreen(
-            pactId = pactId,
-            onNavigateBack = { navController.popBackStack() },
-            onNavigateToCapture = { pId, partnerName -> 
-                navController.navigate(Screen.Capture.createRoute(Screen.Capture.TYPE_TEXT, pactId = pId))
-            }
-        )
-    }
 }

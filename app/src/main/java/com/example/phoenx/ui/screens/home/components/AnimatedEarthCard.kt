@@ -106,24 +106,25 @@ fun AnimatedEarthCard(
                 ))
 
                 if (earthBitmap != null) {
-                    // Dessin direct au Canvas pour éliminer les rechargements Coil (v9.2.9)
+                    // v12.7 : l'image que le Créateur choisit lui-même pour habiller la sphère
+                    // était systématiquement recolorée par la couleur d'accentuation (à 60%),
+                    // ce qui la dénaturait — surtout visible avec certaines couleurs d'accent très
+                    // vives. On affiche désormais l'image telle qu'elle a été choisie, sans teinte.
                     Canvas(modifier = Modifier.fillMaxSize()) {
                         val textureWidthPx = 300.dp.toPx()
                         val currentOffsetPx = offset.dp.toPx()
-                        
+
                         // Instance 1
                         drawImage(
                             image = earthBitmap!!,
                             dstOffset = androidx.compose.ui.unit.IntOffset(currentOffsetPx.toInt(), 0),
-                            dstSize = androidx.compose.ui.unit.IntSize(textureWidthPx.toInt(), size.height.toInt()),
-                            colorFilter = ColorFilter.tint(accent.copy(alpha = 0.6f), BlendMode.SrcAtop)
+                            dstSize = androidx.compose.ui.unit.IntSize(textureWidthPx.toInt(), size.height.toInt())
                         )
                         // Instance 2 (Boucle infinie)
                         drawImage(
                             image = earthBitmap!!,
                             dstOffset = androidx.compose.ui.unit.IntOffset((currentOffsetPx + textureWidthPx).toInt(), 0),
-                            dstSize = androidx.compose.ui.unit.IntSize(textureWidthPx.toInt(), size.height.toInt()),
-                            colorFilter = ColorFilter.tint(accent.copy(alpha = 0.6f), BlendMode.SrcAtop)
+                            dstSize = androidx.compose.ui.unit.IntSize(textureWidthPx.toInt(), size.height.toInt())
                         )
                     }
                 } else {

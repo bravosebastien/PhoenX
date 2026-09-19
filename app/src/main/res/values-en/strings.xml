@@ -683,7 +683,7 @@
     <string name="settings_item_protocol_title">Transmission &amp; Protocol</string>
     <string name="settings_item_protocol_subtitle">Manage your depositary and delays</string>
     <string name="settings_item_recipients_title">My Recipients</string>
-    <string name="settings_item_recipients_subtitle">Manage your trust circle</string>
+    <string name="settings_item_recipients_subtitle">Choose who will receive your memories</string>
     <string name="settings_item_notification_contacts_title">Contacts to notify</string>
     <string name="settings_item_notification_contacts_subtitle">People informed of your departure</string>
     <string name="settings_item_presence_title">Presence frequency</string>
@@ -1251,6 +1251,11 @@
     <string name="detective_recipient_fallback">Your loved ones</string>
 
     <string name="detective_player_instructions">Decipher the enigmas to access the memories.</string>
+    <string name="enigma_form_info_title">Sealed Memory</string>
+    <string name="enigma_form_info_point1">This is a normal memory (text, photo, or audio) to which you add a small riddle.</string>
+    <string name="enigma_form_info_point2">Your loved one won\'t see the title or the content until they find the right answer to your question.</string>
+    <string name="enigma_form_info_point3">You can add a hint, which only appears after several failed attempts.</string>
+    <string name="enigma_form_info_point4">The memory can unlock itself after a certain time — unless you enable **Ultimate Secret**, which then never unlocks automatically.</string>
     <string name="detective_ultimate_secret">The Ultimate Secret</string>
     <string name="detective_personal_enigma">Personal Enigma</string>
     <string name="detective_ultimate_secret_desc">This confidence has been marked as capital. No automatic opening is possible. Only the exact answer will lift the seal.</string>

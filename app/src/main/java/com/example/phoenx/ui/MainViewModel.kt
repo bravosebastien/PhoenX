@@ -402,6 +402,15 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch { preferenceManager.setBiometricEnabled(enabled) }
     }
 
+    // v12.7 : L'état "déverrouillé" (empreinte) vit désormais ici plutôt que dans un simple
+    // remember de MainActivity — un remember repart de zéro à chaque recréation d'Activity
+    // (par ex. un changement de langue), ce qui redemandait l'empreinte à chaque fois. Ce
+    // ViewModel, lui, survit à une recréation liée à un changement de configuration et ne se
+    // réinitialise que sur un vrai relancement à froid de l'application.
+    private val _isUnlocked = MutableStateFlow(false)
+    val isUnlocked: StateFlow<Boolean> = _isUnlocked.asStateFlow()
+    fun setUnlocked(value: Boolean) { _isUnlocked.value = value }
+
     fun markBecomeCreatorPromptSeen() {
         val userId = auth.currentUser?.uid ?: return
         viewModelScope.launch {

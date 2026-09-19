@@ -398,8 +398,8 @@ fun CreateRankingDialog(
                     Slider(
                         value = count.toFloat(),
                         onValueChange = { count = it.toInt() },
-                        valueRange = 3f..20f,
-                        steps = 16,
+                        valueRange = 3f..100f, // RELEVÉ le 19/09 : plus de limite basse à 20, demande explicite du Créateur
+                        steps = 96,
                         colors = SliderDefaults.colors(thumbColor = accent, activeTrackColor = accent)
                     )
                 }

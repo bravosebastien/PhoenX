@@ -26,10 +26,17 @@
         android:theme="@style/Theme.PhoenX"
         android:localeConfig="@xml/locales_config">
 
+        <!-- v12.7 : Le drapeau "autoStoreLocales" doit être lu à l'intérieur MÊME de ce service
+             (AppCompatDelegate.isAutoStorageOptedIn interroge les métadonnées du service, pas de
+             l'application) — sans lui, AppCompatDelegate plante au lancement (NullPointerException
+             sur un Boolean non initialisé), depuis que MainActivity étend AppCompatActivity. -->
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
             android:enabled="false"
             android:exported="false">
+            <meta-data
+                android:name="autoStoreLocales"
+                android:value="true" />
             <intent-filter>
                 <action android:name="androidx.appcompat.app.AppLocalesMetadataHolderService" />
             </intent-filter>

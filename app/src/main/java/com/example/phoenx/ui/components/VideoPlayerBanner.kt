@@ -44,16 +44,20 @@ fun VideoPlayerBanner(
     var isMuted by remember { mutableStateOf(overrideVideoUrl == null) } // Muet par défaut sur l'accueil uniquement
     var isPlaying by remember { mutableStateOf(value = true) }
     var showControls by remember { mutableStateOf(false) }
+    // v12.6.1 : sans ce drapeau, un échec de lecture (URL invalide, accès refusé, réseau) ne
+    // laissait plus qu'un bloc noir sans le moindre signal — on retombe désormais visiblement
+    // sur le même état que "aucune vidéo configurée", avec un message distinct pour l'aider au diagnostic.
+    var hasError by remember { mutableStateOf(false) }
 
     // Remote Config fetching (Uniquement si pas d'override)
     LaunchedEffect(overrideVideoUrl) {
         if (overrideVideoUrl == null) {
             val remoteConfig = Firebase.remoteConfig
             val configSettings = remoteConfigSettings {
-                minimumFetchIntervalInSeconds = 3600 
+                minimumFetchIntervalInSeconds = 3600
             }
             remoteConfig.setConfigSettingsAsync(configSettings)
-            
+
             remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val url = remoteConfig.getString("home_video_url").trim()
@@ -69,11 +73,18 @@ fun VideoPlayerBanner(
         ExoPlayer.Builder(context).build().apply {
             repeatMode = Player.REPEAT_MODE_ALL
             playWhenReady = true
+            addListener(object : Player.Listener {
+                override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                    android.util.Log.e("VideoPlayerBanner", "Échec de lecture vidéo ($videoUrl)", error)
+                    hasError = true
+                }
+            })
         }
     }
 
     // Mise à jour de la vidéo quand l'URL change
     LaunchedEffect(videoUrl) {
+        hasError = false
         if (videoUrl.isNotEmpty()) {
             exoPlayer.setMediaItem(MediaItem.fromUri(videoUrl.toUri()))
             exoPlayer.prepare()
@@ -108,11 +119,11 @@ fun VideoPlayerBanner(
                 .fillMaxSize()
                 .clickable { showControls = !showControls }
         ) {
-            if (videoUrl.isEmpty()) {
+            if (videoUrl.isEmpty() || hasError) {
                 // ... (placeholder stays as is, or maybe showControls should be true by default here?)
                 // Actually, if it's empty, we might want to keep the close button visible to allow dismissal.
                 // But let's follow the requirement: controls appear on tap.
-                
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -128,7 +139,7 @@ fun VideoPlayerBanner(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Aucune vidéo configurée",
+                        text = if (hasError) "Cette vidéo n'a pas pu être chargée" else "Aucune vidéo configurée",
                         style = MaterialTheme.typography.bodySmall,
                         color = theme.contentColor.copy(alpha = 0.4f)
                     )
@@ -149,7 +160,7 @@ fun VideoPlayerBanner(
             }
 
             // --- CONTRÔLES (v9.2.7 : Auto-hide avec fondu) ---
-            
+
             Column { // Fournit un ColumnScope pour AnimatedVisibility (v9.2.7)
                 AnimatedVisibility(
                     visible = showControls,
@@ -179,7 +190,7 @@ fun VideoPlayerBanner(
                             )
                         }
 
-                        if (videoUrl.isNotEmpty()) {
+                        if (videoUrl.isNotEmpty() && !hasError) {
                             // Bouton Son (Bas Gauche)
                             Surface(
                                 modifier = Modifier
