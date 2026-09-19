@@ -449,14 +449,9 @@ fun NavGraphBuilder.creatorGraph(
         SettingsScreen(
             onNavigateBack = { navController.popBackStack() },
             onNavigateToProfile = { navController.navigate(Screen.Profile.route) },
-            onNavigateToProtocol = { navController.navigate(Screen.ProtocolSettings.route) },
             onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
             onNavigateToLanguage = { navController.navigate(Screen.LanguageSettings.route) },
             onNavigateToLegacyVideo = { navController.navigate(Screen.LegacyVideoSettings.route) },
-            onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
-            onNavigateToReconciliation = { navController.navigate(Screen.Reconciliation.route) },
-            onNavigateToRecipients = { navController.navigate(Screen.Recipients.route) },
-            onNavigateToUniqueKey = { navController.navigate(Screen.UniqueKey.route) },
             // v12.7 : "Tester le Coffre-Fort" doit ouvrir le vrai lecteur d'énigmes (celui que
             // voit un Destinataire), pas la simple liste de consultation (DetectiveHomeScreen)
             // dont les cartes ne sont pas cliquables. creatorId = null => teste ses propres énigmes.

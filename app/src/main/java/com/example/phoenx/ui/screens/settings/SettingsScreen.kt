@@ -47,13 +47,8 @@ import androidx.compose.ui.draw.rotate
 fun SettingsScreen(
     onNavigateBack: () -> Unit,
     onNavigateToProfile: () -> Unit,
-    onNavigateToProtocol: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
     onNavigateToLanguage: () -> Unit,
-    onNavigateToNotificationContacts: () -> Unit,
-    onNavigateToReconciliation: () -> Unit,
-    onNavigateToRecipients: () -> Unit,
-    onNavigateToUniqueKey: () -> Unit,
     onNavigateToDetective: () -> Unit,
     onNavigateToLegacyVideo: () -> Unit,
     onVerifyBiometrics: (onSuccess: () -> Unit) -> Unit,
@@ -144,36 +139,6 @@ fun SettingsScreen(
 
             Text(stringResource(R.string.settings_section_security), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
             Spacer(modifier = Modifier.height(16.dp))
-            
-            SettingsItem(
-                title = stringResource(R.string.settings_item_protocol_title),
-                subtitle = stringResource(R.string.settings_item_protocol_subtitle),
-                icon = Icons.Default.Lock,
-                theme = theme,
-                onClick = onNavigateToProtocol
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsItem(
-                title = stringResource(R.string.settings_item_recipients_title),
-                subtitle = stringResource(R.string.settings_item_recipients_subtitle),
-                icon = Icons.Default.Person,
-                theme = theme,
-                onClick = onNavigateToRecipients
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsItem(
-                title = stringResource(R.string.settings_item_notification_contacts_title),
-                subtitle = stringResource(R.string.settings_item_notification_contacts_subtitle),
-                icon = Icons.Default.NotificationsNone,
-                theme = theme,
-                onClick = onNavigateToNotificationContacts
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
                 title = "Vidéo de mon héritage",
@@ -238,16 +203,6 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
             // v12.7 : "Le Tiroir à Clé Unique" retiré des Réglages — faisait doublon avec les
             // autres verrous (Coffre-Fort / Secret Ultime) et n'était pas fiable (voir ci-dessous).
-
-            SettingsItem(
-                title = stringResource(R.string.settings_item_reconciliation_title),
-                subtitle = stringResource(R.string.settings_item_reconciliation_subtitle),
-                icon = Icons.Default.Mail,
-                theme = theme,
-                onClick = onNavigateToReconciliation
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
                 title = stringResource(R.string.settings_item_detective_title),
