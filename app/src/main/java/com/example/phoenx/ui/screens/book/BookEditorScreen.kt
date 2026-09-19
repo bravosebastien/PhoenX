@@ -92,12 +92,25 @@ fun BookEditorScreen(
     // GESTION COUVERTURE (v9.2.4)
     var showCropDialog by remember { mutableStateOf(false) }
     var tempUri by remember { mutableStateOf<android.net.Uri?>(null) }
+    var isPickingVideo by remember { mutableStateOf(false) } // v12.7.2
+
     val photoPickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
         contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
     ) { uri ->
         if (uri != null) {
             tempUri = uri
+            isPickingVideo = false
             showCropDialog = true
+        }
+    }
+
+    val videoPickerLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            // Pour la vidéo, pas de recadrage (CropDialog) pour l'instant
+            // On upload directement
+            viewModel.updateCoverMedia(uri, isVideo = true)
         }
     }
 
@@ -446,10 +459,27 @@ fun BookEditorScreen(
                                     Text(stringResource(R.string.book_editor_cover_btn_change_photo), fontSize = 11.sp)
                                 }
 
-                                // Reset style
-                                TextButton(onClick = { viewModel.updateCoverTitleStyle("WHITE") }) {
-                                    Text(stringResource(R.string.book_editor_cover_btn_reset), color = theme.contentColor.copy(alpha = 0.5f), fontSize = 11.sp)
+                                // v12.7.2 : Bouton Vidéo
+                                OutlinedButton(
+                                    onClick = { videoPickerLauncher.launch("video/*") },
+                                    modifier = Modifier.weight(1f).height(48.dp),
+                                    shape = RoundedCornerShape(8.dp),
+                                    border = BorderStroke(1.dp, accent.copy(alpha = 0.4f))
+                                ) {
+                                    Icon(Icons.Default.Videocam, null, modifier = Modifier.size(16.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Choisir une vidéo", fontSize = 11.sp)
                                 }
+                            }
+
+                            Spacer(Modifier.height(12.dp))
+
+                            // Reset style
+                            TextButton(
+                                onClick = { viewModel.updateCoverTitleStyle("WHITE") },
+                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                            ) {
+                                Text(stringResource(R.string.book_editor_cover_btn_reset), color = theme.contentColor.copy(alpha = 0.5f), fontSize = 11.sp)
                             }
                             
                             Spacer(Modifier.height(16.dp))
@@ -681,7 +711,7 @@ fun BookEditorScreen(
                 imageUri = tempUri!!,
                 onDismiss = { showCropDialog = false },
                 onConfirmed = { croppedUri ->
-                    viewModel.updateCoverImage(croppedUri)
+                    viewModel.updateCoverMedia(croppedUri, isVideo = false)
                     showCropDialog = false
                 },
                 accent = accent

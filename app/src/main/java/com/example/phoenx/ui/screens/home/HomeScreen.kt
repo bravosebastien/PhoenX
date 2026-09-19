@@ -270,6 +270,7 @@ fun HomeScreen(
                         title = uiState.bookTitle ?: stringResource(R.string.home_book_default_name),
                         chaptersCount = uiState.validatedChaptersCount,
                         coverImageUrl = uiState.coverImageUrl,
+                        coverIsVideo = uiState.coverIsVideo,
                         defaultCoverUrl = uiState.defaultCoverUrl,
                         coverTitleStyle = uiState.coverTitleStyle,
                         scale = uiState.coverScale,

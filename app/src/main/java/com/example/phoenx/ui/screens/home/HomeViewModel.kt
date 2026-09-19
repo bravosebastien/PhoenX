@@ -138,6 +138,7 @@ class HomeViewModel @Inject constructor(
         remoteConfig.fetchAndActivate().addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val url = remoteConfig.getString("default_book_cover_url").trim()
+                android.util.Log.d("PHOENX_VIDEO_DEBUG", "HomeViewModel: default_book_cover_url = '$url'")
                 val earthUrl = remoteConfig.getString("earth_texture_url").trim()
                 _uiState.update { it.copy(
                     defaultCoverUrl = url.ifEmpty { null },
@@ -169,6 +170,7 @@ class HomeViewModel @Inject constructor(
 
                 val title = snapshot.getString("bookTitle")
                 val coverUrl = snapshot.getString("coverImageUrl")
+                val isVideo = snapshot.getBoolean("coverIsVideo") ?: false
                 val style = snapshot.getString("coverTitleStyle") ?: "GOLD"
                 val scale = snapshot.getDouble("coverScale")?.toFloat() ?: 1f
                 val offsetX = snapshot.getDouble("coverOffsetX")?.toFloat() ?: 0f
@@ -183,6 +185,7 @@ class HomeViewModel @Inject constructor(
                     validatedChaptersCount = validatedCount,
                     bookTitle = title,
                     coverImageUrl = coverUrl,
+                    coverIsVideo = isVideo,
                     coverTitleStyle = style,
                     coverScale = scale,
                     coverOffsetX = offsetX,
@@ -355,6 +358,7 @@ data class HomeUiState(
     val globalUserCount: Int = 0,
     val localRecipientCount: Int = 0,
     val coverImageUrl: String? = null,
+    val coverIsVideo: Boolean = false,
     val defaultCoverUrl: String? = null,
     val earthTextureUrl: String? = null,
     val coverTitleStyle: String = "GOLD",

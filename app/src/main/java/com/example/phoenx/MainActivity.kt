@@ -14,6 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -50,6 +53,10 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var biometricManager: PhoenXBiometricManager
 
+    companion object {
+        private var isProcessObserverRegistered = false
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -59,6 +66,20 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // v12.7.1 : Sécurité — redemander la biométrie à chaque retour au premier plan.
+        // ProcessLifecycleOwner suit le cycle de vie de l'application entière. On ne repasse
+        // isUnlocked à false que si le verrouillage est activé en réglages.
+        if (!isProcessObserverRegistered) {
+            ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+                override fun onStop(owner: LifecycleOwner) {
+                    if (mainViewModel.isBiometricEnabled.value) {
+                        mainViewModel.setUnlocked(false)
+                    }
+                }
+            })
+            isProcessObserverRegistered = true
+        }
         
         // CAPTUREUR DE CRASH POUR DEBUG
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
@@ -94,7 +115,9 @@ class MainActivity : AppCompatActivity() {
                 var showGuide by remember { mutableStateOf(value = false) }
 
                 // LOGIQUE DE DÉVERROUILLAGE BIOMÉTRIQUE
-                LaunchedEffect(isBiometricEnabled) {
+                // v12.7.1 : On ajoute isUnlocked comme clé pour que le prompt se redéclenche
+                // dès que l'observateur de processus repasse l'état à false au Stop.
+                LaunchedEffect(isBiometricEnabled, isUnlocked) {
                     val user = FirebaseAuth.getInstance().currentUser
                     if (user != null && isBiometricEnabled && !isUnlocked) {
                         if (biometricManager.isBiometricAvailable()) {
@@ -106,7 +129,11 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             mainViewModel.setUnlocked(true)
                         }
-                    } else {
+                    } else if (user != null && !isBiometricEnabled) {
+                        // Si désactivé, on considère l'app déverrouillée
+                        mainViewModel.setUnlocked(true)
+                    } else if (user == null) {
+                        // Pas encore connecté : pas de verrou biométrique sur l'auth
                         mainViewModel.setUnlocked(true)
                     }
                 }

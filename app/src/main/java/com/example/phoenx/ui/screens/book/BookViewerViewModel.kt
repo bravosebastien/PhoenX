@@ -11,6 +11,8 @@ import com.example.phoenx.data.sync.toPersonEntity
 import com.example.phoenx.service.BookGeneratorService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.remoteconfig.ktx.remoteConfig
+import com.google.firebase.ktx.Firebase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -59,6 +61,9 @@ class BookViewerViewModel @Inject constructor(
     private val _creatorName = MutableStateFlow("Ton proche")
     val creatorName: StateFlow<String> = _creatorName.asStateFlow()
 
+    private val _defaultCoverUrl = MutableStateFlow<String?>(null)
+    val defaultCoverUrl: StateFlow<String?> = _defaultCoverUrl.asStateFlow()
+
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
@@ -98,6 +103,17 @@ class BookViewerViewModel @Inject constructor(
                 // 0. CHARGER L'AMBIANCE GLOBALE (v9.4.27)
                 // On lit directement le document racine du Créateur
                 val userDoc = db.collection("users").document(userId).get().kotlinAwait()
+
+                // v12.7.2 : Couverture par défaut (Remote Config)
+                val config = Firebase.remoteConfig
+                config.fetchAndActivate().addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        val url = config.getString("default_book_cover_url").trim()
+                        android.util.Log.d("PHOENX_VIDEO_DEBUG", "BookViewerViewModel: default_book_cover_url = '$url'")
+                        if (url.isNotEmpty()) _defaultCoverUrl.value = url
+                    }
+                }
+
                 if (userDoc.exists()) {
                     _ambiance.value = com.example.phoenx.ui.screens.recipient.AmbianceState(
                         backgroundId = userDoc.getString("transmissionBackgroundId") ?: "classic_ivory",

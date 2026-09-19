@@ -267,7 +267,10 @@ class RecipientMediaViewModel @Inject constructor(
 
     // v12.4 : Couverture personnalisée du Livre du Créateur consulté, pour le bandeau Livre côté Destinataire
     private val _bookCoverImageUrl = MutableStateFlow<String?>(null)
-val bookCoverImageUrl: StateFlow<String?> = _bookCoverImageUrl.asStateFlow()
+    val bookCoverImageUrl: StateFlow<String?> = _bookCoverImageUrl.asStateFlow()
+
+    private val _bookCoverIsVideo = MutableStateFlow(false)
+    val bookCoverIsVideo: StateFlow<Boolean> = _bookCoverIsVideo.asStateFlow()
 
     private val _bookCoverTitleStyle = MutableStateFlow("GOLD")
     val bookCoverTitleStyle: StateFlow<String> = _bookCoverTitleStyle.asStateFlow()
@@ -449,6 +452,7 @@ val bookCoverImageUrl: StateFlow<String?> = _bookCoverImageUrl.asStateFlow()
      */
     private fun applyBookCoverFields(bookDoc: com.google.firebase.firestore.DocumentSnapshot) {
         _bookCoverImageUrl.value = bookDoc.getString("coverImageUrl")
+        _bookCoverIsVideo.value = bookDoc.getBoolean("coverIsVideo") ?: false
         _bookCoverTitleStyle.value = bookDoc.getString("coverTitleStyle") ?: "GOLD"
         _bookCoverScale.value = bookDoc.getDouble("coverScale")?.toFloat() ?: 1f
         _bookCoverOffsetX.value = bookDoc.getDouble("coverOffsetX")?.toFloat() ?: 0f

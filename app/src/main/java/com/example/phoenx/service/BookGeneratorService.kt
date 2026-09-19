@@ -106,6 +106,7 @@ class BookGeneratorService @Inject constructor(
                 globalIntroduction = rawData["globalIntroduction"] as? String ?: "",
                 theme = theme,
                 coverImageUrl = rawData["coverImageUrl"] as? String,
+                coverIsVideo = rawData["coverIsVideo"] as? Boolean ?: false,
                 coverTitleStyle = rawData["coverTitleStyle"] as? String ?: "GOLD",
                 visibility = rawData["visibility"] as? String ?: "RESTRICTED",
                 coverScale = (rawData["coverScale"] as? Number)?.toFloat() ?: 1f,
@@ -564,6 +565,7 @@ class BookGeneratorService @Inject constructor(
                     "fontId" to draft.theme.fontId
                 ),
                 "coverImageUrl" to draft.coverImageUrl,
+                "coverIsVideo" to draft.coverIsVideo,
                 "coverTitleStyle" to draft.coverTitleStyle,
                 "visibility" to (draft.visibility ?: "RESTRICTED"),
                 "coverScale" to draft.coverScale,

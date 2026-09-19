@@ -45,6 +45,8 @@ import com.example.phoenx.domain.model.EntryType
 import com.example.phoenx.domain.model.PhoenXEntry
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.SecureAsyncImage
+import com.example.phoenx.ui.components.LoopingVideoBackground
+import com.example.phoenx.ui.components.isVideoUrl
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.screens.home.components.AnimatedEarthCard
 import com.example.phoenx.ui.screens.home.components.BookCoverCard
@@ -54,8 +56,10 @@ import com.example.phoenx.ui.theme.*
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
+import androidx.media3.common.util.UnstableApi
 
 @OptIn(ExperimentalMaterial3Api::class)
+@UnstableApi
 @Composable
 fun HeirHeritageScreen(
     creatorId: String,
@@ -77,6 +81,7 @@ fun HeirHeritageScreen(
 
     // v12.4 : Visuels réutilisés depuis l'accueil du Créateur
     val bookCoverImageUrl by viewModel.bookCoverImageUrl.collectAsState()
+    val bookCoverIsVideo by viewModel.bookCoverIsVideo.collectAsState()
     val bookCoverTitleStyle by viewModel.bookCoverTitleStyle.collectAsState()
     val bookCoverScale by viewModel.bookCoverScale.collectAsState()
     val bookCoverOffsetX by viewModel.bookCoverOffsetX.collectAsState()
@@ -185,12 +190,19 @@ fun HeirHeritageScreen(
                                 theme = theme,
                                 content = {
                                     if (genealogyCardImageUrl != null) {
-                                        AsyncImage(
-                                            model = genealogyCardImageUrl,
-                                            contentDescription = null,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
+                                        if (isVideoUrl(genealogyCardImageUrl)) {
+                                            LoopingVideoBackground(
+                                                videoUrl = genealogyCardImageUrl!!,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        } else {
+                                            AsyncImage(
+                                                model = genealogyCardImageUrl,
+                                                contentDescription = null,
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
                                     }
                                 }
                             ) { navController.navigate(Screen.Genealogy.createRoute(creatorId)) }
@@ -206,12 +218,19 @@ fun HeirHeritageScreen(
                                 theme = theme,
                                 content = {
                                     if (encountersCardImageUrl != null) {
-                                        AsyncImage(
-                                            model = encountersCardImageUrl,
-                                            contentDescription = null,
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
-                                        )
+                                        if (isVideoUrl(encountersCardImageUrl)) {
+                                            LoopingVideoBackground(
+                                                videoUrl = encountersCardImageUrl!!,
+                                                modifier = Modifier.fillMaxSize()
+                                            )
+                                        } else {
+                                            AsyncImage(
+                                                model = encountersCardImageUrl,
+                                                contentDescription = null,
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
                                     }
                                 }
                             ) { navController.navigate(Screen.RecipientEncounters.createRoute(creatorId)) }
@@ -228,6 +247,7 @@ fun HeirHeritageScreen(
                                         title = titleText,
                                         chaptersCount = 0,
                                         coverImageUrl = bookCoverImageUrl, // v12.5 : Résolu réactivement dans le VM
+                                        coverIsVideo = bookCoverIsVideo,
                                         defaultCoverUrl = defaultBookCoverUrl,
                                         coverTitleStyle = bookCoverTitleStyle,
                                         scale = bookCoverScale,

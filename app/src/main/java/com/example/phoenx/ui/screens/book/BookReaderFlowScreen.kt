@@ -41,6 +41,9 @@ import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.media.MediaManager
 import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.LocalAccentColor
+import com.example.phoenx.ui.components.LoopingVideoBackground
+import com.example.phoenx.ui.components.isVideoUrl
+import androidx.media3.common.util.UnstableApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -52,6 +55,7 @@ import kotlin.math.absoluteValue
 private const val MAX_PHOTOS_PER_CHAPTER = 3
 
 @OptIn(ExperimentalMaterial3Api::class)
+@UnstableApi
 @Composable
 fun BookReaderFlowScreen(
     navController: NavController,
@@ -70,6 +74,7 @@ fun BookReaderFlowScreen(
     val ambiance by viewModel.ambiance.collectAsState()
     val readingMode by viewModel.readingMode.collectAsState()
     val heirKey by viewModel.heirKey.collectAsState()
+    val defaultCoverUrl by viewModel.defaultCoverUrl.collectAsState()
 
     val fontFamily = BookThemeOptions.getFont(ambiance.fontId)
     val background = BookThemeOptions.getBackground(ambiance.backgroundId)
@@ -129,7 +134,15 @@ fun BookReaderFlowScreen(
                 }
 
                 // 1. COUVERTURE
-                currentAtoms.add(BookAtom.Cover(draft.bookTitle ?: "Livre de Vie", viewModel.creatorName.value))
+                currentAtoms.add(BookAtom.Cover(
+                    title = draft.bookTitle ?: "Livre de Vie",
+                    author = viewModel.creatorName.value,
+                    coverUrl = draft.coverImageUrl ?: defaultCoverUrl,
+                    isVideo = draft.coverIsVideo || isVideoUrl(draft.coverImageUrl ?: defaultCoverUrl),
+                    scale = draft.coverScale,
+                    offsetX = draft.coverOffsetX,
+                    offsetY = draft.coverOffsetY
+                ))
                 flush("cover")
 
                 // 2. INTRODUCTION
@@ -550,7 +563,21 @@ fun PagesModeView(
             Column(modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp)) {
                 page.atoms.forEach { atom ->
                     when (atom) {
-                        is BookAtom.Cover -> BookCoverView(atom.title, atom.author, fontFamily, textColor, accent)
+                        is BookAtom.Cover -> BookCoverView(
+                            title = atom.title,
+                            author = atom.author,
+                            coverUrl = atom.coverUrl,
+                            isVideo = atom.isVideo,
+                            scale = atom.scale,
+                            offsetX = atom.offsetX,
+                            offsetY = atom.offsetY,
+                            fontFamily = fontFamily,
+                            textColor = textColor,
+                            accent = accent,
+                            mediaManager = viewModel.mediaManager,
+                            creatorId = targetCreatorId ?: bookDraft?.userId,
+                            explicitKey = heirKey
+                        )
                         is BookAtom.ChapterHeader -> {
                             Text(text = "Chapitre ${atom.index + 1}", style = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 11.sp, color = accent.copy(alpha = 0.7f), letterSpacing = 2.sp))
                             Spacer(Modifier.height(8.dp))
@@ -609,14 +636,109 @@ fun PagesModeView(
     }
 }
 
+@UnstableApi
 @Composable
-fun BookCoverView(title: String, author: String, fontFamily: FontFamily, textColor: Color, accent: Color) {
-    Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Text(text = title, style = TextStyle(fontFamily = fontFamily, fontSize = 32.sp, fontWeight = FontWeight.Bold, color = textColor), textAlign = TextAlign.Center)
-        Spacer(Modifier.height(16.dp))
-        Text(text = "par $author", style = TextStyle(fontFamily = fontFamily, fontSize = 16.sp, fontWeight = FontWeight.Light, color = textColor.copy(alpha = 0.6f)))
-        Spacer(Modifier.height(48.dp))
-        Box(modifier = Modifier.width(60.dp).height(1.dp).background(accent.copy(alpha = 0.4f)))
+fun BookCoverView(
+    title: String,
+    author: String,
+    coverUrl: String?,
+    isVideo: Boolean = false,
+    scale: Float,
+    offsetX: Float,
+    offsetY: Float,
+    fontFamily: FontFamily,
+    textColor: Color,
+    accent: Color,
+    mediaManager: MediaManager,
+    creatorId: String?,
+    explicitKey: ByteArray?
+) {
+    var displayUrl by remember(coverUrl) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(coverUrl, explicitKey, creatorId) {
+        if (coverUrl != null) {
+            android.util.Log.d("PHOENX_VIDEO_DEBUG", "BookCoverView: coverUrl='$coverUrl'")
+            displayUrl = if (explicitKey != null && creatorId != null) {
+                mediaManager.getSafeUrl(
+                    pathOrUrl = coverUrl,
+                    explicitKey = explicitKey,
+                    creatorId = creatorId,
+                    docType = "book",
+                    docId = "current_draft"
+                )
+            } else {
+                mediaManager.getSafeUrl(coverUrl)
+            }
+            android.util.Log.d("PHOENX_VIDEO_DEBUG", "BookCoverView: displayUrl='$displayUrl'")
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (displayUrl != null) {
+            val finalIsVideo = isVideo || isVideoUrl(displayUrl)
+            if (finalIsVideo) {
+                LoopingVideoBackground(
+                    videoUrl = displayUrl!!,
+                    modifier = Modifier.fillMaxSize().graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale,
+                        translationX = offsetX,
+                        translationY = offsetY
+                    )
+                )
+            } else {
+                coil3.compose.AsyncImage(
+                    model = displayUrl,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize().graphicsLayer(
+                        scaleX = scale,
+                        scaleY = scale,
+                        translationX = offsetX,
+                        translationY = offsetY
+                    ),
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = title,
+                style = TextStyle(
+                    fontFamily = fontFamily,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = textColor,
+                    shadow = if (displayUrl != null) androidx.compose.ui.graphics.Shadow(
+                        color = Color.Black.copy(alpha = 0.5f),
+                        offset = androidx.compose.ui.geometry.Offset(2f, 2f),
+                        blurRadius = 4f
+                    ) else null
+                ),
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(16.dp))
+            Text(
+                text = "par $author",
+                style = TextStyle(
+                    fontFamily = fontFamily,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Light,
+                    color = textColor.copy(alpha = 0.8f),
+                    shadow = if (displayUrl != null) androidx.compose.ui.graphics.Shadow(
+                        color = Color.Black.copy(alpha = 0.5f),
+                        offset = androidx.compose.ui.geometry.Offset(1f, 1f),
+                        blurRadius = 2f
+                    ) else null
+                )
+            )
+            Spacer(Modifier.height(48.dp))
+            Box(modifier = Modifier.width(60.dp).height(1.5.dp).background(accent.copy(alpha = 0.6f)))
+        }
     }
 }
 
@@ -715,7 +837,15 @@ private fun splitTextAndMediaTags(content: String): Pair<List<String>, List<Matc
 }
 
 sealed class BookAtom {
-    data class Cover(val title: String, val author: String) : BookAtom()
+    data class Cover(
+        val title: String, 
+        val author: String, 
+        val coverUrl: String? = null,
+        val isVideo: Boolean = false,
+        val scale: Float = 1f,
+        val offsetX: Float = 0f,
+        val offsetY: Float = 0f
+    ) : BookAtom()
     data class ChapterHeader(val title: String, val index: Int) : BookAtom()
     data class Text(val content: String, val charOffset: Int, val isItalic: Boolean = false) : BookAtom()
     data class Photo(val entry: OfflineEntry, val widthPx: Float = 0f, val heightPx: Float = 0f) : BookAtom()

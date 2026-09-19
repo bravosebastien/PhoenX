@@ -607,7 +607,7 @@ class BookEditorViewModel @Inject constructor(
         updateGlobalAmbiance(backgroundId, fontId)
     }
 
-    fun updateCoverImage(uri: Uri) {
+    fun updateCoverMedia(uri: Uri, isVideo: Boolean) {
         val userId = auth.currentUser?.uid ?: return
 
         viewModelScope.launch {
@@ -617,7 +617,8 @@ class BookEditorViewModel @Inject constructor(
                 val freshDraft = bookService.loadBookDraft(userId) ?: _bookDraft.value ?: BookDraft(userId = userId)
 
                 // 1. Conversion Uri -> File temporaire
-                val tempFile = File(context.cacheDir, "book_cover_${UUID.randomUUID()}.jpg")
+                val extension = if (isVideo) "mp4" else "jpg"
+                val tempFile = File(context.cacheDir, "book_cover_${UUID.randomUUID()}.$extension")
                 context.contentResolver.openInputStream(uri)?.use { input ->
                     FileOutputStream(tempFile).use { output ->
                         input.copyTo(output)
@@ -628,7 +629,10 @@ class BookEditorViewModel @Inject constructor(
                 val downloadUrl = mediaManager.uploadCameo(userId, "book_cover", tempFile)
 
                 // 3. Mise à jour du Draft
-                val updatedDraft = freshDraft.copy(coverImageUrl = downloadUrl)
+                val updatedDraft = freshDraft.copy(
+                    coverImageUrl = downloadUrl,
+                    coverIsVideo = isVideo
+                )
                 bookService.saveBookDraft(userId, updatedDraft)
                 _bookDraft.value = updatedDraft
 

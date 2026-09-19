@@ -43,8 +43,10 @@ import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.theme.LocalAppTheme
 import dagger.hilt.android.EntryPointAccessors
+import androidx.media3.common.util.UnstableApi
 
 @OptIn(ExperimentalMaterial3Api::class)
+@UnstableApi
 @Composable
 fun EncounterScreen(
     onNavigateBack: () -> Unit,

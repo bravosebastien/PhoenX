@@ -23,12 +23,17 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.example.phoenx.R
 import coil3.compose.AsyncImage
+import com.example.phoenx.ui.components.LoopingVideoBackground
+import com.example.phoenx.ui.components.isVideoUrl
 import com.example.phoenx.ui.theme.AppThemeState
+import androidx.media3.common.util.UnstableApi
 
 /**
- * GenealogyCard (v9.4.22)
+ * GenealogyCard (v12.7.2)
  * Carte visuelle pour l'Arbre Généalogique sur l'accueil.
+ * Supporte désormais les fonds vidéo en boucle.
  */
+@UnstableApi
 @Composable
 fun GenealogyCard(
     imageUrl: String?,
@@ -68,12 +73,19 @@ fun GenealogyCard(
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 if (!imageUrl.isNullOrBlank()) {
-                    AsyncImage(
-                        model = imageUrl,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                    if (isVideoUrl(imageUrl)) {
+                        LoopingVideoBackground(
+                            videoUrl = imageUrl,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                     // v12.2 : Suppression du scrim pour couleurs naturelles
                 } else {
                     // Fallback visuel : Icône discrète

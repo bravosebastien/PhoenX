@@ -23,17 +23,22 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import com.example.phoenx.R
 import com.example.phoenx.data.media.MediaManager
+import com.example.phoenx.ui.components.LoopingVideoBackground
+import com.example.phoenx.ui.components.isVideoUrl
 import com.example.phoenx.ui.theme.AppThemeState
 import dagger.hilt.android.EntryPointAccessors
 import androidx.compose.ui.platform.LocalContext
+import androidx.media3.common.util.UnstableApi
 
 import androidx.compose.ui.graphics.graphicsLayer
 
+@UnstableApi
 @Composable
 fun BookCoverCard(
     title: String,
     chaptersCount: Int,
     coverImageUrl: String? = null,
+    coverIsVideo: Boolean = false,
     defaultCoverUrl: String? = null,
     coverTitleStyle: String = "GOLD",
     onClick: () -> Unit,
@@ -69,6 +74,7 @@ fun BookCoverCard(
         if (finalCoverUrl == null) {
             displayUrl = null
         } else {
+            android.util.Log.d("PHOENX_VIDEO_DEBUG", "HomeBookCoverCard: finalCoverUrl='$finalCoverUrl'")
             // v12.6.1 : Fix — sans creatorId/docType/docId, getSafeUrl retombait toujours sur
             // l'accès direct Storage (réservé au propriétaire), même avec explicitKey renseigné.
             val resolved = if (explicitKey != null && creatorId != null) {
@@ -82,6 +88,7 @@ fun BookCoverCard(
             } else {
                 mediaManager.getSafeUrl(finalCoverUrl)
             }
+            android.util.Log.d("PHOENX_VIDEO_DEBUG", "HomeBookCoverCard: resolved='$resolved'")
             // v9.4.19 : On ne met à jour displayUrl que si la résolution réussit,
             // évitant de repasser par null (flicker) si les données Firestore changent.
             if (resolved != null) {
@@ -130,19 +137,32 @@ fun BookCoverCard(
             border = BorderStroke(0.8.dp, accent.copy(alpha = 0.6f))
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                // FOND : Image personnalisée ou par défaut Remote Config (v9.2.5)
+                // FOND : Image ou Vidéo personnalisée ou par défaut (v12.7.2)
                 if (hasBackgroundImage) {
-                    coil3.compose.AsyncImage(
-                        model = displayUrl,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize().graphicsLayer(
-                            scaleX = scale,
-                            scaleY = scale,
-                            translationX = offsetX,
-                            translationY = offsetY
-                        ),
-                        contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                    )
+                    val finalIsVideo = coverIsVideo || isVideoUrl(displayUrl)
+                    if (finalIsVideo) {
+                        LoopingVideoBackground(
+                            videoUrl = displayUrl!!,
+                            modifier = Modifier.fillMaxSize().graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                translationX = offsetX,
+                                translationY = offsetY
+                            )
+                        )
+                    } else {
+                        coil3.compose.AsyncImage(
+                            model = displayUrl,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize().graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                translationX = offsetX,
+                                translationY = offsetY
+                            ),
+                            contentScale = androidx.compose.ui.layout.ContentScale.Crop
+                        )
+                    }
                     // v12.2 : Suppression du voile sombre pour couleurs naturelles
                 } else {
                     // 3. Stylized Drawing (Fallback v9.2.6)
