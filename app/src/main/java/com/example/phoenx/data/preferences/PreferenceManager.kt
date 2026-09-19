@@ -8,7 +8,10 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.phoenx.data.encryption.EncryptionManager
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -21,6 +24,11 @@ class PreferenceManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val encryptionManager: EncryptionManager
 ) {
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface PreferenceEntryPoint {
+        fun preferenceManager(): PreferenceManager
+    }
     private val VOICE_MODE_KEY = booleanPreferencesKey("voice_mode_active")
     private val BIOMETRIC_ENABLED_KEY = booleanPreferencesKey("biometric_enabled")
     private val SHOW_WELCOME_GUIDE_KEY = booleanPreferencesKey("show_welcome_guide")
@@ -32,6 +40,7 @@ class PreferenceManager @Inject constructor(
     private val BACKGROUND_COLOR_KEY = androidx.datastore.preferences.core.intPreferencesKey("background_color")
     private val GLOBAL_BACKGROUND_COLOR_KEY = androidx.datastore.preferences.core.intPreferencesKey("global_background_color")
     private val SYNC_MIGRATION_V1_DONE_KEY = booleanPreferencesKey("sync_migration_v1_done")
+    private val LEGACY_VIDEO_MUTED_KEY = booleanPreferencesKey("legacy_video_muted")
     
     // v8.9.0 : Thème Global (Plume & Papier)
     private val GLOBAL_BACKGROUND_ID_KEY = androidx.datastore.preferences.core.stringPreferencesKey("global_background_id")
@@ -78,6 +87,9 @@ class PreferenceManager @Inject constructor(
         .map { preferences ->
             preferences[VIDEO_BANNER_DISMISSED_KEY] ?: false
         }
+
+    val isLegacyVideoMuted: Flow<Boolean> = context.dataStore.data
+        .map { it[LEGACY_VIDEO_MUTED_KEY] ?: true } // Muet par défaut
 
     val isSilenceOnboardingDone: Flow<Boolean> = context.dataStore.data
         .map { preferences ->
@@ -154,6 +166,10 @@ class PreferenceManager @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[VIDEO_BANNER_DISMISSED_KEY] = dismissed
         }
+    }
+
+    suspend fun setLegacyVideoMuted(muted: Boolean) {
+        context.dataStore.edit { it[LEGACY_VIDEO_MUTED_KEY] = muted }
     }
 
     suspend fun setDepositaryOnboardingSeen(userId: String, seen: Boolean) {

@@ -25,23 +25,45 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.example.phoenx.data.preferences.PreferenceManager
 import com.example.phoenx.ui.theme.LocalAppTheme
 import com.google.firebase.Firebase
 import com.google.firebase.remoteconfig.remoteConfig
 import com.google.firebase.remoteconfig.remoteConfigSettings
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.launch
 
 @UnstableApi
 @Composable
 fun VideoPlayerBanner(
     modifier: Modifier = Modifier,
     overrideVideoUrl: String? = null, // v9.2.7 : Support URL externe
+    canDismiss: Boolean = true, // v12.7.5 : Option pour masquer la croix
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    
+    // v12.7.4 : Accès au PreferenceManager pour persister l'état muet
+    val preferenceManager = remember(context) {
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            PreferenceManager.PreferenceEntryPoint::class.java
+        ).preferenceManager()
+    }
+
+    val persistedMuted by preferenceManager.isLegacyVideoMuted.collectAsState(initial = true)
+    
     var videoUrl by remember { mutableStateOf(overrideVideoUrl ?: "") }
-    var isMuted by remember { mutableStateOf(overrideVideoUrl == null) } // Muet par défaut sur l'accueil uniquement
+    var isMuted by remember { mutableStateOf(true) }
+    
+    // Initialisation et synchronisation
+    LaunchedEffect(persistedMuted) {
+        isMuted = persistedMuted
+    }
+
     var isPlaying by remember { mutableStateOf(value = true) }
     var showControls by remember { mutableStateOf(false) }
     // v12.6.1 : sans ce drapeau, un échec de lecture (URL invalide, accès refusé, réseau) ne
@@ -173,21 +195,23 @@ fun VideoPlayerBanner(
                         Box(modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.25f)))
 
                         // Bouton Fermer (Haut Droite)
-                        Surface(
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(12.dp)
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .clickable { onDismiss() },
-                            color = theme.backgroundColor.copy(alpha = 0.7f)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Fermer",
-                                tint = theme.contentColor,
-                                modifier = Modifier.padding(8.dp).size(18.dp)
-                            )
+                        if (canDismiss) {
+                            Surface(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(12.dp)
+                                    .size(32.dp)
+                                    .clip(CircleShape)
+                                    .clickable { onDismiss() },
+                                color = theme.backgroundColor.copy(alpha = 0.7f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Fermer",
+                                    tint = theme.contentColor,
+                                    modifier = Modifier.padding(8.dp).size(18.dp)
+                                )
+                            }
                         }
 
                         if (videoUrl.isNotEmpty() && !hasError) {
@@ -198,7 +222,13 @@ fun VideoPlayerBanner(
                                     .padding(12.dp)
                                     .size(36.dp)
                                     .clip(CircleShape)
-                                    .clickable { isMuted = !isMuted },
+                                    .clickable { 
+                                        val newMuted = !isMuted
+                                        isMuted = newMuted
+                                        scope.launch {
+                                            preferenceManager.setLegacyVideoMuted(newMuted)
+                                        }
+                                    },
                                 color = theme.backgroundColor.copy(alpha = 0.7f)
                             ) {
                                 Icon(

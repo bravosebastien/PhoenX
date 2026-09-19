@@ -160,6 +160,7 @@ fun HeirHeritageScreen(
                         com.example.phoenx.ui.components.VideoPlayerBanner(
                             modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
                             overrideVideoUrl = legacyVideoUrl,
+                            canDismiss = false,
                             onDismiss = {}
                         )
                     }
