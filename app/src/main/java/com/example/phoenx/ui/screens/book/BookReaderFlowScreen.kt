@@ -101,11 +101,11 @@ fun BookReaderFlowScreen(
     val bottomInset = systemBarsInsets.calculateBottomPadding()
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val availableWidth = with(density) { (maxWidth - 64.dp).toPx() }
+        val availableWidth = with(density) { (this@BoxWithConstraints.maxWidth - 64.dp).toPx() }
         // v13.1 : Marge de sécurité supplémentaire pour éviter que la dernière ligne visible
         // ne soit rognée par le numéro de page (footer) ou par un léger écart de mesure du texte.
         val dynamicDeduction = topInset + bottomInset + 196.dp + 40.dp
-        val availableHeight = with(density) { (maxHeight - dynamicDeduction).toPx() }
+        val availableHeight = with(density) { (this@BoxWithConstraints.maxHeight - dynamicDeduction).toPx() }
 
         LaunchedEffect(bookDraft, decryptedChapters, decryptedIntro, mediaMap, fontSizeScale, ambiance.fontId, availableWidth, availableHeight) {
             val draft = bookDraft ?: return@LaunchedEffect
@@ -341,7 +341,7 @@ fun BookReaderFlowScreen(
                 }
             } else {
                 if (readingMode == BookViewerViewModel.BookReadingMode.SCROLL) {
-                    ScrollModeView(padding, bookDraft, decryptedChapters, decryptedIntro, mediaMap, viewModel, listState = rememberLazyListState(), scrollProgress, fontSizeScale, fontFamily, textColor, accent, targetCreatorId, navController, heirKey = heirKey, onMediaExclude = { entry -> photoToExclude = entry })
+                    ScrollModeView(padding, bookDraft, decryptedChapters, decryptedIntro, mediaMap, viewModel, listState = rememberLazyListState(), scrollProgress, fontSizeScale, fontFamily, textColor, accent, targetCreatorId, navController, heirKey = heirKey, defaultCoverUrl = defaultCoverUrl, onMediaExclude = { entry -> photoToExclude = entry })
                 } else {
                     PagesModeView(padding, pages, pagesProgress, viewModel, targetCreatorId, bookDraft, fontSizeScale, fontFamily, background, textColor, accent, navController, isCreator = isCreator, heirKey = heirKey, onMediaExclude = { entry -> photoToExclude = entry })
                 }
@@ -378,6 +378,7 @@ fun BookReaderFlowScreen(
     }
 }
 
+@UnstableApi
 @Composable
 fun ScrollModeView(
     padding: PaddingValues,
@@ -395,6 +396,7 @@ fun ScrollModeView(
     targetCreatorId: String?,
     navController: NavController,
     heirKey: ByteArray? = null,
+    defaultCoverUrl: String? = null,
     onMediaExclude: ((OfflineEntry) -> Unit)? = null
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -419,27 +421,46 @@ fun ScrollModeView(
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 100.dp, start = 28.dp, end = 28.dp, top = 20.dp)
+            contentPadding = PaddingValues(bottom = 100.dp, start = 0.dp, end = 0.dp, top = 0.dp)
         ) {
             item {
-                Column(modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = bookDraft?.bookTitle ?: "Livre de Vie", style = TextStyle(fontFamily = fontFamily, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = textColor), textAlign = TextAlign.Center)
-                    Spacer(Modifier.height(8.dp))
-                    Text(text = "par ${viewModel.creatorName.collectAsState().value}", style = TextStyle(fontFamily = fontFamily, fontSize = 14.sp, fontWeight = FontWeight.Light, color = textColor.copy(alpha = 0.6f)))
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(modifier = Modifier.fillParentMaxHeight()) {
+                        BookCoverView(
+                            title = bookDraft?.bookTitle ?: "Livre de Vie",
+                            author = viewModel.creatorName.collectAsState().value,
+                            coverUrl = bookDraft?.coverImageUrl ?: defaultCoverUrl,
+                            isVideo = bookDraft?.coverIsVideo ?: false,
+                            scale = bookDraft?.coverScale ?: 1f,
+                            offsetX = bookDraft?.coverOffsetX ?: 0f,
+                            offsetY = bookDraft?.coverOffsetY ?: 0f,
+                            fontFamily = fontFamily,
+                            textColor = textColor,
+                            accent = accent,
+                            mediaManager = viewModel.mediaManager,
+                            creatorId = targetCreatorId ?: bookDraft?.userId,
+                            explicitKey = heirKey
+                        )
+                    }
                     Spacer(Modifier.height(40.dp))
                     HorizontalDivider(modifier = Modifier.width(60.dp), thickness = 1.dp, color = accent.copy(alpha = 0.4f))
+                    Spacer(Modifier.height(40.dp))
                 }
             }
 
             if (decryptedIntro.isNotEmpty()) {
                 item {
-                    Text(text = decryptedIntro, style = TextStyle(fontFamily = fontFamily, fontSize = (18 * fontSizeScale).sp, lineHeight = (32 * fontSizeScale).sp, color = textColor, fontStyle = FontStyle.Italic), modifier = Modifier.padding(bottom = 60.dp))
+                    Text(
+                        text = decryptedIntro, 
+                        style = TextStyle(fontFamily = fontFamily, fontSize = (18 * fontSizeScale).sp, lineHeight = (32 * fontSizeScale).sp, color = textColor, fontStyle = FontStyle.Italic), 
+                        modifier = Modifier.padding(start = 28.dp, end = 28.dp, bottom = 60.dp)
+                    )
                 }
             }
 
             bookDraft?.chapters?.sortedBy { it.orderIndex }?.forEach { chapter ->
                 item {
-                    Column(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp)) {
                         Text(text = "Chapitre ${chapter.orderIndex + 1}", style = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = 11.sp, color = accent.copy(alpha = 0.7f), letterSpacing = 2.sp))
                         Spacer(Modifier.height(8.dp))
                         Text(text = chapter.title, style = TextStyle(fontFamily = fontFamily, fontSize = (26 * fontSizeScale).sp, fontWeight = FontWeight.Bold, color = textColor) )
@@ -490,6 +511,7 @@ fun ScrollModeView(
     }
 }
 
+@UnstableApi
 @Composable
 fun PagesModeView(
     padding: PaddingValues,
@@ -680,8 +702,8 @@ fun BookCoverView(
                 LoopingVideoBackground(
                     videoUrl = displayUrl!!,
                     modifier = Modifier.fillMaxSize().graphicsLayer(
-                        scaleX = scale,
-                        scaleY = scale,
+                        scaleX = scale * 0.8f,
+                        scaleY = scale * 0.8f,
                         translationX = offsetX,
                         translationY = offsetY
                     )
@@ -701,6 +723,8 @@ fun BookCoverView(
             }
         }
 
+        val effectiveTextColor = if (displayUrl != null) Color.White else textColor
+
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -712,7 +736,7 @@ fun BookCoverView(
                     fontFamily = fontFamily,
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
-                    color = textColor,
+                    color = effectiveTextColor,
                     shadow = if (displayUrl != null) androidx.compose.ui.graphics.Shadow(
                         color = Color.Black.copy(alpha = 0.5f),
                         offset = androidx.compose.ui.geometry.Offset(2f, 2f),
@@ -728,7 +752,7 @@ fun BookCoverView(
                     fontFamily = fontFamily,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Light,
-                    color = textColor.copy(alpha = 0.8f),
+                    color = effectiveTextColor.copy(alpha = 0.8f),
                     shadow = if (displayUrl != null) androidx.compose.ui.graphics.Shadow(
                         color = Color.Black.copy(alpha = 0.5f),
                         offset = androidx.compose.ui.geometry.Offset(1f, 1f),
