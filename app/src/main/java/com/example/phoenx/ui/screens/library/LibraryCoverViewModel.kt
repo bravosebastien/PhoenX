@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.phoenx.data.config.LibraryCompartmentsConfig
 import com.example.phoenx.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -24,8 +25,13 @@ class LibraryCoverViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
+    private val _targetCreatorId = MutableStateFlow<String?>(null)
+
     private val _covers = MutableStateFlow<Map<String, LibraryCover>>(emptyMap())
     val covers: StateFlow<Map<String, LibraryCover>> = _covers.asStateFlow()
+
+    private val _compartmentsConfig = MutableStateFlow(LibraryCompartmentsConfig())
+    val compartmentsConfig: StateFlow<LibraryCompartmentsConfig> = _compartmentsConfig.asStateFlow()
 
     private val _isUploading = MutableStateFlow(false)
     val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
@@ -40,14 +46,33 @@ class LibraryCoverViewModel @Inject constructor(
         loadCovers()
     }
 
+    fun setTargetCreator(creatorId: String?) {
+        val cleanId = creatorId?.takeIf { it.isNotBlank() && !it.startsWith("{") && it != "null" }
+        if (_targetCreatorId.value != cleanId) {
+            _targetCreatorId.value = cleanId
+            loadCovers()
+        }
+    }
+
     fun loadCovers() {
-        val userId = auth.currentUser?.uid ?: return
-        
         // Nettoyage des anciens écouteurs si appel répété
         clearRegistrations()
 
+        // 0. Écouteur pour la config globale des médias de compartiments (appConfig/libraryCompartments)
+        val configReg = db.collection("appConfig").document("libraryCompartments")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    android.util.Log.e("LibraryConfig", "Erreur chargement libraryCompartments: ${error.message}")
+                    return@addSnapshotListener
+                }
+                _compartmentsConfig.value = LibraryCompartmentsConfig.fromSnapshot(snapshot)
+            }
+        registrations.add(configReg)
+
+        val targetUserId = _targetCreatorId.value ?: auth.currentUser?.uid ?: return
+
         // 1. Écouteur pour la couverture du Livre (BIBLIOTHEQUE)
-        val bookReg = db.collection("users").document(userId)
+        val bookReg = db.collection("users").document(targetUserId)
             .collection("book").document("current_draft")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener
@@ -66,7 +91,7 @@ class LibraryCoverViewModel @Inject constructor(
         registrations.add(bookReg)
 
         // 2. Écouteur pour les autres compartiments
-        val collReg = db.collection("users").document(userId)
+        val collReg = db.collection("users").document(targetUserId)
             .collection("libraryCover")
             .addSnapshotListener { snapshot, error ->
                 if (error != null) return@addSnapshotListener

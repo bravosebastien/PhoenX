@@ -85,7 +85,8 @@ fun RankingDetailScreen(
         }
     }
 
-    LaunchedEffect(rankingId) {
+    LaunchedEffect(rankingId, targetCreatorId) {
+        viewModel.setTargetCreator(targetCreatorId)
         viewModel.setRankingId(rankingId)
     }
 

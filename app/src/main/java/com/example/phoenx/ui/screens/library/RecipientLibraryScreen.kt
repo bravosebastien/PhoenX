@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import androidx.compose.ui.res.stringResource
 import coil3.compose.AsyncImage
 import com.example.phoenx.R
+import com.example.phoenx.ui.components.CompartmentMediaIcon
 import com.example.phoenx.ui.components.OnboardingPopup
 import com.example.phoenx.ui.navigation.Screen
 import com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel
@@ -71,6 +72,7 @@ fun RecipientLibraryScreen(
 
     LaunchedEffect(targetCreatorId) {
         mediaViewModel.setTargetCreator(targetCreatorId)
+        viewModel.setTargetCreator(targetCreatorId)
     }
 
     // Filtrer pour ne compter que les souvenirs racines (v8.3.4)
@@ -82,6 +84,7 @@ fun RecipientLibraryScreen(
     val bookTitle by mediaViewModel.bookTitle.collectAsState()
     val totalSouvenirs = rootLibrary.size + rootVideo.size + rootDisco.size + rootArchive.size
     val ambiance by mediaViewModel.ambiance.collectAsState()
+    val compartmentsConfig by viewModel.compartmentsConfig.collectAsState()
 
     TransmissionTheme(
         backgroundId = ambiance.backgroundId,
@@ -143,7 +146,8 @@ fun RecipientLibraryScreen(
                 val route = if (isCreatorMode) "fil_pensee" else "fil_pensee?creatorId=$targetCreatorId"
                 navController.navigate(route) 
             },
-            theme = theme
+            theme = theme,
+            mediaUrl = compartmentsConfig.filPenseeUrl
         )
 
         CompactEssentialRow(
@@ -157,7 +161,8 @@ fun RecipientLibraryScreen(
                     navController.navigate("book_viewer_recipient?creatorId=$targetCreatorId")
                 }
             },
-            theme = theme
+            theme = theme,
+            mediaUrl = compartmentsConfig.livreMaVieUrl
         )
 
         Spacer(modifier = Modifier.height(64.dp))
@@ -182,35 +187,40 @@ fun RecipientLibraryScreen(
                 icon = Icons.Outlined.Movie,
                 onClick = { navController.navigate(Screen.RecipientVideotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) },
                 theme = theme,
-                modifier = itemModifier
+                modifier = itemModifier,
+                mediaUrl = compartmentsConfig.videothequeUrl
             )
             CompactGridItem(
                 label = stringResource(R.string.library_phototheque),
                 icon = Icons.Outlined.PhotoCamera,
                 onClick = { navController.navigate(Screen.RecipientPhotos.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) },
                 theme = theme,
-                modifier = itemModifier
+                modifier = itemModifier,
+                mediaUrl = compartmentsConfig.photothequeUrl
             )
             CompactGridItem(
                 label = stringResource(R.string.library_discotheque),
                 icon = Icons.Outlined.Album,
                 onClick = { navController.navigate(Screen.RecipientDiscotheque.createRoute(targetCreatorId ?: mediaViewModel.currentUid)) },
                 theme = theme,
-                modifier = itemModifier
+                modifier = itemModifier,
+                mediaUrl = compartmentsConfig.discothequeUrl
             )
             CompactGridItem(
                 label = stringResource(R.string.library_mappemonde),
                 icon = Icons.Outlined.Public,
                 onClick = { navController.navigate(Screen.Map.createRoute(targetCreatorId = targetCreatorId ?: mediaViewModel.currentUid)) },
                 theme = theme,
-                modifier = itemModifier
+                modifier = itemModifier,
+                mediaUrl = compartmentsConfig.mappemondeUrl
             )
             CompactGridItem(
                 label = stringResource(R.string.library_le_litteraire),
                 icon = Icons.Outlined.AutoStories,
                 onClick = { navController.navigate("literary_library?creatorId=${targetCreatorId ?: mediaViewModel.currentUid}") },
                 theme = theme,
-                modifier = itemModifier
+                modifier = itemModifier,
+                mediaUrl = compartmentsConfig.litteraireUrl
             )
             
             // Toggle Button
@@ -268,7 +278,7 @@ fun RecipientLibraryScreen(
                     CompactGridItem(stringResource(R.string.library_personalities), Icons.Outlined.Star, { 
                         val route = if (isCreatorMode) "personalities" else "personalities?creatorId=$targetCreatorId"
                         navController.navigate(route) 
-                    }, theme, itemModifier)
+                    }, theme, itemModifier, mediaUrl = compartmentsConfig.personalitiesUrl)
 
                     /* Haché v12.3 (Réversible)
                     CompactGridItem("Mon Quiz", Icons.Outlined.EmojiEvents, {
@@ -278,7 +288,7 @@ fun RecipientLibraryScreen(
 
                     CompactGridItem(stringResource(R.string.library_capsule_temporelle), Icons.Outlined.MailOutline, { 
                         navController.navigate("lettres") 
-                    }, theme, itemModifier)
+                    }, theme, itemModifier, mediaUrl = compartmentsConfig.capsuleTemporelleUrl)
                 }
 
                 FlowRow(
@@ -288,15 +298,15 @@ fun RecipientLibraryScreen(
                 ) {
                     CompactGridItem(stringResource(R.string.library_reconciliation), Icons.Outlined.Mail, { 
                         navController.navigate("reconciliation") 
-                    }, theme, itemModifier)
+                    }, theme, itemModifier, mediaUrl = compartmentsConfig.reconciliationUrl)
 
                     CompactGridItem(stringResource(R.string.library_miroir_deux), Icons.Outlined.Handshake, { 
                         navController.navigate("le_pacte") 
-                    }, theme, itemModifier)
+                    }, theme, itemModifier, mediaUrl = compartmentsConfig.miroirDeuxUrl)
 
                     CompactGridItem(stringResource(R.string.library_mes_classements), Icons.Outlined.FormatListNumbered, { 
                         navController.navigate(Screen.Rankings.createRoute(targetCreatorId))
-                    }, theme, itemModifier)
+                    }, theme, itemModifier, mediaUrl = compartmentsConfig.mesClassementsUrl)
                 }
 
                 FlowRow(
@@ -306,11 +316,11 @@ fun RecipientLibraryScreen(
                 ) {
                     CompactGridItem(stringResource(R.string.library_100_questions), Icons.Outlined.HelpOutline, { 
                         navController.navigate(Screen.Questions.createRoute(targetCreatorId))
-                    }, theme, itemModifier)
+                    }, theme, itemModifier, mediaUrl = compartmentsConfig.centQuestionsUrl)
 
                     CompactGridItem(stringResource(R.string.library_portraits), Icons.Outlined.AccountCircle, { 
                         navController.navigate("portrait_proche") 
-                    }, theme, itemModifier)
+                    }, theme, itemModifier, mediaUrl = compartmentsConfig.portraitProcheUrl)
                 }
 
                 FlowRow(
@@ -320,7 +330,7 @@ fun RecipientLibraryScreen(
                 ) {
                     CompactGridItem(stringResource(R.string.library_lettre_a_moi), Icons.Outlined.HistoryEdu, {
                         navController.navigate("youngselfletters") 
-                    }, theme, itemModifier)
+                    }, theme, itemModifier, mediaUrl = compartmentsConfig.lettreAMoiUrl)
                     
                     // Remplissage
                     repeat(2) { Spacer(modifier = itemModifier) }
@@ -339,7 +349,8 @@ fun CompactEssentialRow(
     info: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit,
-    theme: AppThemeState
+    theme: AppThemeState,
+    mediaUrl: String? = null
 ) {
     Column {
         Row(
@@ -349,16 +360,16 @@ fun CompactEssentialRow(
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
+            CompartmentMediaIcon(
+                mediaUrl = mediaUrl,
+                fallbackIcon = icon,
                 modifier = Modifier.size(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                color = theme.accentColor.copy(alpha = 0.1f),
-                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(icon, null, tint = theme.accentColor, modifier = Modifier.size(28.dp))
-                }
-            }
+                iconSize = 28.dp,
+                containerColor = theme.accentColor.copy(alpha = 0.1f),
+                iconTint = theme.accentColor,
+                borderColor = theme.contentColor.copy(alpha = 0.1f)
+            )
             Spacer(Modifier.width(20.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -397,7 +408,8 @@ fun CompactGridItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit,
     theme: AppThemeState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    mediaUrl: String? = null
 ) {
     Column(
         modifier = modifier
@@ -407,16 +419,16 @@ fun CompactGridItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Surface(
+        CompartmentMediaIcon(
+            mediaUrl = mediaUrl,
+            fallbackIcon = icon,
             modifier = Modifier.size(64.dp),
             shape = CircleShape,
-            color = theme.contentColor.copy(alpha = 0.04f),
-            border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(icon, null, tint = theme.accentColor, modifier = Modifier.size(32.dp))
-            }
-        }
+            iconSize = 32.dp,
+            containerColor = theme.contentColor.copy(alpha = 0.04f),
+            iconTint = theme.accentColor,
+            borderColor = theme.contentColor.copy(alpha = 0.1f)
+        )
         Spacer(modifier = Modifier.height(10.dp))
         Text(
             text = label,

@@ -60,6 +60,7 @@ fun RankingListScreen(
 
     LaunchedEffect(targetCreatorId) {
         viewModel.setTargetCreator(targetCreatorId)
+        coverViewModel.setTargetCreator(targetCreatorId)
     }
 
     val mediaManager = remember(context) {
