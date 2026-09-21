@@ -216,17 +216,30 @@ export const submitGuessResult = onCall(async (request) => {
     const entryData = entryDoc.data()!;
     const correctHash = entryData.enigmaAnswer;
     const fallbackAnswer = entryData.fallbackAnswer; // Chiffré Tink ? non, hashé SHA-256 dans OfflineEntry pour devinette
+    const answerType = entryData.answerType || "WORD";
 
-    // Recalcul du hash SHA-256 de la réponse reçue
+    // Recalcul du hash SHA-256 de la réponse reçue (aligné sur EnigmaUtils.kt)
     const crypto = require("crypto");
-    const normalized = (answer || "").trim().toLowerCase();
-    const hashedInput = crypto.createHash("sha256").update(normalized).digest("hex");
 
-    const isCorrect = (hashedInput === correctHash) || (hashedInput === fallbackAnswer);
+    // Normalisation alignée sur EnigmaUtils.normalizeAnswer("WORD")
+    const rawStr = (answer || "").trim().toLowerCase();
+    const withoutAccents = rawStr.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ");
+    const hashedInput = crypto.createHash("sha256").update(withoutAccents).digest("hex");
+
+    // Support de secours legacy (sans suppression d'accents)
+    const legacyHashedInput = crypto.createHash("sha256").update(rawStr).digest("hex");
+
+    const isCorrect = (hashedInput === correctHash) || (hashedInput === fallbackAnswer) ||
+                      (legacyHashedInput === correctHash) || (legacyHashedInput === fallbackAnswer);
 
     // 3. Déverrouillage permanent si correct (v12.7.7)
+    console.log(`[submitGuessResult] entryId=${entryId}, creatorId=${creatorId}, isCorrect=${isCorrect}, hashedInput=${hashedInput}, legacyHashedInput=${legacyHashedInput}, correctHash=${correctHash}`);
     if (isCorrect) {
+        console.log(`[submitGuessResult] Tentative d'écriture unlockedAt sur ${entryRef.path}...`);
         await entryRef.update({ unlockedAt: admin.firestore.FieldValue.serverTimestamp() });
+        console.log(`[submitGuessResult] Écriture unlockedAt RÉUSSIE sur ${entryRef.path}`);
+    } else {
+        console.log(`[submitGuessResult] N'A PAS écrit unlockedAt car isCorrect=false (hashedInput=${hashedInput} vs correctHash=${correctHash})`);
     }
 
     // 4. Récupérer le nom du destinataire pour le classement

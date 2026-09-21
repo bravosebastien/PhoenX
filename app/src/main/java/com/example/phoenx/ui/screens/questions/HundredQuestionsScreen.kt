@@ -34,12 +34,20 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.R
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.components.RecipientSelector
+import com.example.phoenx.ui.components.SecureAsyncImage
 import com.example.phoenx.ui.theme.*
 import androidx.compose.animation.AnimatedVisibility
 import com.example.phoenx.data.local.OfflineEntry
 import com.example.phoenx.data.local.RecipientEntity
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.coroutineScope
 
 @Composable
 private fun getCategoryDisplayName(category: String): String {
@@ -81,14 +89,17 @@ fun HundredQuestionsScreen(
     
     val isRecipientMode = creatorId != null && creatorId != com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
     
-    val answeredCount = if (isRecipientMode) uiState.lockedQuestions.count { q -> uiState.unlockedQuestionId == q.id || q.unlockedAt != null } else uiState.answeredQuestionIds.size
+    val answeredCount = if (isRecipientMode) uiState.lockedQuestions.count { q -> q.unlockedAt != null || uiState.unlockedQuestionIds.contains(q.id) } else uiState.answeredQuestionIds.size
     val totalCount = if (isRecipientMode) uiState.lockedQuestions.size else 120
 
     var showCreateDialog by remember { mutableStateOf(false) }
     var selectedEntry by remember { mutableStateOf<OfflineEntry?>(null) }
     var showGuessDialog by remember { mutableStateOf(false) }
+    var showUnlockedDialog by remember { mutableStateOf(false) }
+    var showCelebrationOverlay by remember { mutableStateOf(false) }
     var guessAnswer by remember { mutableStateOf("") }
     
+    val heirKey by viewModel.heirKey.collectAsState()
     val context = LocalContext.current
 
     LaunchedEffect(creatorId) {
@@ -212,30 +223,31 @@ fun HundredQuestionsScreen(
                 if (isRecipientMode) {
                     item {
                         Text(
-                            "Votre proche a préparé des énigmes pour vous. Trouvez les réponses pour débloquer ces moments partagés.",
+                            "Votre proche vous a préparé des questions personnelles. Devinez ses réponses pour mieux le connaître !",
                             style = MaterialTheme.typography.bodyMedium.copy(fontFamily = theme.fontFamily),
                             color = theme.contentColor.copy(alpha = 0.7f),
                             modifier = Modifier.padding(bottom = 8.dp)
                         )
                     }
                     items(uiState.lockedQuestions) { entry ->
-                        val isUnlocked = uiState.unlockedQuestionId == entry.id || entry.unlockedAt != null
+                        val isUnlocked = entry.unlockedAt != null || uiState.unlockedQuestionIds.contains(entry.id)
                         
                         LockedQuestionCard(
                             entry = entry,
                             isUnlocked = isUnlocked,
                             theme = theme,
                             onClick = {
+                                selectedEntry = entry
                                 if (isUnlocked) {
-                                    navController.navigate("recipient_memory_detail/${entry.id}/${creatorId}")
+                                    showUnlockedDialog = true
                                 } else {
-                                    selectedEntry = entry
                                     showGuessDialog = true
                                 }
                             }
                         )
                     }
-                } else if (uiState.selectedCategory == "Mes Questions") {
+                }
+else if (uiState.selectedCategory == "Mes Questions") {
                     if (uiState.customQuestions.isEmpty()) {
                         item {
                             Box(modifier = Modifier.fillMaxWidth().padding(top = 80.dp), contentAlignment = Alignment.Center) {
@@ -299,6 +311,15 @@ fun HundredQuestionsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(selectedEntry!!.enigmaQuestion ?: "", style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily), color = theme.contentColor)
                     
+                    // INDICATION DU NOMBRE DE MOTS ATTENDUS (v12.7.8)
+                    if (selectedEntry!!.expectedWordCount != null && selectedEntry!!.expectedWordCount!! > 0) {
+                        Text(
+                            text = "Réponse attendue en ${selectedEntry!!.expectedWordCount} mot(s)",
+                            style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
+                            color = accent
+                        )
+                    }
+
                     // AFFICHAGE DE L'INDICE
                     val attemptCount = uiState.attempts[selectedEntry!!.id] ?: 0
                     if (attemptCount >= 3 && !selectedEntry!!.enigmaHint.isNullOrBlank()) {
@@ -348,11 +369,167 @@ fun HundredQuestionsScreen(
         )
     }
 
-    LaunchedEffect(uiState.unlockedQuestionId) {
-        if (uiState.unlockedQuestionId != null) {
+    if (showUnlockedDialog && selectedEntry != null) {
+        AlertDialog(
+            onDismissRequest = { showUnlockedDialog = false; selectedEntry = null },
+            containerColor = theme.backgroundColor,
+            title = { 
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Success)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Énigme résolue", 
+                        color = theme.contentColor,
+                        fontFamily = theme.fontFamily,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // IMAGE SI EXISTANTE (v12.7.8)
+                    if (!selectedEntry!!.mediaUrl.isNullOrBlank() || !selectedEntry!!.localMediaPath.isNullOrBlank()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(theme.contentColor.copy(alpha = 0.05f))
+                        ) {
+                            SecureAsyncImage(
+                                mediaUrl = selectedEntry!!.mediaUrl,
+                                localPath = selectedEntry!!.localMediaPath,
+                                explicitKey = heirKey,
+                                mediaManager = viewModel.mediaManager,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                creatorId = creatorId ?: "",
+                                docType = "entries",
+                                docId = selectedEntry!!.id
+                            )
+                        }
+                    }
+
+                    // QUESTION
+                    Column {
+                        Text(
+                            text = "QUESTION",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = theme.contentColor.copy(alpha = 0.4f)
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = selectedEntry!!.enigmaQuestion ?: "",
+                            style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                            color = theme.contentColor
+                        )
+                    }
+
+                    // RÉPONSE EN CLAIR
+                    Column {
+                        Text(
+                            text = "RÉPONSE DÉVOILÉE",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = Success
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Surface(
+                            color = Success.copy(alpha = 0.08f),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = selectedEntry!!.enigmaAnswerPlain ?: "Réponse déverrouillée",
+                                modifier = Modifier.padding(16.dp),
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = theme.contentColor
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showUnlockedDialog = false; selectedEntry = null }) {
+                    Text("Fermer", color = accent, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
+
+    if (showCelebrationOverlay) {
+        val scaleAnim = remember { androidx.compose.animation.core.Animatable(0.2f) }
+        val alphaAnim = remember { androidx.compose.animation.core.Animatable(0f) }
+
+        LaunchedEffect(Unit) {
+            coroutineScope {
+                launch {
+                    scaleAnim.animateTo(
+                        targetValue = 1f,
+                        animationSpec = androidx.compose.animation.core.tween(
+                            durationMillis = 800,
+                            easing = androidx.compose.animation.core.FastOutSlowInEasing
+                        )
+                    )
+                }
+                launch {
+                    alphaAnim.animateTo(
+                        targetValue = 1f,
+                        animationSpec = androidx.compose.animation.core.tween(durationMillis = 600)
+                    )
+                }
+            }
+        }
+
+        Dialog(
+            onDismissRequest = { },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(theme.backgroundColor.copy(alpha = 0.95f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(160.dp)
+                            .graphicsLayer {
+                                scaleX = scaleAnim.value
+                                scaleY = scaleAnim.value
+                                alpha = alphaAnim.value
+                            }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Félicitations !",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = theme.fontFamily,
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = accent,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = alphaAnim.value
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(uiState.unlockedQuestionIds) {
+        if (uiState.unlockedQuestionIds.isNotEmpty() && selectedEntry != null && uiState.unlockedQuestionIds.contains(selectedEntry!!.id)) {
             showGuessDialog = false
             guessAnswer = ""
-            selectedEntry = null
+            showCelebrationOverlay = true
+            kotlinx.coroutines.delay(2000)
+            showCelebrationOverlay = false
+            showUnlockedDialog = true
         }
     }
 }

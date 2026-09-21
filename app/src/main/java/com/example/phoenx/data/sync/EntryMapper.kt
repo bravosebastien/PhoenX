@@ -39,6 +39,7 @@ private fun Any?.asLong(): Long? {
         is Long -> this
         is Number -> this.toLong()
         is String -> this.toLongOrNull()
+        is com.google.firebase.Timestamp -> this.seconds * 1000 + this.nanoseconds / 1000000
         else -> null
     }
 }

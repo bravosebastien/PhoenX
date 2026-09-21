@@ -34,7 +34,7 @@ data class HundredQuestionsUiState(
     // v12.7.7 : Champs pour le mode Destinataire
     val creatorName: String = "",
     val lockedQuestions: List<OfflineEntry> = emptyList(),
-    val unlockedQuestionId: String? = null,
+    val unlockedQuestionIds: Set<String> = emptySet(),
     val attempts: Map<String, Int> = emptyMap(),
     val error: String? = null
 )
@@ -288,7 +288,8 @@ class HundredQuestionsViewModel @Inject constructor(
         newAttempts[entry.id] = count
 
         if (isCorrect) {
-            _uiState.update { it.copy(unlockedQuestionId = entry.id, attempts = newAttempts, error = null) }
+            val newUnlocked = _uiState.value.unlockedQuestionIds + entry.id
+            _uiState.update { it.copy(unlockedQuestionIds = newUnlocked, attempts = newAttempts, error = null) }
             submitGuessResult(creatorId, entry.id, answer, count)
         } else {
             _uiState.update { it.copy(error = context.getString(R.string.detective_viewmodel_error_wrong_answer), attempts = newAttempts) }
@@ -298,14 +299,18 @@ class HundredQuestionsViewModel @Inject constructor(
     private fun submitGuessResult(creatorId: String, entryId: String, answer: String, attemptCount: Int) {
         viewModelScope.launch {
             try {
-                functions.getHttpsCallable("submitGuessResult")
+                val result = functions.getHttpsCallable("submitGuessResult")
                     .call(mapOf(
                         "creatorId" to creatorId,
                         "entryId" to entryId,
                         "answer" to answer,
                         "attemptCount" to attemptCount
                     )).await()
-            } catch (_: Exception) {}
+                android.util.Log.d("PHOENX_DEBUG", "submitGuessResult success: ${result.data}")
+            } catch (e: Exception) {
+                android.util.Log.e("PHOENX_DEBUG", "submitGuessResult error: ${e.message}", e)
+                _uiState.update { it.copy(error = "Erreur de synchro réseau : ${e.message}") }
+            }
         }
     }
 
