@@ -23,6 +23,7 @@ import com.example.phoenx.ui.theme.LocalAppTheme
 import com.example.phoenx.ui.theme.phoenXMatiere
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.components.SecureAsyncImage
 import coil3.compose.AsyncImage
 import java.io.File
@@ -49,7 +50,13 @@ fun QuestionAnswerScreen(
     }
     
     var answerText by remember { mutableStateOf("") }
+    var expectedWordCount by remember { mutableStateOf("1") }
     var photoFile by remember { mutableStateOf<File?>(null) }
+
+    val recipients by viewModel.recipients.collectAsState()
+    var visibility by remember { mutableStateOf("RESTRICTED") }
+    val selectedRecipientIds = remember { mutableStateListOf<String>() }
+
     val context = LocalContext.current
 
     LaunchedEffect(questionId) {
@@ -59,6 +66,10 @@ fun QuestionAnswerScreen(
     LaunchedEffect(uiState.currentAnswerText) {
         if (uiState.currentAnswerText != null) {
             answerText = uiState.currentAnswerText!!
+            visibility = uiState.currentVisibility
+            expectedWordCount = uiState.currentExpectedWordCount.toString()
+            selectedRecipientIds.clear()
+            selectedRecipientIds.addAll(uiState.currentRecipientIds.split(",").filter { it.isNotBlank() })
         }
     }
 
@@ -173,8 +184,6 @@ fun QuestionAnswerScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
-
                 OutlinedTextField(
                     value = answerText,
                     onValueChange = { answerText = it },
@@ -194,11 +203,59 @@ fun QuestionAnswerScreen(
                         unfocusedContainerColor = Color.Transparent
                     )
                 )
-                
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("Mots attendus :", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                    Spacer(Modifier.width(12.dp))
+                    OutlinedTextField(
+                        value = expectedWordCount,
+                        onValueChange = { if (it.length <= 2) expectedWordCount = it.filter { c -> c.isDigit() } },
+                        modifier = Modifier.width(60.dp),
+                        textStyle = androidx.compose.ui.text.TextStyle(fontSize = 14.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f)
+                        )
+                    )
+                }
+                Text(
+                    "Rester simple facilite la tâche de votre proche.",
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontStyle = FontStyle.Italic),
+                    color = theme.contentColor.copy(alpha = 0.4f)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text("PARTAGÉ AVEC", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                Spacer(modifier = Modifier.height(12.dp))
+                RecipientSelector(
+                    recipients = recipients,
+                    selectedIds = selectedRecipientIds,
+                    onToggleRecipient = { id ->
+                        if (selectedRecipientIds.contains(id)) selectedRecipientIds.remove(id)
+                        else selectedRecipientIds.add(id)
+                    },
+                    visibility = visibility,
+                    onVisibilityChange = { visibility = it },
+                    accent = accent
+                )
+
                 Spacer(modifier = Modifier.height(40.dp))
                 
                 Button(
-                    onClick = { viewModel.saveAnswer(question, answerText, photoFile) },
+                    onClick = { 
+                        viewModel.saveAnswer(
+                            questionObj = question, 
+                            answer = answerText, 
+                            visibility = visibility,
+                            recipientIds = selectedRecipientIds.joinToString(","),
+                            expectedWordCount = expectedWordCount.toIntOrNull() ?: 1,
+                            photoFile = photoFile
+                        ) 
+                    },
                     enabled = (answerText.isNotBlank() || photoFile != null || uiState.currentMediaUrl != null) && !uiState.isSaving,
                     modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                     colors = ButtonDefaults.buttonColors(containerColor = accent)

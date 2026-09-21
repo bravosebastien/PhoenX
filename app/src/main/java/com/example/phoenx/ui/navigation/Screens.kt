@@ -96,7 +96,10 @@ sealed class Screen(val route: String) {
         }
     }
     object Favorites : Screen("favorites")
-    object Questions : Screen("questions")
+    object Questions : Screen("questions?creatorId={creatorId}") {
+        fun createRoute(creatorId: String? = null) = 
+            if (creatorId != null) "questions?creatorId=$creatorId" else "questions"
+    }
     object QuestionAnswer : Screen("questions/answer/{questionId}") {
         fun createRoute(questionId: String) = "questions/answer/$questionId"
     }
@@ -104,7 +107,6 @@ sealed class Screen(val route: String) {
         fun createRoute(creatorId: String? = null) = if (creatorId != null) "questions/leaderboard?creatorId=$creatorId" else "questions/leaderboard"
     }
     object PendingQuestions : Screen("questions/pending")
-    object DetectiveHome : Screen("detective/home")
     object MemoryDetail : Screen("memory_detail/{entryId}?creatorId={creatorId}&triggerAction={triggerAction}") {
         fun createRoute(entryId: String, creatorId: String? = null, triggerAction: String? = null): String {
             var route = "memory_detail/$entryId"
@@ -326,10 +328,6 @@ sealed class Screen(val route: String) {
     }
     object RecipientFavorites : Screen("recipient/favorites/{creatorId}") {
         fun createRoute(creatorId: String) = "recipient/favorites/$creatorId"
-    }
-    object RecipientDetective : Screen("recipient/detective?creatorId={creatorId}") {
-        fun createRoute(creatorId: String? = null) = 
-            if (creatorId != null) "recipient/detective?creatorId=$creatorId" else "recipient/detective"
     }
     object RecipientMessage : Screen("recipient/message/{id}") {
         fun createRoute(id: String) = "recipient/message/$id"

@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.R
 import coil3.compose.AsyncImage
+import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.components.InfoButton
 import com.example.phoenx.ui.theme.*
 import java.io.File
@@ -79,6 +80,11 @@ fun QuestionsScreen(
     val totalCount = QuestionsData.allQuestions.size
 
     var capturedPhotoFile by remember { mutableStateOf<File?>(null) }
+    
+    val recipients by viewModel.recipients.collectAsState()
+    var visibility by remember { mutableStateOf("RESTRICTED") }
+    val selectedRecipientIds = remember { mutableStateListOf<String>() }
+
     val context = LocalContext.current
     val photoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
@@ -236,7 +242,7 @@ fun QuestionsScreen(
                     OutlinedTextField(
                         value = answerText,
                         onValueChange = { answerText = it },
-                        modifier = Modifier.fillMaxWidth().weight(1f),
+                        modifier = Modifier.fillMaxWidth().heightIn(min = 120.dp),
                         placeholder = { Text(stringResource(R.string.questions_answer_placeholder), color = theme.contentColor.copy(alpha = 0.3f), style = MaterialTheme.typography.bodyLarge.copy(fontStyle = FontStyle.Italic)) },
                         textStyle = MaterialTheme.typography.bodyLarge.copy(color = theme.contentColor),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -246,11 +252,35 @@ fun QuestionsScreen(
                             unfocusedContainerColor = Color.Transparent
                         )
                     )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Text("PARTAGÉ AVEC", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                    Spacer(modifier = Modifier.height(12.dp))
+                    RecipientSelector(
+                        recipients = recipients,
+                        selectedIds = selectedRecipientIds,
+                        onToggleRecipient = { id ->
+                            if (selectedRecipientIds.contains(id)) selectedRecipientIds.remove(id)
+                            else selectedRecipientIds.add(id)
+                        },
+                        visibility = visibility,
+                        onVisibilityChange = { visibility = it },
+                        accent = accent
+                    )
                     
                     Spacer(modifier = Modifier.height(32.dp))
                     
                     Button(
-                        onClick = { viewModel.saveAnswer(selectedQuestion!!, answerText, capturedPhotoFile) },
+                        onClick = { 
+                            viewModel.saveAnswer(
+                                questionObj = selectedQuestion!!, 
+                                answer = answerText, 
+                                visibility = visibility,
+                                recipientIds = selectedRecipientIds.joinToString(","),
+                                photoFile = capturedPhotoFile
+                            ) 
+                        },
                         enabled = (answerText.isNotBlank() || capturedPhotoFile != null) && !uiState.isSaving,
                         modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                         colors = ButtonDefaults.buttonColors(containerColor = accent)

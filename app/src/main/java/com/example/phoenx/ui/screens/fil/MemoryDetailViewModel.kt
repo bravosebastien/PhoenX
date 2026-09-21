@@ -21,7 +21,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import java.io.FileOutputStream
@@ -98,6 +97,13 @@ class MemoryDetailViewModel @Inject constructor(
     private val _protocolStatus = MutableStateFlow(ProtocolStatus.VERIFYING)
     val protocolStatus: StateFlow<ProtocolStatus> = _protocolStatus.asStateFlow()
 
+    // v12.7.7 : Gestion des tentatives de déverrouillage (Logic moved from DetectiveViewModel)
+    private val _attempts = MutableStateFlow(0)
+    val attempts: StateFlow<Int> = _attempts.asStateFlow()
+
+    private val _isGuessCorrect = MutableStateFlow(false)
+    val isGuessCorrect: StateFlow<Boolean> = _isGuessCorrect.asStateFlow()
+
     val hasSeenIncludeInBookNudge: StateFlow<Boolean> = preferenceManager.hasSeenIncludeInBookNudge
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
@@ -138,6 +144,8 @@ class MemoryDetailViewModel @Inject constructor(
             offlineEntryDao.getEntryById(id)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    private val _firestoreComplements = MutableStateFlow<List<OfflineEntry>>(emptyList()) // v9.4.27
 
     /**
      * Source de vérité unique pour les destinataires sélectionnés (remappés en DocIDs pour l'UI)
@@ -189,8 +197,6 @@ class MemoryDetailViewModel @Inject constructor(
 
         (allSimplified + me).filter { ids.contains(it.id) }.distinctBy { it.id }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-
-    private val _firestoreComplements = MutableStateFlow<List<OfflineEntry>>(emptyList()) // v9.4.27
 
     /**
      * CORRECTIF (reactivite) : flatMapLatest reste a l'ecoute en continu de la base de donnees
@@ -334,6 +340,8 @@ class MemoryDetailViewModel @Inject constructor(
 
         _entryId.value = id
         _targetCreatorId.value = cleanCreatorId
+        _attempts.value = 0
+        _isGuessCorrect.value = false
 
         if (cleanCreatorId != null && cleanCreatorId != auth.currentUser?.uid) {
             viewModelScope.launch {
@@ -680,6 +688,49 @@ class MemoryDetailViewModel @Inject constructor(
             } catch (e: Exception) {
                 android.util.Log.e("MemoryDetailVM", "Erreur ajout lien", e)
                 _error.value = context.getString(R.string.memory_detail_error_add_media)
+            }
+        }
+    }
+
+    /**
+     * v12.7.7 : Tenter de déverrouiller un souvenir scellé par une énigme.
+     */
+    fun attemptUnlock(answer: String) {
+        val currentEntry = entry.value ?: return
+        val targetCreatorId = _targetCreatorId.value
+        
+        val hashedInput = com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(answer, currentEntry.answerType)
+        val isCorrect = currentEntry.enigmaAnswer == hashedInput || currentEntry.fallbackAnswer == hashedInput
+        
+        val newCount = _attempts.value + 1
+        _attempts.value = newCount
+
+        if (isCorrect) {
+            _isGuessCorrect.value = true
+            // Si c'est un déverrouillage distant, on notifie le serveur (v12.3)
+            if (targetCreatorId != null && targetCreatorId != auth.currentUser?.uid) {
+                submitGuessResult(targetCreatorId, currentEntry.id, answer, newCount)
+            }
+            
+            // On force le statut à ACTIVATED localement pour l'affichage immédiat
+            _protocolStatus.value = ProtocolStatus.ACTIVATED
+        } else {
+            _error.value = context.getString(R.string.detective_viewmodel_error_wrong_answer)
+        }
+    }
+
+    private fun submitGuessResult(creatorId: String, entryId: String, answer: String, attemptCount: Int) {
+        viewModelScope.launch {
+            try {
+                functions.getHttpsCallable("submitGuessResult")
+                    .call(mapOf(
+                        "creatorId" to creatorId,
+                        "entryId" to entryId,
+                        "answer" to answer,
+                        "attemptCount" to attemptCount
+                    )).await()
+            } catch (e: Exception) {
+                android.util.Log.e("MemoryDetailVM", "Erreur lors de l'envoi du résultat", e)
             }
         }
     }

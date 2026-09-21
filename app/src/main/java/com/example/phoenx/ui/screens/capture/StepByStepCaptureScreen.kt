@@ -692,7 +692,6 @@ fun StepEnigma(
             onQuestionChange = onQuestionChange,
             answer = answer,
             onAnswerChange = onAnswerChange,
-            hasExistingAnswer = false, // Toujours false en création
             hint = hint,
             onHintChange = onHintChange,
             autoUnlockDays = autoUnlockDays,

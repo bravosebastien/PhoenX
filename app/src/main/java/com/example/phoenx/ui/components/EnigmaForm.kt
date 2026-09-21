@@ -16,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
@@ -35,7 +34,6 @@ fun EnigmaForm(
     onQuestionChange: (String) -> Unit,
     answer: String,
     onAnswerChange: (String) -> Unit,
-    hasExistingAnswer: Boolean = false,
     hint: String,
     onHintChange: (String) -> Unit,
     autoUnlockDays: Int?,
@@ -143,19 +141,18 @@ fun EnigmaForm(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // RÉPONSE
-                        Text("LA RÉPONSE (invisible après saisie)", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                        Text("LA RÉPONSE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = answer,
                             onValueChange = onAnswerChange,
                             placeholder = { 
                                 Text(
-                                    if (hasExistingAnswer) "Une réponse est déjà définie (laisser vide pour conserver)" else "Choisir la réponse attendue",
+                                    "Choisir la réponse attendue",
                                     color = theme.contentColor.copy(alpha = 0.3f),
                                     fontSize = 12.sp
                                 ) 
                             },
-                            visualTransformation = PasswordVisualTransformation(),
                             modifier = Modifier.fillMaxWidth(),
                             enabled = !isReadOnly,
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f))

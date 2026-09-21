@@ -144,9 +144,9 @@ class FilViewModel @Inject constructor(
 
                 // 1. Filtrage par CRÉATEUR et ACCÈS
                 val rootEntries = if (!isHeirMode) {
-                    // Mon propre fil : Uniquement mes propres souvenirs Room (Parents)
+                    // Mon propre fil : Uniquement mes propres souvenirs Room (Parents), hors questions
                     // v8.9.9 : Correction filtrage parentEntryId strict (null vs "")
-                    offlineEntries.filter { it.parentEntryId.isNullOrBlank() }
+                    offlineEntries.filter { it.parentEntryId.isNullOrBlank() && it.entryType != "QUESTION_ANSWER" && !it.isGuessQuestion }
                 } else {
                     // Fil d'un proche : Filtrage accès héritier
                     offlineEntries.filter { entry ->

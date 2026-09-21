@@ -20,6 +20,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -79,6 +80,25 @@ fun RecipientMemoryDetailScreen(
     }
 
     var showFullStory by remember { mutableStateOf(false) }
+    var showGuessDialog by remember { mutableStateOf(false) }
+    var answer by remember { mutableStateOf("") }
+    
+    val attempts by viewModel.attempts.collectAsState()
+    val isGuessCorrect by viewModel.isGuessCorrect.collectAsState()
+    val error by viewModel.error.collectAsState()
+
+    // v12.7.6 : Vérification de l'état de l'énigme
+    val isEnigmaLocked = remember(entry, isGuessCorrect) {
+        if (isGuessCorrect) return@remember false
+        val e = entry ?: return@remember false
+        if (e.enigmaQuestion == null) return@remember false
+        
+        val autoDays = e.enigmaAutoUnlockDays ?: 0
+        val daysSinceCreation = ((System.currentTimeMillis() - e.createdAt) / (1000 * 60 * 60 * 24)).toInt()
+        val isAutoUnlocked = !e.isUltimateSecret && e.enigmaAutoUnlockDays != null && daysSinceCreation >= autoDays
+        
+        e.unlockedAt == null && !isAutoUnlocked
+    }
 
     Scaffold(
         containerColor = theme.backgroundColor,
@@ -166,8 +186,52 @@ fun RecipientMemoryDetailScreen(
                     }
                 }
 
-                // IMAGE PRINCIPALE (v12.3)
-                if (entry!!.mediaUrl != null) {
+                if (isEnigmaLocked) {
+                    // ÉTAT VÉROUILLÉ (v12.7.6)
+                    Surface(
+                        color = theme.contentColor.copy(alpha = 0.05f),
+                        shape = RoundedCornerShape(24.dp),
+                        border = BorderStroke(1.dp, accent.copy(alpha = 0.3f)),
+                        modifier = Modifier.fillMaxWidth().padding(top = 16.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Lock, 
+                                null, 
+                                modifier = Modifier.size(48.dp), 
+                                tint = accent
+                            )
+                            Spacer(Modifier.height(24.dp))
+                            Text(
+                                text = "Ce souvenir est protégé par une énigme",
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                color = theme.contentColor,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                text = "Vous devez deviner la réponse pour débloquer ce contenu.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = theme.contentColor.copy(alpha = 0.6f),
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(Modifier.height(32.dp))
+                            Button(
+                                onClick = { showGuessDialog = true },
+                                colors = ButtonDefaults.buttonColors(containerColor = accent),
+                                modifier = Modifier.phoenXMatiere()
+                            ) {
+                                Text("Tenter ma chance", color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                } else {
+                    // IMAGE PRINCIPALE (v12.3)
+                    if (entry!!.mediaUrl != null) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -285,8 +349,119 @@ fun RecipientMemoryDetailScreen(
                     }
                 }
 
+                }
+
                 Spacer(modifier = Modifier.height(60.dp))
             }
+        }
+    }
+
+    if (showGuessDialog && entry != null) {
+        AlertDialog(
+            onDismissRequest = { showGuessDialog = false; answer = ""; viewModel.clearError() },
+            containerColor = theme.backgroundColor,
+            title = { 
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = if (entry!!.isUltimateSecret) Icons.Default.Verified else Icons.Default.Fingerprint, 
+                        null, 
+                        tint = accent
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = if (entry!!.isUltimateSecret) stringResource(R.string.detective_ultimate_secret) else stringResource(R.string.detective_personal_enigma), 
+                        color = theme.contentColor,
+                        fontFamily = theme.fontFamily,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    if (entry!!.isUltimateSecret) {
+                        Text(
+                            stringResource(R.string.detective_ultimate_secret_desc),
+                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+                            color = accent
+                        )
+                    }
+
+                    // PHOTO ÉVENTUELLE (v12.3) - Affichage en grand pour servir de support à la devinette
+                    if (entry!!.mediaUrl != null) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(250.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(theme.contentColor.copy(alpha = 0.05f))
+                        ) {
+                            SecureAsyncImage(
+                                mediaUrl = entry!!.mediaUrl,
+                                mediaManager = mediaManager,
+                                isEncrypted = false,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Fit,
+                                creatorId = creatorId,
+                                docType = "entries",
+                                docId = entry!!.id
+                            )
+                        }
+                    }
+
+                    Text(entry!!.enigmaQuestion ?: "", style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily), color = theme.contentColor)
+                    
+                    // AFFICHAGE DE L'INDICE
+                    if (attempts >= 3 && !entry!!.enigmaHint.isNullOrBlank()) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
+                            border = BorderStroke(1.dp, accent.copy(alpha = 0.2f)),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.HelpOutline, null, tint = accent, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.detective_hint_label, entry!!.enigmaHint ?: ""),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = theme.contentColor
+                                )
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = answer,
+                        onValueChange = { answer = it },
+                        label = { Text(stringResource(R.string.detective_answer_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = error != null,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
+                        )
+                    )
+                    if (error != null) {
+                        Text(error!!, color = Color.Red, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.attemptUnlock(answer) },
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
+                ) {
+                    Text(stringResource(R.string.detective_verify_button), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
+
+    LaunchedEffect(isGuessCorrect) {
+        if (isGuessCorrect) {
+            showGuessDialog = false
+            answer = ""
         }
     }
 }

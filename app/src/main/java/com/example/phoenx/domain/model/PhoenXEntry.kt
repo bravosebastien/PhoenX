@@ -50,7 +50,8 @@ data class PhoenXEntry(
     val sourceDocType: String = "entries",
     val personId: String? = null, // v9.6.6 : Pour résolution personMedia
     val isEncrypted: Boolean = true, // v9.6.6
-    val includedInBook: Boolean = true // v9.6.7
+    val includedInBook: Boolean = true, // v9.6.7
+    val isGuessQuestion: Boolean = false // v12.7.8
 )
 
 data class PhoenXAmendment(

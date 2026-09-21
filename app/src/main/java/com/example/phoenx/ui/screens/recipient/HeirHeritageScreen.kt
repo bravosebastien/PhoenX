@@ -287,12 +287,11 @@ fun HeirHeritageScreen(
                         // Grille de vignettes rondes (3 colonnes)
                         data class CasketItem(val label: String, val icon: ImageVector, val onClick: () -> Unit)
                         val casketItems = listOf(
-                            CasketItem(stringResource(R.string.heir_heritage_special_vault_title), Icons.Outlined.Lock) { navController.navigate(Screen.RecipientDetective.createRoute(creatorId)) },
                             CasketItem(stringResource(R.string.heir_heritage_special_personalities_title), Icons.Default.Star) { navController.navigate(Screen.Personalities.createRoute(creatorId)) },
                             CasketItem(stringResource(R.string.heir_heritage_special_photos_title), Icons.Default.PhotoLibrary) { navController.navigate(Screen.RecipientPhotos.createRoute(creatorId)) },
                             CasketItem(stringResource(R.string.heir_heritage_special_videos_title), Icons.Default.Videocam) { navController.navigate(Screen.RecipientVideotheque.createRoute(creatorId)) },
                             CasketItem(stringResource(R.string.heir_heritage_special_audios_title), Icons.Default.MusicNote) { navController.navigate(Screen.RecipientDiscotheque.createRoute(creatorId)) },
-                            CasketItem(stringResource(R.string.questions_title), Icons.Default.QuestionAnswer) { navController.navigate(Screen.HundredQuestionsLeaderboard.createRoute(creatorId)) },
+                            CasketItem(stringResource(R.string.questions_title), Icons.Default.QuestionAnswer) { navController.navigate(Screen.Questions.createRoute(creatorId)) },
                             CasketItem(stringResource(R.string.library_mes_classements), Icons.Default.FormatListNumbered) { navController.navigate(Screen.Rankings.createRoute(creatorId)) },
                             CasketItem(stringResource(R.string.library_capsule_temporelle), Icons.Default.MailOutline) { navController.navigate("lettres") }
                         )

@@ -224,7 +224,12 @@ export const submitGuessResult = onCall(async (request) => {
 
     const isCorrect = (hashedInput === correctHash) || (hashedInput === fallbackAnswer);
 
-    // 3. Récupérer le nom du destinataire pour le classement
+    // 3. Déverrouillage permanent si correct (v12.7.7)
+    if (isCorrect) {
+        await entryRef.update({ unlockedAt: admin.firestore.FieldValue.serverTimestamp() });
+    }
+
+    // 4. Récupérer le nom du destinataire pour le classement
     const recipientDoc = await db.collection("users").doc(creatorId).collection("recipients")
         .where("linkedUid", "==", recipientUid).limit(1).get();
 

@@ -10,7 +10,6 @@ import androidx.navigation.navDeepLink
 import com.example.phoenx.ui.MainViewModel
 import com.example.phoenx.ui.screens.book.BookReaderFlowScreen
 import com.example.phoenx.ui.screens.depositary.*
-import com.example.phoenx.ui.screens.detective.DetectivePlayerScreen
 import com.example.phoenx.ui.screens.fil.MemoryDetailScreen
 import com.example.phoenx.ui.screens.genealogy.GenealogyTreeScreen
 import com.example.phoenx.ui.screens.library.RecipientLibraryScreen
@@ -44,20 +43,6 @@ fun NavGraphBuilder.recipientGraph(
 ) {
     composable(Screen.RecipientMailbox.route) {
         com.example.phoenx.ui.screens.mailbox.MailboxScreen(onNavigateBack = { navController.popBackStack() })
-    }
-
-    composable(
-        route = Screen.RecipientDetective.route,
-        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
-        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
-        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
-        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
-    ) { backStackEntry ->
-        val creatorId = backStackEntry.arguments?.getString("creatorId")
-        DetectivePlayerScreen(
-            creatorId = creatorId,
-            onNavigateBack = { navController.popBackStack() }
-        )
     }
 
     composable(

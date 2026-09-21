@@ -1,5 +1,6 @@
 package com.example.phoenx.ui.screens.questions
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.FlowRow
@@ -33,17 +34,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.phoenx.R
-import coil3.compose.AsyncImage
 import com.example.phoenx.ui.components.InfoButton
+import com.example.phoenx.ui.components.RecipientSelector
 import com.example.phoenx.ui.theme.*
-import java.io.File
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import com.example.phoenx.data.local.OfflineEntry
-import com.example.phoenx.ui.components.SecureAsyncImage
-import dagger.hilt.android.EntryPointAccessors
-import com.example.phoenx.data.media.MediaManager
+import com.example.phoenx.data.local.RecipientEntity
 
 @Composable
 private fun getCategoryDisplayName(category: String): String {
@@ -72,26 +68,34 @@ private fun getCategoryDisplayName(category: String): String {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun HundredQuestionsScreen(
+    creatorId: String? = null,
     onNavigateBack: () -> Unit,
     onAnswerQuestion: (String, String) -> Unit,
     onNavigateToLeaderboard: () -> Unit,
+    navController: androidx.navigation.NavController,
     viewModel: HundredQuestionsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
-    val answeredCount = uiState.answeredQuestionIds.size
-    val totalCount = 120
+    
+    val isRecipientMode = creatorId != null && creatorId != com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+    
+    val answeredCount = if (isRecipientMode) uiState.lockedQuestions.count { q -> uiState.unlockedQuestionId == q.id || q.unlockedAt != null } else uiState.answeredQuestionIds.size
+    val totalCount = if (isRecipientMode) uiState.lockedQuestions.size else 120
 
     var showCreateDialog by remember { mutableStateOf(false) }
     var selectedEntry by remember { mutableStateOf<OfflineEntry?>(null) }
+    var showGuessDialog by remember { mutableStateOf(false) }
+    var guessAnswer by remember { mutableStateOf("") }
     
     val context = LocalContext.current
-    val mediaManager = remember(context) {
-        EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            MediaManager.MediaManagerEntryPoint::class.java
-        ).mediaManager()
+
+    LaunchedEffect(creatorId) {
+        android.util.Log.e("PHOENX_DEBUG", "HundredQuestionsScreen : creatorId=$creatorId, isRecipientMode=$isRecipientMode, currentUid=${com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid}")
+        if (isRecipientMode) {
+            viewModel.loadRecipientData(creatorId!!)
+        }
     }
 
     Scaffold(
@@ -106,26 +110,32 @@ fun HundredQuestionsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text(stringResource(R.string.questions_title), style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor)
                                 Text(
-                                    text = if (answeredCount == totalCount) 
+                                    text = if (isRecipientMode) "Les 100 Questions" else stringResource(R.string.questions_title), 
+                                    style = MaterialTheme.typography.headlineSmall.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), 
+                                    color = theme.contentColor
+                                )
+                                Text(
+                                    text = if (isRecipientMode) "Résolvez les énigmes de ${uiState.creatorName}" else if (answeredCount == totalCount) 
                                         stringResource(R.string.questions_progress_all_answered) 
                                     else 
                                         stringResource(R.string.questions_progress_count, answeredCount, totalCount),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = if (answeredCount == totalCount) Success else theme.contentColor.copy(alpha = 0.5f)
+                                    color = if (answeredCount == totalCount && !isRecipientMode) Success else theme.contentColor.copy(alpha = 0.5f)
                                 )
                             }
-                            InfoButton(
-                                title = stringResource(R.string.questions_info_title),
-                                points = listOf(
-                                    stringResource(R.string.questions_info_p1),
-                                    stringResource(R.string.questions_info_p2),
-                                    stringResource(R.string.questions_info_p3),
-                                    stringResource(R.string.questions_info_p4),
-                                    stringResource(R.string.questions_info_p5)
+                            if (!isRecipientMode) {
+                                InfoButton(
+                                    title = stringResource(R.string.questions_info_title),
+                                    points = listOf(
+                                        stringResource(R.string.questions_info_p1),
+                                        stringResource(R.string.questions_info_p2),
+                                        stringResource(R.string.questions_info_p3),
+                                        stringResource(R.string.questions_info_p4),
+                                        stringResource(R.string.questions_info_p5)
+                                    )
                                 )
-                            )
+                            }
                         }
                     },
                     navigationIcon = {
@@ -134,7 +144,7 @@ fun HundredQuestionsScreen(
                         }
                     },
                     actions = {
-                        if (uiState.selectedCategory == "Mes Questions") {
+                        if (isRecipientMode || uiState.selectedCategory == "Mes Questions") {
                             IconButton(onClick = onNavigateToLeaderboard) {
                                 Icon(Icons.Default.Leaderboard, null, tint = accent)
                             }
@@ -143,37 +153,39 @@ fun HundredQuestionsScreen(
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = theme.backgroundColor)
                 )
                 
-                ScrollableTabRow(
-                    selectedTabIndex = QuestionsData.categories.indexOf(uiState.selectedCategory),
-                    containerColor = theme.backgroundColor,
-                    contentColor = accent,
-                    edgePadding = 16.dp,
-                    indicator = { tabPositions ->
-                        TabRowDefaults.SecondaryIndicator(
-                            Modifier.tabIndicatorOffset(tabPositions[QuestionsData.categories.indexOf(uiState.selectedCategory)]),
-                            color = accent
-                        )
-                    },
-                    divider = {}
-                ) {
-                    QuestionsData.categories.forEach { category ->
-                        Tab(
-                            selected = uiState.selectedCategory == category,
-                            onClick = { viewModel.filterQuestions(category) },
-                            text = {
-                                Text(
-                                    text = getCategoryDisplayName(category),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = if (uiState.selectedCategory == category) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
-                                )
-                            }
-                        )
+                if (!isRecipientMode) {
+                    ScrollableTabRow(
+                        selectedTabIndex = QuestionsData.categories.indexOf(uiState.selectedCategory),
+                        containerColor = theme.backgroundColor,
+                        contentColor = accent,
+                        edgePadding = 16.dp,
+                        indicator = { tabPositions ->
+                            TabRowDefaults.SecondaryIndicator(
+                                Modifier.tabIndicatorOffset(tabPositions[QuestionsData.categories.indexOf(uiState.selectedCategory)]),
+                                color = accent
+                            )
+                        },
+                        divider = {}
+                    ) {
+                        QuestionsData.categories.forEach { category ->
+                            Tab(
+                                selected = uiState.selectedCategory == category,
+                                onClick = { viewModel.filterQuestions(category) },
+                                text = {
+                                    Text(
+                                        text = getCategoryDisplayName(category),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = if (uiState.selectedCategory == category) theme.contentColor else theme.contentColor.copy(alpha = 0.4f)
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
         },
         floatingActionButton = {
-            if (uiState.selectedCategory == "Mes Questions") {
+            if (!isRecipientMode && uiState.selectedCategory == "Mes Questions") {
                 FloatingActionButton(
                     onClick = { showCreateDialog = true },
                     containerColor = accent,
@@ -194,10 +206,36 @@ fun HundredQuestionsScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding),
-                contentPadding = PaddingValues(bottom = 100.dp),
+                contentPadding = PaddingValues(bottom = 100.dp, top = 24.dp, start = 24.dp, end = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (uiState.selectedCategory == "Mes Questions") {
+                if (isRecipientMode) {
+                    item {
+                        Text(
+                            "Votre proche a préparé des énigmes pour vous. Trouvez les réponses pour débloquer ces moments partagés.",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = theme.fontFamily),
+                            color = theme.contentColor.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+                    items(uiState.lockedQuestions) { entry ->
+                        val isUnlocked = uiState.unlockedQuestionId == entry.id || entry.unlockedAt != null
+                        
+                        LockedQuestionCard(
+                            entry = entry,
+                            isUnlocked = isUnlocked,
+                            theme = theme,
+                            onClick = {
+                                if (isUnlocked) {
+                                    navController.navigate("recipient_memory_detail/${entry.id}/${creatorId}")
+                                } else {
+                                    selectedEntry = entry
+                                    showGuessDialog = true
+                                }
+                            }
+                        )
+                    }
+                } else if (uiState.selectedCategory == "Mes Questions") {
                     if (uiState.customQuestions.isEmpty()) {
                         item {
                             Box(modifier = Modifier.fillMaxWidth().padding(top = 80.dp), contentAlignment = Alignment.Center) {
@@ -232,13 +270,134 @@ fun HundredQuestionsScreen(
         CustomQuestionDialog(
             entry = selectedEntry,
             onDismiss = { showCreateDialog = false; selectedEntry = null },
-            onSave = { q, h, a, s, r, p, type, wc ->
-                viewModel.saveCustomQuestion(selectedEntry?.id, q, h, a, s, r, p, type, wc)
+            onSave = { q, h, a, vis, rids, type, wc ->
+                viewModel.saveCustomQuestion(selectedEntry?.id, q, h, a, vis, rids, type, wc)
                 showCreateDialog = false
                 selectedEntry = null
             },
             theme = theme
         )
+    }
+
+    if (showGuessDialog && selectedEntry != null) {
+        AlertDialog(
+            onDismissRequest = { showGuessDialog = false; guessAnswer = ""; viewModel.clearError() },
+            containerColor = theme.backgroundColor,
+            title = { 
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(imageVector = Icons.Default.Fingerprint, null, tint = accent)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Énigme personnelle", 
+                        color = theme.contentColor,
+                        fontFamily = theme.fontFamily,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    Text(selectedEntry!!.enigmaQuestion ?: "", style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily), color = theme.contentColor)
+                    
+                    // AFFICHAGE DE L'INDICE
+                    val attemptCount = uiState.attempts[selectedEntry!!.id] ?: 0
+                    if (attemptCount >= 3 && !selectedEntry!!.enigmaHint.isNullOrBlank()) {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
+                            border = BorderStroke(1.dp, accent.copy(alpha = 0.2f)),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.HelpOutline, null, tint = accent, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.detective_hint_label, selectedEntry!!.enigmaHint ?: ""),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = theme.contentColor
+                                )
+                            }
+                        }
+                    }
+
+                    OutlinedTextField(
+                        value = guessAnswer,
+                        onValueChange = { guessAnswer = it },
+                        label = { Text(stringResource(R.string.detective_answer_label)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        isError = uiState.error != null,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = accent,
+                            unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
+                            focusedTextColor = theme.contentColor,
+                            unfocusedTextColor = theme.contentColor
+                        )
+                    )
+                    if (uiState.error != null) {
+                        Text(uiState.error!!, color = Color.Red, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.attemptUnlock(selectedEntry!!, guessAnswer, creatorId ?: "") },
+                    colors = ButtonDefaults.buttonColors(containerColor = accent)
+                ) {
+                    Text(stringResource(R.string.detective_verify_button), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
+
+    LaunchedEffect(uiState.unlockedQuestionId) {
+        if (uiState.unlockedQuestionId != null) {
+            showGuessDialog = false
+            guessAnswer = ""
+            selectedEntry = null
+        }
+    }
+}
+
+@Composable
+fun LockedQuestionCard(
+    entry: OfflineEntry, 
+    isUnlocked: Boolean,
+    theme: AppThemeState,
+    onClick: () -> Unit
+) {
+    val accent = theme.accentColor
+
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick).phoenXMatiere(),
+        colors = CardDefaults.cardColors(
+            containerColor = theme.contentColor.copy(alpha = 0.05f)
+        ),
+        shape = MaterialTheme.shapes.large,
+        border = BorderStroke(
+            1.dp, 
+            if (isUnlocked) Success.copy(alpha = 0.3f) else accent.copy(alpha = 0.2f)
+        )
+    ) {
+        Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                imageVector = if (isUnlocked) Icons.Default.LockOpen else Icons.Default.Lock,
+                contentDescription = null,
+                tint = if (isUnlocked) Success else accent
+            )
+            Spacer(modifier = Modifier.width(20.dp))
+            Column {
+                Text(
+                    text = if (isUnlocked) "QUESTION RÉPONDUE" else "QUESTION SCELLÉE",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = if (isUnlocked) Success else accent,
+                    letterSpacing = 1.sp
+                )
+                Text(
+                    text = if (isUnlocked) entry.enigmaQuestion ?: "" else "Déchiffre l'énigme pour voir la question",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontFamily = theme.fontFamily),
+                    color = theme.contentColor
+                )
+            }
+        }
     }
 }
 
@@ -385,33 +544,24 @@ fun CustomQuestionItem(
 fun CustomQuestionDialog(
     entry: OfflineEntry?,
     onDismiss: () -> Unit,
-    onSave: (String, String?, String, String, List<String>, File?, String, Int?) -> Unit,
+    onSave: (String, String?, String, String, String, String, Int?) -> Unit,
     theme: AppThemeState,
     viewModel: HundredQuestionsViewModel = hiltViewModel()
 ) {
+    val recipients by viewModel.recipients.collectAsState()
     var question by remember { mutableStateOf(entry?.enigmaQuestion ?: "") }
     var hint by remember { mutableStateOf(entry?.enigmaHint ?: "") }
-    var answer by remember { mutableStateOf("") } // Toujours vide au départ pour la sécu
+    var answer by remember { mutableStateOf(entry?.enigmaAnswerPlain ?: "") }
     var answerType by remember { mutableStateOf(entry?.answerType ?: "WORD") }
     var expectedWordCount by remember { mutableStateOf(entry?.expectedWordCount?.toString() ?: "1") }
-    var story by remember { mutableStateOf(entry?.let { viewModel.decryptStory(it.encryptedPayload) } ?: "") }
-    var photoFile by remember { mutableStateOf<File?>(null) }
-    
-    val recipients by viewModel.recipients.collectAsState()
-    var selectedRecipientIds by remember { 
-        mutableStateOf(entry?.recipientIds?.split(",")?.filter { it.isNotBlank() } ?: emptyList()) 
+
+    var visibility by remember { mutableStateOf(entry?.visibility ?: "EVERYONE") }
+    val initialSelectedIds = remember(entry, recipients) { 
+        entry?.recipientIds?.split(",")?.filter { it.isNotBlank() }?.map { it.trim() }?.map { persistentId ->
+            recipients.find { it.linkedUid == persistentId }?.id ?: persistentId
+        }?.distinct() ?: emptyList()
     }
-    
-    val context = LocalContext.current
-    val photoLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            val file = File(context.cacheDir, "custom_q_${System.currentTimeMillis()}.jpg")
-            context.contentResolver.openInputStream(uri)?.use { input ->
-                file.outputStream().use { output -> input.copyTo(output) }
-            }
-            photoFile = file
-        }
-    }
+    val selectedRecipientIds = remember { mutableStateListOf<String>().apply { addAll(initialSelectedIds) } }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -488,79 +638,36 @@ fun CustomQuestionDialog(
                     label = { Text(stringResource(R.string.questions_custom_field_hint)) },
                     modifier = Modifier.fillMaxWidth()
                 )
-                
-                Spacer(Modifier.height(8.dp))
-                Text(stringResource(R.string.questions_custom_section_story), style = MaterialTheme.typography.labelSmall, color = theme.accentColor)
-                OutlinedTextField(
-                    value = story,
-                    onValueChange = { story = it },
-                    placeholder = { Text(stringResource(R.string.questions_custom_story_placeholder)) },
-                    modifier = Modifier.fillMaxWidth().height(150.dp)
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("DESTINATAIRES", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
+                RecipientSelector(
+                    recipients = recipients,
+                    selectedIds = selectedRecipientIds,
+                    onToggleRecipient = { id ->
+                        if (selectedRecipientIds.contains(id)) selectedRecipientIds.remove(id)
+                        else selectedRecipientIds.add(id)
+                    },
+                    visibility = visibility,
+                    onVisibilityChange = { visibility = it },
+                    accent = theme.accentColor
                 )
-
-                Text(stringResource(R.string.questions_custom_section_recipients), style = MaterialTheme.typography.labelSmall, color = theme.accentColor)
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    recipients.forEach { recipient ->
-                        FilterChip(
-                            selected = selectedRecipientIds.contains(recipient.id),
-                            onClick = {
-                                selectedRecipientIds = if (selectedRecipientIds.contains(recipient.id)) {
-                                    selectedRecipientIds - recipient.id
-                                } else {
-                                    selectedRecipientIds + recipient.id
-                                }
-                            },
-                            label = { Text(recipient.name) }
-                        )
-                    }
-                }
-
-                if (photoFile != null) {
-                    Box(modifier = Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(8.dp))) {
-                        AsyncImage(model = photoFile, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
-                        IconButton(onClick = { photoFile = null }, modifier = Modifier.align(Alignment.TopEnd)) {
-                            Icon(Icons.Default.Close, null, tint = Color.White)
-                        }
-                    }
-                } else if (entry?.mediaUrl != null) {
-                    // Si on a déjà une image sur Firestore
-                    Box(modifier = Modifier.fillMaxWidth().height(150.dp).clip(RoundedCornerShape(8.dp))) {
-                        SecureAsyncImage(
-                            mediaUrl = entry.mediaUrl,
-                            mediaManager = viewModel.mediaManager,
-                            isEncrypted = false,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop,
-                            docType = "entries",
-                            docId = entry.id
-                        )
-                        Button(
-                            onClick = { photoLauncher.launch("image/*") },
-                            modifier = Modifier.align(Alignment.Center),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color.Black.copy(alpha = 0.5f))
-                        ) {
-                            Text(stringResource(R.string.questions_custom_btn_change_photo))
-                        }
-                    }
-                } else {
-                    OutlinedButton(
-                        onClick = { photoLauncher.launch("image/*") },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.AddAPhoto, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.questions_custom_btn_add_photo))
-                    }
-                }
             }
         },
         confirmButton = {
             Button(
-                onClick = { onSave(question, hint.ifBlank { null }, answer, story, selectedRecipientIds, photoFile, answerType, expectedWordCount.toIntOrNull()) },
-                enabled = question.isNotBlank() && story.isNotBlank() && (entry != null || answer.isNotBlank()) && selectedRecipientIds.isNotEmpty(),
+                onClick = { 
+                    onSave(
+                        question, 
+                        hint.ifBlank { null }, 
+                        answer, 
+                        visibility,
+                        selectedRecipientIds.joinToString(","),
+                        answerType, 
+                        expectedWordCount.toIntOrNull()
+                    ) 
+                },
+                enabled = question.isNotBlank() && (entry != null || answer.isNotBlank()),
                 colors = ButtonDefaults.buttonColors(containerColor = theme.accentColor)
             ) {
                 Text(stringResource(R.string.questions_btn_save), color = theme.backgroundColor)

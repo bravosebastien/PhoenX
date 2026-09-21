@@ -96,7 +96,6 @@ fun HomeScreen(
     onNavigateToBookEditor: () -> Unit,
     onNavigateToGenealogy: () -> Unit,
     onNavigateToEncounters: () -> Unit, // v9.5.0
-    onNavigateToDetective: () -> Unit,
     onNavigateToStepByStep: () -> Unit, // v9.4.26
     onNavigateToNotificationContacts: () -> Unit,
     onNavigateToAccessibility: () -> Unit,

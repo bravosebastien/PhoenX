@@ -26,8 +26,6 @@ import com.example.phoenx.ui.screens.characters.CharacterEditScreen
 import com.example.phoenx.ui.screens.encounters.EncounterScreen
 import com.example.phoenx.ui.screens.encounters.EncounterDetailScreen
 import com.example.phoenx.ui.screens.recipient.RecipientMediaViewModel
-import com.example.phoenx.ui.screens.detective.DetectiveCreateScreen
-import com.example.phoenx.ui.screens.detective.DetectiveHomeScreen
 import com.example.phoenx.ui.screens.favorites.FavoritesScreen
 import com.example.phoenx.ui.screens.fil.FilScreen
 import com.example.phoenx.ui.screens.fil.MemoryDetailScreen
@@ -155,7 +153,6 @@ fun NavGraphBuilder.creatorGraph(
             onNavigateToBookEditor = { navController.navigate("book_editor") },
             onNavigateToGenealogy = { navController.navigate(Screen.Genealogy.createRoute()) },
             onNavigateToEncounters = { navController.navigate(Screen.Encounters.route) }, // v9.5.0
-            onNavigateToDetective = { navController.navigate(Screen.DetectiveHome.route) },
             onNavigateToStepByStep = { navController.navigate(Screen.StepByStepCapture.route) }, // v9.4.26
             onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
             onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
@@ -322,15 +319,21 @@ fun NavGraphBuilder.creatorGraph(
         )
     }
 
-    composable(Screen.Questions.route) {
+    composable(
+        route = Screen.Questions.route,
+        arguments = listOf(navArgument("creatorId") { type = NavType.StringType; nullable = true })
+    ) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
         com.example.phoenx.ui.screens.questions.HundredQuestionsScreen(
+            creatorId = creatorId,
             onNavigateBack = { navController.popBackStack() },
             onAnswerQuestion = { id, _ -> 
                 navController.navigate(Screen.QuestionAnswer.createRoute(id))
             },
             onNavigateToLeaderboard = {
-                navController.navigate(Screen.HundredQuestionsLeaderboard.createRoute())
-            }
+                navController.navigate(Screen.HundredQuestionsLeaderboard.createRoute(creatorId))
+            },
+            navController = navController
         )
     }
 
@@ -550,8 +553,7 @@ fun NavGraphBuilder.creatorGraph(
         )
     }
 
-    composable(
-        route = Screen.CharacterEdit.route,
+    composable(Screen.CharacterEdit.route,
         arguments = listOf(navArgument("personId") { type = NavType.StringType })
     ) { backStackEntry ->
         val personId = backStackEntry.arguments?.getString("personId") ?: return@composable
@@ -559,14 +561,6 @@ fun NavGraphBuilder.creatorGraph(
             personId = personId,
             onNavigateBack = { navController.popBackStack() }
         )
-    }
-
-    composable(Screen.DetectiveHome.route) {
-        DetectiveHomeScreen(navController = navController)
-    }
-
-    composable("detective_create") {
-        DetectiveCreateScreen(navController = navController)
     }
 
     composable("book_editor") {
@@ -592,7 +586,6 @@ fun NavGraphBuilder.creatorGraph(
     composable("fil_pensee") { 
         FilScreen(navController = navController, onNavigateBack = { navController.popBackStack() }) 
     }
-    composable("coffre_fort") { DetectiveHomeScreen(navController = navController) }
     composable("cent_questions") { 
         com.example.phoenx.ui.screens.questions.HundredQuestionsScreen(
             onNavigateBack = { navController.popBackStack() },
@@ -601,7 +594,8 @@ fun NavGraphBuilder.creatorGraph(
             },
             onNavigateToLeaderboard = {
                 navController.navigate(Screen.HundredQuestionsLeaderboard.createRoute())
-            }
+            },
+            navController = navController
         )
     }
     composable(

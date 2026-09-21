@@ -32,13 +32,17 @@ data class QuestionsUiState(
     val isSuccess: Boolean = false,
     val currentAnswerText: String? = null, // null = en chargement, "" = vide
     val currentMediaPath: String? = null,
-    val currentMediaUrl: String? = null
+    val currentMediaUrl: String? = null,
+    val currentVisibility: String = "RESTRICTED",
+    val currentRecipientIds: String = "",
+    val currentExpectedWordCount: Int = 1
 )
 
 @HiltViewModel
 class QuestionsViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val db: FirebaseFirestore,
+    private val functions: com.google.firebase.functions.FirebaseFunctions,
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
     val mediaManager: MediaManager,
@@ -47,6 +51,9 @@ class QuestionsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(QuestionsUiState())
     val uiState: StateFlow<QuestionsUiState> = _uiState.asStateFlow()
+
+    val recipients: StateFlow<List<com.example.phoenx.data.local.RecipientEntity>> = offlineEntryDao.getAllRecipients()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
         loadAnsweredQuestions()
@@ -86,7 +93,17 @@ class QuestionsViewModel @Inject constructor(
         viewModelScope.launch {
             android.util.Log.d("QuestionsVM", "Chargement réponse pour questionId: $questionId")
             val entry = offlineEntryDao.getEntryByQuestionIdSync(questionId)
+            val allRecipients = offlineEntryDao.getAllRecipients().first()
+
             if (entry != null) {
+                // v12.7.8 : Remappage UIDs -> DocIDs pour le sélecteur UI
+                val uiRecipientIds = entry.recipientIds.split(",")
+                    .filter { it.isNotBlank() }
+                    .map { persistentId ->
+                        allRecipients.find { it.linkedUid == persistentId }?.id ?: persistentId
+                    }.distinct()
+                    .joinToString(",")
+
                 android.util.Log.d("QuestionsVM", "Entrée trouvée localement: ${entry.id}")
                 val decodedText = try {
                     encryptionManager.decryptText(entry.encryptedPayload)
@@ -98,7 +115,10 @@ class QuestionsViewModel @Inject constructor(
                 _uiState.update { it.copy(
                     currentAnswerText = decodedText,
                     currentMediaPath = entry.localMediaPath ?: File(context.filesDir, "media/PHX_QFIX_${entry.id}.jpg").let { if (it.exists()) it.absolutePath else null },
-                    currentMediaUrl = entry.mediaUrl
+                    currentMediaUrl = entry.mediaUrl,
+                    currentVisibility = entry.visibility,
+                    currentRecipientIds = uiRecipientIds,
+                    currentExpectedWordCount = entry.expectedWordCount ?: 1
                 ) }
             } else {
                 android.util.Log.w("QuestionsVM", "Aucune réponse locale trouvée pour $questionId. Tentative Firestore...")
@@ -120,6 +140,13 @@ class QuestionsViewModel @Inject constructor(
                                 encryptionManager.decryptText(remoteEntry.encryptedPayload)
                             } catch (e: Exception) { "" }
                             
+                            val uiRecipientIds = remoteEntry.recipientIds.split(",")
+                                .filter { it.isNotBlank() }
+                                .map { persistentId ->
+                                    allRecipients.find { it.linkedUid == persistentId }?.id ?: persistentId
+                                }.distinct()
+                                .joinToString(",")
+
                             // Reconstruction du chemin local prévisible si le fichier existe déjà (v12.3.2)
                             val predictableLocalPath = File(context.filesDir, "media/PHX_QFIX_${remoteEntry.id}.jpg").let { 
                                 if (it.exists()) it.absolutePath else null 
@@ -128,7 +155,10 @@ class QuestionsViewModel @Inject constructor(
                             _uiState.update { it.copy(
                                 currentAnswerText = decodedText,
                                 currentMediaPath = predictableLocalPath,
-                                currentMediaUrl = remoteEntry.mediaUrl
+                                currentMediaUrl = remoteEntry.mediaUrl,
+                                currentVisibility = remoteEntry.visibility,
+                                currentRecipientIds = uiRecipientIds,
+                                currentExpectedWordCount = remoteEntry.expectedWordCount ?: 1
                             ) }
                             
                             // Réparation locale immédiate (Point 1 du bug critique)
@@ -149,13 +179,28 @@ class QuestionsViewModel @Inject constructor(
         }
     }
 
-    fun saveAnswer(questionObj: Question, answer: String, photoFile: File? = null) {
+    fun saveAnswer(
+        questionObj: Question, 
+        answer: String, 
+        visibility: String,
+        recipientIds: String,
+        expectedWordCount: Int = 1,
+        photoFile: File? = null
+    ) {
         val user = auth.currentUser ?: return
         _uiState.update { it.copy(isSaving = true) }
 
         viewModelScope.launch {
             try {
-                // 1. Vérifier si une réponse existe déjà pour réutilisation de l'ID
+                // 1. Résolution immédiate des UIDs (v12.7.8)
+                val allRecipients = recipients.value
+                val resolvedIds = recipientIds.split(",")
+                    .filter { it.isNotBlank() }
+                    .map { id -> allRecipients.find { it.id == id }?.linkedUid ?: id }
+                    .distinct()
+                    .joinToString(",")
+
+                // 2. Vérifier si une réponse existe déjà pour réutilisation de l'ID
                 val existingEntry = offlineEntryDao.getEntryByQuestionIdSync(questionObj.id)
                 val entryId = existingEntry?.id ?: UUID.randomUUID().toString()
 
@@ -164,6 +209,8 @@ class QuestionsViewModel @Inject constructor(
                 val age = AgeUtils.calculateAge(birthDate)
                 
                 val encrypted = encryptionManager.encryptText(answer)
+
+                val hashedAnswer = com.example.phoenx.domain.util.EnigmaUtils.hashAnswer(answer, "WORD")
                 
                 // 2. GESTION DU MÉDIA (Upload chiffré v12.3.2)
                 var photoPath = existingEntry?.mediaUrl
@@ -194,12 +241,19 @@ class QuestionsViewModel @Inject constructor(
                     questionId = questionObj.id,
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",
                     emotionalCategory = "Sagesse",
-                    visibility = "RESTRICTED",
+                    visibility = visibility,
+                    recipientIds = resolvedIds,
                     createdAt = existingEntry?.createdAt ?: System.currentTimeMillis(),
                     aiSummary = questionObj.text,
                     userTitle = questionObj.text, // v12.3.2 : Titre explicite pour l'IA
                     localMediaPath = finalLocalPath,
                     mediaUrl = photoPath,
+                    enigmaQuestion = questionObj.text,
+                    enigmaAnswer = hashedAnswer,
+                    enigmaAnswerPlain = answer,
+                    answerType = "WORD",
+                    expectedWordCount = expectedWordCount,
+                    isGuessQuestion = true,
                     syncStatus = "pending"
                 )
                 offlineEntryDao.insertEntry(entry)

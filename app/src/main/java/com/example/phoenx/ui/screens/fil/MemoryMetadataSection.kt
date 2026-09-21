@@ -67,7 +67,7 @@ fun MemoryMetadataSection(
     // ÉNIGME / COFFRE-FORT (v9.4.27)
     var enigmaEnabled by remember(entry) { mutableStateOf(entry.enigmaQuestion != null) }
     var enigmaQuestion by remember(entry) { mutableStateOf(entry.enigmaQuestion ?: "") }
-    var enigmaAnswer by remember { mutableStateOf("") }
+    var enigmaAnswer by remember(entry) { mutableStateOf(entry.enigmaAnswerPlain ?: "") }
     var enigmaHint by remember(entry) { mutableStateOf(entry.enigmaHint ?: "") }
     var autoUnlockDays by remember(entry) { mutableStateOf(entry.enigmaAutoUnlockDays ?: 30) }
     var isUltimateSecret by remember(entry) { mutableStateOf(entry.isUltimateSecret) }
@@ -512,7 +512,6 @@ fun MemoryMetadataSection(
                 onQuestionChange = { enigmaQuestion = it },
                 answer = enigmaAnswer,
                 onAnswerChange = { enigmaAnswer = it },
-                hasExistingAnswer = entry.enigmaAnswer != null,
                 hint = enigmaHint,
                 onHintChange = { enigmaHint = it },
                 autoUnlockDays = autoUnlockDays,

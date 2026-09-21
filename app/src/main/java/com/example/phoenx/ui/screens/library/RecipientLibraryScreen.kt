@@ -304,13 +304,8 @@ fun RecipientLibraryScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     maxItemsInEachRow = 3
                 ) {
-                    CompactGridItem(stringResource(R.string.library_coffre_fort), Icons.Outlined.Lock, { 
-                        if (isCreatorMode) navController.navigate("coffre_fort")
-                        else navController.navigate(Screen.RecipientDetective.createRoute(targetCreatorId))
-                    }, theme, itemModifier)
-
                     CompactGridItem(stringResource(R.string.library_100_questions), Icons.Outlined.HelpOutline, { 
-                        navController.navigate("cent_questions") 
+                        navController.navigate(Screen.Questions.createRoute(targetCreatorId))
                     }, theme, itemModifier)
 
                     CompactGridItem(stringResource(R.string.library_portraits), Icons.Outlined.AccountCircle, { 

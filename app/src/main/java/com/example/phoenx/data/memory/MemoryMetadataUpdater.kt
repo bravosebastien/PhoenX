@@ -106,10 +106,14 @@ class MemoryMetadataUpdater @Inject constructor(
         isUltimate: Boolean
     ) {
         val currentEntry = offlineEntryDao.getEntryById(entryId).first() ?: return
-        val newHash = if (!answer.isNullOrBlank()) {
-            EnigmaUtils.hashAnswer(answer)
+        val newHash: String?
+        val newPlain: String?
+        if (!answer.isNullOrBlank()) {
+            newHash = EnigmaUtils.hashAnswer(answer, "WORD")
+            newPlain = answer
         } else {
-            currentEntry.enigmaAnswer
+            newHash = currentEntry.enigmaAnswer
+            newPlain = currentEntry.enigmaAnswerPlain
         }
 
         offlineEntryDao.updateEntryEnigma(
@@ -118,6 +122,8 @@ class MemoryMetadataUpdater @Inject constructor(
             hint = hint,
             unlockDays = autoUnlockDays,
             isUltimate = isUltimate,
+            answerType = "WORD",
+            answerPlain = newPlain,
             entryId = entryId
         )
         syncTrigger.triggerSync(entryId)

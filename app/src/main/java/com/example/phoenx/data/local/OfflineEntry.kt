@@ -120,7 +120,8 @@ data class OfflineEntry(
 
     // TOLÉRANCE RÉPONSES (v12.7.6)
     val answerType: String? = null, // "WORD" | "NUMBER"
-    val expectedWordCount: Int? = null
+    val expectedWordCount: Int? = null,
+    val enigmaAnswerPlain: String? = null
 ) {
     fun isChild(): Boolean = parentEntryId != null
 

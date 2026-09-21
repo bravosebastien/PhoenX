@@ -786,4 +786,13 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN expectedWordCount INTEGER")
         }
     }
+
+    /**
+     * MIGRATION_63_64 — Copie en clair de la réponse aux énigmes (v12.7.7)
+     */
+    val MIGRATION_63_64 = object : Migration(63, 64) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE offline_entries ADD COLUMN enigmaAnswerPlain TEXT")
+        }
+    }
 }

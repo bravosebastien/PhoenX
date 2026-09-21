@@ -1006,11 +1006,11 @@ class RecipientMediaViewModel @Inject constructor(
                 android.util.Log.d("PHOENX_ENTRY_DISAPPEAR_TRACE", "Avant filtrage: ${allDecoded.map { it.id }}")
 
                 val result = mapOf(
-                    "library" to allDecoded.filter { it.parentEntryId == null && (it.type == EntryType.THOUGHT || it.type == EntryType.LEGACY || it.isYoungSelfLetter) },
+                    "library" to allDecoded.filter { it.parentEntryId == null && (it.type == EntryType.THOUGHT || it.type == EntryType.LEGACY || it.isYoungSelfLetter) && !it.isGuessQuestion },
                     "video" to allDecoded.filter { it.type == EntryType.VIDEO },
                     "audio" to allDecoded.filter { it.type == EntryType.AUDIO },
                     "photo" to allDecoded.filter { it.type == EntryType.PHOTO },
-                    "heritage" to allDecoded.filter { it.parentEntryId == null }.sortedByDescending { it.timestamp }
+                    "heritage" to allDecoded.filter { it.parentEntryId == null && !it.isGuessQuestion }.sortedByDescending { it.timestamp }
                 )
 
                 android.util.Log.d("PHOENX_ENTRY_DISAPPEAR_TRACE", "Après filtrage (heritage): ${result["heritage"]?.map { (it as PhoenXEntry).id }}")
@@ -1056,7 +1056,8 @@ class RecipientMediaViewModel @Inject constructor(
             },
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = aiSummary.ifBlank { typeLabel },
-            hasEnigma = enigmaQuestion != null
+            hasEnigma = enigmaQuestion != null,
+            isGuessQuestion = isGuessQuestion
         )
     }
 
@@ -1106,7 +1107,8 @@ class RecipientMediaViewModel @Inject constructor(
             recipientIds = recipientIds.split(",").map { it.trim() }.filter { it.isNotBlank() },
             visibility = visibility,
             silentAttribution = silentAttribution,
-            includedInBook = includedInBook // v9.6.7
+            includedInBook = includedInBook, // v9.6.7
+            isGuessQuestion = isGuessQuestion
         )
     }
 

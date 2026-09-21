@@ -117,7 +117,8 @@ fun OfflineEntry.toFirestoreMap(encryptionManager: EncryptionManager): Map<Strin
         "includedInBook" to includedInBook, // v9.6.7
         "isGuessQuestion" to isGuessQuestion, // v12.3
         "answerType" to answerType, // v12.7.6
-        "expectedWordCount" to expectedWordCount
+        "expectedWordCount" to expectedWordCount,
+        "enigmaAnswerEncrypted" to (if (enigmaAnswerPlain != null) Blob.fromBytes(encryptionManager.encryptText(enigmaAnswerPlain)) else null)
     )
 }
 
@@ -252,6 +253,13 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
         else -> ""
     }
 
+    val enigmaAnswerPlainObj = this["enigmaAnswerEncrypted"]
+    val finalEnigmaAnswerPlain = when {
+        enigmaAnswerPlainObj is String -> enigmaAnswerPlainObj
+        enigmaAnswerPlainObj != null -> try { encryptionManager.decryptText(enigmaAnswerPlainObj.extractBytes(), explicitKey) } catch(e: Exception) { null }
+        else -> null
+    }
+
     return OfflineEntry(
         id = id,
         creatorUid = this["uid"] as? String ?: "",
@@ -269,6 +277,7 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
         aiTags = finalTags,
         enigmaQuestion = this["enigmaQuestion"] as? String,
         enigmaAnswer = this["enigmaAnswer"] as? String,
+        unlockedAt = this["unlockedAt"].asLong(),
         fallbackAnswer = this["fallbackAnswer"] as? String,
         latitude = this["latitude"].asDouble(),
         longitude = this["longitude"].asDouble(),
@@ -297,7 +306,8 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
         includedInBook = this["includedInBook"] as? Boolean ?: true, // v9.6.7
         isGuessQuestion = this["isGuessQuestion"] as? Boolean ?: false, // v12.3
         answerType = this["answerType"] as? String, // v12.7.6
-        expectedWordCount = (this["expectedWordCount"] as? Number)?.toInt()
+        expectedWordCount = (this["expectedWordCount"] as? Number)?.toInt(),
+        enigmaAnswerPlain = finalEnigmaAnswerPlain
     ).also {
         val rawLat = this["latitude"]
         val rawLng = this["longitude"]

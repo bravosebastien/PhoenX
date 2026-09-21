@@ -5,10 +5,15 @@ service cloud.firestore {
 
     // ═══ USERS — Profil Créateur ═══
     match /users/{userId} {
-      // Lecture : Propriétaire OU Dépositaire (Dénormalisation v9.4.1/v9.4.4)
+      // Lecture : Propriétaire OU Dépositaire OU Destinataire activé
+      // Correctif 20/09/2026 : cette règle ne couvrait pas le cas Destinataire, contrairement
+      // à toutes les autres collections — bloquait la lecture du nom du créateur (ex: écran 100 Questions).
       allow read: if request.auth != null && (
         request.auth.uid == userId ||
-        (resource != null && request.auth.uid in resource.data.get('depositaryUids', []))
+        (resource != null && request.auth.uid in resource.data.get('depositaryUids', [])) ||
+        (resource != null &&
+          resource.data.get('protocolStatus', '') == "activated" &&
+          (userId + '_recipient') in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('myRoles', {}))
       );
 
       // Création : Interdiction d'auto-attribuer des rôles ou de forcer les UIDs dépositaires
