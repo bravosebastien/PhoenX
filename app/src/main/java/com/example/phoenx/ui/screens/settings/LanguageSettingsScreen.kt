@@ -43,7 +43,8 @@ fun LanguageSettingsScreen(
             LanguageOption("Italiano", "it", "🇮🇹"),
             LanguageOption("Português", "pt", "🇵🇹"),
             LanguageOption("Deutsch", "de", "🇩🇪"),
-            LanguageOption("中文", "zh", "🇨🇳")
+            LanguageOption("中文", "zh", "🇨🇳"),
+            LanguageOption("العربية", "ar", "🇸🇦")
         )
     }
 

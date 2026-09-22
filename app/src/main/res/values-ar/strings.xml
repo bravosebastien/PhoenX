@@ -2556,4 +2556,23 @@
     <string name="questions_error_custom_save">خطأ في حفظ السؤال المخصص</string>
     <string name="questions_error_delete_photo">خطأ في حذف الصورة</string>
 
+    <!-- Missing Batch -->
+    <string name="heir_heritage_main_map">خريطة العالم</string>
+    <string name="heir_heritage_main_tree">شجرة العائلة</string>
+    <string name="heir_heritage_main_encounters">اللقاءات</string>
+    <string name="heir_heritage_book_default_title">كتابي</string>
+    <string name="heir_heritage_special_mirror_title">المرآة</string>
+    <string name="step_capture_location_or">أو</string>
+    <string name="step_capture_location_use_gps">استخدام موقعي الحالي</string>
+    <string name="step_capture_location_locating">جاري تحديد الموقع…</string>
+    <string name="step_capture_location_gps_unavailable">تعذر الحصول على موقعك. تحقق من تفعيل خدمات الموقع على هاتفك.</string>
+    <string name="enigma_form_info_title">ذكرى مختومة</string>
+    <string name="enigma_form_info_point1">إنها ذكرى عادية (نص، صورة أو صوت) تضيف إليها لغزاً صغيراً.</string>
+    <string name="enigma_form_info_point2">لن يرى قريبك العنوان ولا المحتوى حتى يجد الإجابة الصحيحة لسؤالك.</string>
+    <string name="enigma_form_info_point3">يمكنك إضافة تلميح لا يظهر إلا بعد عدة محاولات فاشلة.</string>
+    <string name="enigma_form_info_point4">يمكن أن تفتح الذكرى تلقائياً بعد فترة معينة — إلا إذا فعلت **السر المطلق**، والذي لن يفتح تلقائياً أبداً.</string>
+    <string name="character_delete_linked_title">الحذف يتم من مكان آخر</string>
+    <string name="character_delete_linked_text">هذا الشخص جزء من شجرة عائلتك و/أو لقاءاتك أيضاً. لحذفه، توجه مباشرة إلى تلك الشاشة: يمكنك هناك اختيار ما يجب إزالته بدقة دون إتلاف بقية قصتك.</string>
+    <string name="character_delete_linked_ok">فهمت</string>
+
 </resources>
