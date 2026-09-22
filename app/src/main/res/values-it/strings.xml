@@ -1166,7 +1166,7 @@
 
     <!-- Pact / Miroir à Deux Batch -->
     <string name="pact_screen_title">Lo Specchio a Due</string>
-    <string name="pact_info_title">Il Patto</string>
+    <string name="pact_info_title">Lo Specchio a Due</string>
     <string name="pact_info_content">Il Patto è un messaggio a due voci che componi con una persona scelta — ognuno scrive la propria versione per conto proprio, in totale riservatezza. Il contenuto non viene rivelato a nessuno, nemmeno a voi due, finché entrambi non cliccate su \'Ho terminato la mia versione\'. Potete anche scegliere, ognuno per conto proprio, se questo Patto debba alimentare il vostro Libro della Mia Vita o rimanere uno scambio privato tra voi due.</string>
     <string name="pact_list_header">I tuoi riflessi incrociati</string>
     <string name="pact_card_subtitle">Specchio con %1$s</string>

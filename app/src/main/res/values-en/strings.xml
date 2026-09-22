@@ -1166,8 +1166,8 @@
 
     <!-- Pact / Miroir à Deux Batch -->
     <string name="pact_screen_title">Mirror for Two</string>
-    <string name="pact_info_title">The Pact</string>
-    <string name="pact_info_content">The Pact is a two-voiced message that you compose with a chosen person — each person writes their version on their side, in total confidentiality. The content is not revealed to anyone, not even the two of you, until both have clicked on \'I have finished my version\'. You can also choose, each on your side, if this Pact should feed your Book of My Life or remain a private exchange between you two.</string>
+    <string name="pact_info_title">Mirror for Two</string>
+    <string name="pact_info_content">The Mirror for Two is a two-voiced message that you compose with a chosen person — each person writes their version on their side, in total confidentiality. The content is not revealed to anyone, not even the two of you, until both have clicked on \'I have finished my version\'. You can also choose, each on your side, if this Mirror for Two should feed your Book of My Life or remain a private exchange between you two.</string>
     <string name="pact_list_header">Your crossed reflections</string>
     <string name="pact_card_subtitle">Mirror with %1$s</string>
     <string name="pact_empty_state_title">No Mirror for Two in progress.</string>

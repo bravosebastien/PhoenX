@@ -41,8 +41,15 @@ fun NavGraphBuilder.recipientGraph(
     navController: NavController,
     mainViewModel: MainViewModel
 ) {
-    composable(Screen.RecipientMailbox.route) {
-        com.example.phoenx.ui.screens.mailbox.MailboxScreen(onNavigateBack = { navController.popBackStack() })
+    composable(
+        route = Screen.RecipientMailbox.route,
+        arguments = listOf(navArgument("creatorId") { type = NavType.StringType; nullable = true })
+    ) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        com.example.phoenx.ui.screens.mailbox.MailboxScreen(
+            targetCreatorId = creatorId,
+            onNavigateBack = { navController.popBackStack() }
+        )
     }
 
     composable(
@@ -93,15 +100,12 @@ fun NavGraphBuilder.recipientGraph(
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
         val viewModel: RecipientMediaViewModel = hiltViewModel()
-        val ambiance by viewModel.ambiance.collectAsState()
 
-        TransmissionTheme(backgroundId = ambiance.backgroundId, fontId = ambiance.fontId) {
-            HeirHeritageScreen(
-                creatorId = creatorId,
-                navController = navController,
-                viewModel = viewModel
-            )
-        }
+        HeirHeritageScreen(
+            creatorId = creatorId,
+            navController = navController,
+            viewModel = viewModel
+        )
     }
 
     composable(
@@ -129,16 +133,13 @@ fun NavGraphBuilder.recipientGraph(
     ) { backStackEntry ->
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
         val viewModel: RecipientMediaViewModel = hiltViewModel()
-        val ambiance by viewModel.ambiance.collectAsState()
 
-        TransmissionTheme(backgroundId = ambiance.backgroundId, fontId = ambiance.fontId) {
-            RecipientLibraryScreen(
-                navController = navController, 
-                isCreatorMode = false,
-                targetCreatorId = creatorId,
-                mediaViewModel = viewModel
-            )
-        }
+        RecipientLibraryScreen(
+            navController = navController, 
+            isCreatorMode = false,
+            targetCreatorId = creatorId,
+            mediaViewModel = viewModel
+        )
     }
 
     composable(
@@ -172,32 +173,29 @@ fun NavGraphBuilder.recipientGraph(
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
         val filterRecipientId = backStackEntry.arguments?.getString("filterRecipientId")
         val viewModel: RecipientMediaViewModel = hiltViewModel()
-        val ambiance by viewModel.ambiance.collectAsState()
 
-        TransmissionTheme(backgroundId = ambiance.backgroundId, fontId = ambiance.fontId) {
-            RecipientDiscothequeScreen(
-                creatorId = creatorId,
-                filterRecipientId = filterRecipientId,
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToCapture = { navController.navigate("capture/AUDIO") },
-                onNavigateToDetail = { entry -> 
-                    navController.navigate(Screen.MediaViewer.createRoute(
-                        entryId = entry.id, 
-                        creatorId = creatorId,
-                        mediaUrl = entry.mediaUrl,
-                        entryType = when(entry.type) {
-                            EntryType.PHOTO -> "PHOTO"
-                            EntryType.AUDIO -> "AUDIO"
-                            EntryType.VIDEO -> "VIDEO"
-                            else -> "THOUGHT"
-                        },
-                        aiSummary = entry.aiSummary,
-                        sourceDocType = entry.sourceDocType
-                    )) 
-                },
-                viewModel = viewModel
-            )
-        }
+        RecipientDiscothequeScreen(
+            creatorId = creatorId,
+            filterRecipientId = filterRecipientId,
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToCapture = { navController.navigate("capture/AUDIO") },
+            onNavigateToDetail = { entry -> 
+                navController.navigate(Screen.MediaViewer.createRoute(
+                    entryId = entry.id, 
+                    creatorId = creatorId,
+                    mediaUrl = entry.mediaUrl,
+                    entryType = when(entry.type) {
+                        EntryType.PHOTO -> "PHOTO"
+                        EntryType.AUDIO -> "AUDIO"
+                        EntryType.VIDEO -> "VIDEO"
+                        else -> "THOUGHT"
+                    },
+                    aiSummary = entry.aiSummary,
+                    sourceDocType = entry.sourceDocType
+                )) 
+            },
+            viewModel = viewModel
+        )
     }
 
     composable(
@@ -240,32 +238,29 @@ fun NavGraphBuilder.recipientGraph(
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
         val filterRecipientId = backStackEntry.arguments?.getString("filterRecipientId")
         val viewModel: RecipientMediaViewModel = hiltViewModel()
-        val ambiance by viewModel.ambiance.collectAsState()
 
-        TransmissionTheme(backgroundId = ambiance.backgroundId, fontId = ambiance.fontId) {
-            RecipientVideothequeScreen(
-                creatorId = creatorId,
-                filterRecipientId = filterRecipientId,
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToCapture = { navController.navigate("capture/VIDEO") },
-                onNavigateToDetail = { entry -> 
-                    navController.navigate(Screen.MediaViewer.createRoute(
-                        entryId = entry.id, 
-                        creatorId = creatorId,
-                        mediaUrl = entry.mediaUrl,
-                        entryType = when(entry.type) {
-                            EntryType.PHOTO -> "PHOTO"
-                            EntryType.AUDIO -> "AUDIO"
-                            EntryType.VIDEO -> "VIDEO"
-                            else -> "THOUGHT"
-                        },
-                        aiSummary = entry.aiSummary,
-                        sourceDocType = entry.sourceDocType
-                    )) 
-                },
-                viewModel = viewModel
-            )
-        }
+        RecipientVideothequeScreen(
+            creatorId = creatorId,
+            filterRecipientId = filterRecipientId,
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToCapture = { navController.navigate("capture/VIDEO") },
+            onNavigateToDetail = { entry -> 
+                navController.navigate(Screen.MediaViewer.createRoute(
+                    entryId = entry.id, 
+                    creatorId = creatorId,
+                    mediaUrl = entry.mediaUrl,
+                    entryType = when(entry.type) {
+                        EntryType.PHOTO -> "PHOTO"
+                        EntryType.AUDIO -> "AUDIO"
+                        EntryType.VIDEO -> "VIDEO"
+                        else -> "THOUGHT"
+                    },
+                    aiSummary = entry.aiSummary,
+                    sourceDocType = entry.sourceDocType
+                )) 
+            },
+            viewModel = viewModel
+        )
     }
 
     composable(
@@ -282,32 +277,29 @@ fun NavGraphBuilder.recipientGraph(
         val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
         val filterRecipientId = backStackEntry.arguments?.getString("filterRecipientId")
         val viewModel: RecipientMediaViewModel = hiltViewModel()
-        val ambiance by viewModel.ambiance.collectAsState()
 
-        TransmissionTheme(backgroundId = ambiance.backgroundId, fontId = ambiance.fontId) {
-            RecipientPhotosScreen(
-                creatorId = creatorId,
-                filterRecipientId = filterRecipientId,
-                onNavigateBack = { navController.popBackStack() },
-                onNavigateToCapture = { navController.navigate("capture/PHOTO") },
-                onNavigateToDetail = { entry -> 
-                    navController.navigate(Screen.MediaViewer.createRoute(
-                        entryId = entry.id, 
-                        creatorId = creatorId,
-                        mediaUrl = entry.mediaUrl,
-                        entryType = when(entry.type) {
-                            EntryType.PHOTO -> "PHOTO"
-                            EntryType.AUDIO -> "AUDIO"
-                            EntryType.VIDEO -> "VIDEO"
-                            else -> "THOUGHT"
-                        },
-                        aiSummary = entry.aiSummary,
-                        sourceDocType = entry.sourceDocType
-                    )) 
-                },
-                viewModel = viewModel
-            )
-        }
+        RecipientPhotosScreen(
+            creatorId = creatorId,
+            filterRecipientId = filterRecipientId,
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToCapture = { navController.navigate("capture/PHOTO") },
+            onNavigateToDetail = { entry -> 
+                navController.navigate(Screen.MediaViewer.createRoute(
+                    entryId = entry.id, 
+                    creatorId = creatorId,
+                    mediaUrl = entry.mediaUrl,
+                    entryType = when(entry.type) {
+                        EntryType.PHOTO -> "PHOTO"
+                        EntryType.AUDIO -> "AUDIO"
+                        EntryType.VIDEO -> "VIDEO"
+                        else -> "THOUGHT"
+                    },
+                    aiSummary = entry.aiSummary,
+                    sourceDocType = entry.sourceDocType
+                )) 
+            },
+            viewModel = viewModel
+        )
     }
 
     composable(

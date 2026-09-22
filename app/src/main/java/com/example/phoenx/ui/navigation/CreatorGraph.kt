@@ -156,6 +156,7 @@ fun NavGraphBuilder.creatorGraph(
             onNavigateToStepByStep = { navController.navigate(Screen.StepByStepCapture.route) }, // v9.4.26
             onNavigateToNotificationContacts = { navController.navigate(Screen.NotificationContacts.route) },
             onNavigateToAccessibility = { navController.navigate(Screen.AccessibilitySettings.route) },
+            onNavigateToPact = { navController.navigate("le_pacte") },
                 onNavigateToCube = { id -> 
                     val role = myRoles.values.find { it.creatorId == id }
                     android.util.Log.d("NavigationDebug", "onNavigateToCube triggered for creatorId: $id, role: ${role?.role}")

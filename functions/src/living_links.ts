@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 import * as admin from "firebase-admin";
-import { db } from "./admin";
+import { db, messaging } from "./admin";
 
 /**
  * PHOEN-X v9.4.27 - Accès aux fichiers du module "Lien Vivant"
@@ -45,4 +46,93 @@ export const getLivingLinkFileUrl = onCall(async (request) => {
     });
 
     return { url: signedUrl };
+});
+
+/**
+ * PHOEN-X v12.7.9 - Dépouillement périodique des Liens Vivants programmés.
+ * Vérifie toutes les 15 minutes si des Liens Vivants programmés (status == "pending")
+ * ont atteint leur date de déblocage (scheduledAt <= maintenant).
+ * Passe leur statut à "sent", enregistre sentAt, et notifie le destinataire par FCM et Email.
+ */
+export const processScheduledLivingLinks = onSchedule({
+    schedule: "every 15 minutes",
+    timeZone: "Europe/Paris"
+}, async (event) => {
+    const now = admin.firestore.Timestamp.now();
+    const pendingSnap = await db.collection("livingLinks")
+        .where("status", "==", "pending")
+        .where("scheduledAt", "<=", now)
+        .get();
+
+    if (pendingSnap.empty) {
+        console.log("[processScheduledLivingLinks] Aucun Lien Vivant programmé en attente.");
+        return;
+    }
+
+    console.log(`[processScheduledLivingLinks] ${pendingSnap.size} Lien(s) Vivant(s) à débloquer.`);
+
+    const batch = db.batch();
+    for (const doc of pendingSnap.docs) {
+        batch.update(doc.ref, {
+            status: "sent",
+            sentAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    }
+
+    await batch.commit();
+    console.log(`[processScheduledLivingLinks] Statuts mis à jour à 'sent' pour ${pendingSnap.size} document(s).`);
+
+    // Notifications Push & Email aux destinataires
+    for (const doc of pendingSnap.docs) {
+        try {
+            const data = doc.data();
+            const recipientId = data.recipientId;
+            const creatorId = data.creatorId;
+
+            if (!recipientId) continue;
+
+            // Nom du créateur pour le message
+            let creatorName = "Un proche";
+            if (creatorId) {
+                const creatorDoc = await db.collection("users").doc(creatorId).get();
+                if (creatorDoc.exists) {
+                    creatorName = creatorDoc.data()?.displayName || creatorDoc.data()?.email?.split("@")[0] || "Un proche";
+                }
+            }
+
+            // Document du destinataire pour token FCM & email
+            const recipientDoc = await db.collection("users").doc(recipientId).get();
+            if (recipientDoc.exists) {
+                const recipientData = recipientDoc.data();
+                const fcmToken = recipientData?.fcmToken;
+                const recipientEmail = recipientData?.email;
+
+                // Push FCM
+                if (fcmToken) {
+                    await messaging.send({
+                        token: fcmToken,
+                        notification: {
+                            title: "Nouveau Lien Vivant",
+                            body: `${creatorName} vous a transmis un souvenir.`
+                        }
+                    });
+                    console.log(`[processScheduledLivingLinks] Push FCM envoyé à ${recipientId}`);
+                }
+
+                // Email via déclencheur 'mail'
+                if (recipientEmail) {
+                    await db.collection("mail").add({
+                        to: recipientEmail,
+                        message: {
+                            subject: "Un nouveau Lien Vivant vous attend sur PHOEN-X",
+                            text: `Bonjour,\n\n${creatorName} vous a transmis un souvenir via PHOEN-X. Ouvrez l'application pour le découvrir.\n\nL'équipe PHOEN-X`
+                        }
+                    });
+                    console.log(`[processScheduledLivingLinks] Email programmé pour ${recipientEmail}`);
+                }
+            }
+        } catch (err: any) {
+            console.error(`[processScheduledLivingLinks] Erreur notification pour document ${doc.id}:`, err);
+        }
+    }
 });

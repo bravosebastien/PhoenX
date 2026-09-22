@@ -187,6 +187,7 @@ class MainViewModel @Inject constructor(
                     
                     val aesKey = userDoc.getString("encryptionKey")
                     if (aesKey != null) ensureLegacyKey(userId, aesKey)
+                    ensurePublicKey(userId)
 
                     val syncRequest = OneTimeWorkRequestBuilder<InitialSyncWorker>().build()
                     WorkManager.getInstance(context).enqueue(syncRequest)
@@ -356,6 +357,21 @@ class MainViewModel @Inject constructor(
                     legacyKeyRef.set(mapOf("key" to currentKeyBase64)).await()
                 }
             } catch (_: Exception) {}
+        }
+    }
+
+    private fun ensurePublicKey(userId: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val pubKeyRef = db.collection("publicKeys").document(userId)
+                if (!pubKeyRef.get().await().exists()) {
+                    val rsaPublicKeyBase64 = encryptionManager.ensureRsaKeyPairExists()
+                    pubKeyRef.set(mapOf("publicKey" to rsaPublicKeyBase64)).await()
+                    android.util.Log.d("MainViewModel", "Auto-repaired publicKeys/$userId")
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("MainViewModel", "Error auto-repairing publicKey for $userId: ${e.message}")
+            }
         }
     }
 

@@ -1157,7 +1157,7 @@
 
     <!-- Pact / Miroir à Deux Batch -->
     <string name="pact_screen_title">المرآة الثنائية</string>
-    <string name="pact_info_title">الميثاق</string>
+    <string name="pact_info_title">المرآة الثنائية</string>
     <string name="pact_info_content">الميثاق هو رسالة بصوتين تقوم بتأليفها مع شخص تختاره.</string>
     <string name="pact_list_header">انعكاساتكما المتقاطعة</string>
     <string name="pact_card_subtitle">مرآة مع %1$s</string>

@@ -1166,7 +1166,7 @@
 
     <!-- Pact / Miroir à Deux Batch -->
     <string name="pact_screen_title">双人之镜</string>
-    <string name="pact_info_title">契约</string>
+    <string name="pact_info_title">双人之镜</string>
     <string name="pact_info_content">"契约"是你与选定的某个人共同书写的双声信息——各自独立、私密地写下自己的版本。在双方都点击"我已完成我的版本"之前，内容不会向任何人揭示，包括你们两人自己。你们也可以各自选择，这份契约是要充实你的生命之书，还是只作为你们两人之间的私密交流。</string>
     <string name="pact_list_header">你的交织之镜</string>
     <string name="pact_card_subtitle">与 %1$s 的镜像</string>

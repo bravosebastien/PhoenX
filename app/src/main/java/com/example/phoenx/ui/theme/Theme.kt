@@ -50,6 +50,21 @@ private val DarkColorScheme = darkColorScheme(
     onError = BackgroundPrimary
 )
 
+private val LightColorScheme = androidx.compose.material3.lightColorScheme(
+    primary = AccentPrimary,
+    onPrimary = Color.White,
+    secondary = AccentSecondary,
+    onSecondary = Color.White,
+    background = Color(0xFFFFFDF5),
+    onBackground = Color(0xFF1A1A1A),
+    surface = Color(0xFFFFFDF5),
+    onSurface = Color(0xFF1A1A1A),
+    surfaceVariant = Color(0xFFF5F0E6),
+    onSurfaceVariant = Color(0xFF4A4540),
+    error = Error,
+    onError = Color.White
+)
+
 @Composable
 fun PhoenXTheme(
     accentColor: Color = AccentPrimary,
@@ -68,7 +83,8 @@ fun PhoenXTheme(
         accentColor = accentColor
     )
 
-    val colorScheme = DarkColorScheme.copy(
+    val baseColorScheme = if (isLight) LightColorScheme else DarkColorScheme
+    val colorScheme = baseColorScheme.copy(
         primary = accentColor,
         background = backgroundColor,
         onBackground = contentColor,

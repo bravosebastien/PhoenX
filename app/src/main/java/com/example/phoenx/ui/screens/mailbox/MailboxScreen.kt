@@ -35,11 +35,17 @@ import java.util.Locale
 @Composable
 fun MailboxScreen(
     onNavigateBack: () -> Unit,
+    targetCreatorId: String? = null,
     viewModel: MailboxViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+    val isReadOnly = targetCreatorId != null && targetCreatorId != com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+
+    LaunchedEffect(targetCreatorId) {
+        viewModel.setTargetCreator(targetCreatorId)
+    }
 
     Scaffold(
         containerColor = theme.backgroundColor,
@@ -86,6 +92,7 @@ fun MailboxScreen(
                         ScheduledItemCard(
                             item = item,
                             theme = theme,
+                            isReadOnly = isReadOnly,
                             onDelete = { viewModel.deleteItem(item) }
                         )
                     }
@@ -96,7 +103,7 @@ fun MailboxScreen(
 }
 
 @Composable
-fun ScheduledItemCard(item: OfflineEntry, theme: AppThemeState, onDelete: () -> Unit) {
+fun ScheduledItemCard(item: OfflineEntry, theme: AppThemeState, isReadOnly: Boolean = false, onDelete: () -> Unit) {
     val locale = java.util.Locale.getDefault()
     val dateText = item.scheduledTimestamp?.let {
         DateTimeFormatter.ofPattern("dd MMMM yyyy", locale)
@@ -132,8 +139,10 @@ fun ScheduledItemCard(item: OfflineEntry, theme: AppThemeState, onDelete: () -> 
                     color = theme.contentColor
                 )
             }
-            IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, null, tint = theme.contentColor.copy(alpha = 0.3f))
+            if (!isReadOnly) {
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, null, tint = theme.contentColor.copy(alpha = 0.3f))
+                }
             }
         }
     }

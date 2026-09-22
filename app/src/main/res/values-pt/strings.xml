@@ -1166,7 +1166,7 @@
 
     <!-- Pact / Miroir à Deux Batch -->
     <string name="pact_screen_title">O Espelho a Dois</string>
-    <string name="pact_info_title">O Pacto</string>
+    <string name="pact_info_title">O Espelho a Dois</string>
     <string name="pact_info_content">O Pacto é uma mensagem a duas vozes que você compõe com uma pessoa escolhida.</string>
     <string name="pact_list_header">Seus reflexos cruzados</string>
     <string name="pact_card_subtitle">Espelho com %1$s</string>

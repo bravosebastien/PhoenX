@@ -103,14 +103,9 @@ fun HeirHeritageScreen(
         viewModel.setTargetCreator(creatorId)
     }
 
-    TransmissionTheme(
-        backgroundId = ambiance.backgroundId,
-        fontId = ambiance.fontId
-    ) {
-        val theme = LocalAppTheme.current
-        Scaffold(
-            containerColor = theme.backgroundColor,
-            topBar = {
+    Scaffold(
+        containerColor = theme.backgroundColor,
+        topBar = {
                 TopAppBar(
                     title = {
                         Text(
@@ -293,7 +288,7 @@ fun HeirHeritageScreen(
                             CasketItem(stringResource(R.string.heir_heritage_special_audios_title), Icons.Default.MusicNote) { navController.navigate(Screen.RecipientDiscotheque.createRoute(creatorId)) },
                             CasketItem(stringResource(R.string.questions_title), Icons.Default.QuestionAnswer) { navController.navigate(Screen.Questions.createRoute(creatorId)) },
                             CasketItem(stringResource(R.string.library_mes_classements), Icons.Default.FormatListNumbered) { navController.navigate(Screen.Rankings.createRoute(creatorId)) },
-                            CasketItem(stringResource(R.string.library_capsule_temporelle), Icons.Default.MailOutline) { navController.navigate("lettres") }
+                            CasketItem(stringResource(R.string.library_capsule_temporelle), Icons.Default.MailOutline) { navController.navigate(Screen.RecipientMailbox.createRoute(creatorId)) }
                         )
 
                         // Si Miroir révélé, on l'ajoute
@@ -369,7 +364,6 @@ fun HeirHeritageScreen(
             }
         }
     }
-}
 
 @Composable
 fun HeritageCasket(

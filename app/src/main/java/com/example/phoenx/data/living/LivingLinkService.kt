@@ -37,8 +37,8 @@ class LivingLinkService @Inject constructor(
         val entry = offlineEntryDao.getEntryById(entryId).firstOrNull() ?: throw Exception("Souvenir introuvable")
         val originalText = encryptionManager.decryptText(entry.encryptedPayload)
         
-        // 2. Récupération de la clé publique du destinataire
-        val recipientDoc = db.collection("users").document(recipientUid).get().await()
+        // 2. Récupération de la clé publique du destinataire (Collection isolée v12.7.9)
+        val recipientDoc = db.collection("publicKeys").document(recipientUid).get().await()
         val publicKeyBase64 = recipientDoc.getString("publicKey") ?: throw Exception("Destinataire incompatible (clé manquante)")
         val publicKeyBytes = android.util.Base64.decode(publicKeyBase64, android.util.Base64.DEFAULT)
 

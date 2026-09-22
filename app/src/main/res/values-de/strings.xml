@@ -1166,7 +1166,7 @@
 
     <!-- Pact / Miroir à Deux Batch -->
     <string name="pact_screen_title">Der Spiegel zu zweit</string>
-    <string name="pact_info_title">Der Pakt</string>
+    <string name="pact_info_title">Der Spiegel zu zweit</string>
     <string name="pact_info_content">Der Pakt ist eine zweistimmige Nachricht, die du mit einer gewählten Person verfasst.</string>
     <string name="pact_list_header">Deine gekreuzten Reflexionen</string>
     <string name="pact_card_subtitle">Spiegel mit %1$s</string>

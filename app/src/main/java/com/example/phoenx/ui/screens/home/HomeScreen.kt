@@ -99,6 +99,7 @@ fun HomeScreen(
     onNavigateToStepByStep: () -> Unit, // v9.4.26
     onNavigateToNotificationContacts: () -> Unit,
     onNavigateToAccessibility: () -> Unit,
+    onNavigateToPact: () -> Unit = {},
     onNavigateToCube: (String) -> Unit,
     onAcceptInvite: (String) -> Unit,
     onBecomeCreator: () -> Unit,
@@ -511,14 +512,24 @@ fun HomeScreen(
                             .padding(horizontal = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(7.dp)
                     ) {
-                        /* Désactivé v9.2.8 : Remplacé par la Terre Animée plus haut
                         QuickActionCard(
-                            icon = Icons.Outlined.Public,
-                            name = "Mappemonde",
+                            icon = Icons.Outlined.Handshake,
+                            name = stringResource(R.string.library_miroir_deux),
                             modifier = Modifier.weight(1f),
-                            onClick = onNavigateToMap
+                            onClick = onNavigateToPact
                         )
-                        */
+                        QuickActionCard(
+                            icon = Icons.Outlined.HelpOutline,
+                            name = stringResource(R.string.questions_title),
+                            modifier = Modifier.weight(1f),
+                            onClick = onNavigateToQuestions
+                        )
+                        QuickActionCard(
+                            icon = Icons.Outlined.MailOutline,
+                            name = stringResource(R.string.library_capsule_temporelle),
+                            modifier = Modifier.weight(1f),
+                            onClick = onNavigateToLetters
+                        )
                     }
 
                     // PRÉSENCE (Déplacé ou gardé en bas)

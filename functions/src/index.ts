@@ -57,7 +57,8 @@ import {
 } from "./entries";
 
 import {
-    getLivingLinkFileUrl
+    getLivingLinkFileUrl,
+    processScheduledLivingLinks
 } from "./living_links";
 
 import {
@@ -132,6 +133,7 @@ export {
     getInheritedFileUrl,
     getEntryComplements,
     getLivingLinkFileUrl,
+    processScheduledLivingLinks,
 
     // Protocol
     checkCreatorSilence,

@@ -1166,7 +1166,7 @@
 
     <!-- Pact / Miroir à Deux Batch -->
     <string name="pact_screen_title">Espejo para Dos</string>
-    <string name="pact_info_title">El Pacto</string>
+    <string name="pact_info_title">Espejo para Dos</string>
     <string name="pact_info_content">El Pacto es un mensaje a dos voces que compones con una persona elegida — cada uno escribe su versión por su lado, con total confidencialidad. El contenido no se revela a nadie, ni siquiera a vosotros dos, hasta que ambos hayan pulsado en \'He terminado mi versión\'. También podéis elegir, cada uno por vuestro lado, si este Pacto debe alimentar vuestro Libro de Mi Vida o seguir siendo un intercambio privado entre vosotros dos.</string>
     <string name="pact_list_header">Vuestros reflejos cruzados</string>
     <string name="pact_card_subtitle">Espejo con %1$s</string>

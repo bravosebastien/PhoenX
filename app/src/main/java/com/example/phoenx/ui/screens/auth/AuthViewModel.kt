@@ -147,6 +147,16 @@ class AuthViewModel @Inject constructor(
                 db.collection("users").document(user.uid)
                     .set(userProfile, com.google.firebase.firestore.SetOptions.merge())
                     .await()
+
+                // Écriture de la clé publique RSA dans la collection publique isolée (v12.7.9)
+                try {
+                    val rsaPublicKeyBase64 = encryptionManager.ensureRsaKeyPairExists()
+                    db.collection("publicKeys").document(user.uid)
+                        .set(mapOf("publicKey" to rsaPublicKeyBase64))
+                        .await()
+                } catch (e: Exception) {
+                    android.util.Log.e("AuthViewModel", "Erreur écriture publicKey", e)
+                }
                 
                 // Activer la clé immédiatement pour la session en cours
                 encryptionManager.setSessionKey(newKey)
@@ -201,6 +211,15 @@ class AuthViewModel @Inject constructor(
                 db.collection("users").document(user.uid)
                     .set(userProfile, com.google.firebase.firestore.SetOptions.merge())
                     .await()
+
+                try {
+                    val rsaPublicKeyBase64 = encryptionManager.ensureRsaKeyPairExists()
+                    db.collection("publicKeys").document(user.uid)
+                        .set(mapOf("publicKey" to rsaPublicKeyBase64))
+                        .await()
+                } catch (e: Exception) {
+                    android.util.Log.e("AuthViewModel", "Erreur écriture publicKey guest", e)
+                }
                 
                 // Activer la clé immédiatement
                 encryptionManager.setSessionKey(newKey)

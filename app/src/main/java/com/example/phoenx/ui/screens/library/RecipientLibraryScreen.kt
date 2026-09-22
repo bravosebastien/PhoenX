@@ -83,22 +83,16 @@ fun RecipientLibraryScreen(
     
     val bookTitle by mediaViewModel.bookTitle.collectAsState()
     val totalSouvenirs = rootLibrary.size + rootVideo.size + rootDisco.size + rootArchive.size
-    val ambiance by mediaViewModel.ambiance.collectAsState()
     val compartmentsConfig by viewModel.compartmentsConfig.collectAsState()
 
-    TransmissionTheme(
-        backgroundId = ambiance.backgroundId,
-        fontId = ambiance.fontId
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(theme.backgroundColor)
+            .statusBarsPadding()
+            .navigationBarsPadding()
+            .verticalScroll(rememberScrollState())
     ) {
-        val theme = LocalAppTheme.current
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(theme.backgroundColor)
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
-        ) {
         // HEADER
         Row(
             modifier = Modifier
@@ -287,7 +281,8 @@ fun RecipientLibraryScreen(
                     */
 
                     CompactGridItem(stringResource(R.string.library_capsule_temporelle), Icons.Outlined.MailOutline, { 
-                        navController.navigate("lettres") 
+                        val route = if (isCreatorMode) "lettres" else Screen.RecipientMailbox.createRoute(targetCreatorId)
+                        navController.navigate(route)
                     }, theme, itemModifier, mediaUrl = compartmentsConfig.capsuleTemporelleUrl)
                 }
 
@@ -340,7 +335,6 @@ fun RecipientLibraryScreen(
         
         Spacer(modifier = Modifier.height(48.dp))
     }
-}
 }
 
 @Composable
