@@ -58,9 +58,8 @@ fun GenealogyCard(
         Card(
             onClick = onClick,
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .width(180.dp) // Identique au livre
-                .aspectRatio(0.72f) // Identique au livre
+                .fillMaxWidth()
+                .height(180.dp)
                 .shadow(
                     elevation = 14.dp, // Aligné sur le livre
                     shape = RoundedCornerShape(14.dp),

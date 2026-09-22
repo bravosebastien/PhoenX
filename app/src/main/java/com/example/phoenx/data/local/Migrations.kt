@@ -795,4 +795,25 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE offline_entries ADD COLUMN enigmaAnswerPlain TEXT")
         }
     }
+
+    /**
+     * MIGRATION_64_65 — Médias par rang dans Mes Classements (v12.8)
+     */
+    val MIGRATION_64_65 = object : Migration(64, 65) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("""
+                CREATE TABLE IF NOT EXISTS `rank_media` (
+                    `id` TEXT NOT NULL,
+                    `rankingId` TEXT NOT NULL,
+                    `rankIndex` INTEGER NOT NULL,
+                    `mediaPath` TEXT NOT NULL,
+                    `mediaType` TEXT NOT NULL,
+                    `thumbnailPath` TEXT,
+                    `createdAt` INTEGER NOT NULL,
+                    `syncStatus` TEXT NOT NULL,
+                    PRIMARY KEY(`id`)
+                )
+            """.trimIndent())
+        }
+    }
 }

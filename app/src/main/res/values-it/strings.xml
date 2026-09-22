@@ -1863,6 +1863,12 @@
     <string name="ranking_detail_dialog_item_button_save">Salva</string>
     <string name="ranking_detail_dialog_item_button_cancel">Annulla</string>
     <string name="ranking_detail_row_empty">Posizione libera — tocca per riempire</string>
+    <string name="ranking_media_onboarding_title">Foto e Video dei Ranghi</string>
+    <string name="ranking_media_onboarding_point1">Puoi illustrare ogni rango delle tue classifiche con una foto o un video dalla tua galleria.</string>
+    <string name="ranking_media_onboarding_point2">I media aggiunti ai ranghi saranno visibili a tutti i tuoi Destinatari una volta attivata la tua eredità, senza restrizioni.</string>
+    <string name="ranking_gallery_title">GALLERIA DEI RANGHI</string>
+    <string name="ranking_dialog_add_media">Aggiungi/Cambia foto o video</string>
+    <string name="ranking_dialog_remove_media">Rimuovi media dal rango</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">Musica</string>

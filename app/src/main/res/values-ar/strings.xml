@@ -1846,6 +1846,12 @@
     <string name="ranking_detail_dialog_item_button_save">حفظ</string>
     <string name="ranking_detail_dialog_item_button_cancel">إلغاء</string>
     <string name="ranking_detail_row_empty">مركز شاغر — اضغط للملء</string>
+    <string name="ranking_media_onboarding_title">صور وفيديوهات المراتب</string>
+    <string name="ranking_media_onboarding_point1">يمكنك توثيق كل مرتبة في تصنيفاتك بصورة أو فيديو من معرض هاتفك.</string>
+    <string name="ranking_media_onboarding_point2">الوسائط المضافة للمراتب ستكون مرئية لجميع مستلميك بمجرد تفعيل إرثك، دون قيود.</string>
+    <string name="ranking_gallery_title">معرض المراتب</string>
+    <string name="ranking_dialog_add_media">إضافة/تغيير صورة أو فيديو</string>
+    <string name="ranking_dialog_remove_media">حذف وسائط المرتبة</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">موسيقى</string>

@@ -1863,6 +1863,12 @@
     <string name="ranking_detail_dialog_item_button_save">Save</string>
     <string name="ranking_detail_dialog_item_button_cancel">Cancel</string>
     <string name="ranking_detail_row_empty">Free rank — tap to fill</string>
+    <string name="ranking_media_onboarding_title">Rank Photos and Videos</string>
+    <string name="ranking_media_onboarding_point1">You can illustrate each rank of your rankings with a photo or video from your gallery.</string>
+    <string name="ranking_media_onboarding_point2">Media added to ranks will be visible to all your Recipients once your legacy is activated, without restriction.</string>
+    <string name="ranking_gallery_title">RANKS GALLERY</string>
+    <string name="ranking_dialog_add_media">Add/Change photo or video</string>
+    <string name="ranking_dialog_remove_media">Remove rank media</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">Music</string>

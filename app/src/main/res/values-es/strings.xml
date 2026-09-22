@@ -1863,6 +1863,12 @@
     <string name="ranking_detail_dialog_item_button_save">Guardar</string>
     <string name="ranking_detail_dialog_item_button_cancel">Cancelar</string>
     <string name="ranking_detail_row_empty">Rango libre — pulsa para completar</string>
+    <string name="ranking_media_onboarding_title">Fotos y Vídeos de los Rangos</string>
+    <string name="ranking_media_onboarding_point1">Puedes ilustrar cada rango de tus clasificaciones con una foto o vídeo de tu galería.</string>
+    <string name="ranking_media_onboarding_point2">Los archivos multimedia añadidos a los rangos serán visibles para todos tus Destinatarios una vez activado tu legado, sin restricción.</string>
+    <string name="ranking_gallery_title">GALERÍA DE RANGOS</string>
+    <string name="ranking_dialog_add_media">Añadir/Cambiar foto o vídeo</string>
+    <string name="ranking_dialog_remove_media">Eliminar archivo del rango</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">Música</string>

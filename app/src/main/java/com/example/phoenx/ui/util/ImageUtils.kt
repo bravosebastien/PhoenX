@@ -68,6 +68,25 @@ object ImageUtils {
         }
     }
 
+    fun copyUriToTempFile(context: Context, uri: Uri, prefix: String = "PHX_FILE_"): File? {
+        return try {
+            val extension = when {
+                context.contentResolver.getType(uri)?.startsWith("video") == true -> "mp4"
+                else -> "jpg"
+            }
+            val tempFile = File(context.cacheDir, "${prefix}${UUID.randomUUID()}.$extension")
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(tempFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            tempFile
+        } catch (e: Exception) {
+            android.util.Log.e("ImageUtils", "Erreur copie fichier temp", e)
+            null
+        }
+    }
+
     private fun getRotation(context: Context, uri: Uri): Int {
         return try {
             context.contentResolver.openInputStream(uri)?.use { input ->

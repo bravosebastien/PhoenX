@@ -1863,6 +1863,12 @@
     <string name="ranking_detail_dialog_item_button_save">Salvar</string>
     <string name="ranking_detail_dialog_item_button_cancel">Cancelar</string>
     <string name="ranking_detail_row_empty">Vazio — toque para preencher</string>
+    <string name="ranking_media_onboarding_title">Fotos e Vídeos das Posições</string>
+    <string name="ranking_media_onboarding_point1">Você pode ilustrar cada posição dos seus rankings com uma foto ou vídeo da sua galeria.</string>
+    <string name="ranking_media_onboarding_point2">As mídias adicionadas às posições serão visíveis para todos os seus Destinatários após a ativação do legado, sem restrições.</string>
+    <string name="ranking_gallery_title">GALERIA DE POSIÇÕES</string>
+    <string name="ranking_dialog_add_media">Adicionar/Alterar foto ou vídeo</string>
+    <string name="ranking_dialog_remove_media">Remover mídia da posição</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">Música</string>

@@ -1863,6 +1863,12 @@
     <string name="ranking_detail_dialog_item_button_save">Speichern</string>
     <string name="ranking_detail_dialog_item_button_cancel">Abbrechen</string>
     <string name="ranking_detail_row_empty">Leer — füllen</string>
+    <string name="ranking_media_onboarding_title">Rang-Fotos und Videos</string>
+    <string name="ranking_media_onboarding_point1">Du kannst jeden Rang deiner Ranglisten mit einem Foto oder Video aus deiner Galerie bebildern.</string>
+    <string name="ranking_media_onboarding_point2">Medien, die den Rängen hinzugefügt werden, sind für alle deine Empfänger sichtbar, sobald dein Erbe aktiviert ist, ohne Einschränkung.</string>
+    <string name="ranking_gallery_title">RANG-GALERIE</string>
+    <string name="ranking_dialog_add_media">Foto oder Video hinzufügen/ändern</string>
+    <string name="ranking_dialog_remove_media">Rang-Medium entfernen</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">Musik</string>

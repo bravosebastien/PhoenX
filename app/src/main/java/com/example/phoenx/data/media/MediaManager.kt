@@ -62,6 +62,7 @@ class MediaManager @Inject constructor(
                 if (field != null) params["field"] = field
                 if (personId != null) {
                     if (docType == "personalityMedia") params["personalityId"] = personId
+                    else if (docType == "rankMedia") params["rankingId"] = personId
                     else params["personId"] = personId
                 }
 
@@ -172,6 +173,7 @@ class MediaManager @Inject constructor(
                 if (field != null) params["field"] = field
                 if (personId != null) {
                     if (docType == "personalityMedia") params["personalityId"] = personId
+                    else if (docType == "rankMedia") params["rankingId"] = personId
                     else params["personId"] = personId
                 }
 
@@ -230,6 +232,40 @@ class MediaManager @Inject constructor(
             .child(userId)
             .child("cameos")
             .child("$personId.jpg")
+
+        storageRef.putFile(android.net.Uri.fromFile(localFile)).await()
+        return storageRef.path.removePrefix("/")
+    }
+
+    /**
+     * Uploade une photo ou vidéo de rang pour un classement vers Firebase Storage.
+     * Retourne le CHEMIN Storage (v12.8).
+     */
+    suspend fun uploadRankMedia(userId: String, rankingId: String, rankIndex: Int, localFile: File, isVideo: Boolean): String {
+        val ext = if (isVideo) "mp4" else "jpg"
+        val storageRef = storage.reference
+            .child("users")
+            .child(userId)
+            .child("rankings")
+            .child(rankingId)
+            .child("rankMedia")
+            .child("rank_${rankIndex}_${java.util.UUID.randomUUID()}.$ext")
+
+        storageRef.putFile(android.net.Uri.fromFile(localFile)).await()
+        return storageRef.path.removePrefix("/")
+    }
+
+    /**
+     * Uploade la vignette d'une vidéo de rang vers Firebase Storage (v12.8).
+     */
+    suspend fun uploadRankMediaThumbnail(userId: String, rankingId: String, rankIndex: Int, localFile: File): String {
+        val storageRef = storage.reference
+            .child("users")
+            .child(userId)
+            .child("rankings")
+            .child(rankingId)
+            .child("rankMedia")
+            .child("thumb_${rankIndex}_${java.util.UUID.randomUUID()}.jpg")
 
         storageRef.putFile(android.net.Uri.fromFile(localFile)).await()
         return storageRef.path.removePrefix("/")

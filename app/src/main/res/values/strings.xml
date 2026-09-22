@@ -1863,6 +1863,12 @@
     <string name="ranking_detail_dialog_item_button_save">Enregistrer</string>
     <string name="ranking_detail_dialog_item_button_cancel">Annuler</string>
     <string name="ranking_detail_row_empty">Rang libre — appuyez pour remplir</string>
+    <string name="ranking_media_onboarding_title">Photos et Vidéos des Rangs</string>
+    <string name="ranking_media_onboarding_point1">Vous pouvez illustrer chaque rang de vos classements avec une photo ou vidéo de votre galerie.</string>
+    <string name="ranking_media_onboarding_point2">Les médias ajoutés aux rangs seront visibles par tous vos Destinataires une fois votre héritage activé, sans restriction.</string>
+    <string name="ranking_gallery_title">GALERIE DES RANGS</string>
+    <string name="ranking_dialog_add_media">Ajouter/Changer photo ou vidéo</string>
+    <string name="ranking_dialog_remove_media">Supprimer le média du rang</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">Musique</string>

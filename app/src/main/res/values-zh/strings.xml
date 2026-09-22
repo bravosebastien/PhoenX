@@ -1863,6 +1863,12 @@
     <string name="ranking_detail_dialog_item_button_save">保存</string>
     <string name="ranking_detail_dialog_item_button_cancel">取消</string>
     <string name="ranking_detail_row_empty">空缺名次——点击填写</string>
+    <string name="ranking_media_onboarding_title">排名照片与视频</string>
+    <string name="ranking_media_onboarding_point1">您可以从相册选择照片或视频来图解您排名的每一个位置。</string>
+    <string name="ranking_media_onboarding_point2">遗产激活后，添加至排名的媒体将对所有接收者可见，不受限制。</string>
+    <string name="ranking_gallery_title">排名图库</string>
+    <string name="ranking_dialog_add_media">添加/更换照片或视频</string>
+    <string name="ranking_dialog_remove_media">删除位置媒体</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">音乐</string>
