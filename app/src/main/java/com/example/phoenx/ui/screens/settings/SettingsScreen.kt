@@ -140,8 +140,8 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Vidéo de mon héritage",
-                subtitle = "Une vidéo unique, visible par tous vos destinataires",
+                title = stringResource(R.string.settings_item_legacy_video_title),
+                subtitle = stringResource(R.string.settings_item_legacy_video_subtitle),
                 icon = Icons.Default.VideoCall,
                 theme = theme,
                 onClick = onNavigateToLegacyVideo
@@ -239,8 +239,8 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             SettingsItem(
-                title = "Language",
-                subtitle = "Français, English, Español",
+                title = stringResource(R.string.settings_item_language_title),
+                subtitle = stringResource(R.string.settings_item_language_subtitle),
                 icon = Icons.Default.Language,
                 theme = theme,
                 onClick = onNavigateToLanguage
@@ -266,7 +266,7 @@ fun SettingsScreen(
 
             // v12.7 : Nouvelle organisation par bandeaux dépliables pour la couleur libre
             ExpandablePersonalizationBanner(
-                title = "Couleur icônes et bordures",
+                title = stringResource(R.string.settings_item_accent_color_title),
                 isExpanded = showAccentPicker,
                 onToggle = { showAccentPicker = !showAccentPicker },
                 theme = theme,
@@ -282,12 +282,13 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             ExpandablePersonalizationBanner(
-                title = "Couleur fond d\'écran",
+                title = stringResource(R.string.settings_item_background_color_title),
                 isExpanded = showBackgroundPicker,
                 onToggle = { showBackgroundPicker = !showBackgroundPicker },
                 theme = theme,
                 accent = accent
-            ) {
+            )
+{
                 val currentBgColor by themeViewModel.globalBackgroundColor.collectAsState()
                 HsvColorPicker(
                     initialColor = currentBgColor,

@@ -512,6 +512,11 @@
     <string name="heir_heritage_ask_question_desc">Hacer una pregunta</string>
     <string name="heir_heritage_remaining_questions">%1$d rest.</string>
     <string name="heir_heritage_souvenirs_destined">se le han destinado %1$d recuerdos</string>
+    <string name="heir_heritage_main_map">Mapa mundial</string>
+    <string name="heir_heritage_main_tree">Genealogía</string>
+    <string name="heir_heritage_main_encounters">Encuentros</string>
+    <string name="heir_heritage_book_default_title">Mi Libro</string>
+    <string name="heir_heritage_special_mirror_title">Espejo</string>
     <string name="heir_heritage_special_book_fallback">Libro</string>
     <string name="heir_heritage_special_book_subtitle_sealed">%1$s ha decidido compartir contigo el libro de su vida. Visible en su momento.</string>
     <string name="heir_heritage_special_book_subtitle_activated">Relato de vida</string>
@@ -679,6 +684,12 @@
     <string name="settings_section_account">MI CUENTA</string>
     <string name="settings_item_profile_title">Mi Perfil</string>
     <string name="settings_item_profile_subtitle">Gestiona tu nombre y tus datos</string>
+    <string name="settings_item_legacy_video_title">Vídeo de mi legado</string>
+    <string name="settings_item_legacy_video_subtitle">Un vídeo único, visible para todos tus destinatarios</string>
+    <string name="settings_item_language_title">Idioma</string>
+    <string name="settings_item_language_subtitle">Français, English, Español...</string>
+    <string name="settings_item_accent_color_title">Color de iconos y bordes</string>
+    <string name="settings_item_background_color_title">Color de fondo de pantalla</string>
     <string name="settings_section_security">SEGURIDAD Y TRANSMISIÓN</string>
     <string name="settings_item_protocol_title">Transmisión y Protocolo</string>
     <string name="settings_item_protocol_subtitle">Gestiona tu depositario y tus plazos</string>
@@ -920,6 +931,10 @@
     <string name="step_capture_location_title">EL LUGAR</string>
     <string name="step_capture_location_desc">¿Dónde ocurrió este recuerdo? Puedes fijarlo en tu Mappemonde.</string>
     <string name="step_capture_location_choose">Elegir un lugar en el mapa</string>
+    <string name="step_capture_location_or">o</string>
+    <string name="step_capture_location_use_gps">Usar mi ubicación actual</string>
+    <string name="step_capture_location_locating">Localizando…</string>
+    <string name="step_capture_location_gps_unavailable">No se puede obtener tu ubicación. Asegúrate de que la localización esté activada en tu teléfono.</string>
     <string name="step_capture_location_remove">Retirar el lugar</string>
     <string name="step_capture_spark_title">LA CHISPA</string>
     <string name="step_capture_spark_desc">Dale un nombre o un sujeto corto a este recuerdo para capturar el instante.</string>
@@ -1693,6 +1708,9 @@
     <string name="character_placeholder_species">Ej: Golden Retriever, Gato común</string>
     <string name="character_button_delete">Eliminar este personaje</string>
     <string name="character_delete_dialog_title">¿Eliminar %1$s?</string>
+    <string name="character_delete_linked_title">Eliminación debe hacerse en otro lugar</string>
+    <string name="character_delete_linked_text">Esta persona también forma parte de tu Árbol Genealógico y/o de tus Encuentros. Para eliminarla, ve directamente a esa pantalla: podrás elegir precisamente qué quitar sin romper el resto de tu historia.</string>
+    <string name="character_delete_linked_ok">Entendido</string>
     <string name="character_delete_dialog_text">Este personaje aparece en %1$d recuerdos — eliminarlo lo retirará de estos relatos, sin eliminar los recuerdos mismos.</string>
     <string name="character_delete_confirm">Eliminar definitivamente</string>
     <string name="character_delete_cancel">Cancelar</string>

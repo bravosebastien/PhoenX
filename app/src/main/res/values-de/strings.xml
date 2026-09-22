@@ -512,6 +512,11 @@
     <string name="heir_heritage_ask_question_desc">Eine Frage stellen</string>
     <string name="heir_heritage_remaining_questions">%1$d verbl.</string>
     <string name="heir_heritage_souvenirs_destined">%1$d Erinnerungen sind für dich bestimmt</string>
+    <string name="heir_heritage_main_map">Weltkarte</string>
+    <string name="heir_heritage_main_tree">Stammbaum</string>
+    <string name="heir_heritage_main_encounters">Begegnungen</string>
+    <string name="heir_heritage_book_default_title">Mein Buch</string>
+    <string name="heir_heritage_special_mirror_title">Spiegel</string>
     <string name="heir_heritage_special_book_fallback">Buch</string>
     <string name="heir_heritage_special_book_subtitle_sealed">%1$s hat beschlossen, das Buch seines/ihres Lebens mit dir zu teilen.</string>
     <string name="heir_heritage_special_book_subtitle_activated">Lebenserzählung</string>
@@ -679,6 +684,12 @@
     <string name="settings_section_account">MEIN KONTO</string>
     <string name="settings_item_profile_title">Mein Profil</string>
     <string name="settings_item_profile_subtitle">Name und Info verwalten</string>
+    <string name="settings_item_legacy_video_title">Video meines Erbes</string>
+    <string name="settings_item_legacy_video_subtitle">Ein einzelnes Video, sichtbar für alle deine Empfänger</string>
+    <string name="settings_item_language_title">Sprache</string>
+    <string name="settings_item_language_subtitle">Français, English, Español...</string>
+    <string name="settings_item_accent_color_title">Farbe für Symbole und Ränder</string>
+    <string name="settings_item_background_color_title">Hintergrundfarbe</string>
     <string name="settings_section_security">SICHERHEIT &amp; ÜBERTRAGUNG</string>
     <string name="settings_item_protocol_title">Übertragung &amp; Protokoll</string>
     <string name="settings_item_protocol_subtitle">Treuhänder und Fristen verwalten</string>
@@ -920,6 +931,10 @@
     <string name="step_capture_location_title">DER ORT</string>
     <string name="step_capture_location_desc">Wo fand diese Erinnerung statt?</string>
     <string name="step_capture_location_choose">Einen Ort auf der Karte wählen</string>
+    <string name="step_capture_location_or">oder</string>
+    <string name="step_capture_location_use_gps">Meinen aktuellen Standort verwenden</string>
+    <string name="step_capture_location_locating">Standort wird ermittelt…</string>
+    <string name="step_capture_location_gps_unavailable">Dein Standort konnte nicht ermittelt werden. Überprüfe, ob die Standortdienste auf deinem Telefon aktiviert sind.</string>
     <string name="step_capture_location_remove">Ort entfernen</string>
     <string name="step_capture_spark_title">DER FUNKE</string>
     <string name="step_capture_spark_desc">Gib dieser Erinnerung einen Namen.</string>
@@ -1235,6 +1250,11 @@
 
     <!-- Detective / Coffre-Fort Batch -->
     <string name="detective_screen_title">Der Tresor</string>
+    <string name="enigma_form_info_title">Versiegelte Erinnerung</string>
+    <string name="enigma_form_info_point1">Es ist eine normale Erinnerung (Text, Foto oder Audio), der du ein kleines Rätsel hinzufügst.</string>
+    <string name="enigma_form_info_point2">Dein Angehöriger sieht weder Titel noch Inhalt, bis er die richtige Antwort auf deine Frage gefunden hat.</string>
+    <string name="enigma_form_info_point3">Du kannst einen Hinweis hinzufügen, der erst nach mehreren fehlgeschlagenen Versuchen erscheint.</string>
+    <string name="enigma_form_info_point4">Die Erinnerung kann sich nach einiger Zeit von selbst freischalten — außer du aktivierst das **Ultimative Geheimnis**, das sich niemals automatisch freischaltet.</string>
     <string name="detective_onboarding_title">Der Tresor</string>
     <string-array name="detective_onboarding_points">
         <item>Verstecke einen Inhalt hinter einer geheimen Frage.</item>
@@ -1688,6 +1708,9 @@
     <string name="character_placeholder_species">Bsp: Golden Retriever</string>
     <string name="character_button_delete">Charakter löschen</string>
     <string name="character_delete_dialog_title">%1$s löschen?</string>
+    <string name="character_delete_linked_title">Löschung muss an anderer Stelle erfolgen</string>
+    <string name="character_delete_linked_text">Diese Person ist auch Teil deines Stammbaums und/oder deiner Begegnungen. Um sie zu löschen, gehe direkt zu diesem Bildschirm: Dort kannst du genau auswählen, was entfernt werden soll, ohne den Rest deiner Geschichte zu beeinträchtigen.</string>
+    <string name="character_delete_linked_ok">Verstanden</string>
     <string name="character_delete_dialog_text">Löschen entfernt ihn aus den Erzählungen.</string>
     <string name="character_delete_confirm">Endgültig löschen</string>
     <string name="character_delete_cancel">Abbrechen</string>

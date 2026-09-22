@@ -684,6 +684,12 @@
     <string name="settings_section_account">MON COMPTE</string>
     <string name="settings_item_profile_title">Mon Profil</string>
     <string name="settings_item_profile_subtitle">Gère ton nom d\'usage et tes infos</string>
+    <string name="settings_item_legacy_video_title">Vidéo de mon héritage</string>
+    <string name="settings_item_legacy_video_subtitle">Une vidéo unique, visible par tous vos destinataires</string>
+    <string name="settings_item_language_title">Langue</string>
+    <string name="settings_item_language_subtitle">Français, English, Español...</string>
+    <string name="settings_item_accent_color_title">Couleur icônes et bordures</string>
+    <string name="settings_item_background_color_title">Couleur fond d\'écran</string>
     <string name="settings_section_security">SÉCURITÉ ET TRANSMISSION</string>
     <string name="settings_item_protocol_title">Transmission &amp; Protocole</string>
     <string name="settings_item_protocol_subtitle">Gère ton dépositaire et tes délais</string>

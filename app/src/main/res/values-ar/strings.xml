@@ -679,6 +679,12 @@
     <string name="settings_section_account">حسابي</string>
     <string name="settings_item_profile_title">ملفي الشخصي</string>
     <string name="settings_item_profile_subtitle">إدارة اسمك ومعلوماتك</string>
+    <string name="settings_item_legacy_video_title">فيديو إرثي</string>
+    <string name="settings_item_legacy_video_subtitle">فيديو فريد مرئي لجميع مستلميك</string>
+    <string name="settings_item_language_title">اللغة</string>
+    <string name="settings_item_language_subtitle">Français, English, Español...</string>
+    <string name="settings_item_accent_color_title">لون أيقونات والحدود</string>
+    <string name="settings_item_background_color_title">لون خلفية الشاشة</string>
     <string name="settings_section_security">الأمان والنقل</string>
     <string name="settings_item_protocol_title">النقل والبروتوكول</string>
     <string name="settings_item_protocol_subtitle">إدارة وديعك والمواعيد النهائية</string>

@@ -512,6 +512,11 @@
     <string name="heir_heritage_ask_question_desc">提出一个问题</string>
     <string name="heir_heritage_remaining_questions">剩余 %1$d 次</string>
     <string name="heir_heritage_souvenirs_destined">有 %1$d 条回忆是留给你的</string>
+    <string name="heir_heritage_main_map">世界地图</string>
+    <string name="heir_heritage_main_tree">家谱</string>
+    <string name="heir_heritage_main_encounters">相遇</string>
+    <string name="heir_heritage_book_default_title">我的书</string>
+    <string name="heir_heritage_special_mirror_title">镜子</string>
     <string name="heir_heritage_special_book_fallback">传记</string>
     <string name="heir_heritage_special_book_subtitle_sealed">%1$s 决定与你分享其生命之书。时机成熟时即可查看。</string>
     <string name="heir_heritage_special_book_subtitle_activated">生命故事</string>
@@ -679,6 +684,12 @@
     <string name="settings_section_account">我的账户</string>
     <string name="settings_item_profile_title">我的个人资料</string>
     <string name="settings_item_profile_subtitle">管理你的用户名与信息</string>
+    <string name="settings_item_legacy_video_title">我的遗产视频</string>
+    <string name="settings_item_legacy_video_subtitle">一段对所有接收者可见的独特视频</string>
+    <string name="settings_item_language_title">语言</string>
+    <string name="settings_item_language_subtitle">Français, English, Español...</string>
+    <string name="settings_item_accent_color_title">图标与边框颜色</string>
+    <string name="settings_item_background_color_title">背景颜色</string>
     <string name="settings_section_security">安全与传承</string>
     <string name="settings_item_protocol_title">传承与协议</string>
     <string name="settings_item_protocol_subtitle">管理你的托管人和延迟设置</string>
@@ -920,6 +931,10 @@
     <string name="step_capture_location_title">地点</string>
     <string name="step_capture_location_desc">这条回忆发生在哪里？你可以将其标记在世界地图上。</string>
     <string name="step_capture_location_choose">在地图上选择地点</string>
+    <string name="step_capture_location_or">或</string>
+    <string name="step_capture_location_use_gps">使用我当前的位置</string>
+    <string name="step_capture_location_locating">正在定位…</string>
+    <string name="step_capture_location_gps_unavailable">无法获取您的位置。请检查手机是否已开启定位功能。</string>
     <string name="step_capture_location_remove">移除地点</string>
     <string name="step_capture_spark_title">灵感火花</string>
     <string name="step_capture_spark_desc">为这条回忆起一个简短的名字或主题，以捕捉这个瞬间。</string>
@@ -1235,6 +1250,11 @@
 
     <!-- Detective / Coffre-Fort Batch -->
     <string name="detective_screen_title">保险箱</string>
+    <string name="enigma_form_info_title">密封的回忆</string>
+    <string name="enigma_form_info_point1">这是一条普通的回忆（文字、照片或音频），您可以为其添加一个谜题。</string>
+    <string name="enigma_form_info_point2">在您的亲人找到正确的答案之前，他们将无法看到标题和内容。</string>
+    <string name="enigma_form_info_point3">您可以添加提示，提示仅在多次尝试失败后显示。</string>
+    <string name="enigma_form_info_point4">回忆可以在一段时间后自动解锁——除非您激活**终极秘密**，它将永远不会自动解锁。</string>
     <string name="detective_onboarding_title">保险箱</string>
     <string-array name="detective_onboarding_points">
         <item>把一段内容藏在一个秘密问题背后。</item>
@@ -1688,6 +1708,9 @@
     <string name="character_placeholder_species">例如：金毛寻回犬、田园猫</string>
     <string name="character_button_delete">删除这个人物</string>
     <string name="character_delete_dialog_title">删除 %1$s？</string>
+    <string name="character_delete_linked_title">需要在其他位置删除</string>
+    <string name="character_delete_linked_text">此人也是您的家谱和/或相遇的一部分。要删除他们，请直接转到该页面：您可以精准选择需要移除的内容，而不会破坏故事的其他部分。</string>
+    <string name="character_delete_linked_ok">明白</string>
     <string name="character_delete_dialog_text">这个人物出现在 %1$d 条回忆中——删除它会将其从这些叙述中移除，但不会删除回忆本身。</string>
     <string name="character_delete_confirm">永久删除</string>
     <string name="character_delete_cancel">取消</string>

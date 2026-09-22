@@ -512,6 +512,11 @@
     <string name="heir_heritage_ask_question_desc">Fazer uma pergunta</string>
     <string name="heir_heritage_remaining_questions">%1$d rest.</string>
     <string name="heir_heritage_souvenirs_destined">%1$d memórias foram destinadas a você</string>
+    <string name="heir_heritage_main_map">Mapeamento mundial</string>
+    <string name="heir_heritage_main_tree">Genealogia</string>
+    <string name="heir_heritage_main_encounters">Encontros</string>
+    <string name="heir_heritage_book_default_title">Meu Livro</string>
+    <string name="heir_heritage_special_mirror_title">Espelho</string>
     <string name="heir_heritage_special_book_fallback">Livro</string>
     <string name="heir_heritage_special_book_subtitle_sealed">%1$s decidiu compartilhar com você o livro de sua vida.</string>
     <string name="heir_heritage_special_book_subtitle_activated">Relato de vida</string>
@@ -679,6 +684,12 @@
     <string name="settings_section_account">MINHA CONTA</string>
     <string name="settings_item_profile_title">Meu Perfil</string>
     <string name="settings_item_profile_subtitle">Gerencie seu nome e suas informações</string>
+    <string name="settings_item_legacy_video_title">Vídeo do meu legado</string>
+    <string name="settings_item_legacy_video_subtitle">Um único vídeo, visível para todos os seus destinatários</string>
+    <string name="settings_item_language_title">Idioma</string>
+    <string name="settings_item_language_subtitle">Français, English, Español...</string>
+    <string name="settings_item_accent_color_title">Cor de ícones e bordas</string>
+    <string name="settings_item_background_color_title">Cor do papel de parede</string>
     <string name="settings_section_security">SEGURANÇA E TRANSMISSÃO</string>
     <string name="settings_item_protocol_title">Transmissão e Protocolo</string>
     <string name="settings_item_protocol_subtitle">Gerencie seu depositário e seus prazos</string>
@@ -920,6 +931,10 @@
     <string name="step_capture_location_title">O LUGAR</string>
     <string name="step_capture_location_desc">Onde decorreu esta memória?</string>
     <string name="step_capture_location_choose">Escolher um lugar no mapa</string>
+    <string name="step_capture_location_or">ou</string>
+    <string name="step_capture_location_use_gps">Usar minha localização atual</string>
+    <string name="step_capture_location_locating">Localizando…</string>
+    <string name="step_capture_location_gps_unavailable">Não foi possível obter sua localização. Verifique se a localização está ativada no seu telefone.</string>
     <string name="step_capture_location_remove">Remover lugar</string>
     <string name="step_capture_spark_title">A CENTELHA</string>
     <string name="step_capture_spark_desc">Dê um nome ou assunto curto a esta memória.</string>
@@ -1235,6 +1250,11 @@
 
     <!-- Detective / Coffre-Fort Batch -->
     <string name="detective_screen_title">O Cofre</string>
+    <string name="enigma_form_info_title">Memória Selada</string>
+    <string name="enigma_form_info_point1">É uma memória normal (texto, foto ou áudio) à qual você adiciona um pequeno enigma.</string>
+    <string name="enigma_form_info_point2">Seu ente querido não verá nem o título nem o conteúdo até encontrar a resposta certa para sua pergunta.</string>
+    <string name="enigma_form_info_point3">Você pode adicionar uma dica, que só aparece após várias tentativas incorretas.</string>
+    <string name="enigma_form_info_point4">A memória pode ser desbloqueada automaticamente após um tempo — a menos que você ative o **Segredo Ultimo**, que nunca mais desbloqueia automaticamente.</string>
     <string name="detective_onboarding_title">O Cofre</string>
     <string-array name="detective_onboarding_points">
         <item>Esconda um conteúdo atrás de uma pergunta secreta.</item>
@@ -1688,6 +1708,9 @@
     <string name="character_placeholder_species">Ex: Golden Retriever, Gato comum</string>
     <string name="character_button_delete">Eliminar personagem</string>
     <string name="character_delete_dialog_title">Eliminar %1$s ?</string>
+    <string name="character_delete_linked_title">Exclusão deve ser feita em outro lugar</string>
+    <string name="character_delete_linked_text">Esta pessoa também faz parte da sua Árvore Genealógica e/ou dos seus Encontros. Para excluí-la, vá diretamente para essa tela: você poderá escolher exatamente o que deve ser removido, sem quebrar o resto da sua história.</string>
+    <string name="character_delete_linked_ok">Entendido</string>
     <string name="character_delete_dialog_text">Esta personagem aparece em %1$d memórias.</string>
     <string name="character_delete_confirm">Eliminar definitivamente</string>
     <string name="character_delete_cancel">Cancelar</string>

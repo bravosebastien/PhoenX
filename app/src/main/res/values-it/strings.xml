@@ -512,6 +512,11 @@
     <string name="heir_heritage_ask_question_desc">Poni una domanda</string>
     <string name="heir_heritage_remaining_questions">%1$d rim.</string>
     <string name="heir_heritage_souvenirs_destined">%1$d ricordi ti sono stati destinati</string>
+    <string name="heir_heritage_main_map">Mappamondo</string>
+    <string name="heir_heritage_main_tree">Genealogia</string>
+    <string name="heir_heritage_main_encounters">Incontri</string>
+    <string name="heir_heritage_book_default_title">Il Mio Libro</string>
+    <string name="heir_heritage_special_mirror_title">Specchio</string>
     <string name="heir_heritage_special_book_fallback">Libro</string>
     <string name="heir_heritage_special_book_subtitle_sealed">%1$s ha deciso di condividere con te il libro della sua vita. Visibile al momento opportuno.</string>
     <string name="heir_heritage_special_book_subtitle_activated">Racconto di vita</string>
@@ -679,6 +684,12 @@
     <string name="settings_section_account">MIO ACCOUNT</string>
     <string name="settings_item_profile_title">Mio Profilo</string>
     <string name="settings_item_profile_subtitle">Gestisci il tuo nome d\'uso e le tue info</string>
+    <string name="settings_item_legacy_video_title">Video della mia eredità</string>
+    <string name="settings_item_legacy_video_subtitle">Un unico video, visibile a tutti i tuoi destinatari</string>
+    <string name="settings_item_language_title">Lingua</string>
+    <string name="settings_item_language_subtitle">Français, English, Español...</string>
+    <string name="settings_item_accent_color_title">Colore icone e bordi</string>
+    <string name="settings_item_background_color_title">Colore sfondo</string>
     <string name="settings_section_security">SICUREZZA E TRASMISSIONE</string>
     <string name="settings_item_protocol_title">Trasmissione e Protocollo</string>
     <string name="settings_item_protocol_subtitle">Gestisci il tuo depositario e i tuoi tempi</string>
@@ -1697,6 +1708,9 @@
     <string name="character_placeholder_species">Es: Golden Retriever, Gatto soriano</string>
     <string name="character_button_delete">Elimina questo personaggio</string>
     <string name="character_delete_dialog_title">Eliminare %1$s?</string>
+    <string name="character_delete_linked_title">Eliminazione da effettuare altrove</string>
+    <string name="character_delete_linked_text">Questa persona fa parte anche del tuo Albero Genealogico e/o dei tuoi Incontri. Per eliminarla, vai direttamente in quella schermata: potrai scegliere esattamente cosa rimuovere senza rovinare il resto della tua storia.</string>
+    <string name="character_delete_linked_ok">Capito</string>
     <string name="character_delete_dialog_text">Questo personaggio appare in %1$d ricordi — eliminarlo lo rimuoverà da questi racconti, senza eliminare i ricordi stessi.</string>
     <string name="character_delete_confirm">Elimina definitivamente</string>
     <string name="character_delete_cancel">Annulla</string>

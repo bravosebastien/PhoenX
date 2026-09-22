@@ -512,6 +512,11 @@
     <string name="heir_heritage_ask_question_desc">Ask a question</string>
     <string name="heir_heritage_remaining_questions">%1$d rem.</string>
     <string name="heir_heritage_souvenirs_destined">%1$d memories have been destined for you</string>
+    <string name="heir_heritage_main_map">World Map</string>
+    <string name="heir_heritage_main_tree">Genealogy</string>
+    <string name="heir_heritage_main_encounters">Encounters</string>
+    <string name="heir_heritage_book_default_title">My Book</string>
+    <string name="heir_heritage_special_mirror_title">Mirror</string>
     <string name="heir_heritage_special_book_fallback">Book</string>
     <string name="heir_heritage_special_book_subtitle_sealed">%1$s has decided to share the book of their life with you. Visible when the time comes.</string>
     <string name="heir_heritage_special_book_subtitle_activated">Life story</string>
@@ -679,6 +684,12 @@
     <string name="settings_section_account">MY ACCOUNT</string>
     <string name="settings_item_profile_title">My Profile</string>
     <string name="settings_item_profile_subtitle">Manage your name and info</string>
+    <string name="settings_item_legacy_video_title">My Legacy Video</string>
+    <string name="settings_item_legacy_video_subtitle">A single video, visible to all your recipients</string>
+    <string name="settings_item_language_title">Language</string>
+    <string name="settings_item_language_subtitle">Français, English, Español...</string>
+    <string name="settings_item_accent_color_title">Icons and borders color</string>
+    <string name="settings_item_background_color_title">Background color</string>
     <string name="settings_section_security">SECURITY AND TRANSMISSION</string>
     <string name="settings_item_protocol_title">Transmission &amp; Protocol</string>
     <string name="settings_item_protocol_subtitle">Manage your depositary and delays</string>
@@ -920,6 +931,10 @@
     <string name="step_capture_location_title">THE LOCATION</string>
     <string name="step_capture_location_desc">Where did this memory take place? You can pin it on your World Map.</string>
     <string name="step_capture_location_choose">Choose a location on the map</string>
+    <string name="step_capture_location_or">or</string>
+    <string name="step_capture_location_use_gps">Use my current location</string>
+    <string name="step_capture_location_locating">Locating…</string>
+    <string name="step_capture_location_gps_unavailable">Unable to get your location. Make sure location services are enabled on your phone.</string>
     <string name="step_capture_location_remove">Remove location</string>
     <string name="step_capture_spark_title">THE SPARK</string>
     <string name="step_capture_spark_desc">Give a name or a short subject to this memory to capture the moment.</string>
@@ -1693,6 +1708,9 @@
     <string name="character_placeholder_species">Ex: Golden Retriever, Domestic Shorthair</string>
     <string name="character_button_delete">Delete this character</string>
     <string name="character_delete_dialog_title">Delete %1$s?</string>
+    <string name="character_delete_linked_title">Deletion must be done elsewhere</string>
+    <string name="character_delete_linked_text">This person is also part of your Family Tree and/or your Encounters. To delete them, go directly to that screen: you can choose precisely what should be removed without breaking the rest of your story.</string>
+    <string name="character_delete_linked_ok">Understood</string>
     <string name="character_delete_dialog_text">This character appears in %1$d memories — deleting them will remove them from these narratives, without deleting the memories themselves.</string>
     <string name="character_delete_confirm">Permanently delete</string>
     <string name="character_delete_cancel">Cancel</string>
