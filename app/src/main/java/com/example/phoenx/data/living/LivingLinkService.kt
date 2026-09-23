@@ -65,9 +65,13 @@ class LivingLinkService @Inject constructor(
         }
 
         // 6. Création du document Firestore racine
+        val userDoc = db.collection("users").document(userId).get().await()
+        val creatorName = userDoc.getString("displayName") ?: userDoc.getString("email")?.substringBefore("@") ?: "Un proche"
+
         val linkId = UUID.randomUUID().toString()
         val data = hashMapOf(
             "creatorId" to userId,
+            "creatorName" to creatorName,
             "recipientId" to recipientUid,
             "type" to entry.entryType,
             "status" to if (scheduledAt == null) "sent" else "pending",

@@ -223,7 +223,7 @@ fun RankItemDetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             rowItems.forEach { mediaItem ->
-                                val activeUrl = mediaItem.thumbnailPath ?: mediaItem.mediaPath
+                                val activeUrl = mediaItem.localThumbnailPath ?: mediaItem.thumbnailPath ?: mediaItem.mediaPath
                                 val fieldParam = if (mediaItem.thumbnailPath != null) "thumbnailPath" else "mediaPath"
 
                                 Box(

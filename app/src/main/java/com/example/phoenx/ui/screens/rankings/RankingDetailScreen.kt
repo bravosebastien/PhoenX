@@ -336,7 +336,7 @@ fun RankingDetailScreen(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     rowItems.forEach { mediaItem ->
-                                        val activeUrl = mediaItem.thumbnailPath ?: mediaItem.mediaPath
+                                        val activeUrl = mediaItem.localThumbnailPath ?: mediaItem.thumbnailPath ?: mediaItem.mediaPath
                                         val fieldParam = if (mediaItem.thumbnailPath != null) "thumbnailPath" else "mediaPath"
                                         val itemRankTitle = currentRanking.items.getOrNull(mediaItem.rankIndex) ?: "Rang #${mediaItem.rankIndex + 1}"
 
@@ -664,7 +664,7 @@ fun RankItemRow(
 
         // Miniature si média attaché au rang (Cliquable pour ouvrir le lecteur grand écran)
         if (firstMedia != null) {
-            val activeUrl = firstMedia.thumbnailPath ?: firstMedia.mediaPath
+            val activeUrl = firstMedia.localThumbnailPath ?: firstMedia.thumbnailPath ?: firstMedia.mediaPath
             val fieldParam = if (firstMedia.thumbnailPath != null) "thumbnailPath" else "mediaPath"
 
             Box(

@@ -816,4 +816,13 @@ object RoomMigrations {
             """.trimIndent())
         }
     }
+
+    /**
+     * MIGRATION_65_66 — Vignette locale immédiate pour médias de rang (v12.8)
+     */
+    val MIGRATION_65_66 = object : Migration(65, 66) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE rank_media ADD COLUMN localThumbnailPath TEXT")
+        }
+    }
 }

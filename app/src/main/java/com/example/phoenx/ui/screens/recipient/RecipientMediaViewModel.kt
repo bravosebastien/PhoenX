@@ -909,62 +909,67 @@ class RecipientMediaViewModel @Inject constructor(
                 }
             }
 
-            // 3. Flux des médias isolés
+            // 3. Flux des médias isolés (v12.8 : Deux requêtes filtrées côté serveur pour l'Héritier)
             val standaloneMediaFlow = _targetCreatorId.flatMapLatest { targetId ->
                 val effectiveId = targetId ?: currentUid
                 if (effectiveId.isEmpty()) return@flatMapLatest kotlinx.coroutines.flow.flowOf(emptyList())
                 val isCreator = effectiveId == currentUid
 
-                callbackFlow {
-                    val listener = db.collection("users").document(effectiveId)
-                        .collection("standaloneMedia")
-                        .addSnapshotListener { snapshot, error ->
-                            if (error != null) return@addSnapshotListener
-                            val firestoreItems = snapshot?.documents?.mapNotNull { doc ->
-                                val recIds = (doc.get("recipientIds") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
-                                if (isCreator || recIds.isEmpty() || recIds.contains(currentUid)) {
-                                    val type = doc.getString("type") ?: ""
-                                    val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
-                                    val contentStr = if (needsEncryption) {
-                                        val blob = doc.get("content") as? com.google.firebase.firestore.Blob
-                                        blob?.toBytes()?.let { android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT) } ?: ""
-                                    } else doc.getString("content") ?: ""
+                if (isCreator) {
+                    standaloneMediaDao.getAllStandaloneMedia()
+                } else {
+                    fun parseDocToEntity(doc: com.google.firebase.firestore.DocumentSnapshot): com.example.phoenx.data.local.StandaloneMediaEntity? {
+                        val recIds = (doc.get("recipientIds") as? List<*>)?.mapNotNull { it.toString() } ?: emptyList()
+                        val type = doc.getString("type") ?: ""
+                        val needsEncryption = type == "TEXT_EXCERPT" || type == "PHOTO"
+                        val contentStr = if (needsEncryption) {
+                            val blob = doc.get("content") as? com.google.firebase.firestore.Blob
+                            blob?.toBytes()?.let { android.util.Base64.encodeToString(it, android.util.Base64.DEFAULT) } ?: ""
+                        } else doc.getString("content") ?: ""
 
-                                    val entity = com.example.phoenx.data.local.StandaloneMediaEntity(
-                                        id = doc.id,
-                                        creatorUid = effectiveId,
-                                        type = type,
-                                        title = doc.getString("title") ?: "",
-                                        userComment = doc.getString("userComment"),
-                                        content = contentStr,
-                                        recipientIds = recIds.joinToString(","),
-                                        visibility = doc.getString("visibility") ?: "RESTRICTED",
-                                        createdAt = doc.getLong("createdAt") ?: 0L,
-                                        syncStatus = "synced",
-                                        coverUrl = doc.getString("coverUrl"),
-                                        mediaProvider = doc.getString("mediaProvider")
-                                    )
-                                    if (isCreator) {
-                                        launch {
-                                            val existing = standaloneMediaDao.getMediaById(entity.id)
-                                            val repairedEntity = if (existing != null) {
-                                                entity.copy(
-                                                    localCoverPath = existing.localCoverPath,
-                                                    content = if (existing.content.startsWith("/data/")) existing.content else entity.content
-                                                )
-                                            } else entity
-                                            standaloneMediaDao.insertMedia(repairedEntity)
-                                        }
-                                    }
-                                    entity
-                                } else null
-                            } ?: emptyList()
-                            if (!isCreator) trySend(firestoreItems)
-                        }
-                    val roomJob = if (isCreator) {
-                        launch { standaloneMediaDao.getAllStandaloneMedia().collect { items -> trySend(items) } }
-                    } else null
-                    awaitClose { listener.remove(); roomJob?.cancel() }
+                        return com.example.phoenx.data.local.StandaloneMediaEntity(
+                            id = doc.id,
+                            creatorUid = effectiveId,
+                            type = type,
+                            title = doc.getString("title") ?: "",
+                            userComment = doc.getString("userComment"),
+                            content = contentStr,
+                            recipientIds = recIds.joinToString(","),
+                            visibility = doc.getString("visibility") ?: "RESTRICTED",
+                            createdAt = doc.getLong("createdAt") ?: 0L,
+                            syncStatus = "synced",
+                            coverUrl = doc.getString("coverUrl"),
+                            mediaProvider = doc.getString("mediaProvider")
+                        )
+                    }
+
+                    val publicFlow = callbackFlow {
+                        val listener = db.collection("users").document(effectiveId)
+                            .collection("standaloneMedia")
+                            .whereEqualTo("visibility", "EVERYONE")
+                            .addSnapshotListener { snapshot, error ->
+                                if (error != null) return@addSnapshotListener
+                                val items = snapshot?.documents?.mapNotNull { parseDocToEntity(it) } ?: emptyList()
+                                trySend(items)
+                            }
+                        awaitClose { listener.remove() }
+                    }
+
+                    val privateFlow = callbackFlow {
+                        val listener = db.collection("users").document(effectiveId)
+                            .collection("standaloneMedia")
+                            .whereArrayContains("recipientIds", currentUid)
+                            .addSnapshotListener { snapshot, error ->
+                                if (error != null) return@addSnapshotListener
+                                val items = snapshot?.documents?.mapNotNull { parseDocToEntity(it) } ?: emptyList()
+                                trySend(items)
+                            }
+                        awaitClose { listener.remove() }
+                    }
+
+                    combine(publicFlow, privateFlow) { pub, priv ->
+                        (pub + priv).distinctBy { it.id }
+                    }
                 }
             }
 

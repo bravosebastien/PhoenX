@@ -12,6 +12,7 @@ data class RankMediaEntity(
     val mediaPath: String,
     val mediaType: String = "PHOTO", // "PHOTO" | "VIDEO"
     val thumbnailPath: String? = null,
+    val localThumbnailPath: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val syncStatus: String = "pending"
 )

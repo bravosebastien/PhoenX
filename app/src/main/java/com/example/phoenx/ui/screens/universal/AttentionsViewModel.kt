@@ -63,9 +63,8 @@ class AttentionsViewModel @Inject constructor(
                     try {
                         val creatorId = doc.getString("creatorId") ?: ""
                         
-                        // Récupération du nom du créateur (Dénormalisation ou requête)
-                        val creatorDoc = db.collection("users").document(creatorId).get().await()
-                        val creatorName = creatorDoc.getString("displayName") ?: context.getString(R.string.universal_feed_creator_fallback)
+                        // Récupération du nom du créateur directement depuis le document livingLinks (sans interroger la collection users)
+                        val creatorName = doc.getString("creatorName") ?: context.getString(R.string.universal_feed_creator_fallback)
 
                         // 2. Déchiffrement de la LinkKey (RSA)
                         val encryptedKeyBlob = doc.getBlob("encryptedLinkKey")?.toBytes() ?: return@mapNotNull null

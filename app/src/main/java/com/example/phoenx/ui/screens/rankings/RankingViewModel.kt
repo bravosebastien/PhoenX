@@ -28,6 +28,7 @@ data class RankMediaItem(
     val mediaPath: String,
     val mediaType: String = "PHOTO",
     val thumbnailPath: String? = null,
+    val localThumbnailPath: String? = null,
     val createdAt: Long = System.currentTimeMillis()
 )
 
@@ -77,6 +78,7 @@ class RankingViewModel @Inject constructor(
                         mediaPath = entity.mediaPath,
                         mediaType = entity.mediaType,
                         thumbnailPath = entity.thumbnailPath,
+                        localThumbnailPath = entity.localThumbnailPath,
                         createdAt = entity.createdAt
                     )
                 }.groupBy { it.rankIndex }
@@ -132,7 +134,16 @@ class RankingViewModel @Inject constructor(
                     val type = doc.getString("mediaType") ?: "PHOTO"
                     val thumbPath = doc.getString("thumbnailPath")
                     val created = doc.getLong("createdAt") ?: System.currentTimeMillis()
-                    RankMediaItem(id, rId, index, path, type, thumbPath, created)
+                    RankMediaItem(
+                        id = id,
+                        rankingId = rId,
+                        rankIndex = index,
+                        mediaPath = path,
+                        mediaType = type,
+                        thumbnailPath = thumbPath,
+                        localThumbnailPath = null,
+                        createdAt = created
+                    )
                 }
                 _remoteRankMediaMap.value = list.groupBy { it.rankIndex }
             } catch (e: Exception) {
@@ -153,12 +164,13 @@ class RankingViewModel @Inject constructor(
                 }
 
                 var thumbnailStoragePath: String? = null
+                var localThumbPath: String? = null
 
                 if (isVideo) {
                     try {
                         val retriever = android.media.MediaMetadataRetriever()
                         retriever.setDataSource(file.absolutePath)
-                        val bitmap = retriever.getFrameAtTime(0)
+                        val bitmap = retriever.getFrameAtTime()
                         retriever.release()
 
                         if (bitmap != null) {
@@ -166,6 +178,7 @@ class RankingViewModel @Inject constructor(
                             java.io.FileOutputStream(thumbFile).use { out ->
                                 bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 75, out)
                             }
+                            localThumbPath = thumbFile.absolutePath
                             thumbnailStoragePath = mediaManager.uploadRankMediaThumbnail(uid, rankingId, rankIndex, thumbFile)
                         }
                     } catch (e: Exception) {
@@ -186,6 +199,7 @@ class RankingViewModel @Inject constructor(
                     mediaPath = storagePath,
                     mediaType = mediaTypeStr,
                     thumbnailPath = thumbnailStoragePath,
+                    localThumbnailPath = localThumbPath,
                     syncStatus = "synced"
                 )
                 rankMediaDao.upsertRankMedia(entity)
