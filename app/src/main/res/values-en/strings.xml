@@ -1871,6 +1871,8 @@
     <string name="ranking_dialog_remove_media">Remove rank media</string>
     <string name="home_section_recent_memories">RECENT MEMORIES</string>
     <string name="home_section_souvenirs">Memories</string>
+    <string name="settings_phare_title">\"The Lighthouse\" bubble</string>
+    <string name="settings_phare_subtitle">Show presentation video floating bubble</string>
     <string name="phare_title">The Lighthouse</string>
     <string name="phare_subtitle">Visual guides &amp; presentations</string>
     <string name="phare_empty_list">No videos available at this time.</string>

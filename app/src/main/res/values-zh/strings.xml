@@ -1871,6 +1871,8 @@
     <string name="ranking_dialog_remove_media">删除位置媒体</string>
     <string name="home_section_recent_memories">最新回忆</string>
     <string name="home_section_souvenirs">回忆</string>
+    <string name="settings_phare_title">“灯塔”悬浮球</string>
+    <string name="settings_phare_subtitle">显示演示视频悬浮球</string>
     <string name="phare_title">灯塔</string>
     <string name="phare_subtitle">视觉指南与演示</string>
     <string name="phare_empty_list">暂无可用视频。</string>

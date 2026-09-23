@@ -1871,6 +1871,8 @@
     <string name="ranking_dialog_remove_media">Rang-Medium entfernen</string>
     <string name="home_section_recent_memories">NEUESTE ERINNERUNGEN</string>
     <string name="home_section_souvenirs">Erinnerungen</string>
+    <string name="settings_phare_title">Schaltfläche \"Der Leuchtturm\"</string>
+    <string name="settings_phare_subtitle">Präsentationsvideo-Schaltfläche anzeigen</string>
     <string name="phare_title">Der Leuchtturm</string>
     <string name="phare_subtitle">Visuelle Leitfäden &amp; Präsentationen</string>
     <string name="phare_empty_list">Derzeit keine Videos verfügbar.</string>

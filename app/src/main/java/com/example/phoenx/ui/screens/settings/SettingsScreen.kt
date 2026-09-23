@@ -56,6 +56,7 @@ fun SettingsScreen(
     initialShowRecovery: Boolean = false
 ) {
     val isBiometricEnabled by mainViewModel.isBiometricEnabled.collectAsState()
+    val isPhareEnabled by mainViewModel.isPhareEnabled.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
     val backgroundId by themeViewModel.globalBackgroundId.collectAsState()
@@ -194,6 +195,31 @@ fun SettingsScreen(
                     Switch(
                         checked = isBiometricEnabled,
                         onCheckedChange = { mainViewModel.toggleBiometric(it) },
+                        colors = SwitchDefaults.colors(checkedThumbColor = accent)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Surface(
+                color = theme.contentColor.copy(alpha = 0.05f),
+                shape = MaterialTheme.shapes.medium,
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.LightMode, null, tint = accent)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_phare_title), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                        Text(stringResource(R.string.settings_phare_subtitle), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                    }
+                    Switch(
+                        checked = isPhareEnabled,
+                        onCheckedChange = { mainViewModel.setPhareEnabled(it) },
                         colors = SwitchDefaults.colors(checkedThumbColor = accent)
                     )
                 }

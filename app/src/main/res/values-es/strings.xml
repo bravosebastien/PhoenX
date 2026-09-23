@@ -1871,6 +1871,8 @@
     <string name="ranking_dialog_remove_media">Eliminar archivo del rango</string>
     <string name="home_section_recent_memories">RECUERDOS RECIENTES</string>
     <string name="home_section_souvenirs">Recuerdos</string>
+    <string name="settings_phare_title">Burbuja \"El Faro\"</string>
+    <string name="settings_phare_subtitle">Mostrar burbuja flotante de videos de presentación</string>
     <string name="phare_title">El Faro</string>
     <string name="phare_subtitle">Guías visuales y presentaciones</string>
     <string name="phare_empty_list">No hay videos disponibles por el momento.</string>

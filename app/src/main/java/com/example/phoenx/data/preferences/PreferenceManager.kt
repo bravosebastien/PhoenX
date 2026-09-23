@@ -56,6 +56,16 @@ class PreferenceManager @Inject constructor(
     // v9.4.27 : Assistant Proactif
     private val HAS_SEEN_INCLUDE_IN_BOOK_NUDGE_KEY = booleanPreferencesKey("has_seen_include_in_book_nudge")
 
+    // v12.8 : Le Phare
+    private val IS_PHARE_ENABLED_KEY = booleanPreferencesKey("is_phare_enabled")
+
+    val isPhareEnabled: Flow<Boolean> = context.dataStore.data
+        .map { it[IS_PHARE_ENABLED_KEY] ?: true }
+
+    suspend fun setPhareEnabled(enabled: Boolean) {
+        context.dataStore.edit { it[IS_PHARE_ENABLED_KEY] = enabled }
+    }
+
     fun isSyncMigrationV1Done(): Flow<Boolean> = context.dataStore.data
         .map { it[SYNC_MIGRATION_V1_DONE_KEY] ?: false }
 

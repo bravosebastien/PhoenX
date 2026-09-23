@@ -272,6 +272,7 @@ class MainActivity : AppCompatActivity() {
         // v12.8 : Le Phare (Vidéos de présentation)
         val phareViewModel: com.example.phoenx.ui.components.PhareViewModel = hiltViewModel()
         val isPhareOpen by phareViewModel.isOpen.collectAsState()
+        val isPhareEnabled by mainViewModel.isPhareEnabled.collectAsState()
         val isCreatorVal by mainViewModel.isCreator.collectAsState()
 
         var phareX by remember { mutableStateOf<Float?>(null) }
@@ -349,23 +350,25 @@ class MainActivity : AppCompatActivity() {
                     )
                 }
 
-                // v12.8 : Bulle Flottante "Le Phare" (Accessible Créateur ET Destinataire)
-                com.example.phoenx.ui.components.PhareFloatingBubble(
-                    initialX = phareX,
-                    initialY = phareY,
-                    onPositionChanged = { x, y ->
-                        val prefs = getSharedPreferences("phare_bubble_prefs", MODE_PRIVATE)
-                        prefs.edit().putFloat("phare_x", x).putFloat("phare_y", y).apply()
-                    },
-                    onClick = { phareViewModel.openPhare() }
-                )
-
-                if (isPhareOpen) {
-                    com.example.phoenx.ui.components.PhareVideoListPanel(
-                        viewModel = phareViewModel,
-                        isCreator = isCreatorVal ?: true,
-                        onDismiss = { phareViewModel.closePhare() }
+                // v12.8 : Bulle Flottante "Le Phare" (Masquable via Réglages)
+                if (isPhareEnabled) {
+                    com.example.phoenx.ui.components.PhareFloatingBubble(
+                        initialX = phareX,
+                        initialY = phareY,
+                        onPositionChanged = { x, y ->
+                            val prefs = getSharedPreferences("phare_bubble_prefs", MODE_PRIVATE)
+                            prefs.edit().putFloat("phare_x", x).putFloat("phare_y", y).apply()
+                        },
+                        onClick = { phareViewModel.openPhare() }
                     )
+
+                    if (isPhareOpen) {
+                        com.example.phoenx.ui.components.PhareVideoListPanel(
+                            viewModel = phareViewModel,
+                            isCreator = isCreatorVal ?: true,
+                            onDismiss = { phareViewModel.closePhare() }
+                        )
+                    }
                 }
             }
         }

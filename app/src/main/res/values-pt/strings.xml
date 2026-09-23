@@ -1871,6 +1871,8 @@
     <string name="ranking_dialog_remove_media">Remover mídia da posição</string>
     <string name="home_section_recent_memories">MEMÓRIAS RECENTES</string>
     <string name="home_section_souvenirs">Memórias</string>
+    <string name="settings_phare_title">Bolha \"O Farol\"</string>
+    <string name="settings_phare_subtitle">Exibir bolha flutuante de vídeos de apresentação</string>
     <string name="phare_title">O Farol</string>
     <string name="phare_subtitle">Guias visuais e apresentações</string>
     <string name="phare_empty_list">Nenhum vídeo disponível no momento.</string>

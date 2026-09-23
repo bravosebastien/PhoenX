@@ -1854,6 +1854,8 @@
     <string name="ranking_dialog_remove_media">حذف وسائط المرتبة</string>
     <string name="home_section_recent_memories">الذكريات الحديثة</string>
     <string name="home_section_souvenirs">الذكريات</string>
+    <string name="settings_phare_title">فقاعة \"الفنار\"</string>
+    <string name="settings_phare_subtitle">إظهار الفقاعة العائمة لمقاطع الفيديو التوضيحية</string>
     <string name="phare_title">الفنار</string>
     <string name="phare_subtitle">أدلة بصرية وعروض توضيحية</string>
     <string name="phare_empty_list">لا توجد مقاطع فيديو متاحة حالياً.</string>

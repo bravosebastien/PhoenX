@@ -396,6 +396,13 @@ class MainViewModel @Inject constructor(
     val isBiometricEnabled: StateFlow<Boolean> = preferenceManager.isBiometricEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val isPhareEnabled: StateFlow<Boolean> = preferenceManager.isPhareEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
+
+    fun setPhareEnabled(enabled: Boolean) {
+        viewModelScope.launch { preferenceManager.setPhareEnabled(enabled) }
+    }
+
     val shouldShowWelcomeGuide: StateFlow<Boolean?> = preferenceManager.shouldShowWelcomeGuide
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
