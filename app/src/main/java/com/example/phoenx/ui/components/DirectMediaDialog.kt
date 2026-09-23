@@ -1,6 +1,8 @@
 package com.example.phoenx.ui.components
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.Icons
@@ -86,7 +88,12 @@ fun DirectMediaDialog(
         containerColor = theme.backgroundColor,
         title = { Text(if (initialUrl.isEmpty() && initialTitle.isEmpty()) stringResource(R.string.dialog_media_title_deposit, label) else stringResource(R.string.dialog_media_title_customize), color = theme.contentColor) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 // INSTRUCTIONS (v9.4.27 : Uniquement à l'ajout d'un lien externe)
                 if (initialUrl.isEmpty() && (type == "SPOTIFY" || type == "DEEZER" || type == "YOUTUBE")) {
                     Surface(
