@@ -1871,6 +1871,10 @@
     <string name="ranking_dialog_remove_media">Remove rank media</string>
     <string name="home_section_recent_memories">RECENT MEMORIES</string>
     <string name="home_section_souvenirs">Memories</string>
+    <string name="phare_title">The Lighthouse</string>
+    <string name="phare_subtitle">Visual guides &amp; presentations</string>
+    <string name="phare_empty_list">No videos available at this time.</string>
+    <string name="phare_video_fallback_title">Presentation Video</string>
     <string name="ranking_media_limit_reached">Limit of 5 media reached for this rank. Delete one to add a new one.</string>
     <string name="ranking_media_count_indicator">%1$d/5 media</string>
 

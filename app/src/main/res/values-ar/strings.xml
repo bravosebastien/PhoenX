@@ -1854,6 +1854,10 @@
     <string name="ranking_dialog_remove_media">حذف وسائط المرتبة</string>
     <string name="home_section_recent_memories">الذكريات الحديثة</string>
     <string name="home_section_souvenirs">الذكريات</string>
+    <string name="phare_title">الفنار</string>
+    <string name="phare_subtitle">أدلة بصرية وعروض توضيحية</string>
+    <string name="phare_empty_list">لا توجد مقاطع فيديو متاحة حالياً.</string>
+    <string name="phare_video_fallback_title">فيديو توضيحي</string>
     <string name="ranking_media_limit_reached">تم الوصول إلى الحد الأقصى (5 وسائط) لهذه المرتبة. احذف أحدها لإضافة جديد.</string>
     <string name="ranking_media_count_indicator">%1$d/5 وسائط</string>
 

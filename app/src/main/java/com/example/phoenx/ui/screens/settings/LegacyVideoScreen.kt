@@ -35,6 +35,7 @@ private const val MAX_LEGACY_VIDEO_DURATION_MS = 5 * 60 * 1000L // 5 minutes
  * activé (voir RecipientMediaViewModel.saveLegacyVideo / legacyVideoUrl).
  */
 @OptIn(ExperimentalMaterial3Api::class)
+@androidx.media3.common.util.UnstableApi
 @Composable
 fun LegacyVideoScreen(
     onNavigateBack: () -> Unit,

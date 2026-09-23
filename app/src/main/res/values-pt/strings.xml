@@ -1871,6 +1871,10 @@
     <string name="ranking_dialog_remove_media">Remover mídia da posição</string>
     <string name="home_section_recent_memories">MEMÓRIAS RECENTES</string>
     <string name="home_section_souvenirs">Memórias</string>
+    <string name="phare_title">O Farol</string>
+    <string name="phare_subtitle">Guias visuais e apresentações</string>
+    <string name="phare_empty_list">Nenhum vídeo disponível no momento.</string>
+    <string name="phare_video_fallback_title">Vídeo de apresentação</string>
     <string name="ranking_media_limit_reached">Limite de 5 mídias atingido para esta posição. Exclua uma para adicionar uma nova.</string>
     <string name="ranking_media_count_indicator">%1$d/5 mídias</string>
 

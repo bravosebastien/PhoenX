@@ -1871,6 +1871,10 @@
     <string name="ranking_dialog_remove_media">Rimuovi media dal rango</string>
     <string name="home_section_recent_memories">RICORDI RECENTI</string>
     <string name="home_section_souvenirs">Ricordi</string>
+    <string name="phare_title">Il Faro</string>
+    <string name="phare_subtitle">Guide visive e presentazioni</string>
+    <string name="phare_empty_list">Nessun video disponibile al momento.</string>
+    <string name="phare_video_fallback_title">Video di presentazione</string>
     <string name="ranking_media_limit_reached">Limite di 5 media raggiunto per questo rango. Elimine uno per aggiungerne uno nuovo.</string>
     <string name="ranking_media_count_indicator">%1$d/5 media</string>
 

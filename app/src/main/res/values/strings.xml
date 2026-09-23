@@ -1871,6 +1871,10 @@
     <string name="ranking_dialog_remove_media">Supprimer le média du rang</string>
     <string name="home_section_recent_memories">SOUVENIRS RÉCENTS</string>
     <string name="home_section_souvenirs">Souvenirs</string>
+    <string name="phare_title">Le Phare</string>
+    <string name="phare_subtitle">Guides visuels &amp; présentations</string>
+    <string name="phare_empty_list">Aucune vidéo disponible pour le moment.</string>
+    <string name="phare_video_fallback_title">Vidéo de présentation</string>
     <string name="ranking_media_limit_reached">Limite de 5 médias atteinte pour ce rang. Supprimez-en un pour en ajouter un nouveau.</string>
     <string name="ranking_media_count_indicator">%1$d/5 médias</string>
 

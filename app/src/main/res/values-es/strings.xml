@@ -1871,6 +1871,10 @@
     <string name="ranking_dialog_remove_media">Eliminar archivo del rango</string>
     <string name="home_section_recent_memories">RECUERDOS RECIENTES</string>
     <string name="home_section_souvenirs">Recuerdos</string>
+    <string name="phare_title">El Faro</string>
+    <string name="phare_subtitle">Guías visuales y presentaciones</string>
+    <string name="phare_empty_list">No hay videos disponibles por el momento.</string>
+    <string name="phare_video_fallback_title">Video de presentación</string>
     <string name="ranking_media_limit_reached">Límite de 5 archivos alcanzado para este rango. Elimina uno para añadir uno nuevo.</string>
     <string name="ranking_media_count_indicator">%1$d/5 archivos</string>
 

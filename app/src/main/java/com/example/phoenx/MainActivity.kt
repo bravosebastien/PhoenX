@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
             throwable.printStackTrace(pw)
             android.util.Log.e("PHOENX_DEBUG", sw.toString())
             
-            // On laisse le système gérer le crash après le log pour éviter le figement (v8.9.9)
+            // On laisse le système gérer le crash après le log pour éviter le figement (v8.9.9.)
             defaultHandler?.uncaughtException(thread, throwable)
         }
 
@@ -247,6 +247,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @androidx.media3.common.util.UnstableApi
     @Composable
     fun MainContent(accentColor: androidx.compose.ui.graphics.Color, isWelcomeGuideVisible: Boolean) {
         LaunchedEffect(Unit) {
@@ -267,6 +268,20 @@ class MainActivity : AppCompatActivity() {
         val assistantX by assistantViewModel.bubbleX.collectAsState()
         val assistantY by assistantViewModel.bubbleY.collectAsState()
         val isAssistantChatOpen by assistantViewModel.isChatOpen.collectAsState()
+
+        // v12.8 : Le Phare (Vidéos de présentation)
+        val phareViewModel: com.example.phoenx.ui.components.PhareViewModel = hiltViewModel()
+        val isPhareOpen by phareViewModel.isOpen.collectAsState()
+        val isCreatorVal by mainViewModel.isCreator.collectAsState()
+
+        var phareX by remember { mutableStateOf<Float?>(null) }
+        var phareY by remember { mutableStateOf<Float?>(null) }
+
+        LaunchedEffect(Unit) {
+            val prefs = getSharedPreferences("phare_bubble_prefs", MODE_PRIVATE)
+            if (prefs.contains("phare_x")) phareX = prefs.getFloat("phare_x", 0f)
+            if (prefs.contains("phare_y")) phareY = prefs.getFloat("phare_y", 0f)
+        }
 
         val shouldShowAssistant = !isWelcomeGuideVisible && 
                                   currentRoute != null && 
@@ -331,6 +346,25 @@ class MainActivity : AppCompatActivity() {
                     AssistantChatPanel(
                         viewModel = assistantViewModel,
                         onDismiss = { assistantViewModel.toggleChat() }
+                    )
+                }
+
+                // v12.8 : Bulle Flottante "Le Phare" (Accessible Créateur ET Destinataire)
+                com.example.phoenx.ui.components.PhareFloatingBubble(
+                    initialX = phareX,
+                    initialY = phareY,
+                    onPositionChanged = { x, y ->
+                        val prefs = getSharedPreferences("phare_bubble_prefs", MODE_PRIVATE)
+                        prefs.edit().putFloat("phare_x", x).putFloat("phare_y", y).apply()
+                    },
+                    onClick = { phareViewModel.openPhare() }
+                )
+
+                if (isPhareOpen) {
+                    com.example.phoenx.ui.components.PhareVideoListPanel(
+                        viewModel = phareViewModel,
+                        isCreator = isCreatorVal ?: true,
+                        onDismiss = { phareViewModel.closePhare() }
                     )
                 }
             }
