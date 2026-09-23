@@ -257,6 +257,12 @@ sealed class Screen(val route: String) {
             else "rankings/$id"
         }
     }
+    object RankItemDetail : Screen("rankings/{rankingId}/rank/{rankIndex}?creatorId={creatorId}") {
+        fun createRoute(rankingId: String, rankIndex: Int, creatorId: String? = null): String {
+            return if (creatorId != null) "rankings/$rankingId/rank/$rankIndex?creatorId=$creatorId"
+            else "rankings/$rankingId/rank/$rankIndex"
+        }
+    }
 
     object BecomeCreatorPrompt : Screen("become_creator_prompt/{role}/{creatorName}") {
         fun createRoute(role: String, creatorName: String) = "become_creator_prompt/$role/$creatorName"
@@ -328,6 +334,9 @@ sealed class Screen(val route: String) {
     }
     object RecipientFavorites : Screen("recipient/favorites/{creatorId}") {
         fun createRoute(creatorId: String) = "recipient/favorites/$creatorId"
+    }
+    object RecipientMemories : Screen("recipient/memories/{creatorId}") {
+        fun createRoute(creatorId: String) = "recipient/memories/$creatorId"
     }
     object RecipientMessage : Screen("recipient/message/{id}") {
         fun createRoute(id: String) = "recipient/message/$id"

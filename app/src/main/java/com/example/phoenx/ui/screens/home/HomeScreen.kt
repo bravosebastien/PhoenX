@@ -498,40 +498,6 @@ fun HomeScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    // ACTIONS RAPIDES
-                    Text(
-                        stringResource(R.string.home_section_quick_actions),
-                        style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, letterSpacing = 1.sp, fontWeight = FontWeight.Bold),
-                        color = theme.contentColor.copy(alpha = 0.4f),
-                        modifier = Modifier.padding(start = 14.dp, top = 10.dp, bottom = 6.dp)
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(7.dp)
-                    ) {
-                        QuickActionCard(
-                            icon = Icons.Outlined.Handshake,
-                            name = stringResource(R.string.library_miroir_deux),
-                            modifier = Modifier.weight(1f),
-                            onClick = onNavigateToPact
-                        )
-                        QuickActionCard(
-                            icon = Icons.Outlined.HelpOutline,
-                            name = stringResource(R.string.questions_title),
-                            modifier = Modifier.weight(1f),
-                            onClick = onNavigateToQuestions
-                        )
-                        QuickActionCard(
-                            icon = Icons.Outlined.MailOutline,
-                            name = stringResource(R.string.library_capsule_temporelle),
-                            modifier = Modifier.weight(1f),
-                            onClick = onNavigateToLetters
-                        )
-                    }
-
                     // PRÉSENCE (Déplacé ou gardé en bas)
                     Card(
                         modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 12.dp).fillMaxWidth().clickable { viewModel.updateProofOfLife() },

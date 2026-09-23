@@ -53,8 +53,9 @@ fun EncounterCard(
         Card(
             onClick = onClick,
             modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
+                .align(Alignment.CenterHorizontally)
+                .width(216.dp)
+                .aspectRatio(0.72f)
                 .shadow(
                     elevation = 14.dp,
                     shape = RoundedCornerShape(14.dp),

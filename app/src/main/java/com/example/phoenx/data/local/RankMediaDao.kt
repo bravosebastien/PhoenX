@@ -17,6 +17,9 @@ interface RankMediaDao {
     @Query("DELETE FROM rank_media WHERE rankingId = :rankingId AND rankIndex = :rankIndex")
     suspend fun deleteRankMedia(rankingId: String, rankIndex: Int)
 
+    @Query("DELETE FROM rank_media WHERE id = :mediaId")
+    suspend fun deleteRankMediaById(mediaId: String)
+
     @Query("DELETE FROM rank_media WHERE rankingId = :rankingId")
     suspend fun deleteRankMediaForRanking(rankingId: String)
 

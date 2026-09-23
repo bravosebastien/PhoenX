@@ -1869,6 +1869,10 @@
     <string name="ranking_gallery_title">排名图库</string>
     <string name="ranking_dialog_add_media">添加/更换照片或视频</string>
     <string name="ranking_dialog_remove_media">删除位置媒体</string>
+    <string name="home_section_recent_memories">最新回忆</string>
+    <string name="home_section_souvenirs">回忆</string>
+    <string name="ranking_media_limit_reached">此位置已达到5个媒体的上限。请删除一个以添加新媒体。</string>
+    <string name="ranking_media_count_indicator">%1$d/5 媒体</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">音乐</string>

@@ -1869,6 +1869,10 @@
     <string name="ranking_gallery_title">RANKS GALLERY</string>
     <string name="ranking_dialog_add_media">Add/Change photo or video</string>
     <string name="ranking_dialog_remove_media">Remove rank media</string>
+    <string name="home_section_recent_memories">RECENT MEMORIES</string>
+    <string name="home_section_souvenirs">Memories</string>
+    <string name="ranking_media_limit_reached">Limit of 5 media reached for this rank. Delete one to add a new one.</string>
+    <string name="ranking_media_count_indicator">%1$d/5 media</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">Music</string>

@@ -1869,6 +1869,10 @@
     <string name="ranking_gallery_title">GALERIA DE POSIÇÕES</string>
     <string name="ranking_dialog_add_media">Adicionar/Alterar foto ou vídeo</string>
     <string name="ranking_dialog_remove_media">Remover mídia da posição</string>
+    <string name="home_section_recent_memories">MEMÓRIAS RECENTES</string>
+    <string name="home_section_souvenirs">Memórias</string>
+    <string name="ranking_media_limit_reached">Limite de 5 mídias atingido para esta posição. Exclua uma para adicionar uma nova.</string>
+    <string name="ranking_media_count_indicator">%1$d/5 mídias</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">Música</string>

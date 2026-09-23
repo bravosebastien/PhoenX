@@ -60,8 +60,8 @@ export const getInheritedFileUrl = onCall(async (request) => {
     // 6. Extraction du chemin Storage (v9.4.27 : Support du paramètre field)
     let storageUrl: string | null = null;
 
-    if (field === "coverUrl") {
-        storageUrl = itemData.coverUrl;
+    if (field === "coverUrl" || field === "coverImageUrl") {
+        storageUrl = itemData.coverUrl || itemData.coverImageUrl;
     } else if (field === "encounterImagePath") { // v9.6.5 : Support pour portrait de Rencontre
         storageUrl = itemData.encounterImagePath;
     } else if (field === "thumbnailPath") { // v9.6.6 : Support pour miniature de vidéo

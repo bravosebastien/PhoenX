@@ -44,7 +44,7 @@ class RankingViewModel @Inject constructor(
     private val _targetCreatorId = MutableStateFlow<String?>(null)
     private val _remoteRankings = MutableStateFlow<List<Ranking>>(emptyList())
     private val _currentRankingId = MutableStateFlow<String?>(null)
-    private val _remoteRankMediaMap = MutableStateFlow<Map<Int, RankMediaItem>>(emptyMap())
+    private val _remoteRankMediaMap = MutableStateFlow<Map<Int, List<RankMediaItem>>>(emptyMap())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val allRankings: StateFlow<List<Ranking>> = _targetCreatorId.flatMapLatest { targetId ->
@@ -62,15 +62,15 @@ class RankingViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val rankMediaMap: StateFlow<Map<Int, RankMediaItem>> = combine(_currentRankingId, _targetCreatorId) { rId, targetId ->
+    val rankMediaMap: StateFlow<Map<Int, List<RankMediaItem>>> = combine(_currentRankingId, _targetCreatorId) { rId, targetId ->
         Pair(rId, targetId)
     }.flatMapLatest { (rId, targetId) ->
         if (rId == null) {
             flowOf(emptyMap())
         } else if (targetId == null) {
             rankMediaDao.getMediaForRanking(rId).map { list ->
-                list.associate { entity ->
-                    entity.rankIndex to RankMediaItem(
+                list.map { entity ->
+                    RankMediaItem(
                         id = entity.id,
                         rankingId = entity.rankingId,
                         rankIndex = entity.rankIndex,
@@ -79,7 +79,7 @@ class RankingViewModel @Inject constructor(
                         thumbnailPath = entity.thumbnailPath,
                         createdAt = entity.createdAt
                     )
-                }
+                }.groupBy { it.rankIndex }
             }
         } else {
             _remoteRankMediaMap
@@ -124,7 +124,7 @@ class RankingViewModel @Inject constructor(
                 val snapshot = db.collection("users").document(creatorId)
                     .collection("rankings").document(rankingId)
                     .collection("rankMedia").get().await()
-                val map = snapshot.documents.mapNotNull { doc ->
+                val list = snapshot.documents.mapNotNull { doc ->
                     val id = doc.getString("id") ?: doc.id
                     val rId = doc.getString("rankingId") ?: rankingId
                     val index = doc.getLong("rankIndex")?.toInt() ?: return@mapNotNull null
@@ -132,9 +132,9 @@ class RankingViewModel @Inject constructor(
                     val type = doc.getString("mediaType") ?: "PHOTO"
                     val thumbPath = doc.getString("thumbnailPath")
                     val created = doc.getLong("createdAt") ?: System.currentTimeMillis()
-                    index to RankMediaItem(id, rId, index, path, type, thumbPath, created)
-                }.toMap()
-                _remoteRankMediaMap.value = map
+                    RankMediaItem(id, rId, index, path, type, thumbPath, created)
+                }
+                _remoteRankMediaMap.value = list.groupBy { it.rankIndex }
             } catch (e: Exception) {
                 android.util.Log.e("RankingVM", "Error loading remote rank media: ${e.message}")
             }
@@ -145,6 +145,13 @@ class RankingViewModel @Inject constructor(
         val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
+                // Garde-fou : Limite de 5 médias maximum par rang
+                val currentMediaList = rankMediaMap.value[rankIndex] ?: emptyList()
+                if (currentMediaList.size >= 5) {
+                    android.util.Log.w("RankingVM", "Alerte : Limite de 5 médias atteinte pour le rang $rankIndex")
+                    return@launch
+                }
+
                 var thumbnailStoragePath: String? = null
 
                 if (isVideo) {
@@ -169,18 +176,7 @@ class RankingViewModel @Inject constructor(
                 // 1. Upload du vidéo/photo principal vers Storage
                 val storagePath = mediaManager.uploadRankMedia(uid, rankingId, rankIndex, file, isVideo)
 
-                // 2. Suppression de l'éventuel média précédent à ce rang
-                val existing = rankMediaDao.getMediaForRank(rankingId, rankIndex)
-                if (existing != null) {
-                    try {
-                        db.collection("users").document(uid)
-                            .collection("rankings").document(rankingId)
-                            .collection("rankMedia").document(existing.id).delete().await()
-                    } catch (_: Exception) {}
-                    rankMediaDao.deleteRankMedia(rankingId, rankIndex)
-                }
-
-                // 3. Insertion Room
+                // 2. Insertion Room
                 val mediaId = UUID.randomUUID().toString()
                 val mediaTypeStr = if (isVideo) "VIDEO" else "PHOTO"
                 val entity = RankMediaEntity(
@@ -194,7 +190,7 @@ class RankingViewModel @Inject constructor(
                 )
                 rankMediaDao.upsertRankMedia(entity)
 
-                // 4. Écriture Firestore sous users/{uid}/rankings/{rankingId}/rankMedia/{mediaId}
+                // 3. Écriture Firestore sous users/{uid}/rankings/{rankingId}/rankMedia/{mediaId}
                 val firestoreData = mutableMapOf<String, Any?>(
                     "id" to mediaId,
                     "rankingId" to rankingId,
@@ -217,19 +213,16 @@ class RankingViewModel @Inject constructor(
         }
     }
 
-    fun removeRankMedia(rankingId: String, rankIndex: Int) {
+    fun removeRankMedia(rankingId: String, mediaId: String) {
         val uid = auth.currentUser?.uid ?: return
         viewModelScope.launch {
             try {
-                val existing = rankMediaDao.getMediaForRank(rankingId, rankIndex)
-                if (existing != null) {
-                    try {
-                        db.collection("users").document(uid)
-                            .collection("rankings").document(rankingId)
-                            .collection("rankMedia").document(existing.id).delete().await()
-                    } catch (_: Exception) {}
-                    rankMediaDao.deleteRankMedia(rankingId, rankIndex)
-                }
+                try {
+                    db.collection("users").document(uid)
+                        .collection("rankings").document(rankingId)
+                        .collection("rankMedia").document(mediaId).delete().await()
+                } catch (_: Exception) {}
+                rankMediaDao.deleteRankMediaById(mediaId)
             } catch (e: Exception) {
                 android.util.Log.e("RankingVM", "Error removing rank media: ${e.message}", e)
             }

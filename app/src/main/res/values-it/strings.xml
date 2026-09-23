@@ -1869,6 +1869,10 @@
     <string name="ranking_gallery_title">GALLERIA DEI RANGHI</string>
     <string name="ranking_dialog_add_media">Aggiungi/Cambia foto o video</string>
     <string name="ranking_dialog_remove_media">Rimuovi media dal rango</string>
+    <string name="home_section_recent_memories">RICORDI RECENTI</string>
+    <string name="home_section_souvenirs">Ricordi</string>
+    <string name="ranking_media_limit_reached">Limite di 5 media raggiunto per questo rango. Elimine uno per aggiungerne uno nuovo.</string>
+    <string name="ranking_media_count_indicator">%1$d/5 media</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">Musica</string>

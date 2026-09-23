@@ -1,6 +1,7 @@
 package com.example.phoenx.ui.screens.rankings
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
@@ -67,7 +68,6 @@ fun RankingDetailScreen(
     var showEditTitleDialog by remember { mutableStateOf(false) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var editingItemIndex by remember { mutableStateOf<Int?>(null) }
-    var viewingItemIndex by remember { mutableStateOf<Int?>(null) }
     var selectedRankIndexForMedia by remember { mutableStateOf<Int?>(null) }
 
     // Onboarding Pop-up explicatif (v12.8) - UNIQUEMENT POUR LE CRÉATEUR
@@ -103,7 +103,7 @@ fun RankingDetailScreen(
         }
     }
 
-    // Launcher pour la photo/vidéo d'un rang individuel
+    // Launcher pour la photo/vidéo d'un rang individuel avec vérification de la limite de 5 médias
     val rankMediaPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -122,6 +122,20 @@ fun RankingDetailScreen(
         }
     }
 
+    fun triggerAddMediaForRank(rankIndex: Int) {
+        val currentMediaList = rankMediaMap[rankIndex] ?: emptyList()
+        if (currentMediaList.size >= 5) {
+            Toast.makeText(
+                context,
+                context.getString(R.string.ranking_media_limit_reached),
+                Toast.LENGTH_LONG
+            ).show()
+        } else {
+            selectedRankIndexForMedia = rankIndex
+            rankMediaPickerLauncher.launch("*/*")
+        }
+    }
+
     LaunchedEffect(rankingId, targetCreatorId) {
         viewModel.setTargetCreator(targetCreatorId)
         viewModel.setRankingId(rankingId)
@@ -136,9 +150,9 @@ fun RankingDetailScreen(
 
     val currentRanking = ranking!!
     val sortedMediaList = remember(rankMediaMap, currentRanking.items) {
-        currentRanking.items.indices.mapNotNull { idx ->
-            rankMediaMap[idx]
-        }.sortedBy { it.rankIndex }
+        currentRanking.items.indices.flatMap { idx ->
+            rankMediaMap[idx] ?: emptyList()
+        }.sortedWith(compareBy({ it.rankIndex }, { it.createdAt }))
     }
 
     Scaffold(
@@ -253,25 +267,31 @@ fun RankingDetailScreen(
 
             // 2. LISTE DES RANGS
             itemsIndexed(currentRanking.items) { index, itemText ->
-                val attachedMedia = rankMediaMap[index]
+                val rankMediaList = rankMediaMap[index] ?: emptyList()
+                val firstMedia = rankMediaList.firstOrNull()
+
                 RankItemRow(
                     index = index + 1,
                     text = itemText,
-                    hasMedia = attachedMedia != null,
-                    mediaPath = attachedMedia?.mediaPath,
-                    thumbnailPath = attachedMedia?.thumbnailPath,
-                    mediaType = attachedMedia?.mediaType,
-                    mediaId = attachedMedia?.id,
+                    mediaList = rankMediaList,
                     rankingId = rankingId,
                     targetCreatorId = targetCreatorId,
                     isReadOnly = isReadOnly,
                     mediaManager = mediaManager,
                     accent = accent,
                     theme = theme,
-                    onRowClick = { viewingItemIndex = index },
+                    onRowClick = {
+                        navController.navigate(
+                            com.example.phoenx.ui.navigation.Screen.RankItemDetail.createRoute(
+                                rankingId = rankingId,
+                                rankIndex = index,
+                                creatorId = targetCreatorId
+                            )
+                        )
+                    },
                     onEditClick = { if (!isReadOnly) editingItemIndex = index },
                     onMediaClick = {
-                        attachedMedia?.let { media ->
+                        firstMedia?.let { media ->
                             navController.navigate(
                                 com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(
                                     entryId = media.id,
@@ -399,116 +419,6 @@ fun RankingDetailScreen(
         }
     }
 
-    // DIALOGUE DÉTAIL D'UN RANG (Créateur ET Destinataire, v12.8)
-    if (viewingItemIndex != null) {
-        val index = viewingItemIndex!!
-        val rankText = currentRanking.items.getOrNull(index)?.ifBlank { stringResource(R.string.ranking_detail_dialog_item_title, index + 1) } ?: "Rang #${index + 1}"
-        val mediaItem = rankMediaMap[index]
-
-        AlertDialog(
-            onDismissRequest = { viewingItemIndex = null },
-            containerColor = theme.backgroundColor,
-            title = {
-                Text(
-                    text = rankText,
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontFamily = theme.fontFamily,
-                        fontWeight = FontWeight.Bold
-                    ),
-                    color = theme.contentColor
-                )
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Text(
-                        text = stringResource(R.string.ranking_detail_dialog_item_title, index + 1),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                        color = accent
-                    )
-
-                    if (mediaItem != null) {
-                        val activeUrl = mediaItem.thumbnailPath ?: mediaItem.mediaPath
-                        val fieldParam = if (mediaItem.thumbnailPath != null) "thumbnailPath" else "mediaPath"
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .border(1.dp, accent.copy(alpha = 0.3f), RoundedCornerShape(12.dp))
-                                .clickable {
-                                    navController.navigate(
-                                        com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(
-                                            entryId = mediaItem.id,
-                                            creatorId = targetCreatorId ?: com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: "",
-                                            mediaUrl = mediaItem.mediaPath,
-                                            entryType = mediaItem.mediaType,
-                                            aiSummary = rankText,
-                                            sourceDocType = "rankMedia",
-                                            personId = rankingId,
-                                            isEncrypted = false
-                                        )
-                                    )
-                                }
-                        ) {
-                            SecureAsyncImage(
-                                mediaUrl = activeUrl,
-                                mediaManager = mediaManager,
-                                isEncrypted = false,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
-                                creatorId = targetCreatorId,
-                                docType = "rankMedia",
-                                docId = mediaItem.id,
-                                field = fieldParam,
-                                personId = rankingId
-                            )
-
-                            if (mediaItem.mediaType == "VIDEO") {
-                                Icon(
-                                    imageVector = Icons.Default.PlayCircle,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(48.dp).align(Alignment.Center)
-                                )
-                            }
-                        }
-                    } else {
-                        Text(
-                            text = stringResource(R.string.ranking_detail_no_image),
-                            style = MaterialTheme.typography.bodySmall.copy(fontStyle = FontStyle.Italic),
-                            color = theme.contentColor.copy(alpha = 0.4f)
-                        )
-                    }
-
-                    // Bouton d'édition uniquement pour le Créateur
-                    if (!isReadOnly) {
-                        OutlinedButton(
-                            onClick = {
-                                viewingItemIndex = null
-                                editingItemIndex = index
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            border = BorderStroke(1.dp, accent)
-                        ) {
-                            Icon(Icons.Default.Edit, null, tint = accent, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(stringResource(R.string.ranking_detail_menu_rename), color = accent, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = { viewingItemIndex = null },
-                    colors = ButtonDefaults.buttonColors(containerColor = accent)
-                ) {
-                    Text(stringResource(R.string.character_delete_linked_ok), color = theme.backgroundColor, fontWeight = FontWeight.Bold)
-                }
-            }
-        )
-    }
-
     // DIALOGUES D'ÉDITION (CRÉATEUR)
     if (showEditTitleDialog) {
         var newTitle by remember { mutableStateOf(currentRanking.title) }
@@ -566,7 +476,7 @@ fun RankingDetailScreen(
     if (editingItemIndex != null) {
         val index = editingItemIndex!!
         var text by remember { mutableStateOf(currentRanking.items[index]) }
-        val currentMedia = rankMediaMap[index]
+        val mediaListForRank = rankMediaMap[index] ?: emptyList()
 
         AlertDialog(
             onDismissRequest = { editingItemIndex = null },
@@ -581,11 +491,34 @@ fun RankingDetailScreen(
                         colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent)
                     )
 
-                    // Bouton Ajouter / Changer Photo/Vidéo
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Médias de ce rang :",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                            color = theme.contentColor.copy(alpha = 0.7f)
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = accent.copy(alpha = 0.12f),
+                            border = BorderStroke(0.8.dp, accent.copy(alpha = 0.3f))
+                        ) {
+                            Text(
+                                text = stringResource(R.string.ranking_media_count_indicator, mediaListForRank.size),
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
+                                color = accent,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+
+                    // Bouton Ajouter Photo/Vidéo (avec garde-fou 5)
                     OutlinedButton(
                         onClick = {
-                            selectedRankIndexForMedia = index
-                            rankMediaPickerLauncher.launch("*/*")
+                            triggerAddMediaForRank(index)
                         },
                         modifier = Modifier.fillMaxWidth(),
                         border = BorderStroke(1.dp, accent.copy(alpha = 0.5f))
@@ -595,17 +528,43 @@ fun RankingDetailScreen(
                         Text(stringResource(R.string.ranking_dialog_add_media), color = accent, fontWeight = FontWeight.Bold)
                     }
 
-                    // Bouton Supprimer le média s'il existe
-                    if (currentMedia != null) {
-                        TextButton(
-                            onClick = {
-                                viewModel.removeRankMedia(rankingId, index)
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Icon(Icons.Default.Delete, null, tint = com.example.phoenx.ui.theme.Error, modifier = Modifier.size(16.dp))
-                            Spacer(Modifier.width(6.dp))
-                            Text(stringResource(R.string.ranking_dialog_remove_media), color = com.example.phoenx.ui.theme.Error)
+                    // Liste des médias existants avec possibilité de suppression individuelle
+                    if (mediaListForRank.isNotEmpty()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            mediaListForRank.forEach { mediaItem ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(theme.contentColor.copy(alpha = 0.03f))
+                                        .padding(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                                        Icon(
+                                            imageVector = if (mediaItem.mediaType == "VIDEO") Icons.Default.Videocam else Icons.Default.Photo,
+                                            contentDescription = null,
+                                            tint = accent,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Spacer(Modifier.width(12.dp))
+                                        Text(
+                                            text = if (mediaItem.mediaType == "VIDEO") "Vidéo" else "Photo",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = theme.contentColor
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = {
+                                            viewModel.removeRankMedia(rankingId, mediaItem.id)
+                                        },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(Icons.Default.Delete, null, tint = com.example.phoenx.ui.theme.Error, modifier = Modifier.size(18.dp))
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -643,11 +602,7 @@ fun RankingDetailScreen(
 fun RankItemRow(
     index: Int,
     text: String,
-    hasMedia: Boolean,
-    mediaPath: String?,
-    thumbnailPath: String?,
-    mediaType: String?,
-    mediaId: String?,
+    mediaList: List<RankMediaItem>,
     rankingId: String,
     targetCreatorId: String?,
     isReadOnly: Boolean,
@@ -658,6 +613,8 @@ fun RankItemRow(
     onEditClick: () -> Unit,
     onMediaClick: () -> Unit
 ) {
+    val firstMedia = mediaList.firstOrNull()
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -706,9 +663,9 @@ fun RankItemRow(
         }
 
         // Miniature si média attaché au rang (Cliquable pour ouvrir le lecteur grand écran)
-        if (hasMedia && mediaPath != null && mediaId != null) {
-            val activeUrl = thumbnailPath ?: mediaPath
-            val fieldParam = if (thumbnailPath != null) "thumbnailPath" else "mediaPath"
+        if (firstMedia != null) {
+            val activeUrl = firstMedia.thumbnailPath ?: firstMedia.mediaPath
+            val fieldParam = if (firstMedia.thumbnailPath != null) "thumbnailPath" else "mediaPath"
 
             Box(
                 modifier = Modifier
@@ -725,17 +682,32 @@ fun RankItemRow(
                     contentScale = ContentScale.Crop,
                     creatorId = targetCreatorId,
                     docType = "rankMedia",
-                    docId = mediaId,
+                    docId = firstMedia.id,
                     field = fieldParam,
                     personId = rankingId
                 )
-                if (mediaType == "VIDEO") {
+                if (firstMedia.mediaType == "VIDEO") {
                     Icon(
                         Icons.Default.PlayCircle,
                         null,
                         tint = Color.White,
                         modifier = Modifier.size(18.dp).align(Alignment.Center)
                     )
+                }
+                // Si plus de 1 média sur ce rang, afficher un petit badge indicateur "+N"
+                if (mediaList.size > 1) {
+                    Surface(
+                        modifier = Modifier.align(Alignment.BottomEnd),
+                        shape = RoundedCornerShape(topStart = 4.dp),
+                        color = Color.Black.copy(alpha = 0.7f)
+                    ) {
+                        Text(
+                            text = "+${mediaList.size - 1}",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp, fontWeight = FontWeight.Bold),
+                            color = Color.White,
+                            modifier = Modifier.padding(horizontal = 3.dp, vertical = 1.dp)
+                        )
+                    }
                 }
             }
             Spacer(Modifier.width(12.dp))

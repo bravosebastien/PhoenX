@@ -46,6 +46,7 @@ import com.example.phoenx.ui.screens.profile.ProfileScreen
 import androidx.media3.common.util.UnstableApi
 import com.example.phoenx.ui.screens.questions.PendingQuestionsScreen
 import com.example.phoenx.ui.screens.questions.QuestionsScreen
+import com.example.phoenx.ui.screens.rankings.RankItemDetailScreen
 import com.example.phoenx.ui.screens.rankings.RankingDetailScreen
 import com.example.phoenx.ui.screens.rankings.RankingListScreen
 import com.example.phoenx.ui.screens.reconciliation.ReconciliationScreen
@@ -631,6 +632,25 @@ fun NavGraphBuilder.creatorGraph(
         val id = backStackEntry.arguments?.getString("id") ?: ""
         val creatorId = backStackEntry.arguments?.getString("creatorId")
         RankingDetailScreen(rankingId = id, navController = navController, targetCreatorId = creatorId)
+    }
+
+    composable(
+        route = Screen.RankItemDetail.route,
+        arguments = listOf(
+            navArgument("rankingId") { type = NavType.StringType },
+            navArgument("rankIndex") { type = NavType.IntType },
+            navArgument("creatorId") { nullable = true; type = NavType.StringType }
+        )
+    ) { backStackEntry ->
+        val rankingId = backStackEntry.arguments?.getString("rankingId") ?: ""
+        val rankIndex = backStackEntry.arguments?.getInt("rankIndex") ?: 0
+        val creatorId = backStackEntry.arguments?.getString("creatorId")
+        RankItemDetailScreen(
+            rankingId = rankingId,
+            rankIndex = rankIndex,
+            navController = navController,
+            targetCreatorId = creatorId
+        )
     }
 
     composable(

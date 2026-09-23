@@ -1852,6 +1852,10 @@
     <string name="ranking_gallery_title">معرض المراتب</string>
     <string name="ranking_dialog_add_media">إضافة/تغيير صورة أو فيديو</string>
     <string name="ranking_dialog_remove_media">حذف وسائط المرتبة</string>
+    <string name="home_section_recent_memories">الذكريات الحديثة</string>
+    <string name="home_section_souvenirs">الذكريات</string>
+    <string name="ranking_media_limit_reached">تم الوصول إلى الحد الأقصى (5 وسائط) لهذه المرتبة. احذف أحدها لإضافة جديد.</string>
+    <string name="ranking_media_count_indicator">%1$d/5 وسائط</string>
 
     <!-- Suggestions Categories -->
     <string name="rankings_cat_music">موسيقى</string>
