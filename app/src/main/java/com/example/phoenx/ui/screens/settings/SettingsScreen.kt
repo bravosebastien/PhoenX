@@ -225,19 +225,6 @@ fun SettingsScreen(
             Spacer(modifier = Modifier.height(32.dp))
             */
 
-            Text(stringResource(R.string.settings_section_accessibility), style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = accent)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SettingsItem(
-                title = stringResource(R.string.settings_item_accessibility_title),
-                subtitle = stringResource(R.string.settings_item_accessibility_subtitle),
-                icon = Icons.Default.RecordVoiceOver,
-                theme = theme,
-                onClick = onNavigateToAccessibility
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             SettingsItem(
                 title = stringResource(R.string.settings_item_language_title),
                 subtitle = stringResource(R.string.settings_item_language_subtitle),

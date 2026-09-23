@@ -1015,7 +1015,12 @@ class RecipientMediaViewModel @Inject constructor(
                     "video" to allDecoded.filter { it.type == EntryType.VIDEO },
                     "audio" to allDecoded.filter { it.type == EntryType.AUDIO },
                     "photo" to allDecoded.filter { it.type == EntryType.PHOTO },
-                    "heritage" to allDecoded.filter { it.parentEntryId == null && !it.isGuessQuestion }.sortedByDescending { it.timestamp }
+                    "heritage" to allDecoded.filter { 
+                        it.parentEntryId == null && 
+                        !it.isGuessQuestion && 
+                        it.sourceDocType != "standaloneMedia" && 
+                        it.type != EntryType.QUESTION_ANSWER 
+                    }.sortedByDescending { it.timestamp }
                 )
 
                 android.util.Log.d("PHOENX_ENTRY_DISAPPEAR_TRACE", "Après filtrage (heritage): ${result["heritage"]?.map { (it as PhoenXEntry).id }}")

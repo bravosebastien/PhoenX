@@ -341,57 +341,6 @@ fun HeirHeritageScreen(
                     }
                 }
             }
-
-            // 3. APERÇU EN DÉROULEMENT HORIZONTAL DES SOUVENIRS RÉCENTS (v12.8)
-            if (heritageEntries.isNotEmpty()) {
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        text = stringResource(R.string.home_section_recent_memories),
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.5.sp,
-                            fontFamily = theme.fontFamily
-                        ),
-                        color = accent,
-                        modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
-                    )
-
-                    val recentEntries = remember(heritageEntries) { heritageEntries.take(10) }
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(recentEntries) { entry ->
-                            HeritageEntryCard(
-                                entry = entry,
-                                heirKey = heirKey,
-                                mediaManager = viewModel.mediaManager,
-                                theme = theme,
-                                creatorId = creatorId,
-                                onClick = {
-                                    val contentStr = String(entry.encryptedContent)
-                                    val url = if (entry.mediaUrl?.startsWith("http") == true) entry.mediaUrl else contentStr
-
-                                    val isExternal = url.startsWith("http") &&
-                                            (entry.mediaProvider != null || url.contains("spotify") || url.contains("youtube") || url.contains("deezer"))
-
-                                    if (isExternal) {
-                                        try {
-                                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
-                                            context.startActivity(intent)
-                                        } catch(_: Exception) {
-                                            navController.navigate("recipient_memory_detail/${entry.id}/$creatorId")
-                                        }
-                                    } else {
-                                        navController.navigate("recipient_memory_detail/${entry.id}/$creatorId")
-                                    }
-                                }
-                            )
-                        }
-                    }
-                }
-            }
         }
     }
 }

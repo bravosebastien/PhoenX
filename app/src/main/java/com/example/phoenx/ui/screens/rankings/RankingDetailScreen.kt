@@ -295,7 +295,7 @@ fun RankingDetailScreen(
                             navController.navigate(
                                 com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(
                                     entryId = media.id,
-                                    creatorId = targetCreatorId ?: com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: "",
+                                    creatorId = targetCreatorId,
                                     mediaUrl = media.mediaPath,
                                     entryType = media.mediaType,
                                     aiSummary = itemText.ifBlank { "Rang #${index + 1}" },
@@ -351,7 +351,7 @@ fun RankingDetailScreen(
                                                     navController.navigate(
                                                         com.example.phoenx.ui.navigation.Screen.MediaViewer.createRoute(
                                                             entryId = mediaItem.id,
-                                                            creatorId = targetCreatorId ?: com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid ?: "",
+                                                            creatorId = targetCreatorId,
                                                             mediaUrl = mediaItem.mediaPath,
                                                             entryType = mediaItem.mediaType,
                                                             aiSummary = itemRankTitle.ifBlank { "Rang #${mediaItem.rankIndex + 1}" },
