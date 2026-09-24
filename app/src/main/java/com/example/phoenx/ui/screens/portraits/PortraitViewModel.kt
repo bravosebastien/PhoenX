@@ -26,6 +26,7 @@ class PortraitViewModel @Inject constructor(
     private val encryptionManager: EncryptionManager,
     private val auth: com.google.firebase.auth.FirebaseAuth,
     private val db: com.google.firebase.firestore.FirebaseFirestore,
+    private val analyticsTracker: com.example.phoenx.data.analytics.AnalyticsTracker,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -123,6 +124,18 @@ class PortraitViewModel @Inject constructor(
                     syncStatus = "pending"
                 )
                 offlineEntryDao.insertEntry(parentEntry)
+
+                if (existingParent == null) {
+                    try {
+                        analyticsTracker.logMemoryCreated(source = "autre")
+                        val rootCount = offlineEntryDao.getAllEntriesSync().count { it.parentEntryId.isNullOrBlank() }
+                        if (rootCount == 1 || rootCount == 3 || rootCount == 10) {
+                            analyticsTracker.logMemoryMilestone(rootCount)
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("PortraitVM", "Erreur analytics memory_created", e)
+                    }
+                }
 
                 // 2. GESTION DES RÉPONSES (Atomiques - v8.5.7)
                 if (questions != null) {

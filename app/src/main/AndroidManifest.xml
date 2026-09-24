@@ -26,6 +26,17 @@
         android:theme="@style/Theme.PhoenX"
         android:localeConfig="@xml/locales_config">
 
+        <!-- Firebase Analytics CNIL Opt-In (Disabled by default) -->
+        <meta-data
+            android:name="firebase_analytics_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_adid_collection_enabled"
+            android:value="false" />
+        <meta-data
+            android:name="google_analytics_default_allow_ad_personalization_signals"
+            android:value="false" />
+
         <!-- v12.7 : Le drapeau "autoStoreLocales" doit être lu à l'intérieur MÊME de ce service
              (AppCompatDelegate.isAutoStorageOptedIn interroge les métadonnées du service, pas de
              l'application) — sans lui, AppCompatDelegate plante au lancement (NullPointerException

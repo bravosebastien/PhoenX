@@ -59,6 +59,16 @@ class PreferenceManager @Inject constructor(
     // v12.8 : Le Phare
     private val IS_PHARE_ENABLED_KEY = booleanPreferencesKey("is_phare_enabled")
 
+    // CNIL / Analytics Consent
+    private val ANALYTICS_CONSENT_KEY = booleanPreferencesKey("analytics_consent")
+
+    val analyticsConsent: Flow<Boolean> = context.dataStore.data
+        .map { it[ANALYTICS_CONSENT_KEY] ?: false }
+
+    suspend fun setAnalyticsConsent(enabled: Boolean) {
+        context.dataStore.edit { it[ANALYTICS_CONSENT_KEY] = enabled }
+    }
+
     val isPhareEnabled: Flow<Boolean> = context.dataStore.data
         .map { it[IS_PHARE_ENABLED_KEY] ?: true }
 

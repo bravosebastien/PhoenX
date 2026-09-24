@@ -33,6 +33,7 @@ class ReconciliationViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
     private val aiManager: AIManager,
+    private val analyticsTracker: com.example.phoenx.data.analytics.AnalyticsTracker,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -80,6 +81,16 @@ class ReconciliationViewModel @Inject constructor(
                     aiSummary = context.getString(R.string.reconciliation_vm_summary, recipientName.ifBlank { "votre proche" })
                 )
                 offlineEntryDao.insertEntry(entry)
+
+                try {
+                    analyticsTracker.logMemoryCreated(source = "autre")
+                    val rootCount = offlineEntryDao.getAllEntriesSync().count { it.parentEntryId.isNullOrBlank() }
+                    if (rootCount == 1 || rootCount == 3 || rootCount == 10) {
+                        analyticsTracker.logMemoryMilestone(rootCount)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("ReconciliationVM", "Erreur analytics memory_created", e)
+                }
 
                 // DECLENCHEMENT PIPELINE STANDARD (SyncWorker)
                 val constraints = Constraints.Builder()

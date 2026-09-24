@@ -28,6 +28,7 @@ class YoungSelfLetterViewModel @Inject constructor(
     private val functions: FirebaseFunctions,
     private val encryptionManager: EncryptionManager,
     private val offlineEntryDao: OfflineEntryDao,
+    private val analyticsTracker: com.example.phoenx.data.analytics.AnalyticsTracker,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -158,6 +159,16 @@ class YoungSelfLetterViewModel @Inject constructor(
                     .setConstraints(constraints)
                     .build()
                 WorkManager.getInstance(context).enqueue(syncRequest)
+
+                try {
+                    analyticsTracker.logMemoryCreated(source = "lettre")
+                    val rootCount = offlineEntryDao.getAllEntriesSync().count { it.parentEntryId.isNullOrBlank() }
+                    if (rootCount == 1 || rootCount == 3 || rootCount == 10) {
+                        analyticsTracker.logMemoryMilestone(rootCount)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("YoungSelfLetterVM", "Erreur analytics memory_created", e)
+                }
 
                 onSuccess()
             } catch (e: Exception) {

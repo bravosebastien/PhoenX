@@ -7,6 +7,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.example.phoenx.R
 import com.example.phoenx.ui.theme.LocalAppTheme
@@ -29,6 +32,18 @@ fun BecomeCreatorPromptScreen(
 ) {
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+
+    // Analytics (v13.2) : écran affiché une seule fois dans la vie du compte (voir appelant).
+    val context = LocalContext.current
+    val analyticsTracker = remember(context) {
+        dagger.hilt.android.EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            com.example.phoenx.data.analytics.AnalyticsTracker.AnalyticsEntryPoint::class.java
+        ).analyticsTracker()
+    }
+    LaunchedEffect(role) {
+        analyticsTracker.logBecomeCreatorPromptShown(role)
+    }
 
     val message = when (role) {
         "witness" -> stringResource(R.string.become_creator_witness_msg, creatorName)
@@ -80,7 +95,10 @@ fun BecomeCreatorPromptScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             Button(
-                onClick = onBecomeCreator,
+                onClick = {
+                    analyticsTracker.logBecomeCreatorAccepted(role)
+                    onBecomeCreator()
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
@@ -93,7 +111,10 @@ fun BecomeCreatorPromptScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            TextButton(onClick = onLater) {
+            TextButton(onClick = {
+                analyticsTracker.logBecomeCreatorLater(role)
+                onLater()
+            }) {
                 Text(stringResource(R.string.become_creator_later), color = theme.contentColor.copy(alpha = 0.4f))
             }
         }

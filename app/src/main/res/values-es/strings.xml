@@ -1871,6 +1871,9 @@
     <string name="ranking_dialog_remove_media">Eliminar archivo del rango</string>
     <string name="home_section_recent_memories">RECUERDOS RECIENTES</string>
     <string name="home_section_souvenirs">Recuerdos</string>
+    <string name="auth_analytics_consent_label">Acepto compartir estadísticas de uso anónimas para ayudar a mejorar PHOEN-X (sin contenido ni datos personales).</string>
+    <string name="settings_analytics_title">Estadísticas de uso anónimas</string>
+    <string name="settings_analytics_subtitle">Ayudar a mejorar PHOEN-X (sin transmisión de contenido ni datos personales)</string>
     <string name="recipient_young_self_fallback_name">tu ser querido</string>
     <string name="recipient_young_self_detail_title">Carta a mí mismo a los %1$d años</string>
     <string name="recipient_young_self_letters_empty_state">No se ha compartido ninguna carta contigo por parte de %1$s.</string>

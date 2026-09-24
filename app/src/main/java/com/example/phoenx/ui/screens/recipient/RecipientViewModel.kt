@@ -34,6 +34,7 @@ class RecipientViewModel @Inject constructor(
     private val db: FirebaseFirestore,
     private val functions: FirebaseFunctions,
     private val mediaManager: MediaManager,
+    private val analyticsTracker: com.example.phoenx.data.analytics.AnalyticsTracker,
     @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
@@ -194,6 +195,8 @@ class RecipientViewModel @Inject constructor(
 
     fun addRecipient(name: String, email: String, relationship: String, phone: String? = null, imageUri: android.net.Uri? = null) {
         val userId = auth.currentUser?.uid ?: return
+        // Analytics (v13.2) : déterminé AVANT l'ajout, pour distinguer le tout premier Destinataire.
+        val isFirstRecipient = (uiState.value as? RecipientUiState.Success)?.recipients?.isEmpty() ?: true
         viewModelScope.launch {
             try {
                 var finalPhotoUrl: String? = null
@@ -253,6 +256,8 @@ class RecipientViewModel @Inject constructor(
                     "text" to context.getString(R.string.recipient_viewmodel_email_text, name, creatorName, tokenId)
                 )
                 functions.getHttpsCallable("sendMail").call(emailData).await()
+
+                analyticsTracker.logRecipientAdded(isFirstRecipient)
 
             } catch (e: Exception) {
                 android.util.Log.e("RecipientVM", "Erreur ajout destinataire", e)

@@ -1871,6 +1871,9 @@
     <string name="ranking_dialog_remove_media">删除位置媒体</string>
     <string name="home_section_recent_memories">最新回忆</string>
     <string name="home_section_souvenirs">回忆</string>
+    <string name="auth_analytics_consent_label">我同意共享匿名使用统计数据以帮助改进 PHOEN-X（不包含任何内容或个人数据）。</string>
+    <string name="settings_analytics_title">匿名使用统计</string>
+    <string name="settings_analytics_subtitle">帮助改进 PHOEN-X（不传输任何内容或个人数据）</string>
     <string name="recipient_young_self_fallback_name">您的亲友</string>
     <string name="recipient_young_self_detail_title">写给%1$d岁自己的一封信</string>
     <string name="recipient_young_self_letters_empty_state">%1$s 尚未与您分享任何信件。</string>

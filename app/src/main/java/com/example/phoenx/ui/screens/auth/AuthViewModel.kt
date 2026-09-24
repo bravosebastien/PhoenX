@@ -34,6 +34,7 @@ class AuthViewModel @Inject constructor(
     private val preferenceManager: PreferenceManager,
     private val database: PhoenXDatabase,
     private val functions: com.google.firebase.functions.FirebaseFunctions,
+    private val analyticsTracker: com.example.phoenx.data.analytics.AnalyticsTracker,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -170,6 +171,7 @@ class AuthViewModel @Inject constructor(
                 }
 
                 _uiState.value = AuthState.EmailVerificationSent
+                analyticsTracker.logSignupCompleted()
             } catch (e: Exception) {
                 _uiState.value = AuthState.Error(e.message ?: context.getString(R.string.auth_error_signup_failed))
             }

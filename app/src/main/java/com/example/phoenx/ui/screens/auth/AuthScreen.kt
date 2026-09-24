@@ -451,7 +451,16 @@ fun SignupStepA(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        val context = androidx.compose.ui.platform.LocalContext.current
         var termsAccepted by remember { mutableStateOf(false) }
+        var analyticsConsent by remember { mutableStateOf(false) }
+        val analyticsTracker = remember(context) {
+            dagger.hilt.android.EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                com.example.phoenx.data.analytics.AnalyticsTracker.AnalyticsEntryPoint::class.java
+            ).analyticsTracker()
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -483,6 +492,29 @@ fun SignupStepA(
                     )
                 }
             }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Case d'analytics optionnelle (CNIL - v12.8)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = analyticsConsent,
+                onCheckedChange = { 
+                    analyticsConsent = it
+                    analyticsTracker.setConsent(it)
+                },
+                colors = CheckboxDefaults.colors(checkedColor = accent)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = stringResource(R.string.auth_analytics_consent_label),
+                style = MaterialTheme.typography.labelSmall,
+                color = theme.contentColor.copy(alpha = 0.8f)
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))

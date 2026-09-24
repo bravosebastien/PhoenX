@@ -165,6 +165,7 @@ fun StepByStepCaptureScreen(
                                     enigmaHint = if (uiState.enigmaEnabled) uiState.enigmaHint else null,
                                     enigmaAutoUnlockDays = if (uiState.enigmaEnabled) uiState.autoUnlockDays else null,
                                     includeInBook = uiState.includeInBook,
+                                    source = "pas_a_pas",
                                     onSuccess = { entryId ->
                                         uiState.mediaAttachments.forEach { (file, type) ->
                                             captureViewModel.addMediaComplement(entryId, file, type)

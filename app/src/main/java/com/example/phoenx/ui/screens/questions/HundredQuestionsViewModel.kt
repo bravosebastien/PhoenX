@@ -47,6 +47,7 @@ class HundredQuestionsViewModel @Inject constructor(
     private val offlineEntryDao: OfflineEntryDao,
     private val encryptionManager: EncryptionManager,
     val mediaManager: MediaManager,
+    private val analyticsTracker: com.example.phoenx.data.analytics.AnalyticsTracker,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -176,6 +177,16 @@ class HundredQuestionsViewModel @Inject constructor(
                 
                 offlineEntryDao.insertEntry(entry)
                 
+                try {
+                    analyticsTracker.logMemoryCreated(source = "autre")
+                    val rootCount = offlineEntryDao.getAllEntriesSync().count { it.parentEntryId.isNullOrBlank() }
+                    if (rootCount == 1 || rootCount == 3 || rootCount == 10) {
+                        analyticsTracker.logMemoryMilestone(rootCount)
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("HundredQuestionsVM", "Erreur analytics memory_created", e)
+                }
+
                 // Déclenchement sync
                 SyncWorker.trigger(context)
             } catch (e: Exception) {

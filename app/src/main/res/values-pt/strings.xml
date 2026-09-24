@@ -1871,6 +1871,9 @@
     <string name="ranking_dialog_remove_media">Remover mídia da posição</string>
     <string name="home_section_recent_memories">MEMÓRIAS RECENTES</string>
     <string name="home_section_souvenirs">Memórias</string>
+    <string name="auth_analytics_consent_label">Concordo em compartilhar estatísticas de uso anônimas para ajudar a melhorar PHOEN-X (sem conteúdo ou dados pessoais).</string>
+    <string name="settings_analytics_title">Estatísticas de uso anônimas</string>
+    <string name="settings_analytics_subtitle">Ajudar a melhorar PHOEN-X (nenhum conteúdo ou dado pessoal enviado)</string>
     <string name="recipient_young_self_fallback_name">seu ente querido</string>
     <string name="recipient_young_self_detail_title">Carta para mim mesmo aos %1$d anos</string>
     <string name="recipient_young_self_letters_empty_state">Nenhuma carta foi compartilhada com você por %1$s.</string>

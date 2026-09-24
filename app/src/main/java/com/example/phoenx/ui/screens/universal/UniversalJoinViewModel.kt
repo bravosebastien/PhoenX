@@ -39,6 +39,7 @@ data class InvitationDetails(
 class UniversalJoinViewModel @Inject constructor(
     private val auth: FirebaseAuth,
     private val functions: FirebaseFunctions,
+    private val analyticsTracker: com.example.phoenx.data.analytics.AnalyticsTracker,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -85,6 +86,8 @@ class UniversalJoinViewModel @Inject constructor(
                 val resData = result.data as Map<*, *>
                 val role = resData["role"] as? String
                 val invitation = _uiState.value.invitation
+
+                analyticsTracker.logInvitationAccepted(role ?: "unknown")
 
                 _uiState.update { it.copy(
                     isLoading = false, 

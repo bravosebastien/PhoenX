@@ -226,6 +226,43 @@ fun SettingsScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+
+            val context = androidx.compose.ui.platform.LocalContext.current
+            val analyticsTracker = remember(context) {
+                dagger.hilt.android.EntryPointAccessors.fromApplication(
+                    context.applicationContext,
+                    com.example.phoenx.data.analytics.AnalyticsTracker.AnalyticsEntryPoint::class.java
+                ).analyticsTracker()
+            }
+            var analyticsConsentGiven by remember { mutableStateOf(analyticsTracker.isConsentGiven()) }
+
+            Surface(
+                color = theme.contentColor.copy(alpha = 0.05f),
+                shape = MaterialTheme.shapes.medium,
+                border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Default.Analytics, null, tint = accent)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.settings_analytics_title), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                        Text(stringResource(R.string.settings_analytics_subtitle), style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                    }
+                    Switch(
+                        checked = analyticsConsentGiven,
+                        onCheckedChange = {
+                            analyticsConsentGiven = it
+                            analyticsTracker.setConsent(it)
+                        },
+                        colors = SwitchDefaults.colors(checkedThumbColor = accent)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
             // v12.7 : "Le Tiroir à Clé Unique" retiré des Réglages — faisait doublon avec les
             // autres verrous (Coffre-Fort / Secret Ultime) et n'était pas fiable (voir ci-dessous).
 

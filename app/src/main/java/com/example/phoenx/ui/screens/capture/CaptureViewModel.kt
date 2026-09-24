@@ -52,6 +52,7 @@ class CaptureViewModel @Inject constructor(
     private val hapticManager: HapticManager,
     private val sttManager: SpeechToTextManager,
     private val mediaComplementManager: com.example.phoenx.data.memory.MemoryMediaComplementManager,
+    private val analyticsTracker: com.example.phoenx.data.analytics.AnalyticsTracker,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -427,6 +428,7 @@ class CaptureViewModel @Inject constructor(
         includeInBook: Boolean = true,
         soulTone: String? = null,
         tonalNuance: String? = null, // v9.4.27
+        source: String = "atelier",
         onSuccess: (String) -> Unit = {} // v9.4.26
     ) {
         val user = auth.currentUser ?: return
@@ -560,6 +562,20 @@ class CaptureViewModel @Inject constructor(
                 
                 // Déclenchement sync
                 SyncWorker.trigger(context)
+
+                // Analytics (v13.2) : uniquement pour un vrai nouveau souvenir racine,
+                // jamais pour un complément (parentEntryId != null).
+                if (parentEntryId == null) {
+                    try {
+                        analyticsTracker.logMemoryCreated(source = source)
+                        val rootCount = offlineEntryDao.getAllEntriesSync().count { it.parentEntryId == null }
+                        if (rootCount == 1 || rootCount == 3 || rootCount == 10) {
+                            analyticsTracker.logMemoryMilestone(rootCount)
+                        }
+                    } catch (e: Exception) {
+                        Log.e("CaptureVM", "Erreur analytics memory_created", e)
+                    }
+                }
 
                 _uiState.value = CaptureUiState.Success
                 onSuccess(entryId)

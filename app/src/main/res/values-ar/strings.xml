@@ -1854,6 +1854,9 @@
     <string name="ranking_dialog_remove_media">حذف وسائط المرتبة</string>
     <string name="home_section_recent_memories">الذكريات الحديثة</string>
     <string name="home_section_souvenirs">الذكريات</string>
+    <string name="auth_analytics_consent_label">أوافق على مشاركة إحصاءات الاستخدام المجهولة للمساعدة في تحسين PHOEN-X (لا توجد محتويات أو بيانات شخصية).</string>
+    <string name="settings_analytics_title">إحصاءات الاستخدام المجهولة</string>
+    <string name="settings_analytics_subtitle">المساعدة في تحسين PHOEN-X (لا يتم نقل أي محتوى أو بيانات شخصية)</string>
     <string name="recipient_young_self_fallback_name">قريبك</string>
     <string name="recipient_young_self_detail_title">رسالة إلى نفسي في سن %1$d</string>
     <string name="recipient_young_self_letters_empty_state">لم تتم مشاركة أي رسالة معك بواسطة %1$s.</string>
