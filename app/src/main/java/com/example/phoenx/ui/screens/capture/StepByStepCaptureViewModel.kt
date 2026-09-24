@@ -29,7 +29,8 @@ data class StepByStepUiState(
     val enigmaAnswer: String = "",
     val enigmaHint: String = "",
     val autoUnlockDays: Int? = 30,
-    val isUltimateSecret: Boolean = false,
+    val answerType: String = "WORD",
+    val expectedWordCount: Int? = 1,
     val includeInBook: Boolean = true, // v9.4.27
     val tonalNuance: String = "", // v9.4.27
 
@@ -176,8 +177,11 @@ class StepByStepCaptureViewModel @Inject constructor(
     fun updateAutoUnlockDays(days: Int?) {
         _uiState.update { it.copy(autoUnlockDays = days) }
     }
-    fun updateUltimateSecret(ultimate: Boolean) {
-        _uiState.update { it.copy(isUltimateSecret = ultimate) }
+    fun updateAnswerType(type: String) {
+        _uiState.update { it.copy(answerType = type) }
+    }
+    fun updateExpectedWordCount(count: Int?) {
+        _uiState.update { it.copy(expectedWordCount = count) }
     }
 
     fun updateIncludeInBook(include: Boolean) {

@@ -103,13 +103,14 @@ class MemoryMetadataUpdater @Inject constructor(
         answer: String?,
         hint: String?,
         autoUnlockDays: Int?,
-        isUltimate: Boolean
+        answerType: String = "WORD",
+        expectedWordCount: Int? = null
     ) {
         val currentEntry = offlineEntryDao.getEntryById(entryId).first() ?: return
         val newHash: String?
         val newPlain: String?
         if (!answer.isNullOrBlank()) {
-            newHash = EnigmaUtils.hashAnswer(answer, "WORD")
+            newHash = EnigmaUtils.hashAnswer(answer, answerType)
             newPlain = answer
         } else {
             newHash = currentEntry.enigmaAnswer
@@ -121,8 +122,8 @@ class MemoryMetadataUpdater @Inject constructor(
             answerHash = newHash,
             hint = hint,
             unlockDays = autoUnlockDays,
-            isUltimate = isUltimate,
-            answerType = "WORD",
+            answerType = answerType,
+            expectedWordCount = expectedWordCount,
             answerPlain = newPlain,
             entryId = entryId
         )

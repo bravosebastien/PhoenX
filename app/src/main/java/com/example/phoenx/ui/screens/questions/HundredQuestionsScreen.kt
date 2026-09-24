@@ -370,30 +370,50 @@ else if (uiState.selectedCategory == "Mes Questions") {
     }
 
     if (showUnlockedDialog && selectedEntry != null) {
-        AlertDialog(
+        androidx.compose.ui.window.Dialog(
             onDismissRequest = { showUnlockedDialog = false; selectedEntry = null },
-            containerColor = theme.backgroundColor,
-            title = { 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Success)
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = "Énigme résolue", 
-                        color = theme.contentColor,
-                        fontFamily = theme.fontFamily,
-                        fontWeight = FontWeight.Bold
+            properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Scaffold(
+                containerColor = theme.backgroundColor,
+                topBar = {
+                    TopAppBar(
+                        title = { 
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, tint = Success)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = "Énigme résolue", 
+                                    color = theme.contentColor,
+                                    fontFamily = theme.fontFamily,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { showUnlockedDialog = false; selectedEntry = null }) {
+                                Icon(Icons.Default.Close, contentDescription = "Fermer", tint = theme.contentColor)
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
                     )
                 }
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    // IMAGE SI EXISTANTE (v12.7.8)
+            ) { padding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .verticalScroll(rememberScrollState())
+                        .padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                ) {
+                    // IMAGE SI EXISTANTE (v12.7.8 / v12.8 Grand format)
                     if (!selectedEntry!!.mediaUrl.isNullOrBlank() || !selectedEntry!!.localMediaPath.isNullOrBlank()) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(180.dp)
-                                .clip(RoundedCornerShape(12.dp))
+                                .height(280.dp)
+                                .clip(RoundedCornerShape(16.dp))
                                 .background(theme.contentColor.copy(alpha = 0.05f))
                         ) {
                             SecureAsyncImage(
@@ -402,7 +422,7 @@ else if (uiState.selectedCategory == "Mes Questions") {
                                 explicitKey = heirKey,
                                 mediaManager = viewModel.mediaManager,
                                 modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
+                                contentScale = ContentScale.Fit,
                                 creatorId = creatorId ?: "",
                                 docType = "entries",
                                 docId = selectedEntry!!.id
@@ -417,10 +437,10 @@ else if (uiState.selectedCategory == "Mes Questions") {
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = theme.contentColor.copy(alpha = 0.4f)
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
                             text = selectedEntry!!.enigmaQuestion ?: "",
-                            style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
+                            style = MaterialTheme.typography.titleMedium.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold),
                             color = theme.contentColor
                         )
                     }
@@ -432,28 +452,24 @@ else if (uiState.selectedCategory == "Mes Questions") {
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                             color = Success
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
                         Surface(
                             color = Success.copy(alpha = 0.08f),
                             shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, Success.copy(alpha = 0.2f)),
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text(
                                 text = selectedEntry!!.enigmaAnswerPlain ?: "Réponse déverrouillée",
                                 modifier = Modifier.padding(16.dp),
-                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold),
                                 color = theme.contentColor
                             )
                         }
                     }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { showUnlockedDialog = false; selectedEntry = null }) {
-                    Text("Fermer", color = accent, fontWeight = FontWeight.Bold)
-                }
             }
-        )
+        }
     }
 
     if (showCelebrationOverlay) {

@@ -173,7 +173,7 @@ class MemoryDetailViewModel @Inject constructor(
         offlineEntryDao.getAllWitnesses(),
         offlineEntryDao.getAllDepositaries()
     ) { idsCsv, persons, recipients, witnesses, depositaries ->
-        val ids = idsCsv.split(",").filter { it.isNotBlank() }.map { it.trim() }.distinct()
+        val ids = com.example.phoenx.domain.util.RecipientUtils.parseRecipientIds(idsCsv)
         if (ids.isEmpty()) return@combine emptyList()
 
         val allSimplified = persons.toSimplified() +
@@ -520,11 +520,12 @@ class MemoryDetailViewModel @Inject constructor(
         answer: String?,
         hint: String?,
         autoUnlockDays: Int?,
-        isUltimate: Boolean
+        answerType: String = "WORD",
+        expectedWordCount: Int? = null
     ) {
         val id = _entryId.value ?: return
         viewModelScope.launch {
-            memoryMetadataUpdater.updateEnigma(id, question, answer, hint, autoUnlockDays, isUltimate)
+            memoryMetadataUpdater.updateEnigma(id, question, answer, hint, autoUnlockDays, answerType, expectedWordCount)
         }
     }
 

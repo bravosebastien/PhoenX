@@ -38,8 +38,10 @@ fun EnigmaForm(
     onHintChange: (String) -> Unit,
     autoUnlockDays: Int?,
     onAutoUnlockDaysChange: (Int?) -> Unit,
-    isUltimateSecret: Boolean,
-    onUltimateSecretToggle: (Boolean) -> Unit,
+    answerType: String = "WORD",
+    onAnswerTypeChange: (String) -> Unit = {},
+    expectedWordCount: Int? = 1,
+    onExpectedWordCountChange: (Int?) -> Unit = {},
     theme: AppThemeState,
     accent: Color,
     isReadOnly: Boolean = false
@@ -125,6 +127,27 @@ fun EnigmaForm(
                     
                     if (isEnabled) {
                         Spacer(modifier = Modifier.height(24.dp))
+
+                        // TYPE DE RÉPONSE (Mots / Nombre)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            FilterChip(
+                                selected = answerType == "WORD",
+                                onClick = { if (!isReadOnly) onAnswerTypeChange("WORD") },
+                                label = { Text("Mots") },
+                                enabled = !isReadOnly
+                            )
+                            FilterChip(
+                                selected = answerType == "NUMBER",
+                                onClick = { if (!isReadOnly) onAnswerTypeChange("NUMBER") },
+                                label = { Text("Nombre") },
+                                enabled = !isReadOnly
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
                         
                         // QUESTION
                         Text("LA QUESTION", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
@@ -148,15 +171,41 @@ fun EnigmaForm(
                             onValueChange = onAnswerChange,
                             placeholder = { 
                                 Text(
-                                    "Choisir la réponse attendue",
+                                    if (answerType == "NUMBER") "Saisir le chiffre ou nombre" else "Choisir la réponse attendue",
                                     color = theme.contentColor.copy(alpha = 0.3f),
                                     fontSize = 12.sp
                                 ) 
                             },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = !isReadOnly,
+                            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                                keyboardType = if (answerType == "NUMBER") androidx.compose.ui.text.input.KeyboardType.Number else androidx.compose.ui.text.input.KeyboardType.Text
+                            ),
                             colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f))
                         )
+
+                        if (answerType == "WORD") {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Mots attendus :", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                                Spacer(Modifier.width(12.dp))
+                                var wordCountStr by remember(expectedWordCount) { mutableStateOf((expectedWordCount ?: 1).toString()) }
+                                OutlinedTextField(
+                                    value = wordCountStr,
+                                    onValueChange = { str ->
+                                        if (str.length <= 2) {
+                                            val filtered = str.filter { c -> c.isDigit() }
+                                            wordCountStr = filtered
+                                            onExpectedWordCountChange(filtered.toIntOrNull() ?: 1)
+                                        }
+                                    },
+                                    modifier = Modifier.width(70.dp),
+                                    enabled = !isReadOnly,
+                                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = accent, unfocusedBorderColor = theme.contentColor.copy(alpha = 0.1f))
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -174,59 +223,40 @@ fun EnigmaForm(
 
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // SECRET ULTIME VS DÉLAI
+                        // DÉBLOCAGE AUTOMATIQUE
                         Card(
                             colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.03f)),
                             border = BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text("Secret Ultime", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
-                                    Switch(
-                                        checked = isUltimateSecret,
-                                        onCheckedChange = { if (!isReadOnly) onUltimateSecretToggle(it) },
-                                        colors = SwitchDefaults.colors(checkedThumbColor = accent),
-                                        enabled = !isReadOnly
-                                    )
-                                }
+                                Text("DÉBLOCAGE AUTOMATIQUE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f))
                                 
-                                if (isUltimateSecret) {
-                                    Text(
-                                        "Ce secret ne se débloquera JAMAIS tout seul. Seule la réponse permettra de l'ouvrir.",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = accent,
-                                        modifier = Modifier.padding(top = 8.dp)
-                                    )
-                                } else {
-                                    Text("DÉBLOCAGE AUTOMATIQUE", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = theme.contentColor.copy(alpha = 0.4f), modifier = Modifier.padding(top = 16.dp))
-                                    
-                                    val currentDays = autoUnlockDays ?: 30
-                                    
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center
+                                val currentDays = autoUnlockDays ?: 30
+                                
+                                Row(
+                                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    IconButton(
+                                        onClick = { if (!isReadOnly) onAutoUnlockDaysChange((currentDays - 1).coerceAtLeast(1)) },
+                                        enabled = !isReadOnly && currentDays > 1
                                     ) {
-                                        IconButton(
-                                            onClick = { if (!isReadOnly) onAutoUnlockDaysChange((currentDays - 1).coerceAtLeast(1)) },
-                                            enabled = !isReadOnly && currentDays > 1
-                                        ) {
-                                            Icon(Icons.Default.Remove, null, tint = accent)
-                                        }
-                                        
-                                        Text(
-                                            text = "$currentDays jours",
-                                            style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                                            color = theme.contentColor,
-                                            modifier = Modifier.padding(horizontal = 24.dp)
-                                        )
-                                        
-                                        IconButton(
-                                            onClick = { if (!isReadOnly) onAutoUnlockDaysChange((currentDays + 1).coerceAtMost(365)) },
-                                            enabled = !isReadOnly && currentDays < 365
-                                        ) {
-                                            Icon(Icons.Default.Add, null, tint = accent)
-                                        }
+                                        Icon(Icons.Default.Remove, null, tint = accent)
+                                    }
+                                    
+                                    Text(
+                                        text = "$currentDays jours",
+                                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                                        color = theme.contentColor,
+                                        modifier = Modifier.padding(horizontal = 24.dp)
+                                    )
+                                    
+                                    IconButton(
+                                        onClick = { if (!isReadOnly) onAutoUnlockDaysChange((currentDays + 1).coerceAtMost(365)) },
+                                        enabled = !isReadOnly && currentDays < 365
+                                    ) {
+                                        Icon(Icons.Default.Add, null, tint = accent)
                                     }
                                 }
                             }

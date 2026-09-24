@@ -95,7 +95,7 @@ fun RecipientMemoryDetailScreen(
         
         val autoDays = e.enigmaAutoUnlockDays ?: 0
         val daysSinceCreation = ((System.currentTimeMillis() - e.createdAt) / (1000 * 60 * 60 * 24)).toInt()
-        val isAutoUnlocked = !e.isUltimateSecret && e.enigmaAutoUnlockDays != null && daysSinceCreation >= autoDays
+        val isAutoUnlocked = e.enigmaAutoUnlockDays != null && daysSinceCreation >= autoDays
         
         e.unlockedAt == null && !isAutoUnlocked
     }
@@ -363,13 +363,13 @@ fun RecipientMemoryDetailScreen(
             title = { 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = if (entry!!.isUltimateSecret) Icons.Default.Verified else Icons.Default.Fingerprint, 
+                        imageVector = Icons.Default.Fingerprint, 
                         null, 
                         tint = accent
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = if (entry!!.isUltimateSecret) stringResource(R.string.detective_ultimate_secret) else stringResource(R.string.detective_personal_enigma), 
+                        text = stringResource(R.string.detective_personal_enigma), 
                         color = theme.contentColor,
                         fontFamily = theme.fontFamily,
                         fontWeight = FontWeight.Bold
@@ -378,14 +378,6 @@ fun RecipientMemoryDetailScreen(
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    if (entry!!.isUltimateSecret) {
-                        Text(
-                            stringResource(R.string.detective_ultimate_secret_desc),
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-                            color = accent
-                        )
-                    }
-
                     // PHOTO ÉVENTUELLE (v12.3) - Affichage en grand pour servir de support à la devinette
                     if (entry!!.mediaUrl != null) {
                         Box(
@@ -410,6 +402,21 @@ fun RecipientMemoryDetailScreen(
 
                     Text(entry!!.enigmaQuestion ?: "", style = MaterialTheme.typography.bodyLarge.copy(fontFamily = theme.fontFamily), color = theme.contentColor)
                     
+                    // INDICATION DU TYPE DE RÉPONSE / NOMBRE DE MOTS (v12.8)
+                    if (entry!!.answerType == "NUMBER") {
+                        Text(
+                            text = "Un chiffre est attendu",
+                            style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
+                            color = accent
+                        )
+                    } else if (entry!!.expectedWordCount != null && entry!!.expectedWordCount!! > 0) {
+                        Text(
+                            text = "Réponse attendue en ${entry!!.expectedWordCount} mot(s)",
+                            style = MaterialTheme.typography.labelSmall.copy(fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold),
+                            color = accent
+                        )
+                    }
+
                     // AFFICHAGE DE L'INDICE
                     if (attempts >= 3 && !entry!!.enigmaHint.isNullOrBlank()) {
                         Card(
@@ -435,6 +442,9 @@ fun RecipientMemoryDetailScreen(
                         label = { Text(stringResource(R.string.detective_answer_label)) },
                         modifier = Modifier.fillMaxWidth(),
                         isError = error != null,
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = if (entry!!.answerType == "NUMBER") androidx.compose.ui.text.input.KeyboardType.Number else androidx.compose.ui.text.input.KeyboardType.Text
+                        ),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = accent,
                             unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),

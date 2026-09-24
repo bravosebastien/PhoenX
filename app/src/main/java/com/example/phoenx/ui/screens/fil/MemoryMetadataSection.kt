@@ -70,9 +70,10 @@ fun MemoryMetadataSection(
     var enigmaAnswer by remember(entry) { mutableStateOf(entry.enigmaAnswerPlain ?: "") }
     var enigmaHint by remember(entry) { mutableStateOf(entry.enigmaHint ?: "") }
     var autoUnlockDays by remember(entry) { mutableStateOf(entry.enigmaAutoUnlockDays ?: 30) }
-    var isUltimateSecret by remember(entry) { mutableStateOf(entry.isUltimateSecret) }
+    var answerType by remember(entry) { mutableStateOf(entry.answerType ?: "WORD") }
+    var expectedWordCount by remember(entry) { mutableStateOf(entry.expectedWordCount) }
 
-    LaunchedEffect(enigmaEnabled, enigmaQuestion, enigmaAnswer, enigmaHint, autoUnlockDays, isUltimateSecret) {
+    LaunchedEffect(enigmaEnabled, enigmaQuestion, enigmaAnswer, enigmaHint, autoUnlockDays, answerType, expectedWordCount) {
         if (!isReadOnly) {
             val wasEnabled = entry.enigmaQuestion != null
             val hasChanged = enigmaEnabled != wasEnabled || 
@@ -81,15 +82,16 @@ fun MemoryMetadataSection(
                     enigmaAnswer.isNotEmpty() ||
                     enigmaHint != (entry.enigmaHint ?: "") ||
                     autoUnlockDays != (entry.enigmaAutoUnlockDays ?: 30) ||
-                    isUltimateSecret != entry.isUltimateSecret
+                    answerType != (entry.answerType ?: "WORD") ||
+                    expectedWordCount != entry.expectedWordCount
                 ))
 
             if (hasChanged) {
                 kotlinx.coroutines.delay(1000)
                 if (enigmaEnabled) {
-                    viewModel.updateEnigma(enigmaQuestion, enigmaAnswer.ifBlank { null }, enigmaHint, autoUnlockDays, isUltimateSecret)
+                    viewModel.updateEnigma(enigmaQuestion, enigmaAnswer.ifBlank { null }, enigmaHint, autoUnlockDays, answerType, expectedWordCount)
                 } else {
-                    viewModel.updateEnigma(null, null, null, null, false)
+                    viewModel.updateEnigma(null, null, null, null, "WORD", null)
                 }
             }
         }
@@ -516,8 +518,10 @@ fun MemoryMetadataSection(
                 onHintChange = { enigmaHint = it },
                 autoUnlockDays = autoUnlockDays,
                 onAutoUnlockDaysChange = { autoUnlockDays = it ?: 30 },
-                isUltimateSecret = isUltimateSecret,
-                onUltimateSecretToggle = { isUltimateSecret = it },
+                answerType = answerType,
+                onAnswerTypeChange = { answerType = it },
+                expectedWordCount = expectedWordCount,
+                onExpectedWordCountChange = { expectedWordCount = it },
                 theme = theme,
                 accent = accent,
                 isReadOnly = isReadOnly

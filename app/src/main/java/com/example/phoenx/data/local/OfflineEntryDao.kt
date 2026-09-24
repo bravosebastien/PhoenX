@@ -263,8 +263,8 @@ interface OfflineEntryDao {
     @Query("UPDATE offline_entries SET personIds = :newPersonIds WHERE id = :entryId")
     suspend fun updateEntryPersons(newPersonIds: String, entryId: String): Int
 
-    @Query("UPDATE offline_entries SET enigmaQuestion = :question, enigmaAnswer = :answerHash, enigmaHint = :hint, enigmaAutoUnlockDays = :unlockDays, isUltimateSecret = :isUltimate, answerType = :answerType, enigmaAnswerPlain = :answerPlain WHERE id = :entryId")
-    suspend fun updateEntryEnigma(question: String?, answerHash: String?, hint: String?, unlockDays: Int?, isUltimate: Boolean, answerType: String?, answerPlain: String?, entryId: String): Int
+    @Query("UPDATE offline_entries SET enigmaQuestion = :question, enigmaAnswer = :answerHash, enigmaHint = :hint, enigmaAutoUnlockDays = :unlockDays, answerType = :answerType, expectedWordCount = :expectedWordCount, enigmaAnswerPlain = :answerPlain WHERE id = :entryId")
+    suspend fun updateEntryEnigma(question: String?, answerHash: String?, hint: String?, unlockDays: Int?, answerType: String?, expectedWordCount: Int?, answerPlain: String?, entryId: String): Int
 
     @Query("UPDATE offline_entries SET silentAttribution = :silent WHERE id = :entryId")
     suspend fun updateEntrySilentAttribution(silent: Boolean, entryId: String): Int
