@@ -1871,6 +1871,14 @@
     <string name="ranking_dialog_remove_media">Remove rank media</string>
     <string name="home_section_recent_memories">RECENT MEMORIES</string>
     <string name="home_section_souvenirs">Memories</string>
+    <string name="recipient_young_self_fallback_name">your loved one</string>
+    <string name="recipient_young_self_detail_title">Letter to my younger self at age %1$d</string>
+    <string name="recipient_young_self_letters_empty_state">No letter has been shared with you by %1$s.</string>
+    <string name="recipient_young_self_letter_card_title">Letter to my younger self at age %1$d</string>
+    <string name="young_self_visibility_title">Who will be able to read this letter?</string>
+    <string name="young_self_keep_private">Keep for myself only</string>
+    <string name="young_self_include_in_book">Include in my Book</string>
+    <string name="young_self_include_in_book_hint">If checked, this letter can enrich your Book\'s narrative.</string>
     <string name="recipient_portraits_screen_title">Portraits</string>
     <string name="recipient_portraits_empty_state">No portrait has been left for you by %1$s.</string>
     <string name="recipient_portrait_detail_empty">This portrait is still empty.</string>

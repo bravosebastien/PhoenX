@@ -38,6 +38,9 @@ class YoungSelfLetterViewModel @Inject constructor(
         .map { entries -> entries.filter { it.isYoungSelfLetter } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val recipients = offlineEntryDao.getAllRecipients()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     init {
         loadUserBirthYear()
     }
@@ -97,8 +100,28 @@ class YoungSelfLetterViewModel @Inject constructor(
         }
     }
 
+    fun toggleRecipient(id: String) {
+        _uiState.update { state ->
+            val current = state.selectedRecipientIds
+            val newList = if (current.contains(id)) current.filter { it != id } else current + id
+            state.copy(selectedRecipientIds = newList.distinct())
+        }
+    }
+
+    fun setKeepPrivate(private: Boolean) {
+        _uiState.update { it.copy(keepPrivate = private, includeInBook = if (private) false else it.includeInBook) }
+    }
+
+    fun setVisibility(vis: String) {
+        _uiState.update { it.copy(visibility = vis) }
+    }
+
+    fun setIncludeInBook(include: Boolean) {
+        _uiState.update { it.copy(includeInBook = include) }
+    }
+
     fun saveLetter(onSuccess: () -> Unit) {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = auth.currentUser ?: return
         val state = _uiState.value
         val birthDate = state.birthDate ?: return
         
@@ -110,31 +133,17 @@ class YoungSelfLetterViewModel @Inject constructor(
                 val ageAtCreation = AgeUtils.calculateAge(birthDate)
                 val ageJson = "{\"years\":${ageAtCreation.years},\"months\":${ageAtCreation.months},\"days\":${ageAtCreation.days}}"
 
-                /* // ANCIEN CODE - DESACTIVE 2024-05-24 : écriture manuelle Firestore, remplacée par le pipeline standard
-                val entryData = hashMapOf(
-                    "type" to "TEXT",
-                    "encryptedContent" to android.util.Base64.encodeToString(encryptedPayload, android.util.Base64.DEFAULT),
-                    "isYoungSelfLetter" to true,
-                    "targetAge" to state.targetAge,
-                    "ageAtCreation" to ageJson,
-                    "emotionalCategory" to "Sagesse",
-                    "isFulfilled" to false,
-                    "aiSummary" to "",
-                    "createdAt" to com.google.firebase.Timestamp.now()
-                )
-
-                db.collection("users").document(userId).collection("entries").add(entryData).await()
-                */
-                
                 offlineEntryDao.insertEntry(
                     OfflineEntry(
                         id = java.util.UUID.randomUUID().toString(),
-                        creatorUid = userId, // FIX: Toujours spécifier l'UID (v8.6.2)
+                        creatorUid = userId.uid, // FIX: Toujours spécifier l'UID (v8.6.2)
                         encryptedPayload = encryptedPayload,
                         entryType = "TEXT",
                         ageAtCreation = ageJson,
                         emotionalCategory = "Sagesse",
-                        visibility = "private",
+                        visibility = if (state.keepPrivate) "private" else if (state.visibility == "EVERYONE") "EVERYONE" else "specific",
+                        recipientIds = if (state.keepPrivate) "" else state.selectedRecipientIds.distinct().joinToString(","),
+                        includeInBook = (!state.keepPrivate && state.includeInBook),
                         isYoungSelfLetter = true,
                         targetAge = state.targetAge,
                         syncStatus = "pending"
@@ -166,7 +175,11 @@ data class YoungSelfLetterUiState(
     val birthDate: Date? = null,
     val suggestions: List<String> = emptyList(),
     val isLoadingSuggestions: Boolean = false,
-    val isSaving: Boolean = false
+    val isSaving: Boolean = false,
+    val keepPrivate: Boolean = true,
+    val selectedRecipientIds: List<String> = emptyList(),
+    val visibility: String = "specific",
+    val includeInBook: Boolean = false
 ) {
     val calculatedYear: Int get() = birthYear + targetAge
 }

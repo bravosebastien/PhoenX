@@ -246,6 +246,9 @@ class RecipientMediaViewModel @Inject constructor(
     private val _portraitEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
     val portraitEntries: StateFlow<List<PhoenXEntry>> = _portraitEntries
 
+    private val _youngSelfLetterEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
+    val youngSelfLetterEntries: StateFlow<List<PhoenXEntry>> = _youngSelfLetterEntries
+
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
 
@@ -1017,15 +1020,17 @@ class RecipientMediaViewModel @Inject constructor(
                 android.util.Log.d("PHOENX_ENTRY_DISAPPEAR_TRACE", "Avant filtrage: ${allDecoded.map { it.id }}")
 
                 val result = mapOf(
-                    "library" to allDecoded.filter { it.parentEntryId == null && (it.type == EntryType.THOUGHT || it.type == EntryType.LEGACY || it.isYoungSelfLetter) && !it.isGuessQuestion },
+                    "library" to allDecoded.filter { it.parentEntryId == null && (it.type == EntryType.THOUGHT || it.type == EntryType.LEGACY) && !it.isGuessQuestion && !it.isYoungSelfLetter },
                     "video" to allDecoded.filter { it.type == EntryType.VIDEO },
                     "audio" to allDecoded.filter { it.type == EntryType.AUDIO },
                     "photo" to allDecoded.filter { it.type == EntryType.PHOTO },
                     "reconciliation" to allDecoded.filter { it.type == EntryType.RECONCILIATION },
                     "portrait" to allDecoded.filter { it.type == EntryType.PORTRAIT && it.parentEntryId == null }.sortedByDescending { it.timestamp },
+                    "youngSelfLetter" to allDecoded.filter { it.isYoungSelfLetter && it.parentEntryId == null }.sortedBy { it.targetAge ?: 0 },
                     "heritage" to allDecoded.filter { 
                         it.parentEntryId == null && 
                         !it.isGuessQuestion && 
+                        !it.isYoungSelfLetter &&
                         it.sourceDocType != "standaloneMedia" && 
                         it.type != EntryType.QUESTION_ANSWER &&
                         it.type != EntryType.PORTRAIT &&
@@ -1044,6 +1049,7 @@ class RecipientMediaViewModel @Inject constructor(
                 _archiveEntries.value = result["photo"] ?: emptyList()
                 _reconciliationEntries.value = result["reconciliation"] ?: emptyList()
                 _portraitEntries.value = result["portrait"] ?: emptyList()
+                _youngSelfLetterEntries.value = result["youngSelfLetter"] ?: emptyList()
                 _heritageEntries.value = result["heritage"] ?: emptyList()
             }
         }
@@ -1080,7 +1086,9 @@ class RecipientMediaViewModel @Inject constructor(
             timestamp = Instant.ofEpochMilli(createdAt),
             aiSummary = aiSummary.ifBlank { typeLabel },
             hasEnigma = enigmaQuestion != null,
-            isGuessQuestion = isGuessQuestion
+            isGuessQuestion = isGuessQuestion,
+            isYoungSelfLetter = isYoungSelfLetter,
+            targetAge = targetAge
         )
     }
 

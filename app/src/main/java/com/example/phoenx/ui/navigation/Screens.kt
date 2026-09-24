@@ -341,6 +341,9 @@ sealed class Screen(val route: String) {
     object RecipientReconciliation : Screen("recipient/reconciliation/{creatorId}") {
         fun createRoute(creatorId: String) = "recipient/reconciliation/$creatorId"
     }
+    object RecipientYoungSelfLetters : Screen("recipient/young_self_letters/{creatorId}") {
+        fun createRoute(creatorId: String) = "recipient/young_self_letters/$creatorId"
+    }
     object RecipientMessage : Screen("recipient/message/{id}") {
         fun createRoute(id: String) = "recipient/message/$id"
     }

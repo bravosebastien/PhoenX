@@ -135,8 +135,9 @@ fun FilScreen(
                     uiState.entries
                 }
 
-                val notAttributed = allEntries.filter { it.recipientIds.isEmpty() }
-                val attributed = allEntries.filter { it.recipientIds.isNotEmpty() }
+                val isPrivateLetter: (com.example.phoenx.domain.model.PhoenXEntry) -> Boolean = { it.isYoungSelfLetter && it.visibility == "private" }
+                val notAttributed = allEntries.filter { it.recipientIds.isEmpty() && !isPrivateLetter(it) }
+                val attributed = allEntries.filter { it.recipientIds.isNotEmpty() || isPrivateLetter(it) }
                 val groupedAttributed = attributed.groupBy { it.ageAtCreation.years }
 
                 LazyColumn(

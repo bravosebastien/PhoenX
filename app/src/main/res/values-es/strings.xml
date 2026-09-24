@@ -1871,6 +1871,14 @@
     <string name="ranking_dialog_remove_media">Eliminar archivo del rango</string>
     <string name="home_section_recent_memories">RECUERDOS RECIENTES</string>
     <string name="home_section_souvenirs">Recuerdos</string>
+    <string name="recipient_young_self_fallback_name">tu ser querido</string>
+    <string name="recipient_young_self_detail_title">Carta a mí mismo a los %1$d años</string>
+    <string name="recipient_young_self_letters_empty_state">No se ha compartido ninguna carta contigo por parte de %1$s.</string>
+    <string name="recipient_young_self_letter_card_title">Carta a mí mismo a los %1$d años</string>
+    <string name="young_self_visibility_title">¿Quién podrá leer esta carta?</string>
+    <string name="young_self_keep_private">Guardar solo para mí</string>
+    <string name="young_self_include_in_book">Incluir en mi Libro</string>
+    <string name="young_self_include_in_book_hint">Si se marca, esta carta podrá enriquecer la historia de tu Libro.</string>
     <string name="recipient_portraits_screen_title">Retratos</string>
     <string name="recipient_portraits_empty_state">No se ha dejado ningún retrato para ti por parte de %1$s.</string>
     <string name="recipient_portrait_detail_empty">Este retrato aún está vacío.</string>

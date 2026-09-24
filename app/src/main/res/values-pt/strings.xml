@@ -1871,6 +1871,14 @@
     <string name="ranking_dialog_remove_media">Remover mídia da posição</string>
     <string name="home_section_recent_memories">MEMÓRIAS RECENTES</string>
     <string name="home_section_souvenirs">Memórias</string>
+    <string name="recipient_young_self_fallback_name">seu ente querido</string>
+    <string name="recipient_young_self_detail_title">Carta para mim mesmo aos %1$d anos</string>
+    <string name="recipient_young_self_letters_empty_state">Nenhuma carta foi compartilhada com você por %1$s.</string>
+    <string name="recipient_young_self_letter_card_title">Carta para mim mesmo aos %1$d anos</string>
+    <string name="young_self_visibility_title">Quem poderá ler esta carta?</string>
+    <string name="young_self_keep_private">Guardar apenas para mim</string>
+    <string name="young_self_include_in_book">Incluir no meu Livro</string>
+    <string name="young_self_include_in_book_hint">Se marcada, esta carta poderá enriquecer a história do seu Livro.</string>
     <string name="recipient_portraits_screen_title">Retratos</string>
     <string name="recipient_portraits_empty_state">Nenhum retrato foi deixado para você por %1$s.</string>
     <string name="recipient_portrait_detail_empty">Este retrato ainda está vazio.</string>

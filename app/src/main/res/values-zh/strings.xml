@@ -1871,6 +1871,14 @@
     <string name="ranking_dialog_remove_media">删除位置媒体</string>
     <string name="home_section_recent_memories">最新回忆</string>
     <string name="home_section_souvenirs">回忆</string>
+    <string name="recipient_young_self_fallback_name">您的亲友</string>
+    <string name="recipient_young_self_detail_title">写给%1$d岁自己的一封信</string>
+    <string name="recipient_young_self_letters_empty_state">%1$s 尚未与您分享任何信件。</string>
+    <string name="recipient_young_self_letter_card_title">写给%1$d岁自己的一封信</string>
+    <string name="young_self_visibility_title">谁能阅读这封信？</string>
+    <string name="young_self_keep_private">仅自己可见</string>
+    <string name="young_self_include_in_book">收入我的书</string>
+    <string name="young_self_include_in_book_hint">勾选后，这封信将可用于充实您的书籍故事。</string>
     <string name="recipient_portraits_screen_title">画像</string>
     <string name="recipient_portraits_empty_state">%1$s 尚未为您留下任何画像。</string>
     <string name="recipient_portrait_detail_empty">此画像仍为空。</string>

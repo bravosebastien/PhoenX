@@ -1871,6 +1871,14 @@
     <string name="ranking_dialog_remove_media">Rimuovi media dal rango</string>
     <string name="home_section_recent_memories">RICORDI RECENTI</string>
     <string name="home_section_souvenirs">Ricordi</string>
+    <string name="recipient_young_self_fallback_name">il tuo caro</string>
+    <string name="recipient_young_self_detail_title">Lettera a me stesso a %1$d anni</string>
+    <string name="recipient_young_self_letters_empty_state">Nessuna lettera è stata condivisa con te da %1$s.</string>
+    <string name="recipient_young_self_letter_card_title">Lettera a me stesso a %1$d anni</string>
+    <string name="young_self_visibility_title">Chi potrà leggere questa lettera?</string>
+    <string name="young_self_keep_private">Tieni solo per me</string>
+    <string name="young_self_include_in_book">Includi nel mio Libro</string>
+    <string name="young_self_include_in_book_hint">Se selezionata, questa lettera potrà arricchire il racconto del tuo Libro.</string>
     <string name="recipient_portraits_screen_title">Ritratti</string>
     <string name="recipient_portraits_empty_state">Nessun ritratto è stato lasciato per te da %1$s.</string>
     <string name="recipient_portrait_detail_empty">Questo ritratto è ancora vuoto.</string>

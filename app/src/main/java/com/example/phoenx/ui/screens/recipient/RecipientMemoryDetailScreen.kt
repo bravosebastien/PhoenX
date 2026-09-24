@@ -106,8 +106,9 @@ fun RecipientMemoryDetailScreen(
         topBar = {
             TopAppBar(
                 title = { 
-                    val titleText = when(entry?.entryType) {
-                        "QUESTION_ANSWER" -> stringResource(R.string.recipient_memory_detail_topbar_question)
+                    val titleText = when {
+                        entry?.isYoungSelfLetter == true -> stringResource(R.string.recipient_young_self_detail_title, entry?.targetAge ?: 0)
+                        entry?.entryType == "QUESTION_ANSWER" -> stringResource(R.string.recipient_memory_detail_topbar_question)
                         else -> stringResource(R.string.recipient_memory_detail_topbar_memory)
                     }
                     Text(titleText, style = MaterialTheme.typography.titleLarge.copy(fontFamily = theme.fontFamily, fontWeight = FontWeight.Bold), color = theme.contentColor) 

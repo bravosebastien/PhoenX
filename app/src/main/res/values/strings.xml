@@ -952,7 +952,7 @@
     <string name="step_capture_viewmodel_location_unknown">Lieu inconnu</string>
 
     <!-- Library Batch -->
-    <string name="library_literary_title">Bibliothèque Littéraire</string>
+    <string name="library_literary_title">Bibliothèque Littérature</string>
     <string name="library_no_excerpts_filter">Aucun extrait pour ce destinataire.</string>
     <string name="library_empty_shelves">Les rayons sont vides...</string>
     <string name="library_isolated_excerpts">Extraits isolés</string>
@@ -961,7 +961,7 @@
     <string name="library_delete_confirm">Supprimer</string>
     <string name="library_delete_cancel">Annuler</string>
     <string name="library_reading_header">LECTURE</string>
-    <string name="library_reading_fallback_title">Extrait Littéraire</string>
+    <string name="library_reading_fallback_title">Extrait Littérature</string>
     <string name="library_manuscript_fallback">Manuscrit</string>
     <string name="library_excerpt_fallback">Extrait</string>
     <string name="library_add_excerpt">Déposer un extrait</string>
@@ -991,7 +991,7 @@
     <string name="library_phototheque">Photothèque</string>
     <string name="library_discotheque">Discothèque</string>
     <string name="library_mappemonde">Mappemonde</string>
-    <string name="library_le_litteraire">Le Littéraire</string>
+    <string name="library_le_litteraire">La Littérature</string>
     <string name="library_reduce">Réduire</string>
     <string name="library_others">Autres</string>
     <string name="library_other_compartments">AUTRES COMPARTIMENTS</string>
@@ -1051,7 +1051,7 @@
         <item>Restreindre les destinataires d\'une vidéo ne concerne QUE cette vidéo précise. Cela n\'a aucun effet sur le souvenir auquel elle est rattachée dans L\'Étincelle &amp; son Récit — les deux visibilités sont indépendantes.</item>
     </string-array>
 
-    <string name="onboarding_literary_title">La Bibliothèque Littéraire</string>
+    <string name="onboarding_literary_title">La Bibliothèque Littérature</string>
     <string-array name="onboarding_literary_content">
         <item>Dépose ici tes textes, citations ou passages qui comptent pour toi — un souvenir d\'enfance, une lettre, un poème que tu as écrit.</item>
         <item>Donne un titre à chaque extrait pour le retrouver facilement dans la liste.</item>
@@ -1871,6 +1871,14 @@
     <string name="ranking_dialog_remove_media">Supprimer le média du rang</string>
     <string name="home_section_recent_memories">SOUVENIRS RÉCENTS</string>
     <string name="home_section_souvenirs">Souvenirs</string>
+    <string name="recipient_young_self_fallback_name">votre proche</string>
+    <string name="recipient_young_self_detail_title">Lettre à moi-même à %1$d ans</string>
+    <string name="recipient_young_self_letters_empty_state">Aucune lettre n\'a été partagée avec vous par %1$s.</string>
+    <string name="recipient_young_self_letter_card_title">Lettre à moi-même à %1$d ans</string>
+    <string name="young_self_visibility_title">Qui pourra lire cette lettre ?</string>
+    <string name="young_self_keep_private">Garder pour moi seul</string>
+    <string name="young_self_include_in_book">Inclure dans mon Livre</string>
+    <string name="young_self_include_in_book_hint">Si cochée, cette lettre pourra nourrir le récit de votre Livre.</string>
     <string name="recipient_portraits_screen_title">Portraits</string>
     <string name="recipient_portraits_empty_state">Aucun portrait n\'a été déposé pour vous par %1$s.</string>
     <string name="recipient_portrait_detail_empty">Ce portrait est encore vide.</string>

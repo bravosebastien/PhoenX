@@ -154,6 +154,22 @@ fun NavGraphBuilder.recipientGraph(
     }
 
     composable(
+        route = Screen.RecipientYoungSelfLetters.route,
+        arguments = listOf(navArgument("creatorId") { type = NavType.StringType }),
+        enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },
+        exitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getExitTransition(this) },
+        popEnterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopEnterTransition(this) },
+        popExitTransition = { com.example.phoenx.ui.util.NavigationAnimations.getPopExitTransition(this) }
+    ) { backStackEntry ->
+        val creatorId = backStackEntry.arguments?.getString("creatorId") ?: ""
+        com.example.phoenx.ui.screens.recipient.RecipientYoungSelfLettersScreen(
+            creatorId = creatorId,
+            onNavigateBack = { navController.popBackStack() },
+            onOpenLetter = { id -> navController.navigate("recipient_memory_detail/$id/$creatorId") }
+        )
+    }
+
+    composable(
         route = Screen.RecipientPortraits.route,
         arguments = listOf(navArgument("creatorId") { type = NavType.StringType }),
         enterTransition = { com.example.phoenx.ui.util.NavigationAnimations.getEnterTransition(this) },

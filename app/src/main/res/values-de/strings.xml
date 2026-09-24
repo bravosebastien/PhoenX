@@ -1871,6 +1871,14 @@
     <string name="ranking_dialog_remove_media">Rang-Medium entfernen</string>
     <string name="home_section_recent_memories">NEUESTE ERINNERUNGEN</string>
     <string name="home_section_souvenirs">Erinnerungen</string>
+    <string name="recipient_young_self_fallback_name">Ihr Angehöriger</string>
+    <string name="recipient_young_self_detail_title">Brief an mein jüngeres Ich mit %1$d Jahren</string>
+    <string name="recipient_young_self_letters_empty_state">Es wurde kein Brief von %1$s mit Ihnen geteilt.</string>
+    <string name="recipient_young_self_letter_card_title">Brief an mein jüngeres Ich mit %1$d Jahren</string>
+    <string name="young_self_visibility_title">Wer kann diesen Brief lesen?</string>
+    <string name="young_self_keep_private">Nur für mich behalten</string>
+    <string name="young_self_include_in_book">In mein Buch aufnehmen</string>
+    <string name="young_self_include_in_book_hint">Wenn aktiviert, kann dieser Brief die Geschichte Ihres Buches bereichern.</string>
     <string name="recipient_portraits_screen_title">Porträts</string>
     <string name="recipient_portraits_empty_state">Es wurde kein Porträt von %1$s für Sie hinterlegt.</string>
     <string name="recipient_portrait_detail_empty">Dieses Porträt ist noch leer.</string>

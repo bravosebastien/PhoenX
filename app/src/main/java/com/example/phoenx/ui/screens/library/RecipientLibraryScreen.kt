@@ -211,7 +211,10 @@ fun RecipientLibraryScreen(
             CompactGridItem(
                 label = stringResource(R.string.library_le_litteraire),
                 icon = Icons.Outlined.AutoStories,
-                onClick = { navController.navigate("literary_library?creatorId=${targetCreatorId ?: mediaViewModel.currentUid}") },
+                onClick = {
+                    val route = if (isCreatorMode) "literary_library" else "literary_library?creatorId=$targetCreatorId"
+                    navController.navigate(route)
+                },
                 theme = theme,
                 modifier = itemModifier,
                 mediaUrl = compartmentsConfig.litteraireUrl

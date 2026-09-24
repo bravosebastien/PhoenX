@@ -1854,6 +1854,14 @@
     <string name="ranking_dialog_remove_media">حذف وسائط المرتبة</string>
     <string name="home_section_recent_memories">الذكريات الحديثة</string>
     <string name="home_section_souvenirs">الذكريات</string>
+    <string name="recipient_young_self_fallback_name">قريبك</string>
+    <string name="recipient_young_self_detail_title">رسالة إلى نفسي في سن %1$d</string>
+    <string name="recipient_young_self_letters_empty_state">لم تتم مشاركة أي رسالة معك بواسطة %1$s.</string>
+    <string name="recipient_young_self_letter_card_title">رسالة إلى نفسي في سن %1$d</string>
+    <string name="young_self_visibility_title">من يمكنه قراءة هذه الرسالة؟</string>
+    <string name="young_self_keep_private">احتفظ بها لنفسي فقط</string>
+    <string name="young_self_include_in_book">تضمين في كتابي</string>
+    <string name="young_self_include_in_book_hint">في حالة التحديد، يمكن لهذه الرسالة أن تغني قصة كتابك.</string>
     <string name="recipient_portraits_screen_title">بورتريهات</string>
     <string name="recipient_portraits_empty_state">لم يترك لك %1$s أي بورتريه.</string>
     <string name="recipient_portrait_detail_empty">هذا البورتريه لا يزال فارغاً.</string>

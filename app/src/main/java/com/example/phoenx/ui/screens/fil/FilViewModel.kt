@@ -153,7 +153,10 @@ class FilViewModel @Inject constructor(
                         val isRoot = entry.parentEntryId.isNullOrBlank()
                         val isForMe = entry.visibility == "EVERYONE" || 
                          entry.recipientIds.split(",").filter { it.isNotBlank() }.map { it.trim() }.contains(currentUid)
-                        isRoot && isForMe
+                        val isNotSpecialType = !entry.isYoungSelfLetter && 
+                            entry.entryType != "RECONCILIATION" && 
+                            entry.entryType != "PORTRAIT"
+                        isRoot && isForMe && isNotSpecialType
                     }
                 }
 

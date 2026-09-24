@@ -19,6 +19,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.AutoStories
 import androidx.compose.material.icons.outlined.HistoryEdu
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Mail
@@ -314,6 +315,12 @@ fun HeirHeritageScreen(
                         },
                         CasketItem(stringResource(R.string.library_portraits), Icons.Outlined.AccountCircle, compartmentsConfig.portraitProcheUrl) {
                             navController.navigate(Screen.RecipientPortraits.createRoute(creatorId))
+                        },
+                        CasketItem(stringResource(R.string.library_le_litteraire), Icons.Outlined.AutoStories, compartmentsConfig.litteraireUrl) {
+                            navController.navigate("literary_library?creatorId=$creatorId")
+                        },
+                        CasketItem(stringResource(R.string.library_lettre_a_moi), Icons.Outlined.HistoryEdu, compartmentsConfig.lettreAMoiUrl) {
+                            navController.navigate(Screen.RecipientYoungSelfLetters.createRoute(creatorId))
                         }
                     )
 

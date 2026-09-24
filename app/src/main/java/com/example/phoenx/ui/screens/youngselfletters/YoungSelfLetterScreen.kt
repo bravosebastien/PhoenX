@@ -2,6 +2,7 @@ package com.example.phoenx.ui.screens.youngselfletters
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -46,6 +47,7 @@ fun YoungSelfLetterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val existingLetters by viewModel.existingLetters.collectAsState()
+    val recipients by viewModel.recipients.collectAsState()
     
     // v8.9.0 : Thème Global
     val theme = LocalAppTheme.current
@@ -308,6 +310,82 @@ fun YoungSelfLetterScreen(
                 Text(stringResource(R.string.young_self_button_inspiration), color = theme.contentColor.copy(alpha = 0.5f), style = MaterialTheme.typography.bodySmall)
             }
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // SECTION DESTINATAIRES & VISIBILITÉ (v12.8)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(theme.contentColor.copy(alpha = 0.03f))
+                    .border(1.dp, theme.contentColor.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.young_self_visibility_title),
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = accent
+                )
+
+                // Interrupteur Garder pour moi seul
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(R.string.young_self_keep_private),
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                        color = theme.contentColor
+                    )
+                    Switch(
+                        checked = uiState.keepPrivate,
+                        onCheckedChange = { viewModel.setKeepPrivate(it) },
+                        colors = SwitchDefaults.colors(checkedThumbColor = accent)
+                    )
+                }
+
+                // Si désactivé -> RecipientSelector & Option Livre
+                if (!uiState.keepPrivate) {
+                    com.example.phoenx.ui.components.RecipientSelector(
+                        recipients = recipients,
+                        selectedIds = uiState.selectedRecipientIds,
+                        onToggleRecipient = { viewModel.toggleRecipient(it) },
+                        visibility = uiState.visibility,
+                        onVisibilityChange = { viewModel.setVisibility(it) },
+                        accent = accent
+                    )
+
+                    HorizontalDivider(color = theme.contentColor.copy(alpha = 0.1f))
+
+                    // Option Inclure dans mon Livre (Uniquement si non privée)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.young_self_include_in_book),
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                                color = theme.contentColor
+                            )
+                            Text(
+                                text = stringResource(R.string.young_self_include_in_book_hint),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = theme.contentColor.copy(alpha = 0.6f)
+                            )
+                        }
+                        Checkbox(
+                            checked = uiState.includeInBook,
+                            onCheckedChange = { viewModel.setIncludeInBook(it) },
+                            colors = CheckboxDefaults.colors(checkedColor = accent)
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(40.dp))
 
             Button(
@@ -316,7 +394,7 @@ fun YoungSelfLetterScreen(
                         onNavigateBack()
                     }
                 },
-                enabled = uiState.letterContent.isNotBlank() && !uiState.isSaving,
+                enabled = uiState.letterContent.isNotBlank() && !uiState.isSaving && (uiState.keepPrivate || uiState.visibility == "EVERYONE" || uiState.selectedRecipientIds.isNotEmpty()),
                 modifier = Modifier.fillMaxWidth().height(56.dp).phoenXMatiere(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = accent,

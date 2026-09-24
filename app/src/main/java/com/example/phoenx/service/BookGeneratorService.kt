@@ -174,19 +174,21 @@ class BookGeneratorService @Inject constructor(
             val isIncluded = entry.includeInBook
             // v12.3 : Les questions à deviner sont incluses même si elles ont une énigme (une fois débloquées par l'IA ou lue par héritage)
             val noEnigma = entry.enigmaQuestion == null || entry.isGuessQuestion
+            val notPrivateYoungSelfLetter = !(entry.isYoungSelfLetter && entry.visibility == "private")
             
             val doubleConsentOk = if (entry.pactId != null) {
                 val pact = pacts[entry.pactId]
                 pact != null && pact.myConsentToBook && pact.partnerConsentToBook
             } else true
 
-            val accepted = isParent && isIncluded && noEnigma && doubleConsentOk
+            val accepted = isParent && isIncluded && noEnigma && doubleConsentOk && notPrivateYoungSelfLetter
             
             if (!accepted) {
                 val reason = when {
                     !isParent -> "Complément (parent=${entry.parentEntryId})"
                     !isIncluded -> "Exclu par l'utilisateur (includeInBook=false)"
                     !noEnigma -> "Protégé par énigme"
+                    !notPrivateYoungSelfLetter -> "Lettre à moi privée"
                     !doubleConsentOk -> "Attente double consentement (Pacte)"
                     else -> "Inconnu"
                 }
