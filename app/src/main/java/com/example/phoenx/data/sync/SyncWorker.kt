@@ -73,16 +73,14 @@ class SyncWorker @AssistedInject constructor(
 
         val allPersons = offlineEntryDao.getAllPersons().first()
         val personsToSync = allPersons.filter {
-            it.syncStatus == "pending" ||
-                    (!it.imagePath.isNullOrBlank() && it.imagePath!!.startsWith("/data/")) ||
-                    (!it.encounterImagePath.isNullOrBlank() && it.encounterImagePath!!.startsWith("/data/"))
+            it.syncStatus == "pending"
         }
 
         val pendingStandalone = standaloneMediaDao.getPendingSync()
 
         val allPersonMedia = personMediaDao.getAllMediaSync()
         val mediaToSync = allPersonMedia.filter {
-            it.syncStatus == "pending" || (it.mediaPath.startsWith("/data/"))
+            it.syncStatus == "pending"
         }
 
         // v9.4.27 : Profil Créateur (Ambiance Globale)

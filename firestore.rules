@@ -85,6 +85,11 @@ service cloud.firestore {
         );
       }
 
+      // ═══ READING PROGRESS — Marque-page du Livre ═══
+      match /reading_progress/{docId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
       match /entry_keys/{keyId} {
         allow write: if request.auth != null && request.auth.uid == userId;
         allow read: if request.auth != null && (

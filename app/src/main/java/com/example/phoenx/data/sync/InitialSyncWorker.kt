@@ -153,18 +153,23 @@ class InitialSyncWorker @AssistedInject constructor(
                     val person = doc.toPersonEntity()
                     val finalCategories = person.categories
                     val storageUrl = doc.getString("imageUrl")
-                    var finalLocalPath: String? = null
+                    var finalLocalPath: String? = person.imagePath
 
                     // 1. Portrait Arbre (Public/Cameo)
                     if (!storageUrl.isNullOrBlank()) {
-                        try {
-                            val cameoDir = File(appContext.filesDir, "cameos")
-                            if (!cameoDir.exists()) cameoDir.mkdirs()
-                            val destFile = File(cameoDir, "cameo_${person.id}.jpg")
-                            mediaManager.downloadCameo(storageUrl, destFile)
-                            finalLocalPath = destFile.absolutePath
-                        } catch (e: Exception) {
-                            android.util.Log.e("InitialSyncWorker", "Erreur download portrait pour ${person.id}")
+                        if (storageUrl.startsWith("/")) {
+                            finalLocalPath = storageUrl
+                        } else {
+                            try {
+                                val cameoDir = File(appContext.filesDir, "cameos")
+                                if (!cameoDir.exists()) cameoDir.mkdirs()
+                                val destFile = File(cameoDir, "cameo_${person.id}.jpg")
+                                mediaManager.downloadCameo(storageUrl, destFile)
+                                finalLocalPath = destFile.absolutePath
+                            } catch (e: Exception) {
+                                android.util.Log.e("InitialSyncWorker", "Erreur download portrait pour ${person.id}")
+                                finalLocalPath = storageUrl
+                            }
                         }
                     }
 
@@ -172,19 +177,23 @@ class InitialSyncWorker @AssistedInject constructor(
                     val encounterUrl = doc.getString("encounterImagePath")
                     var finalEncounterLocalPath: String? = person.encounterImagePath
                     
-                    if (!encounterUrl.isNullOrBlank() && !encounterUrl.startsWith("/")) {
-                        try {
-                            val encounterDir = File(appContext.filesDir, "encounters")
-                            if (!encounterDir.exists()) encounterDir.mkdirs()
-                            val destFile = File(encounterDir, "encounter_${person.id}.jpg")
-                            
-                            // Téléchargement et déchiffrement immédiat pour mise en cache disque
-                            val decryptedBytes = mediaManager.downloadAndDecrypt(encounterUrl)
-                            destFile.writeBytes(decryptedBytes)
-                            finalEncounterLocalPath = destFile.absolutePath
-                            android.util.Log.d("InitialSyncWorker", "Portrait Rencontre pré-chargé et déchiffré: ${person.firstName}")
-                        } catch (e: Exception) {
-                            android.util.Log.e("InitialSyncWorker", "Échec pré-chargement portrait rencontre: ${person.id}")
+                    if (!encounterUrl.isNullOrBlank()) {
+                        if (encounterUrl.startsWith("/")) {
+                            finalEncounterLocalPath = encounterUrl
+                        } else {
+                            try {
+                                val encounterDir = File(appContext.filesDir, "encounters")
+                                if (!encounterDir.exists()) encounterDir.mkdirs()
+                                val destFile = File(encounterDir, "encounter_${person.id}.jpg")
+                                
+                                val decryptedBytes = mediaManager.downloadAndDecrypt(encounterUrl)
+                                destFile.writeBytes(decryptedBytes)
+                                finalEncounterLocalPath = destFile.absolutePath
+                                android.util.Log.d("InitialSyncWorker", "Portrait Rencontre pré-chargé et déchiffré: ${person.firstName}")
+                            } catch (e: Exception) {
+                                android.util.Log.e("InitialSyncWorker", "Échec pré-chargement portrait rencontre: ${person.id}")
+                                finalEncounterLocalPath = encounterUrl
+                            }
                         }
                     }
 

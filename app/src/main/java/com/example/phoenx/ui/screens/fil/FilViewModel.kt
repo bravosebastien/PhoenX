@@ -234,7 +234,24 @@ class FilViewModel @Inject constructor(
                     aiEvolution = evolution
                 )
                 offlineEntryDao.insertAmendment(amendment)
-            } catch (_: Exception) { }
+
+                // Envoi vers Firestore sous users/{uid}/entries/{entryId}/amendments/{amendmentId}
+                val firestoreData = hashMapOf<String, Any?>(
+                    "id" to amendment.id,
+                    "entryId" to entryId,
+                    "encryptedContent" to com.google.firebase.firestore.Blob.fromBytes(amendment.encryptedContent),
+                    "ageAtAmendment" to amendment.ageAtAmendment,
+                    "createdAt" to amendment.createdAt,
+                    "aiEvolution" to amendment.aiEvolution
+                )
+                db.collection("users").document(user.uid)
+                    .collection("entries").document(entryId)
+                    .collection("amendments").document(amendment.id)
+                    .set(firestoreData)
+                    .await()
+            } catch (e: Exception) {
+                android.util.Log.e("FilVM", "Error adding amendment: ${e.message}", e)
+            }
         }
     }
 

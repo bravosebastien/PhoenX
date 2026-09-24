@@ -401,8 +401,11 @@ class BookGeneratorService @Inject constructor(
             .call(data)
             .await()
 
-        val response = result.data as Map<*, *>
-        val rawChapters = response["chapters"] as List<Map<*, *>>
+        val response = result.data as? Map<*, *> ?: throw Exception("Réponse serveur invalide.")
+        val rawChapters = (response["chapters"] as? List<*>)?.filterIsInstance<Map<*, *>>() ?: emptyList()
+        if (rawChapters.isEmpty()) {
+            throw Exception("L'IA n'a retourné aucun chapitre pour la génération du livre.")
+        }
 
         onProgress("Chiffrement et sécurisation...")
 
@@ -491,6 +494,13 @@ class BookGeneratorService @Inject constructor(
             )
         }
 
+        if (chapters.isEmpty()) {
+            throw Exception("Aucun chapitre n'a pu être généré par l'IA.")
+        }
+        if (existingDraft != null && existingDraft.chapters.isNotEmpty() && chapters.isEmpty()) {
+            throw Exception("Échec de la régénération : impossible de remplacer un livre existant par un brouillon vide.")
+        }
+
         // v9.4.29 : On crée le nouveau draft en INJECTANT les métadonnées existantes
         val draft = BookDraft(
             id = java.util.UUID.randomUUID().toString(),
@@ -498,15 +508,18 @@ class BookGeneratorService @Inject constructor(
             chapters = chapters,
             totalEntries = scenes.size,
             bookTitle = existingDraft?.bookTitle,
+            recipientIds = existingDraft?.recipientIds ?: emptyList(),
+            sealedMessage = existingDraft?.sealedMessage ?: "",
+            globalIntroduction = existingDraft?.globalIntroduction ?: "",
+            theme = existingDraft?.theme ?: BookTheme(),
             coverImageUrl = existingDraft?.coverImageUrl,
+            coverIsVideo = existingDraft?.coverIsVideo ?: false,
             coverTitleStyle = existingDraft?.coverTitleStyle ?: "GOLD",
             coverScale = existingDraft?.coverScale ?: 1f,
             coverOffsetX = existingDraft?.coverOffsetX ?: 0f,
             coverOffsetY = existingDraft?.coverOffsetY ?: 0f,
             coverUploadedAt = existingDraft?.coverUploadedAt,
-            theme = existingDraft?.theme ?: BookTheme(),
             visibility = existingDraft?.visibility ?: "RESTRICTED",
-            sealedMessage = existingDraft?.sealedMessage ?: "",
             metaFingerprint = computeMetaFingerprint(ageMin, ageMax, dominantTone, authorProfileMap)
         )
 

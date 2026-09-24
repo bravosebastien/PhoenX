@@ -188,8 +188,21 @@ export const generateBookChapters = onCall({
     8bis. RÈGLE DES DEVINETTES (v12.3) : Si une scène est de type 'GUESS_QUESTION', tu dois IMPÉRATIVEMENT envelopper le récit qui s'y rapporte avec les balises [GUESS:id_exact] et [/GUESS]. Ces balises permettent de masquer ce contenu aux lecteurs qui n'auraient pas encore résolu la devinette.
     9. Réponds UNIQUEMENT en JSON avec cette structure : {"chapters": [{"title": "Nom du chapitre", "content": "Texte avec balises [PHOTO:id] et [GUESS:id] incluses", "orderIndex": 0, "sceneIds": ["id_exact_1", "id_exact_2"]}]}. Le champ 'sceneIds' doit lister EXACTEMENT les IDs des scènes (fournies dans les données source) réellement utilisées pour rédiger CE chapitre précis — jamais d'ID inventé, jamais la liste complète par défaut.`;
 
-    const text = await generateWithGemini(prompt, "generateBookChapters") || '{"chapters":[]}';
-    return JSON.parse(text.replace(/```json|```/g, "").trim());
+    const rawText = await generateWithGemini(prompt, "generateBookChapters");
+    if (!rawText || !rawText.trim()) {
+        throw new HttpsError("internal", "L'IA a renvoyé une réponse vide lors de la génération du livre.");
+    }
+    const cleanText = rawText.replace(/```json|```/g, "").trim();
+    let parsed: any;
+    try {
+        parsed = JSON.parse(cleanText);
+    } catch (e: any) {
+        throw new HttpsError("internal", "Format JSON invalide renvoyé par l'IA pour le livre.");
+    }
+    if (!parsed || !Array.isArray(parsed.chapters) || parsed.chapters.length === 0) {
+        throw new HttpsError("internal", "Aucun chapitre valide généré par l'IA.");
+    }
+    return parsed;
 });
 
 // 8b. Génération du plan du livre (v9.3.1)
@@ -215,8 +228,21 @@ export const generateBookPlan = onCall({
     3. Pour chaque chapitre, donne un titre poétique et la liste des IDs des scènes incluses.
     4. Réponds UNIQUEMENT en JSON avec cette structure : {"plan": [{"title": "Titre du chapitre", "sceneIds": ["id1", "id2"], "description": "Brève intention narrative"}]}`;
 
-    const text = await generateWithGemini(prompt, "generateBookPlan") || '{"plan":[]}';
-    return JSON.parse(text.replace(/```json|```/g, "").trim());
+    const rawText = await generateWithGemini(prompt, "generateBookPlan");
+    if (!rawText || !rawText.trim()) {
+        throw new HttpsError("internal", "L'IA a renvoyé une réponse vide lors de la génération du plan.");
+    }
+    const cleanText = rawText.replace(/```json|```/g, "").trim();
+    let parsed: any;
+    try {
+        parsed = JSON.parse(cleanText);
+    } catch (e: any) {
+        throw new HttpsError("internal", "Format JSON invalide renvoyé par l'IA pour le plan.");
+    }
+    if (!parsed || !Array.isArray(parsed.plan) || parsed.plan.length === 0) {
+        throw new HttpsError("internal", "Aucun plan valide généré par l'IA.");
+    }
+    return parsed;
 });
 
 // 20. Modification d'un chapitre par l'IA (v8.6.3)
