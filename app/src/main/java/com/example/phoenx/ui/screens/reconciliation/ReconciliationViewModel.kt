@@ -17,7 +17,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
@@ -37,6 +39,9 @@ class ReconciliationViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<ReconciliationUiState>(ReconciliationUiState())
     val uiState: StateFlow<ReconciliationUiState> = _uiState
 
+    val recipients = offlineEntryDao.getAllRecipients()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     fun getAIHelp(recipientName: String, intent: String) {
         _uiState.value = _uiState.value.copy(isLoadingHelp = true)
         viewModelScope.launch {
@@ -49,7 +54,7 @@ class ReconciliationViewModel @Inject constructor(
         }
     }
 
-    fun saveReconciliationMessage(content: String, recipientName: String) {
+    fun saveReconciliationMessage(content: String, recipientIds: List<String>, recipientName: String = "") {
         val user = auth.currentUser ?: return
         _uiState.value = _uiState.value.copy(isSaving = true)
 
@@ -64,13 +69,15 @@ class ReconciliationViewModel @Inject constructor(
                 }
                 
                 val entry = OfflineEntry(
+                    creatorUid = user.uid,
                     encryptedPayload = encrypted,
                     entryType = "RECONCILIATION",
                     ageAtCreation = "{ \"years\": ${age.years}, \"months\": ${age.months}, \"days\": ${age.days} }",
                     emotionalCategory = "Amour",
                     visibility = "specific",
+                    recipientIds = recipientIds.joinToString(","),
                     createdAt = System.currentTimeMillis(),
-                    aiSummary = context.getString(R.string.reconciliation_vm_summary, recipientName)
+                    aiSummary = context.getString(R.string.reconciliation_vm_summary, recipientName.ifBlank { "votre proche" })
                 )
                 offlineEntryDao.insertEntry(entry)
 

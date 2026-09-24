@@ -1871,6 +1871,11 @@
     <string name="ranking_dialog_remove_media">Remover mídia da posição</string>
     <string name="home_section_recent_memories">MEMÓRIAS RECENTES</string>
     <string name="home_section_souvenirs">Memórias</string>
+    <string name="recipient_portraits_screen_title">Retratos</string>
+    <string name="recipient_portraits_empty_state">Nenhum retrato foi deixado para você por %1$s.</string>
+    <string name="recipient_portrait_detail_empty">Este retrato ainda está vazio.</string>
+    <string name="recipient_reconciliation_empty_state">Nenhuma mensagem de reconciliação foi deixada para você por %1$s.</string>
+    <string name="recipient_reconciliation_screen_title">Reconciliação</string>
     <string name="settings_phare_title">Bolha \"O Farol\"</string>
     <string name="settings_phare_subtitle">Exibir bolha flutuante de vídeos de apresentação</string>
     <string name="phare_title">O Farol</string>

@@ -18,8 +18,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.HistoryEdu
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Mail
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -306,6 +308,12 @@ fun HeirHeritageScreen(
                         },
                         CasketItem(stringResource(R.string.library_capsule_temporelle), Icons.Default.MailOutline, compartmentsConfig.capsuleTemporelleUrl) {
                             navController.navigate(Screen.RecipientMailbox.createRoute(creatorId))
+                        },
+                        CasketItem(stringResource(R.string.library_reconciliation), Icons.Outlined.Mail, compartmentsConfig.reconciliationUrl) {
+                            navController.navigate(Screen.RecipientReconciliation.createRoute(creatorId))
+                        },
+                        CasketItem(stringResource(R.string.library_portraits), Icons.Outlined.AccountCircle, compartmentsConfig.portraitProcheUrl) {
+                            navController.navigate(Screen.RecipientPortraits.createRoute(creatorId))
                         }
                     )
 

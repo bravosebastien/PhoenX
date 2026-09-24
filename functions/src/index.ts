@@ -88,6 +88,8 @@ import {
 
 import { onUserCreated, onUserDeleted } from "./stats";
 
+import { revenueCatWebhook } from "./subscriptions";
+
 export {
     // AI
     analyzeEntry,
@@ -159,5 +161,8 @@ export {
 
     // Stats
     onUserCreated,
-    onUserDeleted
+    onUserDeleted,
+
+    // Subscriptions (paiement)
+    revenueCatWebhook
 };

@@ -1854,6 +1854,11 @@
     <string name="ranking_dialog_remove_media">حذف وسائط المرتبة</string>
     <string name="home_section_recent_memories">الذكريات الحديثة</string>
     <string name="home_section_souvenirs">الذكريات</string>
+    <string name="recipient_portraits_screen_title">بورتريهات</string>
+    <string name="recipient_portraits_empty_state">لم يترك لك %1$s أي بورتريه.</string>
+    <string name="recipient_portrait_detail_empty">هذا البورتريه لا يزال فارغاً.</string>
+    <string name="recipient_reconciliation_empty_state">لم يترك لك %1$s أي رسالة مصالحة.</string>
+    <string name="recipient_reconciliation_screen_title">المصالحة</string>
     <string name="settings_phare_title">فقاعة \"الفنار\"</string>
     <string name="settings_phare_subtitle">إظهار الفقاعة العائمة لمقاطع الفيديو التوضيحية</string>
     <string name="phare_title">الفنار</string>

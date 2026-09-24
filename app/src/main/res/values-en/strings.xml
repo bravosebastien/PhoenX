@@ -1871,6 +1871,11 @@
     <string name="ranking_dialog_remove_media">Remove rank media</string>
     <string name="home_section_recent_memories">RECENT MEMORIES</string>
     <string name="home_section_souvenirs">Memories</string>
+    <string name="recipient_portraits_screen_title">Portraits</string>
+    <string name="recipient_portraits_empty_state">No portrait has been left for you by %1$s.</string>
+    <string name="recipient_portrait_detail_empty">This portrait is still empty.</string>
+    <string name="recipient_reconciliation_empty_state">No reconciliation message has been left for you by %1$s.</string>
+    <string name="recipient_reconciliation_screen_title">Reconciliation</string>
     <string name="settings_phare_title">\"The Lighthouse\" bubble</string>
     <string name="settings_phare_subtitle">Show presentation video floating bubble</string>
     <string name="phare_title">The Lighthouse</string>

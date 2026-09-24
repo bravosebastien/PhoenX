@@ -5,6 +5,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.*
 import com.example.phoenx.data.local.OfflineEntryDao
 import com.example.phoenx.data.preferences.PreferenceManager
+import com.example.phoenx.data.subscription.RevenueCatManager
 import com.example.phoenx.data.sync.SyncWorker
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
@@ -33,6 +34,10 @@ class PhoenXApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Abonnements (paiement) — voir data/subscription/RevenueCatManager.kt.
+        // Sans effet tant que REVENUECAT_API_KEY n'est pas renseignée en local.
+        RevenueCatManager.initialize(this)
 
         val scope = CoroutineScope(Dispatchers.IO)
         scope.launch {

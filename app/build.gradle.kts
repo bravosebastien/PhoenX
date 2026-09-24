@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -8,6 +10,16 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
+
+// Lecture des clés locales (jamais commitées) — même principe que pour les
+// autres clés d'API du projet : un fichier local.properties à la racine.
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+}
+val revenueCatApiKey: String = localProperties.getProperty("REVENUECAT_API_KEY") ?: "REPLACE_ME"
 
 android {
     namespace = "com.example.phoenx"
@@ -21,6 +33,7 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "REVENUECAT_API_KEY", "\"$revenueCatApiKey\"")
     }
 
     buildTypes {
@@ -47,6 +60,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {
@@ -134,6 +148,9 @@ dependencies {
 
     // Firebase Remote Config
     implementation("com.google.firebase:firebase-config-ktx")
+
+    // Abonnements (paiement) — voir data/subscription/
+    implementation("com.revenuecat.purchases:purchases:10.15.1")
 
     // Storage & Background (KSP)
     implementation(libs.androidx.datastore.preferences)

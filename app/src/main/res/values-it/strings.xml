@@ -1871,6 +1871,11 @@
     <string name="ranking_dialog_remove_media">Rimuovi media dal rango</string>
     <string name="home_section_recent_memories">RICORDI RECENTI</string>
     <string name="home_section_souvenirs">Ricordi</string>
+    <string name="recipient_portraits_screen_title">Ritratti</string>
+    <string name="recipient_portraits_empty_state">Nessun ritratto è stato lasciato per te da %1$s.</string>
+    <string name="recipient_portrait_detail_empty">Questo ritratto è ancora vuoto.</string>
+    <string name="recipient_reconciliation_empty_state">Nessun messaggio di riconciliazione è stato lasciato per te da %1$s.</string>
+    <string name="recipient_reconciliation_screen_title">Riconciliazione</string>
     <string name="settings_phare_title">Bolla \"Il Faro\"</string>
     <string name="settings_phare_subtitle">Mostra la bolla dei video di presentazione</string>
     <string name="phare_title">Il Faro</string>

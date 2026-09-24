@@ -240,6 +240,12 @@ class RecipientMediaViewModel @Inject constructor(
     private val _heritageEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
     val heritageEntries: StateFlow<List<PhoenXEntry>> = _heritageEntries
 
+    private val _reconciliationEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
+    val reconciliationEntries: StateFlow<List<PhoenXEntry>> = _reconciliationEntries
+
+    private val _portraitEntries = MutableStateFlow<List<PhoenXEntry>>(emptyList())
+    val portraitEntries: StateFlow<List<PhoenXEntry>> = _portraitEntries
+
     private val _heirKey = MutableStateFlow<ByteArray?>(null)
     val heirKey: StateFlow<ByteArray?> = _heirKey.asStateFlow()
 
@@ -1015,11 +1021,15 @@ class RecipientMediaViewModel @Inject constructor(
                     "video" to allDecoded.filter { it.type == EntryType.VIDEO },
                     "audio" to allDecoded.filter { it.type == EntryType.AUDIO },
                     "photo" to allDecoded.filter { it.type == EntryType.PHOTO },
+                    "reconciliation" to allDecoded.filter { it.type == EntryType.RECONCILIATION },
+                    "portrait" to allDecoded.filter { it.type == EntryType.PORTRAIT && it.parentEntryId == null }.sortedByDescending { it.timestamp },
                     "heritage" to allDecoded.filter { 
                         it.parentEntryId == null && 
                         !it.isGuessQuestion && 
                         it.sourceDocType != "standaloneMedia" && 
-                        it.type != EntryType.QUESTION_ANSWER 
+                        it.type != EntryType.QUESTION_ANSWER &&
+                        it.type != EntryType.PORTRAIT &&
+                        it.type != EntryType.RECONCILIATION
                     }.sortedByDescending { it.timestamp }
                 )
 
@@ -1032,6 +1042,8 @@ class RecipientMediaViewModel @Inject constructor(
                 _videoEntries.value = result["video"] ?: emptyList()
                 _discothequeEntries.value = result["audio"] ?: emptyList()
                 _archiveEntries.value = result["photo"] ?: emptyList()
+                _reconciliationEntries.value = result["reconciliation"] ?: emptyList()
+                _portraitEntries.value = result["portrait"] ?: emptyList()
                 _heritageEntries.value = result["heritage"] ?: emptyList()
             }
         }
@@ -1061,6 +1073,7 @@ class RecipientMediaViewModel @Inject constructor(
             encryptedContent = context.getString(R.string.recipient_media_sealed_content_warning).toByteArray(),
             type = when(entryType) {
                 "PORTRAIT" -> EntryType.PORTRAIT
+                "RECONCILIATION" -> EntryType.RECONCILIATION
                 "QUESTION_ANSWER" -> EntryType.QUESTION_ANSWER
                 else -> try { EntryType.valueOf(entryType) } catch(_: Exception) { EntryType.THOUGHT }
             },
@@ -1094,6 +1107,8 @@ class RecipientMediaViewModel @Inject constructor(
             "AUDIO", "EMOTION" -> EntryType.AUDIO // v9.4.27 : Unification du type AUDIO
             "PHOTO" -> EntryType.PHOTO
             "VIDEO" -> EntryType.VIDEO
+            "PORTRAIT" -> EntryType.PORTRAIT
+            "RECONCILIATION" -> EntryType.RECONCILIATION
             else -> try { EntryType.valueOf(entryType) } catch(_: Exception) { EntryType.THOUGHT }
         }
 

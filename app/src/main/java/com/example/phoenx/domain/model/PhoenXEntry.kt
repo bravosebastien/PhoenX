@@ -69,5 +69,6 @@ enum class EntryType {
     AUDIO,
     VIDEO,
     PORTRAIT,
-    QUESTION_ANSWER
+    QUESTION_ANSWER,
+    RECONCILIATION
 }

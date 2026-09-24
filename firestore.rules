@@ -17,12 +17,15 @@ service cloud.firestore {
       );
 
       // Création : Interdiction d'auto-attribuer des rôles ou de forcer les UIDs dépositaires
+      // Abonnement (v14) : subscriptionTier/ExpiresAt/Source/LastEvent/UpdatedAt écrits UNIQUEMENT par la Cloud Function revenueCatWebhook
       allow create: if request.auth != null && request.auth.uid == userId
-                    && !request.resource.data.keys().hasAny(['myRoles', 'isCreator', 'depositaryUids']);
+                    && !request.resource.data.keys().hasAny(['myRoles', 'isCreator', 'depositaryUids',
+                         'subscriptionTier', 'subscriptionExpiresAt', 'subscriptionSource', 'subscriptionLastEvent', 'subscriptionUpdatedAt']);
 
       // FUSION SÉCURISÉE v9.4.8 : Un seul bloc update, toutes protections actives
       allow update: if request.auth != null && request.auth.uid == userId
-                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['myRoles', 'isCreator', 'depositaryUids'])
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['myRoles', 'isCreator', 'depositaryUids',
+                         'subscriptionTier', 'subscriptionExpiresAt', 'subscriptionSource', 'subscriptionLastEvent', 'subscriptionUpdatedAt'])
                     && (!resource.data.get('isIdentityLocked', false)
                         || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['firstName', 'lastName', 'isIdentityLocked']));
 

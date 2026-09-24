@@ -54,14 +54,20 @@ fun ReconciliationScreen(
 ) {
     val context = LocalContext.current
     var text by remember { mutableStateOf("") }
-    var recipientName by remember { mutableStateOf("") }
+    var selectedRecipientIds by remember { mutableStateOf<List<String>>(emptyList()) }
+    var visibility by remember { mutableStateOf("specific") }
     var intent by remember { mutableStateOf("") }
     var isRitualPlaying by remember { mutableStateOf(false) }
     var contentType by remember { mutableStateOf("TEXT") } // TEXT ou AUDIO
     
     val uiState by viewModel.uiState.collectAsState()
+    val recipients by viewModel.recipients.collectAsState()
     val theme = LocalAppTheme.current
     val accent = theme.accentColor
+
+    val firstRecipientName = remember(selectedRecipientIds, recipients) {
+        recipients.find { selectedRecipientIds.contains(it.id) || selectedRecipientIds.contains(it.linkedUid) }?.name ?: ""
+    }
 
     // Permission pour l'audio
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -130,17 +136,19 @@ fun ReconciliationScreen(
                 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                OutlinedTextField(
-                    value = recipientName,
-                    onValueChange = { recipientName = it },
-                    label = { Text(stringResource(R.string.reconciliation_label_recipient)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = accent,
-                        unfocusedBorderColor = theme.contentColor.copy(alpha = 0.2f),
-                        focusedTextColor = theme.contentColor,
-                        unfocusedTextColor = theme.contentColor
-                    )
+                com.example.phoenx.ui.components.RecipientSelector(
+                    recipients = recipients,
+                    selectedIds = selectedRecipientIds,
+                    onToggleRecipient = { id ->
+                        selectedRecipientIds = if (selectedRecipientIds.contains(id)) {
+                            selectedRecipientIds - id
+                        } else {
+                            selectedRecipientIds + id
+                        }
+                    },
+                    visibility = visibility,
+                    onVisibilityChange = { visibility = it },
+                    accent = accent
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -160,8 +168,8 @@ fun ReconciliationScreen(
 
                 if (uiState.aiHelp == null) {
                     TextButton(
-                        onClick = { viewModel.getAIHelp(recipientName, intent) },
-                        enabled = recipientName.isNotEmpty() && intent.isNotEmpty() && !uiState.isLoadingHelp
+                        onClick = { viewModel.getAIHelp(firstRecipientName, intent) },
+                        enabled = selectedRecipientIds.isNotEmpty() && intent.isNotEmpty() && !uiState.isLoadingHelp
                     ) {
                         if (uiState.isLoadingHelp) {
                             CircularProgressIndicator(modifier = Modifier.size(16.dp), color = accent, strokeWidth = 2.dp)
@@ -299,13 +307,13 @@ fun ReconciliationScreen(
                 Spacer(modifier = Modifier.height(48.dp))
 
                 Button(
-                    onClick = { viewModel.saveReconciliationMessage(text, recipientName) },
-                    enabled = text.isNotEmpty() && recipientName.isNotEmpty() && !uiState.isSaving && !isRitualPlaying,
+                    onClick = { viewModel.saveReconciliationMessage(text, selectedRecipientIds, firstRecipientName) },
+                    enabled = text.isNotEmpty() && selectedRecipientIds.isNotEmpty() && !uiState.isSaving && !isRitualPlaying,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
                         .phoenXMatiere()
-                        .alpha(if (text.isNotEmpty() && recipientName.isNotEmpty()) 1f else 0.5f),
+                        .alpha(if (text.isNotEmpty() && selectedRecipientIds.isNotEmpty()) 1f else 0.5f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = accent,
                         disabledContainerColor = accent.copy(alpha = 0.3f)

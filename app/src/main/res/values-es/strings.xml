@@ -1871,6 +1871,11 @@
     <string name="ranking_dialog_remove_media">Eliminar archivo del rango</string>
     <string name="home_section_recent_memories">RECUERDOS RECIENTES</string>
     <string name="home_section_souvenirs">Recuerdos</string>
+    <string name="recipient_portraits_screen_title">Retratos</string>
+    <string name="recipient_portraits_empty_state">No se ha dejado ningún retrato para ti por parte de %1$s.</string>
+    <string name="recipient_portrait_detail_empty">Este retrato aún está vacío.</string>
+    <string name="recipient_reconciliation_empty_state">No se ha dejado ningún mensaje de reconciliación para ti por parte de %1$s.</string>
+    <string name="recipient_reconciliation_screen_title">Reconciliación</string>
     <string name="settings_phare_title">Burbuja \"El Faro\"</string>
     <string name="settings_phare_subtitle">Mostrar burbuja flotante de videos de presentación</string>
     <string name="phare_title">El Faro</string>

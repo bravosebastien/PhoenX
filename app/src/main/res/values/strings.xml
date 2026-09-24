@@ -1871,6 +1871,11 @@
     <string name="ranking_dialog_remove_media">Supprimer le média du rang</string>
     <string name="home_section_recent_memories">SOUVENIRS RÉCENTS</string>
     <string name="home_section_souvenirs">Souvenirs</string>
+    <string name="recipient_portraits_screen_title">Portraits</string>
+    <string name="recipient_portraits_empty_state">Aucun portrait n\'a été déposé pour vous par %1$s.</string>
+    <string name="recipient_portrait_detail_empty">Ce portrait est encore vide.</string>
+    <string name="recipient_reconciliation_empty_state">Aucun message de réconciliation n\'a été déposé pour vous par %1$s.</string>
+    <string name="recipient_reconciliation_screen_title">Réconciliation</string>
     <string name="settings_phare_title">Bulle « Le Phare »</string>
     <string name="settings_phare_subtitle">Afficher la bulle des vidéos de présentation</string>
     <string name="phare_title">Le Phare</string>
