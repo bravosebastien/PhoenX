@@ -140,7 +140,7 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-gif:3.0.0")
 
     // Media
-    val media3Version = "1.3.1"
+    val media3Version = "1.11.1"
     implementation("androidx.media3:media3-exoplayer:$media3Version")
     implementation("androidx.media3:media3-ui:$media3Version")
     implementation("androidx.media3:media3-common:$media3Version")
