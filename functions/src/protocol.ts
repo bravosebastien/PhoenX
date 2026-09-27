@@ -29,6 +29,7 @@ export const checkCreatorSilence = onSchedule({
     const snap = await db.collection("users").get();
     for (const doc of snap.docs) {
         const data = doc.data();
+        if (data.accountStatus === "suspended") continue;
         const conf = data.silenceConfig;
         if (!conf?.lastCheckInAt) continue;
         const daysSinceLastCheckIn = Math.floor((Date.now() - conf.lastCheckInAt.toMillis()) / 86400000);

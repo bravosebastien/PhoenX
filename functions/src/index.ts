@@ -90,6 +90,13 @@ import { onUserCreated, onUserDeleted } from "./stats";
 
 import { revenueCatWebhook } from "./subscriptions";
 
+import {
+    getMyBillingState,
+    redeemPromoCode,
+    adminGrantEntitlement,
+    adminGrantCredits
+} from "./billing";
+
 export {
     // AI
     analyzeEntry,
@@ -164,5 +171,11 @@ export {
     onUserDeleted,
 
     // Subscriptions (paiement)
-    revenueCatWebhook
+    revenueCatWebhook,
+
+    // Billing & Credits (v14)
+    getMyBillingState,
+    redeemPromoCode,
+    adminGrantEntitlement,
+    adminGrantCredits
 };

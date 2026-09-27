@@ -193,7 +193,7 @@ export const onPendingQuestionUpdated = onDocumentUpdated(
     });
 
 /**
- * PHOEN-X v12.3 - Enregistrement sécurisé du résultat d'une devinette
+ * PHOEN-X v12.3 / v14.1 - Enregistrement sécurisé du résultat d'une devinette
  */
 export const submitGuessResult = onCall(async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Non authentifié");
@@ -201,54 +201,108 @@ export const submitGuessResult = onCall(async (request) => {
     const { creatorId, entryId, answer, attemptCount } = request.data;
     const recipientUid = request.auth.uid;
 
-    // 1. Vérifier que l'appelant est bien un destinataire de ce créateur
-    const userDoc = await db.collection("users").doc(recipientUid).get();
-    const myRoles = userDoc.data()?.myRoles || {};
-    if (!(`${creatorId}_recipient` in myRoles)) {
-        throw new HttpsError("permission-denied", "Accès refusé.");
+    if (!creatorId || !entryId) {
+        throw new HttpsError("invalid-argument", "Champs requis manquants.");
     }
 
-    // 2. Vérification de la réponse côté serveur (v12.3)
+    // 1a. Vérification que le document users/{creatorId} a protocolStatus === "activated"
+    const creatorDoc = await db.collection("users").doc(creatorId).get();
+    if (!creatorDoc.exists || creatorDoc.data()?.protocolStatus !== "activated") {
+        throw new HttpsError("permission-denied", "Accès non autorisé à cette devinette.");
+    }
+
+    // 1b. Vérifier que l'appelant est bien un destinataire de ce créateur
+    const userDoc = await db.collection("users").doc(recipientUid).get();
+    const myRoles = userDoc.data()?.myRoles || {};
+    const roleKey = `${creatorId}_recipient`;
+    const hasRecipientRole = Array.isArray(myRoles)
+        ? myRoles.includes(roleKey)
+        : (roleKey in myRoles);
+
+    if (!hasRecipientRole) {
+        throw new HttpsError("permission-denied", "Accès non autorisé à cette devinette.");
+    }
+
+    // 1c. Vérification que le souvenir est destiné à l'appelant (visibility === "EVERYONE" ou recipientIds contient son uid)
     const entryRef = db.collection("users").doc(creatorId).collection("entries").doc(entryId);
     const entryDoc = await entryRef.get();
     if (!entryDoc.exists) throw new HttpsError("not-found", "Souvenir introuvable");
 
     const entryData = entryDoc.data()!;
-    const correctHash = entryData.enigmaAnswer;
-    const fallbackAnswer = entryData.fallbackAnswer; // Chiffré Tink ? non, hashé SHA-256 dans OfflineEntry pour devinette
-    const answerType = entryData.answerType || "WORD";
+    const visibility = entryData.visibility;
+    const recipientIds = entryData.recipientIds;
 
-    // Recalcul du hash SHA-256 de la réponse reçue (aligné sur EnigmaUtils.kt)
+    let isForMe = visibility === "EVERYONE";
+    if (!isForMe && recipientIds) {
+        if (Array.isArray(recipientIds)) {
+            isForMe = recipientIds.includes(recipientUid);
+        } else if (typeof recipientIds === "string") {
+            isForMe = recipientIds.split(",").map((s: string) => s.trim()).includes(recipientUid);
+        }
+    }
+
+    if (!isForMe) {
+        throw new HttpsError("permission-denied", "Accès non autorisé à cette devinette.");
+    }
+
+    // 2. Limite de 20 essais par personne et par souvenir sur 24 h (guessAttempts/{recipientUid}_{entryId})
+    const attemptRef = db.collection("guessAttempts").doc(`${recipientUid}_${entryId}`);
+    const now = Date.now();
+    const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+
+    await db.runTransaction(async (transaction) => {
+        const attemptDoc = await transaction.get(attemptRef);
+        if (!attemptDoc.exists) {
+            transaction.set(attemptRef, { count: 1, windowStart: now });
+        } else {
+            const data = attemptDoc.data() || {};
+            const windowStart = data.windowStart || now;
+            const count = data.count || 0;
+
+            if (now - windowStart > TWENTY_FOUR_HOURS_MS) {
+                transaction.set(attemptRef, { count: 1, windowStart: now });
+            } else {
+                if (count >= 20) {
+                    throw new HttpsError(
+                        "resource-exhausted",
+                        "Nombre maximal de tentatives dépassé pour aujourd'hui (20 max par 24h)."
+                    );
+                }
+                transaction.update(attemptRef, { count: count + 1 });
+            }
+        }
+    });
+
+    // 3. Vérification de la réponse côté serveur
+    const correctHash = entryData.enigmaAnswer;
+    const fallbackAnswer = entryData.fallbackAnswer;
     const crypto = require("crypto");
 
-    // Normalisation alignée sur EnigmaUtils.normalizeAnswer("WORD")
     const rawStr = (answer || "").trim().toLowerCase();
     const withoutAccents = rawStr.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ");
     const hashedInput = crypto.createHash("sha256").update(withoutAccents).digest("hex");
-
-    // Support de secours legacy (sans suppression d'accents)
     const legacyHashedInput = crypto.createHash("sha256").update(rawStr).digest("hex");
 
     const isCorrect = (hashedInput === correctHash) || (hashedInput === fallbackAnswer) ||
                       (legacyHashedInput === correctHash) || (legacyHashedInput === fallbackAnswer);
 
-    // 3. Déverrouillage permanent si correct (v12.7.7)
-    console.log(`[submitGuessResult] entryId=${entryId}, creatorId=${creatorId}, isCorrect=${isCorrect}, hashedInput=${hashedInput}, legacyHashedInput=${legacyHashedInput}, correctHash=${correctHash}`);
+    // 4. Déverrouillage permanent si correct (log sécurisé sans hash)
+    console.log(`[submitGuessResult] entryId=${entryId}, isCorrect=${isCorrect}`);
     if (isCorrect) {
         console.log(`[submitGuessResult] Tentative d'écriture unlockedAt sur ${entryRef.path}...`);
         await entryRef.update({ unlockedAt: admin.firestore.FieldValue.serverTimestamp() });
         console.log(`[submitGuessResult] Écriture unlockedAt RÉUSSIE sur ${entryRef.path}`);
     } else {
-        console.log(`[submitGuessResult] N'A PAS écrit unlockedAt car isCorrect=false (hashedInput=${hashedInput} vs correctHash=${correctHash})`);
+        console.log(`[submitGuessResult] N'A PAS écrit unlockedAt car isCorrect=false`);
     }
 
-    // 4. Récupérer le nom du destinataire pour le classement
+    // 5. Récupérer le nom du destinataire pour le classement
     const recipientDoc = await db.collection("users").doc(creatorId).collection("recipients")
         .where("linkedUid", "==", recipientUid).limit(1).get();
 
     const recipientName = recipientDoc.empty ? "Anonyme" : (recipientDoc.docs[0].data().name || "Proche");
 
-    // 4. Enregistrer le résultat dans la collection de l'utilisateur (v12.3 ALIGNEMENT)
+    // 6. Enregistrer le résultat dans la collection
     const resultRef = db.collection("users").doc(creatorId).collection("guessResults").doc();
     await resultRef.set({
         recipientId: recipientUid,

@@ -132,12 +132,17 @@ export const joinAsDepositary = onCall(async (request) => {
     const { creatorId, depositaryId, token } = request.data;
     const depositaryUid = request.auth.uid;
 
+    if (!token || typeof token !== "string" || token.trim() === "") {
+        throw new HttpsError("invalid-argument", "Token d'invitation requis.");
+    }
+
     try {
         await db.runTransaction(async (transaction) => {
             const ref = db.collection("users").doc(creatorId).collection("depositaries").doc(depositaryId);
             const doc = await transaction.get(ref);
 
-            if (!doc.exists || doc.data()?.inviteToken !== token || doc.data()?.inviteTokenUsed) {
+            const docData = doc.data();
+            if (!doc.exists || !docData?.inviteToken || docData.inviteToken !== token || docData.inviteTokenUsed) {
                 throw new HttpsError("permission-denied", "Invalide");
             }
 
@@ -247,6 +252,10 @@ export const acceptUniversalInvitation = onCall(async (request) => {
 
     if (!auth || !auth.token.email) {
         throw new HttpsError("unauthenticated", "Vous devez être connecté avec un email valide.");
+    }
+
+    if (auth.token.email_verified !== true) {
+        throw new HttpsError("failed-precondition", "email-not-verified");
     }
 
     const userEmail = auth.token.email.toLowerCase();
@@ -401,7 +410,7 @@ export const migrateLegacyRoles = onCall(async (request) => {
 });
 
 /**
- * PHOEN-X v9.4.10 - Envoi de mail via Cloud Function (Relais sécurisé)
+ * PHOEN-X v9.4.10 / v14.1 - Envoi de mail via Cloud Function (Relais sécurisé)
  */
 export const sendMail = onCall(
     { region: "us-central1", invoker: "public" },
@@ -410,6 +419,7 @@ export const sendMail = onCall(
             throw new HttpsError("unauthenticated", "Authentification requise.");
         }
 
+        const uid = request.auth.uid;
         const { to, subject, text } = request.data as {
             to?: string;
             subject?: string;
@@ -420,6 +430,64 @@ export const sendMail = onCall(
             throw new HttpsError(
                 "invalid-argument",
                 "Les champs 'to', 'subject' et 'text' sont requis."
+            );
+        }
+
+        const normalizedTo = to.trim().toLowerCase();
+
+        // 1. Limite de quota : 30 envois maximum par 24 h (compteur dans mailQuota/{uid})
+        const quotaRef = db.collection("mailQuota").doc(uid);
+        const now = Date.now();
+        const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+
+        await db.runTransaction(async (transaction) => {
+            const quotaDoc = await transaction.get(quotaRef);
+            if (!quotaDoc.exists) {
+                transaction.set(quotaRef, { count: 1, windowStart: now });
+            } else {
+                const data = quotaDoc.data() || {};
+                const windowStart = data.windowStart || now;
+                const count = data.count || 0;
+
+                if (now - windowStart > TWENTY_FOUR_HOURS_MS) {
+                    transaction.set(quotaRef, { count: 1, windowStart: now });
+                } else {
+                    if (count >= 30) {
+                        throw new HttpsError(
+                            "resource-exhausted",
+                            "Quota d'envoi d'emails dépassé (30 max par 24h)."
+                        );
+                    }
+                    transaction.update(quotaRef, { count: count + 1 });
+                }
+            }
+        });
+
+        // 2. Vérification que l'adresse "to" figure dans une des sous-collections de l'utilisateur
+        const subcollections = ["recipients", "depositaries", "witnesses", "notificationContacts"];
+        let isAuthorized = false;
+
+        for (const subcol of subcollections) {
+            const snapshot = await db
+                .collection("users")
+                .doc(uid)
+                .collection(subcol)
+                .get();
+
+            for (const doc of snapshot.docs) {
+                const contactEmail = doc.data().email;
+                if (typeof contactEmail === "string" && contactEmail.trim().toLowerCase() === normalizedTo) {
+                    isAuthorized = true;
+                    break;
+                }
+            }
+            if (isAuthorized) break;
+        }
+
+        if (!isAuthorized) {
+            throw new HttpsError(
+                "permission-denied",
+                "L'adresse destinataire doit appartenir à l'un de vos contacts enregistrés."
             );
         }
 

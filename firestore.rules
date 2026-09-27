@@ -17,14 +17,14 @@ service cloud.firestore {
       );
 
       // Création : Interdiction d'auto-attribuer des rôles ou de forcer les UIDs dépositaires
-      // Abonnement (v14) : subscriptionTier/ExpiresAt/Source/LastEvent/UpdatedAt écrits UNIQUEMENT par la Cloud Function revenueCatWebhook
+      // Abonnement (v14) : entitlement/entitlementSources/subscriptionTier/ExpiresAt/Source/LastEvent/UpdatedAt écrits UNIQUEMENT par la Cloud Function revenueCatWebhook
       allow create: if request.auth != null && request.auth.uid == userId
-                    && !request.resource.data.keys().hasAny(['myRoles', 'isCreator', 'depositaryUids',
+                    && !request.resource.data.keys().hasAny(['myRoles', 'isCreator', 'depositaryUids', 'entitlement', 'entitlementSources',
                          'subscriptionTier', 'subscriptionExpiresAt', 'subscriptionSource', 'subscriptionLastEvent', 'subscriptionUpdatedAt']);
 
       // FUSION SÉCURISÉE v9.4.8 : Un seul bloc update, toutes protections actives
       allow update: if request.auth != null && request.auth.uid == userId
-                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['myRoles', 'isCreator', 'depositaryUids',
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['myRoles', 'isCreator', 'depositaryUids', 'entitlement', 'entitlementSources',
                          'subscriptionTier', 'subscriptionExpiresAt', 'subscriptionSource', 'subscriptionLastEvent', 'subscriptionUpdatedAt'])
                     && (!resource.data.get('isIdentityLocked', false)
                         || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['firstName', 'lastName', 'isIdentityLocked']));
@@ -276,6 +276,20 @@ service cloud.firestore {
       match /reconciliations/{reconciliationId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+
+      // ═══ WALLET, CREDIT LEDGER & BOOK GENERATIONS (Facturation v14) ═══
+      match /wallet/{doc} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+      match /creditLedger/{doc} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false;
+      }
+      match /bookGenerations/{doc} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow write: if false;
+      }
     }
 
     // ═══ MIRRORS — Miroir à Deux v9.4.27 ═══
@@ -335,6 +349,32 @@ service cloud.firestore {
     match /appConfig/{configId} {
       allow read: if true;
       allow write: if false;
+    }
+
+    // ═══ FACTURATION, PROMOTIONS & LOGS SERVEUR (v14) ═══
+    match /promoCodes/{code} {
+      allow read, write: if false;
+    }
+
+    match /serverConfig/{doc} {
+      allow read, write: if false;
+    }
+
+    match /processedPaymentEvents/{id} {
+      allow read, write: if false;
+    }
+
+    match /aiUsageLog/{id} {
+      allow read, write: if false;
+    }
+
+    // ═══ QUOTAS & TENTATIVES (Sécurité Cloud Functions) ═══
+    match /mailQuota/{uid} {
+      allow read, write: if false;
+    }
+
+    match /guessAttempts/{id} {
+      allow read, write: if false;
     }
 
     match /{document=**} {
