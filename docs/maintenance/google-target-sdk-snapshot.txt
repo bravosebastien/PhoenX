@@ -1,0 +1,12 @@
+API level 32
+API level 33
+API level 34
+API level 35
+API level 36
+Android 12L
+Android 13
+Android 14
+Android 15
+Android 16
+August 31, 2026
+November 1, 2026

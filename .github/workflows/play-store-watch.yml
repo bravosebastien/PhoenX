@@ -3,33 +3,31 @@ name: Surveillance conformité Google Play
 # ⚠️ CE QUE CE WORKFLOW FAIT RÉELLEMENT (et ce qu'il ne fait PAS) :
 # Il compare le targetSdk/compileSdk RÉELLEMENT présents dans le code au
 # chiffre de référence documenté dans docs/maintenance/echeances-play-store.md.
-# Il ne fait AUCUNE recherche web automatique — GitHub Actions n'a pas accès
-# à un moteur de recherche fiable sans clé d'API payante, et une fausse
-# information générée sans vérification serait pire qu'une absence
-# d'automatisation (voir CLAUDE.md, principe "description ≠ preuve").
 #
-# La vraie veille réglementaire (Google change ses exigences sans préavis)
-# reste un geste humain : quand Sébastien ou Claude confirment un changement
-# via une recherche réelle, ils mettent à jour la valeur de référence
-# ci-dessous ET le fichier docs/maintenance/echeances-play-store.md dans le
-# même commit. Ce workflow ne fait que vérifier que le CODE suit bien cette
-# valeur documentée — pas que la valeur documentée est encore à jour.
+# Il compare AUSSI, chaque mois, les chiffres et dates réellement affichés sur
+# la page officielle Google des exigences targetSdk à un instantané précédent
+# (docs/maintenance/google-target-sdk-snapshot.txt). S'il détecte une
+# différence, il fait échouer volontairement le contrôle pour déclencher une
+# alerte — mais il ne comprend pas le sens du changement, il signale juste
+# qu'il y en a un. Un humain (Sébastien ou Claude sur demande) doit alors
+# aller lire la page, comprendre le changement, et mettre à jour :
+# - la valeur REQUIRED_TARGET_SDK ci-dessous si besoin
+# - le fichier docs/maintenance/echeances-play-store.md
+# - le fichier docs/maintenance/google-target-sdk-snapshot.txt (nouvel instantané)
+#
+# La vraie veille réglementaire reste donc un geste humain final — ce
+# workflow ne fait qu'automatiser la DÉTECTION du changement, pas sa
+# compréhension (voir CLAUDE.md, principe "description ≠ preuve").
 
 on:
   schedule:
-    # Le 1er de chaque mois à 08:00 UTC — sert de rappel récurrent pour
-    # qu'un humain (ou Claude sur demande explicite) revérifie la valeur
-    # de référence ci-dessous auprès de la documentation Google officielle.
     - cron: "0 8 1 * *"
   workflow_dispatch:
 
 env:
-  # Dernière valeur vérifiée manuellement le 27 septembre 2026 :
-  # Google Play exige l'API 36 (Android 16) pour toute nouvelle soumission
-  # ou mise à jour depuis le 31 août 2026. Source officielle :
-  # https://support.google.com/googleplay/android-developer/answer/11926878
   REQUIRED_TARGET_SDK: 36
   REFERENCE_CHECKED_ON: "2026-09-27"
+  GOOGLE_SDK_PAGE_URL: "https://support.google.com/googleplay/android-developer/answer/11926878"
 
 jobs:
   check-target-sdk:
@@ -53,15 +51,41 @@ jobs:
           echo "::error title=targetSdk obsolète::Le code cible l'API ${{ steps.read-sdk.outputs.current }}, alors que la dernière exigence Google Play documentée (vérifiée le $REFERENCE_CHECKED_ON) est l'API $REQUIRED_TARGET_SDK. Corriger app/build.gradle.kts avant la prochaine publication."
           exit 1
 
+      - name: Télécharger la page officielle Google et en extraire les chiffres/dates clés
+        id: fetch-page
+        run: |
+          RAW=$(curl -sL "$GOOGLE_SDK_PAGE_URL")
+          echo "$RAW" | python3 -c "
+          import sys, re, html
+          t = sys.stdin.read()
+          t = re.sub('<[^>]+>', ' ', t)
+          t = html.unescape(t)
+          matches = re.findall(r'API level \d+|Android \d+L?|August \d+, 2026|November \d+, 2026', t)
+          for m in sorted(set(matches)):
+              print(m)
+          " > /tmp/current_snapshot.txt
+          cat /tmp/current_snapshot.txt
+
+      - name: Comparer à l'instantané précédent et alerter en cas de changement
+        run: |
+          if [ ! -s /tmp/current_snapshot.txt ]; then
+            echo "::warning title=Lecture Google impossible::Impossible de lire ou d'extraire des informations utiles de la page Google. Vérifier manuellement : $GOOGLE_SDK_PAGE_URL"
+            exit 0
+          fi
+          if ! diff -q docs/maintenance/google-target-sdk-snapshot.txt /tmp/current_snapshot.txt > /dev/null 2>&1; then
+            echo "::error title=La page Google a changé::Le contenu de la page officielle Google ($GOOGLE_SDK_PAGE_URL) a changé depuis la dernière vérification. Ancien contenu connu :"
+            cat docs/maintenance/google-target-sdk-snapshot.txt
+            echo "Nouveau contenu détecté :"
+            cat /tmp/current_snapshot.txt
+            echo "→ Aller lire la page, comprendre le changement, puis mettre à jour REQUIRED_TARGET_SDK, echeances-play-store.md, et ce fichier d'instantané."
+            exit 1
+          else
+            echo "Aucun changement détecté sur la page Google depuis la dernière vérification."
+          fi
+
       - name: Rappel de fraîcheur de la valeur de référence
         run: |
           echo "========================================================="
           echo "Cette valeur de référence (API $REQUIRED_TARGET_SDK) a été"
           echo "vérifiée manuellement le $REFERENCE_CHECKED_ON."
-          echo "Google peut annoncer une nouvelle exigence à tout moment,"
-          echo "sans que ce workflow puisse le détecter seul."
-          echo "→ Vérifier périodiquement :"
-          echo "  https://support.google.com/googleplay/android-developer/answer/11926878"
-          echo "  et mettre à jour REQUIRED_TARGET_SDK + le fichier"
-          echo "  docs/maintenance/echeances-play-store.md si besoin."
           echo "========================================================="
