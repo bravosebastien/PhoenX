@@ -1,0 +1,48 @@
+name: Surveillance du modèle IA Gemini
+
+# Ce workflow vérifie une fois par mois que le modèle IA utilisé dans le code
+# (variable AI_MODEL dans functions/src/ai.ts) est toujours listé comme
+# disponible sur la documentation officielle Google des modèles Gemini.
+# Il ne comprend pas le sens d'un changement — il alerte seulement si le nom
+# du modèle actuel n'apparaît plus dans la page, pour qu'un humain vérifie.
+
+on:
+  schedule:
+    - cron: "0 8 5 * *"
+  workflow_dispatch:
+
+env:
+  GEMINI_MODELS_PAGE_URL: "https://ai.google.dev/gemini-api/docs/models"
+
+jobs:
+  check-model-availability:
+    name: Vérifier que le modèle Gemini utilisé est toujours documenté
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Lire le nom du modèle réellement utilisé dans le code
+        id: read-model
+        run: |
+          MODEL=$(grep -oE "AI_MODEL\s*=\s*[\"'][a-zA-Z0-9._-]+[\"']" functions/src/ai.ts | grep -oE "[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+" | head -1)
+          if [ -z "$MODEL" ]; then
+            MODEL=$(grep -oE "gemini-[a-zA-Z0-9.-]+" functions/src/ai.ts | head -1)
+          fi
+          echo "model=$MODEL" >> "$GITHUB_OUTPUT"
+          echo "Modèle actuellement utilisé dans le code : $MODEL"
+
+      - name: Vérifier que ce modèle apparaît encore dans la documentation officielle
+        run: |
+          PAGE_CONTENT=$(curl -sL "$GEMINI_MODELS_PAGE_URL")
+          MODEL="${{ steps.read-model.outputs.model }}"
+          if [ -z "$MODEL" ]; then
+            echo "::warning title=Nom de modèle introuvable dans le code::Impossible de lire le nom du modèle dans functions/src/ai.ts. Vérifier manuellement."
+            exit 0
+          fi
+          if echo "$PAGE_CONTENT" | grep -qi "$MODEL"; then
+            echo "Le modèle '$MODEL' apparaît toujours dans la documentation officielle. Rien à signaler."
+          else
+            echo "::error title=Modèle IA potentiellement retiré::Le modèle '$MODEL', utilisé dans functions/src/ai.ts, n'apparaît plus sur la page officielle des modèles Gemini ($GEMINI_MODELS_PAGE_URL). Cela peut vouloir dire qu'il a été retiré ou renommé. Vérifier d'urgence avant que les fonctionnalités IA de l'application ne cessent de fonctionner."
+            exit 1
+          fi

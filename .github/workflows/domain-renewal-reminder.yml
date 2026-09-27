@@ -1,0 +1,35 @@
+name: Rappel annuel de renouvellement du domaine phoenx.app
+
+# Ce workflow ne vérifie rien sur internet — c'est un simple rappel
+# automatique basé sur une date, pour ne jamais oublier de renouveler le nom
+# de domaine phoenx.app (acheté chez Squarespace), dont l'expiration
+# couperait le site et les liens d'invitation de l'application.
+# Le mois d'achat doit être renseigné ci-dessous une fois, manuellement,
+# d'après la facture Squarespace réelle.
+
+on:
+  schedule:
+    # Se déclenche le 1er de chaque mois — le contrôle ci-dessous ne devient
+    # une vraie alerte que pendant le mois anniversaire de l'achat.
+    - cron: "0 8 1 * *"
+  workflow_dispatch:
+
+env:
+  # À renseigner une fois avec le vrai mois d'achat du domaine (1 à 12),
+  # d'après la facture Squarespace. Exemple : si acheté en août, mettre 8.
+  DOMAIN_PURCHASE_MONTH: 8
+
+jobs:
+  remind-domain-renewal:
+    name: Rappel de renouvellement du domaine phoenx.app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Vérifier si on est dans le mois anniversaire du domaine
+        run: |
+          CURRENT_MONTH=$(date +%-m)
+          if [ "$CURRENT_MONTH" -eq "$DOMAIN_PURCHASE_MONTH" ]; then
+            echo "::error title=Renouvellement du domaine phoenx.app à vérifier::C'est le mois anniversaire de l'achat du domaine phoenx.app. Se connecter à Squarespace et vérifier que le renouvellement automatique est bien actif et que le moyen de paiement est valide."
+            exit 1
+          else
+            echo "Pas le mois anniversaire du domaine ce mois-ci. Rien à signaler."
+          fi
