@@ -58,6 +58,20 @@ jobs:
       - name: Rendre gradlew exécutable
         run: chmod +x ./gradlew
 
+      - name: Créer un local.properties factice pour la CI
+        # local.properties n'est jamais commité (vraie clé Google Maps
+        # + clé RevenueCat, propres à chaque poste de développement).
+        # com.google.android.libraries.mapsplatform.secrets-gradle-plugin
+        # (version utilisée par ce projet) exige que ce fichier EXISTE
+        # littéralement — il ne bascule pas automatiquement vers
+        # local.defaults.properties en son absence (constaté sur cette
+        # CI le 27 septembre 2026 : le fichier de repli ne suffisait pas
+        # à lui seul). On crée donc ici, uniquement sur la machine GitHub
+        # et jamais commité, un local.properties avec la même valeur
+        # factice que local.defaults.properties — juste assez pour que
+        # le projet compile en CI, sans aucun vrai secret impliqué.
+        run: cp local.defaults.properties local.properties
+
       - name: Compilation debug (assembleDebug)
         run: ./gradlew assembleDebug --stacktrace
 
