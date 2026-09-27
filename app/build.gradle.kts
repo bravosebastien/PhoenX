@@ -23,12 +23,12 @@ val revenueCatApiKey: String = localProperties.getProperty("REVENUECAT_API_KEY")
 
 android {
     namespace = "com.example.phoenx"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "app.phoenx.mobile"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
 

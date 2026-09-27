@@ -1,0 +1,85 @@
+name: Vérification de compilation (build-check)
+
+# Objectif : donner une vraie preuve de compilation sur chaque Pull Request,
+# au lieu de se fier à une description ou à un résumé d'outil d'IA.
+#
+# ⚠️ CE QUE CE WORKFLOW NE PROUVE PAS :
+# Un "BUILD SUCCESSFUL" ici confirme uniquement que le code COMPILE.
+# Il ne prouve JAMAIS qu'une fonctionnalité fonctionne réellement sur un
+# appareil ou une tablette. Un test manuel sur device reste obligatoire
+# avant de considérer un correctif comme terminé (voir CLAUDE.md, section 2
+# et section 12, règle 8).
+#
+# Pour toute Cloud Function modifiée dans la même Pull Request : ce workflow
+# ne déploie RIEN côté serveur. Un déploiement séparé
+# (firebase deploy --only functions:nomDeLaFonction) reste requis après le
+# merge — le code mergé seul ne change rien sur l'infrastructure Firebase.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Compilation Android (assembleDebug)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Configuration JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Accepter les licences du SDK Android préinstallé
+        # Les machines GitHub (ubuntu-latest) ont déjà un SDK Android
+        # installé. On évite volontairement android-actions/setup-android,
+        # qui tente de retélécharger un cmdline-tools différent et bloque
+        # sur une acceptation de licences interactive (incident du
+        # 27 septembre 2026, PR #1 : "6 of 7 SDK package licenses not
+        # accepted" — le build échouait à cause de CETTE étape, pas à
+        # cause du code Kotlin). On accepte simplement les licences du SDK
+        # déjà présent, en non-interactif.
+        run: yes | sdkmanager --licenses > /dev/null || true
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Rendre gradlew exécutable
+        run: chmod +x ./gradlew
+
+      - name: Créer un local.properties factice pour la CI
+        # local.properties n'est jamais commité (vraie clé Google Maps
+        # + clé RevenueCat, propres à chaque poste de développement).
+        # com.google.android.libraries.mapsplatform.secrets-gradle-plugin
+        # (version utilisée par ce projet) exige que ce fichier EXISTE
+        # littéralement — il ne bascule pas automatiquement vers
+        # local.defaults.properties en son absence (constaté sur cette
+        # CI le 27 septembre 2026 : le fichier de repli ne suffisait pas
+        # à lui seul). On crée donc ici, uniquement sur la machine GitHub
+        # et jamais commité, un local.properties avec la même valeur
+        # factice que local.defaults.properties — juste assez pour que
+        # le projet compile en CI, sans aucun vrai secret impliqué.
+        run: cp local.defaults.properties local.properties
+
+      - name: Compilation debug (assembleDebug)
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Résultat
+        if: always()
+        run: |
+          echo "========================================================="
+          echo "Rappel : un build réussi ici ne remplace jamais un test"
+          echo "réel sur appareil (téléphone ET tablette) avant de"
+          echo "considérer un correctif comme terminé."
+          echo "========================================================="
