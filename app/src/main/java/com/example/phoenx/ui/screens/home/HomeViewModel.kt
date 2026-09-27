@@ -41,6 +41,7 @@ class HomeViewModel @Inject constructor(
     private val protocolManager: ActivationProtocolManager,
     private val offlineEntryDao: OfflineEntryDao,
     private val preferenceManager: PreferenceManager,
+    private val analyticsTracker: com.example.phoenx.data.analytics.AnalyticsTracker,
     @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -257,6 +258,7 @@ class HomeViewModel @Inject constructor(
                     val birthDate = birthTimestamp.toDate()
                     val ageSnapshot = AgeUtils.calculateAge(birthDate)
                     currentAge = ageSnapshot.years
+                    analyticsTracker.setAgeBracket(currentAge)
                 }
 
                 if (lastAlive != null) {

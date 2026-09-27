@@ -567,7 +567,13 @@ class CaptureViewModel @Inject constructor(
                 // jamais pour un complément (parentEntryId != null).
                 if (parentEntryId == null) {
                     try {
-                        analyticsTracker.logMemoryCreated(source = source)
+                        val mediaType = when (type) {
+                            Screen.Capture.TYPE_PHOTO, Screen.Capture.TYPE_CAMERA_PHOTO, Screen.Capture.TYPE_GALLERY -> "PHOTO"
+                            Screen.Capture.TYPE_CAMERA_VIDEO -> "VIDEO"
+                            Screen.Capture.TYPE_AUDIO -> "AUDIO"
+                            else -> "TEXT"
+                        }
+                        analyticsTracker.logMemoryCreated(source = source, mediaType = mediaType)
                         val rootCount = offlineEntryDao.getAllEntriesSync().count { it.parentEntryId == null }
                         if (rootCount == 1 || rootCount == 3 || rootCount == 10) {
                             analyticsTracker.logMemoryMilestone(rootCount)

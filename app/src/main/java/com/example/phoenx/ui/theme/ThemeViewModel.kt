@@ -20,7 +20,8 @@ import javax.inject.Inject
 class ThemeViewModel @Inject constructor(
     val preferenceManager: PreferenceManager,
     private val auth: FirebaseAuth,
-    private val db: FirebaseFirestore
+    private val db: FirebaseFirestore,
+    private val analyticsTracker: com.example.phoenx.data.analytics.AnalyticsTracker
 ) : ViewModel() {
 
     val accentColor: StateFlow<Color> = preferenceManager.accentColor
@@ -42,6 +43,7 @@ class ThemeViewModel @Inject constructor(
         viewModelScope.launch {
             preferenceManager.setAccentColor(color.toArgb())
             syncThemeToFirestore()
+            analyticsTracker.logThemeCustomized("accent_color")
         }
     }
 
@@ -49,6 +51,7 @@ class ThemeViewModel @Inject constructor(
         viewModelScope.launch {
             preferenceManager.setGlobalTheme(backgroundId, fontId)
             syncThemeToFirestore()
+            analyticsTracker.logThemeCustomized("background_and_font")
         }
     }
 

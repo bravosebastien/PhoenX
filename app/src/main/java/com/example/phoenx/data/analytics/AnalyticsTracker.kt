@@ -65,6 +65,19 @@ class AnalyticsTracker @Inject constructor(
 
     fun isConsentGiven(): Boolean = isConsentGiven
 
+    fun logScreenView(screenName: String) {
+        if (!isConsentGiven) return
+        try {
+            val bundle = Bundle().apply {
+                putString(FirebaseAnalytics.Param.SCREEN_NAME, screenName)
+                putString(FirebaseAnalytics.Param.SCREEN_CLASS, screenName)
+            }
+            firebaseAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
+        } catch (e: Exception) {
+            Log.e("AnalyticsTracker", "Erreur logScreenView: ${e.message}")
+        }
+    }
+
     fun logSignupCompleted() {
         if (!isConsentGiven) return
         try {
@@ -74,11 +87,12 @@ class AnalyticsTracker @Inject constructor(
         }
     }
 
-    fun logMemoryCreated(source: String) {
+    fun logMemoryCreated(source: String, mediaType: String = "TEXT") {
         if (!isConsentGiven) return
         try {
             val bundle = Bundle().apply {
                 putString("source", source)
+                putString("media_type", mediaType)
             }
             firebaseAnalytics.logEvent("memory_created", bundle)
         } catch (e: Exception) {
@@ -155,6 +169,35 @@ class AnalyticsTracker @Inject constructor(
             firebaseAnalytics.logEvent("become_creator_later", bundle)
         } catch (e: Exception) {
             Log.e("AnalyticsTracker", "Erreur logBecomeCreatorLater: ${e.message}")
+        }
+    }
+
+    fun logThemeCustomized(settingType: String) {
+        if (!isConsentGiven) return
+        try {
+            val bundle = Bundle().apply {
+                putString("setting_type", settingType)
+            }
+            firebaseAnalytics.logEvent("theme_customized", bundle)
+        } catch (e: Exception) {
+            Log.e("AnalyticsTracker", "Erreur logThemeCustomized: ${e.message}")
+        }
+    }
+
+    fun setAgeBracket(ageYears: Int) {
+        if (!isConsentGiven) return
+        val bracket = when {
+            ageYears < 18 -> "moins_18"
+            ageYears in 18..25 -> "18_25"
+            ageYears in 26..35 -> "26_35"
+            ageYears in 36..50 -> "36_50"
+            ageYears in 51..65 -> "51_65"
+            else -> "plus_65"
+        }
+        try {
+            firebaseAnalytics.setUserProperty("age_bracket", bracket)
+        } catch (e: Exception) {
+            Log.e("AnalyticsTracker", "Erreur setAgeBracket: ${e.message}")
         }
     }
 }
