@@ -50,23 +50,37 @@ par un, en lisant le journal réel à chaque fois plutôt qu'en supposant :**
    acceptant ses licences de façon non interactive.
 2. **2e échec :** `FileNotFoundException` sur `local.properties` —
    `com.google.android.libraries.mapsplatform.secrets-gradle-plugin`
-   (clé Google Maps) exige ce fichier ou un `local.defaults.properties`
-   de repli, qui n'existait pas dans le dépôt. **Corrigé** en ajoutant
-   `local.defaults.properties` (valeur factice `MAPS_API_KEY`, aucun
-   vrai secret) — mécanisme prévu par le plugin lui-même pour CI et les
-   nouveaux postes de développement sans clé réelle.
+   (clé Google Maps) exige ce fichier. Un `local.defaults.properties` de
+   repli a été ajouté mais s'est révélé insuffisant seul (3e échec
+   identique) : dans la version utilisée par ce projet, le plugin exige
+   que `local.properties` existe littéralement, sans bascule automatique.
+3. **3e échec (même cause que le 2e) :** corrigé définitivement en
+   ajoutant une étape CI qui copie `local.defaults.properties` vers
+   `local.properties` juste avant la compilation — uniquement sur la
+   machine GitHub, jamais commité (`local.properties` reste dans
+   `.gitignore`).
 
-Aucun des deux échecs n'était lié au changement `targetSdk`/`compileSdk`
+Aucun des trois échecs n'était lié au changement `targetSdk`/`compileSdk`
 36 lui-même — important à distinguer avant de conclure quoi que ce soit
 sur une éventuelle incompatibilité de code avec l'API 36.
 
+**✅ Build confirmé vert le 27 septembre 2026** (run
+https://github.com/bravosebastien/PhoenX/actions/runs/36315869616) — la
+compilation complète (`assembleDebug`) réussit avec `targetSdk`/
+`compileSdk` = 36. Seuls 2 avertissements mineurs restants, sans rapport
+avec le code : `setup-java@v4` déprécié (à migrer vers v5 un jour) et
+migration prévue de `ubuntu-latest` vers Ubuntu 26 le 19 octobre 2026 —
+aucune urgence.
+
 **Reste ouvert :**
-- Confirmer que `build-check.yml` passe réellement au vert après ce 2e
-  correctif (résultat non encore connu au moment d'écrire cette ligne).
-- Si un futur échec concerne cette fois une vraie incompatibilité entre
-  le plugin Android Gradle (AGP 8.6.0) et l'API 36, traiter séparément —
-  ne pas deviner de nouvelle version à l'aveugle.
-- Test réel sur téléphone ET tablette après un build `.aab` republié.
+- **Test réel sur téléphone ET tablette obligatoire** après un nouveau
+  build `.aab` régénéré avec ces changements — un ✅ de compilation ne
+  garantit jamais un comportement correct sur appareil (permissions
+  runtime ou restrictions d'arrière-plan potentiellement modifiées par
+  Android 16/API 36 — jamais vérifiées ici).
+- Ne pas soumettre de nouvelle version au Play Store avant ce test.
 - Note pour Sébastien : une app compilée avec le `local.defaults.properties`
   de secours n'affichera pas de vraie carte (Mappemonde) — normal en CI,
   sans impact sur ton build local qui utilise ton vrai `local.properties`.
+- Améliorations mineures non urgentes repérées : migrer `setup-java` en
+  v5, anticiper la migration Ubuntu 26 d'ici le 19 octobre 2026.
