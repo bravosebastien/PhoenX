@@ -40,8 +40,33 @@ preuve".
 confirmation sur la Pull Request. Aucun test sur appareil physique encore
 fait — obligatoire avant toute publication.
 
+**Suite (même jour) — deux échecs réels de build-check.yml, corrigés un
+par un, en lisant le journal réel à chaque fois plutôt qu'en supposant :**
+
+1. **1er échec :** `android-actions/setup-android@v3` retéléchargeait un
+   cmdline-tools différent de celui déjà présent sur la machine GitHub et
+   restait bloqué sur une acceptation de licences interactive jamais
+   validée. **Corrigé** en utilisant directement le SDK préinstallé et en
+   acceptant ses licences de façon non interactive.
+2. **2e échec :** `FileNotFoundException` sur `local.properties` —
+   `com.google.android.libraries.mapsplatform.secrets-gradle-plugin`
+   (clé Google Maps) exige ce fichier ou un `local.defaults.properties`
+   de repli, qui n'existait pas dans le dépôt. **Corrigé** en ajoutant
+   `local.defaults.properties` (valeur factice `MAPS_API_KEY`, aucun
+   vrai secret) — mécanisme prévu par le plugin lui-même pour CI et les
+   nouveaux postes de développement sans clé réelle.
+
+Aucun des deux échecs n'était lié au changement `targetSdk`/`compileSdk`
+36 lui-même — important à distinguer avant de conclure quoi que ce soit
+sur une éventuelle incompatibilité de code avec l'API 36.
+
 **Reste ouvert :**
-- Confirmer que `build-check.yml` passe réellement au vert.
-- Si échec lié à la version du plugin Android Gradle (AGP 8.6.0), traiter
-  séparément — ne pas deviner de nouvelle version à l'aveugle.
+- Confirmer que `build-check.yml` passe réellement au vert après ce 2e
+  correctif (résultat non encore connu au moment d'écrire cette ligne).
+- Si un futur échec concerne cette fois une vraie incompatibilité entre
+  le plugin Android Gradle (AGP 8.6.0) et l'API 36, traiter séparément —
+  ne pas deviner de nouvelle version à l'aveugle.
 - Test réel sur téléphone ET tablette après un build `.aab` republié.
+- Note pour Sébastien : une app compilée avec le `local.defaults.properties`
+  de secours n'affichera pas de vraie carte (Mappemonde) — normal en CI,
+  sans impact sur ton build local qui utilise ton vrai `local.properties`.
