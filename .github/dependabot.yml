@@ -1,0 +1,39 @@
+version: 2
+
+updates:
+  # Dépendances Android/Kotlin/Gradle de l'application
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "maintenance-automatisee"
+    commit-message:
+      prefix: "chore(deps)"
+
+  # Dépendances des Cloud Functions (TypeScript / Node)
+  - package-ecosystem: "npm"
+    directory: "/functions"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "cloud-functions"
+      - "maintenance-automatisee"
+    commit-message:
+      prefix: "chore(deps-functions)"
+
+  # Actions GitHub utilisées dans les workflows CI
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "ci"
+      - "maintenance-automatisee"
+    commit-message:
+      prefix: "chore(deps-ci)"
