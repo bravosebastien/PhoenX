@@ -504,24 +504,38 @@ class BookGeneratorService @Inject constructor(
         }
 
         // v9.4.29 : On crée le nouveau draft en INJECTANT les métadonnées existantes
+        // Relire le document Firestore direct pour préserver recipientIds, globalIntroduction et coverIsVideo
+        val freshDoc = try {
+            db.collection("users").document(userId)
+                .collection("book").document("current_draft").get().await()
+        } catch (e: Exception) { null }
+        val freshData = freshDoc?.data
+
+        val existingRecipientIds = (freshData?.get("recipientIds") as? List<*>)?.mapNotNull { it?.toString() }
+            ?.ifEmpty { null } ?: existingDraft?.recipientIds ?: emptyList()
+        val existingIntro = (freshData?.get("globalIntroduction") as? String)
+            ?.ifEmpty { null } ?: existingDraft?.globalIntroduction ?: ""
+        val existingCoverIsVideo = (freshData?.get("coverIsVideo") as? Boolean)
+            ?: existingDraft?.coverIsVideo ?: false
+
         val draft = BookDraft(
             id = java.util.UUID.randomUUID().toString(),
             userId = userId,
             chapters = chapters,
             totalEntries = scenes.size,
-            bookTitle = existingDraft?.bookTitle,
-            recipientIds = existingDraft?.recipientIds ?: emptyList(),
-            sealedMessage = existingDraft?.sealedMessage ?: "",
-            globalIntroduction = existingDraft?.globalIntroduction ?: "",
+            bookTitle = existingDraft?.bookTitle ?: (freshData?.get("bookTitle") as? String),
+            recipientIds = existingRecipientIds,
+            sealedMessage = existingDraft?.sealedMessage ?: (freshData?.get("sealedMessage") as? String) ?: "",
+            globalIntroduction = existingIntro,
             theme = existingDraft?.theme ?: BookTheme(),
-            coverImageUrl = existingDraft?.coverImageUrl,
-            coverIsVideo = existingDraft?.coverIsVideo ?: false,
-            coverTitleStyle = existingDraft?.coverTitleStyle ?: "GOLD",
-            coverScale = existingDraft?.coverScale ?: 1f,
-            coverOffsetX = existingDraft?.coverOffsetX ?: 0f,
-            coverOffsetY = existingDraft?.coverOffsetY ?: 0f,
+            coverImageUrl = existingDraft?.coverImageUrl ?: (freshData?.get("coverImageUrl") as? String),
+            coverIsVideo = existingCoverIsVideo,
+            coverTitleStyle = existingDraft?.coverTitleStyle ?: (freshData?.get("coverTitleStyle") as? String) ?: "GOLD",
+            coverScale = existingDraft?.coverScale ?: (freshData?.get("coverScale") as? Number)?.toFloat() ?: 1f,
+            coverOffsetX = existingDraft?.coverOffsetX ?: (freshData?.get("coverOffsetX") as? Number)?.toFloat() ?: 0f,
+            coverOffsetY = existingDraft?.coverOffsetY ?: (freshData?.get("coverOffsetY") as? Number)?.toFloat() ?: 0f,
             coverUploadedAt = existingDraft?.coverUploadedAt,
-            visibility = existingDraft?.visibility ?: "RESTRICTED",
+            visibility = existingDraft?.visibility ?: (freshData?.get("visibility") as? String) ?: "RESTRICTED",
             metaFingerprint = computeMetaFingerprint(ageMin, ageMax, dominantTone, authorProfileMap)
         )
 
@@ -562,6 +576,26 @@ class BookGeneratorService @Inject constructor(
                 )
             }
 
+            val existingDoc = try {
+                db.collection("users").document(userId)
+                    .collection("book").document("current_draft").get().await()
+            } catch (e: Exception) { null }
+            val existingData = existingDoc?.data
+
+            val finalRecipientIds = if (draft.recipientIds.isNotEmpty()) {
+                draft.recipientIds
+            } else {
+                (existingData?.get("recipientIds") as? List<*>)?.mapNotNull { it?.toString() } ?: emptyList()
+            }
+
+            val finalGlobalIntro = if (draft.globalIntroduction.isNotEmpty()) {
+                draft.globalIntroduction
+            } else {
+                existingData?.get("globalIntroduction") as? String ?: ""
+            }
+
+            val finalCoverIsVideo = draft.coverIsVideo || (existingData?.get("coverIsVideo") as? Boolean ?: false)
+
             // v9.4.29 : Filtrage systématique des valeurs NULL pour éviter l'effacement accidentel de champs Firestore
             val rawData: Map<String, Any?> = hashMapOf(
                 "id" to draft.id,
@@ -571,16 +605,16 @@ class BookGeneratorService @Inject constructor(
                 "status" to draft.status.name,
                 "chapters" to chaptersMap,
                 "totalEntries" to draft.totalEntries,
-                "bookTitle" to draft.bookTitle,
-                "recipientIds" to draft.recipientIds,
-                "sealedMessage" to draft.sealedMessage,
-                "globalIntroduction" to draft.globalIntroduction,
+                "bookTitle" to (draft.bookTitle ?: existingData?.get("bookTitle") as? String),
+                "recipientIds" to finalRecipientIds,
+                "sealedMessage" to if (draft.sealedMessage.isNotEmpty()) draft.sealedMessage else (existingData?.get("sealedMessage") as? String ?: ""),
+                "globalIntroduction" to finalGlobalIntro,
                 "theme" to mapOf(
                     "backgroundId" to draft.theme.backgroundId,
                     "fontId" to draft.theme.fontId
                 ),
-                "coverImageUrl" to draft.coverImageUrl,
-                "coverIsVideo" to draft.coverIsVideo,
+                "coverImageUrl" to (draft.coverImageUrl ?: existingData?.get("coverImageUrl") as? String),
+                "coverIsVideo" to finalCoverIsVideo,
                 "coverTitleStyle" to draft.coverTitleStyle,
                 "visibility" to (draft.visibility ?: "RESTRICTED"),
                 "coverScale" to draft.coverScale,
