@@ -428,6 +428,10 @@ class CaptureViewModel @Inject constructor(
         includeInBook: Boolean = true,
         soulTone: String? = null,
         tonalNuance: String? = null, // v9.4.27
+        userTitle: String? = null,
+        memoryDate: Long? = null,
+        memoryDateStart: Long? = null,
+        memoryDateEnd: Long? = null,
         source: String = "atelier",
         onSuccess: (String) -> Unit = {} // v9.4.26
     ) {
@@ -522,11 +526,14 @@ class CaptureViewModel @Inject constructor(
                     compartmentIds = finalCompartmentIds, // v9.4.27 : Rempli automatiquement
                     createdAt = System.currentTimeMillis(),
                     aiSummary = analysis.summary,
-                    userTitle = rawText, // Migration v59 : titre initial = texte de capture (l'Étincelle)
+                    userTitle = userTitle?.ifBlank { null } ?: rawText, // Migration v59 : titre utilisateur (l'Étincelle)
                     locationName = locationName ?: _preselectedLocationName.value,
                     locationId = locationId,
                     localMediaPath = finalLocalMediaPath, // v12.6
                     localCoverPath = finalLocalCoverPath, // v12.6
+                    memoryDate = memoryDate,
+                    memoryDateStart = memoryDateStart,
+                    memoryDateEnd = memoryDateEnd,
                     includeInBook = if (type == "VIDEO" || type == "CAMERA_VIDEO" || type == "AUDIO") false else includeInBook,
                     questionId = pendingQuestionId,
                     parentEntryId = parentEntryId, // v9.4.27 : RÉTABLI

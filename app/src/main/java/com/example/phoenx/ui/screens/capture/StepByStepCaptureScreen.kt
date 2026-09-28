@@ -153,6 +153,7 @@ fun StepByStepCaptureScreen(
                                 // le média principal — pour un placement uniforme dans "Compléments Média".
                                 captureViewModel.saveEntry(
                                     content = uiState.story.ifBlank { uiState.title },
+                                    userTitle = uiState.title,
                                     type = "TEXT",
                                     category = uiState.category,
                                     tonalNuance = uiState.tonalNuance,
@@ -160,6 +161,9 @@ fun StepByStepCaptureScreen(
                                     recipientIds = uiState.selectedRecipientIds,
                                     locationId = uiState.locationId,
                                     locationName = uiState.locationName,
+                                    memoryDate = uiState.memoryDate,
+                                    memoryDateStart = uiState.memoryDateStart,
+                                    memoryDateEnd = uiState.memoryDateEnd,
                                     enigmaQuestion = if (uiState.enigmaEnabled) uiState.enigmaQuestion else null,
                                     enigmaAnswer = if (uiState.enigmaEnabled) uiState.enigmaAnswer else null,
                                     enigmaHint = if (uiState.enigmaEnabled) uiState.enigmaHint else null,
