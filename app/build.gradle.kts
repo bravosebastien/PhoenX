@@ -4,6 +4,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
     id("com.github.ben-manes.versions")
@@ -99,6 +100,7 @@ dependencies {
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+    implementation("com.google.firebase:firebase-crashlytics-ktx")
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)

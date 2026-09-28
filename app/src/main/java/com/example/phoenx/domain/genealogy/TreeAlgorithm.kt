@@ -3,6 +3,7 @@ package com.example.phoenx.domain.genealogy
 import com.example.phoenx.domain.model.ResolvedPerson
 import com.example.phoenx.domain.model.TreeLayout
 import com.example.phoenx.domain.model.VisualTreeNode
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 
 /**
  * Algorithme de positionnement de l'Arbre Généalogique (v9.4.29)
@@ -15,6 +16,7 @@ object TreeAlgorithm {
     private const val GEN_HEIGHT_SPACING = 280f // Hauteur entre deux générations
 
     fun calculateLayout(persons: List<ResolvedPerson>): TreeLayout {
+        FirebaseCrashlytics.getInstance().log("TreeAlgorithm: calculateLayout pour ${persons.size} personnes")
         if (persons.isEmpty()) return TreeLayout(emptyList(), emptyList())
 
         // --- PHASE 1 : Calcul des générations (Niveaux) ---

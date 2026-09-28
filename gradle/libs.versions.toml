@@ -64,6 +64,7 @@ firebase-storage = { group = "com.google.firebase", name = "firebase-storage-ktx
 firebase-vertexai = { group = "com.google.firebase", name = "firebase-vertexai", version = "16.0.0-beta02" }
 firebase-functions = { group = "com.google.firebase", name = "firebase-functions-ktx" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging-ktx" }
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
 
 # Hilt (DI)
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
@@ -120,3 +121,4 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 gradle-versions = { id = "com.github.ben-manes.versions", version.ref = "gradleVersionsPlugin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version = "3.0.2" }

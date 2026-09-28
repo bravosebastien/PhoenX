@@ -42,6 +42,7 @@ import com.example.phoenx.ui.components.rippleTrailDetection
 import com.example.phoenx.ui.components.RippleTrailOverlay
 import com.example.phoenx.ui.components.RippleTrailState
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -100,6 +101,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         android.util.Log.d("PHOENX_DEBUG", "MainActivity onCreate")
+
+        FirebaseAuth.getInstance().addAuthStateListener { auth ->
+            val uid = auth.currentUser?.uid
+            if (uid != null) {
+                com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance().setUserId(uid)
+            } else {
+                com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance().setUserId("")
+            }
+        }
 
         setContent {
             val themeViewModel: ThemeViewModel = hiltViewModel()

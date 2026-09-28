@@ -18,6 +18,7 @@ import com.example.phoenx.data.sync.toPersonEntity
 import com.example.phoenx.data.sync.toRankingEntity // v12.2
 import com.example.phoenx.data.sync.toStandaloneMediaEntity // v9.4.27
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -45,9 +46,11 @@ class InitialSyncWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val userId = FirebaseAuth.getInstance().currentUser?.uid ?: return Result.failure()
+        com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance().log("InitialSyncWorker: Démarrage synchronisation initiale pour userId=$userId")
 
         return try {
             // ═══ 0. RÉCUPÉRATION DU PROFIL CRÉATEUR (v12.2) ═══
+            com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance().log("InitialSyncWorker: Récupération du profil créateur")
             android.util.Log.d("InitialSync", "Restauration du profil créateur...")
             val userDoc = db.collection("users").document(userId).get().await()
             if (userDoc.exists()) {
@@ -57,6 +60,7 @@ class InitialSyncWorker @AssistedInject constructor(
             }
 
             // ═══ 1. RÉCUPÉRATION DES SOUVENIRS (ENTRIES + Reconciliation v9.6.7) ═══
+            com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance().log("InitialSyncWorker: Récupération des souvenirs distants")
             val localReferenceEntries = offlineEntryDao.getSyncedAndPendingDeletionEntriesSync()
             val localIds = localReferenceEntries.map { it.id }.toSet()
 

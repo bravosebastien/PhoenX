@@ -12,6 +12,7 @@ import com.example.phoenx.data.sync.toPersonEntity
 import com.example.phoenx.domain.genealogy.TreeAlgorithm
 import com.example.phoenx.domain.model.TreeLayout
 import com.example.phoenx.domain.model.VisualGroup
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
@@ -129,6 +130,7 @@ class GenealogyTreeViewModel @Inject constructor(
     }
 
     fun loadTree(creatorId: String?) {
+        com.google.firebase.crashlytics.FirebaseCrashlytics.getInstance().log("GenealogyTreeViewModel: Chargement de l'arbre pour creatorId=$creatorId")
         _targetCreatorId.value = creatorId
         // Si mode Créateur, on pré-résout les avatars locaux en observant le flux (v9.6.7)
         if (creatorId == null || creatorId == auth.currentUser?.uid) {
@@ -154,6 +156,7 @@ class GenealogyTreeViewModel @Inject constructor(
      * Calcul du layout pour le rendu visuel (v9.4.22)
      */
     val treeLayout: StateFlow<TreeLayout> = combine(allPersons, _resolvedUrls) { persons, urls ->
+        FirebaseCrashlytics.getInstance().log("GenealogyTreeViewModel: Recalcul de treeLayout pour ${persons.size} personnes")
         android.util.Log.d("TreePhotoDebug", "Recalculating TreeLayout: persons=${persons.size}, resolvedUrls=${urls.size}")
         // On récupère le premier média de galerie pour ceux qui n'ont pas de photo de profil
         val resolved = persons.map { person ->
