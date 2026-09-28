@@ -221,6 +221,9 @@ sealed class Screen(val route: String) {
     object LanguageSettings : Screen("settings/language")
     object LegacyVideoSettings : Screen("settings/legacy_video")
     object NotificationContacts : Screen("notification_contacts")
+    object Subscription : Screen("subscription") {
+        fun createRoute() = "subscription"
+    }
     object Genealogy : Screen("genealogy?creatorId={creatorId}") {
         fun createRoute(creatorId: String? = null) = 
             if (creatorId != null) "genealogy?creatorId=$creatorId" else "genealogy"

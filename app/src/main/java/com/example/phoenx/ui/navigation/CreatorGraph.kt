@@ -508,6 +508,7 @@ fun NavGraphBuilder.creatorGraph(
         ProfileScreen(
             onNavigateBack = { navController.popBackStack() },
             onNavigateToRichProfile = { navController.navigate(Screen.CreatorRichProfile.route) },
+            onNavigateToSubscription = { navController.navigate(Screen.Subscription.createRoute()) },
             onNavigateToGenealogy = { navController.navigate(Screen.Genealogy.createRoute()) },
             mainViewModel = mainViewModel,
             onLogoutSuccess = {
@@ -516,6 +517,10 @@ fun NavGraphBuilder.creatorGraph(
                 }
             }
         )
+    }
+
+    composable(Screen.Subscription.route) {
+        com.example.phoenx.ui.screens.subscription.SubscriptionScreen(onNavigateBack = { navController.popBackStack() })
     }
 
     composable(Screen.CreatorRichProfile.route) {

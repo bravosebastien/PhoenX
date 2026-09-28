@@ -86,8 +86,13 @@ fun NavGraphBuilder.recipientGraph(
             onExit = { navController.popBackStack() },
             onNavigateToHeritage = { navController.navigate(Screen.HeirHeritage.createRoute(creatorId)) },
             isUserCreator = isCreator ?: true,
-            onBecomeCreator = { navController.navigate(Screen.SilenceOnboarding.route) }
+            onBecomeCreator = { navController.navigate(Screen.SilenceOnboarding.route) },
+            onNavigateToSubscription = { navController.navigate(Screen.Subscription.createRoute()) }
         )
+    }
+
+    composable(Screen.Subscription.route) {
+        com.example.phoenx.ui.screens.subscription.SubscriptionScreen(onNavigateBack = { navController.popBackStack() })
     }
 
     composable(

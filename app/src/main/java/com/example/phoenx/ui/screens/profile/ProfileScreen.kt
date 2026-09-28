@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onNavigateToRichProfile: () -> Unit,
+    onNavigateToSubscription: () -> Unit,
     onNavigateToGenealogy: () -> Unit,
     onLogoutSuccess: () -> Unit,
     mainViewModel: MainViewModel,
@@ -335,6 +336,30 @@ fun ProfileScreen(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(stringResource(R.string.profile_item_rich_profile_title), style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
                             Text(stringResource(R.string.profile_item_rich_profile_subtitle), style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
+                        }
+                        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.4f))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // --- MON ABONNEMENT ---
+                Card(
+                    onClick = onNavigateToSubscription,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.05f)),
+                    shape = MaterialTheme.shapes.large,
+                    border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.2f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Star, null, tint = accent)
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Mon Abonnement", style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold), color = theme.contentColor)
+                            Text("Gérer mon palier et mes avantages", style = MaterialTheme.typography.labelSmall, color = theme.contentColor.copy(alpha = 0.6f))
                         }
                         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, null, tint = theme.contentColor.copy(alpha = 0.4f))
                     }

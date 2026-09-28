@@ -617,6 +617,7 @@ export const getMyBillingState = onCall({ region: "us-central1", invoker: "publi
         tier: summary.tier,
         entitlement: summary,
         wallet,
+        tiers: cfg.tiers,
         activePromotions: promos.map((p: any) => ({
             id: p.id,
             effect: p.effect,

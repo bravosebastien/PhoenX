@@ -39,6 +39,7 @@ fun RecipientCubeScreen(
     onNavigateToHeritage: () -> Unit,
     isUserCreator: Boolean = false,
     onBecomeCreator: () -> Unit,
+    onNavigateToSubscription: () -> Unit,
     viewModel: RecipientCubeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -191,7 +192,7 @@ fun RecipientCubeScreen(
                         }
                         
                         if (!isUserCreator) {
-                            Spacer(modifier = Modifier.height(32.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
                             
                             // DEVENIR CRÉATEUR
                             Card(
@@ -211,6 +212,29 @@ fun RecipientCubeScreen(
                                     TextButton(onClick = onBecomeCreator) {
                                         Text(stringResource(R.string.recipient_cube_become_creator_button), color = accent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                     }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        // MON ABONNEMENT
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = theme.contentColor.copy(alpha = 0.05f)),
+                            shape = RoundedCornerShape(12.dp),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, theme.contentColor.copy(alpha = 0.1f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("Mon Abonnement", style = MaterialTheme.typography.titleSmall, color = theme.contentColor, fontWeight = FontWeight.Bold)
+                                    Text("Gérer mon palier et mes avantages", style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
+                                }
+                                TextButton(onClick = onNavigateToSubscription) {
+                                    Text("Voir", color = accent, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                 }
                             }
                         }
