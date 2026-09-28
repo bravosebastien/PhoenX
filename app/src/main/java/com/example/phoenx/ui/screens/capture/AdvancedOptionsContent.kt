@@ -206,7 +206,12 @@ fun AdvancedOptionsContent(
                 onDismissRequest = { showDatePicker = false },
                 confirmButton = {
                     TextButton(onClick = {
-                        onScheduledTimestampChange(datePickerState.selectedDateMillis)
+                        val selectedMs = datePickerState.selectedDateMillis
+                        if (selectedMs != null) {
+                            val endOfDayMs = selectedMs + (23 * 3600 * 1000 + 59 * 60 * 1000)
+                            val finalScheduledMs = if (endOfDayMs > System.currentTimeMillis()) endOfDayMs else (System.currentTimeMillis() + 86400000)
+                            onScheduledTimestampChange(finalScheduledMs)
+                        }
                         showDatePicker = false
                     }) { Text(stringResource(R.string.capture_button_confirm), color = accent) }
                 },
