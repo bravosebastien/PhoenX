@@ -154,6 +154,31 @@ export const generateYoungSelfSuggestions = onCall({
     return await generateWithGemini(prompt, "generateYoungSelfSuggestions") || "";
 });
 
+// 6. Aide à la réconciliation
+export const generateReconciliationHelp = onCall({
+    secrets: ["GEMINI_API_KEY"]
+}, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Non authentifié");
+    }
+
+    const { recipient, intent } = request.data;
+    if (!recipient || !intent) {
+        throw new HttpsError("invalid-argument", "Champs requis manquants");
+    }
+
+    const prompt = `${AI_RULES}
+    Tu es un assistant de médiation et de réconciliation familiale bienveillant pour PHOEN-X.
+    L'utilisateur souhaite adresser un message apaisant ou une démarche de réconciliation à "${recipient}".
+    Intention de l'utilisateur : "${intent}".
+
+    Propose une ébauche de message chaleureux, sincère et nuancé, rédigé à la première personne ("Je"), favorisant l'écoute et l'apaisement sans jugement.
+    Réponds UNIQUEMENT avec le texte du message proposé.`;
+
+    const text = await generateWithGemini(prompt, "generateReconciliationHelp");
+    return text || "";
+});
+
 // 8. Génération du livre (v7.6 Multimédia)
 export const generateBookChapters = onCall({
     secrets: ["GEMINI_API_KEY"]
