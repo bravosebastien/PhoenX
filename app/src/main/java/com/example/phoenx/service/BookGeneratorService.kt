@@ -552,6 +552,10 @@ class BookGeneratorService @Inject constructor(
     }
 
     suspend fun saveBookDraft(userId: String, draft: BookDraft) {
+        if (draft.chapters.isEmpty()) {
+            android.util.Log.e("PHOENX_BOOK", "Sauvegarde ignorée : le brouillon de livre ne contient aucun chapitre.")
+            return
+        }
         try {
             val chaptersMap = draft.chapters.map { chapter ->
                 mapOf(
