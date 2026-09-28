@@ -353,17 +353,14 @@ class BookViewerViewModel @Inject constructor(
             try {
                 db.collection("users").document(readerId)
                     .collection("reading_progress").document("${creatorId}_book")
-                    .update(mapOf(
+                    .set(mapOf(
                         "itemIndex" to index,
                         "offset" to offset,
                         "savedAtScale" to currentScale,
                         "timestamp" to System.currentTimeMillis()
-                    )).kotlinAwait()
+                    ), com.google.firebase.firestore.SetOptions.merge()).kotlinAwait()
             } catch (e: Exception) {
-                // Si le document n'existe pas encore (fallback set)
-                db.collection("users").document(readerId)
-                    .collection("reading_progress").document("${creatorId}_book")
-                    .set(mapOf("itemIndex" to index, "offset" to offset, "savedAtScale" to currentScale), com.google.firebase.firestore.SetOptions.merge())
+                android.util.Log.e("PHOENX_READING", "Erreur sauvegarde scroll: ${e.message}", e)
             }
         }
     }
@@ -374,15 +371,13 @@ class BookViewerViewModel @Inject constructor(
             try {
                 db.collection("users").document(readerId)
                     .collection("reading_progress").document("${creatorId}_book")
-                    .update(mapOf(
+                    .set(mapOf(
                         "chapterId" to chapterId,
                         "characterOffset" to characterOffset,
                         "timestamp" to System.currentTimeMillis()
-                    )).kotlinAwait()
+                    ), com.google.firebase.firestore.SetOptions.merge()).kotlinAwait()
             } catch (e: Exception) {
-                db.collection("users").document(readerId)
-                    .collection("reading_progress").document("${creatorId}_book")
-                    .set(mapOf("chapterId" to chapterId, "characterOffset" to characterOffset), com.google.firebase.firestore.SetOptions.merge())
+                android.util.Log.e("PHOENX_READING", "Erreur sauvegarde pages: ${e.message}", e)
             }
         }
     }

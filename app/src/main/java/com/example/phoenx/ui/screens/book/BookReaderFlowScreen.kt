@@ -405,11 +405,9 @@ fun ScrollModeView(
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
             .collectLatest { (index, offset) ->
-                delay(2000)
-                if (index > 0) {
-                    val userId = targetCreatorId ?: bookDraft?.userId
-                    if (userId != null) viewModel.saveScrollProgress(userId, index, offset)
-                }
+                delay(1500)
+                val userId = targetCreatorId ?: bookDraft?.userId
+                if (userId != null) viewModel.saveScrollProgress(userId, index, offset)
             }
     }
 
