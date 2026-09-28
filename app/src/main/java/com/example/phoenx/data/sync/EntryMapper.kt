@@ -246,8 +246,19 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
     val ageMap = this["ageAtCreation"] as? Map<*, *>
     val ageJson = ageMap?.let { JSONObject(it).toString() } ?: "{}"
 
-    val recIds = (this["recipientIds"] as? List<*>)?.joinToString(",") ?: ""
-    val compIds = (this["compartmentIds"] as? List<*>)?.let { "," + it.joinToString(",") + "," } ?: ""
+    val rawRec = this["recipientIds"]
+    val recIds = when (rawRec) {
+        is List<*> -> rawRec.mapNotNull { it?.toString() }.filter { it.isNotBlank() }.joinToString(",")
+        is String -> rawRec
+        else -> ""
+    }
+
+    val rawComp = this["compartmentIds"]
+    val compIds = when (rawComp) {
+        is List<*> -> if (rawComp.isEmpty()) "" else "," + rawComp.mapNotNull { it?.toString() }.filter { it.isNotBlank() }.joinToString(",") + ","
+        is String -> if (rawComp.isBlank()) "" else "," + rawComp.trim(',').split(",").filter { it.isNotBlank() }.joinToString(",") + ","
+        else -> ""
+    }
 
     // DÉTECTION & DÉCHIFFREMENT HYBRIDE (v9.4.12)
     val summaryObj = this["aiSummary"]
@@ -257,12 +268,11 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
         else -> ""
     }
 
-    // Migration v59 : titre utilisateur (l'Étincelle). Repli sur aiSummary déchiffré si absent
-    // (document synchronisé par un autre appareil avant l'existence de ce champ) — jamais de titre vide.
+    // Migration v59 : titre utilisateur (l'Étincelle). Preserver si présent, sinon fallback aiSummary.
     val userTitleObj = this["userTitle"]
     val finalUserTitle = when {
-        userTitleObj is String && userTitleObj.isNotEmpty() -> userTitleObj
-        userTitleObj != null && userTitleObj !is String -> encryptionManager.decryptText(userTitleObj.extractBytes(), explicitKey)
+        userTitleObj is String -> userTitleObj
+        userTitleObj != null -> try { encryptionManager.decryptText(userTitleObj.extractBytes(), explicitKey) } catch (e: Exception) { "" }
         else -> finalSummary
     }
 
