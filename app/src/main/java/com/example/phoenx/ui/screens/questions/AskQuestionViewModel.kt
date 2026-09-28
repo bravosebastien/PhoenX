@@ -40,7 +40,13 @@ class AskQuestionViewModel @Inject constructor(
             try {
                 val creatorDoc = db.collection("users").document(creatorId).get().await()
                 val name = creatorDoc.getString("displayName") ?: "Ton proche"
-                creatorPublicKey = creatorDoc.getString("publicEncryptionKey")
+                
+                val keyDoc = try {
+                    db.collection("publicKeys").document(creatorId).get().await()
+                } catch (e: Exception) { null }
+
+                creatorPublicKey = keyDoc?.getString("publicKey") 
+                    ?: creatorDoc.getString("publicEncryptionKey")
 
                 val recipientDoc = db.collection("users").document(creatorId)
                     .collection("recipients").document(recipientId).get().await()
