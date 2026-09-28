@@ -351,12 +351,27 @@ fun Map<String, Any?>.toOfflineEntry(encryptionManager: EncryptionManager, expli
  */
 fun DocumentSnapshot.toAmendmentEntity(entryId: String): com.example.phoenx.data.local.AmendmentEntity? {
     if (!exists()) return null
+    val rawCreated = get("createdAt")
+    val createdAtMs = when (rawCreated) {
+        is Long -> rawCreated
+        is Number -> rawCreated.toLong()
+        is com.google.firebase.Timestamp -> rawCreated.toDate().time
+        else -> System.currentTimeMillis()
+    }
+    val rawEncrypted = get("encryptedContent")
+    val encryptedBytes = when (rawEncrypted) {
+        is com.google.firebase.firestore.Blob -> rawEncrypted.toBytes()
+        is String -> rawEncrypted.toByteArray()
+        is ByteArray -> rawEncrypted
+        else -> ByteArray(0)
+    }
+
     return com.example.phoenx.data.local.AmendmentEntity(
         id = id,
         entryId = entryId,
-        encryptedContent = getBlob("encryptedContent")?.toBytes() ?: ByteArray(0),
+        encryptedContent = encryptedBytes,
         ageAtAmendment = getString("ageAtAmendment") ?: "{}",
-        createdAt = getLong("createdAt") ?: System.currentTimeMillis(),
+        createdAt = createdAtMs,
         aiEvolution = getString("aiEvolution")
     )
 }

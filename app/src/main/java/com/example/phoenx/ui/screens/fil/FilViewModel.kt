@@ -252,8 +252,10 @@ class FilViewModel @Inject constructor(
                     .collection("amendments").document(amendment.id)
                     .set(firestoreData)
                     .await()
+
+                com.example.phoenx.data.sync.SyncWorker.trigger(context)
             } catch (e: Exception) {
-                android.util.Log.e("FilVM", "Error adding amendment: ${e.message}", e)
+                android.util.Log.e("FilVM", "Error adding amendment for entry $entryId: ${e.message}", e)
             }
         }
     }
