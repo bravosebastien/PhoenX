@@ -131,7 +131,7 @@ dependencies {
     implementation(libs.androidx.camera.view)
 
     // Maps
-    implementation("com.google.android.gms:play-services-maps:19.0.0")
+    implementation("com.google.android.gms:play-services-maps:20.0.0")
     implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("com.google.maps.android:maps-compose:4.4.1")
     implementation(libs.google.maps.compose.utils)
