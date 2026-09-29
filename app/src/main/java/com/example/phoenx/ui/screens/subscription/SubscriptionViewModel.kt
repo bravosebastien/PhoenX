@@ -49,21 +49,32 @@ class SubscriptionViewModel @Inject constructor(
     }
 
     private fun loadOfferings() {
-        Purchases.sharedInstance.getOfferings(object : ReceiveOfferingsCallback {
-            override fun onReceived(offerings: Offerings) {
-                val current: Offering? = offerings.current
-                val map = mutableMapOf<String, Package>()
-                current?.availablePackages?.forEach { pkg ->
-                    val productId = pkg.product.id.substringBefore(":") // ignore le suffixe de base plan Google Play
-                    map[productId] = pkg
+        if (!Purchases.isConfigured) {
+            _uiState.value = _uiState.value.copy(
+                offeringsError = "Clé API RevenueCat manquante dans local.properties (REVENUECAT_API_KEY=goog_...)"
+            )
+            return
+        }
+        try {
+            Purchases.sharedInstance.getOfferings(object : ReceiveOfferingsCallback {
+                override fun onReceived(offerings: Offerings) {
+                    val current: Offering? = offerings.current
+                    val map = mutableMapOf<String, Package>()
+                    current?.availablePackages?.forEach { pkg ->
+                        val productId = pkg.product.id.substringBefore(":") // ignore le suffixe de base plan Google Play
+                        map[productId] = pkg
+                    }
+                    _uiState.value = _uiState.value.copy(availablePackagesByProductId = map, offeringsError = null)
                 }
-                _uiState.value = _uiState.value.copy(availablePackagesByProductId = map, offeringsError = null)
-            }
 
-            override fun onError(error: PurchasesError) {
-                _uiState.value = _uiState.value.copy(offeringsError = error.message)
-            }
-        })
+                override fun onError(error: PurchasesError) {
+                    _uiState.value = _uiState.value.copy(offeringsError = error.message)
+                }
+            })
+        } catch (e: Exception) {
+            android.util.Log.e("SubscriptionVM", "Erreur lors du chargement des offres RevenueCat", e)
+            _uiState.value = _uiState.value.copy(offeringsError = e.message ?: "Erreur inconnue")
+        }
     }
 
     fun packageForProductId(productId: String?): Package? {

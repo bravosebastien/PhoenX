@@ -32,38 +32,52 @@ object RevenueCatManager {
     private var initialized = false
 
     fun initialize(context: Context) {
-        if (initialized) return
+        if (initialized || Purchases.isConfigured) return
         val apiKey = BuildConfig.REVENUECAT_API_KEY
         if (apiKey.isBlank() || apiKey == "REPLACE_ME") {
             android.util.Log.w(
                 "RevenueCatManager",
-                "Clé API RevenueCat absente (REVENUECAT_API_KEY dans local.properties) — initialisation ignorée."
+                "Clé API RevenueCat non renseignée (REVENUECAT_API_KEY dans local.properties)."
             )
             return
         }
 
-        Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.INFO
-        Purchases.configure(PurchasesConfiguration.Builder(context, apiKey).build())
-        initialized = true
+        try {
+            Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.INFO
+            Purchases.configure(PurchasesConfiguration.Builder(context, apiKey).build())
+            initialized = true
+        } catch (e: Exception) {
+            android.util.Log.e("RevenueCatManager", "Erreur lors de la configuration de Purchases", e)
+            return
+        }
 
         // Synchronise l'identité RevenueCat avec la session Firebase active,
         // pour toute connexion/déconnexion, où qu'elle ait lieu dans l'app.
         FirebaseAuth.getInstance().addAuthStateListener { auth ->
+            if (!Purchases.isConfigured) return@addAuthStateListener
             val uid = auth.currentUser?.uid
             if (uid != null) {
-                Purchases.sharedInstance.logIn(uid, object : LogInCallback {
-                    override fun onReceived(customerInfo: CustomerInfo, created: Boolean) {}
-                    override fun onError(error: PurchasesError) {
-                        android.util.Log.w("RevenueCatManager", "logIn échoué : ${error.message}")
-                    }
-                })
-            } else if (!Purchases.sharedInstance.isAnonymous) {
-                Purchases.sharedInstance.logOut(object : ReceiveCustomerInfoCallback {
-                    override fun onReceived(customerInfo: CustomerInfo) {}
-                    override fun onError(error: PurchasesError) {
-                        android.util.Log.w("RevenueCatManager", "logOut échoué : ${error.message}")
-                    }
-                })
+                try {
+                    Purchases.sharedInstance.logIn(uid, object : LogInCallback {
+                        override fun onReceived(customerInfo: CustomerInfo, created: Boolean) {}
+                        override fun onError(error: PurchasesError) {
+                            android.util.Log.w("RevenueCatManager", "logIn échoué : ${error.message}")
+                        }
+                    })
+                } catch (e: Exception) {
+                    android.util.Log.w("RevenueCatManager", "Exception lors de logIn: ${e.message}")
+                }
+            } else try {
+                if (!Purchases.sharedInstance.isAnonymous) {
+                    Purchases.sharedInstance.logOut(object : ReceiveCustomerInfoCallback {
+                        override fun onReceived(customerInfo: CustomerInfo) {}
+                        override fun onError(error: PurchasesError) {
+                            android.util.Log.w("RevenueCatManager", "logOut échoué : ${error.message}")
+                        }
+                    })
+                }
+            } catch (e: Exception) {
+                android.util.Log.w("RevenueCatManager", "Exception lors de logOut: ${e.message}")
             }
         }
     }

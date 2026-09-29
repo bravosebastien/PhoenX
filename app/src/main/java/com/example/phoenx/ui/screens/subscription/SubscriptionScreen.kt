@@ -348,26 +348,40 @@ fun SubscriptionScreen(
                     targetTier = tier,
                     priceFormatted = pkg.product.price.formatted,
                     onConfirmPurchase = {
-                        val purchaseParams = PurchaseParams.Builder(activity, pkg).build()
-                        Purchases.sharedInstance.purchase(
-                            purchaseParams,
-                            object : PurchaseCallback {
-                                override fun onCompleted(
-                                    storeTransaction: StoreTransaction,
-                                    customerInfo: CustomerInfo
-                                ) {
-                                    viewModel.refresh()
-                                    selectedTierForConfirmation = null
-                                }
+                        if (!Purchases.isConfigured) {
+                            android.widget.Toast.makeText(
+                                context,
+                                "Service de paiement non disponible (SDK non configuré)",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                            selectedTierForConfirmation = null
+                            return@SubscriptionConfirmationDialog
+                        }
+                        try {
+                            val purchaseParams = PurchaseParams.Builder(activity, pkg).build()
+                            Purchases.sharedInstance.purchase(
+                                purchaseParams,
+                                object : PurchaseCallback {
+                                    override fun onCompleted(
+                                        storeTransaction: StoreTransaction,
+                                        customerInfo: CustomerInfo
+                                    ) {
+                                        viewModel.refresh()
+                                        selectedTierForConfirmation = null
+                                    }
 
-                                override fun onError(
-                                    error: PurchasesError,
-                                    userCancelled: Boolean
-                                ) {
-                                    selectedTierForConfirmation = null
+                                    override fun onError(
+                                        error: PurchasesError,
+                                        userCancelled: Boolean
+                                    ) {
+                                        selectedTierForConfirmation = null
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        } catch (e: Exception) {
+                            android.util.Log.e("SubscriptionScreen", "Erreur lors de l'achat", e)
+                            selectedTierForConfirmation = null
+                        }
                     },
                     onDismiss = {
                         selectedTierForConfirmation = null
