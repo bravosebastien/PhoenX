@@ -2611,4 +2611,14 @@
     <string name="question_text_s8">如果要用一句话总结你的人生，你会怎么说？</string>
     <string name="question_text_s9">你对平静的定义是什么？</string>
     <string name="question_text_s10">你留下的最珍贵的东西是什么？</string>
+
+    <string name="recipient_badge_purchased">已购买</string>
+    <string name="recipient_badge_paused">已暂停</string>
+
+    <!-- LOT D Subscription, Downgrade & Continuity Strings -->
+    <string name="subscription_confirm_dialog_prestige_text">PRESTIGE 为一年期订阅。您的回忆、接收人和家谱没有任何上限；您的照片、视频和音频拥有充沛的初始额度（500张照片、50个视频、100个音频），每月按时补充（+100、+10、+20）并自动累积。您创建的一切都将永久传承给您选择的人。如果您未续费，将自动转入“延续”模式：所有接收人和保管人保持激活状态。如果您降至更低层级，仅超出的免费接收人会被暂停，绝不会被删除；您购买的接收人将永久保持激活。</string>
+    <string name="subscription_confirm_dialog_prestige_more_text">无论您的订阅状态如何，您的回忆、照片、视频和音频都将永久保持可见并传承。延续与更低层级的唯一区别在于无需选择即可保持激活的接收人和保管人数量。</string>
+    <string name="subscription_confirm_dialog_generic_text">%1$s 包含 %2$d 位激活的接收人。如果您日后降至更低层级，超出的免费接收人将被暂停——绝不会被删除，您购买的接收人也将永久保持激活。您创建的任何内容都不会丢失。</string>
+    <string name="downgrade_selection_dialog_description">您构建的一切都不会丢失，也绝不会被删除。%1$s 包含 %2$d 位激活的接收人；超出部分中通过旧订阅免费包含的接收人将被暂停。请在下方选择要保持激活的接收人，或让最早创建的接收人自动保持激活。</string>
+    <string name="continuity_landing_screen_text">您的 PRESTIGE 订阅未续费。请放心：您创建的所有内容仍将按计划完整传承给您选择的人。您的账户自动转入“延续”模式：所有接收人和保管人保持激活状态。您可以随时恢复 PRESTIGE 订阅。</string>
 </resources>

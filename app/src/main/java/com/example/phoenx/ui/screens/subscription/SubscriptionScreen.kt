@@ -49,6 +49,7 @@ fun SubscriptionScreen(
     val activity = context as? Activity
 
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy", Locale.FRENCH) }
+    var selectedTierForConfirmation by remember { mutableStateOf<Pair<com.example.phoenx.data.subscription.BillingTierInfo, Package>?>(null) }
 
     Scaffold(
         containerColor = theme.backgroundColor,
@@ -221,7 +222,8 @@ fun SubscriptionScreen(
                     // ── LISTE DES PALIERS D'ABONNEMENT ──
                     items(billing.tiers) { tier ->
                         val isCurrent = tier.key == billing.currentTierKey
-                        val pkg = viewModel.packageForProductId(tier.monthlyProductId)
+                        val targetProductId = tier.monthlyProductId ?: tier.annualProductId
+                        val pkg = viewModel.packageForProductId(targetProductId)
 
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -306,25 +308,7 @@ fun SubscriptionScreen(
                                     if (pkg != null && activity != null) {
                                         Button(
                                             onClick = {
-                                                val purchaseParams = PurchaseParams.Builder(activity, pkg).build()
-                                                Purchases.sharedInstance.purchase(
-                                                    purchaseParams,
-                                                    object : PurchaseCallback {
-                                                        override fun onCompleted(
-                                                            storeTransaction: StoreTransaction,
-                                                            customerInfo: CustomerInfo
-                                                        ) {
-                                                            viewModel.refresh()
-                                                        }
-
-                                                        override fun onError(
-                                                            error: PurchasesError,
-                                                            userCancelled: Boolean
-                                                        ) {
-                                                            // Géré sans planter
-                                                        }
-                                                    }
-                                                )
+                                                selectedTierForConfirmation = tier to pkg
                                             },
                                             modifier = Modifier
                                                 .fillMaxWidth()
@@ -354,6 +338,41 @@ fun SubscriptionScreen(
                         }
                     }
                 }
+            }
+        }
+
+        // ── DIALOGUE DE CONFIRMATION DE SOUSCRIPTION (ÉCRAN 1 LOT D) ──
+        selectedTierForConfirmation?.let { (tier, pkg) ->
+            if (activity != null) {
+                SubscriptionConfirmationDialog(
+                    targetTier = tier,
+                    priceFormatted = pkg.product.price.formatted,
+                    onConfirmPurchase = {
+                        val purchaseParams = PurchaseParams.Builder(activity, pkg).build()
+                        Purchases.sharedInstance.purchase(
+                            purchaseParams,
+                            object : PurchaseCallback {
+                                override fun onCompleted(
+                                    storeTransaction: StoreTransaction,
+                                    customerInfo: CustomerInfo
+                                ) {
+                                    viewModel.refresh()
+                                    selectedTierForConfirmation = null
+                                }
+
+                                override fun onError(
+                                    error: PurchasesError,
+                                    userCancelled: Boolean
+                                ) {
+                                    selectedTierForConfirmation = null
+                                }
+                            }
+                        )
+                    },
+                    onDismiss = {
+                        selectedTierForConfirmation = null
+                    }
+                )
             }
         }
     }

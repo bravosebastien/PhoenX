@@ -2611,4 +2611,14 @@
     <string name="question_text_s8">¿Si tuvieras que resumir tu vida en una frase?</string>
     <string name="question_text_s9">¿Cuál es tu definición de paz?</string>
     <string name="question_text_s10">¿Qué dejas atrás que sea más valioso?</string>
+
+    <string name="recipient_badge_purchased">Comprado</string>
+    <string name="recipient_badge_paused">Pausado</string>
+
+    <!-- LOT D Subscription, Downgrade & Continuity Strings -->
+    <string name="subscription_confirm_dialog_prestige_text">PRESTIGE es un compromiso de un año. Tus recuerdos, destinatarios y Árbol no tienen límite; tus fotos, vídeos y audios comienzan con un amplio capital (500 fotos, 50 vídeos, 100 audios) que se recarga cada mes (+100, +10, +20) y se acumula. Todo lo que crees será transmitido para siempre a quienes elijas. Si no renuevas, pasarás automáticamente a Continuidad: todos tus destinatarios y depositarios permanecen activos, solo la capacidad de añadir más allá del nivel Lignage queda suspendida. Si algún día bajas más allá de Continuidad, solo los destinatarios incluidos gratuitamente pasarán a pausa, nunca eliminados; cualquier destinatario comprado permanecerá activo para siempre.</string>
+    <string name="subscription_confirm_dialog_prestige_more_text">Tus recuerdos, fotos, vídeos y audios permanecen visibles y transmitidos para siempre. Continuidad y los niveles inferiores solo se diferencian en la cantidad de destinatarios y depositarios que permanecen activos sin tener que elegir.</string>
+    <string name="subscription_confirm_dialog_generic_text">%1$s incluye %2$d destinatarios activos. Si algún día bajas a un nivel inferior, los incluidos gratuitamente pasarán a pausa — nunca eliminados, y nunca los comprados, que permanecen activos para siempre. Nada de lo que creas se pierde.</string>
+    <string name="downgrade_selection_dialog_description">Nada de lo que has construido se pierde ni se eliminará. %1$s incluye %2$d destinatarios activos; más allá de eso, los incluidos gratuitamente pasarán a pausa. Elige a continuación cuáles mantener activos, o deja que los más antiguos lo sigan estando automáticamente.</string>
+    <string name="continuity_landing_screen_text">Tu suscripción PRESTIGE no ha sido renovada. Todo lo que creaste sigue transmitiéndose íntegramente. Tu cuenta pasa automáticamente a Continuidad: todos tus destinatarios y depositarios permanecen activos. Puedes retomar PRESTIGE en cualquier momento.</string>
 </resources>

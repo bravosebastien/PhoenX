@@ -2611,4 +2611,14 @@
     <string name="question_text_s8">Se dovessi riassumere la tua vita in una frase?</string>
     <string name="question_text_s9">Qual è la tua definizione di pace?</string>
     <string name="question_text_s10">Cosa lasci di più prezioso dietro di te?</string>
+
+    <string name="recipient_badge_purchased">Acquistato</string>
+    <string name="recipient_badge_paused">In pausa</string>
+
+    <!-- LOT D Subscription, Downgrade & Continuity Strings -->
+    <string name="subscription_confirm_dialog_prestige_text">PRESTIGE è un impegno di un anno. I tuoi ricordi, i tuoi destinatari e il tuo Albero non hanno limiti; foto, video e audio iniziano con un ampio capitale (500 foto, 50 video, 100 audio) che si ricarica ogni mese (+100, +10, +20) e si accumula. Tutto ciò che crei sarà trasmesso per sempre a chi hai scelto. Se non rinnovi, passerai automaticamente a Continuità: tutti i destinatari e depositari restano attivi. Se scendi sotto Continuità, solo i destinatari gratuiti in eccesso andranno in pausa, mai eliminati; i destinatari acquistati restano attivi per sempre.</string>
+    <string name="subscription_confirm_dialog_prestige_more_text">I tuoi ricordi, foto, video e audio rimangono visibili e trasmessi per sempre. Continuità e i livelli inferiori differiscono solo per il numero di destinatari e depositari attivi senza dover scegliere.</string>
+    <string name="subscription_confirm_dialog_generic_text">%1$s include %2$d destinatari attivi. Se scendi a un livello inferiore, quelli gratuiti in eccesso andranno in pausa — mai eliminati, e mai quelli acquistati. Nulla di ciò che crei va perso.</string>
+    <string name="downgrade_selection_dialog_description">Nulla di ciò che hai costruito va perso o verrà mai eliminato. %1$s include %2$d destinatari attivi; oltre questa soglia, quelli gratuiti andranno in pausa. Scegli qui sotto quali mantenere attivi, o lascia che i più anziani lo rimangano automaticamente.</string>
+    <string name="continuity_landing_screen_text">Il tuo abbonamento PRESTIGE non è stato rinnovato. Tutto ciò che hai creato rimane completamente trasmesso. Il tuo account passa automaticamente a Continuità: tutti i destinatari e depositari restano attivi. Puoi riprendere PRESTIGE in qualsiasi momento.</string>
 </resources>

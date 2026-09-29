@@ -825,4 +825,14 @@ object RoomMigrations {
             db.execSQL("ALTER TABLE rank_media ADD COLUMN localThumbnailPath TEXT")
         }
     }
+
+    /**
+     * MIGRATION_66_67 — Destinataires achetés & mise en pause v13.3 (LOT B & C)
+     */
+    val MIGRATION_66_67 = object : Migration(66, 67) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE recipients ADD COLUMN isPurchased INTEGER NOT NULL DEFAULT 0")
+            db.execSQL("ALTER TABLE recipients ADD COLUMN isPaused INTEGER NOT NULL DEFAULT 0")
+        }
+    }
 }

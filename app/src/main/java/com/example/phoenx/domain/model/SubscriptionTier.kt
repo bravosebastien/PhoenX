@@ -10,7 +10,8 @@ enum class SubscriptionTier {
     DECOUVERTE,
     ESSENCE,
     LIGNEE,
-    PRESTIGE;
+    PRESTIGE,
+    CONTINUITE;
 
     companion object {
         val DEFAULT = DECOUVERTE

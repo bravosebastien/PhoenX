@@ -2611,4 +2611,14 @@
     <string name="question_text_s8">If you had to summarize your life in one sentence?</string>
     <string name="question_text_s9">What is your definition of peace?</string>
     <string name="question_text_s10">What are you leaving behind that is most precious?</string>
+
+    <string name="recipient_badge_purchased">Purchased</string>
+    <string name="recipient_badge_paused">Paused</string>
+
+    <!-- LOT D Subscription, Downgrade & Continuity Strings -->
+    <string name="subscription_confirm_dialog_prestige_text">PRESTIGE is a one-year commitment. Your memories, recipients, and Family Tree have no limits; your photos, videos, and audios start with a generous capital (500 photos, 50 videos, 100 audios) that refills every month (+100, +10, +20) and accumulates. Everything you create will be transmitted forever to those you choose, no matter what happens to your subscription later. If you do not renew, you will automatically switch to Continuity: all your recipients and depositaries remain active, only the ability to add more beyond the Lineage tier is suspended until a new renewal. And if you ever downgrade lower than Continuity, only recipients and depositaries included for free beyond the new threshold will be paused, never deleted — you will always choose which ones to keep active; any recipient you purchased will remain active forever.</string>
+    <string name="subscription_confirm_dialog_prestige_more_text">Your memories, photos, videos, and audios remain visible and transmitted forever regardless of your subscription — this is our core pledge. Continuity and lower tiers differ in only one thing: the number of recipients and depositaries that remain active without you having to choose.</string>
+    <string name="subscription_confirm_dialog_generic_text">%1$s includes %2$d active recipients. If you ever downgrade to a lower tier, those included for free beyond the new limit will be paused — never deleted, and never those you purchased, which remain active forever. Nothing you create is ever lost.</string>
+    <string name="downgrade_selection_dialog_description">Nothing you built is lost, and nothing will ever be deleted. %1$s includes %2$d active recipients; beyond that, those included for free by your previous subscription will be paused — never those you purchased, which remain active forever. Choose below which ones to keep active, or let the oldest stay active automatically.</string>
+    <string name="continuity_landing_screen_text">Your PRESTIGE subscription was not renewed. Rest assured: everything you created remains fully transmitted as planned to those you chose. Your account automatically switches to Continuity: all your recipients and depositaries remain active, only the ability to add content beyond the Lineage tier is paused until renewal. You can resume PRESTIGE at any time to recover everything.</string>
 </resources>

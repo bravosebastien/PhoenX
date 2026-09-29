@@ -1,5 +1,6 @@
 import * as admin from "firebase-admin";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { onSchedule } from "firebase-functions/v2/scheduler";
 import {
     defaultBillingConfig,
     defaultTiersConfig,
@@ -756,6 +757,96 @@ export const adminGrantEntitlement = onCall({ region: "us-central1", invoker: "p
 
     await refreshEntitlementSummary(targetUid);
     return { success: true };
+});
+
+/**
+ * Tâche planifiée quotidienne (LOT F)
+ * Crédite le Capital Média mensuel pour tous les abonnés PRESTIGE actifs,
+ * en lisant les seuils et recharges depuis appConfig/billing (mediaCapitalConfig).
+ * Gère également la péremption à 12 mois des anciens crédits non utilisés.
+ */
+export const monthlyMediaCapitalRefill = onSchedule("every 24 hours", async () => {
+    const cfg = await loadBillingConfig();
+    const mediaCapCfg = cfg.billing?.mediaCapitalConfig || {
+        initial: { photos: 500, videos: 50, audios: 100 },
+        monthlyRefill: { photos: 100, videos: 10, audios: 20 },
+        expiryMonths: 12
+    };
+
+    const now = Date.now();
+    const expiryMs = mediaCapCfg.expiryMonths * 30 * 24 * 3600 * 1000;
+
+    // Récupérer les abonnés PRESTIGE
+    const prestigeSnap = await db.collection("users")
+        .where("subscriptionTier", "==", "PRESTIGE")
+        .get();
+
+    const nowObj = new Date();
+    const currentMonthId = `${nowObj.getFullYear()}-${String(nowObj.getMonth() + 1).padStart(2, "0")}`;
+
+    for (const doc of prestigeSnap.docs) {
+        const uid = doc.id;
+        const ledgerRef = db.collection("users").doc(uid).collection("mediaLedger");
+        const currentMonthDoc = await ledgerRef.doc(currentMonthId).get();
+
+        if (!currentMonthDoc.exists) {
+            // Déterminer s'il s'agit du tout premier crédit PRESTIGE pour ce compte
+            const existingLedger = await ledgerRef.limit(1).get();
+            const isFirstGrant = existingLedger.empty;
+
+            const grantValues = isFirstGrant ? mediaCapCfg.initial : mediaCapCfg.monthlyRefill;
+
+            await ledgerRef.doc(currentMonthId).set({
+                monthId: currentMonthId,
+                photosGranted: grantValues.photos,
+                videosGranted: grantValues.videos,
+                audiosGranted: grantValues.audios,
+                photosUsed: 0,
+                videosUsed: 0,
+                audiosUsed: 0,
+                grantedAt: admin.firestore.FieldValue.serverTimestamp(),
+                expiresAt: admin.firestore.Timestamp.fromMillis(now + expiryMs)
+            });
+
+            console.log(`[mediaCapitalRefill] Crédité ${currentMonthId} pour ${uid} (${isFirstGrant ? "initial" : "mensuel"})`);
+        }
+    }
+});
+
+/**
+ * Retourne le solde de Capital Média disponible (PRESTIGE) (LOT F)
+ */
+export const getUserMediaCapital = onCall({ region: "us-central1", invoker: "public" }, async (request) => {
+    if (!request.auth) {
+        throw new HttpsError("unauthenticated", "Authentification requise");
+    }
+    const uid = request.auth.uid;
+
+    const now = admin.firestore.Timestamp.now();
+    const ledgerSnap = await db.collection("users").doc(uid).collection("mediaLedger")
+        .where("expiresAt", ">", now)
+        .get();
+
+    let totalPhotosAvailable = 0;
+    let totalVideosAvailable = 0;
+    let totalAudiosAvailable = 0;
+
+    ledgerSnap.docs.forEach(doc => {
+        const data = doc.data();
+        const pRem = Math.max(0, (data.photosGranted || 0) - (data.photosUsed || 0));
+        const vRem = Math.max(0, (data.videosGranted || 0) - (data.videosUsed || 0));
+        const aRem = Math.max(0, (data.audiosGranted || 0) - (data.audiosUsed || 0));
+
+        totalPhotosAvailable += pRem;
+        totalVideosAvailable += vRem;
+        totalAudiosAvailable += aRem;
+    });
+
+    return {
+        photos: totalPhotosAvailable,
+        videos: totalVideosAvailable,
+        audios: totalAudiosAvailable
+    };
 });
 
 export const adminGrantCredits = onCall({ region: "us-central1", invoker: "public" }, async (request) => {

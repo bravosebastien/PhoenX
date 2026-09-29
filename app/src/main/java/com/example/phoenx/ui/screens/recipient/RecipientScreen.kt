@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -170,14 +171,43 @@ fun RecipientCard(recipient: RecipientEntity, onDelete: () -> Unit, onClick: () 
             }
             Spacer(modifier = Modifier.width(20.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    recipient.name, 
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        fontFamily = theme.fontFamily,
-                        fontWeight = FontWeight.Bold
-                    ), 
-                    color = theme.contentColor
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        recipient.name, 
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            fontFamily = theme.fontFamily,
+                            fontWeight = FontWeight.Bold
+                        ), 
+                        color = theme.contentColor
+                    )
+                    if (recipient.isPurchased) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = accent.copy(alpha = 0.2f)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.recipient_badge_purchased),
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                                color = accent,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    } else if (recipient.isPaused) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.recipient_badge_paused),
+                                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp, fontWeight = FontWeight.Bold),
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
                 Text(recipient.relationship, style = MaterialTheme.typography.labelSmall, color = accent)
                 Text(recipient.email, style = MaterialTheme.typography.bodySmall, color = theme.contentColor.copy(alpha = 0.6f))
             }

@@ -95,7 +95,9 @@ import {
     getMyBillingState,
     redeemPromoCode,
     adminGrantEntitlement,
-    adminGrantCredits
+    adminGrantCredits,
+    monthlyMediaCapitalRefill,
+    getUserMediaCapital
 } from "./billing";
 
 export {
@@ -179,5 +181,7 @@ export {
     getMyBillingState,
     redeemPromoCode,
     adminGrantEntitlement,
-    adminGrantCredits
+    adminGrantCredits,
+    monthlyMediaCapitalRefill,
+    getUserMediaCapital
 };

@@ -9,6 +9,7 @@ import com.example.phoenx.data.local.RecipientEntity
 import com.example.phoenx.data.local.StandaloneMediaEntity
 import com.example.phoenx.data.local.StandaloneMediaDao
 import com.example.phoenx.data.media.MediaManager
+import com.example.phoenx.data.sync.toRecipientEntity
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
@@ -175,17 +176,7 @@ class RecipientViewModel @Inject constructor(
                     .collection("recipients").get().await()
                 
                 snapshot.documents.forEach { doc ->
-                    val recipient = RecipientEntity(
-                        id = doc.id,
-                        name = doc.getString("name") ?: "",
-                        email = doc.getString("email") ?: "",
-                        relationship = doc.getString("relationship") ?: "",
-                        canAskQuestions = doc.getBoolean("canAskQuestions") ?: false,
-                        maxQuestionsAllowed = doc.getLong("maxQuestionsAllowed")?.toInt(),
-                        linkedUid = doc.getString("linkedUid"), // v9.2
-                        photoUrl = doc.getString("photoUrl") // v9.2.2
-                    )
-                    offlineEntryDao.insertRecipient(recipient)
+                    offlineEntryDao.insertRecipient(doc.toRecipientEntity())
                 }
             } catch (e: Exception) {
                 android.util.Log.e("RecipientVM", "Erreur sync Firestore -> Room", e)
@@ -193,7 +184,14 @@ class RecipientViewModel @Inject constructor(
         }
     }
 
-    fun addRecipient(name: String, email: String, relationship: String, phone: String? = null, imageUri: android.net.Uri? = null) {
+    fun addRecipient(
+        name: String,
+        email: String,
+        relationship: String,
+        phone: String? = null,
+        imageUri: android.net.Uri? = null,
+        isPurchased: Boolean = false
+    ) {
         val userId = auth.currentUser?.uid ?: return
         // Analytics (v13.2) : déterminé AVANT l'ajout, pour distinguer le tout premier Destinataire.
         val isFirstRecipient = (uiState.value as? RecipientUiState.Success)?.recipients?.isEmpty() ?: true
@@ -220,7 +218,9 @@ class RecipientViewModel @Inject constructor(
                     "phone" to phone,
                     "relationship" to relationship,
                     "status" to "invited",
-                    "photoUrl" to finalPhotoUrl
+                    "photoUrl" to finalPhotoUrl,
+                    "isPurchased" to isPurchased,
+                    "isPaused" to false
                 )
                 val docRef = db.collection("users").document(userId)
                     .collection("recipients").add(recipientData).await()
@@ -232,7 +232,9 @@ class RecipientViewModel @Inject constructor(
                     email = email,
                     phone = phone,
                     relationship = relationship,
-                    photoUrl = finalPhotoUrl
+                    photoUrl = finalPhotoUrl,
+                    isPurchased = isPurchased,
+                    isPaused = false
                 )
                 offlineEntryDao.insertRecipient(recipient)
 
@@ -261,6 +263,59 @@ class RecipientViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 android.util.Log.e("RecipientVM", "Erreur ajout destinataire", e)
+            }
+        }
+    }
+
+    /**
+     * Modification du statut de mise en pause d'un destinataire (LOT C)
+     * Un destinataire ACHETÉ ne peut JAMAIS être mis en pause.
+     */
+    fun updateRecipientPauseState(recipientId: String, isPaused: Boolean) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                val recipients = (uiState.value as? RecipientUiState.Success)?.recipients ?: return@launch
+                val recipient = recipients.find { it.id == recipientId } ?: return@launch
+                if (recipient.isPurchased && isPaused) {
+                    // Un destinataire acheté ne peut jamais être mis en pause
+                    return@launch
+                }
+                val updated = recipient.copy(isPaused = isPaused)
+                offlineEntryDao.insertRecipient(updated)
+                db.collection("users").document(userId)
+                    .collection("recipients").document(recipientId)
+                    .update("isPaused", isPaused).await()
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientVM", "Erreur modification statut pause destinataire", e)
+            }
+        }
+    }
+
+    /**
+     * Application globale de la sélection des destinataires à conserver actifs lors d'une rétrogradation (LOT C / LOT D)
+     */
+    fun applyDowngradeRecipientPauseSelection(
+        activeIncludedRecipientIdsToKeep: Set<String>
+    ) {
+        val userId = auth.currentUser?.uid ?: return
+        viewModelScope.launch {
+            try {
+                val recipients = (uiState.value as? RecipientUiState.Success)?.recipients ?: return@launch
+                
+                // Les destinataires achetés ne sont JAMAIS mis en pause
+                recipients.filter { !it.isPurchased }.forEach { recipient ->
+                    val shouldBePaused = !activeIncludedRecipientIdsToKeep.contains(recipient.id)
+                    if (recipient.isPaused != shouldBePaused) {
+                        val updated = recipient.copy(isPaused = shouldBePaused)
+                        offlineEntryDao.insertRecipient(updated)
+                        db.collection("users").document(userId)
+                            .collection("recipients").document(recipient.id)
+                            .update("isPaused", shouldBePaused)
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("RecipientVM", "Erreur application selection pause destinataires", e)
             }
         }
     }

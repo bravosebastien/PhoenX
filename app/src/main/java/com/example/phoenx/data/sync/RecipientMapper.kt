@@ -21,7 +21,9 @@ fun RecipientEntity.toFirestoreMap(): Map<String, Any?> {
         "photoUrl" to photoUrl,
         "createdAt" to createdAt,
         "phone" to phone,
-        "linkedUid" to linkedUid
+        "linkedUid" to linkedUid,
+        "isPurchased" to isPurchased,
+        "isPaused" to isPaused
     )
 }
 
@@ -44,6 +46,8 @@ fun DocumentSnapshot.toRecipientEntity(): RecipientEntity {
         photoUrl = getString("photoUrl"),
         createdAt = getLong("createdAt") ?: System.currentTimeMillis(),
         phone = getString("phone"),
-        linkedUid = getString("linkedUid")
+        linkedUid = getString("linkedUid"),
+        isPurchased = getBoolean("isPurchased") ?: false,
+        isPaused = getBoolean("isPaused") ?: false
     )
 }

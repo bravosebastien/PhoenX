@@ -2611,4 +2611,14 @@
         <item>Matches</item>
         <item>Momentos</item>
     </string-array>
+
+    <string name="recipient_badge_purchased">Comprado</string>
+    <string name="recipient_badge_paused">Pausado</string>
+
+    <!-- LOT D Subscription, Downgrade & Continuity Strings -->
+    <string name="subscription_confirm_dialog_prestige_text">PRESTIGE é um compromisso de um ano. Suas memórias, destinatários e Árvore não têm limites; fotos, vídeos e áudios começam com um amplo capital (500 fotos, 50 vídeos, 100 áudios) que recarrega a cada mês (+100, +10, +20) e se acumula. Tudo o que criar será transmitido para sempre a quem escolher. Se não renovar, passará automaticamente para Continuidade: todos os seus destinatários e depositários permanecem ativos. Se descer abaixo de Continuidade, apenas os destinatários gratuitos excedentes ficam em pausa, nunca excluídos; destinatários comprados permanecem ativos para sempre.</string>
+    <string name="subscription_confirm_dialog_prestige_more_text">Suas memórias, fotos, vídeos e áudios permanecem visíveis e transmitidos para sempre. Continuidade e níveis inferiores diferem apenas na quantidade de destinatários e depositários que permanecem ativos sem precisar escolher.</string>
+    <string name="subscription_confirm_dialog_generic_text">%1$s inclui %2$d destinatários ativos. Se descer para um nível inferior, os gratuitos excedentes ficarão em pausa — nunca excluídos, e nunca os comprados. Nada do que cria é perdido.</string>
+    <string name="downgrade_selection_dialog_description">Nada do que construiu é perdido e nada será excluído. %1$s inclui %2$d destinatários ativos; além disso, os gratuitos excedentes ficarão em pausa. Escolha abaixo quais manter ativos, ou deixe os mais antigos ativos automaticamente.</string>
+    <string name="continuity_landing_screen_text">Sua assinatura PRESTIGE não foi renovada. Tudo o que criou continua totalmente transmitido. Sua conta passa automaticamente para Continuidade: todos os destinatários e depositários permanecem ativos. Pode retomar o PRESTIGE a qualquer momento.</string>
 </resources>

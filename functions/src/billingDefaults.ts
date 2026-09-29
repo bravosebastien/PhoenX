@@ -34,7 +34,13 @@ export const defaultBillingConfig = {
     // Durée de validité en jours des crédits achetés (null = illimité)
     purchasedCreditsExpireDays: null as number | null,
     // Essai inversé automatique à la création du compte (Reverse Trial)
-    reverseTrial: { enabled: false, tier: "ESSENCE", days: 30 }
+    reverseTrial: { enabled: false, tier: "ESSENCE", days: 30 },
+    // Configuration du Capital Média mensuel (PRESTIGE) - Modifiable via Firestore appConfig/billing
+    mediaCapitalConfig: {
+        initial: { photos: 500, videos: 50, audios: 100 },
+        monthlyRefill: { photos: 100, videos: 10, audios: 20 },
+        expiryMonths: 12
+    }
 };
 
 // 2. Définition des 4 paliers d'abonnement (Paliers DECOUVERTE, ESSENCE, LIGNEE, PRESTIGE)
@@ -65,13 +71,14 @@ export const defaultTiersConfig = {
             recipientAmbiance: false
         },
         limits: {
+            souvenirs: 5,
             recipients: 1,
             depositaries: 2,
             witnesses: 1,
             notificationContacts: 3,
-            photos: 25,
-            videos: 2,
-            audios: 5,
+            photos: 10,
+            videos: 1,
+            audios: 2,
             storageMb: 250,
             videoMaxSeconds: 90,
             youngSelfLetters: 1,
@@ -81,7 +88,9 @@ export const defaultTiersConfig = {
             personalities: 3,
             reconciliations: 0,
             capsules: 0,
-            bookMaxPages: 0
+            bookMaxPages: 0,
+            treePersons: 5,
+            locationMemories: 0
         }
     },
     ESSENCE: {
@@ -91,6 +100,54 @@ export const defaultTiersConfig = {
         highlight: false,
         revenueCatEntitlement: "essence",
         storeProductIds: { monthly: "phoenx_essence_monthly", annual: "phoenx_essence_annual" },
+        stripePriceIds: { monthly: null as string | null, annual: null as string | null },
+        monthlyBookPages: 20,
+        freePageEvery: null as number | null,
+        features: {
+            genealogy: true,
+            portraits: true,
+            literary: true,
+            mappemonde: true,
+            encounters: true,
+            hundredQuestions: true,
+            askQuestion: true,
+            mirror: true,
+            livingLink: true,
+            essencePortrait: true,
+            book: true,
+            bookEnrichedSources: true,
+            recipientAmbiance: true
+        },
+        limits: {
+            souvenirs: 40,
+            recipients: 3,
+            depositaries: 2,
+            witnesses: 5,
+            notificationContacts: 10,
+            photos: 150,
+            videos: 10,
+            audios: 20,
+            storageMb: 5000,
+            videoMaxSeconds: 90,
+            youngSelfLetters: 10,
+            vaultEnigmas: 10,
+            ultimateSecrets: 1,
+            rankings: 10,
+            personalities: -1,
+            reconciliations: 3,
+            capsules: 5,
+            bookMaxPages: 20,
+            treePersons: 30,
+            locationMemories: 5
+        }
+    },
+    LIGNEE: {
+        rank: 2,
+        name: { fr: "Lignée", en: "Lineage" },
+        tagline: { fr: "L'expérience complète pour rassembler toute votre famille", en: "The complete experience to bring your entire family together" },
+        highlight: true,
+        revenueCatEntitlement: "lignee",
+        storeProductIds: { monthly: "phoenx_lignee_monthly", annual: "phoenx_lignee_annual" },
         stripePriceIds: { monthly: null as string | null, annual: null as string | null },
         monthlyBookPages: 80,
         freePageEvery: null as number | null,
@@ -110,58 +167,14 @@ export const defaultTiersConfig = {
             recipientAmbiance: true
         },
         limits: {
-            recipients: 6,
-            depositaries: 3,
-            witnesses: 5,
-            notificationContacts: 10,
-            photos: 750,
-            videos: 40,
-            audios: 150,
-            storageMb: 5000,
-            videoMaxSeconds: 90,
-            youngSelfLetters: -1,
-            vaultEnigmas: 10,
-            ultimateSecrets: 1,
-            rankings: 10,
-            personalities: -1,
-            reconciliations: 3,
-            capsules: 5,
-            bookMaxPages: 80
-        }
-    },
-    LIGNEE: {
-        rank: 2,
-        name: { fr: "Lignée", en: "Lineage" },
-        tagline: { fr: "L'expérience complète pour rassembler toute votre famille", en: "The complete experience to bring your entire family together" },
-        highlight: true,
-        revenueCatEntitlement: "lignee",
-        storeProductIds: { monthly: "phoenx_lignee_monthly", annual: "phoenx_lignee_annual" },
-        stripePriceIds: { monthly: null as string | null, annual: null as string | null },
-        monthlyBookPages: 160,
-        freePageEvery: null as number | null,
-        features: {
-            genealogy: true,
-            portraits: true,
-            literary: true,
-            mappemonde: true,
-            encounters: true,
-            hundredQuestions: true,
-            askQuestion: true,
-            mirror: true,
-            livingLink: true,
-            essencePortrait: true,
-            book: true,
-            bookEnrichedSources: true,
-            recipientAmbiance: true
-        },
-        limits: {
-            recipients: 15,
+            souvenirs: 100,
+            recipients: 10,
             depositaries: 3,
             witnesses: 10,
             notificationContacts: 25,
-            photos: 2500,
-            videos: 150,
-            audios: 500,
+            photos: 500,
+            videos: 50,
+            audios: 100,
             storageMb: 20000,
             videoMaxSeconds: 90,
             youngSelfLetters: -1,
@@ -171,7 +184,9 @@ export const defaultTiersConfig = {
             personalities: -1,
             reconciliations: -1,
             capsules: 20,
-            bookMaxPages: 80
+            bookMaxPages: 80,
+            treePersons: -1,
+            locationMemories: 25
         }
     },
     PRESTIGE: {
@@ -180,9 +195,9 @@ export const defaultTiersConfig = {
         tagline: { fr: "Sans limite de mémoire pour transmettre un patrimoine illimité", en: "Unlimited memory to pass on a limitless heritage" },
         highlight: false,
         revenueCatEntitlement: "prestige",
-        storeProductIds: { monthly: "phoenx_prestige_monthly", annual: "phoenx_prestige_annual" },
+        storeProductIds: { monthly: null as string | null, annual: "phoenx_prestige_annual" },
         stripePriceIds: { monthly: null as string | null, annual: null as string | null },
-        monthlyBookPages: 400,
+        monthlyBookPages: 200,
         freePageEvery: null as number | null,
         features: {
             genealogy: true,
@@ -200,13 +215,14 @@ export const defaultTiersConfig = {
             recipientAmbiance: true
         },
         limits: {
+            souvenirs: -1,
             recipients: -1,
             depositaries: 5,
             witnesses: -1,
             notificationContacts: -1,
-            photos: 10000,
-            videos: 400,
-            audios: -1,
+            photos: 500,
+            videos: 50,
+            audios: 100,
             storageMb: 60000,
             videoMaxSeconds: 90,
             youngSelfLetters: -1,
@@ -216,7 +232,57 @@ export const defaultTiersConfig = {
             personalities: -1,
             reconciliations: -1,
             capsules: -1,
-            bookMaxPages: 200
+            bookMaxPages: 200,
+            treePersons: -1,
+            locationMemories: -1
+        }
+    },
+    CONTINUITE: {
+        rank: 4,
+        name: { fr: "Continuité", en: "Continuity" },
+        tagline: { fr: "Maintenez la transmission active de votre patrimoine Prestige", en: "Maintain active transmission of your Prestige heritage" },
+        highlight: false,
+        revenueCatEntitlement: "continuite",
+        storeProductIds: { monthly: "phoenx_continuite_monthly", annual: null as string | null },
+        stripePriceIds: { monthly: null as string | null, annual: null as string | null },
+        monthlyBookPages: 80,
+        freePageEvery: null as number | null,
+        features: {
+            genealogy: true,
+            portraits: true,
+            literary: true,
+            mappemonde: true,
+            encounters: true,
+            hundredQuestions: true,
+            askQuestion: true,
+            mirror: true,
+            livingLink: true,
+            essencePortrait: true,
+            book: true,
+            bookEnrichedSources: true,
+            recipientAmbiance: true
+        },
+        limits: {
+            souvenirs: 100,
+            recipients: 10,
+            depositaries: 3,
+            witnesses: 10,
+            notificationContacts: 25,
+            photos: 500,
+            videos: 50,
+            audios: 100,
+            storageMb: 20000,
+            videoMaxSeconds: 90,
+            youngSelfLetters: -1,
+            vaultEnigmas: -1,
+            ultimateSecrets: 3,
+            rankings: -1,
+            personalities: -1,
+            reconciliations: -1,
+            capsules: 20,
+            bookMaxPages: 80,
+            treePersons: -1,
+            locationMemories: 25
         }
     }
 };

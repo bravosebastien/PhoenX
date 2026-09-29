@@ -27,5 +27,9 @@ data class RecipientEntity(
     val transmissionFontId: String = "playfair_display",
 
     // v9.4.29 : Affichage des photos de proches dans le livre
-    val showPersonPhotos: Boolean = false
+    val showPersonPhotos: Boolean = false,
+
+    // NOUVEAU MODÈLE D'ABONNEMENT v13.3 (Migration v67)
+    val isPurchased: Boolean = false, // Destinataire acheté, permanent (LOT B)
+    val isPaused: Boolean = false     // Destinataire mis en pause suite à rétrogradation (LOT C)
 )

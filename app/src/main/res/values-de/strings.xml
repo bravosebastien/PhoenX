@@ -2610,4 +2610,14 @@
         <item>Matches</item>
         <item>Momente</item>
     </string-array>
+
+    <string name="recipient_badge_purchased">Gekauft</string>
+    <string name="recipient_badge_paused">Pausiert</string>
+
+    <!-- LOT D Subscription, Downgrade & Continuity Strings -->
+    <string name="subscription_confirm_dialog_prestige_text">PRESTIGE ist eine einjährige Verpflichtung. Ihre Erinnerungen, Empfänger und Ihr Stammbaum haben keine Grenzen; Fotos, Videos und Audios beginnen mit einem großen Kapital (500 Fotos, 50 Videos, 100 Audios), das sich jeden Monat auflädt (+100, +10, +20) und summiert. Alles wird für immer an die gewählten Personen übertragen. Bei Nichtverlängerung wechseln Sie automatisch zu Kontinuität: Alle Empfänger und Verwahrer bleiben aktiv. Falls Sie niedriger wechseln, werden nur kostenlose Zusatzempfänger pausiert, niemals gelöscht; gekaufte Empfänger bleiben immer aktiv.</string>
+    <string name="subscription_confirm_dialog_prestige_more_text">Ihre Erinnerungen, Fotos, Videos und Audios bleiben immer sichtbar und übertragen. Kontinuität und niedrigere Stufen unterscheiden sich nur in der Anzahl aktiver Empfänger und Verwahrer.</string>
+    <string name="subscription_confirm_dialog_generic_text">%1$s enthält %2$d aktive Empfänger. Wenn Sie auf eine niedrigere Stufe wechseln, werden kostenlose Zusatzempfänger pausiert — niemals gelöscht und niemals gekaufte Empfänger. Nichts geht verloren.</string>
+    <string name="downgrade_selection_dialog_description">Nichts von dem, was Sie aufgebaut haben, geht verloren. %1$s enthält %2$d aktive Empfänger; darüber hinaus werden kostenlose Zusatzempfänger pausiert. Wählen Sie unten, welche aktiv bleiben sollen.</string>
+    <string name="continuity_landing_screen_text">Ihr PRESTIGE-Abonnement wurde nicht verlängert. Alles Erstellte bleibt vollständig übertragen. Ihr Konto wechselt automatisch zu Kontinuität: Alle Empfänger und Verwahrer bleiben aktiv. Sie können PRESTIGE jederzeit wieder aufnehmen.</string>
 </resources>
